@@ -1,0 +1,56 @@
+import type { PrismaClient } from '@prisma/client';
+import type { Document } from '@/domain/document/Document.js';
+import type {
+  IDocumentRepository,
+  CreateDocumentData,
+} from '@/use-cases/ports/IDocumentRepository.js';
+
+export class PrismaDocumentRepository implements IDocumentRepository {
+  private readonly db: PrismaClient;
+
+  constructor({ prisma }: { prisma: PrismaClient }) {
+    this.db = prisma;
+  }
+
+  async findAllByApplicationId(applicationId: string): Promise<Document[]> {
+    const rows = await this.db.document.findMany({
+      where: { applicationId },
+      orderBy: { createdAt: 'desc' },
+    });
+    return rows.map(this.toEntity);
+  }
+
+  async findById(id: string): Promise<Document | null> {
+    const row = await this.db.document.findUnique({ where: { id } });
+    return row ? this.toEntity(row) : null;
+  }
+
+  async create(data: CreateDocumentData): Promise<Document> {
+    const row = await this.db.document.create({ data });
+    return this.toEntity(row);
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.db.document.delete({ where: { id } });
+  }
+
+  private toEntity(row: {
+    id: string;
+    applicationId: string;
+    name: string;
+    mimeType: string;
+    sizeBytes: number;
+    storageKey: string;
+    createdAt: Date;
+  }): Document {
+    return {
+      id: row.id,
+      applicationId: row.applicationId,
+      name: row.name,
+      mimeType: row.mimeType,
+      sizeBytes: row.sizeBytes,
+      storageKey: row.storageKey,
+      createdAt: row.createdAt,
+    };
+  }
+}

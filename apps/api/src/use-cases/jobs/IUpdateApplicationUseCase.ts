@@ -1,0 +1,20 @@
+import type { Application } from '@/domain/application/Application.js';
+import type { ApplicationStatus } from '@/domain/application/ApplicationStatus.js';
+
+export interface UpdateApplicationInput {
+  userId: string;
+  applicationId: string;
+  company?: string;
+  role?: string;
+  status?: ApplicationStatus;
+  jobUrl?: string | null;
+  location?: string | null;
+  salaryRange?: string | null;
+  description?: string | null;
+}
+
+export type UpdateApplicationOutput = Application;
+
+export interface IUpdateApplicationUseCase {
+  execute(input: UpdateApplicationInput): Promise<UpdateApplicationOutput>;
+}

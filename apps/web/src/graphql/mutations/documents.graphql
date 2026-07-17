@@ -1,0 +1,22 @@
+mutation RequestUploadUrl($input: RequestUploadUrlInput!) {
+  requestUploadUrl(input: $input) {
+    uploadUrl
+    storageKey
+  }
+}
+
+mutation ConfirmDocument($input: ConfirmDocumentInput!) {
+  confirmDocument(input: $input) {
+    id
+    applicationId
+    name
+    mimeType
+    sizeBytes
+    url
+    createdAt
+  }
+}
+
+mutation DeleteDocument($id: ID!) {
+  deleteDocument(id: $id)
+}

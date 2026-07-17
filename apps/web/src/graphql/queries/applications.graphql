@@ -1,0 +1,30 @@
+query Applications($status: ApplicationStatus) {
+  applications(status: $status) {
+    id
+    company
+    role
+    status
+    jobUrl
+    location
+    salaryRange
+    appliedAt
+    createdAt
+    updatedAt
+  }
+}
+
+query Application($id: ID!) {
+  application(id: $id) {
+    id
+    company
+    role
+    status
+    jobUrl
+    location
+    salaryRange
+    description
+    appliedAt
+    createdAt
+    updatedAt
+  }
+}

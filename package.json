@@ -1,0 +1,26 @@
+{
+  "name": "job-finder",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "clean": "turbo run clean",
+    "db:generate": "turbo run db:generate --filter=@job-finder/api",
+    "db:migrate": "turbo run db:migrate --filter=@job-finder/api"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.5",
+    "turbo": "^2.5.4",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.4"
+}

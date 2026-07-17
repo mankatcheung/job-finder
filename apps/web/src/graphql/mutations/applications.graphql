@@ -1,0 +1,35 @@
+mutation CreateApplication($input: CreateApplicationInput!) {
+  createApplication(input: $input) {
+    id
+    company
+    role
+    status
+    jobUrl
+    location
+    salaryRange
+    description
+    appliedAt
+    createdAt
+    updatedAt
+  }
+}
+
+mutation UpdateApplication($id: ID!, $input: UpdateApplicationInput!) {
+  updateApplication(id: $id, input: $input) {
+    id
+    company
+    role
+    status
+    jobUrl
+    location
+    salaryRange
+    description
+    appliedAt
+    createdAt
+    updatedAt
+  }
+}
+
+mutation DeleteApplication($id: ID!) {
+  deleteApplication(id: $id)
+}

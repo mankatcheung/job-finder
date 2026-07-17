@@ -1,0 +1,53 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "ui": "tui",
+  "globalEnv": [
+    "NODE_ENV",
+    "PORT",
+    "DATABASE_URL",
+    "DATABASE_AUTH_TOKEN",
+    "JWT_SECRET",
+    "JWT_REFRESH_SECRET",
+    "STORAGE_PROVIDER",
+    "R2_ENDPOINT",
+    "R2_BUCKET",
+    "R2_ACCESS_KEY_ID",
+    "R2_SECRET_ACCESS_KEY",
+    "CORS_ORIGIN",
+    "VITE_API_URL"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".output/**", "dist/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "cache": true
+    },
+    "db:generate": {
+      "cache": false
+    },
+    "db:migrate": {
+      "cache": false,
+      "dependsOn": ["db:generate"]
+    },
+    "test": {
+      "cache": true,
+      "outputs": ["coverage/**"]
+    },
+    "lint": {
+      "cache": true
+    },
+    "codegen": {
+      "cache": false
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}

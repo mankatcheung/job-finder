@@ -1,0 +1,11 @@
+node_modules
+dist
+.output
+.turbo
+*.db
+*.db-shm
+*.db-wal
+uploads/
+.env
+.env.local
+.env.*.local

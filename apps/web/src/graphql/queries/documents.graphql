@@ -1,0 +1,11 @@
+query Documents($applicationId: ID!) {
+  documents(applicationId: $applicationId) {
+    id
+    applicationId
+    name
+    mimeType
+    sizeBytes
+    url
+    createdAt
+  }
+}

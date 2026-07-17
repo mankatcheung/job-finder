@@ -1,0 +1,9 @@
+query Notes($applicationId: ID!) {
+  notes(applicationId: $applicationId) {
+    id
+    applicationId
+    content
+    createdAt
+    updatedAt
+  }
+}
