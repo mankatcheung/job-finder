@@ -3,13 +3,18 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { gqlClient } from '#/graphql/client';
 import { StatusBadge } from '../../dashboard';
-import { EditIcon, PlusIcon, Trash2Icon } from 'lucide-react';
+import { EditIcon, PlusIcon, StarIcon, Trash2Icon } from 'lucide-react';
 
 const APPLICATION_QUERY = `
   query Application($id: ID!) {
     application(id: $id) {
-      id company role status jobUrl location salaryRange description appliedAt createdAt updatedAt
+      id company role status jobUrl location salaryRange description appliedAt starred source followUpAt createdAt updatedAt
     }
+  }
+`;
+const UPDATE_STARRED = `
+  mutation UpdateApplication($id: ID!, $input: UpdateApplicationInput!) {
+    updateApplication(id: $id, input: $input) { id starred }
   }
 `;
 const NOTES_QUERY = `
@@ -40,6 +45,9 @@ type Application = {
   salaryRange?: string | null;
   description?: string | null;
   appliedAt?: string | null;
+  starred: boolean;
+  source?: string | null;
+  followUpAt?: string | null;
   createdAt: string;
 };
 type Note = {
@@ -91,6 +99,14 @@ export function ApplicationDetailPage() {
     mutationFn: (id: string) => gqlClient.request(DELETE_NOTE, { id }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notes', applicationId] }),
   });
+  const toggleStar = useMutation({
+    mutationFn: (starred: boolean) =>
+      gqlClient.request(UPDATE_STARRED, { id: applicationId, input: { starred } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['application', applicationId] });
+      qc.invalidateQueries({ queryKey: ['applications'] });
+    },
+  });
   const deleteApp = useMutation({
     mutationFn: () => gqlClient.request(DELETE_APPLICATION, { id: applicationId }),
     onSuccess: () => {
@@ -128,6 +144,17 @@ export function ApplicationDetailPage() {
           </div>
           <div className="flex items-center gap-2">
             <StatusBadge status={app.status} />
+            <button
+              onClick={() => toggleStar.mutate(!app.starred)}
+              className={`p-2 rounded-lg transition-colors ${
+                app.starred
+                  ? 'text-yellow-400 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
+                  : 'text-gray-400 hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
+              }`}
+              title={app.starred ? 'Unstar' : 'Star'}
+            >
+              <StarIcon size={16} className={app.starred ? 'fill-yellow-400' : ''} />
+            </button>
             <Link
               to="/applications/$applicationId/edit"
               params={{ applicationId }}
@@ -140,6 +167,7 @@ export function ApplicationDetailPage() {
                 if (confirm('Delete this application?')) deleteApp.mutate();
               }}
               className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+              title="Delete application"
             >
               <Trash2Icon size={16} />
             </button>
@@ -151,6 +179,14 @@ export function ApplicationDetailPage() {
           {app.salaryRange && <InfoItem label="Salary" value={app.salaryRange} />}
           {app.appliedAt && (
             <InfoItem label="Applied" value={new Date(app.appliedAt).toLocaleDateString()} />
+          )}
+          {app.source && <InfoItem label="Source" value={app.source} />}
+          {app.followUpAt && (
+            <InfoItem
+              label="Follow up"
+              value={new Date(app.followUpAt).toLocaleDateString()}
+              highlight={new Date(app.followUpAt) <= new Date()}
+            />
           )}
           {app.jobUrl && (
             <div className="col-span-2 sm:col-span-3">
@@ -277,11 +313,13 @@ export function ApplicationDetailPage() {
   );
 }
 
-function InfoItem({ label, value }: { label: string; value: string }) {
+function InfoItem({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div>
       <dt className="text-xs text-gray-400">{label}</dt>
-      <dd className="text-gray-700 dark:text-gray-300">{value}</dd>
+      <dd className={highlight ? 'text-orange-500 font-medium' : 'text-gray-700 dark:text-gray-300'}>
+        {value}
+      </dd>
     </div>
   );
 }

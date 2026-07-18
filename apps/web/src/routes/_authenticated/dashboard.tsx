@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
-import { BriefcaseIcon, CheckCircleIcon, ClockIcon, FileTextIcon } from 'lucide-react';
+import { AlertCircleIcon, BriefcaseIcon, CheckCircleIcon, ClockIcon, FileTextIcon, StarIcon } from 'lucide-react';
 
 const APPLICATIONS_QUERY = `
   query Applications {
@@ -10,12 +10,22 @@ const APPLICATIONS_QUERY = `
       company
       role
       status
+      starred
+      followUpAt
       createdAt
     }
   }
 `;
 
-type Application = { id: string; company: string; role: string; status: string; createdAt: string };
+type Application = {
+  id: string;
+  company: string;
+  role: string;
+  status: string;
+  starred: boolean;
+  followUpAt?: string | null;
+  createdAt: string;
+};
 
 export const Route = createFileRoute('/_authenticated/dashboard')({
   component: DashboardPage,
@@ -28,11 +38,13 @@ export function DashboardPage() {
   });
 
   const apps = data?.applications ?? [];
+  const now = new Date();
   const counts = {
     total: apps.length,
     applied: apps.filter((a) => a.status === 'applied').length,
     interviewing: apps.filter((a) => a.status === 'interviewing').length,
     offered: apps.filter((a) => a.status === 'offered').length,
+    overdue: apps.filter((a) => a.followUpAt && new Date(a.followUpAt) <= now).length,
   };
 
   return (
@@ -47,7 +59,7 @@ export function DashboardPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
         <StatCard
           label="Total"
           value={counts.total}
@@ -76,6 +88,13 @@ export function DashboardPage() {
           color="green"
           loading={isLoading}
         />
+        <StatCard
+          label="Follow-up due"
+          value={counts.overdue}
+          icon={<AlertCircleIcon size={20} />}
+          color="orange"
+          loading={isLoading}
+        />
       </div>
 
       <div>
@@ -101,22 +120,33 @@ export function DashboardPage() {
           </div>
         ) : (
           <div className="space-y-2">
-            {apps.slice(0, 8).map((app) => (
-              <Link
-                key={app.id}
-                to="/applications/$applicationId"
-                params={{ applicationId: app.id }}
-                className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
-              >
-                <div>
-                  <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                    {app.company}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{app.role}</p>
-                </div>
-                <StatusBadge status={app.status} />
-              </Link>
-            ))}
+            {apps.slice(0, 8).map((app) => {
+              const isOverdue = app.followUpAt && new Date(app.followUpAt) <= now;
+              return (
+                <Link
+                  key={app.id}
+                  to="/applications/$applicationId"
+                  params={{ applicationId: app.id }}
+                  className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    {app.starred && (
+                      <StarIcon size={13} className="text-yellow-400 fill-yellow-400 shrink-0" />
+                    )}
+                    {isOverdue && (
+                      <AlertCircleIcon size={13} className="text-orange-500 shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                        {app.company}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{app.role}</p>
+                    </div>
+                  </div>
+                  <StatusBadge status={app.status} />
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
@@ -142,6 +172,7 @@ function StatCard({
     indigo: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400',
     yellow: 'bg-yellow-50 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400',
     green: 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+    orange: 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
   };
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">

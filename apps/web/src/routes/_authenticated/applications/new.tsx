@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
+import { StarIcon } from 'lucide-react';
 
 const schema = z.object({
   company: z.string().min(1, 'Company is required'),
@@ -12,6 +13,9 @@ const schema = z.object({
   location: z.string().optional(),
   salaryRange: z.string().optional(),
   description: z.string().optional(),
+  source: z.string().optional(),
+  followUpAt: z.string().optional(),
+  starred: z.boolean().optional(),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -45,6 +49,9 @@ export function NewApplicationPage() {
         ...(data.location ? { location: data.location } : {}),
         ...(data.salaryRange ? { salaryRange: data.salaryRange } : {}),
         ...(data.description ? { description: data.description } : {}),
+        ...(data.source ? { source: data.source } : {}),
+        ...(data.followUpAt ? { followUpAt: data.followUpAt } : {}),
+        starred: data.starred ?? false,
       };
       const result = await gqlClient.request<{ createApplication: { id: string } }>(
         CREATE_MUTATION,
@@ -116,6 +123,34 @@ export function NewApplicationPage() {
             placeholder="Job description, notes…"
           />
         </Field>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Source">
+            <input
+              {...register('source')}
+              className={inputClass}
+              placeholder="LinkedIn, referral, Indeed…"
+            />
+          </Field>
+          <Field label="Follow-up date">
+            <input {...register('followUpAt')} className={inputClass} type="date" />
+          </Field>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <input
+            {...register('starred')}
+            id="starred-new"
+            type="checkbox"
+            className="w-4 h-4 rounded border-gray-300 text-yellow-400 focus:ring-yellow-400"
+          />
+          <label
+            htmlFor="starred-new"
+            className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none"
+          >
+            <StarIcon size={14} className="text-yellow-400" /> Star this application
+          </label>
+        </div>
 
         {errors.root && (
           <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">

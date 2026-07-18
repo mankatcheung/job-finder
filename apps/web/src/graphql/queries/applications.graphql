@@ -8,6 +8,9 @@ query Applications($status: ApplicationStatus) {
     location
     salaryRange
     appliedAt
+    starred
+    source
+    followUpAt
     createdAt
     updatedAt
   }
@@ -24,6 +27,9 @@ query Application($id: ID!) {
     salaryRange
     description
     appliedAt
+    starred
+    source
+    followUpAt
     createdAt
     updatedAt
   }

@@ -11,6 +11,9 @@ export interface Application {
   salaryRange: string | null;
   description: string | null;
   appliedAt: Date | null;
+  starred: boolean;
+  source: string | null;
+  followUpAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

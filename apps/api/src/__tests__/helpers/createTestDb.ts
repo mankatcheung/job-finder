@@ -23,6 +23,9 @@ const SCHEMA_STATEMENTS = [
     "salaryRange" TEXT,
     "description" TEXT,
     "appliedAt" DATETIME,
+    "starred" INTEGER NOT NULL DEFAULT 0,
+    "source" TEXT,
+    "followUpAt" DATETIME,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE

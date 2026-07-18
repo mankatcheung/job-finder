@@ -9,6 +9,9 @@ mutation CreateApplication($input: CreateApplicationInput!) {
     salaryRange
     description
     appliedAt
+    starred
+    source
+    followUpAt
     createdAt
     updatedAt
   }
@@ -25,6 +28,9 @@ mutation UpdateApplication($id: ID!, $input: UpdateApplicationInput!) {
     salaryRange
     description
     appliedAt
+    starred
+    source
+    followUpAt
     createdAt
     updatedAt
   }

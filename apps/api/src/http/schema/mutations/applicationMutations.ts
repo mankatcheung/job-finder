@@ -25,6 +25,9 @@ builder.mutationField('createApplication', (t) =>
         location: args.input.location ?? undefined,
         salaryRange: args.input.salaryRange ?? undefined,
         description: args.input.description ?? undefined,
+        starred: args.input.starred ?? undefined,
+        source: args.input.source ?? undefined,
+        followUpAt: args.input.followUpAt ? new Date(args.input.followUpAt) : undefined,
       });
     },
   }),
@@ -49,6 +52,11 @@ builder.mutationField('updateApplication', (t) =>
         location: args.input.location,
         salaryRange: args.input.salaryRange,
         description: args.input.description,
+        starred: args.input.starred ?? undefined,
+        source: args.input.source,
+        followUpAt: args.input.followUpAt !== undefined
+          ? (args.input.followUpAt ? new Date(args.input.followUpAt) : null)
+          : undefined,
       });
     },
   }),

@@ -27,6 +27,9 @@ export class UpdateApplicationUseCase implements IUpdateApplicationUseCase {
       location: input.location,
       salaryRange: input.salaryRange,
       description: input.description,
+      starred: input.starred,
+      source: input.source,
+      followUpAt: input.followUpAt,
       ...(appliedAt !== undefined ? { appliedAt } : {}),
     });
   }

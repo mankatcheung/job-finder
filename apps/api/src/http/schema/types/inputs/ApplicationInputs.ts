@@ -10,6 +10,9 @@ export const CreateApplicationInput = builder.inputType('CreateApplicationInput'
     location: t.string({ required: false }),
     salaryRange: t.string({ required: false }),
     description: t.string({ required: false }),
+    starred: t.boolean({ required: false }),
+    source: t.string({ required: false }),
+    followUpAt: t.string({ required: false }),
   }),
 });
 
@@ -22,5 +25,8 @@ export const UpdateApplicationInput = builder.inputType('UpdateApplicationInput'
     location: t.string({ required: false }),
     salaryRange: t.string({ required: false }),
     description: t.string({ required: false }),
+    starred: t.boolean({ required: false }),
+    source: t.string({ required: false }),
+    followUpAt: t.string({ required: false }),
   }),
 });
