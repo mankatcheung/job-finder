@@ -4,10 +4,14 @@ import { diContainer } from '@fastify/awilix';
 
 import { prisma } from '@/infrastructure/db/client.js';
 
+import { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
 import { PrismaUserRepository } from '@/infrastructure/db/repositories/PrismaUserRepository.js';
 import { PrismaApplicationRepository } from '@/infrastructure/db/repositories/PrismaApplicationRepository.js';
 import { PrismaNoteRepository } from '@/infrastructure/db/repositories/PrismaNoteRepository.js';
 import { PrismaDocumentRepository } from '@/infrastructure/db/repositories/PrismaDocumentRepository.js';
+import { CachedApplicationRepository } from '@/infrastructure/db/repositories/CachedApplicationRepository.js';
+import { CachedNoteRepository } from '@/infrastructure/db/repositories/CachedNoteRepository.js';
+import { CachedDocumentRepository } from '@/infrastructure/db/repositories/CachedDocumentRepository.js';
 
 import { LocalStorageProvider } from '@/infrastructure/storage/LocalStorageProvider.js';
 import { R2StorageProvider } from '@/infrastructure/storage/R2StorageProvider.js';
@@ -51,11 +55,18 @@ declare module '@fastify/awilix' {
     storageProvider: LocalStorageProvider | R2StorageProvider;
     generateId: () => string;
     fastify: FastifyInstance;
+    cache: MemoryCache;
 
+    // Raw Prisma repositories (used internally by the cached decorators)
     userRepository: PrismaUserRepository;
-    applicationRepository: PrismaApplicationRepository;
-    noteRepository: PrismaNoteRepository;
-    documentRepository: PrismaDocumentRepository;
+    prismaApplicationRepository: PrismaApplicationRepository;
+    prismaNoteRepository: PrismaNoteRepository;
+    prismaDocumentRepository: PrismaDocumentRepository;
+
+    // Cached repository decorators (what use-cases consume)
+    applicationRepository: CachedApplicationRepository;
+    noteRepository: CachedNoteRepository;
+    documentRepository: CachedDocumentRepository;
 
     applicationMapper: ApplicationMapper;
     noteMapper: NoteMapper;
@@ -100,14 +111,20 @@ export function buildContainer(fastify: FastifyInstance): void {
     storageProvider: asClass(StorageProvider, { lifetime: Lifetime.SINGLETON }),
     generateId: asValue(() => nanoid()),
     fastify: asValue(fastify),
+    cache: asValue(new MemoryCache()),
 
-    // Repositories
+    // Raw Prisma repositories
     userRepository: asClass(PrismaUserRepository, { lifetime: Lifetime.SINGLETON }),
-    applicationRepository: asClass(PrismaApplicationRepository, {
+    prismaApplicationRepository: asClass(PrismaApplicationRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
-    noteRepository: asClass(PrismaNoteRepository, { lifetime: Lifetime.SINGLETON }),
-    documentRepository: asClass(PrismaDocumentRepository, { lifetime: Lifetime.SINGLETON }),
+    prismaNoteRepository: asClass(PrismaNoteRepository, { lifetime: Lifetime.SINGLETON }),
+    prismaDocumentRepository: asClass(PrismaDocumentRepository, { lifetime: Lifetime.SINGLETON }),
+
+    // Cached decorator repositories
+    applicationRepository: asClass(CachedApplicationRepository, { lifetime: Lifetime.SINGLETON }),
+    noteRepository: asClass(CachedNoteRepository, { lifetime: Lifetime.SINGLETON }),
+    documentRepository: asClass(CachedDocumentRepository, { lifetime: Lifetime.SINGLETON }),
 
     // Mappers
     applicationMapper: asClass(ApplicationMapper, { lifetime: Lifetime.SINGLETON }),
