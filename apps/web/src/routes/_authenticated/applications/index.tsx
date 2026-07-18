@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
 import { StatusBadge } from '../dashboard';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
-import { BriefcaseIcon } from 'lucide-react';
+import { BriefcaseIcon, StarIcon } from 'lucide-react';
 import { z } from 'zod';
 
 const APPLICATION_STATUSES: ApplicationStatus[] = [
@@ -16,7 +16,7 @@ const APPLICATION_STATUSES: ApplicationStatus[] = [
   'withdrawn',
 ];
 
-const searchSchema = z.object({ status: z.string().optional() });
+const searchSchema = z.object({ status: z.string().optional(), starred: z.boolean().optional() });
 
 const APPLICATIONS_QUERY = `
   query Applications($status: ApplicationStatus) {
@@ -27,6 +27,9 @@ const APPLICATIONS_QUERY = `
       status
       location
       appliedAt
+      starred
+      source
+      followUpAt
       createdAt
     }
   }
@@ -39,6 +42,9 @@ type Application = {
   status: ApplicationStatus;
   location?: string | null;
   appliedAt?: string | null;
+  starred: boolean;
+  source?: string | null;
+  followUpAt?: string | null;
   createdAt: string;
 };
 
@@ -48,7 +54,7 @@ export const Route = createFileRoute('/_authenticated/applications/')({
 });
 
 export function ApplicationsPage() {
-  const { status } = Route.useSearch();
+  const { status, starred } = Route.useSearch();
 
   const { data, isLoading } = useQuery({
     queryKey: ['applications', status],
@@ -58,7 +64,8 @@ export function ApplicationsPage() {
       }),
   });
 
-  const apps = data?.applications ?? [];
+  const allApps = data?.applications ?? [];
+  const apps = starred ? allApps.filter((a) => a.starred) : allApps;
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
@@ -77,6 +84,18 @@ export function ApplicationsPage() {
         {APPLICATION_STATUSES.map((s) => (
           <FilterChip key={s} label={s} value={s} current={status} />
         ))}
+        <Link
+          to="/applications"
+          search={starred ? {} : { starred: true }}
+          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border capitalize transition-colors ${
+            starred
+              ? 'bg-yellow-400 text-white border-yellow-400'
+              : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-yellow-400'
+          }`}
+        >
+          <StarIcon size={11} className={starred ? 'fill-white' : ''} />
+          Starred
+        </Link>
       </div>
 
       {isLoading ? (
@@ -109,6 +128,9 @@ export function ApplicationsPage() {
                 </p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
+                {app.starred && (
+                  <StarIcon size={13} className="text-yellow-400 fill-yellow-400 shrink-0" />
+                )}
                 <p className="text-xs text-gray-400 hidden sm:block">
                   {app.appliedAt
                     ? new Date(app.appliedAt).toLocaleDateString()

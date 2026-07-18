@@ -31,6 +31,9 @@ describe('CreateApplicationUseCase', () => {
       location: 'Remote',
       salaryRange: null,
       description: null,
+      starred: false,
+      source: null,
+      followUpAt: null,
     });
   });
 

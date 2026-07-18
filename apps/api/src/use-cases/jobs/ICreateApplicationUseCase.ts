@@ -10,6 +10,9 @@ export interface CreateApplicationInput {
   location?: string;
   salaryRange?: string;
   description?: string;
+  starred?: boolean;
+  source?: string;
+  followUpAt?: Date | null;
 }
 
 export type CreateApplicationOutput = Application;

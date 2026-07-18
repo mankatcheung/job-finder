@@ -23,6 +23,9 @@ interface CreateInput {
   location?: string;
   salaryRange?: string;
   description?: string;
+  starred?: boolean;
+  source?: string;
+  followUpAt?: Date | null;
 }
 
 interface UpdateInput {
@@ -33,6 +36,9 @@ interface UpdateInput {
   location?: string | null;
   salaryRange?: string | null;
   description?: string | null;
+  starred?: boolean;
+  source?: string | null;
+  followUpAt?: Date | null;
 }
 
 export class ApplicationResolver {

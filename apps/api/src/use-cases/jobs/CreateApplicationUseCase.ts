@@ -20,6 +20,9 @@ export class CreateApplicationUseCase implements ICreateApplicationUseCase {
       location: input.location ?? null,
       salaryRange: input.salaryRange ?? null,
       description: input.description ?? null,
+      starred: input.starred ?? false,
+      source: input.source ?? null,
+      followUpAt: input.followUpAt ?? null,
     });
   }
 }

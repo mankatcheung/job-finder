@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
+import { StarIcon } from 'lucide-react';
 
 const APPLICATION_STATUSES = [
   'draft',
@@ -24,13 +25,16 @@ const schema = z.object({
   location: z.string().optional(),
   salaryRange: z.string().optional(),
   description: z.string().optional(),
+  source: z.string().optional(),
+  followUpAt: z.string().optional(),
+  starred: z.boolean().optional(),
 });
 type FormValues = z.infer<typeof schema>;
 
 const APPLICATION_QUERY = `
   query Application($id: ID!) {
     application(id: $id) {
-      id company role status jobUrl location salaryRange description appliedAt createdAt updatedAt
+      id company role status jobUrl location salaryRange description appliedAt starred source followUpAt createdAt updatedAt
     }
   }
 `;
@@ -49,6 +53,9 @@ type Application = {
   location?: string | null;
   salaryRange?: string | null;
   description?: string | null;
+  starred: boolean;
+  source?: string | null;
+  followUpAt?: string | null;
 };
 
 export const Route = createFileRoute('/_authenticated/applications/$applicationId/edit')({
@@ -82,6 +89,9 @@ export function EditApplicationPage() {
           location: app.location ?? '',
           salaryRange: app.salaryRange ?? '',
           description: app.description ?? '',
+          source: app.source ?? '',
+          followUpAt: app.followUpAt ? app.followUpAt.slice(0, 10) : '',
+          starred: app.starred,
         }
       : undefined,
   });
@@ -96,6 +106,9 @@ export function EditApplicationPage() {
         ...(data.location ? { location: data.location } : {}),
         ...(data.salaryRange ? { salaryRange: data.salaryRange } : {}),
         ...(data.description ? { description: data.description } : {}),
+        ...(data.source ? { source: data.source } : { source: null }),
+        ...(data.followUpAt ? { followUpAt: data.followUpAt } : { followUpAt: null }),
+        starred: data.starred ?? false,
       };
       await gqlClient.request(UPDATE_MUTATION, { id: applicationId, input });
       await queryClient.invalidateQueries({ queryKey: ['applications'] });
@@ -166,6 +179,34 @@ export function EditApplicationPage() {
         <Field label="Description / Notes">
           <textarea {...register('description')} className={`${inputClass} h-28 resize-none`} />
         </Field>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Source">
+            <input
+              {...register('source')}
+              className={inputClass}
+              placeholder="LinkedIn, referral, Indeed…"
+            />
+          </Field>
+          <Field label="Follow-up date">
+            <input {...register('followUpAt')} className={inputClass} type="date" />
+          </Field>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <input
+            {...register('starred')}
+            id="starred-edit"
+            type="checkbox"
+            className="w-4 h-4 rounded border-gray-300 text-yellow-400 focus:ring-yellow-400"
+          />
+          <label
+            htmlFor="starred-edit"
+            className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none"
+          >
+            <StarIcon size={14} className="text-yellow-400" /> Star this application
+          </label>
+        </div>
 
         {errors.root && (
           <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">

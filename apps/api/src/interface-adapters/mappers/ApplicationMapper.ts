@@ -12,6 +12,9 @@ export interface ApplicationDTO {
   salaryRange: string | null;
   description: string | null;
   appliedAt: string | null;
+  starred: boolean;
+  source: string | null;
+  followUpAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -29,6 +32,9 @@ export class ApplicationMapper {
       salaryRange: app.salaryRange,
       description: app.description,
       appliedAt: app.appliedAt?.toISOString() ?? null,
+      starred: app.starred,
+      source: app.source,
+      followUpAt: app.followUpAt?.toISOString() ?? null,
       createdAt: app.createdAt.toISOString(),
       updatedAt: app.updatedAt.toISOString(),
     };

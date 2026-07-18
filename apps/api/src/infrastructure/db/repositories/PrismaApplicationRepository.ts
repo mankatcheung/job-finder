@@ -18,6 +18,9 @@ type PrismaApp = {
   salaryRange: string | null;
   description: string | null;
   appliedAt: Date | null;
+  starred: boolean;
+  source: string | null;
+  followUpAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -60,6 +63,9 @@ export class PrismaApplicationRepository implements IApplicationRepository {
         location: data.location ?? null,
         salaryRange: data.salaryRange ?? null,
         description: data.description ?? null,
+        starred: data.starred ?? false,
+        source: data.source ?? null,
+        followUpAt: data.followUpAt ?? null,
       },
     });
     return this.toEntity(row);
@@ -77,6 +83,9 @@ export class PrismaApplicationRepository implements IApplicationRepository {
         ...(data.salaryRange !== undefined ? { salaryRange: data.salaryRange } : {}),
         ...(data.description !== undefined ? { description: data.description } : {}),
         ...(data.appliedAt !== undefined ? { appliedAt: data.appliedAt } : {}),
+        ...(data.starred !== undefined ? { starred: data.starred } : {}),
+        ...(data.source !== undefined ? { source: data.source } : {}),
+        ...(data.followUpAt !== undefined ? { followUpAt: data.followUpAt } : {}),
       },
     });
     return this.toEntity(row);
@@ -98,6 +107,9 @@ export class PrismaApplicationRepository implements IApplicationRepository {
       salaryRange: row.salaryRange,
       description: row.description,
       appliedAt: row.appliedAt,
+      starred: row.starred,
+      source: row.source,
+      followUpAt: row.followUpAt,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

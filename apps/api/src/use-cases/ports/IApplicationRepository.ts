@@ -11,6 +11,9 @@ export interface CreateApplicationData {
   location?: string | null;
   salaryRange?: string | null;
   description?: string | null;
+  starred?: boolean;
+  source?: string | null;
+  followUpAt?: Date | null;
 }
 
 export interface UpdateApplicationData {
@@ -22,6 +25,9 @@ export interface UpdateApplicationData {
   salaryRange?: string | null;
   description?: string | null;
   appliedAt?: Date | null;
+  starred?: boolean;
+  source?: string | null;
+  followUpAt?: Date | null;
 }
 
 export interface IApplicationRepository {

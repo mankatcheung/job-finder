@@ -47,6 +47,9 @@ const mockApp = {
   salaryRange: '$150k',
   description: 'Great role',
   appliedAt: '2024-03-01T00:00:00.000Z',
+  starred: false,
+  source: null,
+  followUpAt: null,
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',
 };
@@ -304,12 +307,8 @@ describe('ApplicationDetailPage', () => {
       expect(screen.getByText('Stripe')).toBeInTheDocument();
     });
 
-    // The delete app button is in the header - it's the first button with no accessible text
-    const allButtons = screen.getAllByRole('button');
-    const deleteAppBtn = allButtons.find(
-      (b) => !b.textContent?.trim() && b !== allButtons[allButtons.length - 1],
-    );
-    fireEvent.click(deleteAppBtn!);
+    const deleteAppBtn = screen.getByTitle('Delete application');
+    fireEvent.click(deleteAppBtn);
 
     await waitFor(() => {
       expect(mockGqlRequest).toHaveBeenCalledWith(

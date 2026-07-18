@@ -11,6 +11,9 @@ export interface UpdateApplicationInput {
   location?: string | null;
   salaryRange?: string | null;
   description?: string | null;
+  starred?: boolean;
+  source?: string | null;
+  followUpAt?: Date | null;
 }
 
 export type UpdateApplicationOutput = Application;
