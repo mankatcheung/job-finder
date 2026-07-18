@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { gqlClient } from '#/graphql/client';
 import { StatusBadge } from '../dashboard';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
-import { BriefcaseIcon, KanbanIcon, StarIcon } from 'lucide-react';
+import { BriefcaseIcon, KanbanIcon, SearchIcon, StarIcon, XIcon } from 'lucide-react';
 import { z } from 'zod';
 
 const APPLICATION_STATUSES: ApplicationStatus[] = [
@@ -26,6 +27,7 @@ const APPLICATIONS_QUERY = `
       role
       status
       location
+      description
       appliedAt
       starred
       source
@@ -41,6 +43,7 @@ type Application = {
   role: string;
   status: ApplicationStatus;
   location?: string | null;
+  description?: string | null;
   appliedAt?: string | null;
   starred: boolean;
   source?: string | null;
@@ -55,6 +58,13 @@ export const Route = createFileRoute('/_authenticated/applications/')({
 
 export function ApplicationsPage() {
   const { status, starred } = Route.useSearch();
+  const [searchInput, setSearchInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const t = setTimeout(() => setSearchTerm(searchInput.trim().toLowerCase()), 200);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['applications', status],
@@ -65,7 +75,16 @@ export function ApplicationsPage() {
   });
 
   const allApps = data?.applications ?? [];
-  const apps = starred ? allApps.filter((a) => a.starred) : allApps;
+  let apps = starred ? allApps.filter((a) => a.starred) : allApps;
+  if (searchTerm) {
+    apps = apps.filter(
+      (a) =>
+        a.company.toLowerCase().includes(searchTerm) ||
+        a.role.toLowerCase().includes(searchTerm) ||
+        (a.location ?? '').toLowerCase().includes(searchTerm) ||
+        (a.description ?? '').toLowerCase().includes(searchTerm),
+    );
+  }
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
@@ -85,6 +104,24 @@ export function ApplicationsPage() {
             + New
           </Link>
         </div>
+      </div>
+
+      <div className="relative mb-4">
+        <SearchIcon size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        <input
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="Search company, role, location…"
+          className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        {searchInput && (
+          <button
+            onClick={() => setSearchInput('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <XIcon size={14} />
+          </button>
+        )}
       </div>
 
       <div className="flex gap-2 mb-6 flex-wrap">
@@ -115,7 +152,7 @@ export function ApplicationsPage() {
       ) : apps.length === 0 ? (
         <div className="text-center py-16 text-gray-500 dark:text-gray-400">
           <BriefcaseIcon size={40} className="mx-auto mb-3 opacity-40" />
-          <p>No applications{status ? ` with status "${status}"` : ''} yet.</p>
+          <p>No applications{searchTerm ? ` matching "${searchTerm}"` : status ? ` with status "${status}"` : ''} yet.</p>
         </div>
       ) : (
         <div className="space-y-2">
