@@ -12,6 +12,8 @@ import { PrismaDocumentRepository } from '@/infrastructure/db/repositories/Prism
 import { CachedApplicationRepository } from '@/infrastructure/db/repositories/CachedApplicationRepository.js';
 import { CachedNoteRepository } from '@/infrastructure/db/repositories/CachedNoteRepository.js';
 import { CachedDocumentRepository } from '@/infrastructure/db/repositories/CachedDocumentRepository.js';
+import { PrismaInterviewRoundRepository } from '@/infrastructure/db/repositories/PrismaInterviewRoundRepository.js';
+import { CachedInterviewRoundRepository } from '@/infrastructure/db/repositories/CachedInterviewRoundRepository.js';
 
 import { LocalStorageProvider } from '@/infrastructure/storage/LocalStorageProvider.js';
 import { R2StorageProvider } from '@/infrastructure/storage/R2StorageProvider.js';
@@ -19,12 +21,14 @@ import { R2StorageProvider } from '@/infrastructure/storage/R2StorageProvider.js
 import { ApplicationMapper } from '@/interface-adapters/mappers/ApplicationMapper.js';
 import { NoteMapper } from '@/interface-adapters/mappers/NoteMapper.js';
 import { DocumentMapper } from '@/interface-adapters/mappers/DocumentMapper.js';
+import { InterviewRoundMapper } from '@/interface-adapters/mappers/InterviewRoundMapper.js';
 
 import { AuthResolver } from '@/interface-adapters/resolvers/AuthResolver.js';
 import { ApplicationResolver } from '@/interface-adapters/resolvers/ApplicationResolver.js';
 import { NoteResolver } from '@/interface-adapters/resolvers/NoteResolver.js';
 import { DocumentResolver } from '@/interface-adapters/resolvers/DocumentResolver.js';
 import { UserResolver } from '@/interface-adapters/resolvers/UserResolver.js';
+import { InterviewRoundResolver } from '@/interface-adapters/resolvers/InterviewRoundResolver.js';
 
 import { RegisterUseCase } from '@/use-cases/auth/RegisterUseCase.js';
 import { LoginUseCase } from '@/use-cases/auth/LoginUseCase.js';
@@ -45,6 +49,10 @@ import { UpdateEmailUseCase } from '@/use-cases/user/UpdateEmailUseCase.js';
 import { UpdatePasswordUseCase } from '@/use-cases/user/UpdatePasswordUseCase.js';
 import { DeleteAccountUseCase } from '@/use-cases/user/DeleteAccountUseCase.js';
 import { ExportUserDataUseCase } from '@/use-cases/user/ExportUserDataUseCase.js';
+import { CreateInterviewRoundUseCase } from '@/use-cases/interviewRounds/CreateInterviewRoundUseCase.js';
+import { GetInterviewRoundsUseCase } from '@/use-cases/interviewRounds/GetInterviewRoundsUseCase.js';
+import { UpdateInterviewRoundUseCase } from '@/use-cases/interviewRounds/UpdateInterviewRoundUseCase.js';
+import { DeleteInterviewRoundUseCase } from '@/use-cases/interviewRounds/DeleteInterviewRoundUseCase.js';
 
 import type { FastifyInstance } from 'fastify';
 
@@ -67,16 +75,20 @@ declare module '@fastify/awilix' {
     applicationRepository: CachedApplicationRepository;
     noteRepository: CachedNoteRepository;
     documentRepository: CachedDocumentRepository;
+    prismaInterviewRoundRepository: PrismaInterviewRoundRepository;
+    interviewRoundRepository: CachedInterviewRoundRepository;
 
     applicationMapper: ApplicationMapper;
     noteMapper: NoteMapper;
     documentMapper: DocumentMapper;
+    interviewRoundMapper: InterviewRoundMapper;
 
     authResolver: AuthResolver;
     applicationResolver: ApplicationResolver;
     noteResolver: NoteResolver;
     documentResolver: DocumentResolver;
     userResolver: UserResolver;
+    interviewRoundResolver: InterviewRoundResolver;
 
     registerUseCase: RegisterUseCase;
     loginUseCase: LoginUseCase;
@@ -97,6 +109,10 @@ declare module '@fastify/awilix' {
     updatePasswordUseCase: UpdatePasswordUseCase;
     deleteAccountUseCase: DeleteAccountUseCase;
     exportUserDataUseCase: ExportUserDataUseCase;
+    createInterviewRoundUseCase: CreateInterviewRoundUseCase;
+    getInterviewRoundsUseCase: GetInterviewRoundsUseCase;
+    updateInterviewRoundUseCase: UpdateInterviewRoundUseCase;
+    deleteInterviewRoundUseCase: DeleteInterviewRoundUseCase;
   }
 }
 
@@ -125,11 +141,14 @@ export function buildContainer(fastify: FastifyInstance): void {
     applicationRepository: asClass(CachedApplicationRepository, { lifetime: Lifetime.SINGLETON }),
     noteRepository: asClass(CachedNoteRepository, { lifetime: Lifetime.SINGLETON }),
     documentRepository: asClass(CachedDocumentRepository, { lifetime: Lifetime.SINGLETON }),
+    prismaInterviewRoundRepository: asClass(PrismaInterviewRoundRepository, { lifetime: Lifetime.SINGLETON }),
+    interviewRoundRepository: asClass(CachedInterviewRoundRepository, { lifetime: Lifetime.SINGLETON }),
 
     // Mappers
     applicationMapper: asClass(ApplicationMapper, { lifetime: Lifetime.SINGLETON }),
     noteMapper: asClass(NoteMapper, { lifetime: Lifetime.SINGLETON }),
     documentMapper: asClass(DocumentMapper, { lifetime: Lifetime.SINGLETON }),
+    interviewRoundMapper: asClass(InterviewRoundMapper, { lifetime: Lifetime.SINGLETON }),
 
     // Resolvers
     authResolver: asClass(AuthResolver, { lifetime: Lifetime.SINGLETON }),
@@ -137,6 +156,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     noteResolver: asClass(NoteResolver, { lifetime: Lifetime.SINGLETON }),
     documentResolver: asClass(DocumentResolver, { lifetime: Lifetime.SINGLETON }),
     userResolver: asClass(UserResolver, { lifetime: Lifetime.SINGLETON }),
+    interviewRoundResolver: asClass(InterviewRoundResolver, { lifetime: Lifetime.SINGLETON }),
 
     // Use Cases
     registerUseCase: asClass(RegisterUseCase, { lifetime: Lifetime.TRANSIENT }),
@@ -164,5 +184,9 @@ export function buildContainer(fastify: FastifyInstance): void {
     updatePasswordUseCase: asClass(UpdatePasswordUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteAccountUseCase: asClass(DeleteAccountUseCase, { lifetime: Lifetime.TRANSIENT }),
     exportUserDataUseCase: asClass(ExportUserDataUseCase, { lifetime: Lifetime.TRANSIENT }),
+    createInterviewRoundUseCase: asClass(CreateInterviewRoundUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getInterviewRoundsUseCase: asClass(GetInterviewRoundsUseCase, { lifetime: Lifetime.TRANSIENT }),
+    updateInterviewRoundUseCase: asClass(UpdateInterviewRoundUseCase, { lifetime: Lifetime.TRANSIENT }),
+    deleteInterviewRoundUseCase: asClass(DeleteInterviewRoundUseCase, { lifetime: Lifetime.TRANSIENT }),
   });
 }

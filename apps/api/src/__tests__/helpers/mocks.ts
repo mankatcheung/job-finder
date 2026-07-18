@@ -3,11 +3,13 @@ import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
 import type { IDocumentRepository } from '@/use-cases/ports/IDocumentRepository.js';
 import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
+import type { IInterviewRoundRepository } from '@/use-cases/ports/IInterviewRoundRepository.js';
 import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
 import type { User } from '@/domain/user/User.js';
 import type { Application } from '@/domain/application/Application.js';
 import type { Document } from '@/domain/document/Document.js';
 import type { Note } from '@/domain/note/Note.js';
+import type { InterviewRound } from '@/domain/interviewRound/InterviewRound.js';
 
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
@@ -40,6 +42,17 @@ export const makeDocumentRepository = (
 });
 
 export const makeNoteRepository = (overrides?: Partial<INoteRepository>): INoteRepository => ({
+  findAllByApplicationId: vi.fn(),
+  findById: vi.fn(),
+  create: vi.fn(),
+  update: vi.fn(),
+  delete: vi.fn(),
+  ...overrides,
+});
+
+export const makeInterviewRoundRepository = (
+  overrides?: Partial<IInterviewRoundRepository>,
+): IInterviewRoundRepository => ({
   findAllByApplicationId: vi.fn(),
   findById: vi.fn(),
   create: vi.fn(),
@@ -96,6 +109,20 @@ export const makeNote = (overrides?: Partial<Note>): Note => ({
   id: 'note-1',
   applicationId: 'app-1',
   content: 'Interviewed well, follow up next week.',
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+export const makeInterviewRound = (overrides?: Partial<InterviewRound>): InterviewRound => ({
+  id: 'round-1',
+  applicationId: 'app-1',
+  type: 'phone',
+  scheduledAt: null,
+  completedAt: null,
+  interviewerName: null,
+  notes: null,
+  outcome: 'pending',
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,
