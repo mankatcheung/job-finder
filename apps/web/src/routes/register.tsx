@@ -32,7 +32,7 @@ export const Route = createFileRoute('/register')({
   component: RegisterPage,
 });
 
-function RegisterPage() {
+export function RegisterPage() {
   const navigate = useNavigate();
   const {
     register,

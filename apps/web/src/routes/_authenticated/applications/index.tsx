@@ -47,7 +47,7 @@ export const Route = createFileRoute('/_authenticated/applications/')({
   component: ApplicationsPage,
 });
 
-function ApplicationsPage() {
+export function ApplicationsPage() {
   const { status } = Route.useSearch();
 
   const { data, isLoading } = useQuery({

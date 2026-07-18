@@ -21,7 +21,7 @@ export const Route = createFileRoute('/_authenticated/dashboard')({
   component: DashboardPage,
 });
 
-function DashboardPage() {
+export function DashboardPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['applications'],
     queryFn: () => gqlClient.request<{ applications: Application[] }>(APPLICATIONS_QUERY),

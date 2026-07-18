@@ -54,7 +54,7 @@ export const Route = createFileRoute('/_authenticated/applications/$applicationI
   component: ApplicationDetailPage,
 });
 
-function ApplicationDetailPage() {
+export function ApplicationDetailPage() {
   const { applicationId } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();

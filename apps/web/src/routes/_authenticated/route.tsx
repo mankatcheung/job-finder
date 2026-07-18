@@ -15,7 +15,7 @@ export const Route = createFileRoute('/_authenticated')({
   component: AuthenticatedLayout,
 });
 
-function AuthenticatedLayout() {
+export function AuthenticatedLayout() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {

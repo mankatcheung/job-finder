@@ -71,7 +71,7 @@ const labelCls = 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-function AccountPage() {
+export function AccountPage() {
   const navigate = useNavigate();
 
   // Email form

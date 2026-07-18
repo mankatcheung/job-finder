@@ -25,7 +25,7 @@ export const Route = createFileRoute('/_authenticated/applications/new')({
   component: NewApplicationPage,
 });
 
-function NewApplicationPage() {
+export function NewApplicationPage() {
   const navigate = useNavigate();
   const {
     register,
