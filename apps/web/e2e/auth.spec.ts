@@ -50,7 +50,7 @@ test.describe('Authentication flows', () => {
     await expect(page.getByText('Passwords do not match')).toBeVisible();
   });
 
-  test('authenticated users are redirected away from /login', async ({ page, context }) => {
+  test('authenticated users are redirected away from /login', async ({ page, context: _context }) => {
     const email = uniqueEmail();
     // Register and get authenticated
     await page.goto('/register');
