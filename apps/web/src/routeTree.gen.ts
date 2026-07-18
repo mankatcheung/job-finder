@@ -17,6 +17,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedApplicationsIndexRouteImport } from './routes/_authenticated/applications/index'
 import { Route as AuthenticatedApplicationsNewRouteImport } from './routes/_authenticated/applications/new'
+import { Route as AuthenticatedApplicationsBoardRouteImport } from './routes/_authenticated/applications/board'
 import { Route as AuthenticatedApplicationsApplicationIdIndexRouteImport } from './routes/_authenticated/applications/$applicationId/index'
 import { Route as AuthenticatedApplicationsApplicationIdEditRouteImport } from './routes/_authenticated/applications/$applicationId/edit'
 
@@ -61,6 +62,12 @@ const AuthenticatedApplicationsNewRoute =
     path: '/applications/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedApplicationsBoardRoute =
+  AuthenticatedApplicationsBoardRouteImport.update({
+    id: '/applications/board',
+    path: '/applications/board',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedApplicationsApplicationIdIndexRoute =
   AuthenticatedApplicationsApplicationIdIndexRouteImport.update({
     id: '/applications/$applicationId/',
@@ -80,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/account': typeof AuthenticatedAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/applications/board': typeof AuthenticatedApplicationsBoardRoute
   '/applications/new': typeof AuthenticatedApplicationsNewRoute
   '/applications/': typeof AuthenticatedApplicationsIndexRoute
   '/applications/$applicationId/edit': typeof AuthenticatedApplicationsApplicationIdEditRoute
@@ -91,6 +99,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/account': typeof AuthenticatedAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/applications/board': typeof AuthenticatedApplicationsBoardRoute
   '/applications/new': typeof AuthenticatedApplicationsNewRoute
   '/applications': typeof AuthenticatedApplicationsIndexRoute
   '/applications/$applicationId/edit': typeof AuthenticatedApplicationsApplicationIdEditRoute
@@ -104,6 +113,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/applications/board': typeof AuthenticatedApplicationsBoardRoute
   '/_authenticated/applications/new': typeof AuthenticatedApplicationsNewRoute
   '/_authenticated/applications/': typeof AuthenticatedApplicationsIndexRoute
   '/_authenticated/applications/$applicationId/edit': typeof AuthenticatedApplicationsApplicationIdEditRoute
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/account'
     | '/dashboard'
+    | '/applications/board'
     | '/applications/new'
     | '/applications/'
     | '/applications/$applicationId/edit'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/account'
     | '/dashboard'
+    | '/applications/board'
     | '/applications/new'
     | '/applications'
     | '/applications/$applicationId/edit'
@@ -140,6 +152,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/_authenticated/account'
     | '/_authenticated/dashboard'
+    | '/_authenticated/applications/board'
     | '/_authenticated/applications/new'
     | '/_authenticated/applications/'
     | '/_authenticated/applications/$applicationId/edit'
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApplicationsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/applications/board': {
+      id: '/_authenticated/applications/board'
+      path: '/applications/board'
+      fullPath: '/applications/board'
+      preLoaderRoute: typeof AuthenticatedApplicationsBoardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/applications/$applicationId/': {
       id: '/_authenticated/applications/$applicationId/'
       path: '/applications/$applicationId'
@@ -231,6 +251,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedApplicationsBoardRoute: typeof AuthenticatedApplicationsBoardRoute
   AuthenticatedApplicationsNewRoute: typeof AuthenticatedApplicationsNewRoute
   AuthenticatedApplicationsIndexRoute: typeof AuthenticatedApplicationsIndexRoute
   AuthenticatedApplicationsApplicationIdEditRoute: typeof AuthenticatedApplicationsApplicationIdEditRoute
@@ -240,6 +261,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedApplicationsBoardRoute: AuthenticatedApplicationsBoardRoute,
   AuthenticatedApplicationsNewRoute: AuthenticatedApplicationsNewRoute,
   AuthenticatedApplicationsIndexRoute: AuthenticatedApplicationsIndexRoute,
   AuthenticatedApplicationsApplicationIdEditRoute:
