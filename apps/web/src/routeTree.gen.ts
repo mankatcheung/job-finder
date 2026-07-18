@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedApplicationsIndexRouteImport } from './routes/_authenticated/applications/index'
 import { Route as AuthenticatedApplicationsNewRouteImport } from './routes/_authenticated/applications/new'
@@ -43,6 +44,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/account': typeof AuthenticatedAccountRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/applications/board': typeof AuthenticatedApplicationsBoardRoute
   '/applications/new': typeof AuthenticatedApplicationsNewRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/account': typeof AuthenticatedAccountRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/applications/board': typeof AuthenticatedApplicationsBoardRoute
   '/applications/new': typeof AuthenticatedApplicationsNewRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
+  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/applications/board': typeof AuthenticatedApplicationsBoardRoute
   '/_authenticated/applications/new': typeof AuthenticatedApplicationsNewRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/account'
+    | '/analytics'
     | '/dashboard'
     | '/applications/board'
     | '/applications/new'
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/account'
+    | '/analytics'
     | '/dashboard'
     | '/applications/board'
     | '/applications/new'
@@ -151,6 +162,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/_authenticated/account'
+    | '/_authenticated/analytics'
     | '/_authenticated/dashboard'
     | '/_authenticated/applications/board'
     | '/_authenticated/applications/new'
@@ -203,6 +215,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/analytics': {
+      id: '/_authenticated/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/account': {
       id: '/_authenticated/account'
       path: '/account'
@@ -250,6 +269,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
+  AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedApplicationsBoardRoute: typeof AuthenticatedApplicationsBoardRoute
   AuthenticatedApplicationsNewRoute: typeof AuthenticatedApplicationsNewRoute
@@ -260,6 +280,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
+  AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedApplicationsBoardRoute: AuthenticatedApplicationsBoardRoute,
   AuthenticatedApplicationsNewRoute: AuthenticatedApplicationsNewRoute,
