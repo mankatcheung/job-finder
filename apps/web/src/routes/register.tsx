@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
-import { isAuthenticated } from '#/lib/auth';
+import { isAuthenticated, getIsAuthenticated } from '#/lib/auth';
 import { queryClient } from '#/lib/queryClient';
 
 const schema = z.object({
@@ -19,10 +19,9 @@ const REGISTER_MUTATION = `
 `;
 
 export const Route = createFileRoute('/register')({
-  beforeLoad: () => {
-    if (typeof window !== 'undefined' && isAuthenticated()) {
-      throw redirect({ to: '/dashboard' });
-    }
+  beforeLoad: async () => {
+    const authed = typeof window !== 'undefined' ? isAuthenticated() : await getIsAuthenticated();
+    if (authed) throw redirect({ to: '/dashboard' });
   },
   component: RegisterPage,
 });
