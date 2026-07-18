@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, redirect, useNavigate } from '@tanstack/react-
 import { isAuthenticated, getIsAuthenticated } from '#/lib/auth';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
-import { BriefcaseIcon, LayoutDashboardIcon, LogOutIcon, UserIcon } from 'lucide-react';
+import { BarChart2Icon, BriefcaseIcon, LayoutDashboardIcon, LogOutIcon, UserIcon } from 'lucide-react';
 
 const LOGOUT_MUTATION = `mutation { logout }`;
 
@@ -34,6 +34,7 @@ export function AuthenticatedLayout() {
         <nav className="flex-1 px-3 py-4 space-y-1">
           <NavItem to="/dashboard" icon={<LayoutDashboardIcon size={18} />} label="Dashboard" />
           <NavItem to="/applications" icon={<BriefcaseIcon size={18} />} label="Applications" />
+          <NavItem to="/analytics" icon={<BarChart2Icon size={18} />} label="Analytics" />
         </nav>
 
         <div className="px-3 pb-2 space-y-1">
