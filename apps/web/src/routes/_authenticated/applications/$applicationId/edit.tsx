@@ -55,7 +55,7 @@ export const Route = createFileRoute('/_authenticated/applications/$applicationI
   component: EditApplicationPage,
 });
 
-function EditApplicationPage() {
+export function EditApplicationPage() {
   const { applicationId } = Route.useParams();
   const navigate = useNavigate();
 
