@@ -1,10 +1,12 @@
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
 import type { IDocumentRepository } from '@/use-cases/ports/IDocumentRepository.js';
+import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
 import type { IConfirmDocumentUseCase, ConfirmDocumentInput, ConfirmDocumentOutput } from '@/use-cases/documents/IConfirmDocumentUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;
   documentRepository: IDocumentRepository;
+  activityLogRepository?: IActivityLogRepository;
   generateId: () => string;
 }
 
@@ -20,7 +22,7 @@ export class ConfirmDocumentUseCase implements IConfirmDocumentUseCase {
       throw Object.assign(new Error('Forbidden'), { code: 'FORBIDDEN' });
     }
 
-    return this.deps.documentRepository.create({
+    const doc = await this.deps.documentRepository.create({
       id: this.deps.generateId(),
       applicationId: input.applicationId,
       storageKey: input.storageKey,
@@ -28,5 +30,15 @@ export class ConfirmDocumentUseCase implements IConfirmDocumentUseCase {
       mimeType: input.mimeType,
       sizeBytes: input.sizeBytes,
     });
+
+    await this.deps.activityLogRepository?.append({
+      id: this.deps.generateId(),
+      applicationId: input.applicationId,
+      actorId: input.userId,
+      eventType: 'document_uploaded',
+      payload: JSON.stringify({ documentId: doc.id, name: doc.name }),
+    });
+
+    return doc;
   }
 }

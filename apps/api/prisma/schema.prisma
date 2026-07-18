@@ -32,13 +32,26 @@ model JobApplication {
   followUpAt  DateTime?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   interviewRounds InterviewRound[]
-  notes       Note[]
-  documents   Document[]
+  notes           Note[]
+  documents       Document[]
+  activityLogs    ActivityLog[]
 
   @@index([userId])
   @@index([userId, status])
+}
+
+model ActivityLog {
+  id            String         @id
+  applicationId String
+  actorId       String
+  eventType     String
+  payload       String
+  createdAt     DateTime       @default(now())
+  application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
 }
 
 model InterviewRound {

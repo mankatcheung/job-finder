@@ -14,6 +14,7 @@ import { CachedNoteRepository } from '@/infrastructure/db/repositories/CachedNot
 import { CachedDocumentRepository } from '@/infrastructure/db/repositories/CachedDocumentRepository.js';
 import { PrismaInterviewRoundRepository } from '@/infrastructure/db/repositories/PrismaInterviewRoundRepository.js';
 import { CachedInterviewRoundRepository } from '@/infrastructure/db/repositories/CachedInterviewRoundRepository.js';
+import { PrismaActivityLogRepository } from '@/infrastructure/db/repositories/PrismaActivityLogRepository.js';
 
 import { LocalStorageProvider } from '@/infrastructure/storage/LocalStorageProvider.js';
 import { R2StorageProvider } from '@/infrastructure/storage/R2StorageProvider.js';
@@ -22,6 +23,7 @@ import { ApplicationMapper } from '@/interface-adapters/mappers/ApplicationMappe
 import { NoteMapper } from '@/interface-adapters/mappers/NoteMapper.js';
 import { DocumentMapper } from '@/interface-adapters/mappers/DocumentMapper.js';
 import { InterviewRoundMapper } from '@/interface-adapters/mappers/InterviewRoundMapper.js';
+import { ActivityLogMapper } from '@/interface-adapters/mappers/ActivityLogMapper.js';
 
 import { AuthResolver } from '@/interface-adapters/resolvers/AuthResolver.js';
 import { ApplicationResolver } from '@/interface-adapters/resolvers/ApplicationResolver.js';
@@ -29,6 +31,7 @@ import { NoteResolver } from '@/interface-adapters/resolvers/NoteResolver.js';
 import { DocumentResolver } from '@/interface-adapters/resolvers/DocumentResolver.js';
 import { UserResolver } from '@/interface-adapters/resolvers/UserResolver.js';
 import { InterviewRoundResolver } from '@/interface-adapters/resolvers/InterviewRoundResolver.js';
+import { ActivityLogResolver } from '@/interface-adapters/resolvers/ActivityLogResolver.js';
 
 import { RegisterUseCase } from '@/use-cases/auth/RegisterUseCase.js';
 import { LoginUseCase } from '@/use-cases/auth/LoginUseCase.js';
@@ -53,6 +56,7 @@ import { CreateInterviewRoundUseCase } from '@/use-cases/interviewRounds/CreateI
 import { GetInterviewRoundsUseCase } from '@/use-cases/interviewRounds/GetInterviewRoundsUseCase.js';
 import { UpdateInterviewRoundUseCase } from '@/use-cases/interviewRounds/UpdateInterviewRoundUseCase.js';
 import { DeleteInterviewRoundUseCase } from '@/use-cases/interviewRounds/DeleteInterviewRoundUseCase.js';
+import { GetActivityLogsUseCase } from '@/use-cases/activityLogs/GetActivityLogsUseCase.js';
 
 import type { FastifyInstance } from 'fastify';
 
@@ -77,11 +81,13 @@ declare module '@fastify/awilix' {
     documentRepository: CachedDocumentRepository;
     prismaInterviewRoundRepository: PrismaInterviewRoundRepository;
     interviewRoundRepository: CachedInterviewRoundRepository;
+    activityLogRepository: PrismaActivityLogRepository;
 
     applicationMapper: ApplicationMapper;
     noteMapper: NoteMapper;
     documentMapper: DocumentMapper;
     interviewRoundMapper: InterviewRoundMapper;
+    activityLogMapper: ActivityLogMapper;
 
     authResolver: AuthResolver;
     applicationResolver: ApplicationResolver;
@@ -89,6 +95,7 @@ declare module '@fastify/awilix' {
     documentResolver: DocumentResolver;
     userResolver: UserResolver;
     interviewRoundResolver: InterviewRoundResolver;
+    activityLogResolver: ActivityLogResolver;
 
     registerUseCase: RegisterUseCase;
     loginUseCase: LoginUseCase;
@@ -113,6 +120,7 @@ declare module '@fastify/awilix' {
     getInterviewRoundsUseCase: GetInterviewRoundsUseCase;
     updateInterviewRoundUseCase: UpdateInterviewRoundUseCase;
     deleteInterviewRoundUseCase: DeleteInterviewRoundUseCase;
+    getActivityLogsUseCase: GetActivityLogsUseCase;
   }
 }
 
@@ -143,12 +151,14 @@ export function buildContainer(fastify: FastifyInstance): void {
     documentRepository: asClass(CachedDocumentRepository, { lifetime: Lifetime.SINGLETON }),
     prismaInterviewRoundRepository: asClass(PrismaInterviewRoundRepository, { lifetime: Lifetime.SINGLETON }),
     interviewRoundRepository: asClass(CachedInterviewRoundRepository, { lifetime: Lifetime.SINGLETON }),
+    activityLogRepository: asClass(PrismaActivityLogRepository, { lifetime: Lifetime.SINGLETON }),
 
     // Mappers
     applicationMapper: asClass(ApplicationMapper, { lifetime: Lifetime.SINGLETON }),
     noteMapper: asClass(NoteMapper, { lifetime: Lifetime.SINGLETON }),
     documentMapper: asClass(DocumentMapper, { lifetime: Lifetime.SINGLETON }),
     interviewRoundMapper: asClass(InterviewRoundMapper, { lifetime: Lifetime.SINGLETON }),
+    activityLogMapper: asClass(ActivityLogMapper, { lifetime: Lifetime.SINGLETON }),
 
     // Resolvers
     authResolver: asClass(AuthResolver, { lifetime: Lifetime.SINGLETON }),
@@ -157,6 +167,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     documentResolver: asClass(DocumentResolver, { lifetime: Lifetime.SINGLETON }),
     userResolver: asClass(UserResolver, { lifetime: Lifetime.SINGLETON }),
     interviewRoundResolver: asClass(InterviewRoundResolver, { lifetime: Lifetime.SINGLETON }),
+    activityLogResolver: asClass(ActivityLogResolver, { lifetime: Lifetime.SINGLETON }),
 
     // Use Cases
     registerUseCase: asClass(RegisterUseCase, { lifetime: Lifetime.TRANSIENT }),
@@ -188,5 +199,6 @@ export function buildContainer(fastify: FastifyInstance): void {
     getInterviewRoundsUseCase: asClass(GetInterviewRoundsUseCase, { lifetime: Lifetime.TRANSIENT }),
     updateInterviewRoundUseCase: asClass(UpdateInterviewRoundUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteInterviewRoundUseCase: asClass(DeleteInterviewRoundUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getActivityLogsUseCase: asClass(GetActivityLogsUseCase, { lifetime: Lifetime.TRANSIENT }),
   });
 }

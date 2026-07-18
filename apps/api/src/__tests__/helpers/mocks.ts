@@ -4,6 +4,7 @@ import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepos
 import type { IDocumentRepository } from '@/use-cases/ports/IDocumentRepository.js';
 import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
 import type { IInterviewRoundRepository } from '@/use-cases/ports/IInterviewRoundRepository.js';
+import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
 import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
 import type { User } from '@/domain/user/User.js';
 import type { Application } from '@/domain/application/Application.js';
@@ -58,6 +59,14 @@ export const makeInterviewRoundRepository = (
   create: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
+  ...overrides,
+});
+
+export const makeActivityLogRepository = (
+  overrides?: Partial<IActivityLogRepository>,
+): IActivityLogRepository => ({
+  findAllByApplicationId: vi.fn().mockResolvedValue([]),
+  append: vi.fn(),
   ...overrides,
 });
 
