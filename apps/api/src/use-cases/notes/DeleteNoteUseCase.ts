@@ -1,10 +1,13 @@
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
 import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
+import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
 import type { IDeleteNoteUseCase, DeleteNoteInput } from '@/use-cases/notes/IDeleteNoteUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;
   noteRepository: INoteRepository;
+  activityLogRepository?: IActivityLogRepository;
+  generateId?: () => string;
 }
 
 export class DeleteNoteUseCase implements IDeleteNoteUseCase {
@@ -22,5 +25,13 @@ export class DeleteNoteUseCase implements IDeleteNoteUseCase {
     }
 
     await this.deps.noteRepository.delete(input.noteId);
+
+    if (this.deps.activityLogRepository && this.deps.generateId) await this.deps.activityLogRepository.append({
+      id: this.deps.generateId(),
+      applicationId: note.applicationId,
+      actorId: input.userId,
+      eventType: 'note_deleted',
+      payload: JSON.stringify({ noteId: input.noteId }),
+    });
   }
 }

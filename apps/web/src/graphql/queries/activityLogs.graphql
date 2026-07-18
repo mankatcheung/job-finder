@@ -1,0 +1,10 @@
+query ActivityLogs($applicationId: ID!) {
+  activityLogs(applicationId: $applicationId) {
+    id
+    applicationId
+    actorId
+    eventType
+    payload
+    createdAt
+  }
+}

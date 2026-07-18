@@ -1,5 +1,6 @@
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
 import type { IInterviewRoundRepository } from '@/use-cases/ports/IInterviewRoundRepository.js';
+import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
 import type {
   ICreateInterviewRoundUseCase,
   CreateInterviewRoundInput,
@@ -9,6 +10,7 @@ import type {
 interface Deps {
   applicationRepository: IApplicationRepository;
   interviewRoundRepository: IInterviewRoundRepository;
+  activityLogRepository?: IActivityLogRepository;
   generateId: () => string;
 }
 
@@ -20,7 +22,7 @@ export class CreateInterviewRoundUseCase implements ICreateInterviewRoundUseCase
     if (!app) throw Object.assign(new Error('Application not found'), { code: 'NOT_FOUND' });
     if (app.userId !== input.userId) throw Object.assign(new Error('Forbidden'), { code: 'FORBIDDEN' });
 
-    return this.deps.interviewRoundRepository.create({
+    const round = await this.deps.interviewRoundRepository.create({
       id: this.deps.generateId(),
       applicationId: input.applicationId,
       type: input.type ?? 'other',
@@ -30,5 +32,15 @@ export class CreateInterviewRoundUseCase implements ICreateInterviewRoundUseCase
       notes: input.notes ?? null,
       outcome: input.outcome ?? 'pending',
     });
+
+    await this.deps.activityLogRepository?.append({
+      id: this.deps.generateId(),
+      applicationId: input.applicationId,
+      actorId: input.userId,
+      eventType: 'interview_added',
+      payload: JSON.stringify({ roundId: round.id, type: round.type }),
+    });
+
+    return round;
   }
 }

@@ -1,10 +1,12 @@
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
 import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
+import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
 import type { ICreateNoteUseCase, CreateNoteInput, CreateNoteOutput } from '@/use-cases/notes/ICreateNoteUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;
   noteRepository: INoteRepository;
+  activityLogRepository?: IActivityLogRepository;
   generateId: () => string;
 }
 
@@ -20,10 +22,20 @@ export class CreateNoteUseCase implements ICreateNoteUseCase {
       throw Object.assign(new Error('Forbidden'), { code: 'FORBIDDEN' });
     }
 
-    return this.deps.noteRepository.create({
+    const note = await this.deps.noteRepository.create({
       id: this.deps.generateId(),
       applicationId: input.applicationId,
       content: input.content,
     });
+
+    await this.deps.activityLogRepository?.append({
+      id: this.deps.generateId(),
+      applicationId: input.applicationId,
+      actorId: input.userId,
+      eventType: 'note_added',
+      payload: JSON.stringify({ noteId: note.id }),
+    });
+
+    return note;
   }
 }

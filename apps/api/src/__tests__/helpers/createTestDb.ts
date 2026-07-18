@@ -46,6 +46,16 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "InterviewRound_applicationId_idx" ON "InterviewRound"("applicationId")`,
+  `CREATE TABLE "ActivityLog" (
+    "id" TEXT PRIMARY KEY,
+    "applicationId" TEXT NOT NULL,
+    "actorId" TEXT NOT NULL,
+    "eventType" TEXT NOT NULL,
+    "payload" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "ActivityLog_applicationId_idx" ON "ActivityLog"("applicationId")`,
   `CREATE TABLE "Note" (
     "id" TEXT PRIMARY KEY,
     "applicationId" TEXT NOT NULL,
