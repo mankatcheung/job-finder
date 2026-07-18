@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { CachedApplicationRepository } from '@/infrastructure/db/repositories/CachedApplicationRepository.js';
 import { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
 import { makeApplicationRepository, makeApplication } from '@/__tests__/helpers/mocks.js';
