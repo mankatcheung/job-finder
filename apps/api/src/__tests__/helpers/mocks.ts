@@ -13,6 +13,8 @@ export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserR
   findById: vi.fn(),
   findByEmail: vi.fn(),
   create: vi.fn(),
+  update: vi.fn(),
+  delete: vi.fn(),
   ...overrides,
 });
 

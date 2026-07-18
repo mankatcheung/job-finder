@@ -20,6 +20,7 @@ import { AuthResolver } from '@/interface-adapters/resolvers/AuthResolver.js';
 import { ApplicationResolver } from '@/interface-adapters/resolvers/ApplicationResolver.js';
 import { NoteResolver } from '@/interface-adapters/resolvers/NoteResolver.js';
 import { DocumentResolver } from '@/interface-adapters/resolvers/DocumentResolver.js';
+import { UserResolver } from '@/interface-adapters/resolvers/UserResolver.js';
 
 import { RegisterUseCase } from '@/use-cases/auth/RegisterUseCase.js';
 import { LoginUseCase } from '@/use-cases/auth/LoginUseCase.js';
@@ -36,6 +37,10 @@ import { RequestUploadUrlUseCase } from '@/use-cases/documents/RequestUploadUrlU
 import { ConfirmDocumentUseCase } from '@/use-cases/documents/ConfirmDocumentUseCase.js';
 import { GetDocumentsUseCase } from '@/use-cases/documents/GetDocumentsUseCase.js';
 import { DeleteDocumentUseCase } from '@/use-cases/documents/DeleteDocumentUseCase.js';
+import { UpdateEmailUseCase } from '@/use-cases/user/UpdateEmailUseCase.js';
+import { UpdatePasswordUseCase } from '@/use-cases/user/UpdatePasswordUseCase.js';
+import { DeleteAccountUseCase } from '@/use-cases/user/DeleteAccountUseCase.js';
+import { ExportUserDataUseCase } from '@/use-cases/user/ExportUserDataUseCase.js';
 
 import type { FastifyInstance } from 'fastify';
 
@@ -60,6 +65,7 @@ declare module '@fastify/awilix' {
     applicationResolver: ApplicationResolver;
     noteResolver: NoteResolver;
     documentResolver: DocumentResolver;
+    userResolver: UserResolver;
 
     registerUseCase: RegisterUseCase;
     loginUseCase: LoginUseCase;
@@ -76,6 +82,10 @@ declare module '@fastify/awilix' {
     confirmDocumentUseCase: ConfirmDocumentUseCase;
     getDocumentsUseCase: GetDocumentsUseCase;
     deleteDocumentUseCase: DeleteDocumentUseCase;
+    updateEmailUseCase: UpdateEmailUseCase;
+    updatePasswordUseCase: UpdatePasswordUseCase;
+    deleteAccountUseCase: DeleteAccountUseCase;
+    exportUserDataUseCase: ExportUserDataUseCase;
   }
 }
 
@@ -109,6 +119,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     applicationResolver: asClass(ApplicationResolver, { lifetime: Lifetime.SINGLETON }),
     noteResolver: asClass(NoteResolver, { lifetime: Lifetime.SINGLETON }),
     documentResolver: asClass(DocumentResolver, { lifetime: Lifetime.SINGLETON }),
+    userResolver: asClass(UserResolver, { lifetime: Lifetime.SINGLETON }),
 
     // Use Cases
     registerUseCase: asClass(RegisterUseCase, { lifetime: Lifetime.TRANSIENT }),
@@ -132,5 +143,9 @@ export function buildContainer(fastify: FastifyInstance): void {
     confirmDocumentUseCase: asClass(ConfirmDocumentUseCase, { lifetime: Lifetime.TRANSIENT }),
     getDocumentsUseCase: asClass(GetDocumentsUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteDocumentUseCase: asClass(DeleteDocumentUseCase, { lifetime: Lifetime.TRANSIENT }),
+    updateEmailUseCase: asClass(UpdateEmailUseCase, { lifetime: Lifetime.TRANSIENT }),
+    updatePasswordUseCase: asClass(UpdatePasswordUseCase, { lifetime: Lifetime.TRANSIENT }),
+    deleteAccountUseCase: asClass(DeleteAccountUseCase, { lifetime: Lifetime.TRANSIENT }),
+    exportUserDataUseCase: asClass(ExportUserDataUseCase, { lifetime: Lifetime.TRANSIENT }),
   });
 }

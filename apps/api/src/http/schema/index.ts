@@ -14,11 +14,13 @@ import './types/inputs/DocumentInputs.js';
 import './queries/applicationQueries.js';
 import './queries/noteQueries.js';
 import './queries/documentQueries.js';
+import './queries/userQueries.js';
 
 // Mutations
 import './mutations/authMutations.js';
 import './mutations/applicationMutations.js';
 import './mutations/noteMutations.js';
 import './mutations/documentMutations.js';
+import './mutations/userMutations.js';
 
 export const schema = builder.toSchema();
