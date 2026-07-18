@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
 import { StatusBadge } from '../dashboard';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
-import { BriefcaseIcon, StarIcon } from 'lucide-react';
+import { BriefcaseIcon, KanbanIcon, StarIcon } from 'lucide-react';
 import { z } from 'zod';
 
 const APPLICATION_STATUSES: ApplicationStatus[] = [
@@ -71,12 +71,20 @@ export function ApplicationsPage() {
     <div className="p-8 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Applications</h1>
-        <Link
-          to="/applications/new"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          + New
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/applications/board"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors"
+          >
+            <KanbanIcon size={15} /> Board
+          </Link>
+          <Link
+            to="/applications/new"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            + New
+          </Link>
+        </div>
       </div>
 
       <div className="flex gap-2 mb-6 flex-wrap">
