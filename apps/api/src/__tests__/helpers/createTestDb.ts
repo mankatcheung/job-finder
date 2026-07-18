@@ -32,6 +32,20 @@ const SCHEMA_STATEMENTS = [
   )`,
   `CREATE INDEX "JobApplication_userId_idx" ON "JobApplication"("userId")`,
   `CREATE INDEX "JobApplication_userId_status_idx" ON "JobApplication"("userId", "status")`,
+  `CREATE TABLE "InterviewRound" (
+    "id" TEXT PRIMARY KEY,
+    "applicationId" TEXT NOT NULL,
+    "type" TEXT NOT NULL DEFAULT 'other',
+    "scheduledAt" DATETIME,
+    "completedAt" DATETIME,
+    "interviewerName" TEXT,
+    "notes" TEXT,
+    "outcome" TEXT NOT NULL DEFAULT 'pending',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "InterviewRound_applicationId_idx" ON "InterviewRound"("applicationId")`,
   `CREATE TABLE "Note" (
     "id" TEXT PRIMARY KEY,
     "applicationId" TEXT NOT NULL,

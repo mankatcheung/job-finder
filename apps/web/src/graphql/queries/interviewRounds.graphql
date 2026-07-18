@@ -1,0 +1,14 @@
+query InterviewRounds($applicationId: ID!) {
+  interviewRounds(applicationId: $applicationId) {
+    id
+    applicationId
+    type
+    scheduledAt
+    completedAt
+    interviewerName
+    notes
+    outcome
+    createdAt
+    updatedAt
+  }
+}

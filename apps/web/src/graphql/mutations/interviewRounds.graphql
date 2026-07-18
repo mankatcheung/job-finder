@@ -1,0 +1,33 @@
+mutation CreateInterviewRound($input: CreateInterviewRoundInput!) {
+  createInterviewRound(input: $input) {
+    id
+    applicationId
+    type
+    scheduledAt
+    completedAt
+    interviewerName
+    notes
+    outcome
+    createdAt
+    updatedAt
+  }
+}
+
+mutation UpdateInterviewRound($id: ID!, $input: UpdateInterviewRoundInput!) {
+  updateInterviewRound(id: $id, input: $input) {
+    id
+    applicationId
+    type
+    scheduledAt
+    completedAt
+    interviewerName
+    notes
+    outcome
+    createdAt
+    updatedAt
+  }
+}
+
+mutation DeleteInterviewRound($id: ID!) {
+  deleteInterviewRound(id: $id)
+}
