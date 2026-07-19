@@ -1,5 +1,6 @@
 import { GraphQLClient } from 'graphql-request';
 import { clearAuthIndicator } from '#/lib/auth';
+import { queryClient } from '#/lib/queryClient';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '/graphql';
 
@@ -42,12 +43,16 @@ export const gqlClient = new GraphQLClient(API_URL, {
     const gqlErrors = (response as { errors?: Array<{ extensions?: { code?: string } }> }).errors;
     const hasUnauthorized = gqlErrors?.some((e) => e.extensions?.code === 'UNAUTHORIZED');
 
-    if (hasUnauthorized) {
-      const ok = await getOrStartRefresh();
-      if (!ok) {
-        clearAuthIndicator();
-        window.location.href = '/login';
-      }
+    if (!hasUnauthorized) return;
+
+    const ok = await getOrStartRefresh();
+    if (ok) {
+      // New access token is set — re-run all active queries so they pick it up.
+      await queryClient.invalidateQueries();
+    } else {
+      clearAuthIndicator();
+      queryClient.clear();
+      window.location.href = '/login';
     }
   },
 });
