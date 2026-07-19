@@ -7,10 +7,7 @@ const CONFIG_FILE = join(CONFIG_DIR, 'config.json');
 const DEFAULT_API_URL = 'http://localhost:3001/graphql';
 
 interface Config {
-  token?: string;
-  refreshToken?: string;
-  expiresAt?: number;
-  email?: string;
+  apiKey?: string;
   apiUrl?: string;
 }
 
@@ -28,28 +25,17 @@ function writeConfig(config: Config): void {
   writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), { mode: 0o600 });
 }
 
-export interface AuthState {
-  token: string;
-  refreshToken: string;
-  expiresAt: number;
-  email: string;
+export function getApiKey(): string | null {
+  return readConfig().apiKey ?? null;
 }
 
-export function getAuth(): AuthState | null {
-  const cfg = readConfig();
-  if (!cfg.token || !cfg.refreshToken || !cfg.expiresAt || !cfg.email) return null;
-  return { token: cfg.token, refreshToken: cfg.refreshToken, expiresAt: cfg.expiresAt, email: cfg.email };
+export function saveApiKey(apiKey: string): void {
+  writeConfig({ ...readConfig(), apiKey });
 }
 
-export function saveAuth(auth: AuthState): void {
-  const cfg = readConfig();
-  writeConfig({ ...cfg, ...auth });
-}
-
-export function clearAuth(): void {
+export function clearApiKey(): void {
   if (!existsSync(CONFIG_FILE)) return;
-  const cfg = readConfig();
-  const { token: _t, refreshToken: _r, expiresAt: _e, email: _em, ...rest } = cfg;
+  const { apiKey: _k, ...rest } = readConfig();
   if (Object.keys(rest).length === 0) {
     rmSync(CONFIG_FILE);
   } else {
