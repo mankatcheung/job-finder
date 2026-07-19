@@ -57,6 +57,12 @@ import { GetInterviewRoundsUseCase } from '@/use-cases/interviewRounds/GetInterv
 import { UpdateInterviewRoundUseCase } from '@/use-cases/interviewRounds/UpdateInterviewRoundUseCase.js';
 import { DeleteInterviewRoundUseCase } from '@/use-cases/interviewRounds/DeleteInterviewRoundUseCase.js';
 import { GetActivityLogsUseCase } from '@/use-cases/activityLogs/GetActivityLogsUseCase.js';
+import { PrismaApiTokenRepository } from '@/infrastructure/db/repositories/PrismaApiTokenRepository.js';
+import { ApiTokenMapper } from '@/interface-adapters/mappers/ApiTokenMapper.js';
+import { CreateApiTokenUseCase } from '@/use-cases/apiTokens/CreateApiTokenUseCase.js';
+import { ListApiTokensUseCase } from '@/use-cases/apiTokens/ListApiTokensUseCase.js';
+import { DeleteApiTokenUseCase } from '@/use-cases/apiTokens/DeleteApiTokenUseCase.js';
+import { ValidateApiTokenUseCase } from '@/use-cases/apiTokens/ValidateApiTokenUseCase.js';
 
 import type { FastifyInstance } from 'fastify';
 
@@ -82,8 +88,10 @@ declare module '@fastify/awilix' {
     prismaInterviewRoundRepository: PrismaInterviewRoundRepository;
     interviewRoundRepository: CachedInterviewRoundRepository;
     activityLogRepository: PrismaActivityLogRepository;
+    apiTokenRepository: PrismaApiTokenRepository;
 
     applicationMapper: ApplicationMapper;
+    apiTokenMapper: ApiTokenMapper;
     noteMapper: NoteMapper;
     documentMapper: DocumentMapper;
     interviewRoundMapper: InterviewRoundMapper;
@@ -121,6 +129,10 @@ declare module '@fastify/awilix' {
     updateInterviewRoundUseCase: UpdateInterviewRoundUseCase;
     deleteInterviewRoundUseCase: DeleteInterviewRoundUseCase;
     getActivityLogsUseCase: GetActivityLogsUseCase;
+    createApiTokenUseCase: CreateApiTokenUseCase;
+    listApiTokensUseCase: ListApiTokensUseCase;
+    deleteApiTokenUseCase: DeleteApiTokenUseCase;
+    validateApiTokenUseCase: ValidateApiTokenUseCase;
   }
 }
 
@@ -152,9 +164,11 @@ export function buildContainer(fastify: FastifyInstance): void {
     prismaInterviewRoundRepository: asClass(PrismaInterviewRoundRepository, { lifetime: Lifetime.SINGLETON }),
     interviewRoundRepository: asClass(CachedInterviewRoundRepository, { lifetime: Lifetime.SINGLETON }),
     activityLogRepository: asClass(PrismaActivityLogRepository, { lifetime: Lifetime.SINGLETON }),
+    apiTokenRepository: asClass(PrismaApiTokenRepository, { lifetime: Lifetime.SINGLETON }),
 
     // Mappers
     applicationMapper: asClass(ApplicationMapper, { lifetime: Lifetime.SINGLETON }),
+    apiTokenMapper: asClass(ApiTokenMapper, { lifetime: Lifetime.SINGLETON }),
     noteMapper: asClass(NoteMapper, { lifetime: Lifetime.SINGLETON }),
     documentMapper: asClass(DocumentMapper, { lifetime: Lifetime.SINGLETON }),
     interviewRoundMapper: asClass(InterviewRoundMapper, { lifetime: Lifetime.SINGLETON }),
@@ -200,5 +214,9 @@ export function buildContainer(fastify: FastifyInstance): void {
     updateInterviewRoundUseCase: asClass(UpdateInterviewRoundUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteInterviewRoundUseCase: asClass(DeleteInterviewRoundUseCase, { lifetime: Lifetime.TRANSIENT }),
     getActivityLogsUseCase: asClass(GetActivityLogsUseCase, { lifetime: Lifetime.TRANSIENT }),
+    createApiTokenUseCase: asClass(CreateApiTokenUseCase, { lifetime: Lifetime.TRANSIENT }),
+    listApiTokensUseCase: asClass(ListApiTokensUseCase, { lifetime: Lifetime.TRANSIENT }),
+    deleteApiTokenUseCase: asClass(DeleteApiTokenUseCase, { lifetime: Lifetime.TRANSIENT }),
+    validateApiTokenUseCase: asClass(ValidateApiTokenUseCase, { lifetime: Lifetime.TRANSIENT }),
   });
 }

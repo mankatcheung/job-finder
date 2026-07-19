@@ -12,6 +12,16 @@ const SCHEMA_STATEMENTS = [
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`,
+  `CREATE TABLE "ApiToken" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "tokenHash" TEXT NOT NULL UNIQUE,
+    "lastUsedAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "ApiToken_userId_idx" ON "ApiToken"("userId")`,
   `CREATE TABLE "JobApplication" (
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,

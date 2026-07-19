@@ -1,4 +1,6 @@
 import { vi } from 'vitest';
+import type { IApiTokenRepository } from '@/use-cases/ports/IApiTokenRepository.js';
+import type { ApiToken } from '@/domain/apiToken/ApiToken.js';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
 import type { IDocumentRepository } from '@/use-cases/ports/IDocumentRepository.js';
@@ -74,6 +76,28 @@ export const makeStorageProvider = (overrides?: Partial<IStorageProvider>): ISto
   getPresignedUploadUrl: vi.fn(),
   getSignedUrl: vi.fn(),
   delete: vi.fn(),
+  ...overrides,
+});
+
+export const makeApiTokenRepository = (
+  overrides?: Partial<IApiTokenRepository>,
+): IApiTokenRepository => ({
+  findAllByUserId: vi.fn().mockResolvedValue([]),
+  findByTokenHash: vi.fn().mockResolvedValue(null),
+  findByIdAndUserId: vi.fn().mockResolvedValue(null),
+  create: vi.fn(),
+  updateLastUsed: vi.fn(),
+  delete: vi.fn(),
+  ...overrides,
+});
+
+export const makeApiToken = (overrides?: Partial<ApiToken>): ApiToken => ({
+  id: 'token-1',
+  userId: 'user-1',
+  name: 'My CLI token',
+  tokenHash: 'hashed-value',
+  lastUsedAt: null,
+  createdAt: new Date('2024-01-01'),
   ...overrides,
 });
 
