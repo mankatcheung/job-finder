@@ -33,7 +33,10 @@ export async function buildApp() {
     },
     context: (request, reply): GraphQLContext => {
       let user = null;
-      const token = request.cookies.jf_access_token;
+      const cookieToken = request.cookies.jf_access_token;
+      const authHeader = request.headers.authorization;
+      const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+      const token = cookieToken ?? bearerToken;
       if (token) {
         try {
           user = fastify.jwt.verify<{ sub: string; email: string }>(token);
