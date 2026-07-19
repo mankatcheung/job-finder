@@ -1,35 +1,35 @@
 import { Command } from 'commander';
 import * as readline from 'readline/promises';
 import chalk from 'chalk';
-import { login, logout, AuthError, ApiError } from '../lib/api.js';
-import { getAuth, getApiUrl } from '../lib/config.js';
+import { gql, AuthError, ApiError } from '../lib/api.js';
+import { getApiKey, saveApiKey, clearApiKey, getApiUrl } from '../lib/config.js';
 
 function prompt(question: string): Promise<string> {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   return rl.question(question).then((answer) => { rl.close(); return answer; });
 }
 
-async function promptPassword(question: string): Promise<string> {
+async function promptSecret(question: string): Promise<string> {
   process.stdout.write(question);
   return new Promise((resolve) => {
     const stdin = process.stdin;
     stdin.setRawMode(true);
     stdin.resume();
     stdin.setEncoding('utf-8');
-    let password = '';
+    let value = '';
     stdin.on('data', function handler(char: string) {
       if (char === '\r' || char === '\n') {
         stdin.setRawMode(false);
         stdin.pause();
         stdin.removeListener('data', handler);
         process.stdout.write('\n');
-        resolve(password);
+        resolve(value);
       } else if (char === '') {
         process.exit();
       } else if (char === '') {
-        password = password.slice(0, -1);
+        value = value.slice(0, -1);
       } else {
-        password += char;
+        value += char;
         process.stdout.write('*');
       }
     });
@@ -40,52 +40,70 @@ export function registerAuthCommands(program: Command): void {
   const auth = program.command('auth').description('Authentication commands');
 
   auth
-    .command('login')
-    .description('Sign in to your Job Finder account')
-    .option('--email <email>', 'Email address')
-    .option('--password <password>', 'Password')
-    .action(async (opts: { email?: string; password?: string }) => {
+    .command('set-key')
+    .description('Set your Job Finder API key (generate one at Settings → API Tokens)')
+    .option('--key <key>', 'API key (jfat_…)')
+    .action(async (opts: { key?: string }) => {
       try {
-        const email = opts.email ?? await prompt('Email: ');
-        const password = opts.password ?? await promptPassword('Password: ');
-        const state = await login(email.trim(), password);
-        const expiresIn = Math.round((state.expiresAt - Date.now()) / 60000);
-        console.log(chalk.green('✓') + ` Signed in as ${chalk.bold(state.email)}`);
-        console.log(chalk.gray(`  Token expires in ${expiresIn} minutes`));
+        const apiKey = opts.key ?? await promptSecret('API key: ');
+        const trimmed = apiKey.trim();
+
+        if (!trimmed.startsWith('jfat_')) {
+          console.error(chalk.red('✗') + ' Invalid key format — expected a key starting with jfat_');
+          process.exit(1);
+        }
+
+        // Verify the key works before saving
+        await gql<unknown>(`query { apiTokens { id } }`, {});
+
+        saveApiKey(trimmed);
+        const preview = `${trimmed.slice(0, 10)}…`;
+        console.log(chalk.green('✓') + ` API key saved (${chalk.bold(preview)})`);
         console.log(chalk.gray(`  API: ${getApiUrl()}`));
       } catch (err) {
-        if (err instanceof ApiError || err instanceof AuthError) {
+        if (err instanceof AuthError) {
+          console.error(chalk.red('✗') + ' Key is invalid or has been revoked');
+        } else if (err instanceof ApiError) {
           console.error(chalk.red('✗') + ` ${err.message}`);
         } else {
-          console.error(chalk.red('✗ Login failed:'), err);
+          console.error(chalk.red('✗ Failed to verify key:'), err);
         }
         process.exit(1);
       }
     });
 
   auth
-    .command('logout')
-    .description('Sign out')
-    .action(async () => {
-      await logout();
-      console.log(chalk.green('✓') + ' Signed out');
+    .command('clear')
+    .description('Remove stored API key')
+    .action(() => {
+      clearApiKey();
+      console.log(chalk.green('✓') + ' API key cleared');
     });
 
   auth
     .command('whoami')
-    .description('Show current logged-in account')
-    .action(() => {
-      const state = getAuth();
-      if (!state) {
-        console.log(chalk.gray('Not signed in. Run: jf auth login'));
+    .description('Show stored key info and verify it is still valid')
+    .action(async () => {
+      const apiKey = getApiKey();
+      if (!apiKey) {
+        console.log(chalk.gray('No API key set. Run: jf auth set-key'));
         return;
       }
-      const expiresIn = Math.round((state.expiresAt - Date.now()) / 60000);
-      const expired = expiresIn <= 0;
-      console.log(`Signed in as: ${chalk.bold(state.email)}`);
-      console.log(`API:          ${chalk.gray(getApiUrl())}`);
-      console.log(
-        `Token:        ${expired ? chalk.red('expired') : chalk.green(`expires in ${expiresIn} min`)}`,
-      );
+
+      const preview = `${apiKey.slice(0, 10)}…`;
+      console.log(`Key:  ${chalk.bold(preview)}`);
+      console.log(`API:  ${chalk.gray(getApiUrl())}`);
+
+      try {
+        const data = await gql<{ apiTokens: { id: string; name: string; lastUsedAt: string | null }[] }>(
+          `query { apiTokens { id name lastUsedAt } }`,
+        );
+        console.log(chalk.green('✓') + ' Key is valid');
+        if (data.apiTokens.length > 0) {
+          console.log(chalk.gray(`  ${data.apiTokens.length} token(s) on this account`));
+        }
+      } catch {
+        console.log(chalk.red('✗') + ' Key is invalid or has been revoked');
+      }
     });
 }
