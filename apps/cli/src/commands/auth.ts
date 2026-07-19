@@ -1,13 +1,7 @@
 import { Command } from 'commander';
-import * as readline from 'readline/promises';
 import chalk from 'chalk';
 import { gql, AuthError, ApiError } from '../lib/api.js';
 import { getApiKey, saveApiKey, clearApiKey, getApiUrl } from '../lib/config.js';
-
-function prompt(question: string): Promise<string> {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  return rl.question(question).then((answer) => { rl.close(); return answer; });
-}
 
 async function promptSecret(question: string): Promise<string> {
   process.stdout.write(question);
