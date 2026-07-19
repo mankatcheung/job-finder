@@ -1,0 +1,241 @@
+import { createRoot } from 'react-dom/client';
+import { useState, useEffect } from 'react';
+import { getAuth, getApiUrl, setApiUrl } from '../lib/storage';
+import { login, logout, createApplication } from '../lib/api';
+import type { JobData } from '../lib/parsers/types';
+import './popup.css';
+
+type Screen =
+  | { type: 'loading' }
+  | { type: 'login'; error?: string }
+  | { type: 'ready'; jobData: JobData | null; apiUrl: string }
+  | { type: 'saving' }
+  | { type: 'saved'; appId: string; appUrl: string; company: string; role: string }
+  | { type: 'error'; message: string };
+
+function App() {
+  const [screen, setScreen] = useState<Screen>({ type: 'loading' });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [editingUrl, setEditingUrl] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
+
+  useEffect(() => {
+    init();
+  }, []);
+
+  async function init() {
+    const auth = await getAuth();
+    if (!auth) {
+      setScreen({ type: 'login' });
+      return;
+    }
+    await loadJobData();
+  }
+
+  async function loadJobData() {
+    const apiUrl = await getApiUrl();
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    let jobData: JobData | null = null;
+    if (tab.id) {
+      try {
+        const response = await chrome.tabs.sendMessage(tab.id, { type: 'GET_JOB_DATA' });
+        jobData = response?.jobData ?? null;
+      } catch {
+        // No content script on this page — jobData stays null
+      }
+    }
+    setScreen({ type: 'ready', jobData, apiUrl });
+  }
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      await login(email, password);
+      await loadJobData();
+    } catch (err) {
+      setScreen({ type: 'login', error: err instanceof Error ? err.message : 'Login failed' });
+    }
+  }
+
+  async function handleLogout() {
+    await logout();
+    setScreen({ type: 'login' });
+  }
+
+  async function handleSave(jobData: JobData) {
+    setScreen({ type: 'saving' });
+    try {
+      const app = await createApplication({
+        company: jobData.company,
+        role: jobData.role,
+        jobUrl: jobData.jobUrl,
+        description: jobData.description,
+        source: jobData.source,
+      });
+      const apiUrl = await getApiUrl();
+      const webUrl = apiUrl.replace('/graphql', '').replace(':3001', ':3000');
+      setScreen({
+        type: 'saved',
+        appId: app.id,
+        appUrl: `${webUrl}/applications/${app.id}`,
+        company: app.company,
+        role: app.role,
+      });
+    } catch (err) {
+      setScreen({ type: 'error', message: err instanceof Error ? err.message : 'Failed to save' });
+    }
+  }
+
+  async function handleSaveApiUrl() {
+    await setApiUrl(urlInput);
+    setEditingUrl(false);
+    await loadJobData();
+  }
+
+  if (screen.type === 'loading') {
+    return (
+      <div className="container center">
+        <div className="spinner" />
+      </div>
+    );
+  }
+
+  if (screen.type === 'login') {
+    return (
+      <div className="container">
+        <div className="header">
+          <div className="logo">💼</div>
+          <h1>Job Finder</h1>
+          <p className="subtitle">Sign in to save job postings</p>
+        </div>
+        <form onSubmit={handleLogin} className="form">
+          {screen.error && <div className="error-box">{screen.error}</div>}
+          <div className="field">
+            <label>Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+              autoFocus
+            />
+          </div>
+          <div className="field">
+            <label>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          <button type="submit" className="btn btn-primary btn-full">
+            Sign in
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  if (screen.type === 'saving') {
+    return (
+      <div className="container center">
+        <div className="spinner" />
+        <p className="muted">Saving application…</p>
+      </div>
+    );
+  }
+
+  if (screen.type === 'saved') {
+    return (
+      <div className="container center">
+        <div className="success-icon">✅</div>
+        <h2>Saved!</h2>
+        <p className="muted">
+          <strong>{screen.company}</strong> — {screen.role}
+        </p>
+        <a href={screen.appUrl} target="_blank" rel="noreferrer" className="btn btn-primary">
+          Open application →
+        </a>
+        <button onClick={loadJobData} className="btn btn-ghost">
+          Save another
+        </button>
+      </div>
+    );
+  }
+
+  if (screen.type === 'error') {
+    return (
+      <div className="container center">
+        <div className="error-icon">⚠️</div>
+        <p className="error-text">{screen.message}</p>
+        <button onClick={loadJobData} className="btn btn-ghost">
+          Try again
+        </button>
+      </div>
+    );
+  }
+
+  // ready screen
+  const { jobData, apiUrl } = screen;
+
+  return (
+    <div className="container">
+      <div className="header-row">
+        <span className="logo-sm">💼</span>
+        <span className="app-name">Job Finder</span>
+        <button onClick={handleLogout} className="btn-text logout">
+          Sign out
+        </button>
+      </div>
+
+      {editingUrl ? (
+        <div className="api-url-editor">
+          <input
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            placeholder="http://localhost:3001/graphql"
+            className="url-input"
+          />
+          <div className="row gap-sm">
+            <button onClick={handleSaveApiUrl} className="btn btn-primary btn-sm">Save</button>
+            <button onClick={() => setEditingUrl(false)} className="btn btn-ghost btn-sm">Cancel</button>
+          </div>
+        </div>
+      ) : (
+        <div className="api-url-row">
+          <span className="api-url-label">API: {apiUrl}</span>
+          <button onClick={() => { setUrlInput(apiUrl); setEditingUrl(true); }} className="btn-text">
+            Edit
+          </button>
+        </div>
+      )}
+
+      {jobData ? (
+        <div className="job-card">
+          <div className="job-source">{jobData.source ?? 'Job posting'}</div>
+          <h2 className="job-role">{jobData.role}</h2>
+          <p className="job-company">{jobData.company}</p>
+          {jobData.location && <p className="job-location">📍 {jobData.location}</p>}
+          {jobData.description && (
+            <p className="job-description">{jobData.description.slice(0, 200)}…</p>
+          )}
+          <button onClick={() => handleSave(jobData)} className="btn btn-primary btn-full">
+            Save as Application
+          </button>
+        </div>
+      ) : (
+        <div className="empty-state">
+          <p>Navigate to a job posting to clip it.</p>
+          <p className="muted">Supported: LinkedIn, Indeed, Glassdoor, Greenhouse, Lever, and more.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const root = createRoot(document.getElementById('root')!);
+root.render(<App />);
