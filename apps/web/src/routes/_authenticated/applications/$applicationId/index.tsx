@@ -120,13 +120,13 @@ export function ApplicationDetailPage() {
 
   if (!app)
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         <div className="h-8 w-64 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
       </div>
     );
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-3xl mx-auto">
       <div className="mb-4">
         <a
           href="/applications"
@@ -136,7 +136,7 @@ export function ApplicationDetailPage() {
         </a>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 mb-6">
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{app.company}</h1>
@@ -212,12 +212,12 @@ export function ApplicationDetailPage() {
         </dl>
       </div>
 
-      <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
+      <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6 overflow-x-auto">
         {(['notes', 'interviews', 'activity', 'documents'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-medium capitalize border-b-2 -mb-px transition-colors ${
+            className={`flex-shrink-0 px-4 py-2 text-sm font-medium capitalize border-b-2 -mb-px transition-colors ${
               activeTab === tab
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400'
@@ -550,7 +550,7 @@ function InterviewsTab({ applicationId }: { applicationId: string }) {
     submitting: boolean;
   }) => (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
           <select

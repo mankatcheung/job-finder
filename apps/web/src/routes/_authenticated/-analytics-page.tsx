@@ -109,7 +109,7 @@ export function AnalyticsPage() {
 
   if (isLoading) {
     return (
-      <div className="p-8 max-w-5xl mx-auto space-y-6">
+      <div className="p-4 sm:p-8 max-w-5xl mx-auto space-y-6">
         {[1, 2, 3].map((i) => (
           <div key={i} className="h-64 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
         ))}
@@ -118,10 +118,10 @@ export function AnalyticsPage() {
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
+    <div className="p-4 sm:p-8 max-w-5xl mx-auto space-y-8">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Analytics</h1>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: 'Total', value: totalApps },
           { label: 'Active', value: activeApps, color: 'text-blue-600' },
