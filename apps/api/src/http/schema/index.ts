@@ -11,6 +11,7 @@ import './types/DocumentType.js';
 import './types/InterviewRoundType.js';
 import './types/ActivityLogType.js';
 import './types/AuthPayloadType.js';
+import './types/ApiTokenType.js';
 import './types/inputs/ApplicationInputs.js';
 import './types/inputs/DocumentInputs.js';
 
@@ -21,6 +22,7 @@ import './queries/documentQueries.js';
 import './queries/userQueries.js';
 import './queries/interviewRoundQueries.js';
 import './queries/activityLogQueries.js';
+import './queries/apiTokenQueries.js';
 
 // Mutations
 import './mutations/authMutations.js';
@@ -29,5 +31,6 @@ import './mutations/noteMutations.js';
 import './mutations/documentMutations.js';
 import './mutations/userMutations.js';
 import './mutations/interviewRoundMutations.js';
+import './mutations/apiTokenMutations.js';
 
 export const schema = builder.toSchema();

@@ -46,8 +46,12 @@ describe('PrismaNoteRepository', () => {
 
   describe('findAllByApplicationId', () => {
     it('returns all notes for the application ordered newest first', async () => {
-      await repo.create({ id: 'n1', applicationId: 'app-1', content: 'First' });
-      await repo.create({ id: 'n2', applicationId: 'app-1', content: 'Second' });
+      await db.prisma.$executeRawUnsafe(
+        `INSERT INTO "Note" (id, applicationId, content, createdAt, updatedAt) VALUES ('n1', 'app-1', 'First', '2024-01-01 00:00:00', '2024-01-01 00:00:00')`,
+      );
+      await db.prisma.$executeRawUnsafe(
+        `INSERT INTO "Note" (id, applicationId, content, createdAt, updatedAt) VALUES ('n2', 'app-1', 'Second', '2024-01-02 00:00:00', '2024-01-02 00:00:00')`,
+      );
 
       const notes = await repo.findAllByApplicationId('app-1');
       expect(notes).toHaveLength(2);

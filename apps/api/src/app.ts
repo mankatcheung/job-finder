@@ -31,19 +31,33 @@ export async function buildApp() {
       const errors = result.errors?.map(formatError);
       return { statusCode: 200, response: { ...result, errors } };
     },
-    context: (request, reply): GraphQLContext => {
-      let user = null;
+    context: async (request, reply): Promise<GraphQLContext> => {
+      let user: { sub: string; email: string } | null = null;
+
       const cookieToken = request.cookies.jf_access_token;
       const authHeader = request.headers.authorization;
       const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
-      const token = cookieToken ?? bearerToken;
-      if (token) {
-        try {
-          user = fastify.jwt.verify<{ sub: string; email: string }>(token);
-        } catch {
-          // Expired/invalid token — resolvers enforce auth
+      const rawToken = cookieToken ?? bearerToken;
+
+      if (rawToken) {
+        if (rawToken.startsWith('jfat_')) {
+          // API token path — hash and look up in DB
+          try {
+            const { validateApiTokenUseCase } = (request as any).diScope.cradle;
+            user = await validateApiTokenUseCase.execute(rawToken);
+          } catch {
+            // Invalid API token — unauthenticated
+          }
+        } else {
+          // JWT path
+          try {
+            user = fastify.jwt.verify<{ sub: string; email: string }>(rawToken);
+          } catch {
+            // Expired/invalid token — resolvers enforce auth
+          }
         }
       }
+
       return {
         user,
         diScope: (request as any).diScope,
