@@ -131,7 +131,7 @@ export function AccountPage() {
   };
 
   return (
-    <div className="max-w-xl mx-auto px-6 py-10 space-y-10">
+    <div className="max-w-xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Account settings</h1>
 
       {/* ── Email ── */}

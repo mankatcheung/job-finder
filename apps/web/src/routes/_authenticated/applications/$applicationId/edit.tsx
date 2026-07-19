@@ -121,13 +121,13 @@ export function EditApplicationPage() {
 
   if (!app)
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         <div className="h-8 w-64 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
       </div>
     );
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-2xl mx-auto">
       <div className="mb-6">
         <a
           href={`/applications/${applicationId}`}
@@ -144,7 +144,7 @@ export function EditApplicationPage() {
         onSubmit={handleSubmit(onSubmit)}
         className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 space-y-4"
       >
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Company *" error={errors.company?.message}>
             <input {...register('company')} className={inputClass} />
           </Field>
@@ -167,7 +167,7 @@ export function EditApplicationPage() {
           <input {...register('jobUrl')} className={inputClass} type="url" />
         </Field>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Location">
             <input {...register('location')} className={inputClass} />
           </Field>
@@ -180,7 +180,7 @@ export function EditApplicationPage() {
           <textarea {...register('description')} className={`${inputClass} h-28 resize-none`} />
         </Field>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Source">
             <input
               {...register('source')}

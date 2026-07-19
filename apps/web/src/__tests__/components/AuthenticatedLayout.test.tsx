@@ -9,6 +9,8 @@ const { mockNavigate, mockGqlRequest } = vi.hoisted(() => ({
 vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => (opts: unknown) => opts,
   useNavigate: () => mockNavigate,
+  useRouterState: ({ select }: { select: (s: { location: { pathname: string } }) => string }) =>
+    select({ location: { pathname: '/' } }),
   redirect: vi.fn(),
   Outlet: () => <div data-testid="outlet" />,
 }));
@@ -38,10 +40,13 @@ describe('AuthenticatedLayout', () => {
 
   it('renders navigation links', () => {
     render(<AuthenticatedLayout />);
-    expect(screen.getByText('Job Finder')).toBeInTheDocument();
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    // "Job Finder" appears in both mobile header and desktop sidebar
+    expect(screen.getAllByText('Job Finder').length).toBeGreaterThanOrEqual(1);
+    // "Dashboard" / "Account" appear in sidebar and bottom nav
+    expect(screen.getAllByText('Dashboard').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Account').length).toBeGreaterThanOrEqual(1);
+    // "Applications" appears only in the sidebar (bottom nav shows "Apps")
     expect(screen.getByText('Applications')).toBeInTheDocument();
-    expect(screen.getByText('Account')).toBeInTheDocument();
   });
 
   it('renders the Outlet for page content', () => {
@@ -51,14 +56,16 @@ describe('AuthenticatedLayout', () => {
 
   it('renders a sign out button', () => {
     render(<AuthenticatedLayout />);
-    expect(screen.getByRole('button', { name: /sign out/i })).toBeInTheDocument();
+    const signOutBtns = screen.getAllByRole('button', { name: /sign out/i });
+    expect(signOutBtns.length).toBeGreaterThanOrEqual(1);
   });
 
   it('calls logout mutation and navigates to /login on sign out', async () => {
     mockGqlRequest.mockResolvedValue({ logout: true });
     render(<AuthenticatedLayout />);
 
-    fireEvent.click(screen.getByRole('button', { name: /sign out/i }));
+    // Click the first sign-out button (mobile header icon button)
+    fireEvent.click(screen.getAllByRole('button', { name: /sign out/i })[0]);
 
     await waitFor(() => {
       expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('logout'));
