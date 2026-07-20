@@ -69,7 +69,9 @@ export function ApplicationDetailPage() {
   const qc = useQueryClient();
   const [noteContent, setNoteContent] = useState('');
   const [editingNote, setEditingNote] = useState<Note | null>(null);
-  const [activeTab, setActiveTab] = useState<'notes' | 'interviews' | 'contacts' | 'activity' | 'documents'>('notes');
+  const [activeTab, setActiveTab] = useState<
+    'notes' | 'interviews' | 'contacts' | 'activity' | 'documents'
+  >('notes');
 
   const { data: appData } = useQuery({
     queryKey: ['application', applicationId],
@@ -342,11 +344,21 @@ export function ApplicationDetailPage() {
   );
 }
 
-function InfoItem({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+function InfoItem({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
   return (
     <div>
       <dt className="text-xs text-gray-400">{label}</dt>
-      <dd className={highlight ? 'text-orange-500 font-medium' : 'text-gray-700 dark:text-gray-300'}>
+      <dd
+        className={highlight ? 'text-orange-500 font-medium' : 'text-gray-700 dark:text-gray-300'}
+      >
         {value}
       </dd>
     </div>
@@ -426,7 +438,9 @@ function ActivityTab({ applicationId }: { applicationId: string }) {
                 {EVENT_LABELS[log.eventType] ?? log.eventType}
                 {detail && <span className="font-normal text-gray-500 ml-1">— {detail}</span>}
               </p>
-              <p className="text-xs text-gray-400 mt-0.5">{new Date(log.createdAt).toLocaleString()}</p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {new Date(log.createdAt).toLocaleString()}
+              </p>
             </div>
           </div>
         );
@@ -546,7 +560,15 @@ function downloadIcs(content: string, company: string, role: string) {
   URL.revokeObjectURL(url);
 }
 
-function InterviewsTab({ applicationId, company, role }: { applicationId: string; company: string; role: string }) {
+function InterviewsTab({
+  applicationId,
+  company,
+  role,
+}: {
+  applicationId: string;
+  company: string;
+  role: string;
+}) {
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingRound, setEditingRound] = useState<InterviewRound | null>(null);
@@ -555,7 +577,9 @@ function InterviewsTab({ applicationId, company, role }: { applicationId: string
   const { data } = useQuery({
     queryKey: ['interviewRounds', applicationId],
     queryFn: () =>
-      gqlClient.request<{ interviewRounds: InterviewRound[] }>(INTERVIEW_ROUNDS_QUERY, { applicationId }),
+      gqlClient.request<{ interviewRounds: InterviewRound[] }>(INTERVIEW_ROUNDS_QUERY, {
+        applicationId,
+      }),
   });
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['interviewRounds', applicationId] });
@@ -708,7 +732,10 @@ function InterviewsTab({ applicationId, company, role }: { applicationId: string
       {!showForm && !editingRound && (
         <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => { setShowForm(true); setForm(emptyForm()); }}
+            onClick={() => {
+              setShowForm(true);
+              setForm(emptyForm());
+            }}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg"
           >
             <PlusIcon size={14} /> Add interview round
@@ -791,7 +818,9 @@ function InterviewsTab({ applicationId, company, role }: { applicationId: string
                   </button>
                 </div>
               </div>
-              <p className="text-xs text-gray-400 mt-2">{new Date(round.createdAt).toLocaleString()}</p>
+              <p className="text-xs text-gray-400 mt-2">
+                {new Date(round.createdAt).toLocaleString()}
+              </p>
             </>
           )}
         </div>
@@ -866,8 +895,7 @@ function ContactsTab({ applicationId }: { applicationId: string }) {
 
   const { data } = useQuery({
     queryKey: ['contacts', applicationId],
-    queryFn: () =>
-      gqlClient.request<{ contacts: Contact[] }>(CONTACTS_QUERY, { applicationId }),
+    queryFn: () => gqlClient.request<{ contacts: Contact[] }>(CONTACTS_QUERY, { applicationId }),
   });
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['contacts', applicationId] });
@@ -1006,7 +1034,10 @@ function ContactsTab({ applicationId }: { applicationId: string }) {
     <div className="space-y-4">
       {!showForm && !editingContact && (
         <button
-          onClick={() => { setShowForm(true); setForm(emptyContactForm()); }}
+          onClick={() => {
+            setShowForm(true);
+            setForm(emptyContactForm());
+          }}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg"
         >
           <PlusIcon size={14} /> Add contact
@@ -1015,7 +1046,9 @@ function ContactsTab({ applicationId }: { applicationId: string }) {
 
       {showForm && (
         <ContactForm
-          onSubmit={() => { if (form.name.trim()) createContact.mutate(form); }}
+          onSubmit={() => {
+            if (form.name.trim()) createContact.mutate(form);
+          }}
           onCancel={() => setShowForm(false)}
           submitting={createContact.isPending}
         />
@@ -1051,7 +1084,10 @@ function ContactsTab({ applicationId }: { applicationId: string }) {
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-gray-500">
                   {contact.email && (
-                    <a href={`mailto:${contact.email}`} className="hover:text-blue-600 hover:underline">
+                    <a
+                      href={`mailto:${contact.email}`}
+                      className="hover:text-blue-600 hover:underline"
+                    >
                       {contact.email}
                     </a>
                   )}
@@ -1075,7 +1111,10 @@ function ContactsTab({ applicationId }: { applicationId: string }) {
               </div>
               <div className="flex gap-1 shrink-0">
                 <button
-                  onClick={() => { setEditingContact(contact); setForm(contactToForm(contact)); }}
+                  onClick={() => {
+                    setEditingContact(contact);
+                    setForm(contactToForm(contact));
+                  }}
                   className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                 >
                   <EditIcon size={14} />
@@ -1230,14 +1269,19 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
       {!pendingUpload && (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-6 text-center">
           <label className="cursor-pointer">
-            <input type="file" className="hidden" onChange={handleFileChange} disabled={uploading} />
+            <input
+              type="file"
+              className="hidden"
+              onChange={handleFileChange}
+              disabled={uploading}
+            />
             <div className="text-sm text-gray-500 dark:text-gray-400">
               {uploading ? (
                 <span>Uploading…</span>
               ) : (
                 <>
-                  <span className="text-blue-600 font-medium hover:underline">Click to upload</span> a
-                  document
+                  <span className="text-blue-600 font-medium hover:underline">Click to upload</span>{' '}
+                  a document
                 </>
               )}
             </div>
@@ -1249,7 +1293,10 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
       {pendingUpload && (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-blue-200 dark:border-blue-700 p-4 space-y-3">
           <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            Uploaded: <span className="font-normal text-gray-600 dark:text-gray-400">{pendingUpload.name}</span>
+            Uploaded:{' '}
+            <span className="font-normal text-gray-600 dark:text-gray-400">
+              {pendingUpload.name}
+            </span>
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -1266,7 +1313,9 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Version <span className="font-normal">(optional)</span></label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Version <span className="font-normal">(optional)</span>
+              </label>
               <input
                 value={docVersion}
                 onChange={(e) => setDocVersion(e.target.value)}
@@ -1310,13 +1359,13 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
                 {doc.name}
               </a>
               {doc.documentType !== 'other' && (
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${DOC_TYPE_BADGE[doc.documentType] ?? ''}`}>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${DOC_TYPE_BADGE[doc.documentType] ?? ''}`}
+                >
                   {DOC_TYPE_LABELS[doc.documentType] ?? doc.documentType}
                 </span>
               )}
-              {doc.version && (
-                <span className="text-xs text-gray-400">{doc.version}</span>
-              )}
+              {doc.version && <span className="text-xs text-gray-400">{doc.version}</span>}
             </div>
             <p className="text-xs text-gray-400">
               {doc.mimeType} · {(doc.sizeBytes / 1024).toFixed(1)} KB

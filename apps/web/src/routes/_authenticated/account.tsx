@@ -137,22 +137,40 @@ export function AccountPage() {
       {/* ── Email ── */}
       <section className="space-y-4">
         <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Email address</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Update the email you sign in with.</p>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            Email address
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Update the email you sign in with.
+          </p>
         </div>
         <form onSubmit={emailForm.handleSubmit(onUpdateEmail)} className="space-y-3">
           <div>
             <label className={labelCls}>Current password</label>
-            <input type="password" {...emailForm.register('currentPassword')} className={inputCls} placeholder="••••••••" />
+            <input
+              type="password"
+              {...emailForm.register('currentPassword')}
+              className={inputCls}
+              placeholder="••••••••"
+            />
             {emailForm.formState.errors.currentPassword && (
-              <p className="mt-1 text-xs text-red-600">{emailForm.formState.errors.currentPassword.message}</p>
+              <p className="mt-1 text-xs text-red-600">
+                {emailForm.formState.errors.currentPassword.message}
+              </p>
             )}
           </div>
           <div>
             <label className={labelCls}>New email</label>
-            <input type="email" {...emailForm.register('newEmail')} className={inputCls} placeholder="you@example.com" />
+            <input
+              type="email"
+              {...emailForm.register('newEmail')}
+              className={inputCls}
+              placeholder="you@example.com"
+            />
             {emailForm.formState.errors.newEmail && (
-              <p className="mt-1 text-xs text-red-600">{emailForm.formState.errors.newEmail.message}</p>
+              <p className="mt-1 text-xs text-red-600">
+                {emailForm.formState.errors.newEmail.message}
+              </p>
             )}
           </div>
           {emailForm.formState.errors.root?.message && (
@@ -179,28 +197,51 @@ export function AccountPage() {
       <section className="space-y-4">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Password</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Choose a strong password of at least 8 characters.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Choose a strong password of at least 8 characters.
+          </p>
         </div>
         <form onSubmit={passwordForm.handleSubmit(onUpdatePassword)} className="space-y-3">
           <div>
             <label className={labelCls}>Current password</label>
-            <input type="password" {...passwordForm.register('currentPassword')} className={inputCls} placeholder="••••••••" />
+            <input
+              type="password"
+              {...passwordForm.register('currentPassword')}
+              className={inputCls}
+              placeholder="••••••••"
+            />
             {passwordForm.formState.errors.currentPassword && (
-              <p className="mt-1 text-xs text-red-600">{passwordForm.formState.errors.currentPassword.message}</p>
+              <p className="mt-1 text-xs text-red-600">
+                {passwordForm.formState.errors.currentPassword.message}
+              </p>
             )}
           </div>
           <div>
             <label className={labelCls}>New password</label>
-            <input type="password" {...passwordForm.register('newPassword')} className={inputCls} placeholder="••••••••" />
+            <input
+              type="password"
+              {...passwordForm.register('newPassword')}
+              className={inputCls}
+              placeholder="••••••••"
+            />
             {passwordForm.formState.errors.newPassword && (
-              <p className="mt-1 text-xs text-red-600">{passwordForm.formState.errors.newPassword.message}</p>
+              <p className="mt-1 text-xs text-red-600">
+                {passwordForm.formState.errors.newPassword.message}
+              </p>
             )}
           </div>
           <div>
             <label className={labelCls}>Confirm new password</label>
-            <input type="password" {...passwordForm.register('confirmPassword')} className={inputCls} placeholder="••••••••" />
+            <input
+              type="password"
+              {...passwordForm.register('confirmPassword')}
+              className={inputCls}
+              placeholder="••••••••"
+            />
             {passwordForm.formState.errors.confirmPassword && (
-              <p className="mt-1 text-xs text-red-600">{passwordForm.formState.errors.confirmPassword.message}</p>
+              <p className="mt-1 text-xs text-red-600">
+                {passwordForm.formState.errors.confirmPassword.message}
+              </p>
             )}
           </div>
           {passwordForm.formState.errors.root && (
@@ -226,7 +267,9 @@ export function AccountPage() {
       {/* ── Export ── */}
       <section className="space-y-4">
         <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Export your data</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            Export your data
+          </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Download all your applications, notes, and document metadata as a JSON file.
           </p>
@@ -253,9 +296,16 @@ export function AccountPage() {
         <form onSubmit={deleteForm.handleSubmit(onDeleteAccount)} className="space-y-3">
           <div>
             <label className={labelCls}>Confirm your password</label>
-            <input type="password" {...deleteForm.register('password')} className={inputCls} placeholder="••••••••" />
+            <input
+              type="password"
+              {...deleteForm.register('password')}
+              className={inputCls}
+              placeholder="••••••••"
+            />
             {deleteForm.formState.errors.password && (
-              <p className="mt-1 text-xs text-red-600">{deleteForm.formState.errors.password.message}</p>
+              <p className="mt-1 text-xs text-red-600">
+                {deleteForm.formState.errors.password.message}
+              </p>
             )}
           </div>
           {deleteForm.formState.errors.root && (

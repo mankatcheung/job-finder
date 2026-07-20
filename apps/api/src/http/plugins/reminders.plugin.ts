@@ -14,5 +14,7 @@ export default fp(async (fastify: FastifyInstance) => {
   };
 
   const timer = setInterval(run, INTERVAL_MS);
-  fastify.addHook('onClose', () => { clearInterval(timer); });
+  fastify.addHook('onClose', () => {
+    clearInterval(timer);
+  });
 });

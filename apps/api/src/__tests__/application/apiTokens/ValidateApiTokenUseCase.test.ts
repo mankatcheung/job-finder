@@ -19,9 +19,11 @@ describe('ValidateApiTokenUseCase', () => {
     const expectedHash = createHash('sha256').update(rawToken).digest('hex');
     const token = makeApiToken({ id: 'token-1', userId: 'user-1' });
     const repo = makeApiTokenRepository({
-      findByTokenHash: vi.fn().mockImplementation(async (hash: string) =>
-        hash === expectedHash ? { token, userEmail: 'user@example.com' } : null,
-      ),
+      findByTokenHash: vi
+        .fn()
+        .mockImplementation(async (hash: string) =>
+          hash === expectedHash ? { token, userEmail: 'user@example.com' } : null,
+        ),
       updateLastUsed: vi.fn().mockResolvedValue(undefined),
     });
     const useCase = new ValidateApiTokenUseCase({ apiTokenRepository: repo });

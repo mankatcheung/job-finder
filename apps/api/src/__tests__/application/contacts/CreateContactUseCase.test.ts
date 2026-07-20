@@ -10,7 +10,9 @@ import {
 describe('CreateContactUseCase', () => {
   it('throws NOT_FOUND when application does not exist', async () => {
     const useCase = new CreateContactUseCase({
-      applicationRepository: makeApplicationRepository({ findById: vi.fn().mockResolvedValue(null) }),
+      applicationRepository: makeApplicationRepository({
+        findById: vi.fn().mockResolvedValue(null),
+      }),
       contactRepository: makeContactRepository(),
       generateId: vi.fn(),
     });

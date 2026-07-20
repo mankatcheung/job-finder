@@ -201,14 +201,24 @@ function App() {
             className="url-input"
           />
           <div className="row gap-sm">
-            <button onClick={handleSaveApiUrl} className="btn btn-primary btn-sm">Save</button>
-            <button onClick={() => setEditingUrl(false)} className="btn btn-ghost btn-sm">Cancel</button>
+            <button onClick={handleSaveApiUrl} className="btn btn-primary btn-sm">
+              Save
+            </button>
+            <button onClick={() => setEditingUrl(false)} className="btn btn-ghost btn-sm">
+              Cancel
+            </button>
           </div>
         </div>
       ) : (
         <div className="api-url-row">
           <span className="api-url-label">API: {apiUrl}</span>
-          <button onClick={() => { setUrlInput(apiUrl); setEditingUrl(true); }} className="btn-text">
+          <button
+            onClick={() => {
+              setUrlInput(apiUrl);
+              setEditingUrl(true);
+            }}
+            className="btn-text"
+          >
             Edit
           </button>
         </div>
@@ -230,7 +240,9 @@ function App() {
       ) : (
         <div className="empty-state">
           <p>Navigate to a job posting to clip it.</p>
-          <p className="muted">Supported: LinkedIn, Indeed, Glassdoor, Greenhouse, Lever, and more.</p>
+          <p className="muted">
+            Supported: LinkedIn, Indeed, Glassdoor, Greenhouse, Lever, and more.
+          </p>
         </div>
       )}
     </div>

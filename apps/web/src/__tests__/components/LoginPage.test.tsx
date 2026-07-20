@@ -87,10 +87,10 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
     await waitFor(() => {
-      expect(mockGqlRequest).toHaveBeenCalledWith(
-        expect.stringContaining('Login'),
-        { email: 'test@example.com', password: 'password123' },
-      );
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Login'), {
+        email: 'test@example.com',
+        password: 'password123',
+      });
     });
   });
 

@@ -77,7 +77,10 @@ export function registerAppsCommands(program: Command): void {
     .action(async (opts: { status?: string; json?: boolean }) => {
       try {
         if (opts.status && !VALID_STATUSES.includes(opts.status as ApplicationStatus)) {
-          console.error(chalk.red('✗') + ` Invalid status "${opts.status}". Valid: ${VALID_STATUSES.join(', ')}`);
+          console.error(
+            chalk.red('✗') +
+              ` Invalid status "${opts.status}". Valid: ${VALID_STATUSES.join(', ')}`,
+          );
           process.exit(1);
         }
 
@@ -95,7 +98,10 @@ export function registerAppsCommands(program: Command): void {
           return;
         }
 
-        const table = makeTable(['ID', 'Company', 'Role', 'Status', 'Location', 'Applied'], [12, 18, 22, 14, 16, 12]);
+        const table = makeTable(
+          ['ID', 'Company', 'Role', 'Status', 'Location', 'Applied'],
+          [12, 18, 22, 14, 16, 12],
+        );
         for (const app of data.applications) {
           table.push([
             chalk.gray(app.id.slice(0, 8) + '…'),
@@ -127,7 +133,9 @@ export function registerAppsCommands(program: Command): void {
 
         const app = data.application;
         console.log();
-        console.log(`  ${chalk.bold.white(app.role)} ${chalk.gray('at')} ${chalk.bold.white(app.company)}`);
+        console.log(
+          `  ${chalk.bold.white(app.role)} ${chalk.gray('at')} ${chalk.bold.white(app.company)}`,
+        );
         if (app.starred) console.log(`  ${chalk.yellow('★ Starred')}`);
         console.log();
         printDetail('Status', colorStatus(app.status));
@@ -141,9 +149,8 @@ export function registerAppsCommands(program: Command): void {
         if (app.description) {
           console.log();
           console.log(`  ${chalk.bold('Description')}`);
-          const preview = app.description.length > 300
-            ? app.description.slice(0, 300) + '…'
-            : app.description;
+          const preview =
+            app.description.length > 300 ? app.description.slice(0, 300) + '…' : app.description;
           console.log(`  ${chalk.gray(preview.replace(/\n/g, '\n  '))}`);
         }
         console.log();
@@ -159,7 +166,9 @@ export function registerAppsCommands(program: Command): void {
     .action(async (id: string, status: string) => {
       try {
         if (!VALID_STATUSES.includes(status as ApplicationStatus)) {
-          console.error(chalk.red('✗') + ` Invalid status "${status}". Valid: ${VALID_STATUSES.join(', ')}`);
+          console.error(
+            chalk.red('✗') + ` Invalid status "${status}". Valid: ${VALID_STATUSES.join(', ')}`,
+          );
           process.exit(1);
         }
 

@@ -1,6 +1,9 @@
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { IDeleteAccountUseCase, DeleteAccountInput } from '@/use-cases/user/IDeleteAccountUseCase.js';
+import type {
+  IDeleteAccountUseCase,
+  DeleteAccountInput,
+} from '@/use-cases/user/IDeleteAccountUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

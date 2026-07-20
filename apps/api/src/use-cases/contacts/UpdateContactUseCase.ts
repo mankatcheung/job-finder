@@ -1,6 +1,10 @@
 import type { IContactRepository } from '@/use-cases/ports/IContactRepository.js';
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { IUpdateContactUseCase, UpdateContactInput, UpdateContactOutput } from '@/use-cases/contacts/IUpdateContactUseCase.js';
+import type {
+  IUpdateContactUseCase,
+  UpdateContactInput,
+  UpdateContactOutput,
+} from '@/use-cases/contacts/IUpdateContactUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

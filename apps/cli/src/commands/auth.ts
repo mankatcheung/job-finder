@@ -39,11 +39,13 @@ export function registerAuthCommands(program: Command): void {
     .option('--key <key>', 'API key (jfat_…)')
     .action(async (opts: { key?: string }) => {
       try {
-        const apiKey = opts.key ?? await promptSecret('API key: ');
+        const apiKey = opts.key ?? (await promptSecret('API key: '));
         const trimmed = apiKey.trim();
 
         if (!trimmed.startsWith('jfat_')) {
-          console.error(chalk.red('✗') + ' Invalid key format — expected a key starting with jfat_');
+          console.error(
+            chalk.red('✗') + ' Invalid key format — expected a key starting with jfat_',
+          );
           process.exit(1);
         }
 
@@ -89,9 +91,9 @@ export function registerAuthCommands(program: Command): void {
       console.log(`API:  ${chalk.gray(getApiUrl())}`);
 
       try {
-        const data = await gql<{ apiTokens: { id: string; name: string; lastUsedAt: string | null }[] }>(
-          `query { apiTokens { id name lastUsedAt } }`,
-        );
+        const data = await gql<{
+          apiTokens: { id: string; name: string; lastUsedAt: string | null }[];
+        }>(`query { apiTokens { id name lastUsedAt } }`);
         console.log(chalk.green('✓') + ' Key is valid');
         if (data.apiTokens.length > 0) {
           console.log(chalk.gray(`  ${data.apiTokens.length} token(s) on this account`));

@@ -1,6 +1,9 @@
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { IUpdatePasswordUseCase, UpdatePasswordInput } from '@/use-cases/user/IUpdatePasswordUseCase.js';
+import type {
+  IUpdatePasswordUseCase,
+  UpdatePasswordInput,
+} from '@/use-cases/user/IUpdatePasswordUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

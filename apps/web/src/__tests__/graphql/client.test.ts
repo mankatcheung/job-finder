@@ -23,7 +23,11 @@ vi.mock('graphql-request', () => ({
 
 const mockLocationHref = vi.fn();
 Object.defineProperty(window, 'location', {
-  value: { set href(v: string) { mockLocationHref(v); } },
+  value: {
+    set href(v: string) {
+      mockLocationHref(v);
+    },
+  },
   writable: true,
 });
 
@@ -48,10 +52,15 @@ describe('refresh token deduplication', () => {
     );
 
     const { gqlClient } = await import('#/graphql/client');
-    const middleware = (gqlClient as unknown as { responseMiddleware: Middleware }).responseMiddleware;
+    const middleware = (gqlClient as unknown as { responseMiddleware: Middleware })
+      .responseMiddleware;
     const unauthorized = { errors: [{ extensions: { code: 'UNAUTHORIZED' } }] };
 
-    await Promise.all([middleware(unauthorized), middleware(unauthorized), middleware(unauthorized)]);
+    await Promise.all([
+      middleware(unauthorized),
+      middleware(unauthorized),
+      middleware(unauthorized),
+    ]);
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
@@ -64,7 +73,8 @@ describe('refresh token deduplication', () => {
     );
 
     const { gqlClient } = await import('#/graphql/client');
-    const middleware = (gqlClient as unknown as { responseMiddleware: Middleware }).responseMiddleware;
+    const middleware = (gqlClient as unknown as { responseMiddleware: Middleware })
+      .responseMiddleware;
 
     await middleware({ errors: [{ extensions: { code: 'UNAUTHORIZED' } }] });
 
@@ -73,7 +83,8 @@ describe('refresh token deduplication', () => {
 
   it('does not refresh when response has no UNAUTHORIZED error', async () => {
     const { gqlClient } = await import('#/graphql/client');
-    const middleware = (gqlClient as unknown as { responseMiddleware: Middleware }).responseMiddleware;
+    const middleware = (gqlClient as unknown as { responseMiddleware: Middleware })
+      .responseMiddleware;
 
     await middleware({ data: { applications: [] } });
 
@@ -82,7 +93,8 @@ describe('refresh token deduplication', () => {
 
   it('does not refresh when response is an Error instance', async () => {
     const { gqlClient } = await import('#/graphql/client');
-    const middleware = (gqlClient as unknown as { responseMiddleware: Middleware }).responseMiddleware;
+    const middleware = (gqlClient as unknown as { responseMiddleware: Middleware })
+      .responseMiddleware;
 
     await middleware(new Error('network error'));
 

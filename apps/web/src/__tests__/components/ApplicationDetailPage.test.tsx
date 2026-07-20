@@ -251,7 +251,9 @@ describe('ApplicationDetailPage', () => {
     });
 
     // Enter edit mode
-    const noteCard = screen.getByText('Great first interview').closest('div[class*="bg-white"]') as HTMLElement;
+    const noteCard = screen
+      .getByText('Great first interview')
+      .closest('div[class*="bg-white"]') as HTMLElement;
     fireEvent.click(within(noteCard).getAllByRole('button')[0]);
 
     await waitFor(() => {
@@ -283,7 +285,9 @@ describe('ApplicationDetailPage', () => {
       expect(screen.getByText('Great first interview')).toBeInTheDocument();
     });
 
-    const noteCard = screen.getByText('Great first interview').closest('div[class*="bg-white"]') as HTMLElement;
+    const noteCard = screen
+      .getByText('Great first interview')
+      .closest('div[class*="bg-white"]') as HTMLElement;
     const noteButtons = within(noteCard).getAllByRole('button');
     fireEvent.click(noteButtons[1]); // delete button
 

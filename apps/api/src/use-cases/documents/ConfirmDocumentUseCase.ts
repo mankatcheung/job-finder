@@ -1,7 +1,11 @@
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
 import type { IDocumentRepository } from '@/use-cases/ports/IDocumentRepository.js';
 import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
-import type { IConfirmDocumentUseCase, ConfirmDocumentInput, ConfirmDocumentOutput } from '@/use-cases/documents/IConfirmDocumentUseCase.js';
+import type {
+  IConfirmDocumentUseCase,
+  ConfirmDocumentInput,
+  ConfirmDocumentOutput,
+} from '@/use-cases/documents/IConfirmDocumentUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

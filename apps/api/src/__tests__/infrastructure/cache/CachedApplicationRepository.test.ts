@@ -39,9 +39,7 @@ describe('CachedApplicationRepository', () => {
     it('uses separate cache keys for different users', async () => {
       const { repo, inner } = makeRepo();
       const app2 = makeApplication({ id: 'app-2', userId: 'user-2' });
-      vi.mocked(inner.findAllByUserId)
-        .mockResolvedValueOnce([app])
-        .mockResolvedValueOnce([app2]);
+      vi.mocked(inner.findAllByUserId).mockResolvedValueOnce([app]).mockResolvedValueOnce([app2]);
 
       const r1 = await repo.findAllByUserId('user-1');
       const r2 = await repo.findAllByUserId('user-2');

@@ -42,7 +42,11 @@ describe('UpdateContactUseCase', () => {
       }),
       contactRepository,
     });
-    const result = await useCase.execute({ userId: 'user-1', contactId: 'contact-1', name: 'Updated Name' });
+    const result = await useCase.execute({
+      userId: 'user-1',
+      contactId: 'contact-1',
+      name: 'Updated Name',
+    });
     expect(result).toEqual(updated);
     expect(contactRepository.update).toHaveBeenCalledWith('contact-1', { name: 'Updated Name' });
   });

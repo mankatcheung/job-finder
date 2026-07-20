@@ -56,9 +56,12 @@ builder.mutationField('updateApplication', (t) =>
         starred: args.input.starred ?? undefined,
         source: args.input.source,
         tags: args.input.tags ?? undefined,
-        followUpAt: args.input.followUpAt !== undefined
-          ? (args.input.followUpAt ? new Date(args.input.followUpAt) : null)
-          : undefined,
+        followUpAt:
+          args.input.followUpAt !== undefined
+            ? args.input.followUpAt
+              ? new Date(args.input.followUpAt)
+              : null
+            : undefined,
       });
     },
   }),

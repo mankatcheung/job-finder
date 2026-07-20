@@ -72,7 +72,13 @@ describe('container wiring: noteRepository and documentRepository', () => {
     const container = createContainer();
     container.register({
       cache: asValue(new MemoryCache()),
-      prismaNoteRepository: asValue({ findAllByApplicationId: vi.fn(), findById: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() }),
+      prismaNoteRepository: asValue({
+        findAllByApplicationId: vi.fn(),
+        findById: vi.fn(),
+        create: vi.fn(),
+        update: vi.fn(),
+        delete: vi.fn(),
+      }),
       noteRepository: asClass(CachedNoteRepository, { lifetime: Lifetime.SINGLETON }),
     });
     expect(container.resolve('noteRepository')).toBeInstanceOf(CachedNoteRepository);
@@ -82,7 +88,12 @@ describe('container wiring: noteRepository and documentRepository', () => {
     const container = createContainer();
     container.register({
       cache: asValue(new MemoryCache()),
-      prismaDocumentRepository: asValue({ findAllByApplicationId: vi.fn(), findById: vi.fn(), create: vi.fn(), delete: vi.fn() }),
+      prismaDocumentRepository: asValue({
+        findAllByApplicationId: vi.fn(),
+        findById: vi.fn(),
+        create: vi.fn(),
+        delete: vi.fn(),
+      }),
       documentRepository: asClass(CachedDocumentRepository, { lifetime: Lifetime.SINGLETON }),
     });
     expect(container.resolve('documentRepository')).toBeInstanceOf(CachedDocumentRepository);

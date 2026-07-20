@@ -1,7 +1,11 @@
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
 import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
 import type { ITransactionManager } from '@/use-cases/ports/ITransactionManager.js';
-import type { IUpdateApplicationUseCase, UpdateApplicationInput, UpdateApplicationOutput } from '@/use-cases/jobs/IUpdateApplicationUseCase.js';
+import type {
+  IUpdateApplicationUseCase,
+  UpdateApplicationInput,
+  UpdateApplicationOutput,
+} from '@/use-cases/jobs/IUpdateApplicationUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;
@@ -51,9 +55,19 @@ export class UpdateApplicationUseCase implements IUpdateApplicationUseCase {
             payload: JSON.stringify({ from: app.status, to: input.status }),
           });
         } else {
-          const changed = (['company', 'role', 'jobUrl', 'location', 'salaryRange', 'description', 'source', 'followUpAt', 'starred'] as const).filter(
-            (f) => input[f as keyof typeof input] !== undefined,
-          );
+          const changed = (
+            [
+              'company',
+              'role',
+              'jobUrl',
+              'location',
+              'salaryRange',
+              'description',
+              'source',
+              'followUpAt',
+              'starred',
+            ] as const
+          ).filter((f) => input[f as keyof typeof input] !== undefined);
           if (changed.length > 0) {
             await this.deps.activityLogRepository.append({
               id: genId(),
@@ -69,8 +83,6 @@ export class UpdateApplicationUseCase implements IUpdateApplicationUseCase {
       return updated;
     };
 
-    return this.deps.transactionManager
-      ? this.deps.transactionManager.run(doUpdate)
-      : doUpdate();
+    return this.deps.transactionManager ? this.deps.transactionManager.run(doUpdate) : doUpdate();
   }
 }

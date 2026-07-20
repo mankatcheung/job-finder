@@ -1,6 +1,10 @@
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
 import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
-import type { IUpdateNoteUseCase, UpdateNoteInput, UpdateNoteOutput } from '@/use-cases/notes/IUpdateNoteUseCase.js';
+import type {
+  IUpdateNoteUseCase,
+  UpdateNoteInput,
+  UpdateNoteOutput,
+} from '@/use-cases/notes/IUpdateNoteUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

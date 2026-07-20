@@ -26,12 +26,13 @@ export class DeleteNoteUseCase implements IDeleteNoteUseCase {
 
     await this.deps.noteRepository.delete(input.noteId);
 
-    if (this.deps.activityLogRepository && this.deps.generateId) await this.deps.activityLogRepository.append({
-      id: this.deps.generateId(),
-      applicationId: note.applicationId,
-      actorId: input.userId,
-      eventType: 'note_deleted',
-      payload: JSON.stringify({ noteId: input.noteId }),
-    });
+    if (this.deps.activityLogRepository && this.deps.generateId)
+      await this.deps.activityLogRepository.append({
+        id: this.deps.generateId(),
+        applicationId: note.applicationId,
+        actorId: input.userId,
+        eventType: 'note_deleted',
+        payload: JSON.stringify({ noteId: input.noteId }),
+      });
   }
 }

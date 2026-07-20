@@ -18,7 +18,11 @@ export function colorStatus(status: string): string {
 
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return chalk.gray('—');
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return new Date(iso).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 }
 
 export function makeTable(head: string[], colWidths?: number[]): Table.Table {

@@ -1,4 +1,8 @@
-import type { InterviewRound, InterviewRoundType, InterviewRoundOutcome } from '@/domain/interviewRound/InterviewRound.js';
+import type {
+  InterviewRound,
+  InterviewRoundType,
+  InterviewRoundOutcome,
+} from '@/domain/interviewRound/InterviewRound.js';
 
 export interface UpdateInterviewRoundInput {
   userId: string;

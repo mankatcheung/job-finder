@@ -9,13 +9,12 @@ export function parseGeneric(): JobData | null {
       const schema = Array.isArray(data) ? data[0] : data;
       if (schema['@type'] === 'JobPosting') {
         return {
-          company:
-            schema.hiringOrganization?.name ||
-            schema.employer?.name ||
-            undefined,
+          company: schema.hiringOrganization?.name || schema.employer?.name || undefined,
           role: schema.title || document.title,
           location: schema.jobLocation?.address?.addressLocality || undefined,
-          description: (schema.description as string | undefined)?.replace(/<[^>]+>/g, '').slice(0, 2000),
+          description: (schema.description as string | undefined)
+            ?.replace(/<[^>]+>/g, '')
+            .slice(0, 2000),
           jobUrl: window.location.href,
           source: new URL(window.location.href).hostname,
         };
@@ -31,9 +30,11 @@ export function parseGeneric(): JobData | null {
     document.title.split(/[-|–|at]/)[0]?.trim();
 
   const company =
-    (document.querySelector('[class*="company"], [class*="employer"], [class*="org"]') as HTMLElement)
-      ?.innerText?.trim() ||
-    document.title.split(/\s+at\s+/i)[1]?.trim();
+    (
+      document.querySelector(
+        '[class*="company"], [class*="employer"], [class*="org"]',
+      ) as HTMLElement
+    )?.innerText?.trim() || document.title.split(/\s+at\s+/i)[1]?.trim();
 
   if (!role) return null;
 

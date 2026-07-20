@@ -9,10 +9,7 @@ export class FastifyJwtTokenService implements ITokenService {
   constructor(private readonly deps: Deps) {}
 
   sign(userId: string, email: string): TokenPair {
-    const accessToken = this.deps.fastify.jwt.sign(
-      { sub: userId, email },
-      { expiresIn: '15m' },
-    );
+    const accessToken = this.deps.fastify.jwt.sign({ sub: userId, email }, { expiresIn: '15m' });
     const refreshToken = this.deps.fastify.jwt.sign(
       { sub: userId, email },
       { key: process.env.JWT_REFRESH_SECRET!, expiresIn: '7d' },

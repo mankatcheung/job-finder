@@ -1,7 +1,10 @@
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
 import type { IDocumentRepository } from '@/use-cases/ports/IDocumentRepository.js';
 import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
-import type { IDeleteApplicationUseCase, DeleteApplicationInput } from '@/use-cases/jobs/IDeleteApplicationUseCase.js';
+import type {
+  IDeleteApplicationUseCase,
+  DeleteApplicationInput,
+} from '@/use-cases/jobs/IDeleteApplicationUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

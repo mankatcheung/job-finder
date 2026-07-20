@@ -5,11 +5,15 @@ import type { IRegisterUseCase } from '@/use-cases/auth/IRegisterUseCase.js';
 import type { ILoginUseCase } from '@/use-cases/auth/ILoginUseCase.js';
 import type { ITokenService } from '@/use-cases/ports/ITokenService.js';
 
-const makeRegisterUseCase = (overrides?: Partial<IRegisterUseCase>): IRegisterUseCase =>
-  ({ execute: vi.fn(), ...overrides });
+const makeRegisterUseCase = (overrides?: Partial<IRegisterUseCase>): IRegisterUseCase => ({
+  execute: vi.fn(),
+  ...overrides,
+});
 
-const makeLoginUseCase = (overrides?: Partial<ILoginUseCase>): ILoginUseCase =>
-  ({ execute: vi.fn(), ...overrides });
+const makeLoginUseCase = (overrides?: Partial<ILoginUseCase>): ILoginUseCase => ({
+  execute: vi.fn(),
+  ...overrides,
+});
 
 const makeTokenService = (overrides?: Partial<ITokenService>): ITokenService => ({
   sign: vi.fn().mockReturnValue({ accessToken: 'access-token', refreshToken: 'refresh-token' }),

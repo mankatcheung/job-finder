@@ -10,10 +10,14 @@ import {
 describe('GetContactsUseCase', () => {
   it('throws NOT_FOUND when application does not exist', async () => {
     const useCase = new GetContactsUseCase({
-      applicationRepository: makeApplicationRepository({ findById: vi.fn().mockResolvedValue(null) }),
+      applicationRepository: makeApplicationRepository({
+        findById: vi.fn().mockResolvedValue(null),
+      }),
       contactRepository: makeContactRepository(),
     });
-    const err = await useCase.execute({ userId: 'user-1', applicationId: 'missing' }).catch((e) => e);
+    const err = await useCase
+      .execute({ userId: 'user-1', applicationId: 'missing' })
+      .catch((e) => e);
     expect((err as { code: string }).code).toBe('NOT_FOUND');
   });
 
