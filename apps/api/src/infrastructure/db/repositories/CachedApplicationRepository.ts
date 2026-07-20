@@ -70,4 +70,13 @@ export class CachedApplicationRepository implements IApplicationRepository {
     this.userIdByAppId.delete(id);
     if (userId) this.cache.deleteByPrefix(`apps:list:${userId}:`);
   }
+
+  async findDueForReminder(): Promise<Application[]> {
+    return this.inner.findDueForReminder();
+  }
+
+  async updateReminderSentAt(id: string, sentAt: Date): Promise<void> {
+    await this.inner.updateReminderSentAt(id, sentAt);
+    this.cache.delete(`apps:byId:${id}`);
+  }
 }

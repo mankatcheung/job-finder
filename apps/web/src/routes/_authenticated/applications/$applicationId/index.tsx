@@ -183,11 +183,16 @@ export function ApplicationDetailPage() {
           )}
           {app.source && <InfoItem label="Source" value={app.source} />}
           {app.followUpAt && (
-            <InfoItem
-              label="Follow up"
-              value={new Date(app.followUpAt).toLocaleDateString()}
-              highlight={new Date(app.followUpAt) <= new Date()}
-            />
+            <div>
+              <InfoItem
+                label="Follow up"
+                value={new Date(app.followUpAt).toLocaleDateString()}
+                highlight={new Date(app.followUpAt) <= new Date()}
+              />
+              <p className="text-xs text-gray-400 mt-0.5">
+                Email reminder will be sent 24 h before this date.
+              </p>
+            </div>
           )}
           {app.tags.length > 0 && (
             <div>

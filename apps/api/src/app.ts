@@ -5,6 +5,7 @@ import cookie from '@fastify/cookie';
 
 import authPlugin from '@/http/plugins/auth.plugin.js';
 import corsPlugin from '@/http/plugins/cors.plugin.js';
+import remindersPlugin from '@/http/plugins/reminders.plugin.js';
 import { buildContainer } from '@/http/container.js';
 import { schema } from '@/http/schema/index.js';
 import { formatError } from '@/http/errors/formatError.js';
@@ -23,6 +24,8 @@ export async function buildApp() {
   await fastify.register(fastifyAwilixPlugin, { disposeOnClose: true, disposeOnResponse: true });
 
   buildContainer(fastify);
+
+  await fastify.register(remindersPlugin);
 
   await fastify.register(mercurius, {
     schema,

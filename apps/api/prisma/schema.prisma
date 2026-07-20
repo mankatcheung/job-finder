@@ -42,9 +42,10 @@ model JobApplication {
   appliedAt   DateTime?
   starred     Boolean    @default(false)
   source      String?
-  followUpAt  DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  followUpAt      DateTime?
+  reminderSentAt  DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   interviewRounds InterviewRound[]
   notes           Note[]

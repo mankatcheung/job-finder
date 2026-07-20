@@ -38,4 +38,6 @@ export interface IApplicationRepository {
   create(data: CreateApplicationData): Promise<Application>;
   update(id: string, data: UpdateApplicationData): Promise<Application>;
   delete(id: string): Promise<void>;
+  findDueForReminder(): Promise<Application[]>;
+  updateReminderSentAt(id: string, sentAt: Date): Promise<void>;
 }

@@ -33,6 +33,8 @@ export const makeApplicationRepository = (
   create: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
+  findDueForReminder: vi.fn().mockResolvedValue([]),
+  updateReminderSentAt: vi.fn().mockResolvedValue(undefined),
   ...overrides,
 });
 
@@ -136,6 +138,7 @@ export const makeApplication = (overrides?: Partial<Application>): Application =
   source: null,
   followUpAt: null,
   tags: [],
+  reminderSentAt: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,
