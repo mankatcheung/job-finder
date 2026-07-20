@@ -159,7 +159,11 @@ export function ApplicationsPage() {
           <BriefcaseIcon size={40} className="mx-auto mb-3 opacity-40" />
           <p>
             No applications
-            {searchTerm ? ` matching "${searchTerm}"` : status ? ` with status "${status}"` : ''}{' '}
+            {searchTerm
+              ? ` matching "${searchTerm}"`
+              : status
+                ? ` with status "${status}"`
+                : ''}{' '}
             yet.
           </p>
         </div>
