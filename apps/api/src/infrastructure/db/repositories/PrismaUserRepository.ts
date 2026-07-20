@@ -1,12 +1,17 @@
 import type { PrismaClient } from '@prisma/client';
 import type { User } from '@/domain/user/User.js';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
+import { getClient } from '../transactionContext.js';
 
 export class PrismaUserRepository implements IUserRepository {
-  private readonly db: PrismaClient;
+  private readonly prisma: PrismaClient;
 
   constructor({ prisma }: { prisma: PrismaClient }) {
-    this.db = prisma;
+    this.prisma = prisma;
+  }
+
+  private get db(): PrismaClient {
+    return getClient(this.prisma);
   }
 
   async findById(id: string): Promise<User | null> {

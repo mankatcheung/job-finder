@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
 import type { InterviewRound, InterviewRoundType, InterviewRoundOutcome } from '@/domain/interviewRound/InterviewRound.js';
+import { getClient } from '../transactionContext.js';
 import type {
   IInterviewRoundRepository,
   CreateInterviewRoundData,
@@ -20,10 +21,14 @@ type PrismaRound = {
 };
 
 export class PrismaInterviewRoundRepository implements IInterviewRoundRepository {
-  private readonly db: PrismaClient;
+  private readonly prisma: PrismaClient;
 
   constructor({ prisma }: { prisma: PrismaClient }) {
-    this.db = prisma;
+    this.prisma = prisma;
+  }
+
+  private get db(): PrismaClient {
+    return getClient(this.prisma);
   }
 
   async findAllByApplicationId(applicationId: string): Promise<InterviewRound[]> {

@@ -4,6 +4,7 @@ import type {
   IActivityLogRepository,
   AppendActivityLogData,
 } from '@/use-cases/ports/IActivityLogRepository.js';
+import { getClient } from '../transactionContext.js';
 
 type PrismaActivityLog = {
   id: string;
@@ -21,8 +22,12 @@ interface Deps {
 export class PrismaActivityLogRepository implements IActivityLogRepository {
   constructor(private readonly deps: Deps) {}
 
+  private get db(): PrismaClient {
+    return getClient(this.deps.prisma);
+  }
+
   async findAllByApplicationId(applicationId: string): Promise<ActivityLog[]> {
-    const rows = await this.deps.prisma.$queryRaw<PrismaActivityLog[]>`
+    const rows = await this.db.$queryRaw<PrismaActivityLog[]>`
       SELECT id, applicationId, actorId, eventType, payload, createdAt
       FROM ActivityLog
       WHERE applicationId = ${applicationId}
@@ -33,11 +38,11 @@ export class PrismaActivityLogRepository implements IActivityLogRepository {
 
   async append(data: AppendActivityLogData): Promise<ActivityLog> {
     const now = new Date().toISOString();
-    await this.deps.prisma.$executeRaw`
+    await this.db.$executeRaw`
       INSERT INTO ActivityLog (id, applicationId, actorId, eventType, payload, createdAt)
       VALUES (${data.id}, ${data.applicationId}, ${data.actorId}, ${data.eventType}, ${data.payload}, ${now})
     `;
-    const rows = await this.deps.prisma.$queryRaw<PrismaActivityLog[]>`
+    const rows = await this.db.$queryRaw<PrismaActivityLog[]>`
       SELECT id, applicationId, actorId, eventType, payload, createdAt
       FROM ActivityLog
       WHERE id = ${data.id}

@@ -1,6 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { UpdateApplicationUseCase } from '@/use-cases/jobs/UpdateApplicationUseCase.js';
-import { makeApplicationRepository, makeApplication } from '@/__tests__/helpers/mocks.js';
+import {
+  makeApplicationRepository,
+  makeApplication,
+  makeTransactionManager,
+} from '@/__tests__/helpers/mocks.js';
 
 describe('UpdateApplicationUseCase', () => {
   it('throws NOT_FOUND when the application does not exist', async () => {
@@ -99,5 +103,34 @@ describe('UpdateApplicationUseCase', () => {
 
     const updateCall = vi.mocked(applicationRepository.update).mock.calls[0][1];
     expect(updateCall).not.toHaveProperty('appliedAt');
+  });
+
+  it('delegates to transactionManager.run when provided', async () => {
+    const existing = makeApplication({ status: 'draft' });
+    const updated = makeApplication({ status: 'applied' });
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(existing),
+      update: vi.fn().mockResolvedValue(updated),
+    });
+    const transactionManager = makeTransactionManager();
+
+    const useCase = new UpdateApplicationUseCase({ applicationRepository, transactionManager });
+    await useCase.execute({ userId: 'user-1', applicationId: 'app-1', status: 'applied' });
+
+    expect(transactionManager.run).toHaveBeenCalledOnce();
+    expect(applicationRepository.update).toHaveBeenCalled();
+  });
+
+  it('runs without a transaction when transactionManager is omitted', async () => {
+    const existing = makeApplication();
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(existing),
+      update: vi.fn().mockResolvedValue(makeApplication()),
+    });
+
+    const useCase = new UpdateApplicationUseCase({ applicationRepository });
+    await expect(
+      useCase.execute({ userId: 'user-1', applicationId: 'app-1', company: 'Acme' }),
+    ).resolves.toBeDefined();
   });
 });
