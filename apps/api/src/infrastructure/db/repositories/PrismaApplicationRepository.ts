@@ -24,6 +24,7 @@ type PrismaApp = {
   starred: boolean;
   source: string | null;
   followUpAt: Date | null;
+  reminderSentAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
   tags: PrismaTag[];
@@ -127,6 +128,26 @@ export class PrismaApplicationRepository implements IApplicationRepository {
     await this.db.jobApplication.delete({ where: { id } });
   }
 
+  async findDueForReminder(): Promise<Application[]> {
+    const now = new Date();
+    const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const rows = await this.db.jobApplication.findMany({
+      where: {
+        followUpAt: { gte: now, lte: in24h },
+        OR: [
+          { reminderSentAt: null },
+          { reminderSentAt: { lte: new Date(now.getTime() - 23 * 60 * 60 * 1000) } },
+        ],
+      },
+      include: INCLUDE_TAGS,
+    });
+    return rows.map(this.toEntity);
+  }
+
+  async updateReminderSentAt(id: string, sentAt: Date): Promise<void> {
+    await this.db.jobApplication.update({ where: { id }, data: { reminderSentAt: sentAt } });
+  }
+
   private toEntity(row: PrismaApp): Application {
     return {
       id: row.id,
@@ -142,7 +163,8 @@ export class PrismaApplicationRepository implements IApplicationRepository {
       starred: row.starred,
       source: row.source,
       followUpAt: row.followUpAt,
-      tags: row.tags.map((t) => t.name),
+      tags: row.tags?.map((t: { name: string }) => t.name) ?? [],
+      reminderSentAt: row.reminderSentAt,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

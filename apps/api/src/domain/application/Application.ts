@@ -15,6 +15,7 @@ export interface Application {
   source: string | null;
   followUpAt: Date | null;
   tags: string[];
+  reminderSentAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

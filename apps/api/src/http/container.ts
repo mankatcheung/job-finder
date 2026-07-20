@@ -71,6 +71,8 @@ import { CreateContactUseCase } from '@/use-cases/contacts/CreateContactUseCase.
 import { GetContactsUseCase } from '@/use-cases/contacts/GetContactsUseCase.js';
 import { UpdateContactUseCase } from '@/use-cases/contacts/UpdateContactUseCase.js';
 import { DeleteContactUseCase } from '@/use-cases/contacts/DeleteContactUseCase.js';
+import { BrevoEmailService } from '@/infrastructure/email/BrevoEmailService.js';
+import { SendFollowUpRemindersUseCase } from '@/use-cases/reminders/SendFollowUpRemindersUseCase.js';
 
 import type { FastifyInstance } from 'fastify';
 
@@ -149,6 +151,8 @@ declare module '@fastify/awilix' {
     getContactsUseCase: GetContactsUseCase;
     updateContactUseCase: UpdateContactUseCase;
     deleteContactUseCase: DeleteContactUseCase;
+    emailService: BrevoEmailService;
+    sendFollowUpRemindersUseCase: SendFollowUpRemindersUseCase;
   }
 }
 
@@ -242,5 +246,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     getContactsUseCase: asClass(GetContactsUseCase, { lifetime: Lifetime.TRANSIENT }),
     updateContactUseCase: asClass(UpdateContactUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteContactUseCase: asClass(DeleteContactUseCase, { lifetime: Lifetime.TRANSIENT }),
+    emailService: asClass(BrevoEmailService, { lifetime: Lifetime.SINGLETON }),
+    sendFollowUpRemindersUseCase: asClass(SendFollowUpRemindersUseCase, { lifetime: Lifetime.TRANSIENT }),
   });
 }
