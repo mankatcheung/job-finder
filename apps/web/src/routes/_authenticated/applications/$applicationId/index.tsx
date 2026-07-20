@@ -138,12 +138,12 @@ export function ApplicationDetailPage() {
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 mb-6">
-        <div className="flex items-start justify-between">
-          <div>
+        <div className="flex items-start justify-between gap-x-3 gap-y-2 flex-wrap">
+          <div className="min-w-0">
             <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{app.company}</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-0.5">{app.role}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <StatusBadge status={app.status} />
             <button
               onClick={() => toggleStar.mutate(!app.starred)}
@@ -175,7 +175,7 @@ export function ApplicationDetailPage() {
           </div>
         </div>
 
-        <dl className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+        <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-sm">
           {app.location && <InfoItem label="Location" value={app.location} />}
           {app.salaryRange && <InfoItem label="Salary" value={app.salaryRange} />}
           {app.appliedAt && (
@@ -205,7 +205,7 @@ export function ApplicationDetailPage() {
             </div>
           )}
           {app.jobUrl && (
-            <div className="col-span-2 sm:col-span-3">
+            <div className="col-span-1 sm:col-span-2 md:col-span-3">
               <dt className="text-xs text-gray-400">Job URL</dt>
               <a
                 href={app.jobUrl}
@@ -218,7 +218,7 @@ export function ApplicationDetailPage() {
             </div>
           )}
           {app.description && (
-            <div className="col-span-2 sm:col-span-3">
+            <div className="col-span-1 sm:col-span-2 md:col-span-3">
               <dt className="text-xs text-gray-400 mb-1">Description</dt>
               <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                 {app.description}
