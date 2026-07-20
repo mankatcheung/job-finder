@@ -36,7 +36,7 @@ export default async function applicationListRoutes(fastify: FastifyInstance): P
       throw err;
     }
 
-    const q = (request.query as Record<string, string>);
+    const q = request.query as Record<string, string>;
     const search = (q['search'] ?? '').toLowerCase();
     const filterStatus = q['status'] ?? '';
     const filterStarred = q['starred'] === '1';

@@ -37,8 +37,23 @@ type FullApp = {
   description?: string | null;
   createdAt: string;
   notes: Array<{ id: string; content: string; createdAt: string }>;
-  contacts: Array<{ id: string; name: string; role?: string | null; email?: string | null; phone?: string | null; linkedIn?: string | null; notes?: string | null }>;
-  interviewRounds: Array<{ id: string; round: number; type: string; scheduledAt?: string | null; notes?: string | null; outcome?: string | null }>;
+  contacts: Array<{
+    id: string;
+    name: string;
+    role?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    linkedIn?: string | null;
+    notes?: string | null;
+  }>;
+  interviewRounds: Array<{
+    id: string;
+    round: number;
+    type: string;
+    scheduledAt?: string | null;
+    notes?: string | null;
+    outcome?: string | null;
+  }>;
 };
 
 const starFilledIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
@@ -62,7 +77,8 @@ function detailPage(app: FullApp, activeTab = 'overview'): string {
   const tabContent = renderTab(app, activeTab);
 
   const statusOptions = ALL_STATUSES.map(
-    (s) => `<option value="${s}" ${app.status === s ? 'selected' : ''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`,
+    (s) =>
+      `<option value="${s}" ${app.status === s ? 'selected' : ''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`,
   ).join('');
 
   const content = `
@@ -226,7 +242,8 @@ export default async function applicationDetailRoutes(fastify: FastifyInstance):
     try {
       await authedGql(request, reply, UPDATE_STATUS, { id, status });
       const statusOptions = ALL_STATUSES.map(
-        (s) => `<option value="${s}" ${status === s ? 'selected' : ''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`,
+        (s) =>
+          `<option value="${s}" ${status === s ? 'selected' : ''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`,
       ).join('');
       return reply.type('text/html').send(`
         <select class="px-2 py-1 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"

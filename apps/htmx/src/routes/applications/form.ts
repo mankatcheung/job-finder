@@ -46,7 +46,7 @@ function formPage(app: App | null, error?: string): string {
 
   const val = (field: string, fallback = '') => {
     if (!app) return escapeHtml(fallback);
-    return escapeHtml((app as Record<string, unknown>)[field] as string ?? fallback);
+    return escapeHtml(((app as Record<string, unknown>)[field] as string) ?? fallback);
   };
 
   const statusOptions = ALL_STATUSES.map((s) => {

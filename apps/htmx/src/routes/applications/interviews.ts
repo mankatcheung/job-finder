@@ -89,16 +89,16 @@ function interviewForm(appId: string, iv?: Interview, nextRound = 1): string {
   const reset = id ? '' : `hx-on::after-request="this.reset()"`;
 
   const typeOptions = INTERVIEW_TYPES.map(
-    (t) => `<option value="${t}" ${(iv?.type ?? '') === t ? 'selected' : ''}>${t.charAt(0).toUpperCase() + t.slice(1)}</option>`,
+    (t) =>
+      `<option value="${t}" ${(iv?.type ?? '') === t ? 'selected' : ''}>${t.charAt(0).toUpperCase() + t.slice(1)}</option>`,
   ).join('');
 
   const outcomeOptions = OUTCOMES.map(
-    (o) => `<option value="${o}" ${(iv?.outcome ?? 'pending') === o ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`,
+    (o) =>
+      `<option value="${o}" ${(iv?.outcome ?? 'pending') === o ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`,
   ).join('');
 
-  const localScheduled = iv?.scheduledAt
-    ? new Date(iv.scheduledAt).toISOString().slice(0, 16)
-    : '';
+  const localScheduled = iv?.scheduledAt ? new Date(iv.scheduledAt).toISOString().slice(0, 16) : '';
 
   return `
     <form id="${formId}" class="bg-white rounded-lg border border-blue-300 p-3"

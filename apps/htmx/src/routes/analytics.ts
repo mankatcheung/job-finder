@@ -57,11 +57,18 @@ export default async function analyticsRoutes(fastify: FastifyInstance): Promise
     const maxWeek = Math.max(...weeks.map(([, v]) => v), 1);
 
     // Star rate
-    const starRate = total > 0 ? Math.round((apps.filter((a) => a.starred).length / total) * 100) : 0;
+    const starRate =
+      total > 0 ? Math.round((apps.filter((a) => a.starred).length / total) * 100) : 0;
 
     // Conversion: applied → interviewing → offered
-    const applied = (byStat['applied'] ?? 0) + (byStat['interviewing'] ?? 0) + (byStat['offered'] ?? 0) + (byStat['accepted'] ?? 0) + (byStat['rejected'] ?? 0);
-    const interviewing = (byStat['interviewing'] ?? 0) + (byStat['offered'] ?? 0) + (byStat['accepted'] ?? 0);
+    const applied =
+      (byStat['applied'] ?? 0) +
+      (byStat['interviewing'] ?? 0) +
+      (byStat['offered'] ?? 0) +
+      (byStat['accepted'] ?? 0) +
+      (byStat['rejected'] ?? 0);
+    const interviewing =
+      (byStat['interviewing'] ?? 0) + (byStat['offered'] ?? 0) + (byStat['accepted'] ?? 0);
     const offered = (byStat['offered'] ?? 0) + (byStat['accepted'] ?? 0);
 
     const convRate = (n: number, d: number) => (d > 0 ? Math.round((n / d) * 100) : 0);
@@ -70,7 +77,10 @@ export default async function analyticsRoutes(fastify: FastifyInstance): Promise
       <div class="p-4 sm:p-8 max-w-4xl mx-auto">
         <h1 class="text-2xl font-bold text-gray-900 mb-8">Analytics</h1>
 
-        ${total === 0 ? '<p class="text-gray-400 text-center py-16">No applications to analyse yet.</p>' : `
+        ${
+          total === 0
+            ? '<p class="text-gray-400 text-center py-16">No applications to analyse yet.</p>'
+            : `
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           <!-- Status breakdown -->
@@ -147,7 +157,8 @@ export default async function analyticsRoutes(fastify: FastifyInstance): Promise
           </div>
 
         </div>
-        `}
+        `
+        }
       </div>`;
 
     return reply.type('text/html').send(layout(content, 'Analytics', 'analytics'));

@@ -102,9 +102,7 @@ export default async function authRoutes(fastify: FastifyInstance): Promise<void
       }
       return reply.redirect('/dashboard');
     } catch {
-      return reply
-        .type('text/html')
-        .send(registerPage('Something went wrong. Please try again.'));
+      return reply.type('text/html').send(registerPage('Something went wrong. Please try again.'));
     }
   });
 

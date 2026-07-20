@@ -47,7 +47,11 @@ function tokenRow(t: Token, newToken?: string): string {
     </div>`;
 }
 
-function accountPage(email: string, tokens: Token[], flash?: { type: string; msg: string }): string {
+function accountPage(
+  email: string,
+  tokens: Token[],
+  flash?: { type: string; msg: string },
+): string {
   const alertCls =
     flash?.type === 'error'
       ? 'mb-4 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700'

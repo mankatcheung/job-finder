@@ -93,8 +93,7 @@ export default async function dashboardRoutes(fastify: FastifyInstance): Promise
               : `<div class="space-y-2">
                   ${recentApps
                     .map((app) => {
-                      const isOverdue =
-                        app.followUpAt != null && new Date(app.followUpAt) <= now;
+                      const isOverdue = app.followUpAt != null && new Date(app.followUpAt) <= now;
                       return `
                         <a href="/applications/${app.id}" class="flex items-center justify-between px-4 py-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
                           <div class="flex items-center gap-2 min-w-0">

@@ -30,7 +30,8 @@ export async function gql<T>(
     errors?: Array<{ message: string; extensions?: { code?: string } }>;
   };
   if (json.errors?.length) {
-    if (json.errors.some((e) => e.extensions?.code === 'UNAUTHORIZED')) throw new UnauthorizedError();
+    if (json.errors.some((e) => e.extensions?.code === 'UNAUTHORIZED'))
+      throw new UnauthorizedError();
     throw new GqlError(json.errors);
   }
   return json.data as T;

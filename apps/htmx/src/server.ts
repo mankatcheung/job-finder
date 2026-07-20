@@ -27,7 +27,11 @@ export async function buildServer() {
 
   // Serve static files from public/ if it exists
   const publicDir = join(__dirname, '..', 'public');
-  await fastify.register(staticFiles, { root: publicDir, prefix: '/public/', decorateReply: false });
+  await fastify.register(staticFiles, {
+    root: publicDir,
+    prefix: '/public/',
+    decorateReply: false,
+  });
 
   // Redirect root to dashboard
   fastify.get('/', async (_req, reply) => reply.redirect('/dashboard'));
