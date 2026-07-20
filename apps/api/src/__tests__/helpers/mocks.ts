@@ -133,6 +133,7 @@ export const makeApplication = (overrides?: Partial<Application>): Application =
   starred: false,
   source: null,
   followUpAt: null,
+  tags: [],
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,

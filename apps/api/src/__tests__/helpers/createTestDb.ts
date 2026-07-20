@@ -86,6 +86,14 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "Document_applicationId_idx" ON "Document"("applicationId")`,
+  `CREATE TABLE "ApplicationTag" (
+    "id" TEXT PRIMARY KEY,
+    "applicationId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
+  )`,
+  `CREATE UNIQUE INDEX "ApplicationTag_applicationId_name_key" ON "ApplicationTag"("applicationId", "name")`,
+  `CREATE INDEX "ApplicationTag_applicationId_idx" ON "ApplicationTag"("applicationId")`,
 ];
 
 export interface TestDb {

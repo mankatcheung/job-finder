@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
-import { StarIcon } from 'lucide-react';
+import { StarIcon, XIcon } from 'lucide-react';
 
 const APPLICATION_STATUSES = [
   'draft',
@@ -34,7 +35,7 @@ type FormValues = z.infer<typeof schema>;
 const APPLICATION_QUERY = `
   query Application($id: ID!) {
     application(id: $id) {
-      id company role status jobUrl location salaryRange description appliedAt starred source followUpAt createdAt updatedAt
+      id company role status jobUrl location salaryRange description appliedAt starred source followUpAt tags createdAt updatedAt
     }
   }
 `;
@@ -56,6 +57,7 @@ type Application = {
   starred: boolean;
   source?: string | null;
   followUpAt?: string | null;
+  tags: string[];
 };
 
 export const Route = createFileRoute('/_authenticated/applications/$applicationId/edit')({
@@ -65,6 +67,8 @@ export const Route = createFileRoute('/_authenticated/applications/$applicationI
 export function EditApplicationPage() {
   const { applicationId } = Route.useParams();
   const navigate = useNavigate();
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
 
   const { data } = useQuery({
     queryKey: ['application', applicationId],
@@ -73,6 +77,11 @@ export function EditApplicationPage() {
   });
 
   const app = data?.application;
+
+  useEffect(() => {
+    if (app?.tags) setTags(app.tags);
+  }, [app?.tags?.join(',')]);
+
   const {
     register,
     handleSubmit,
@@ -109,6 +118,7 @@ export function EditApplicationPage() {
         ...(data.source ? { source: data.source } : { source: null }),
         ...(data.followUpAt ? { followUpAt: data.followUpAt } : { followUpAt: null }),
         starred: data.starred ?? false,
+        tags,
       };
       await gqlClient.request(UPDATE_MUTATION, { id: applicationId, input });
       await queryClient.invalidateQueries({ queryKey: ['applications'] });
@@ -192,6 +202,44 @@ export function EditApplicationPage() {
             <input {...register('followUpAt')} className={inputClass} type="date" />
           </Field>
         </div>
+
+        <Field label="Tags">
+          <div className="space-y-2">
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
+                      className="hover:text-blue-600 dark:hover:text-blue-200"
+                    >
+                      <XIcon size={10} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <input
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ',') {
+                  e.preventDefault();
+                  const val = tagInput.trim().toLowerCase();
+                  if (val && !tags.includes(val)) setTags((prev) => [...prev, val]);
+                  setTagInput('');
+                }
+              }}
+              className={inputClass}
+              placeholder="Type a tag and press Enter…"
+            />
+          </div>
+        </Field>
 
         <div className="flex items-center gap-3">
           <input

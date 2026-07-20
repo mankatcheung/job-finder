@@ -14,6 +14,7 @@ export interface UpdateApplicationInput {
   starred?: boolean;
   source?: string | null;
   followUpAt?: Date | null;
+  tags?: string[];
 }
 
 export type UpdateApplicationOutput = Application;

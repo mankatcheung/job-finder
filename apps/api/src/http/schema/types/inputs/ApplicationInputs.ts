@@ -13,6 +13,7 @@ export const CreateApplicationInput = builder.inputType('CreateApplicationInput'
     starred: t.boolean({ required: false }),
     source: t.string({ required: false }),
     followUpAt: t.string({ required: false }),
+    tags: t.stringList({ required: false }),
   }),
 });
 
@@ -28,5 +29,6 @@ export const UpdateApplicationInput = builder.inputType('UpdateApplicationInput'
     starred: t.boolean({ required: false }),
     source: t.string({ required: false }),
     followUpAt: t.string({ required: false }),
+    tags: t.stringList({ required: false }),
   }),
 });

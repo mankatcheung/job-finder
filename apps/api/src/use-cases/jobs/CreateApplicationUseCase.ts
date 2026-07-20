@@ -23,6 +23,7 @@ export class CreateApplicationUseCase implements ICreateApplicationUseCase {
       starred: input.starred ?? false,
       source: input.source ?? null,
       followUpAt: input.followUpAt ?? null,
+      tags: input.tags ?? [],
     });
   }
 }

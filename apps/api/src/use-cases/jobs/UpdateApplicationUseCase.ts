@@ -33,6 +33,7 @@ export class UpdateApplicationUseCase implements IUpdateApplicationUseCase {
       starred: input.starred,
       source: input.source,
       followUpAt: input.followUpAt,
+      tags: input.tags,
       ...(appliedAt !== undefined ? { appliedAt } : {}),
     });
 

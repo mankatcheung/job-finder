@@ -11,6 +11,7 @@ query Applications($status: ApplicationStatus) {
     starred
     source
     followUpAt
+    tags
     createdAt
     updatedAt
   }
@@ -30,6 +31,7 @@ query Application($id: ID!) {
     starred
     source
     followUpAt
+    tags
     createdAt
     updatedAt
   }
