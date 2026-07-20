@@ -6,6 +6,7 @@ ApiTokenRef.implement({
   fields: (t) => ({
     id: t.exposeID('id'),
     name: t.exposeString('name'),
+    scope: t.exposeString('scope'),
     lastUsedAt: t.exposeString('lastUsedAt', { nullable: true }),
     createdAt: t.exposeString('createdAt'),
   }),
@@ -15,6 +16,7 @@ export interface CreateApiTokenPayloadDTO {
   id: string;
   name: string;
   token: string;
+  scope: string;
   createdAt: string;
 }
 
@@ -24,6 +26,7 @@ CreateApiTokenPayloadRef.implement({
     id: t.exposeID('id'),
     name: t.exposeString('name'),
     token: t.exposeString('token'),
+    scope: t.exposeString('scope'),
     createdAt: t.exposeString('createdAt'),
   }),
 });

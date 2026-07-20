@@ -17,6 +17,7 @@ const SCHEMA_STATEMENTS = [
     "userId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "tokenHash" TEXT NOT NULL UNIQUE,
+    "scope" TEXT NOT NULL DEFAULT 'full',
     "lastUsedAt" DATETIME,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE

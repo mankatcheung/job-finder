@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'crypto';
 import type { IApiTokenRepository } from '@/use-cases/ports/IApiTokenRepository.js';
-import type { ApiToken } from '@/domain/apiToken/ApiToken.js';
+import type { ApiToken, ApiTokenScope } from '@/domain/apiToken/ApiToken.js';
 
 interface Deps {
   apiTokenRepository: IApiTokenRepository;
@@ -10,6 +10,7 @@ interface Deps {
 export interface CreateApiTokenInput {
   userId: string;
   name: string;
+  scope?: ApiTokenScope;
 }
 
 export interface CreateApiTokenOutput {
@@ -29,6 +30,7 @@ export class CreateApiTokenUseCase {
       userId: input.userId,
       name: input.name,
       tokenHash,
+      scope: input.scope ?? 'full',
     });
 
     return { token, rawToken };
