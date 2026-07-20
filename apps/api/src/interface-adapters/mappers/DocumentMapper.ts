@@ -7,6 +7,8 @@ export interface DocumentDTO {
   mimeType: string;
   sizeBytes: number;
   url: string;
+  documentType: string;
+  version: string | null;
   createdAt: string;
 }
 
@@ -19,6 +21,8 @@ export class DocumentMapper {
       mimeType: doc.mimeType,
       sizeBytes: doc.sizeBytes,
       url: signedUrl,
+      documentType: doc.documentType,
+      version: doc.version,
       createdAt: doc.createdAt.toISOString(),
     };
   }

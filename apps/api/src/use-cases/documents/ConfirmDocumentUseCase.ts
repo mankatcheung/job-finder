@@ -29,6 +29,8 @@ export class ConfirmDocumentUseCase implements IConfirmDocumentUseCase {
       name: input.name,
       mimeType: input.mimeType,
       sizeBytes: input.sizeBytes,
+      documentType: input.documentType,
+      version: input.version,
     });
 
     await this.deps.activityLogRepository?.append({

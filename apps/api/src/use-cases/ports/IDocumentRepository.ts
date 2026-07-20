@@ -7,6 +7,8 @@ export interface CreateDocumentData {
   mimeType: string;
   sizeBytes: number;
   storageKey: string;
+  documentType?: string;
+  version?: string | null;
 }
 
 export interface IDocumentRepository {

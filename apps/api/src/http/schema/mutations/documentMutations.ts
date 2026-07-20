@@ -40,6 +40,8 @@ builder.mutationField('confirmDocument', (t) =>
         name: args.input.name,
         mimeType: args.input.mimeType,
         sizeBytes: args.input.sizeBytes,
+        documentType: args.input.documentType ?? undefined,
+        version: args.input.version ?? null,
       });
     },
   }),

@@ -13,6 +13,8 @@ mutation ConfirmDocument($input: ConfirmDocumentInput!) {
     mimeType
     sizeBytes
     url
+    documentType
+    version
     createdAt
   }
 }

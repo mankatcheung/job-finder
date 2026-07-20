@@ -10,6 +10,8 @@ DocumentRef.implement({
     mimeType: t.exposeString('mimeType'),
     sizeBytes: t.exposeInt('sizeBytes'),
     url: t.exposeString('url'),
+    documentType: t.exposeString('documentType'),
+    version: t.exposeString('version', { nullable: true }),
     createdAt: t.exposeString('createdAt'),
   }),
 });

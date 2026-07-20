@@ -7,6 +7,8 @@ export interface ConfirmDocumentInput {
   name: string;
   mimeType: string;
   sizeBytes: number;
+  documentType?: string;
+  version?: string | null;
 }
 
 export type ConfirmDocumentOutput = Document;

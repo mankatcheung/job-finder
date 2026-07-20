@@ -15,5 +15,7 @@ export const ConfirmDocumentInput = builder.inputType('ConfirmDocumentInput', {
     name: t.string({ required: true }),
     mimeType: t.string({ required: true }),
     sizeBytes: t.int({ required: true }),
+    documentType: t.string({ required: false }),
+    version: t.string({ required: false }),
   }),
 });

@@ -35,6 +35,14 @@ export type ActivityLog = {
   payload?: Maybe<Scalars['String']['output']>;
 };
 
+export type ApiToken = {
+  __typename?: 'ApiToken';
+  createdAt?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  lastUsedAt?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+};
+
 export type ApplicationStatus =
   | 'accepted'
   | 'applied'
@@ -46,10 +54,20 @@ export type ApplicationStatus =
 
 export type ConfirmDocumentInput = {
   applicationId: Scalars['ID']['input'];
+  documentType?: InputMaybe<Scalars['String']['input']>;
   mimeType: Scalars['String']['input'];
   name: Scalars['String']['input'];
   sizeBytes: Scalars['Int']['input'];
   storageKey: Scalars['String']['input'];
+  version?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CreateApiTokenPayload = {
+  __typename?: 'CreateApiTokenPayload';
+  createdAt?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  token?: Maybe<Scalars['String']['output']>;
 };
 
 export type CreateApplicationInput = {
@@ -79,11 +97,13 @@ export type Document = {
   __typename?: 'Document';
   applicationId?: Maybe<Scalars['ID']['output']>;
   createdAt?: Maybe<Scalars['String']['output']>;
+  documentType?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   mimeType?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
   sizeBytes?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
+  version?: Maybe<Scalars['String']['output']>;
 };
 
 export type InterviewRound = {
@@ -135,10 +155,12 @@ export type JobApplication = {
 export type Mutation = {
   __typename?: 'Mutation';
   confirmDocument?: Maybe<Document>;
+  createApiToken?: Maybe<CreateApiTokenPayload>;
   createApplication?: Maybe<JobApplication>;
   createInterviewRound?: Maybe<InterviewRound>;
   createNote?: Maybe<Note>;
   deleteAccount?: Maybe<Scalars['Boolean']['output']>;
+  deleteApiToken?: Maybe<Scalars['Boolean']['output']>;
   deleteApplication?: Maybe<Scalars['Boolean']['output']>;
   deleteDocument?: Maybe<Scalars['Boolean']['output']>;
   deleteInterviewRound?: Maybe<Scalars['Boolean']['output']>;
@@ -161,6 +183,11 @@ export type MutationConfirmDocumentArgs = {
 };
 
 
+export type MutationCreateApiTokenArgs = {
+  name: Scalars['String']['input'];
+};
+
+
 export type MutationCreateApplicationArgs = {
   input: CreateApplicationInput;
 };
@@ -179,6 +206,11 @@ export type MutationCreateNoteArgs = {
 
 export type MutationDeleteAccountArgs = {
   password: Scalars['String']['input'];
+};
+
+
+export type MutationDeleteApiTokenArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -260,6 +292,7 @@ export type Note = {
 export type Query = {
   __typename?: 'Query';
   activityLogs?: Maybe<Array<ActivityLog>>;
+  apiTokens?: Maybe<Array<ApiToken>>;
   application?: Maybe<JobApplication>;
   applications?: Maybe<Array<JobApplication>>;
   documents?: Maybe<Array<Document>>;

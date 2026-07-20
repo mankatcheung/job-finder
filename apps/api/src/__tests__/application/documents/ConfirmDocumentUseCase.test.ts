@@ -90,6 +90,39 @@ describe('ConfirmDocumentUseCase', () => {
       name: 'resume.pdf',
       mimeType: 'application/pdf',
       sizeBytes: 12345,
+      documentType: undefined,
+      version: undefined,
     });
+  });
+
+  it('passes documentType and version to the repository', async () => {
+    const doc = makeDocument({ documentType: 'resume', version: 'v2' });
+    const documentRepository = makeDocumentRepository({
+      create: vi.fn().mockResolvedValue(doc),
+    });
+    const useCase = new ConfirmDocumentUseCase({
+      applicationRepository: makeApplicationRepository({
+        findById: vi.fn().mockResolvedValue(makeApplication()),
+      }),
+      documentRepository,
+      generateId: vi.fn().mockReturnValue('doc-1'),
+    });
+
+    const result = await useCase.execute({
+      userId: 'user-1',
+      applicationId: 'app-1',
+      storageKey: 'users/user-1/applications/app-1/resume.pdf',
+      name: 'resume.pdf',
+      mimeType: 'application/pdf',
+      sizeBytes: 12345,
+      documentType: 'resume',
+      version: 'v2',
+    });
+
+    expect(result.documentType).toBe('resume');
+    expect(result.version).toBe('v2');
+    expect(documentRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ documentType: 'resume', version: 'v2' }),
+    );
   });
 });
