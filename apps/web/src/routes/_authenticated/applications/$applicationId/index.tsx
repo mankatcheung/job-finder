@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { gqlClient } from '#/graphql/client';
 import { StatusBadge } from '../../dashboard';
-import { CheckIcon, EditIcon, PlusIcon, StarIcon, Trash2Icon } from 'lucide-react';
+import { CalendarIcon, CheckIcon, EditIcon, PlusIcon, StarIcon, Trash2Icon } from 'lucide-react';
 
 const APPLICATION_QUERY = `
   query Application($id: ID!) {
@@ -308,7 +308,9 @@ export function ApplicationDetailPage() {
         </div>
       )}
 
-      {activeTab === 'interviews' && <InterviewsTab applicationId={applicationId} />}
+      {activeTab === 'interviews' && (
+        <InterviewsTab applicationId={applicationId} company={app.company} role={app.role} />
+      )}
 
       {activeTab === 'activity' && <ActivityTab applicationId={applicationId} />}
 
@@ -468,7 +470,60 @@ function emptyForm(): RoundFormState {
   return { type: 'phone', scheduledAt: '', interviewerName: '', notes: '', outcome: 'pending' };
 }
 
-function InterviewsTab({ applicationId }: { applicationId: string }) {
+function generateIcs(rounds: InterviewRound[], company: string, role: string): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const toIcsDate = (iso: string) => {
+    const d = new Date(iso);
+    return (
+      `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}` +
+      `T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00Z`
+    );
+  };
+  const endDate = (iso: string) => {
+    const d = new Date(new Date(iso).getTime() + 60 * 60 * 1000);
+    return (
+      `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}` +
+      `T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00Z`
+    );
+  };
+  const esc = (s: string) => s.replace(/[\\;,]/g, (c) => `\\${c}`).replace(/\n/g, '\\n');
+
+  const events = rounds
+    .filter((r) => r.scheduledAt)
+    .map((r) =>
+      [
+        'BEGIN:VEVENT',
+        `UID:${r.id}@job-finder`,
+        `DTSTART:${toIcsDate(r.scheduledAt!)}`,
+        `DTEND:${endDate(r.scheduledAt!)}`,
+        `SUMMARY:${esc(`${r.type.charAt(0).toUpperCase() + r.type.slice(1)} interview — ${role} at ${company}`)}`,
+        `DESCRIPTION:${esc([r.interviewerName && `Interviewer: ${r.interviewerName}`, r.notes].filter(Boolean).join('\n'))}`,
+        'END:VEVENT',
+      ].join('\r\n'),
+    );
+
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Job Finder//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    ...events,
+    'END:VCALENDAR',
+  ].join('\r\n');
+}
+
+function downloadIcs(content: string, company: string, role: string) {
+  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `interview-${company.replace(/\s+/g, '-').toLowerCase()}-${role.replace(/\s+/g, '-').toLowerCase()}.ics`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function InterviewsTab({ applicationId, company, role }: { applicationId: string; company: string; role: string }) {
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingRound, setEditingRound] = useState<InterviewRound | null>(null);
@@ -628,12 +683,22 @@ function InterviewsTab({ applicationId }: { applicationId: string }) {
   return (
     <div className="space-y-4">
       {!showForm && !editingRound && (
-        <button
-          onClick={() => { setShowForm(true); setForm(emptyForm()); }}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg"
-        >
-          <PlusIcon size={14} /> Add interview round
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => { setShowForm(true); setForm(emptyForm()); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg"
+          >
+            <PlusIcon size={14} /> Add interview round
+          </button>
+          {rounds.some((r) => r.scheduledAt) && (
+            <button
+              onClick={() => downloadIcs(generateIcs(rounds, company, role), company, role)}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs font-medium rounded-lg"
+            >
+              <CalendarIcon size={14} /> Export to Calendar
+            </button>
+          )}
+        </div>
       )}
 
       {showForm && (
