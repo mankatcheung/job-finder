@@ -14,7 +14,8 @@
     "R2_ACCESS_KEY_ID",
     "R2_SECRET_ACCESS_KEY",
     "CORS_ORIGIN",
-    "VITE_API_URL"
+    "VITE_API_URL",
+    "API_URL"
   ],
   "tasks": {
     "build": {
