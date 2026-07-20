@@ -18,6 +18,7 @@ JobApplicationRef.implement({
     starred: t.exposeBoolean('starred'),
     source: t.exposeString('source', { nullable: true }),
     followUpAt: t.exposeString('followUpAt', { nullable: true }),
+    tags: t.exposeStringList('tags'),
     createdAt: t.exposeString('createdAt'),
     updatedAt: t.exposeString('updatedAt'),
   }),

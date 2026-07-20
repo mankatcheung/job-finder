@@ -34,6 +34,7 @@ describe('CreateApplicationUseCase', () => {
       starred: false,
       source: null,
       followUpAt: null,
+      tags: [],
     });
   });
 

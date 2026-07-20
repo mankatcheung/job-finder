@@ -32,6 +32,7 @@ const APPLICATIONS_QUERY = `
       starred
       source
       followUpAt
+      tags
       createdAt
     }
   }
@@ -48,6 +49,7 @@ type Application = {
   starred: boolean;
   source?: string | null;
   followUpAt?: string | null;
+  tags: string[];
   createdAt: string;
 };
 
@@ -171,6 +173,21 @@ export function ApplicationsPage() {
                   {app.role}
                   {app.location ? ` · ${app.location}` : ''}
                 </p>
+                {app.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {app.tags.slice(0, 3).map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                    {app.tags.length > 3 && (
+                      <span className="text-[10px] text-gray-400">+{app.tags.length - 3}</span>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 {app.starred && (

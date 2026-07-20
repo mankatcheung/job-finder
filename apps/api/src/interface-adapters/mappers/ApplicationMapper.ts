@@ -15,6 +15,7 @@ export interface ApplicationDTO {
   starred: boolean;
   source: string | null;
   followUpAt: string | null;
+  tags: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -35,6 +36,7 @@ export class ApplicationMapper {
       starred: app.starred,
       source: app.source,
       followUpAt: app.followUpAt?.toISOString() ?? null,
+      tags: app.tags,
       createdAt: app.createdAt.toISOString(),
       updatedAt: app.updatedAt.toISOString(),
     };

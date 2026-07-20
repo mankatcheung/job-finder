@@ -14,6 +14,7 @@ export interface CreateApplicationData {
   starred?: boolean;
   source?: string | null;
   followUpAt?: Date | null;
+  tags?: string[];
 }
 
 export interface UpdateApplicationData {
@@ -28,6 +29,7 @@ export interface UpdateApplicationData {
   starred?: boolean;
   source?: string | null;
   followUpAt?: Date | null;
+  tags?: string[];
 }
 
 export interface IApplicationRepository {

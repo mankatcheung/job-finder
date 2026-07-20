@@ -12,6 +12,7 @@ mutation CreateApplication($input: CreateApplicationInput!) {
     starred
     source
     followUpAt
+    tags
     createdAt
     updatedAt
   }
@@ -31,6 +32,7 @@ mutation UpdateApplication($id: ID!, $input: UpdateApplicationInput!) {
     starred
     source
     followUpAt
+    tags
     createdAt
     updatedAt
   }

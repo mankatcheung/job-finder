@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
-import { StarIcon } from 'lucide-react';
+import { StarIcon, XIcon } from 'lucide-react';
 
 const schema = z.object({
   company: z.string().min(1, 'Company is required'),
@@ -31,6 +32,8 @@ export const Route = createFileRoute('/_authenticated/applications/new')({
 
 export function NewApplicationPage() {
   const navigate = useNavigate();
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const {
     register,
     handleSubmit,
@@ -52,6 +55,7 @@ export function NewApplicationPage() {
         ...(data.source ? { source: data.source } : {}),
         ...(data.followUpAt ? { followUpAt: data.followUpAt } : {}),
         starred: data.starred ?? false,
+        tags,
       };
       const result = await gqlClient.request<{ createApplication: { id: string } }>(
         CREATE_MUTATION,
@@ -136,6 +140,44 @@ export function NewApplicationPage() {
             <input {...register('followUpAt')} className={inputClass} type="date" />
           </Field>
         </div>
+
+        <Field label="Tags">
+          <div className="space-y-2">
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
+                      className="hover:text-blue-600 dark:hover:text-blue-200"
+                    >
+                      <XIcon size={10} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <input
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ',') {
+                  e.preventDefault();
+                  const val = tagInput.trim().toLowerCase();
+                  if (val && !tags.includes(val)) setTags((prev) => [...prev, val]);
+                  setTagInput('');
+                }
+              }}
+              className={inputClass}
+              placeholder="Type a tag and press Enter…"
+            />
+          </div>
+        </Field>
 
         <div className="flex items-center gap-3">
           <input

@@ -50,9 +50,20 @@ model JobApplication {
   notes           Note[]
   documents       Document[]
   activityLogs    ActivityLog[]
+  tags            ApplicationTag[]
 
   @@index([userId])
   @@index([userId, status])
+}
+
+model ApplicationTag {
+  id            String         @id
+  applicationId String
+  name          String
+  application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, name])
+  @@index([applicationId])
 }
 
 model ActivityLog {

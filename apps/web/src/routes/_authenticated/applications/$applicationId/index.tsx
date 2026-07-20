@@ -8,7 +8,7 @@ import { CheckIcon, EditIcon, PlusIcon, StarIcon, Trash2Icon } from 'lucide-reac
 const APPLICATION_QUERY = `
   query Application($id: ID!) {
     application(id: $id) {
-      id company role status jobUrl location salaryRange description appliedAt starred source followUpAt createdAt updatedAt
+      id company role status jobUrl location salaryRange description appliedAt starred source followUpAt tags createdAt updatedAt
     }
   }
 `;
@@ -48,6 +48,7 @@ type Application = {
   starred: boolean;
   source?: string | null;
   followUpAt?: string | null;
+  tags: string[];
   createdAt: string;
 };
 type Note = {
@@ -187,6 +188,21 @@ export function ApplicationDetailPage() {
               value={new Date(app.followUpAt).toLocaleDateString()}
               highlight={new Date(app.followUpAt) <= new Date()}
             />
+          )}
+          {app.tags.length > 0 && (
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Tags</p>
+              <div className="flex flex-wrap gap-1.5">
+                {app.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
           {app.jobUrl && (
             <div className="col-span-2 sm:col-span-3">

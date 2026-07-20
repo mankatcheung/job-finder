@@ -13,6 +13,7 @@ export interface CreateApplicationInput {
   starred?: boolean;
   source?: string;
   followUpAt?: Date | null;
+  tags?: string[];
 }
 
 export type CreateApplicationOutput = Application;

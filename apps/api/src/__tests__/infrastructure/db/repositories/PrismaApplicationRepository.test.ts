@@ -122,4 +122,23 @@ describe('PrismaApplicationRepository', () => {
       expect(await repo.findById('app-1')).toBeNull();
     });
   });
+
+  describe('tags', () => {
+    it('creates an application with tags', async () => {
+      const app = await repo.create({ ...BASE_APP, tags: ['frontend', 'remote'] });
+      expect(app.tags).toEqual(expect.arrayContaining(['frontend', 'remote']));
+    });
+
+    it('replaces tags on update', async () => {
+      await repo.create({ ...BASE_APP, tags: ['frontend'] });
+      const updated = await repo.update('app-1', { tags: ['backend', 'fulltime'] });
+      expect(updated.tags).toEqual(expect.arrayContaining(['backend', 'fulltime']));
+      expect(updated.tags).not.toContain('frontend');
+    });
+
+    it('returns empty tags array when no tags set', async () => {
+      const app = await repo.create(BASE_APP);
+      expect(app.tags).toEqual([]);
+    });
+  });
 });

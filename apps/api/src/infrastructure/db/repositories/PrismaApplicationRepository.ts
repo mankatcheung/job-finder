@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid';
 import type { PrismaClient } from '@prisma/client';
 import type { Application } from '@/domain/application/Application.js';
 import type { ApplicationStatus } from '@/domain/application/ApplicationStatus.js';
@@ -6,6 +7,8 @@ import type {
   CreateApplicationData,
   UpdateApplicationData,
 } from '@/use-cases/ports/IApplicationRepository.js';
+
+type PrismaTag = { id: string; applicationId: string; name: string };
 
 type PrismaApp = {
   id: string;
@@ -23,7 +26,10 @@ type PrismaApp = {
   followUpAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  tags: PrismaTag[];
 };
+
+const INCLUDE_TAGS = { tags: true } as const;
 
 export class PrismaApplicationRepository implements IApplicationRepository {
   private readonly db: PrismaClient;
@@ -41,52 +47,78 @@ export class PrismaApplicationRepository implements IApplicationRepository {
         userId,
         ...(filters?.status ? { status: filters.status } : {}),
       },
+      include: INCLUDE_TAGS,
       orderBy: { createdAt: 'desc' },
     });
     return rows.map(this.toEntity);
   }
 
   async findById(id: string): Promise<Application | null> {
-    const row = await this.db.jobApplication.findUnique({ where: { id } });
+    const row = await this.db.jobApplication.findUnique({
+      where: { id },
+      include: INCLUDE_TAGS,
+    });
     return row ? this.toEntity(row) : null;
   }
 
   async create(data: CreateApplicationData): Promise<Application> {
-    const row = await this.db.jobApplication.create({
-      data: {
-        id: data.id,
-        userId: data.userId,
-        company: data.company,
-        role: data.role,
-        status: data.status,
-        jobUrl: data.jobUrl ?? null,
-        location: data.location ?? null,
-        salaryRange: data.salaryRange ?? null,
-        description: data.description ?? null,
-        starred: data.starred ?? false,
-        source: data.source ?? null,
-        followUpAt: data.followUpAt ?? null,
-      },
+    const tags = data.tags ?? [];
+    const row = await this.db.$transaction(async (tx) => {
+      const app = await tx.jobApplication.create({
+        data: {
+          id: data.id,
+          userId: data.userId,
+          company: data.company,
+          role: data.role,
+          status: data.status,
+          jobUrl: data.jobUrl ?? null,
+          location: data.location ?? null,
+          salaryRange: data.salaryRange ?? null,
+          description: data.description ?? null,
+          starred: data.starred ?? false,
+          source: data.source ?? null,
+          followUpAt: data.followUpAt ?? null,
+        },
+      });
+      for (const name of tags) {
+        await tx.applicationTag.create({ data: { id: nanoid(), applicationId: app.id, name } });
+      }
+      return tx.jobApplication.findUnique({ where: { id: app.id }, include: INCLUDE_TAGS });
     });
-    return this.toEntity(row);
+    return this.toEntity(row!);
   }
 
   async update(id: string, data: UpdateApplicationData): Promise<Application> {
+    const scalarData = {
+      ...(data.company !== undefined ? { company: data.company } : {}),
+      ...(data.role !== undefined ? { role: data.role } : {}),
+      ...(data.status !== undefined ? { status: data.status } : {}),
+      ...(data.jobUrl !== undefined ? { jobUrl: data.jobUrl } : {}),
+      ...(data.location !== undefined ? { location: data.location } : {}),
+      ...(data.salaryRange !== undefined ? { salaryRange: data.salaryRange } : {}),
+      ...(data.description !== undefined ? { description: data.description } : {}),
+      ...(data.appliedAt !== undefined ? { appliedAt: data.appliedAt } : {}),
+      ...(data.starred !== undefined ? { starred: data.starred } : {}),
+      ...(data.source !== undefined ? { source: data.source } : {}),
+      ...(data.followUpAt !== undefined ? { followUpAt: data.followUpAt } : {}),
+    };
+
+    if (data.tags !== undefined) {
+      const row = await this.db.$transaction(async (tx) => {
+        await tx.jobApplication.update({ where: { id }, data: scalarData });
+        await tx.applicationTag.deleteMany({ where: { applicationId: id } });
+        for (const name of data.tags!) {
+          await tx.applicationTag.create({ data: { id: nanoid(), applicationId: id, name } });
+        }
+        return tx.jobApplication.findUnique({ where: { id }, include: INCLUDE_TAGS });
+      });
+      return this.toEntity(row!);
+    }
+
     const row = await this.db.jobApplication.update({
       where: { id },
-      data: {
-        ...(data.company !== undefined ? { company: data.company } : {}),
-        ...(data.role !== undefined ? { role: data.role } : {}),
-        ...(data.status !== undefined ? { status: data.status } : {}),
-        ...(data.jobUrl !== undefined ? { jobUrl: data.jobUrl } : {}),
-        ...(data.location !== undefined ? { location: data.location } : {}),
-        ...(data.salaryRange !== undefined ? { salaryRange: data.salaryRange } : {}),
-        ...(data.description !== undefined ? { description: data.description } : {}),
-        ...(data.appliedAt !== undefined ? { appliedAt: data.appliedAt } : {}),
-        ...(data.starred !== undefined ? { starred: data.starred } : {}),
-        ...(data.source !== undefined ? { source: data.source } : {}),
-        ...(data.followUpAt !== undefined ? { followUpAt: data.followUpAt } : {}),
-      },
+      data: scalarData,
+      include: INCLUDE_TAGS,
     });
     return this.toEntity(row);
   }
@@ -110,6 +142,7 @@ export class PrismaApplicationRepository implements IApplicationRepository {
       starred: row.starred,
       source: row.source,
       followUpAt: row.followUpAt,
+      tags: row.tags.map((t) => t.name),
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

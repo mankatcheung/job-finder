@@ -26,6 +26,7 @@ interface CreateInput {
   starred?: boolean;
   source?: string;
   followUpAt?: Date | null;
+  tags?: string[];
 }
 
 interface UpdateInput {
@@ -39,6 +40,7 @@ interface UpdateInput {
   starred?: boolean;
   source?: string | null;
   followUpAt?: Date | null;
+  tags?: string[];
 }
 
 export class ApplicationResolver {

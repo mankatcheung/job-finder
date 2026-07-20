@@ -14,6 +14,7 @@ export interface Application {
   starred: boolean;
   source: string | null;
   followUpAt: Date | null;
+  tags: string[];
   createdAt: Date;
   updatedAt: Date;
 }

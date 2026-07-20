@@ -63,6 +63,7 @@ describe('ApplicationsPage', () => {
           status: 'applied',
           location: 'Remote',
           appliedAt: null,
+          tags: [],
           createdAt: '2024-01-01T00:00:00.000Z',
         },
         {
@@ -72,6 +73,7 @@ describe('ApplicationsPage', () => {
           status: 'draft',
           location: null,
           appliedAt: null,
+          tags: [],
           createdAt: '2024-01-02T00:00:00.000Z',
         },
       ],
