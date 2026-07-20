@@ -10,7 +10,8 @@ builder.mutationField('updateEmail', (t) =>
       newEmail: t.arg.string({ required: true }),
     },
     resolve: async (_root, args, ctx) => {
-      if (!ctx.user) throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
       const { userResolver } = ctx.diScope.cradle;
       try {
         await userResolver.updateEmail(ctx.user.sub, args.currentPassword, args.newEmail);
@@ -29,7 +30,8 @@ builder.mutationField('updatePassword', (t) =>
       newPassword: t.arg.string({ required: true }),
     },
     resolve: async (_root, args, ctx) => {
-      if (!ctx.user) throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
       const { userResolver } = ctx.diScope.cradle;
       try {
         await userResolver.updatePassword(ctx.user.sub, args.currentPassword, args.newPassword);
@@ -47,7 +49,8 @@ builder.mutationField('deleteAccount', (t) =>
       password: t.arg.string({ required: true }),
     },
     resolve: async (_root, args, ctx) => {
-      if (!ctx.user) throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
       const { userResolver } = ctx.diScope.cradle;
       try {
         await userResolver.deleteAccount(ctx.user.sub, args.password);

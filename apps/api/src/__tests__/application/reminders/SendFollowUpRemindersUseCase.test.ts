@@ -1,6 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { SendFollowUpRemindersUseCase } from '@/use-cases/reminders/SendFollowUpRemindersUseCase.js';
-import { makeApplicationRepository, makeUserRepository, makeApplication, makeUser } from '@/__tests__/helpers/mocks.js';
+import {
+  makeApplicationRepository,
+  makeUserRepository,
+  makeApplication,
+  makeUser,
+} from '@/__tests__/helpers/mocks.js';
 import type { IEmailService } from '@/use-cases/ports/IEmailService.js';
 
 const makeEmailService = (overrides?: Partial<IEmailService>): IEmailService => ({
@@ -52,7 +57,11 @@ describe('SendFollowUpRemindersUseCase', () => {
     });
     const emailService = makeEmailService();
 
-    await new SendFollowUpRemindersUseCase({ applicationRepository, userRepository, emailService }).execute();
+    await new SendFollowUpRemindersUseCase({
+      applicationRepository,
+      userRepository,
+      emailService,
+    }).execute();
 
     expect(emailService.sendFollowUpReminder).not.toHaveBeenCalled();
     expect(applicationRepository.updateReminderSentAt).not.toHaveBeenCalled();
@@ -72,18 +81,26 @@ describe('SendFollowUpRemindersUseCase', () => {
       findById: vi.fn().mockResolvedValue(user),
     });
     const emailService = makeEmailService({
-      sendFollowUpReminder: vi.fn()
+      sendFollowUpReminder: vi
+        .fn()
         .mockRejectedValueOnce(new Error('Brevo timeout'))
         .mockResolvedValueOnce(undefined),
     });
 
     await expect(
-      new SendFollowUpRemindersUseCase({ applicationRepository, userRepository, emailService }).execute(),
+      new SendFollowUpRemindersUseCase({
+        applicationRepository,
+        userRepository,
+        emailService,
+      }).execute(),
     ).resolves.not.toThrow();
 
     expect(emailService.sendFollowUpReminder).toHaveBeenCalledTimes(2);
     // Only the second app (which succeeded) should have reminderSentAt updated
     expect(applicationRepository.updateReminderSentAt).toHaveBeenCalledTimes(1);
-    expect(applicationRepository.updateReminderSentAt).toHaveBeenCalledWith('app-2', expect.any(Date));
+    expect(applicationRepository.updateReminderSentAt).toHaveBeenCalledWith(
+      'app-2',
+      expect.any(Date),
+    );
   });
 });

@@ -109,7 +109,10 @@ export function ApplicationsPage() {
       </div>
 
       <div className="relative mb-4">
-        <SearchIcon size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        <SearchIcon
+          size={15}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+        />
         <input
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
@@ -154,7 +157,15 @@ export function ApplicationsPage() {
       ) : apps.length === 0 ? (
         <div className="text-center py-16 text-gray-500 dark:text-gray-400">
           <BriefcaseIcon size={40} className="mx-auto mb-3 opacity-40" />
-          <p>No applications{searchTerm ? ` matching "${searchTerm}"` : status ? ` with status "${status}"` : ''} yet.</p>
+          <p>
+            No applications
+            {searchTerm
+              ? ` matching "${searchTerm}"`
+              : status
+                ? ` with status "${status}"`
+                : ''}{' '}
+            yet.
+          </p>
         </div>
       ) : (
         <div className="space-y-2">

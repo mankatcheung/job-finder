@@ -40,10 +40,7 @@ async function rawGql(
   return json.data ?? {};
 }
 
-export async function gql<T>(
-  query: string,
-  variables: Record<string, unknown> = {},
-): Promise<T> {
+export async function gql<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
   const apiKey = getApiKey();
   if (!apiKey) throw new AuthError();
   const data = await rawGql(query, variables, { Authorization: `Bearer ${apiKey}` });

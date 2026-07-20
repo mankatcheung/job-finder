@@ -1,13 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { gqlClient } from '#/graphql/client';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 
@@ -53,15 +45,16 @@ function isoWeek(date: Date): string {
   d.setHours(0, 0, 0, 0);
   d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
   const week1 = new Date(d.getFullYear(), 0, 4);
-  const weekNum = 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+  const weekNum =
+    1 +
+    Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
   return `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
 }
 
 export function AnalyticsPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['analytics'],
-    queryFn: () =>
-      gqlClient.request<{ applications: Application[] }>(ANALYTICS_QUERY),
+    queryFn: () => gqlClient.request<{ applications: Application[] }>(ANALYTICS_QUERY),
   });
 
   const apps = data?.applications ?? [];
@@ -94,9 +87,7 @@ export function AnalyticsPage() {
   ).length;
   const successRate =
     totalApps > 0
-      ? Math.round(
-          (apps.filter((a) => a.status === 'accepted').length / totalApps) * 100,
-        )
+      ? Math.round((apps.filter((a) => a.status === 'accepted').length / totalApps) * 100)
       : 0;
 
   const tooltipStyle = {
@@ -171,16 +162,8 @@ export function AnalyticsPage() {
               layout="vertical"
               margin={{ top: 0, right: 16, bottom: 0, left: 64 }}
             >
-              <XAxis
-                type="number"
-                allowDecimals={false}
-                tick={{ fontSize: 11, fill: '#9ca3af' }}
-              />
-              <YAxis
-                type="category"
-                dataKey="status"
-                tick={{ fontSize: 11, fill: '#9ca3af' }}
-              />
+              <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
+              <YAxis type="category" dataKey="status" tick={{ fontSize: 11, fill: '#9ca3af' }} />
               <Tooltip contentStyle={tooltipStyle} />
               <Bar dataKey="count" radius={[0, 4, 4, 0]} name="Applications">
                 {funnelData.map((entry) => (

@@ -1,7 +1,14 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
-import { AlertCircleIcon, BriefcaseIcon, CheckCircleIcon, ClockIcon, FileTextIcon, StarIcon } from 'lucide-react';
+import {
+  AlertCircleIcon,
+  BriefcaseIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  FileTextIcon,
+  StarIcon,
+} from 'lucide-react';
 
 const APPLICATIONS_QUERY = `
   query Applications {

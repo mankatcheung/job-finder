@@ -68,8 +68,7 @@ export function KanbanBoard() {
 
   const { data } = useQuery({
     queryKey: ['applications', null],
-    queryFn: () =>
-      gqlClient.request<{ applications: Application[] }>(APPLICATIONS_QUERY),
+    queryFn: () => gqlClient.request<{ applications: Application[] }>(APPLICATIONS_QUERY),
   });
 
   const updateStatus = useMutation({
@@ -78,9 +77,7 @@ export function KanbanBoard() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['applications'] }),
   });
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-  );
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const apps = data?.applications ?? [];
   const byStatus = (status: string) => apps.filter((a) => a.status === status);
@@ -187,9 +184,7 @@ function AppCard({ app, isDragging }: { app: Application; isDragging?: boolean }
         {app.company}
       </p>
       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">{app.role}</p>
-      {app.location && (
-        <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{app.location}</p>
-      )}
+      {app.location && <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{app.location}</p>}
       <div className="flex items-center justify-between mt-2">
         {app.starred && <StarIcon size={11} className="text-yellow-400 fill-yellow-400" />}
         <StatusBadge status={app.status as ApplicationStatus} />

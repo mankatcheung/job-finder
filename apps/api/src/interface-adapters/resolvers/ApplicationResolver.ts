@@ -4,7 +4,10 @@ import type { IGetApplicationsUseCase } from '@/use-cases/jobs/IGetApplicationsU
 import type { IGetApplicationUseCase } from '@/use-cases/jobs/IGetApplicationUseCase.js';
 import type { IUpdateApplicationUseCase } from '@/use-cases/jobs/IUpdateApplicationUseCase.js';
 import type { IDeleteApplicationUseCase } from '@/use-cases/jobs/IDeleteApplicationUseCase.js';
-import type { ApplicationMapper, ApplicationDTO } from '@/interface-adapters/mappers/ApplicationMapper.js';
+import type {
+  ApplicationMapper,
+  ApplicationDTO,
+} from '@/interface-adapters/mappers/ApplicationMapper.js';
 
 interface Deps {
   createApplicationUseCase: ICreateApplicationUseCase;

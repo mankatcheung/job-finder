@@ -56,7 +56,9 @@ export async function login(email: string, password: string): Promise<void> {
 
   // Decode the JWT to get its expiry (payload is base64 URL-encoded)
   const [, payload] = cookie.value.split('.');
-  const { exp } = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) as { exp: number };
+  const { exp } = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) as {
+    exp: number;
+  };
 
   await setAuth({ token: cookie.value, expiresAt: exp * 1000 });
 }
@@ -73,7 +75,9 @@ export async function refreshToken(): Promise<boolean> {
     if (!cookie) return false;
 
     const [, payload] = cookie.value.split('.');
-    const { exp } = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) as { exp: number };
+    const { exp } = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) as {
+      exp: number;
+    };
     await setAuth({ token: cookie.value, expiresAt: exp * 1000 });
     return true;
   } catch {
@@ -89,6 +93,8 @@ export async function createApplication(input: {
   description?: string;
   source?: string;
 }): Promise<JobApplication> {
-  const data = await authedGql<{ createApplication: JobApplication }>(CREATE_APPLICATION, { input });
+  const data = await authedGql<{ createApplication: JobApplication }>(CREATE_APPLICATION, {
+    input,
+  });
   return data.createApplication;
 }

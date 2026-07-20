@@ -187,8 +187,12 @@ export function buildContainer(fastify: FastifyInstance): void {
     applicationRepository: asClass(CachedApplicationRepository, { lifetime: Lifetime.SINGLETON }),
     noteRepository: asClass(CachedNoteRepository, { lifetime: Lifetime.SINGLETON }),
     documentRepository: asClass(CachedDocumentRepository, { lifetime: Lifetime.SINGLETON }),
-    prismaInterviewRoundRepository: asClass(PrismaInterviewRoundRepository, { lifetime: Lifetime.SINGLETON }),
-    interviewRoundRepository: asClass(CachedInterviewRoundRepository, { lifetime: Lifetime.SINGLETON }),
+    prismaInterviewRoundRepository: asClass(PrismaInterviewRoundRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
+    interviewRoundRepository: asClass(CachedInterviewRoundRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
     activityLogRepository: asClass(PrismaActivityLogRepository, { lifetime: Lifetime.SINGLETON }),
     apiTokenRepository: asClass(PrismaApiTokenRepository, { lifetime: Lifetime.SINGLETON }),
     contactRepository: asClass(PrismaContactRepository, { lifetime: Lifetime.SINGLETON }),
@@ -238,10 +242,16 @@ export function buildContainer(fastify: FastifyInstance): void {
     updatePasswordUseCase: asClass(UpdatePasswordUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteAccountUseCase: asClass(DeleteAccountUseCase, { lifetime: Lifetime.TRANSIENT }),
     exportUserDataUseCase: asClass(ExportUserDataUseCase, { lifetime: Lifetime.TRANSIENT }),
-    createInterviewRoundUseCase: asClass(CreateInterviewRoundUseCase, { lifetime: Lifetime.TRANSIENT }),
+    createInterviewRoundUseCase: asClass(CreateInterviewRoundUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     getInterviewRoundsUseCase: asClass(GetInterviewRoundsUseCase, { lifetime: Lifetime.TRANSIENT }),
-    updateInterviewRoundUseCase: asClass(UpdateInterviewRoundUseCase, { lifetime: Lifetime.TRANSIENT }),
-    deleteInterviewRoundUseCase: asClass(DeleteInterviewRoundUseCase, { lifetime: Lifetime.TRANSIENT }),
+    updateInterviewRoundUseCase: asClass(UpdateInterviewRoundUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    deleteInterviewRoundUseCase: asClass(DeleteInterviewRoundUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     getActivityLogsUseCase: asClass(GetActivityLogsUseCase, { lifetime: Lifetime.TRANSIENT }),
     createApiTokenUseCase: asClass(CreateApiTokenUseCase, { lifetime: Lifetime.TRANSIENT }),
     listApiTokensUseCase: asClass(ListApiTokensUseCase, { lifetime: Lifetime.TRANSIENT }),
@@ -252,6 +262,8 @@ export function buildContainer(fastify: FastifyInstance): void {
     updateContactUseCase: asClass(UpdateContactUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteContactUseCase: asClass(DeleteContactUseCase, { lifetime: Lifetime.TRANSIENT }),
     emailService: asClass(BrevoEmailService, { lifetime: Lifetime.SINGLETON }),
-    sendFollowUpRemindersUseCase: asClass(SendFollowUpRemindersUseCase, { lifetime: Lifetime.TRANSIENT }),
+    sendFollowUpRemindersUseCase: asClass(SendFollowUpRemindersUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
   });
 }

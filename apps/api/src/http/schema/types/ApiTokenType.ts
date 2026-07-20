@@ -18,7 +18,8 @@ export interface CreateApiTokenPayloadDTO {
   createdAt: string;
 }
 
-export const CreateApiTokenPayloadRef = builder.objectRef<CreateApiTokenPayloadDTO>('CreateApiTokenPayload');
+export const CreateApiTokenPayloadRef =
+  builder.objectRef<CreateApiTokenPayloadDTO>('CreateApiTokenPayload');
 CreateApiTokenPayloadRef.implement({
   fields: (t) => ({
     id: t.exposeID('id'),

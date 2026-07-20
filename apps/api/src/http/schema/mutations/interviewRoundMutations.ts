@@ -1,8 +1,14 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '@/http/schema/builder.js';
 import { InterviewRoundRef } from '@/http/schema/types/InterviewRoundType.js';
-import { InterviewRoundTypeEnum, InterviewRoundOutcomeEnum } from '@/http/schema/types/enums/InterviewRoundEnums.js';
-import type { InterviewRoundType, InterviewRoundOutcome } from '@/domain/interviewRound/InterviewRound.js';
+import {
+  InterviewRoundTypeEnum,
+  InterviewRoundOutcomeEnum,
+} from '@/http/schema/types/enums/InterviewRoundEnums.js';
+import type {
+  InterviewRoundType,
+  InterviewRoundOutcome,
+} from '@/domain/interviewRound/InterviewRound.js';
 
 const CreateInterviewRoundInput = builder.inputType('CreateInterviewRoundInput', {
   fields: (t) => ({
@@ -63,12 +69,18 @@ builder.mutationField('updateInterviewRound', (t) =>
       const { interviewRoundResolver } = ctx.diScope.cradle;
       return interviewRoundResolver.updateInterviewRound(ctx.user.sub, args.id, {
         type: (args.input.type as InterviewRoundType) ?? undefined,
-        scheduledAt: args.input.scheduledAt !== undefined
-          ? (args.input.scheduledAt ? new Date(args.input.scheduledAt) : null)
-          : undefined,
-        completedAt: args.input.completedAt !== undefined
-          ? (args.input.completedAt ? new Date(args.input.completedAt) : null)
-          : undefined,
+        scheduledAt:
+          args.input.scheduledAt !== undefined
+            ? args.input.scheduledAt
+              ? new Date(args.input.scheduledAt)
+              : null
+            : undefined,
+        completedAt:
+          args.input.completedAt !== undefined
+            ? args.input.completedAt
+              ? new Date(args.input.completedAt)
+              : null
+            : undefined,
         interviewerName: args.input.interviewerName,
         notes: args.input.notes,
         outcome: (args.input.outcome as InterviewRoundOutcome) ?? undefined,

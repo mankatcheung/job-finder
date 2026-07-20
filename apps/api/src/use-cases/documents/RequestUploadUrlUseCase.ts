@@ -1,7 +1,11 @@
 import { nanoid } from 'nanoid';
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
 import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
-import type { IRequestUploadUrlUseCase, RequestUploadUrlInput, RequestUploadUrlOutput } from '@/use-cases/documents/IRequestUploadUrlUseCase.js';
+import type {
+  IRequestUploadUrlUseCase,
+  RequestUploadUrlInput,
+  RequestUploadUrlOutput,
+} from '@/use-cases/documents/IRequestUploadUrlUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

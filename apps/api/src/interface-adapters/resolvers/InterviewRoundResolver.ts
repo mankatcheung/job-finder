@@ -2,8 +2,14 @@ import type { ICreateInterviewRoundUseCase } from '@/use-cases/interviewRounds/I
 import type { IGetInterviewRoundsUseCase } from '@/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
 import type { IUpdateInterviewRoundUseCase } from '@/use-cases/interviewRounds/IUpdateInterviewRoundUseCase.js';
 import type { IDeleteInterviewRoundUseCase } from '@/use-cases/interviewRounds/IDeleteInterviewRoundUseCase.js';
-import type { InterviewRoundMapper, InterviewRoundDTO } from '@/interface-adapters/mappers/InterviewRoundMapper.js';
-import type { InterviewRoundType, InterviewRoundOutcome } from '@/domain/interviewRound/InterviewRound.js';
+import type {
+  InterviewRoundMapper,
+  InterviewRoundDTO,
+} from '@/interface-adapters/mappers/InterviewRoundMapper.js';
+import type {
+  InterviewRoundType,
+  InterviewRoundOutcome,
+} from '@/domain/interviewRound/InterviewRound.js';
 
 interface Deps {
   createInterviewRoundUseCase: ICreateInterviewRoundUseCase;
@@ -45,8 +51,16 @@ export class InterviewRoundResolver {
     return this.deps.interviewRoundMapper.toDTO(round);
   }
 
-  async updateInterviewRound(userId: string, roundId: string, input: UpdateInput): Promise<InterviewRoundDTO> {
-    const round = await this.deps.updateInterviewRoundUseCase.execute({ userId, roundId, ...input });
+  async updateInterviewRound(
+    userId: string,
+    roundId: string,
+    input: UpdateInput,
+  ): Promise<InterviewRoundDTO> {
+    const round = await this.deps.updateInterviewRoundUseCase.execute({
+      userId,
+      roundId,
+      ...input,
+    });
     return this.deps.interviewRoundMapper.toDTO(round);
   }
 

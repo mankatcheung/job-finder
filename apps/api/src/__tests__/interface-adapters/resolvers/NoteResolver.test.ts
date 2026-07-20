@@ -73,7 +73,9 @@ describe('NoteResolver', () => {
 
   it('deleteNote: calls delete use case and returns true', async () => {
     const deps = makeDeps({
-      deleteNoteUseCase: stub<IDeleteNoteUseCase>({ execute: vi.fn().mockResolvedValue(undefined) }),
+      deleteNoteUseCase: stub<IDeleteNoteUseCase>({
+        execute: vi.fn().mockResolvedValue(undefined),
+      }),
     });
 
     const resolver = new NoteResolver(deps);

@@ -1,6 +1,10 @@
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { IRegisterUseCase, RegisterInput, RegisterOutput } from '@/use-cases/auth/IRegisterUseCase.js';
+import type {
+  IRegisterUseCase,
+  RegisterInput,
+  RegisterOutput,
+} from '@/use-cases/auth/IRegisterUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

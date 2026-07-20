@@ -1,15 +1,26 @@
-import { createFileRoute, Outlet, redirect, useNavigate, useRouterState } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  Outlet,
+  redirect,
+  useNavigate,
+  useRouterState,
+} from '@tanstack/react-router';
 import { isAuthenticated, getIsAuthenticated } from '#/lib/auth';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
-import { BarChart2Icon, BriefcaseIcon, LayoutDashboardIcon, LogOutIcon, UserIcon } from 'lucide-react';
+import {
+  BarChart2Icon,
+  BriefcaseIcon,
+  LayoutDashboardIcon,
+  LogOutIcon,
+  UserIcon,
+} from 'lucide-react';
 
 const LOGOUT_MUTATION = `mutation { logout }`;
 
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async () => {
-    const authed =
-      typeof window !== 'undefined' ? isAuthenticated() : await getIsAuthenticated();
+    const authed = typeof window !== 'undefined' ? isAuthenticated() : await getIsAuthenticated();
     if (!authed) throw redirect({ to: '/login' });
   },
   component: AuthenticatedLayout,

@@ -10,10 +10,13 @@ async function scheduleRefresh() {
   if (msUntilRefresh <= 0) {
     await refreshToken();
   } else {
-    setTimeout(async () => {
-      await refreshToken();
-      await scheduleRefresh();
-    }, Math.min(msUntilRefresh, 60_000)); // check at most every minute
+    setTimeout(
+      async () => {
+        await refreshToken();
+        await scheduleRefresh();
+      },
+      Math.min(msUntilRefresh, 60_000),
+    ); // check at most every minute
   }
 }
 

@@ -99,10 +99,10 @@ describe('RegisterPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {
-      expect(mockGqlRequest).toHaveBeenCalledWith(
-        expect.stringContaining('Register'),
-        { email: 'test@example.com', password: 'password123' },
-      );
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Register'), {
+        email: 'test@example.com',
+        password: 'password123',
+      });
     });
     expect(mockGqlRequest).not.toHaveBeenCalledWith(
       expect.anything(),

@@ -79,6 +79,7 @@ http/
 **Framework:** TanStack Start (SSR-capable React). Routes live under `src/routes/` using file-based routing via `@tanstack/react-router`.
 
 **Route layout:**
+
 - `/` → index (redirects)
 - `/login`, `/register` → public auth routes
 - `/_authenticated/*` → protected layout route; `beforeLoad` redirects unauthenticated users to `/login`

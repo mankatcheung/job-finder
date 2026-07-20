@@ -12,11 +12,7 @@
     "default_popup": "src/popup/popup.html",
     "default_title": "Job Finder Clipper"
   },
-  "permissions": [
-    "cookies",
-    "storage",
-    "activeTab"
-  ],
+  "permissions": ["cookies", "storage", "activeTab"],
   "host_permissions": [
     "http://localhost:3001/*",
     "https://*.linkedin.com/*",

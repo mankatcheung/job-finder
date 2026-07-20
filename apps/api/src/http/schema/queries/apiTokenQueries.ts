@@ -6,7 +6,8 @@ builder.queryField('apiTokens', (t) =>
   t.field({
     type: [ApiTokenRef],
     resolve: async (_root, _args, ctx) => {
-      if (!ctx.user) throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
       const { listApiTokensUseCase, apiTokenMapper } = ctx.diScope.cradle;
       const tokens = await listApiTokensUseCase.execute(ctx.user.sub);
       return tokens.map((token) => apiTokenMapper.toDTO(token));

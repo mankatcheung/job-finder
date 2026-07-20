@@ -70,10 +70,10 @@ describe('AccountPage', () => {
       fireEvent.click(updateEmailBtn);
 
       await waitFor(() => {
-        expect(mockGqlRequest).toHaveBeenCalledWith(
-          expect.stringContaining('UpdateEmail'),
-          { currentPassword: 'mypassword', newEmail: 'new@example.com' },
-        );
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('UpdateEmail'), {
+          currentPassword: 'mypassword',
+          newEmail: 'new@example.com',
+        });
       });
     });
 
@@ -131,10 +131,10 @@ describe('AccountPage', () => {
       fireEvent.click(updatePasswordBtn);
 
       await waitFor(() => {
-        expect(mockGqlRequest).toHaveBeenCalledWith(
-          expect.stringContaining('UpdatePassword'),
-          { currentPassword: 'currentPass1', newPassword: 'newPass1234' },
-        );
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('UpdatePassword'), {
+          currentPassword: 'currentPass1',
+          newPassword: 'newPass1234',
+        });
       });
     });
 
@@ -189,10 +189,9 @@ describe('AccountPage', () => {
       fireEvent.click(deleteBtn);
 
       await waitFor(() => {
-        expect(mockGqlRequest).toHaveBeenCalledWith(
-          expect.stringContaining('DeleteAccount'),
-          { password: 'myPassword123' },
-        );
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('DeleteAccount'), {
+          password: 'myPassword123',
+        });
         expect(mockClearAuthIndicator).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith({ to: '/login' });
       });

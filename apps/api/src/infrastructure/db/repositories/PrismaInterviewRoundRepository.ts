@@ -1,5 +1,9 @@
 import type { PrismaClient } from '@prisma/client';
-import type { InterviewRound, InterviewRoundType, InterviewRoundOutcome } from '@/domain/interviewRound/InterviewRound.js';
+import type {
+  InterviewRound,
+  InterviewRoundType,
+  InterviewRoundOutcome,
+} from '@/domain/interviewRound/InterviewRound.js';
 import { getClient } from '../transactionContext.js';
 import type {
   IInterviewRoundRepository,

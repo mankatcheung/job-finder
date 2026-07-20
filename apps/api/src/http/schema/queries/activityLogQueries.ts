@@ -7,6 +7,7 @@ builder.queryField('activityLogs', (t) =>
     args: {
       applicationId: t.arg.id({ required: true }),
     },
-    resolve: (_root, args, ctx) => ctx.diScope.resolve('activityLogResolver').getActivityLogs(String(args.applicationId), ctx),
+    resolve: (_root, args, ctx) =>
+      ctx.diScope.resolve('activityLogResolver').getActivityLogs(String(args.applicationId), ctx),
   }),
 );

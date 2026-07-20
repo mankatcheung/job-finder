@@ -9,7 +9,8 @@ builder.mutationField('createApiToken', (t) =>
       name: t.arg.string({ required: true }),
     },
     resolve: async (_root, args, ctx) => {
-      if (!ctx.user) throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
       const { createApiTokenUseCase, apiTokenMapper } = ctx.diScope.cradle;
       const { token, rawToken } = await createApiTokenUseCase.execute({
         userId: ctx.user.sub,
@@ -27,7 +28,8 @@ builder.mutationField('deleteApiToken', (t) =>
       id: t.arg.id({ required: true }),
     },
     resolve: async (_root, args, ctx) => {
-      if (!ctx.user) throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
       const { deleteApiTokenUseCase } = ctx.diScope.cradle;
       await deleteApiTokenUseCase.execute(args.id, ctx.user.sub);
       return true;

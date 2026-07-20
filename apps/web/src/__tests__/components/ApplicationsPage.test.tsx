@@ -31,8 +31,7 @@ vi.mock('#/graphql/generated/graphql', () => ({}));
 
 import { ApplicationsPage } from '#/routes/_authenticated/applications/index';
 
-const makeClient = () =>
-  new QueryClient({ defaultOptions: { queries: { retry: false } } });
+const makeClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return <QueryClientProvider client={makeClient()}>{children}</QueryClientProvider>;
