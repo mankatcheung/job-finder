@@ -1,12 +1,17 @@
 import type { PrismaClient } from '@prisma/client';
 import type { Note } from '@/domain/note/Note.js';
 import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
+import { getClient } from '../transactionContext.js';
 
 export class PrismaNoteRepository implements INoteRepository {
-  private readonly db: PrismaClient;
+  private readonly prisma: PrismaClient;
 
   constructor({ prisma }: { prisma: PrismaClient }) {
-    this.db = prisma;
+    this.prisma = prisma;
+  }
+
+  private get db(): PrismaClient {
+    return getClient(this.prisma);
   }
 
   async findAllByApplicationId(applicationId: string): Promise<Note[]> {

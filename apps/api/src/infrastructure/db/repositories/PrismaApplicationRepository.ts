@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient, Prisma } from '@prisma/client';
 import type { Application } from '@/domain/application/Application.js';
 import type { ApplicationStatus } from '@/domain/application/ApplicationStatus.js';
 import type {
@@ -7,6 +7,7 @@ import type {
   CreateApplicationData,
   UpdateApplicationData,
 } from '@/use-cases/ports/IApplicationRepository.js';
+import { txStorage, getClient } from '../transactionContext.js';
 
 type PrismaTag = { id: string; applicationId: string; name: string };
 
@@ -33,10 +34,14 @@ type PrismaApp = {
 const INCLUDE_TAGS = { tags: true } as const;
 
 export class PrismaApplicationRepository implements IApplicationRepository {
-  private readonly db: PrismaClient;
+  private readonly prisma: PrismaClient;
 
   constructor({ prisma }: { prisma: PrismaClient }) {
-    this.db = prisma;
+    this.prisma = prisma;
+  }
+
+  private get db(): PrismaClient {
+    return getClient(this.prisma);
   }
 
   async findAllByUserId(
@@ -64,8 +69,9 @@ export class PrismaApplicationRepository implements IApplicationRepository {
 
   async create(data: CreateApplicationData): Promise<Application> {
     const tags = data.tags ?? [];
-    const row = await this.db.$transaction(async (tx) => {
-      const app = await tx.jobApplication.create({
+
+    const exec = async (client: Prisma.TransactionClient) => {
+      const app = await client.jobApplication.create({
         data: {
           id: data.id,
           userId: data.userId,
@@ -82,10 +88,13 @@ export class PrismaApplicationRepository implements IApplicationRepository {
         },
       });
       for (const name of tags) {
-        await tx.applicationTag.create({ data: { id: nanoid(), applicationId: app.id, name } });
+        await client.applicationTag.create({ data: { id: nanoid(), applicationId: app.id, name } });
       }
-      return tx.jobApplication.findUnique({ where: { id: app.id }, include: INCLUDE_TAGS });
-    });
+      return client.jobApplication.findUnique({ where: { id: app.id }, include: INCLUDE_TAGS });
+    };
+
+    const ambient = txStorage.getStore();
+    const row = ambient ? await exec(ambient) : await this.prisma.$transaction(exec);
     return this.toEntity(row!);
   }
 
@@ -105,14 +114,17 @@ export class PrismaApplicationRepository implements IApplicationRepository {
     };
 
     if (data.tags !== undefined) {
-      const row = await this.db.$transaction(async (tx) => {
-        await tx.jobApplication.update({ where: { id }, data: scalarData });
-        await tx.applicationTag.deleteMany({ where: { applicationId: id } });
+      const exec = async (client: Prisma.TransactionClient) => {
+        await client.jobApplication.update({ where: { id }, data: scalarData });
+        await client.applicationTag.deleteMany({ where: { applicationId: id } });
         for (const name of data.tags!) {
-          await tx.applicationTag.create({ data: { id: nanoid(), applicationId: id, name } });
+          await client.applicationTag.create({ data: { id: nanoid(), applicationId: id, name } });
         }
-        return tx.jobApplication.findUnique({ where: { id }, include: INCLUDE_TAGS });
-      });
+        return client.jobApplication.findUnique({ where: { id }, include: INCLUDE_TAGS });
+      };
+
+      const ambient = txStorage.getStore();
+      const row = ambient ? await exec(ambient) : await this.prisma.$transaction(exec);
       return this.toEntity(row!);
     }
 

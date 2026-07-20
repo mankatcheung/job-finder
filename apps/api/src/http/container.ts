@@ -73,6 +73,7 @@ import { UpdateContactUseCase } from '@/use-cases/contacts/UpdateContactUseCase.
 import { DeleteContactUseCase } from '@/use-cases/contacts/DeleteContactUseCase.js';
 import { BrevoEmailService } from '@/infrastructure/email/BrevoEmailService.js';
 import { SendFollowUpRemindersUseCase } from '@/use-cases/reminders/SendFollowUpRemindersUseCase.js';
+import { PrismaTransactionManager } from '@/infrastructure/db/PrismaTransactionManager.js';
 
 import type { FastifyInstance } from 'fastify';
 
@@ -153,6 +154,7 @@ declare module '@fastify/awilix' {
     deleteContactUseCase: DeleteContactUseCase;
     emailService: BrevoEmailService;
     sendFollowUpRemindersUseCase: SendFollowUpRemindersUseCase;
+    transactionManager: PrismaTransactionManager;
   }
 }
 
@@ -169,6 +171,9 @@ export function buildContainer(fastify: FastifyInstance): void {
     fastify: asValue(fastify),
     tokenService: asClass(FastifyJwtTokenService, { lifetime: Lifetime.SINGLETON }),
     cache: asValue(new MemoryCache()),
+
+    // Transaction manager
+    transactionManager: asClass(PrismaTransactionManager, { lifetime: Lifetime.SINGLETON }),
 
     // Raw Prisma repositories
     userRepository: asClass(PrismaUserRepository, { lifetime: Lifetime.SINGLETON }),

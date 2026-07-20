@@ -4,12 +4,17 @@ import type {
   IDocumentRepository,
   CreateDocumentData,
 } from '@/use-cases/ports/IDocumentRepository.js';
+import { getClient } from '../transactionContext.js';
 
 export class PrismaDocumentRepository implements IDocumentRepository {
-  private readonly db: PrismaClient;
+  private readonly prisma: PrismaClient;
 
   constructor({ prisma }: { prisma: PrismaClient }) {
-    this.db = prisma;
+    this.prisma = prisma;
+  }
+
+  private get db(): PrismaClient {
+    return getClient(this.prisma);
   }
 
   async findAllByApplicationId(applicationId: string): Promise<Document[]> {

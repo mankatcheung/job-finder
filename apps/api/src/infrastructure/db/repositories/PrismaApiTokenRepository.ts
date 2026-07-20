@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
 import type { ApiToken } from '@/domain/apiToken/ApiToken.js';
+import { getClient } from '../transactionContext.js';
 import type {
   IApiTokenRepository,
   CreateApiTokenData,
@@ -15,10 +16,14 @@ type PrismaToken = {
 };
 
 export class PrismaApiTokenRepository implements IApiTokenRepository {
-  private readonly db: PrismaClient;
+  private readonly prisma: PrismaClient;
 
   constructor({ prisma }: { prisma: PrismaClient }) {
-    this.db = prisma;
+    this.prisma = prisma;
+  }
+
+  private get db(): PrismaClient {
+    return getClient(this.prisma);
   }
 
   async findAllByUserId(userId: string): Promise<ApiToken[]> {

@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import type { ITransactionManager } from '@/use-cases/ports/ITransactionManager.js';
 import type { IApiTokenRepository } from '@/use-cases/ports/IApiTokenRepository.js';
 import type { ApiToken } from '@/domain/apiToken/ApiToken.js';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
@@ -189,6 +190,11 @@ export const makeContact = (overrides?: Partial<Contact>): Contact => ({
   notes: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+export const makeTransactionManager = (overrides?: Partial<ITransactionManager>): ITransactionManager => ({
+  run: vi.fn().mockImplementation((fn: () => Promise<unknown>) => fn()),
   ...overrides,
 });
 
