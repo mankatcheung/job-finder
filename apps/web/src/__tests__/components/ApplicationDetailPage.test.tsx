@@ -50,6 +50,7 @@ const mockApp = {
   starred: false,
   source: null,
   followUpAt: null,
+  tags: [],
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',
 };
