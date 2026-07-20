@@ -5,5 +5,7 @@ export interface Document {
   mimeType: string;
   sizeBytes: number;
   storageKey: string;
+  documentType: string;
+  version: string | null;
   createdAt: Date;
 }

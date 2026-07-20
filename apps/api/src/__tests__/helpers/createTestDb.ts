@@ -82,6 +82,8 @@ const SCHEMA_STATEMENTS = [
     "mimeType" TEXT NOT NULL,
     "sizeBytes" INTEGER NOT NULL,
     "storageKey" TEXT NOT NULL UNIQUE,
+    "documentType" TEXT NOT NULL DEFAULT 'other',
+    "version" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
   )`,

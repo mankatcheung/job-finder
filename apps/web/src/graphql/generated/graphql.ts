@@ -54,10 +54,20 @@ export type ApplicationStatus =
 
 export type ConfirmDocumentInput = {
   applicationId: Scalars['ID']['input'];
+  documentType?: InputMaybe<Scalars['String']['input']>;
   mimeType: Scalars['String']['input'];
   name: Scalars['String']['input'];
   sizeBytes: Scalars['Int']['input'];
   storageKey: Scalars['String']['input'];
+  version?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CreateApiTokenPayload = {
+  __typename?: 'CreateApiTokenPayload';
+  createdAt?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  token?: Maybe<Scalars['String']['output']>;
 };
 
 export type Contact = {
@@ -110,11 +120,13 @@ export type Document = {
   __typename?: 'Document';
   applicationId?: Maybe<Scalars['ID']['output']>;
   createdAt?: Maybe<Scalars['String']['output']>;
+  documentType?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   mimeType?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
   sizeBytes?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
+  version?: Maybe<Scalars['String']['output']>;
 };
 
 export type InterviewRound = {

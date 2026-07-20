@@ -1092,7 +1092,7 @@ function ContactsTab({ applicationId }: { applicationId: string }) {
 
 const DOCUMENTS_QUERY = `
   query Documents($applicationId: ID!) {
-    documents(applicationId: $applicationId) { id applicationId name mimeType sizeBytes url createdAt }
+    documents(applicationId: $applicationId) { id applicationId name mimeType sizeBytes url documentType version createdAt }
   }
 `;
 const REQUEST_UPLOAD_URL = `
@@ -1102,7 +1102,7 @@ const REQUEST_UPLOAD_URL = `
 `;
 const CONFIRM_DOCUMENT = `
   mutation ConfirmDocument($input: ConfirmDocumentInput!) {
-    confirmDocument(input: $input) { id applicationId name mimeType sizeBytes url createdAt }
+    confirmDocument(input: $input) { id applicationId name mimeType sizeBytes url documentType version createdAt }
   }
 `;
 const DELETE_DOCUMENT = `mutation DeleteDocument($id: ID!) { deleteDocument(id: $id) }`;
@@ -1114,13 +1114,39 @@ type Document = {
   mimeType: string;
   sizeBytes: number;
   url: string;
+  documentType: string;
+  version?: string | null;
   createdAt: string;
+};
+
+type PendingUpload = {
+  storageKey: string;
+  name: string;
+  mimeType: string;
+  sizeBytes: number;
+};
+
+const DOC_TYPE_LABELS: Record<string, string> = {
+  resume: 'Resume',
+  cover_letter: 'Cover Letter',
+  portfolio: 'Portfolio',
+  other: 'Other',
+};
+
+const DOC_TYPE_BADGE: Record<string, string> = {
+  resume: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  cover_letter: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+  portfolio: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
 };
 
 function DocumentsTab({ applicationId }: { applicationId: string }) {
   const qc = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
+  const [docType, setDocType] = useState('other');
+  const [docVersion, setDocVersion] = useState('');
+  const [confirming, setConfirming] = useState(false);
 
   const { data } = useQuery({
     queryKey: ['documents', applicationId],
@@ -1149,16 +1175,14 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
         headers: { 'Content-Type': file.type },
       });
 
-      await gqlClient.request(CONFIRM_DOCUMENT, {
-        input: {
-          applicationId,
-          storageKey: requestUploadUrl.storageKey,
-          name: file.name,
-          mimeType: file.type,
-          sizeBytes: file.size,
-        },
+      setPendingUpload({
+        storageKey: requestUploadUrl.storageKey,
+        name: file.name,
+        mimeType: file.type,
+        sizeBytes: file.size,
       });
-      qc.invalidateQueries({ queryKey: ['documents', applicationId] });
+      setDocType('other');
+      setDocVersion('');
     } catch {
       setUploadError('Upload failed. Please try again.');
     } finally {
@@ -1167,26 +1191,103 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
     }
   };
 
+  const handleConfirm = async () => {
+    if (!pendingUpload) return;
+    setConfirming(true);
+    try {
+      await gqlClient.request(CONFIRM_DOCUMENT, {
+        input: {
+          applicationId,
+          storageKey: pendingUpload.storageKey,
+          name: pendingUpload.name,
+          mimeType: pendingUpload.mimeType,
+          sizeBytes: pendingUpload.sizeBytes,
+          documentType: docType,
+          ...(docVersion.trim() ? { version: docVersion.trim() } : {}),
+        },
+      });
+      qc.invalidateQueries({ queryKey: ['documents', applicationId] });
+      setPendingUpload(null);
+    } catch {
+      setUploadError('Failed to save document. Please try again.');
+    } finally {
+      setConfirming(false);
+    }
+  };
+
+  const inputCls =
+    'w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500';
+
   const docs = data?.documents ?? [];
 
   return (
     <div className="space-y-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-6 text-center">
-        <label className="cursor-pointer">
-          <input type="file" className="hidden" onChange={handleFileChange} disabled={uploading} />
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            {uploading ? (
-              <span>Uploading…</span>
-            ) : (
-              <>
-                <span className="text-blue-600 font-medium hover:underline">Click to upload</span> a
-                document
-              </>
-            )}
+      {!pendingUpload && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-6 text-center">
+          <label className="cursor-pointer">
+            <input type="file" className="hidden" onChange={handleFileChange} disabled={uploading} />
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {uploading ? (
+                <span>Uploading…</span>
+              ) : (
+                <>
+                  <span className="text-blue-600 font-medium hover:underline">Click to upload</span> a
+                  document
+                </>
+              )}
+            </div>
+          </label>
+          {uploadError && <p className="mt-2 text-xs text-red-600">{uploadError}</p>}
+        </div>
+      )}
+
+      {pendingUpload && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-blue-200 dark:border-blue-700 p-4 space-y-3">
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            Uploaded: <span className="font-normal text-gray-600 dark:text-gray-400">{pendingUpload.name}</span>
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Document type</label>
+              <select
+                value={docType}
+                onChange={(e) => setDocType(e.target.value)}
+                className={inputCls}
+              >
+                <option value="other">Other</option>
+                <option value="resume">Resume</option>
+                <option value="cover_letter">Cover Letter</option>
+                <option value="portfolio">Portfolio</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Version <span className="font-normal">(optional)</span></label>
+              <input
+                value={docVersion}
+                onChange={(e) => setDocVersion(e.target.value)}
+                className={inputCls}
+                placeholder="e.g. v2"
+              />
+            </div>
           </div>
-        </label>
-        {uploadError && <p className="mt-2 text-xs text-red-600">{uploadError}</p>}
-      </div>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={handleConfirm}
+              disabled={confirming}
+              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-medium rounded-lg"
+            >
+              {confirming ? 'Saving…' : 'Confirm upload'}
+            </button>
+            <button
+              onClick={() => setPendingUpload(null)}
+              className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
+            >
+              Cancel
+            </button>
+          </div>
+          {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
+        </div>
+      )}
 
       {docs.map((doc) => (
         <div
@@ -1194,14 +1295,24 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
           className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
         >
           <div className="min-w-0">
-            <a
-              href={doc.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm font-medium text-blue-600 hover:underline truncate block"
-            >
-              {doc.name}
-            </a>
+            <div className="flex items-center gap-2 flex-wrap">
+              <a
+                href={doc.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-blue-600 hover:underline truncate"
+              >
+                {doc.name}
+              </a>
+              {doc.documentType !== 'other' && (
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${DOC_TYPE_BADGE[doc.documentType] ?? ''}`}>
+                  {DOC_TYPE_LABELS[doc.documentType] ?? doc.documentType}
+                </span>
+              )}
+              {doc.version && (
+                <span className="text-xs text-gray-400">{doc.version}</span>
+              )}
+            </div>
             <p className="text-xs text-gray-400">
               {doc.mimeType} · {(doc.sizeBytes / 1024).toFixed(1)} KB
             </p>

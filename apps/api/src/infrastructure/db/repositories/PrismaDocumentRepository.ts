@@ -26,7 +26,18 @@ export class PrismaDocumentRepository implements IDocumentRepository {
   }
 
   async create(data: CreateDocumentData): Promise<Document> {
-    const row = await this.db.document.create({ data });
+    const row = await this.db.document.create({
+      data: {
+        id: data.id,
+        applicationId: data.applicationId,
+        name: data.name,
+        mimeType: data.mimeType,
+        sizeBytes: data.sizeBytes,
+        storageKey: data.storageKey,
+        documentType: data.documentType ?? 'other',
+        version: data.version ?? null,
+      },
+    });
     return this.toEntity(row);
   }
 
@@ -41,6 +52,8 @@ export class PrismaDocumentRepository implements IDocumentRepository {
     mimeType: string;
     sizeBytes: number;
     storageKey: string;
+    documentType: string;
+    version: string | null;
     createdAt: Date;
   }): Document {
     return {
@@ -50,6 +63,8 @@ export class PrismaDocumentRepository implements IDocumentRepository {
       mimeType: row.mimeType,
       sizeBytes: row.sizeBytes,
       storageKey: row.storageKey,
+      documentType: row.documentType,
+      version: row.version,
       createdAt: row.createdAt,
     };
   }

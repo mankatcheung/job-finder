@@ -6,6 +6,8 @@ query Documents($applicationId: ID!) {
     mimeType
     sizeBytes
     url
+    documentType
+    version
     createdAt
   }
 }

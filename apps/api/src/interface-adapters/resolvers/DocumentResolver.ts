@@ -25,6 +25,8 @@ interface ConfirmInput {
   name: string;
   mimeType: string;
   sizeBytes: number;
+  documentType?: string;
+  version?: string | null;
 }
 
 export class DocumentResolver {

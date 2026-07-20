@@ -113,6 +113,8 @@ model Document {
   mimeType      String
   sizeBytes     Int
   storageKey    String         @unique
+  documentType  String         @default("other")
+  version       String?
   createdAt     DateTime       @default(now())
   application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 

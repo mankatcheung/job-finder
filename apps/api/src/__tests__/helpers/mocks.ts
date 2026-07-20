@@ -196,6 +196,8 @@ export const makeDocument = (overrides?: Partial<Document>): Document => ({
   mimeType: 'application/pdf',
   sizeBytes: 12345,
   storageKey: 'users/user-1/applications/app-1/resume.pdf',
+  documentType: 'other',
+  version: null,
   createdAt: new Date('2024-01-01'),
   ...overrides,
 });
