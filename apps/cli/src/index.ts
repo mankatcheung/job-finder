@@ -13,4 +13,8 @@ program
 registerAuthCommands(program);
 registerAppsCommands(program);
 
+if (process.argv.length <= 2) {
+  program.help(); // exits 0
+}
+
 program.parse(process.argv);
