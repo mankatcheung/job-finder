@@ -14,6 +14,7 @@ import './types/AuthPayloadType.js';
 import './types/ApiTokenType.js';
 import './types/inputs/ApplicationInputs.js';
 import './types/inputs/DocumentInputs.js';
+import './types/ContactType.js';
 
 // Queries
 import './queries/applicationQueries.js';
@@ -23,6 +24,7 @@ import './queries/userQueries.js';
 import './queries/interviewRoundQueries.js';
 import './queries/activityLogQueries.js';
 import './queries/apiTokenQueries.js';
+import './queries/contactQueries.js';
 
 // Mutations
 import './mutations/authMutations.js';
@@ -32,5 +34,6 @@ import './mutations/documentMutations.js';
 import './mutations/userMutations.js';
 import './mutations/interviewRoundMutations.js';
 import './mutations/apiTokenMutations.js';
+import './mutations/contactMutations.js';
 
 export const schema = builder.toSchema();

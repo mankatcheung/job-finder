@@ -1,0 +1,14 @@
+query Contacts($applicationId: ID!) {
+  contacts(applicationId: $applicationId) {
+    id
+    applicationId
+    name
+    role
+    email
+    phone
+    linkedinUrl
+    notes
+    createdAt
+    updatedAt
+  }
+}

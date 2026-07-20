@@ -94,6 +94,20 @@ const SCHEMA_STATEMENTS = [
   )`,
   `CREATE UNIQUE INDEX "ApplicationTag_applicationId_name_key" ON "ApplicationTag"("applicationId", "name")`,
   `CREATE INDEX "ApplicationTag_applicationId_idx" ON "ApplicationTag"("applicationId")`,
+  `CREATE TABLE "Contact" (
+    "id" TEXT PRIMARY KEY,
+    "applicationId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "role" TEXT,
+    "email" TEXT,
+    "phone" TEXT,
+    "linkedinUrl" TEXT,
+    "notes" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "Contact_applicationId_idx" ON "Contact"("applicationId")`,
 ];
 
 export interface TestDb {
