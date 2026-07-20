@@ -7,12 +7,14 @@ import type { IDocumentRepository } from '@/use-cases/ports/IDocumentRepository.
 import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
 import type { IInterviewRoundRepository } from '@/use-cases/ports/IInterviewRoundRepository.js';
 import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
+import type { IContactRepository } from '@/use-cases/ports/IContactRepository.js';
 import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
 import type { User } from '@/domain/user/User.js';
 import type { Application } from '@/domain/application/Application.js';
 import type { Document } from '@/domain/document/Document.js';
 import type { Note } from '@/domain/note/Note.js';
 import type { InterviewRound } from '@/domain/interviewRound/InterviewRound.js';
+import type { Contact } from '@/domain/contact/Contact.js';
 
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
@@ -157,6 +159,31 @@ export const makeInterviewRound = (overrides?: Partial<InterviewRound>): Intervi
   interviewerName: null,
   notes: null,
   outcome: 'pending',
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+export const makeContactRepository = (
+  overrides?: Partial<IContactRepository>,
+): IContactRepository => ({
+  findAllByApplicationId: vi.fn().mockResolvedValue([]),
+  findById: vi.fn().mockResolvedValue(null),
+  create: vi.fn(),
+  update: vi.fn(),
+  delete: vi.fn(),
+  ...overrides,
+});
+
+export const makeContact = (overrides?: Partial<Contact>): Contact => ({
+  id: 'contact-1',
+  applicationId: 'app-1',
+  name: 'Jane Recruiter',
+  role: 'Technical Recruiter',
+  email: 'jane@example.com',
+  phone: null,
+  linkedinUrl: null,
+  notes: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,

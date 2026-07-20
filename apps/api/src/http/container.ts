@@ -15,6 +15,7 @@ import { CachedDocumentRepository } from '@/infrastructure/db/repositories/Cache
 import { PrismaInterviewRoundRepository } from '@/infrastructure/db/repositories/PrismaInterviewRoundRepository.js';
 import { CachedInterviewRoundRepository } from '@/infrastructure/db/repositories/CachedInterviewRoundRepository.js';
 import { PrismaActivityLogRepository } from '@/infrastructure/db/repositories/PrismaActivityLogRepository.js';
+import { PrismaContactRepository } from '@/infrastructure/db/repositories/PrismaContactRepository.js';
 
 import { LocalStorageProvider } from '@/infrastructure/storage/LocalStorageProvider.js';
 import { R2StorageProvider } from '@/infrastructure/storage/R2StorageProvider.js';
@@ -24,6 +25,7 @@ import { NoteMapper } from '@/interface-adapters/mappers/NoteMapper.js';
 import { DocumentMapper } from '@/interface-adapters/mappers/DocumentMapper.js';
 import { InterviewRoundMapper } from '@/interface-adapters/mappers/InterviewRoundMapper.js';
 import { ActivityLogMapper } from '@/interface-adapters/mappers/ActivityLogMapper.js';
+import { ContactMapper } from '@/interface-adapters/mappers/ContactMapper.js';
 
 import { AuthResolver } from '@/interface-adapters/resolvers/AuthResolver.js';
 import { ApplicationResolver } from '@/interface-adapters/resolvers/ApplicationResolver.js';
@@ -32,6 +34,7 @@ import { DocumentResolver } from '@/interface-adapters/resolvers/DocumentResolve
 import { UserResolver } from '@/interface-adapters/resolvers/UserResolver.js';
 import { InterviewRoundResolver } from '@/interface-adapters/resolvers/InterviewRoundResolver.js';
 import { ActivityLogResolver } from '@/interface-adapters/resolvers/ActivityLogResolver.js';
+import { ContactResolver } from '@/interface-adapters/resolvers/ContactResolver.js';
 
 import { RegisterUseCase } from '@/use-cases/auth/RegisterUseCase.js';
 import { LoginUseCase } from '@/use-cases/auth/LoginUseCase.js';
@@ -64,6 +67,10 @@ import { CreateApiTokenUseCase } from '@/use-cases/apiTokens/CreateApiTokenUseCa
 import { ListApiTokensUseCase } from '@/use-cases/apiTokens/ListApiTokensUseCase.js';
 import { DeleteApiTokenUseCase } from '@/use-cases/apiTokens/DeleteApiTokenUseCase.js';
 import { ValidateApiTokenUseCase } from '@/use-cases/apiTokens/ValidateApiTokenUseCase.js';
+import { CreateContactUseCase } from '@/use-cases/contacts/CreateContactUseCase.js';
+import { GetContactsUseCase } from '@/use-cases/contacts/GetContactsUseCase.js';
+import { UpdateContactUseCase } from '@/use-cases/contacts/UpdateContactUseCase.js';
+import { DeleteContactUseCase } from '@/use-cases/contacts/DeleteContactUseCase.js';
 
 import type { FastifyInstance } from 'fastify';
 
@@ -91,6 +98,7 @@ declare module '@fastify/awilix' {
     interviewRoundRepository: CachedInterviewRoundRepository;
     activityLogRepository: PrismaActivityLogRepository;
     apiTokenRepository: PrismaApiTokenRepository;
+    contactRepository: PrismaContactRepository;
 
     applicationMapper: ApplicationMapper;
     apiTokenMapper: ApiTokenMapper;
@@ -98,6 +106,7 @@ declare module '@fastify/awilix' {
     documentMapper: DocumentMapper;
     interviewRoundMapper: InterviewRoundMapper;
     activityLogMapper: ActivityLogMapper;
+    contactMapper: ContactMapper;
 
     authResolver: AuthResolver;
     applicationResolver: ApplicationResolver;
@@ -106,6 +115,7 @@ declare module '@fastify/awilix' {
     userResolver: UserResolver;
     interviewRoundResolver: InterviewRoundResolver;
     activityLogResolver: ActivityLogResolver;
+    contactResolver: ContactResolver;
 
     registerUseCase: RegisterUseCase;
     loginUseCase: LoginUseCase;
@@ -135,6 +145,10 @@ declare module '@fastify/awilix' {
     listApiTokensUseCase: ListApiTokensUseCase;
     deleteApiTokenUseCase: DeleteApiTokenUseCase;
     validateApiTokenUseCase: ValidateApiTokenUseCase;
+    createContactUseCase: CreateContactUseCase;
+    getContactsUseCase: GetContactsUseCase;
+    updateContactUseCase: UpdateContactUseCase;
+    deleteContactUseCase: DeleteContactUseCase;
   }
 }
 
@@ -168,6 +182,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     interviewRoundRepository: asClass(CachedInterviewRoundRepository, { lifetime: Lifetime.SINGLETON }),
     activityLogRepository: asClass(PrismaActivityLogRepository, { lifetime: Lifetime.SINGLETON }),
     apiTokenRepository: asClass(PrismaApiTokenRepository, { lifetime: Lifetime.SINGLETON }),
+    contactRepository: asClass(PrismaContactRepository, { lifetime: Lifetime.SINGLETON }),
 
     // Mappers
     applicationMapper: asClass(ApplicationMapper, { lifetime: Lifetime.SINGLETON }),
@@ -176,6 +191,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     documentMapper: asClass(DocumentMapper, { lifetime: Lifetime.SINGLETON }),
     interviewRoundMapper: asClass(InterviewRoundMapper, { lifetime: Lifetime.SINGLETON }),
     activityLogMapper: asClass(ActivityLogMapper, { lifetime: Lifetime.SINGLETON }),
+    contactMapper: asClass(ContactMapper, { lifetime: Lifetime.SINGLETON }),
 
     // Resolvers
     authResolver: asClass(AuthResolver, { lifetime: Lifetime.SINGLETON }),
@@ -185,6 +201,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     userResolver: asClass(UserResolver, { lifetime: Lifetime.SINGLETON }),
     interviewRoundResolver: asClass(InterviewRoundResolver, { lifetime: Lifetime.SINGLETON }),
     activityLogResolver: asClass(ActivityLogResolver, { lifetime: Lifetime.SINGLETON }),
+    contactResolver: asClass(ContactResolver, { lifetime: Lifetime.SINGLETON }),
 
     // Use Cases
     registerUseCase: asClass(RegisterUseCase, { lifetime: Lifetime.TRANSIENT }),
@@ -221,5 +238,9 @@ export function buildContainer(fastify: FastifyInstance): void {
     listApiTokensUseCase: asClass(ListApiTokensUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteApiTokenUseCase: asClass(DeleteApiTokenUseCase, { lifetime: Lifetime.TRANSIENT }),
     validateApiTokenUseCase: asClass(ValidateApiTokenUseCase, { lifetime: Lifetime.TRANSIENT }),
+    createContactUseCase: asClass(CreateContactUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getContactsUseCase: asClass(GetContactsUseCase, { lifetime: Lifetime.TRANSIENT }),
+    updateContactUseCase: asClass(UpdateContactUseCase, { lifetime: Lifetime.TRANSIENT }),
+    deleteContactUseCase: asClass(DeleteContactUseCase, { lifetime: Lifetime.TRANSIENT }),
   });
 }
