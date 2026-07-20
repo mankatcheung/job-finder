@@ -57,6 +57,7 @@ import { GetInterviewRoundsUseCase } from '@/use-cases/interviewRounds/GetInterv
 import { UpdateInterviewRoundUseCase } from '@/use-cases/interviewRounds/UpdateInterviewRoundUseCase.js';
 import { DeleteInterviewRoundUseCase } from '@/use-cases/interviewRounds/DeleteInterviewRoundUseCase.js';
 import { GetActivityLogsUseCase } from '@/use-cases/activityLogs/GetActivityLogsUseCase.js';
+import { FastifyJwtTokenService } from '@/infrastructure/auth/FastifyJwtTokenService.js';
 import { PrismaApiTokenRepository } from '@/infrastructure/db/repositories/PrismaApiTokenRepository.js';
 import { ApiTokenMapper } from '@/interface-adapters/mappers/ApiTokenMapper.js';
 import { CreateApiTokenUseCase } from '@/use-cases/apiTokens/CreateApiTokenUseCase.js';
@@ -73,6 +74,7 @@ declare module '@fastify/awilix' {
     storageProvider: LocalStorageProvider | R2StorageProvider;
     generateId: () => string;
     fastify: FastifyInstance;
+    tokenService: FastifyJwtTokenService;
     cache: MemoryCache;
 
     // Raw Prisma repositories (used internally by the cached decorators)
@@ -147,6 +149,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     storageProvider: asClass(StorageProvider, { lifetime: Lifetime.SINGLETON }),
     generateId: asValue(() => nanoid()),
     fastify: asValue(fastify),
+    tokenService: asClass(FastifyJwtTokenService, { lifetime: Lifetime.SINGLETON }),
     cache: asValue(new MemoryCache()),
 
     // Raw Prisma repositories
