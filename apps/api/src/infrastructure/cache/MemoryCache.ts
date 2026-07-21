@@ -1,3 +1,5 @@
+import { CACHE } from '@/constants.js';
+
 interface CacheEntry<T> {
   value: T;
   expiresAt: number;
@@ -7,7 +9,7 @@ export class MemoryCache {
   private readonly store = new Map<string, CacheEntry<unknown>>();
   private readonly ttlMs: number;
 
-  constructor(ttlMs = 5 * 60 * 1000) {
+  constructor(ttlMs = CACHE.DEFAULT_TTL_MS) {
     this.ttlMs = ttlMs;
   }
 

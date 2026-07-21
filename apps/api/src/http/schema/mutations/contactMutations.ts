@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '@/http/schema/builder.js';
 import { ContactRef } from '@/http/schema/types/ContactType.js';
+import { ERROR_CODES } from '@/constants.js';
 
 builder.mutationField('createContact', (t) =>
   t.field({
@@ -16,7 +17,7 @@ builder.mutationField('createContact', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { contactResolver } = ctx.diScope.cradle;
       return contactResolver.createContact(ctx.user.sub, args);
     },
@@ -37,7 +38,7 @@ builder.mutationField('updateContact', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { contactResolver } = ctx.diScope.cradle;
       const { id, name, ...rest } = args;
       return contactResolver.updateContact(ctx.user.sub, id, {
@@ -56,7 +57,7 @@ builder.mutationField('deleteContact', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { contactResolver } = ctx.diScope.cradle;
       return contactResolver.deleteContact(ctx.user.sub, args.id);
     },

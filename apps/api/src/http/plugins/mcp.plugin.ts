@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import { API_TOKEN, AUTH_HEADER, ERROR_CODES, ROUTES } from '@/constants.js';
 
 interface McpRequest {
   jsonrpc: '2.0';
@@ -76,12 +77,14 @@ function mcpError(id: string | number | null, code: number, message: string) {
 }
 
 export default async function mcpPlugin(fastify: FastifyInstance) {
-  fastify.post('/mcp', async (request, reply) => {
+  fastify.post(ROUTES.MCP, async (request, reply) => {
     // Authenticate via Bearer API token (both 'full' and 'read' scopes allowed)
     const authHeader = request.headers.authorization;
-    const rawToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    const rawToken = authHeader?.startsWith(AUTH_HEADER.BEARER_PREFIX)
+      ? authHeader.slice(AUTH_HEADER.BEARER_PREFIX.length)
+      : null;
 
-    if (!rawToken?.startsWith('jfat_')) {
+    if (!rawToken?.startsWith(API_TOKEN.PREFIX)) {
       reply.code(401);
       return { error: 'Missing or invalid Authorization header' };
     }
@@ -162,8 +165,8 @@ export default async function mcpPlugin(fastify: FastifyInstance) {
 
         return { jsonrpc: '2.0', id, result: mcpText(result) };
       } catch (err: any) {
-        const isNotFound = err?.code === 'NOT_FOUND';
-        const isForbidden = err?.code === 'FORBIDDEN';
+        const isNotFound = err?.code === ERROR_CODES.NOT_FOUND;
+        const isForbidden = err?.code === ERROR_CODES.FORBIDDEN;
         const code = isNotFound || isForbidden ? -32602 : -32603;
         return mcpError(id, code, err?.message ?? 'Internal error');
       }

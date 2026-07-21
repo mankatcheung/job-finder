@@ -1,6 +1,7 @@
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
 import type { IEmailService, WeeklyDigestData } from '@/use-cases/ports/IEmailService.js';
+import { DURATIONS_MS } from '@/constants.js';
 
 interface Deps {
   userRepository: IUserRepository;
@@ -14,7 +15,7 @@ export interface DigestSummary {
   skipped: number;
 }
 
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const SEVEN_DAYS_MS = DURATIONS_MS.WEEK;
 
 export class SendWeeklyDigestUseCase {
   constructor(private readonly deps: Deps) {}

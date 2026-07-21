@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '@/http/schema/builder.js';
 import { setAuthCookies, clearAuthCookies } from '@/http/schema/types/AuthPayloadType.js';
+import { ERROR_CODES } from '@/constants.js';
 
 builder.mutationField('register', (t) =>
   t.boolean({
@@ -37,7 +38,9 @@ builder.mutationField('refreshToken', (t) =>
     resolve: (_root, _args, ctx) => {
       const refreshTokenCookie = ctx.request.cookies.jf_refresh_token;
       if (!refreshTokenCookie)
-        throw new GraphQLError('No refresh token', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('No refresh token', {
+          extensions: { code: ERROR_CODES.UNAUTHORIZED },
+        });
       const { authResolver } = ctx.diScope.cradle;
       const tokens = authResolver.refreshToken(refreshTokenCookie);
       setAuthCookies(ctx.reply, tokens.accessToken, tokens.refreshToken);

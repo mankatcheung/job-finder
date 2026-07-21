@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import type { ILoginUseCase, LoginInput, LoginOutput } from '@/use-cases/auth/ILoginUseCase.js';
+import { ERROR_CODES } from '@/constants.js';
 
 interface Deps {
   userRepository: IUserRepository;
@@ -12,12 +13,12 @@ export class LoginUseCase implements ILoginUseCase {
   async execute(input: LoginInput): Promise<LoginOutput> {
     const user = await this.deps.userRepository.findByEmail(input.email);
     if (!user) {
-      throw Object.assign(new Error('Invalid credentials'), { code: 'UNAUTHORIZED' });
+      throw Object.assign(new Error('Invalid credentials'), { code: ERROR_CODES.UNAUTHORIZED });
     }
 
     const valid = await bcrypt.compare(input.password, user.passwordHash);
     if (!valid) {
-      throw Object.assign(new Error('Invalid credentials'), { code: 'UNAUTHORIZED' });
+      throw Object.assign(new Error('Invalid credentials'), { code: ERROR_CODES.UNAUTHORIZED });
     }
 
     return user;

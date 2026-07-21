@@ -2,6 +2,7 @@ import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepos
 import type { IDocumentRepository } from '@/use-cases/ports/IDocumentRepository.js';
 import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
 import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
+import { ERROR_CODES } from '@/constants.js';
 import type {
   IDeleteDocumentUseCase,
   DeleteDocumentInput,
@@ -21,12 +22,12 @@ export class DeleteDocumentUseCase implements IDeleteDocumentUseCase {
   async execute(input: DeleteDocumentInput): Promise<void> {
     const doc = await this.deps.documentRepository.findById(input.documentId);
     if (!doc) {
-      throw Object.assign(new Error('Document not found'), { code: 'NOT_FOUND' });
+      throw Object.assign(new Error('Document not found'), { code: ERROR_CODES.NOT_FOUND });
     }
 
     const app = await this.deps.applicationRepository.findById(doc.applicationId);
     if (!app || app.userId !== input.userId) {
-      throw Object.assign(new Error('Forbidden'), { code: 'FORBIDDEN' });
+      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
     }
 
     await this.deps.storageProvider.delete(doc.storageKey);

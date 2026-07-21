@@ -1,5 +1,6 @@
 import type { IEmailService, WeeklyDigestData } from '@/use-cases/ports/IEmailService.js';
 import { buildWeeklyDigestHtml } from './templates/weeklyDigestTemplate.js';
+import { EMAIL, ENV } from '@/constants.js';
 
 export class BrevoEmailService implements IEmailService {
   private readonly apiKey: string;
@@ -7,9 +8,9 @@ export class BrevoEmailService implements IEmailService {
   private readonly fromName: string;
 
   constructor() {
-    this.apiKey = process.env.BREVO_API_KEY ?? '';
-    this.fromEmail = process.env.FROM_EMAIL ?? 'noreply@jobfinder.app';
-    this.fromName = process.env.FROM_NAME ?? 'Job Finder';
+    this.apiKey = process.env[ENV.BREVO_API_KEY] ?? '';
+    this.fromEmail = process.env[ENV.FROM_EMAIL] ?? EMAIL.DEFAULT_FROM_EMAIL;
+    this.fromName = process.env[ENV.FROM_NAME] ?? EMAIL.DEFAULT_FROM_NAME;
   }
 
   async sendFollowUpReminder(
@@ -24,7 +25,7 @@ export class BrevoEmailService implements IEmailService {
       month: 'long',
       day: 'numeric',
     });
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    const response = await fetch(EMAIL.BREVO_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -47,7 +48,7 @@ export class BrevoEmailService implements IEmailService {
     const now = new Date();
     const weekLabel = `Week of ${now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
     const htmlContent = buildWeeklyDigestHtml(data, weekLabel);
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    const response = await fetch(EMAIL.BREVO_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'api-key': this.apiKey },
       body: JSON.stringify({

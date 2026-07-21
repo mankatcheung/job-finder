@@ -5,6 +5,7 @@ import type {
   InterviewRoundOutcome,
 } from '@/domain/interviewRound/InterviewRound.js';
 import { getClient } from '../transactionContext.js';
+import { DEFAULTS } from '@/constants.js';
 import type {
   IInterviewRoundRepository,
   CreateInterviewRoundData,
@@ -58,7 +59,7 @@ export class PrismaInterviewRoundRepository implements IInterviewRoundRepository
         completedAt: data.completedAt ?? null,
         interviewerName: data.interviewerName ?? null,
         notes: data.notes ?? null,
-        outcome: data.outcome ?? 'pending',
+        outcome: data.outcome ?? DEFAULTS.INTERVIEW_OUTCOME,
       },
     });
     return this.toEntity(row);

@@ -1,19 +1,20 @@
 import { S3Client, DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
+import { ENV } from '@/constants.js';
 
 export class R2StorageProvider implements IStorageProvider {
   private readonly client: S3Client;
   private readonly bucket: string;
 
   constructor() {
-    this.bucket = process.env.R2_BUCKET!;
+    this.bucket = process.env[ENV.R2_BUCKET]!;
     this.client = new S3Client({
       region: 'auto',
-      endpoint: process.env.R2_ENDPOINT!,
+      endpoint: process.env[ENV.R2_ENDPOINT]!,
       credentials: {
-        accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+        accessKeyId: process.env[ENV.R2_ACCESS_KEY_ID]!,
+        secretAccessKey: process.env[ENV.R2_SECRET_ACCESS_KEY]!,
       },
     });
   }

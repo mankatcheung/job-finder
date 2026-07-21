@@ -2,6 +2,7 @@ import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
 import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
 import type { IDocumentRepository } from '@/use-cases/ports/IDocumentRepository.js';
+import { ERROR_CODES } from '@/constants.js';
 import type {
   IExportUserDataUseCase,
   ExportUserDataOutput,
@@ -19,7 +20,7 @@ export class ExportUserDataUseCase implements IExportUserDataUseCase {
 
   async execute(userId: string): Promise<ExportUserDataOutput> {
     const user = await this.deps.userRepository.findById(userId);
-    if (!user) throw Object.assign(new Error('User not found'), { code: 'NOT_FOUND' });
+    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
 
     const applications = await this.deps.applicationRepository.findAllByUserId(userId);
 

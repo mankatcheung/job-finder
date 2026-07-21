@@ -1,4 +1,5 @@
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
+import { DEFAULTS } from '@/constants.js';
 import type {
   ICreateApplicationUseCase,
   CreateApplicationInput,
@@ -19,7 +20,7 @@ export class CreateApplicationUseCase implements ICreateApplicationUseCase {
       userId: input.userId,
       company: input.company,
       role: input.role,
-      status: input.status ?? 'draft',
+      status: input.status ?? DEFAULTS.APPLICATION_STATUS,
       jobUrl: input.jobUrl ?? null,
       location: input.location ?? null,
       salaryRange: input.salaryRange ?? null,

@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import { join, dirname } from 'path';
 import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
+import { ENV } from '@/constants.js';
 
 export class LocalStorageProvider implements IStorageProvider {
   private readonly uploadDir: string;
@@ -8,7 +9,7 @@ export class LocalStorageProvider implements IStorageProvider {
 
   constructor() {
     this.uploadDir = join(process.cwd(), 'uploads');
-    this.baseUrl = `http://localhost:${process.env.PORT ?? 3001}/uploads`;
+    this.baseUrl = `http://localhost:${process.env[ENV.PORT] ?? 3001}/uploads`;
   }
 
   async getPresignedUploadUrl(key: string): Promise<string> {

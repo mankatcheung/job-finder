@@ -3,6 +3,7 @@ import { builder } from '@/http/schema/builder.js';
 import { JobApplicationRef } from '@/http/schema/types/ApplicationType.js';
 import { ApplicationStatusEnum } from '@/http/schema/types/enums/ApplicationStatusEnum.js';
 import type { ApplicationStatus } from '@/domain/application/ApplicationStatus.js';
+import { ERROR_CODES } from '@/constants.js';
 
 builder.queryField('applications', (t) =>
   t.field({
@@ -12,7 +13,7 @@ builder.queryField('applications', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { applicationResolver } = ctx.diScope.cradle;
       return applicationResolver.getApplications(
         ctx.user.sub,
@@ -30,7 +31,7 @@ builder.queryField('application', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { applicationResolver } = ctx.diScope.cradle;
       return applicationResolver.getApplication(ctx.user.sub, args.id);
     },

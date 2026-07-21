@@ -81,6 +81,7 @@ import { ComputeHealthScoreUseCase } from '@/use-cases/application/ComputeHealth
 import { SendWeeklyDigestUseCase } from '@/use-cases/digest/SendWeeklyDigestUseCase.js';
 
 import type { FastifyInstance } from 'fastify';
+import { ENV, STORAGE_PROVIDER } from '@/constants.js';
 
 // Augment the @fastify/awilix Cradle interface so diContainer and diScope are fully typed
 declare module '@fastify/awilix' {
@@ -170,7 +171,9 @@ declare module '@fastify/awilix' {
 
 type StorageProviderConstructor = new () => LocalStorageProvider | R2StorageProvider;
 const StorageProvider: StorageProviderConstructor =
-  process.env.STORAGE_PROVIDER === 'r2' ? R2StorageProvider : LocalStorageProvider;
+  process.env[ENV.STORAGE_PROVIDER] === STORAGE_PROVIDER.R2
+    ? R2StorageProvider
+    : LocalStorageProvider;
 
 export function buildContainer(fastify: FastifyInstance): void {
   diContainer.register({

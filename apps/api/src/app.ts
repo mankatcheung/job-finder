@@ -12,11 +12,12 @@ import { buildContainer } from '@/http/container.js';
 import { schema } from '@/http/schema/index.js';
 import { formatError } from '@/http/errors/formatError.js';
 import type { GraphQLContext } from '@/http/context.js';
+import { API_TOKEN, API_TOKEN_SCOPE, AUTH_HEADER, COOKIES, ENV, NODE_ENV } from '@/constants.js';
 
 export async function buildApp() {
   const fastify = Fastify({
     logger: {
-      level: process.env.NODE_ENV === 'production' ? 'warn' : 'info',
+      level: process.env[ENV.NODE_ENV] === NODE_ENV.PRODUCTION ? 'warn' : 'info',
     },
   });
 
@@ -33,7 +34,7 @@ export async function buildApp() {
 
   await fastify.register(mercurius, {
     schema,
-    graphiql: process.env.NODE_ENV !== 'production',
+    graphiql: process.env[ENV.NODE_ENV] !== NODE_ENV.PRODUCTION,
     errorFormatter: (result) => {
       const errors = result.errors?.map(formatError);
       return { statusCode: 200, response: { ...result, errors } };
@@ -41,19 +42,21 @@ export async function buildApp() {
     context: async (request, reply): Promise<GraphQLContext> => {
       let user: { sub: string; email: string } | null = null;
 
-      const cookieToken = request.cookies.jf_access_token;
+      const cookieToken = request.cookies[COOKIES.ACCESS_TOKEN];
       const authHeader = request.headers.authorization;
-      const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+      const bearerToken = authHeader?.startsWith(AUTH_HEADER.BEARER_PREFIX)
+        ? authHeader.slice(AUTH_HEADER.BEARER_PREFIX.length)
+        : null;
       const rawToken = cookieToken ?? bearerToken;
 
       if (rawToken) {
-        if (rawToken.startsWith('jfat_')) {
+        if (rawToken.startsWith(API_TOKEN.PREFIX)) {
           // API token path — hash and look up in DB
           // Read-scoped tokens are MCP-only and cannot authenticate GraphQL
           try {
             const { validateApiTokenUseCase } = (request as any).diScope.cradle;
             const result = await validateApiTokenUseCase.execute(rawToken);
-            if (result && result.scope === 'full') {
+            if (result && result.scope === API_TOKEN_SCOPE.FULL) {
               user = { sub: result.sub, email: result.email };
             }
           } catch {
