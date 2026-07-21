@@ -76,6 +76,7 @@ import { SendFollowUpRemindersUseCase } from '@/use-cases/reminders/SendFollowUp
 import { PrismaTransactionManager } from '@/infrastructure/db/PrismaTransactionManager.js';
 import { OpenRouterLLMProvider } from '@/infrastructure/llm/OpenRouterLLMProvider.js';
 import { ParseJobDescriptionUseCase } from '@/use-cases/jobDescription/ParseJobDescriptionUseCase.js';
+import { GenerateCoverLetterUseCase } from '@/use-cases/coverLetter/GenerateCoverLetterUseCase.js';
 
 import type { FastifyInstance } from 'fastify';
 
@@ -159,6 +160,7 @@ declare module '@fastify/awilix' {
     transactionManager: PrismaTransactionManager;
     llmProvider: OpenRouterLLMProvider;
     parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
+    generateCoverLetterUseCase: GenerateCoverLetterUseCase;
   }
 }
 
@@ -271,6 +273,9 @@ export function buildContainer(fastify: FastifyInstance): void {
     }),
     llmProvider: asClass(OpenRouterLLMProvider, { lifetime: Lifetime.SINGLETON }),
     parseJobDescriptionUseCase: asClass(ParseJobDescriptionUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    generateCoverLetterUseCase: asClass(GenerateCoverLetterUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
   });

@@ -37,5 +37,6 @@ import './mutations/interviewRoundMutations.js';
 import './mutations/apiTokenMutations.js';
 import './mutations/contactMutations.js';
 import './mutations/jobDescriptionMutations.js';
+import './mutations/coverLetterMutations.js';
 
 export const schema = builder.toSchema();

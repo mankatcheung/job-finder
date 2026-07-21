@@ -16,6 +16,10 @@ const GET_APP = `query GetApplication($id: ID!) {
   }
 }`;
 
+const GENERATE_COVER_LETTER = `mutation GenerateCoverLetter($applicationId: ID!, $resumeText: String) {
+  generateCoverLetter(applicationId: $applicationId, resumeText: $resumeText)
+}`;
+
 const TOGGLE_STAR = `mutation ToggleStar($id: ID!, $starred: Boolean!) {
   updateApplication(id: $id, input: { starred: $starred }) { id starred }
 }`;
@@ -63,14 +67,15 @@ const linkIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
 function detailPage(app: FullApp, activeTab = 'overview'): string {
   const overdue = app.followUpAt != null && new Date(app.followUpAt) <= new Date();
 
-  const tabs = ['overview', 'notes', 'contacts', 'interviews'];
+  const tabs = ['overview', 'notes', 'contacts', 'interviews', 'cover-letter'];
   const tabBar = tabs
     .map((t) => {
       const active = t === activeTab;
       const cls = active
         ? 'px-3 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600'
         : 'px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-colors';
-      return `<a href="/applications/${app.id}?tab=${t}" class="${cls}" hx-get="/applications/${app.id}/tab/${t}" hx-target="#tab-content" hx-push-url="/applications/${app.id}?tab=${t}">${t.charAt(0).toUpperCase() + t.slice(1)}</a>`;
+      const label = t === 'cover-letter' ? 'Cover Letter' : t.charAt(0).toUpperCase() + t.slice(1);
+      return `<a href="/applications/${app.id}?tab=${t}" class="${cls}" hx-get="/applications/${app.id}/tab/${t}" hx-target="#tab-content" hx-push-url="/applications/${app.id}?tab=${t}">${label}</a>`;
     })
     .join('');
 
@@ -147,9 +152,43 @@ function renderTab(app: FullApp, tab: string): string {
       return contactsSection(app.contacts, app.id);
     case 'interviews':
       return interviewsSection(app.interviewRounds, app.id);
+    case 'cover-letter':
+      return coverLetterTab(app.id);
     default:
       return overviewTab(app);
   }
+}
+
+function coverLetterTab(appId: string): string {
+  const inputCls =
+    'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none';
+  return `
+    <div class="space-y-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+        <form hx-post="/applications/${appId}/cover-letter"
+              hx-target="#cover-letter-result"
+              hx-swap="innerHTML"
+              hx-indicator="#cover-letter-spinner"
+              class="space-y-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Your resume / background
+              <span class="font-normal text-gray-400">(optional — paste for a tailored letter)</span>
+            </label>
+            <textarea name="resumeText" rows="6" placeholder="Paste your resume or relevant experience here…"
+              class="${inputCls}"></textarea>
+          </div>
+          <div class="flex items-center gap-3">
+            <button type="submit"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors htmx-active:opacity-60">
+              ✨ Generate cover letter
+            </button>
+            <span id="cover-letter-spinner" class="htmx-indicator text-sm text-blue-500 animate-pulse">Generating…</span>
+          </div>
+        </form>
+      </div>
+      <div id="cover-letter-result"></div>
+    </div>`;
 }
 
 function overviewTab(app: FullApp): string {
@@ -229,6 +268,42 @@ export default async function applicationDetailRoutes(fastify: FastifyInstance):
     } catch (err) {
       if ((err as Error).message === 'Redirecting') return;
       return reply.status(422).send('Error');
+    }
+  });
+
+  // Cover letter generation
+  fastify.post('/applications/:id/cover-letter', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const body = request.body as { resumeText?: string };
+    const resumeText = body.resumeText?.trim() || null;
+    try {
+      const data = await authedGql<{ generateCoverLetter: string }>(
+        request,
+        reply,
+        GENERATE_COVER_LETTER,
+        { applicationId: id, resumeText },
+      );
+      const text = escapeHtml(data.generateCoverLetter);
+      return reply.type('text/html').send(`
+        <div class="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-gray-700">Generated cover letter</h3>
+            <button
+              onclick="navigator.clipboard.writeText(this.closest('div').querySelector('pre').innerText); this.textContent='✓ Copied'; setTimeout(()=>this.textContent='Copy',2000)"
+              class="px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
+              Copy
+            </button>
+          </div>
+          <pre class="text-sm text-gray-800 whitespace-pre-wrap font-sans leading-relaxed">${text}</pre>
+        </div>`);
+    } catch (err) {
+      if ((err as Error).message === 'Redirecting') return;
+      const msg = escapeHtml((err as Error).message || 'Failed to generate cover letter');
+      return reply
+        .type('text/html')
+        .send(
+          `<p class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">${msg}</p>`,
+        );
     }
   });
 
