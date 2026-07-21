@@ -30,7 +30,7 @@ describe('ValidateApiTokenUseCase', () => {
 
     const result = await useCase.execute(rawToken);
 
-    expect(result).toEqual({ sub: 'user-1', email: 'user@example.com' });
+    expect(result).toEqual({ sub: 'user-1', email: 'user@example.com', scope: 'full' });
     expect(repo.updateLastUsed).toHaveBeenCalledWith('token-1');
   });
 });

@@ -1,5 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
-import type { ApiToken } from '@/domain/apiToken/ApiToken.js';
+import type { ApiToken, ApiTokenScope } from '@/domain/apiToken/ApiToken.js';
 import { getClient } from '../transactionContext.js';
 import type {
   IApiTokenRepository,
@@ -11,6 +11,7 @@ type PrismaToken = {
   userId: string;
   name: string;
   tokenHash: string;
+  scope: string;
   lastUsedAt: Date | null;
   createdAt: Date;
 };
@@ -55,6 +56,7 @@ export class PrismaApiTokenRepository implements IApiTokenRepository {
         userId: data.userId,
         name: data.name,
         tokenHash: data.tokenHash,
+        scope: data.scope,
       },
     });
     return this.toEntity(row);
@@ -77,6 +79,7 @@ export class PrismaApiTokenRepository implements IApiTokenRepository {
       userId: row.userId,
       name: row.name,
       tokenHash: row.tokenHash,
+      scope: (row.scope as ApiTokenScope) ?? 'full',
       lastUsedAt: row.lastUsedAt,
       createdAt: row.createdAt,
     };

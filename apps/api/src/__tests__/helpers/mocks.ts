@@ -101,6 +101,7 @@ export const makeApiToken = (overrides?: Partial<ApiToken>): ApiToken => ({
   userId: 'user-1',
   name: 'My CLI token',
   tokenHash: 'hashed-value',
+  scope: 'full',
   lastUsedAt: null,
   createdAt: new Date('2024-01-01'),
   ...overrides,
