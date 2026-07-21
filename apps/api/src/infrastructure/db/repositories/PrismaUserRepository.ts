@@ -24,6 +24,11 @@ export class PrismaUserRepository implements IUserRepository {
     return row ? this.toEntity(row) : null;
   }
 
+  async findAll(): Promise<User[]> {
+    const rows = await this.db.user.findMany({ orderBy: { createdAt: 'asc' } });
+    return rows.map((r) => this.toEntity(r));
+  }
+
   async create(data: { id: string; email: string; passwordHash: string }): Promise<User> {
     const row = await this.db.user.create({ data });
     return this.toEntity(row);
