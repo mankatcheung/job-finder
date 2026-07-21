@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { gql, AuthError, ApiError } from '../lib/api.js';
 import { getApiKey, saveApiKey, clearApiKey, getApiUrl } from '../lib/config.js';
+import { API_TOKEN_PREFIX } from '../constants.js';
 
 async function promptSecret(question: string): Promise<string> {
   process.stdout.write(question);
@@ -36,15 +37,16 @@ export function registerAuthCommands(program: Command): void {
   auth
     .command('set-key')
     .description('Set your Job Finder API key (generate one at Settings → API Tokens)')
-    .option('--key <key>', 'API key (jfat_…)')
+    .option('--key <key>', `API key (${API_TOKEN_PREFIX}…)`)
     .action(async (opts: { key?: string }) => {
       try {
         const apiKey = opts.key ?? (await promptSecret('API key: '));
         const trimmed = apiKey.trim();
 
-        if (!trimmed.startsWith('jfat_')) {
+        if (!trimmed.startsWith(API_TOKEN_PREFIX)) {
           console.error(
-            chalk.red('✗') + ' Invalid key format — expected a key starting with jfat_',
+            chalk.red('✗') +
+              ` Invalid key format — expected a key starting with ${API_TOKEN_PREFIX}`,
           );
           process.exit(1);
         }

@@ -1,4 +1,5 @@
 import { getApiKey, getApiUrl } from './config.js';
+import { AUTH_HEADER, ERROR_CODES } from '../constants.js';
 
 export class AuthError extends Error {
   constructor() {
@@ -33,7 +34,7 @@ async function rawGql(
 
   if (json.errors?.length) {
     const first = json.errors[0];
-    if (first.extensions?.code === 'UNAUTHORIZED') throw new AuthError();
+    if (first.extensions?.code === ERROR_CODES.UNAUTHORIZED) throw new AuthError();
     throw new ApiError(first.message);
   }
 
@@ -43,6 +44,8 @@ async function rawGql(
 export async function gql<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
   const apiKey = getApiKey();
   if (!apiKey) throw new AuthError();
-  const data = await rawGql(query, variables, { Authorization: `Bearer ${apiKey}` });
+  const data = await rawGql(query, variables, {
+    Authorization: `${AUTH_HEADER.BEARER_PREFIX}${apiKey}`,
+  });
   return data as T;
 }
