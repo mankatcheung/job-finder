@@ -16,6 +16,7 @@ import './types/inputs/ApplicationInputs.js';
 import './types/inputs/DocumentInputs.js';
 import './types/ContactType.js';
 import './types/ParsedJobDescriptionType.js';
+import './types/HealthScoreType.js';
 
 // Queries
 import './queries/applicationQueries.js';
@@ -26,6 +27,7 @@ import './queries/interviewRoundQueries.js';
 import './queries/activityLogQueries.js';
 import './queries/apiTokenQueries.js';
 import './queries/contactQueries.js';
+import './queries/healthScoreQueries.js';
 
 // Mutations
 import './mutations/authMutations.js';

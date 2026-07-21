@@ -20,6 +20,22 @@ const GENERATE_COVER_LETTER = `mutation GenerateCoverLetter($applicationId: ID!,
   generateCoverLetter(applicationId: $applicationId, resumeText: $resumeText)
 }`;
 
+const GET_HEALTH_SCORE = `query HealthScore($applicationId: ID!) {
+  applicationHealthScore(applicationId: $applicationId) {
+    score label
+    criteria { key label points earned met }
+  }
+}`;
+
+type HealthScoreCriterion = {
+  key: string;
+  label: string;
+  points: number;
+  earned: number;
+  met: boolean;
+};
+type HealthScore = { score: number; label: string; criteria: HealthScoreCriterion[] };
+
 const TOGGLE_STAR = `mutation ToggleStar($id: ID!, $starred: Boolean!) {
   updateApplication(id: $id, input: { starred: $starred }) { id starred }
 }`;
@@ -191,9 +207,74 @@ function coverLetterTab(appId: string): string {
     </div>`;
 }
 
+function healthScoreColor(score: number): { bar: string; badge: string; bg: string } {
+  if (score >= 91)
+    return {
+      bar: 'bg-green-500',
+      badge: 'bg-green-100 text-green-800',
+      bg: 'bg-green-50 border-green-100',
+    };
+  if (score >= 71)
+    return {
+      bar: 'bg-blue-500',
+      badge: 'bg-blue-100 text-blue-800',
+      bg: 'bg-blue-50 border-blue-100',
+    };
+  if (score >= 41)
+    return {
+      bar: 'bg-amber-500',
+      badge: 'bg-amber-100 text-amber-800',
+      bg: 'bg-amber-50 border-amber-100',
+    };
+  return { bar: 'bg-red-500', badge: 'bg-red-100 text-red-800', bg: 'bg-red-50 border-red-100' };
+}
+
+function healthScoreFragment(hs: HealthScore): string {
+  const c = healthScoreColor(hs.score);
+  const checkSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
+  const criteria = hs.criteria
+    .map(
+      (cr) => `
+      <li class="flex items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center ${cr.met ? 'bg-green-500' : 'bg-gray-200'}">
+            ${cr.met ? checkSvg : ''}
+          </span>
+          <span class="${cr.met ? 'text-gray-700' : 'text-gray-400'}">${escapeHtml(cr.label)}</span>
+        </div>
+        <span class="shrink-0 font-medium ${cr.met ? 'text-gray-600' : 'text-gray-300'}">+${cr.points}</span>
+      </li>`,
+    )
+    .join('');
+
+  return `
+    <div class="rounded-xl border ${c.bg} p-4">
+      <div class="flex items-center gap-4 mb-3">
+        <div class="flex-1">
+          <div class="flex items-center justify-between mb-1">
+            <p class="text-sm font-semibold text-gray-800">Application health</p>
+            <span class="text-lg font-bold text-gray-900">${hs.score}<span class="text-sm font-normal text-gray-400">/100</span></span>
+          </div>
+          <div class="h-2 rounded-full bg-gray-200 overflow-hidden">
+            <div class="h-2 rounded-full ${c.bar} transition-all" style="width:${hs.score}%"></div>
+          </div>
+          <p class="text-xs mt-1">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full font-medium ${c.badge}">${escapeHtml(hs.label)}</span>
+          </p>
+        </div>
+      </div>
+      <ul class="space-y-1.5">${criteria}</ul>
+    </div>`;
+}
+
 function overviewTab(app: FullApp): string {
   return `
     <div class="space-y-4">
+      <!-- Health score: lazily fetched via HTMX on tab load -->
+      <div hx-get="/applications/${app.id}/health-score" hx-trigger="load" hx-swap="outerHTML">
+        <div class="rounded-xl border border-gray-100 bg-gray-50 p-4 animate-pulse h-24"></div>
+      </div>
+
       ${
         app.description
           ? `<div class="bg-white rounded-xl border border-gray-200 p-4">
@@ -245,6 +326,27 @@ export default async function applicationDetailRoutes(fastify: FastifyInstance):
     } catch (err) {
       if ((err as Error).message === 'Redirecting') return;
       return reply.status(500).send('Error loading tab');
+    }
+  });
+
+  // Health score fragment — loaded lazily by the overview tab
+  fastify.get('/applications/:id/health-score', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    try {
+      const data = await authedGql<{ applicationHealthScore: HealthScore }>(
+        request,
+        reply,
+        GET_HEALTH_SCORE,
+        { applicationId: id },
+      );
+      return reply.type('text/html').send(healthScoreFragment(data.applicationHealthScore));
+    } catch (err) {
+      if ((err as Error).message === 'Redirecting') return;
+      return reply
+        .type('text/html')
+        .send(
+          `<div class="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-400">Could not load health score.</div>`,
+        );
     }
   });
 

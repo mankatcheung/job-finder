@@ -77,6 +77,7 @@ import { PrismaTransactionManager } from '@/infrastructure/db/PrismaTransactionM
 import { OpenRouterLLMProvider } from '@/infrastructure/llm/OpenRouterLLMProvider.js';
 import { ParseJobDescriptionUseCase } from '@/use-cases/jobDescription/ParseJobDescriptionUseCase.js';
 import { GenerateCoverLetterUseCase } from '@/use-cases/coverLetter/GenerateCoverLetterUseCase.js';
+import { ComputeHealthScoreUseCase } from '@/use-cases/application/ComputeHealthScoreUseCase.js';
 
 import type { FastifyInstance } from 'fastify';
 
@@ -161,6 +162,7 @@ declare module '@fastify/awilix' {
     llmProvider: OpenRouterLLMProvider;
     parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
     generateCoverLetterUseCase: GenerateCoverLetterUseCase;
+    computeHealthScoreUseCase: ComputeHealthScoreUseCase;
   }
 }
 
@@ -278,5 +280,6 @@ export function buildContainer(fastify: FastifyInstance): void {
     generateCoverLetterUseCase: asClass(GenerateCoverLetterUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
+    computeHealthScoreUseCase: asClass(ComputeHealthScoreUseCase, { lifetime: Lifetime.TRANSIENT }),
   });
 }
