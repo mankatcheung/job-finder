@@ -1,4 +1,5 @@
 import { getAuth, setAuth, clearAuth, getApiUrl } from './storage';
+import { AUTH_HEADER, COOKIES } from '../constants';
 
 export interface JobApplication {
   id: string;
@@ -16,7 +17,7 @@ async function gql<T>(
 ): Promise<T> {
   const apiUrl = await getApiUrl();
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (token) headers['Authorization'] = `${AUTH_HEADER.BEARER_PREFIX}${token}`;
 
   const res = await fetch(apiUrl, {
     method: 'POST',
@@ -51,7 +52,7 @@ export async function login(email: string, password: string): Promise<void> {
   await gql<{ login: boolean }>(LOGIN, { email, password });
 
   // Read the access token from the cookie jar (requires `cookies` permission)
-  const cookie = await chrome.cookies.get({ url: apiUrl, name: 'jf_access_token' });
+  const cookie = await chrome.cookies.get({ url: apiUrl, name: COOKIES.ACCESS_TOKEN });
   if (!cookie) throw new Error('Login succeeded but no token cookie found');
 
   // Decode the JWT to get its expiry (payload is base64 URL-encoded)
@@ -71,7 +72,7 @@ export async function refreshToken(): Promise<boolean> {
   try {
     const apiUrl = await getApiUrl();
     await gql<{ refreshToken: boolean }>(REFRESH);
-    const cookie = await chrome.cookies.get({ url: apiUrl, name: 'jf_access_token' });
+    const cookie = await chrome.cookies.get({ url: apiUrl, name: COOKIES.ACCESS_TOKEN });
     if (!cookie) return false;
 
     const [, payload] = cookie.value.split('.');
