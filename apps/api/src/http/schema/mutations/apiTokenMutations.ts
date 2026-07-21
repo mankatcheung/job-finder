@@ -20,7 +20,13 @@ builder.mutationField('createApiToken', (t) =>
         scope,
       });
       const dto = apiTokenMapper.toDTO(token);
-      return { id: dto.id, name: dto.name, token: rawToken, scope: dto.scope, createdAt: dto.createdAt };
+      return {
+        id: dto.id,
+        name: dto.name,
+        token: rawToken,
+        scope: dto.scope,
+        createdAt: dto.createdAt,
+      };
     },
   }),
 );

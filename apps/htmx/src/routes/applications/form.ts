@@ -22,6 +22,12 @@ const DELETE_MUTATION = `mutation DeleteApplication($id: ID!) {
   deleteApplication(id: $id)
 }`;
 
+const PARSE_JD_MUTATION = `mutation ParseJobDescription($text: String, $url: String) {
+  parseJobDescription(text: $text, url: $url) {
+    company role location salary description
+  }
+}`;
+
 type App = {
   id: string;
   company: string;
@@ -38,6 +44,89 @@ type App = {
 const inputCls =
   'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500';
 const labelCls = 'block text-sm font-medium text-gray-700 mb-1';
+
+type AutofillValues = {
+  company?: string | null;
+  role?: string | null;
+  location?: string | null;
+  salary?: string | null;
+  description?: string | null;
+};
+
+function autofillFields(v: AutofillValues): string {
+  const e = (s?: string | null) => escapeHtml(s ?? '');
+  return `
+    <div id="jd-autofill-fields" class="space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="${labelCls}" for="company">Company *</label>
+          <input id="company" name="company" type="text" required class="${inputCls}" value="${e(v.company)}" />
+        </div>
+        <div>
+          <label class="${labelCls}" for="role">Role *</label>
+          <input id="role" name="role" type="text" required class="${inputCls}" value="${e(v.role)}" />
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="${labelCls}" for="location">Location</label>
+          <input id="location" name="location" type="text" class="${inputCls}" value="${e(v.location)}" />
+        </div>
+        <div>
+          <label class="${labelCls}" for="salary">Salary</label>
+          <input id="salary" name="salary" type="text" class="${inputCls}" value="${e(v.salary)}" placeholder="e.g. £60,000" />
+        </div>
+      </div>
+      <div>
+        <label class="${labelCls}" for="description">Description</label>
+        <textarea id="description" name="description" rows="4" class="${inputCls}">${e(v.description)}</textarea>
+      </div>
+    </div>`;
+}
+
+function jdImportPanel(): string {
+  const sparkle = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3L9.5 8.5 3 9.27l4.5 4.36L6.18 21 12 17.77 17.82 21 16.5 13.63 21 9.27l-6.5-.77L12 3z"/></svg>`;
+  return `
+    <details class="rounded-xl border border-blue-200 bg-blue-50 overflow-hidden mb-4 group">
+      <summary class="flex items-center gap-2 px-4 py-3 cursor-pointer list-none text-sm font-medium text-blue-700 select-none">
+        <span class="text-blue-500">${sparkle}</span>
+        Auto-fill from job posting
+        <span class="ml-auto text-blue-400 text-xs group-open:hidden">▼</span>
+        <span class="ml-auto text-blue-400 text-xs hidden group-open:inline">▲</span>
+      </summary>
+      <div class="px-4 pb-4 pt-3 border-t border-blue-200 space-y-3">
+        <form hx-post="/applications/parse-jd"
+              hx-target="#jd-autofill-fields"
+              hx-swap="outerHTML"
+              hx-on::after-request="this.closest('details').removeAttribute('open')"
+              class="space-y-3">
+          <div>
+            <label class="${labelCls} text-blue-700">Paste job description</label>
+            <textarea name="text" rows="5" placeholder="Paste the full job posting here…"
+              class="${inputCls} resize-none"></textarea>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-blue-500">
+            <div class="flex-1 border-t border-blue-200"></div>
+            or
+            <div class="flex-1 border-t border-blue-200"></div>
+          </div>
+          <div>
+            <label class="${labelCls} text-blue-700">Job posting URL</label>
+            <input type="url" name="url" placeholder="https://company.com/jobs/..."
+              class="${inputCls}" />
+          </div>
+          <div class="flex items-center gap-3">
+            <button type="submit"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5 htmx-active:opacity-60">
+              ${sparkle} Auto-fill fields
+            </button>
+            <span class="htmx-indicator text-xs text-blue-500 animate-pulse">Parsing…</span>
+          </div>
+        </form>
+        <p class="text-xs text-blue-400">Fields will be pre-filled — review before saving.</p>
+      </div>
+    </details>`;
+}
 
 function formPage(app: App | null, error?: string): string {
   const isEdit = app !== null;
@@ -65,33 +154,15 @@ function formPage(app: App | null, error?: string): string {
 
       ${error ? `<div class="mb-4 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">${error}</div>` : ''}
 
+      ${jdImportPanel()}
+
       <form action="${action}" method="POST" class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="${labelCls}" for="company">Company *</label>
-            <input id="company" name="company" type="text" required class="${inputCls}" value="${val('company')}" />
-          </div>
-          <div>
-            <label class="${labelCls}" for="role">Role *</label>
-            <input id="role" name="role" type="text" required class="${inputCls}" value="${val('role')}" />
-          </div>
-        </div>
+        ${autofillFields({ company: app?.company, role: app?.role, location: app?.location, salary: app?.salary, description: app?.description })}
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="${labelCls}" for="status">Status</label>
             <select id="status" name="status" class="${inputCls}">${statusOptions}</select>
-          </div>
-          <div>
-            <label class="${labelCls}" for="location">Location</label>
-            <input id="location" name="location" type="text" class="${inputCls}" value="${val('location')}" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="${labelCls}" for="salary">Salary</label>
-            <input id="salary" name="salary" type="text" class="${inputCls}" value="${val('salary')}" placeholder="e.g. £60,000" />
           </div>
           <div>
             <label class="${labelCls}" for="followUpAt">Follow-up date</label>
@@ -102,11 +173,6 @@ function formPage(app: App | null, error?: string): string {
         <div>
           <label class="${labelCls}" for="jobUrl">Job URL</label>
           <input id="jobUrl" name="jobUrl" type="url" class="${inputCls}" value="${val('jobUrl')}" placeholder="https://…" />
-        </div>
-
-        <div>
-          <label class="${labelCls}" for="description">Description</label>
-          <textarea id="description" name="description" rows="4" class="${inputCls}">${val('description')}</textarea>
         </div>
 
         <div class="flex items-center gap-2">
@@ -214,5 +280,30 @@ export default async function applicationFormRoutes(fastify: FastifyInstance): P
       if ((err as Error).message === 'Redirecting') return;
     }
     return reply.redirect('/applications');
+  });
+
+  fastify.post('/applications/parse-jd', async (request, reply) => {
+    const body = request.body as Record<string, string>;
+    const text = body['text']?.trim() || null;
+    const url = body['url']?.trim() || null;
+    try {
+      const data = await authedGql<{
+        parseJobDescription: {
+          company: string | null;
+          role: string | null;
+          location: string | null;
+          salary: string | null;
+          description: string | null;
+        };
+      }>(request, reply, PARSE_JD_MUTATION, { text, url });
+      return reply.type('text/html').send(autofillFields(data.parseJobDescription));
+    } catch (err) {
+      if ((err as Error).message === 'Redirecting') return;
+      const msg = escapeHtml((err as Error).message || 'Failed to parse job description');
+      return reply.type('text/html').send(`
+        <div id="jd-autofill-fields" class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          ${msg}
+        </div>`);
+    }
   });
 }
