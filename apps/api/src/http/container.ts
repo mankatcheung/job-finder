@@ -35,6 +35,7 @@ import { UserResolver } from '@/interface-adapters/resolvers/UserResolver.js';
 import { InterviewRoundResolver } from '@/interface-adapters/resolvers/InterviewRoundResolver.js';
 import { ActivityLogResolver } from '@/interface-adapters/resolvers/ActivityLogResolver.js';
 import { ContactResolver } from '@/interface-adapters/resolvers/ContactResolver.js';
+import { McpController } from '@/interface-adapters/mcp/McpController.js';
 
 import { RegisterUseCase } from '@/use-cases/auth/RegisterUseCase.js';
 import { LoginUseCase } from '@/use-cases/auth/LoginUseCase.js';
@@ -125,6 +126,7 @@ declare module '@fastify/awilix' {
     interviewRoundResolver: InterviewRoundResolver;
     activityLogResolver: ActivityLogResolver;
     contactResolver: ContactResolver;
+    mcpController: McpController;
 
     registerUseCase: RegisterUseCase;
     loginUseCase: LoginUseCase;
@@ -228,6 +230,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     interviewRoundResolver: asClass(InterviewRoundResolver, { lifetime: Lifetime.SINGLETON }),
     activityLogResolver: asClass(ActivityLogResolver, { lifetime: Lifetime.SINGLETON }),
     contactResolver: asClass(ContactResolver, { lifetime: Lifetime.SINGLETON }),
+    mcpController: asClass(McpController, { lifetime: Lifetime.SINGLETON }),
 
     // Use Cases
     registerUseCase: asClass(RegisterUseCase, { lifetime: Lifetime.TRANSIENT }),

@@ -54,7 +54,7 @@ export async function buildApp() {
           // API token path — hash and look up in DB
           // Read-scoped tokens are MCP-only and cannot authenticate GraphQL
           try {
-            const { validateApiTokenUseCase } = (request as any).diScope.cradle;
+            const { validateApiTokenUseCase } = request.diScope.cradle;
             const result = await validateApiTokenUseCase.execute(rawToken);
             if (result && result.scope === API_TOKEN_SCOPE.FULL) {
               user = { sub: result.sub, email: result.email };
@@ -74,7 +74,7 @@ export async function buildApp() {
 
       return {
         user,
-        diScope: (request as any).diScope,
+        diScope: request.diScope,
         request,
         reply,
       };
