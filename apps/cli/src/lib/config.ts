@@ -1,10 +1,10 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
+import { CONFIG, DEFAULT_API_URL } from '../constants.js';
 
-const CONFIG_DIR = join(homedir(), '.job-finder');
-const CONFIG_FILE = join(CONFIG_DIR, 'config.json');
-const DEFAULT_API_URL = 'http://localhost:3001/graphql';
+const CONFIG_DIR = join(homedir(), CONFIG.DIR_NAME);
+const CONFIG_FILE = join(CONFIG_DIR, CONFIG.FILE_NAME);
 
 interface Config {
   apiKey?: string;
@@ -22,7 +22,7 @@ function readConfig(): Config {
 
 function writeConfig(config: Config): void {
   mkdirSync(CONFIG_DIR, { recursive: true });
-  writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), { mode: 0o600 });
+  writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), { mode: CONFIG.FILE_MODE });
 }
 
 export function getApiKey(): string | null {
