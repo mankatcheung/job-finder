@@ -1,8 +1,9 @@
 import { GraphQLClient } from 'graphql-request';
 import { clearAuthIndicator } from '#/lib/auth';
 import { queryClient } from '#/lib/queryClient';
+import { DEFAULT_API_URL, ERROR_CODES } from '#/constants';
 
-const API_URL = import.meta.env.VITE_API_URL ?? '/graphql';
+const API_URL = import.meta.env.VITE_API_URL ?? DEFAULT_API_URL;
 
 const REFRESH_MUTATION = `mutation { refreshToken }`;
 
@@ -41,7 +42,7 @@ export const gqlClient = new GraphQLClient(API_URL, {
     if (response instanceof Error) return;
 
     const gqlErrors = (response as { errors?: Array<{ extensions?: { code?: string } }> }).errors;
-    const hasUnauthorized = gqlErrors?.some((e) => e.extensions?.code === 'UNAUTHORIZED');
+    const hasUnauthorized = gqlErrors?.some((e) => e.extensions?.code === ERROR_CODES.UNAUTHORIZED);
 
     if (!hasUnauthorized) return;
 
