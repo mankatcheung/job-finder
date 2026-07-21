@@ -20,6 +20,7 @@ import type { Contact } from '@/domain/contact/Contact.js';
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
   findByEmail: vi.fn(),
+  findAll: vi.fn().mockResolvedValue([]),
   create: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),

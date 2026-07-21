@@ -6,6 +6,7 @@ import cookie from '@fastify/cookie';
 import authPlugin from '@/http/plugins/auth.plugin.js';
 import corsPlugin from '@/http/plugins/cors.plugin.js';
 import remindersPlugin from '@/http/plugins/reminders.plugin.js';
+import digestPlugin from '@/http/plugins/digest.plugin.js';
 import mcpPlugin from '@/http/plugins/mcp.plugin.js';
 import { buildContainer } from '@/http/container.js';
 import { schema } from '@/http/schema/index.js';
@@ -27,6 +28,7 @@ export async function buildApp() {
   buildContainer(fastify);
 
   await fastify.register(remindersPlugin);
+  await fastify.register(digestPlugin);
   await fastify.register(mcpPlugin);
 
   await fastify.register(mercurius, {

@@ -78,6 +78,7 @@ import { OpenRouterLLMProvider } from '@/infrastructure/llm/OpenRouterLLMProvide
 import { ParseJobDescriptionUseCase } from '@/use-cases/jobDescription/ParseJobDescriptionUseCase.js';
 import { GenerateCoverLetterUseCase } from '@/use-cases/coverLetter/GenerateCoverLetterUseCase.js';
 import { ComputeHealthScoreUseCase } from '@/use-cases/application/ComputeHealthScoreUseCase.js';
+import { SendWeeklyDigestUseCase } from '@/use-cases/digest/SendWeeklyDigestUseCase.js';
 
 import type { FastifyInstance } from 'fastify';
 
@@ -163,6 +164,7 @@ declare module '@fastify/awilix' {
     parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
     generateCoverLetterUseCase: GenerateCoverLetterUseCase;
     computeHealthScoreUseCase: ComputeHealthScoreUseCase;
+    sendWeeklyDigestUseCase: SendWeeklyDigestUseCase;
   }
 }
 
@@ -281,5 +283,6 @@ export function buildContainer(fastify: FastifyInstance): void {
       lifetime: Lifetime.TRANSIENT,
     }),
     computeHealthScoreUseCase: asClass(ComputeHealthScoreUseCase, { lifetime: Lifetime.TRANSIENT }),
+    sendWeeklyDigestUseCase: asClass(SendWeeklyDigestUseCase, { lifetime: Lifetime.TRANSIENT }),
   });
 }
