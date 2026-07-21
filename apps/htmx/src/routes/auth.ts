@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { gqlRaw } from '../lib/gql.js';
+import { COOKIES, expiredCookie } from '../constants.js';
 import { authLayout, inputCls, labelCls, btnPrimary } from '../views/layout.js';
 
 const LOGIN_MUTATION = `mutation Login($email: String!, $password: String!) { login(email: $email, password: $password) }`;
@@ -113,14 +114,8 @@ export default async function authRoutes(fastify: FastifyInstance): Promise<void
       // ignore
     }
     // Expire both cookies
-    void reply.header(
-      'set-cookie',
-      'jf_access_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly',
-    );
-    void reply.header(
-      'set-cookie',
-      'jf_refresh_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly',
-    );
+    void reply.header('set-cookie', expiredCookie(COOKIES.ACCESS_TOKEN));
+    void reply.header('set-cookie', expiredCookie(COOKIES.REFRESH_TOKEN));
     return reply.redirect('/login');
   });
 }
