@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { StarIcon, XIcon } from 'lucide-react';
+import { JdImportPanel } from './_components/JdImportPanel';
 
 const schema = z.object({
   company: z.string().min(1, 'Company is required'),
@@ -39,6 +40,7 @@ export function NewApplicationPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
     setError,
+    setValue,
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
@@ -84,6 +86,16 @@ export function NewApplicationPage() {
           New application
         </h1>
       </div>
+
+      <JdImportPanel
+        onFill={(parsed) => {
+          if (parsed.company) setValue('company', parsed.company);
+          if (parsed.role) setValue('role', parsed.role);
+          if (parsed.location) setValue('location', parsed.location);
+          if (parsed.salary) setValue('salaryRange', parsed.salary);
+          if (parsed.description) setValue('description', parsed.description);
+        }}
+      />
 
       <form
         onSubmit={handleSubmit(onSubmit)}

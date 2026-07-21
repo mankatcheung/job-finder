@@ -74,6 +74,8 @@ import { DeleteContactUseCase } from '@/use-cases/contacts/DeleteContactUseCase.
 import { BrevoEmailService } from '@/infrastructure/email/BrevoEmailService.js';
 import { SendFollowUpRemindersUseCase } from '@/use-cases/reminders/SendFollowUpRemindersUseCase.js';
 import { PrismaTransactionManager } from '@/infrastructure/db/PrismaTransactionManager.js';
+import { OpenRouterLLMProvider } from '@/infrastructure/llm/OpenRouterLLMProvider.js';
+import { ParseJobDescriptionUseCase } from '@/use-cases/jobDescription/ParseJobDescriptionUseCase.js';
 
 import type { FastifyInstance } from 'fastify';
 
@@ -155,6 +157,8 @@ declare module '@fastify/awilix' {
     emailService: BrevoEmailService;
     sendFollowUpRemindersUseCase: SendFollowUpRemindersUseCase;
     transactionManager: PrismaTransactionManager;
+    llmProvider: OpenRouterLLMProvider;
+    parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
   }
 }
 
@@ -263,6 +267,10 @@ export function buildContainer(fastify: FastifyInstance): void {
     deleteContactUseCase: asClass(DeleteContactUseCase, { lifetime: Lifetime.TRANSIENT }),
     emailService: asClass(BrevoEmailService, { lifetime: Lifetime.SINGLETON }),
     sendFollowUpRemindersUseCase: asClass(SendFollowUpRemindersUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    llmProvider: asClass(OpenRouterLLMProvider, { lifetime: Lifetime.SINGLETON }),
+    parseJobDescriptionUseCase: asClass(ParseJobDescriptionUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
   });
