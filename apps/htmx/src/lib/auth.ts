@@ -1,5 +1,6 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { gql, gqlRaw, UnauthorizedError } from './gql.js';
+import { COOKIES, ERROR_CODES } from '../constants.js';
 
 const REFRESH = `mutation { refreshToken }`;
 
@@ -21,7 +22,7 @@ export async function authedGql<T>(
       const refreshJson = (await refreshRes.json()) as {
         errors?: Array<{ extensions?: { code?: string } }>;
       };
-      if (refreshJson.errors?.some((e) => e.extensions?.code === 'UNAUTHORIZED')) {
+      if (refreshJson.errors?.some((e) => e.extensions?.code === ERROR_CODES.UNAUTHORIZED)) {
         throw new UnauthorizedError();
       }
 
@@ -62,7 +63,7 @@ export async function authedGql<T>(
 
 export function requireAuth(request: FastifyRequest, reply: FastifyReply): boolean {
   const cookie = request.headers.cookie ?? '';
-  if (!cookie.includes('jf_access_token')) {
+  if (!cookie.includes(COOKIES.ACCESS_TOKEN)) {
     void reply.redirect('/login');
     return false;
   }

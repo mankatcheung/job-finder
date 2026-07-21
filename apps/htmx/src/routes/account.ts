@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authedGql } from '../lib/auth.js';
+import { COOKIES, expiredCookie } from '../constants.js';
 import { layout, inputCls, labelCls, btnPrimary, btnDanger } from '../views/layout.js';
 import { escapeHtml, formatDate } from '../lib/format.js';
 
@@ -224,14 +225,8 @@ export default async function accountRoutes(fastify: FastifyInstance): Promise<v
     } catch {
       // ignore
     }
-    void reply.header(
-      'set-cookie',
-      'jf_access_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly',
-    );
-    void reply.header(
-      'set-cookie',
-      'jf_refresh_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly',
-    );
+    void reply.header('set-cookie', expiredCookie(COOKIES.ACCESS_TOKEN));
+    void reply.header('set-cookie', expiredCookie(COOKIES.REFRESH_TOKEN));
     return reply.redirect('/login');
   });
 }

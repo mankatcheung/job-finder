@@ -1,4 +1,6 @@
-const API_URL = process.env.API_URL ?? 'http://localhost:3001/graphql';
+import { DEFAULT_API_URL, ENV, ERROR_CODES } from '../constants.js';
+
+const API_URL = process.env[ENV.API_URL] ?? DEFAULT_API_URL;
 
 export class UnauthorizedError extends Error {
   constructor() {
@@ -30,7 +32,7 @@ export async function gql<T>(
     errors?: Array<{ message: string; extensions?: { code?: string } }>;
   };
   if (json.errors?.length) {
-    if (json.errors.some((e) => e.extensions?.code === 'UNAUTHORIZED'))
+    if (json.errors.some((e) => e.extensions?.code === ERROR_CODES.UNAUTHORIZED))
       throw new UnauthorizedError();
     throw new GqlError(json.errors);
   }
