@@ -8,6 +8,7 @@ import type {
   UpdateApplicationData,
 } from '@/use-cases/ports/IApplicationRepository.js';
 import { txStorage, getClient } from '../transactionContext.js';
+import { REMINDER_WINDOW_MS } from '@/constants.js';
 
 type PrismaTag = { id: string; applicationId: string; name: string };
 
@@ -142,13 +143,13 @@ export class PrismaApplicationRepository implements IApplicationRepository {
 
   async findDueForReminder(): Promise<Application[]> {
     const now = new Date();
-    const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const in24h = new Date(now.getTime() + REMINDER_WINDOW_MS.DUE_WITHIN);
     const rows = await this.db.jobApplication.findMany({
       where: {
         followUpAt: { gte: now, lte: in24h },
         OR: [
           { reminderSentAt: null },
-          { reminderSentAt: { lte: new Date(now.getTime() - 23 * 60 * 60 * 1000) } },
+          { reminderSentAt: { lte: new Date(now.getTime() - REMINDER_WINDOW_MS.RESEND_AFTER) } },
         ],
       },
       include: INCLUDE_TAGS,

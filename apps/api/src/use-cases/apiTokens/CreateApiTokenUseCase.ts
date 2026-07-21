@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from 'crypto';
 import type { IApiTokenRepository } from '@/use-cases/ports/IApiTokenRepository.js';
 import type { ApiToken, ApiTokenScope } from '@/domain/apiToken/ApiToken.js';
+import { API_TOKEN, DEFAULTS } from '@/constants.js';
 
 interface Deps {
   apiTokenRepository: IApiTokenRepository;
@@ -22,7 +23,7 @@ export class CreateApiTokenUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: CreateApiTokenInput): Promise<CreateApiTokenOutput> {
-    const rawToken = `jfat_${randomBytes(24).toString('hex')}`;
+    const rawToken = `${API_TOKEN.PREFIX}${randomBytes(API_TOKEN.RANDOM_BYTES).toString('hex')}`;
     const tokenHash = createHash('sha256').update(rawToken).digest('hex');
 
     const token = await this.deps.apiTokenRepository.create({
@@ -30,7 +31,7 @@ export class CreateApiTokenUseCase {
       userId: input.userId,
       name: input.name,
       tokenHash,
-      scope: input.scope ?? 'full',
+      scope: input.scope ?? DEFAULTS.API_TOKEN_SCOPE,
     });
 
     return { token, rawToken };

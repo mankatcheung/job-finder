@@ -1,3 +1,5 @@
+import { ERROR_CODES } from '@/constants.js';
+
 export class AppError extends Error {
   constructor(
     message: string,
@@ -11,25 +13,25 @@ export class AppError extends Error {
 
 export class NotFoundError extends AppError {
   constructor(resource = 'Resource') {
-    super(`${resource} not found`, 404, 'NOT_FOUND');
+    super(`${resource} not found`, 404, ERROR_CODES.NOT_FOUND);
   }
 }
 
 export class ConflictError extends AppError {
   constructor(message = 'Conflict') {
-    super(message, 409, 'CONFLICT');
+    super(message, 409, ERROR_CODES.CONFLICT);
   }
 }
 
 export class UnauthorizedError extends AppError {
   constructor(message = 'Unauthorized') {
-    super(message, 401, 'UNAUTHORIZED');
+    super(message, 401, ERROR_CODES.UNAUTHORIZED);
   }
 }
 
 export class ForbiddenError extends AppError {
   constructor(message = 'Forbidden') {
-    super(message, 403, 'FORBIDDEN');
+    super(message, 403, ERROR_CODES.FORBIDDEN);
   }
 }
 
@@ -38,15 +40,15 @@ export function fromCodedError(err: unknown): AppError {
   if (err instanceof Error) {
     const code = (err as Error & { code?: string }).code;
     switch (code) {
-      case 'NOT_FOUND':
+      case ERROR_CODES.NOT_FOUND:
         return new NotFoundError(err.message);
-      case 'CONFLICT':
+      case ERROR_CODES.CONFLICT:
         return new ConflictError(err.message);
-      case 'UNAUTHORIZED':
+      case ERROR_CODES.UNAUTHORIZED:
         return new UnauthorizedError(err.message);
-      case 'FORBIDDEN':
+      case ERROR_CODES.FORBIDDEN:
         return new ForbiddenError(err.message);
     }
   }
-  return new AppError('Internal server error', 500, 'INTERNAL_ERROR');
+  return new AppError('Internal server error', 500, ERROR_CODES.INTERNAL_ERROR);
 }

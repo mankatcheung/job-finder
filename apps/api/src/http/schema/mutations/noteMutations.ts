@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '@/http/schema/builder.js';
 import { NoteRef } from '@/http/schema/types/NoteType.js';
+import { ERROR_CODES } from '@/constants.js';
 
 builder.mutationField('createNote', (t) =>
   t.field({
@@ -11,7 +12,7 @@ builder.mutationField('createNote', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { noteResolver } = ctx.diScope.cradle;
       return noteResolver.createNote(ctx.user.sub, args.applicationId, args.content);
     },
@@ -27,7 +28,7 @@ builder.mutationField('updateNote', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { noteResolver } = ctx.diScope.cradle;
       return noteResolver.updateNote(ctx.user.sub, args.id, args.content);
     },
@@ -42,7 +43,7 @@ builder.mutationField('deleteNote', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { noteResolver } = ctx.diScope.cradle;
       return noteResolver.deleteNote(ctx.user.sub, args.id);
     },

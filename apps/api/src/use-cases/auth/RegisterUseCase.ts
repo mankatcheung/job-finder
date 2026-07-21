@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
+import { ERROR_CODES } from '@/constants.js';
 import type {
   IRegisterUseCase,
   RegisterInput,
@@ -17,7 +18,7 @@ export class RegisterUseCase implements IRegisterUseCase {
   async execute(input: RegisterInput): Promise<RegisterOutput> {
     const existing = await this.deps.userRepository.findByEmail(input.email);
     if (existing) {
-      throw Object.assign(new Error('Email already registered'), { code: 'CONFLICT' });
+      throw Object.assign(new Error('Email already registered'), { code: ERROR_CODES.CONFLICT });
     }
 
     const passwordHash = await bcrypt.hash(input.password, 12);

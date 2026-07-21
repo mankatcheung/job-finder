@@ -5,6 +5,7 @@ import type {
   CreateDocumentData,
 } from '@/use-cases/ports/IDocumentRepository.js';
 import { getClient } from '../transactionContext.js';
+import { DEFAULTS } from '@/constants.js';
 
 export class PrismaDocumentRepository implements IDocumentRepository {
   private readonly prisma: PrismaClient;
@@ -39,7 +40,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         mimeType: data.mimeType,
         sizeBytes: data.sizeBytes,
         storageKey: data.storageKey,
-        documentType: data.documentType ?? 'other',
+        documentType: data.documentType ?? DEFAULTS.DOCUMENT_TYPE,
         version: data.version ?? null,
       },
     });

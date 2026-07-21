@@ -5,6 +5,7 @@ import type {
   UpdateInterviewRoundData,
 } from '@/use-cases/ports/IInterviewRoundRepository.js';
 import type { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
+import { CACHE_KEYS } from '@/constants.js';
 
 interface Deps {
   prismaInterviewRoundRepository: IInterviewRoundRepository;
@@ -22,7 +23,7 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
   }
 
   async findAllByApplicationId(applicationId: string): Promise<InterviewRound[]> {
-    const key = `rounds:list:${applicationId}`;
+    const key = CACHE_KEYS.roundList(applicationId);
     const hit = this.cache.get<InterviewRound[]>(key);
     if (hit) return hit;
 
@@ -33,7 +34,7 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
   }
 
   async findById(id: string): Promise<InterviewRound | null> {
-    const key = `rounds:byId:${id}`;
+    const key = CACHE_KEYS.roundById(id);
     const hit = this.cache.get<InterviewRound | null>(key);
     if (hit !== undefined) return hit;
 
@@ -46,14 +47,14 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
   async create(data: CreateInterviewRoundData): Promise<InterviewRound> {
     const result = await this.inner.create(data);
     this.appIdByRoundId.set(result.id, result.applicationId);
-    this.cache.delete(`rounds:list:${result.applicationId}`);
+    this.cache.delete(CACHE_KEYS.roundList(result.applicationId));
     return result;
   }
 
   async update(id: string, data: UpdateInterviewRoundData): Promise<InterviewRound> {
     const result = await this.inner.update(id, data);
-    this.cache.delete(`rounds:byId:${id}`);
-    this.cache.delete(`rounds:list:${result.applicationId}`);
+    this.cache.delete(CACHE_KEYS.roundById(id));
+    this.cache.delete(CACHE_KEYS.roundList(result.applicationId));
     this.appIdByRoundId.set(id, result.applicationId);
     return result;
   }
@@ -61,8 +62,8 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
   async delete(id: string): Promise<void> {
     const applicationId = this.appIdByRoundId.get(id);
     await this.inner.delete(id);
-    this.cache.delete(`rounds:byId:${id}`);
+    this.cache.delete(CACHE_KEYS.roundById(id));
     this.appIdByRoundId.delete(id);
-    if (applicationId) this.cache.delete(`rounds:list:${applicationId}`);
+    if (applicationId) this.cache.delete(CACHE_KEYS.roundList(applicationId));
   }
 }

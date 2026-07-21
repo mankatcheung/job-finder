@@ -1,22 +1,23 @@
 import type { ILLMProvider, LLMMessage } from '@/use-cases/ports/ILLMProvider.js';
+import { AUTH_HEADER, ENV, LLM } from '@/constants.js';
 
 export class OpenRouterLLMProvider implements ILLMProvider {
   private readonly apiKey: string;
   private readonly model: string;
 
   constructor() {
-    this.apiKey = process.env.OPENROUTER_API_KEY ?? '';
-    this.model = process.env.OPENROUTER_MODEL ?? 'openai/gpt-4o-mini';
+    this.apiKey = process.env[ENV.OPENROUTER_API_KEY] ?? '';
+    this.model = process.env[ENV.OPENROUTER_MODEL] ?? LLM.DEFAULT_MODEL;
   }
 
   async complete(messages: LLMMessage[], maxTokens = 512): Promise<string> {
-    if (!this.apiKey) throw new Error('OPENROUTER_API_KEY is not set');
+    if (!this.apiKey) throw new Error(`${ENV.OPENROUTER_API_KEY} is not set`);
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetch(LLM.API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.apiKey}`,
+        Authorization: `${AUTH_HEADER.BEARER_PREFIX}${this.apiKey}`,
       },
       body: JSON.stringify({ model: this.model, messages, max_tokens: maxTokens }),
     });

@@ -1,6 +1,7 @@
 import type { Note } from '@/domain/note/Note.js';
 import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
 import type { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
+import { CACHE_KEYS } from '@/constants.js';
 
 interface Deps {
   prismaNoteRepository: INoteRepository;
@@ -19,7 +20,7 @@ export class CachedNoteRepository implements INoteRepository {
   }
 
   async findAllByApplicationId(applicationId: string): Promise<Note[]> {
-    const key = `notes:list:${applicationId}`;
+    const key = CACHE_KEYS.noteList(applicationId);
     const hit = this.cache.get<Note[]>(key);
     if (hit) return hit;
 
@@ -30,7 +31,7 @@ export class CachedNoteRepository implements INoteRepository {
   }
 
   async findById(id: string): Promise<Note | null> {
-    const key = `notes:byId:${id}`;
+    const key = CACHE_KEYS.noteById(id);
     const hit = this.cache.get<Note | null>(key);
     if (hit !== undefined) return hit;
 
@@ -43,14 +44,14 @@ export class CachedNoteRepository implements INoteRepository {
   async create(data: { id: string; applicationId: string; content: string }): Promise<Note> {
     const result = await this.inner.create(data);
     this.appIdByNoteId.set(result.id, result.applicationId);
-    this.cache.delete(`notes:list:${result.applicationId}`);
+    this.cache.delete(CACHE_KEYS.noteList(result.applicationId));
     return result;
   }
 
   async update(id: string, content: string): Promise<Note> {
     const result = await this.inner.update(id, content);
-    this.cache.delete(`notes:byId:${id}`);
-    this.cache.delete(`notes:list:${result.applicationId}`);
+    this.cache.delete(CACHE_KEYS.noteById(id));
+    this.cache.delete(CACHE_KEYS.noteList(result.applicationId));
     this.appIdByNoteId.set(id, result.applicationId);
     return result;
   }
@@ -58,8 +59,8 @@ export class CachedNoteRepository implements INoteRepository {
   async delete(id: string): Promise<void> {
     const applicationId = this.appIdByNoteId.get(id);
     await this.inner.delete(id);
-    this.cache.delete(`notes:byId:${id}`);
+    this.cache.delete(CACHE_KEYS.noteById(id));
     this.appIdByNoteId.delete(id);
-    if (applicationId) this.cache.delete(`notes:list:${applicationId}`);
+    if (applicationId) this.cache.delete(CACHE_KEYS.noteList(applicationId));
   }
 }

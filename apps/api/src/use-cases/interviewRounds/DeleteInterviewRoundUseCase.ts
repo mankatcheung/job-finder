@@ -1,5 +1,6 @@
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
 import type { IInterviewRoundRepository } from '@/use-cases/ports/IInterviewRoundRepository.js';
+import { ERROR_CODES } from '@/constants.js';
 import type {
   IDeleteInterviewRoundUseCase,
   DeleteInterviewRoundInput,
@@ -15,11 +16,12 @@ export class DeleteInterviewRoundUseCase implements IDeleteInterviewRoundUseCase
 
   async execute(input: DeleteInterviewRoundInput): Promise<void> {
     const round = await this.deps.interviewRoundRepository.findById(input.roundId);
-    if (!round) throw Object.assign(new Error('Interview round not found'), { code: 'NOT_FOUND' });
+    if (!round)
+      throw Object.assign(new Error('Interview round not found'), { code: ERROR_CODES.NOT_FOUND });
 
     const app = await this.deps.applicationRepository.findById(round.applicationId);
     if (!app || app.userId !== input.userId)
-      throw Object.assign(new Error('Forbidden'), { code: 'FORBIDDEN' });
+      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
 
     await this.deps.interviewRoundRepository.delete(input.roundId);
   }

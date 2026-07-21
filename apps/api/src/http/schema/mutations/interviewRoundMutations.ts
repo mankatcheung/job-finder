@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '@/http/schema/builder.js';
 import { InterviewRoundRef } from '@/http/schema/types/InterviewRoundType.js';
+import { ERROR_CODES } from '@/constants.js';
 import {
   InterviewRoundTypeEnum,
   InterviewRoundOutcomeEnum,
@@ -41,7 +42,7 @@ builder.mutationField('createInterviewRound', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { interviewRoundResolver } = ctx.diScope.cradle;
       return interviewRoundResolver.createInterviewRound(ctx.user.sub, {
         applicationId: args.input.applicationId,
@@ -65,7 +66,7 @@ builder.mutationField('updateInterviewRound', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { interviewRoundResolver } = ctx.diScope.cradle;
       return interviewRoundResolver.updateInterviewRound(ctx.user.sub, args.id, {
         type: (args.input.type as InterviewRoundType) ?? undefined,
@@ -97,7 +98,7 @@ builder.mutationField('deleteInterviewRound', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { interviewRoundResolver } = ctx.diScope.cradle;
       return interviewRoundResolver.deleteInterviewRound(ctx.user.sub, args.id);
     },

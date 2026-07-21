@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
+import { ERROR_CODES } from '@/constants.js';
 import type {
   IDeleteAccountUseCase,
   DeleteAccountInput,
@@ -14,10 +15,11 @@ export class DeleteAccountUseCase implements IDeleteAccountUseCase {
 
   async execute(input: DeleteAccountInput): Promise<void> {
     const user = await this.deps.userRepository.findById(input.userId);
-    if (!user) throw Object.assign(new Error('User not found'), { code: 'NOT_FOUND' });
+    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
 
     const valid = await bcrypt.compare(input.password, user.passwordHash);
-    if (!valid) throw Object.assign(new Error('Invalid password'), { code: 'UNAUTHORIZED' });
+    if (!valid)
+      throw Object.assign(new Error('Invalid password'), { code: ERROR_CODES.UNAUTHORIZED });
 
     await this.deps.userRepository.delete(input.userId);
   }

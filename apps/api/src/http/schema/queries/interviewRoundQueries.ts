@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '@/http/schema/builder.js';
 import { InterviewRoundRef } from '@/http/schema/types/InterviewRoundType.js';
+import { ERROR_CODES } from '@/constants.js';
 
 builder.queryField('interviewRounds', (t) =>
   t.field({
@@ -10,7 +11,7 @@ builder.queryField('interviewRounds', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { interviewRoundResolver } = ctx.diScope.cradle;
       return interviewRoundResolver.getInterviewRounds(ctx.user.sub, args.applicationId);
     },

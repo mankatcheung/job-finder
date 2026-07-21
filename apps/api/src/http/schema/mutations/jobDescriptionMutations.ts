@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '@/http/schema/builder.js';
 import { ParsedJobDescriptionRef } from '@/http/schema/types/ParsedJobDescriptionType.js';
+import { ERROR_CODES } from '@/constants.js';
 
 builder.mutationField('parseJobDescription', (t) =>
   t.field({
@@ -11,7 +12,7 @@ builder.mutationField('parseJobDescription', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { parseJobDescriptionUseCase } = ctx.diScope.cradle;
       try {
         return await parseJobDescriptionUseCase.execute({ text: args.text, url: args.url });

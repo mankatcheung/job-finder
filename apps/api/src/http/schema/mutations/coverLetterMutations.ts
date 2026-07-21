@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '@/http/schema/builder.js';
+import { ERROR_CODES } from '@/constants.js';
 
 builder.mutationField('generateCoverLetter', (t) =>
   t.field({
@@ -10,7 +11,7 @@ builder.mutationField('generateCoverLetter', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { generateCoverLetterUseCase } = ctx.diScope.cradle;
       try {
         return await generateCoverLetterUseCase.execute({

@@ -4,6 +4,7 @@ import type {
   CreateDocumentData,
 } from '@/use-cases/ports/IDocumentRepository.js';
 import type { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
+import { CACHE_KEYS } from '@/constants.js';
 
 interface Deps {
   prismaDocumentRepository: IDocumentRepository;
@@ -22,7 +23,7 @@ export class CachedDocumentRepository implements IDocumentRepository {
   }
 
   async findAllByApplicationId(applicationId: string): Promise<Document[]> {
-    const key = `docs:list:${applicationId}`;
+    const key = CACHE_KEYS.docList(applicationId);
     const hit = this.cache.get<Document[]>(key);
     if (hit) return hit;
 
@@ -33,7 +34,7 @@ export class CachedDocumentRepository implements IDocumentRepository {
   }
 
   async findById(id: string): Promise<Document | null> {
-    const key = `docs:byId:${id}`;
+    const key = CACHE_KEYS.docById(id);
     const hit = this.cache.get<Document | null>(key);
     if (hit !== undefined) return hit;
 
@@ -46,15 +47,15 @@ export class CachedDocumentRepository implements IDocumentRepository {
   async create(data: CreateDocumentData): Promise<Document> {
     const result = await this.inner.create(data);
     this.appIdByDocId.set(result.id, result.applicationId);
-    this.cache.delete(`docs:list:${result.applicationId}`);
+    this.cache.delete(CACHE_KEYS.docList(result.applicationId));
     return result;
   }
 
   async delete(id: string): Promise<void> {
     const applicationId = this.appIdByDocId.get(id);
     await this.inner.delete(id);
-    this.cache.delete(`docs:byId:${id}`);
+    this.cache.delete(CACHE_KEYS.docById(id));
     this.appIdByDocId.delete(id);
-    if (applicationId) this.cache.delete(`docs:list:${applicationId}`);
+    if (applicationId) this.cache.delete(CACHE_KEYS.docList(applicationId));
   }
 }

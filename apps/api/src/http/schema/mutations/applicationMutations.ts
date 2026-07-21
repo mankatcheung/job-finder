@@ -6,6 +6,7 @@ import {
   UpdateApplicationInput,
 } from '@/http/schema/types/inputs/ApplicationInputs.js';
 import type { ApplicationStatus } from '@/domain/application/ApplicationStatus.js';
+import { ERROR_CODES } from '@/constants.js';
 
 builder.mutationField('createApplication', (t) =>
   t.field({
@@ -15,7 +16,7 @@ builder.mutationField('createApplication', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { applicationResolver } = ctx.diScope.cradle;
       return applicationResolver.createApplication(ctx.user.sub, {
         company: args.input.company,
@@ -43,7 +44,7 @@ builder.mutationField('updateApplication', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { applicationResolver } = ctx.diScope.cradle;
       return applicationResolver.updateApplication(ctx.user.sub, args.id, {
         company: args.input.company ?? undefined,
@@ -75,7 +76,7 @@ builder.mutationField('deleteApplication', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: 'UNAUTHORIZED' } });
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { applicationResolver } = ctx.diScope.cradle;
       return applicationResolver.deleteApplication(ctx.user.sub, args.id);
     },

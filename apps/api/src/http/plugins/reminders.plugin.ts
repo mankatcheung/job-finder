@@ -1,8 +1,9 @@
 import fp from 'fastify-plugin';
 import type { FastifyInstance } from 'fastify';
+import { DURATIONS_MS } from '@/constants.js';
 
 export default fp(async (fastify: FastifyInstance) => {
-  const INTERVAL_MS = 60 * 60 * 1000; // 1 hour
+  const INTERVAL_MS = DURATIONS_MS.REMINDER_INTERVAL;
 
   const run = async () => {
     try {
