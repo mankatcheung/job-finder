@@ -143,7 +143,9 @@ describe('McpController', () => {
     });
 
     it('maps a NOT_FOUND use-case error to INVALID_PARAMS', async () => {
-      const err = Object.assign(new Error('Application not found'), { code: ERROR_CODES.NOT_FOUND });
+      const err = Object.assign(new Error('Application not found'), {
+        code: ERROR_CODES.NOT_FOUND,
+      });
       vi.mocked(deps.getApplicationUseCase.execute).mockRejectedValue(err);
 
       const { body } = await controller.handle(
