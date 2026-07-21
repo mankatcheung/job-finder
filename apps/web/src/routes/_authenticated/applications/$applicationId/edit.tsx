@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { StarIcon, XIcon } from 'lucide-react';
+import { JdImportPanel } from '../_components/JdImportPanel';
 
 const APPLICATION_STATUSES = [
   'draft',
@@ -87,6 +88,7 @@ export function EditApplicationPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
     setError,
+    setValue,
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     values: app
@@ -149,6 +151,16 @@ export function EditApplicationPage() {
           Edit application
         </h1>
       </div>
+
+      <JdImportPanel
+        onFill={(parsed) => {
+          if (parsed.company) setValue('company', parsed.company);
+          if (parsed.role) setValue('role', parsed.role);
+          if (parsed.location) setValue('location', parsed.location);
+          if (parsed.salary) setValue('salaryRange', parsed.salary);
+          if (parsed.description) setValue('description', parsed.description);
+        }}
+      />
 
       <form
         onSubmit={handleSubmit(onSubmit)}

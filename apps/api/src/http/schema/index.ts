@@ -15,6 +15,7 @@ import './types/ApiTokenType.js';
 import './types/inputs/ApplicationInputs.js';
 import './types/inputs/DocumentInputs.js';
 import './types/ContactType.js';
+import './types/ParsedJobDescriptionType.js';
 
 // Queries
 import './queries/applicationQueries.js';
@@ -35,5 +36,6 @@ import './mutations/userMutations.js';
 import './mutations/interviewRoundMutations.js';
 import './mutations/apiTokenMutations.js';
 import './mutations/contactMutations.js';
+import './mutations/jobDescriptionMutations.js';
 
 export const schema = builder.toSchema();
