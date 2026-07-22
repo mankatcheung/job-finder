@@ -1,4 +1,4 @@
-export function statusBadge(status: string): string {
+export function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     draft: 'bg-gray-100 text-gray-700',
     applied: 'bg-blue-100 text-blue-700',
@@ -9,7 +9,11 @@ export function statusBadge(status: string): string {
     withdrawn: 'bg-gray-100 text-gray-500',
   };
   const cls = styles[status] ?? styles['draft']!;
-  return `<span class="text-xs font-medium px-2 py-0.5 rounded-full capitalize ${cls}">${status}</span>`;
+  return (
+    <span class={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${cls}`} safe>
+      {status}
+    </span>
+  );
 }
 
 export const STATUS_COLORS: Record<string, string> = {
