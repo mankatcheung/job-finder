@@ -1,0 +1,33 @@
+import { createHash } from 'crypto';
+import bcrypt from 'bcryptjs';
+import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
+import type { IPasswordResetTokenRepository } from '@/use-cases/ports/IPasswordResetTokenRepository.js';
+import { ERROR_CODES } from '@/constants.js';
+import type {
+  IResetPasswordUseCase,
+  ResetPasswordInput,
+} from '@/use-cases/auth/IResetPasswordUseCase.js';
+
+interface Deps {
+  userRepository: IUserRepository;
+  passwordResetTokenRepository: IPasswordResetTokenRepository;
+}
+
+export class ResetPasswordUseCase implements IResetPasswordUseCase {
+  constructor(private readonly deps: Deps) {}
+
+  async execute(input: ResetPasswordInput): Promise<void> {
+    const tokenHash = createHash('sha256').update(input.token).digest('hex');
+    const resetToken = await this.deps.passwordResetTokenRepository.findByTokenHash(tokenHash);
+
+    if (!resetToken || resetToken.usedAt || resetToken.expiresAt < new Date()) {
+      throw Object.assign(new Error('Invalid or expired reset link'), {
+        code: ERROR_CODES.UNAUTHORIZED,
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(input.newPassword, 12);
+    await this.deps.userRepository.update(resetToken.userId, { passwordHash });
+    await this.deps.passwordResetTokenRepository.markUsed(resetToken.id);
+  }
+}

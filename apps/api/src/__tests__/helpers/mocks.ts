@@ -10,6 +10,8 @@ import type { IInterviewRoundRepository } from '@/use-cases/ports/IInterviewRoun
 import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
 import type { IContactRepository } from '@/use-cases/ports/IContactRepository.js';
 import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
+import type { IPasswordResetTokenRepository } from '@/use-cases/ports/IPasswordResetTokenRepository.js';
+import type { PasswordResetToken } from '@/domain/passwordResetToken/PasswordResetToken.js';
 import type { User } from '@/domain/user/User.js';
 import type { Application } from '@/domain/application/Application.js';
 import type { Document } from '@/domain/document/Document.js';
@@ -105,6 +107,28 @@ export const makeApiToken = (overrides?: Partial<ApiToken>): ApiToken => ({
   scope: 'full',
   lastUsedAt: null,
   createdAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+export const makePasswordResetTokenRepository = (
+  overrides?: Partial<IPasswordResetTokenRepository>,
+): IPasswordResetTokenRepository => ({
+  create: vi.fn(),
+  findByTokenHash: vi.fn().mockResolvedValue(null),
+  markUsed: vi.fn().mockResolvedValue(undefined),
+  deleteAllForUser: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
+
+export const makePasswordResetToken = (
+  overrides?: Partial<PasswordResetToken>,
+): PasswordResetToken => ({
+  id: 'reset-token-1',
+  userId: 'user-1',
+  tokenHash: 'hashed-reset-token',
+  expiresAt: new Date('2024-01-01T01:00:00.000Z'),
+  usedAt: null,
+  createdAt: new Date('2024-01-01T00:00:00.000Z'),
   ...overrides,
 });
 

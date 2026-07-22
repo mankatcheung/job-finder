@@ -1,11 +1,15 @@
 import type { IRegisterUseCase } from '@/use-cases/auth/IRegisterUseCase.js';
 import type { ILoginUseCase } from '@/use-cases/auth/ILoginUseCase.js';
+import type { IRequestPasswordResetUseCase } from '@/use-cases/auth/IRequestPasswordResetUseCase.js';
+import type { IResetPasswordUseCase } from '@/use-cases/auth/IResetPasswordUseCase.js';
 import type { ITokenService, TokenPair } from '@/use-cases/ports/ITokenService.js';
 
 interface Deps {
   registerUseCase: IRegisterUseCase;
   loginUseCase: ILoginUseCase;
   tokenService: ITokenService;
+  requestPasswordResetUseCase: IRequestPasswordResetUseCase;
+  resetPasswordUseCase: IResetPasswordUseCase;
 }
 
 export class AuthResolver {
@@ -24,5 +28,13 @@ export class AuthResolver {
   refreshToken(refreshToken: string): TokenPair {
     const payload = this.deps.tokenService.verifyRefresh(refreshToken);
     return this.deps.tokenService.sign(payload.sub, payload.email);
+  }
+
+  async requestPasswordReset(email: string): Promise<void> {
+    await this.deps.requestPasswordResetUseCase.execute({ email });
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    await this.deps.resetPasswordUseCase.execute({ token, newPassword });
   }
 }

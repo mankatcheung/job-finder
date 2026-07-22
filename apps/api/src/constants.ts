@@ -82,6 +82,14 @@ export const API_TOKEN = {
   RANDOM_BYTES: 24,
 } as const;
 
+/** Password-reset token settings. */
+export const PASSWORD_RESET_TOKEN = {
+  /** Number of random bytes hex-encoded into the token body. */
+  RANDOM_BYTES: 32,
+  /** How long a reset link stays valid, in milliseconds. */
+  TTL_MS: 60 * 60 * 1000, // 1 hour
+} as const;
+
 /** API-token scopes (mirrors the `ApiTokenScope` domain union). */
 export const API_TOKEN_SCOPE = {
   FULL: 'full',

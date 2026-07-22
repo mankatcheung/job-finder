@@ -112,6 +112,16 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "Contact_applicationId_idx" ON "Contact"("applicationId")`,
+  `CREATE TABLE "PasswordResetToken" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "tokenHash" TEXT NOT NULL UNIQUE,
+    "expiresAt" DATETIME NOT NULL,
+    "usedAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "PasswordResetToken_userId_idx" ON "PasswordResetToken"("userId")`,
 ];
 
 export interface TestDb {

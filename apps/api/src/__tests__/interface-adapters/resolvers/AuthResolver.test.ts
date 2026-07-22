@@ -3,6 +3,8 @@ import { AuthResolver } from '@/interface-adapters/resolvers/AuthResolver.js';
 import { makeUser } from '@/__tests__/helpers/mocks.js';
 import type { IRegisterUseCase } from '@/use-cases/auth/IRegisterUseCase.js';
 import type { ILoginUseCase } from '@/use-cases/auth/ILoginUseCase.js';
+import type { IRequestPasswordResetUseCase } from '@/use-cases/auth/IRequestPasswordResetUseCase.js';
+import type { IResetPasswordUseCase } from '@/use-cases/auth/IResetPasswordUseCase.js';
 import type { ITokenService } from '@/use-cases/ports/ITokenService.js';
 
 const makeRegisterUseCase = (overrides?: Partial<IRegisterUseCase>): IRegisterUseCase => ({
@@ -15,10 +17,32 @@ const makeLoginUseCase = (overrides?: Partial<ILoginUseCase>): ILoginUseCase => 
   ...overrides,
 });
 
+const makeRequestPasswordResetUseCase = (
+  overrides?: Partial<IRequestPasswordResetUseCase>,
+): IRequestPasswordResetUseCase => ({
+  execute: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
+
+const makeResetPasswordUseCase = (
+  overrides?: Partial<IResetPasswordUseCase>,
+): IResetPasswordUseCase => ({
+  execute: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
+
 const makeTokenService = (overrides?: Partial<ITokenService>): ITokenService => ({
   sign: vi.fn().mockReturnValue({ accessToken: 'access-token', refreshToken: 'refresh-token' }),
   verifyRefresh: vi.fn(),
   ...overrides,
+});
+
+const baseDeps = () => ({
+  registerUseCase: makeRegisterUseCase(),
+  loginUseCase: makeLoginUseCase(),
+  tokenService: makeTokenService(),
+  requestPasswordResetUseCase: makeRequestPasswordResetUseCase(),
+  resetPasswordUseCase: makeResetPasswordUseCase(),
 });
 
 describe('AuthResolver', () => {
@@ -33,11 +57,7 @@ describe('AuthResolver', () => {
       });
       const tokenService = makeTokenService();
 
-      const resolver = new AuthResolver({
-        registerUseCase,
-        loginUseCase: makeLoginUseCase(),
-        tokenService,
-      });
+      const resolver = new AuthResolver({ ...baseDeps(), registerUseCase, tokenService });
 
       const result = await resolver.register('test@example.com', 'password123');
 
@@ -58,11 +78,7 @@ describe('AuthResolver', () => {
       });
       const tokenService = makeTokenService();
 
-      const resolver = new AuthResolver({
-        registerUseCase: makeRegisterUseCase(),
-        loginUseCase,
-        tokenService,
-      });
+      const resolver = new AuthResolver({ ...baseDeps(), loginUseCase, tokenService });
 
       const result = await resolver.login('test@example.com', 'password123');
 
@@ -81,11 +97,7 @@ describe('AuthResolver', () => {
         verifyRefresh: vi.fn().mockReturnValue({ sub: 'user-1', email: 'test@example.com' }),
       });
 
-      const resolver = new AuthResolver({
-        registerUseCase: makeRegisterUseCase(),
-        loginUseCase: makeLoginUseCase(),
-        tokenService,
-      });
+      const resolver = new AuthResolver({ ...baseDeps(), tokenService });
 
       const result = resolver.refreshToken('valid-refresh-token');
 
@@ -101,11 +113,7 @@ describe('AuthResolver', () => {
         }),
       });
 
-      const resolver = new AuthResolver({
-        registerUseCase: makeRegisterUseCase(),
-        loginUseCase: makeLoginUseCase(),
-        tokenService,
-      });
+      const resolver = new AuthResolver({ ...baseDeps(), tokenService });
 
       const err = (() => {
         try {
@@ -117,6 +125,47 @@ describe('AuthResolver', () => {
 
       expect(err).toBeInstanceOf(Error);
       expect((err as { code: string }).code).toBe('UNAUTHORIZED');
+    });
+  });
+
+  describe('requestPasswordReset', () => {
+    it('delegates to requestPasswordResetUseCase with the given email', async () => {
+      const requestPasswordResetUseCase = makeRequestPasswordResetUseCase();
+      const resolver = new AuthResolver({ ...baseDeps(), requestPasswordResetUseCase });
+
+      await resolver.requestPasswordReset('test@example.com');
+
+      expect(requestPasswordResetUseCase.execute).toHaveBeenCalledWith({
+        email: 'test@example.com',
+      });
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('delegates to resetPasswordUseCase with the token and new password', async () => {
+      const resetPasswordUseCase = makeResetPasswordUseCase();
+      const resolver = new AuthResolver({ ...baseDeps(), resetPasswordUseCase });
+
+      await resolver.resetPassword('raw-token', 'newPassword123');
+
+      expect(resetPasswordUseCase.execute).toHaveBeenCalledWith({
+        token: 'raw-token',
+        newPassword: 'newPassword123',
+      });
+    });
+
+    it('propagates errors from the use case', async () => {
+      const err = Object.assign(new Error('Invalid or expired reset link'), {
+        code: 'UNAUTHORIZED',
+      });
+      const resetPasswordUseCase = makeResetPasswordUseCase({
+        execute: vi.fn().mockRejectedValue(err),
+      });
+      const resolver = new AuthResolver({ ...baseDeps(), resetPasswordUseCase });
+
+      await expect(resolver.resetPassword('bad-token', 'newPassword123')).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+      });
     });
   });
 });
