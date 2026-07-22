@@ -42,7 +42,9 @@ function StatCard({
 }) {
   return (
     <div class="bg-white rounded-xl border border-gray-200 p-4">
-      <div class={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${colors[color] ?? colors['blue']}`}>
+      <div
+        class={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${colors[color] ?? colors['blue']}`}
+      >
         {children}
       </div>
       <p class="text-2xl font-bold text-gray-900">{value}</p>

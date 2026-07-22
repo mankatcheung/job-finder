@@ -30,7 +30,10 @@ function AppRow({ app, overdue }: { app: App; overdue: boolean }) {
       href={`/applications/${app.id}`}
       class="flex items-center gap-3 px-4 py-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
     >
-      <span class="text-yellow-400 shrink-0" style={`visibility:${app.starred ? 'visible' : 'hidden'}`}>
+      <span
+        class="text-yellow-400 shrink-0"
+        style={`visibility:${app.starred ? 'visible' : 'hidden'}`}
+      >
         <StarIcon />
       </span>
       <div class="min-w-0 flex-1">
@@ -142,7 +145,13 @@ export default async function applicationListRoutes(fastify: FastifyInstance): P
             <label
               class={`flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-sm cursor-pointer ${filterStarred ? 'bg-yellow-50 border-yellow-300' : 'bg-white'}`}
             >
-              <input type="checkbox" name="starred" value="1" checked={filterStarred} class="sr-only" />
+              <input
+                type="checkbox"
+                name="starred"
+                value="1"
+                checked={filterStarred}
+                class="sr-only"
+              />
               <span class="text-yellow-500">
                 <StarIcon />
               </span>{' '}

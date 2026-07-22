@@ -12,7 +12,17 @@ const QUERY = `query {
 
 type App = { id: string; status: string; createdAt: string; starred: boolean };
 
-function Bar({ label, count, total, color }: { label: string; count: number; total: number; color: string }) {
+function Bar({
+  label,
+  count,
+  total,
+  color,
+}: {
+  label: string;
+  count: number;
+  total: number;
+  color: string;
+}) {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
   return (
     <div class="flex items-center gap-2">
@@ -93,7 +103,12 @@ export default async function analyticsRoutes(fastify: FastifyInstance): Promise
                 <h2 class="text-base font-semibold text-gray-900 mb-4">By status</h2>
                 <div class="space-y-2">
                   {ALL_STATUSES.map((s) => (
-                    <Bar label={s} count={byStat[s] ?? 0} total={total} color={STATUS_COLORS[s] ?? '#9ca3af'} />
+                    <Bar
+                      label={s}
+                      count={byStat[s] ?? 0}
+                      total={total}
+                      color={STATUS_COLORS[s] ?? '#9ca3af'}
+                    />
                   ))}
                 </div>
                 <p class="mt-3 text-xs text-gray-400 text-right">{total} total</p>
@@ -136,13 +151,16 @@ export default async function analyticsRoutes(fastify: FastifyInstance): Promise
                     <span class="text-gray-600">Interviewing</span>
                     <span class="font-semibold">
                       {interviewing}{' '}
-                      <span class="text-xs text-gray-400">({convRate(interviewing, applied)}%)</span>
+                      <span class="text-xs text-gray-400">
+                        ({convRate(interviewing, applied)}%)
+                      </span>
                     </span>
                   </div>
                   <div class="flex items-center justify-between text-sm">
                     <span class="text-gray-600">Offered</span>
                     <span class="font-semibold">
-                      {offered} <span class="text-xs text-gray-400">({convRate(offered, applied)}%)</span>
+                      {offered}{' '}
+                      <span class="text-xs text-gray-400">({convRate(offered, applied)}%)</span>
                     </span>
                   </div>
                   <div class="flex items-center justify-between text-sm">

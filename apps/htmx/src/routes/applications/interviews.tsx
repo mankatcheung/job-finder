@@ -99,10 +99,20 @@ export function InterviewCard({ iv, appId }: { iv: Interview; appId: string }) {
   );
 }
 
-function InterviewForm({ appId, iv, nextRound = 1 }: { appId: string; iv?: Interview; nextRound?: number }) {
+function InterviewForm({
+  appId,
+  iv,
+  nextRound = 1,
+}: {
+  appId: string;
+  iv?: Interview;
+  nextRound?: number;
+}) {
   const id = iv?.id;
   const formId = id ? `interview-${id}` : 'new-interview-form';
-  const action = id ? `/applications/${appId}/interviews/${id}/update` : `/applications/${appId}/interviews`;
+  const action = id
+    ? `/applications/${appId}/interviews/${id}/update`
+    : `/applications/${appId}/interviews`;
   const target = id ? `#interview-${id}` : '#interviews-list';
   const swap = id ? 'outerHTML' : 'beforeend';
 
@@ -120,7 +130,14 @@ function InterviewForm({ appId, iv, nextRound = 1 }: { appId: string; iv?: Inter
       <div class="grid grid-cols-2 gap-2 mb-2">
         <div>
           <label class={labelCls}>Round #</label>
-          <input name="round" type="number" min="1" required class={inputCls} value={String(iv?.round ?? nextRound)} />
+          <input
+            name="round"
+            type="number"
+            min="1"
+            required
+            class={inputCls}
+            value={String(iv?.round ?? nextRound)}
+          />
         </div>
         <div>
           <label class={labelCls}>Type</label>
@@ -177,7 +194,13 @@ function InterviewForm({ appId, iv, nextRound = 1 }: { appId: string; iv?: Inter
   );
 }
 
-export function InterviewsSection({ interviews, appId }: { interviews: Interview[]; appId: string }) {
+export function InterviewsSection({
+  interviews,
+  appId,
+}: {
+  interviews: Interview[];
+  appId: string;
+}) {
   const nextRound = interviews.length > 0 ? Math.max(...interviews.map((i) => i.round)) + 1 : 1;
   return (
     <div id="interviews-section">
@@ -214,7 +237,9 @@ export default async function interviewsRoutes(fastify: FastifyInstance): Promis
         ADD_INTERVIEW,
         { applicationId: appId, input: bodyToInput(body) },
       );
-      return reply.type('text/html').send(<InterviewCard iv={data.addInterviewRound} appId={appId} />);
+      return reply
+        .type('text/html')
+        .send(<InterviewCard iv={data.addInterviewRound} appId={appId} />);
     } catch (err) {
       if ((err as Error).message === 'Redirecting') return;
       return reply.status(422).send('Error adding interview');

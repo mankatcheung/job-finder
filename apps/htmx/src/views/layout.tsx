@@ -162,9 +162,7 @@ export function Layout({
           <title safe>{title} — Job Finder</title>
           <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
           <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-          <style type="text/tailwindcss">
-            {`@custom-variant dark (&:where(.dark, .dark *));`}
-          </style>
+          <style type="text/tailwindcss">{`@custom-variant dark (&:where(.dark, .dark *));`}</style>
         </head>
         <body class="bg-gray-50 text-gray-900">
           <div class="min-h-screen flex">

@@ -57,7 +57,10 @@ function LoginPage({ error }: { error?: string }) {
             </button>
           </form>
           <p class="mt-4 text-center text-sm text-gray-500">
-            No account? <a href="/register" class="text-blue-600 hover:underline">Create one</a>
+            No account?{' '}
+            <a href="/register" class="text-blue-600 hover:underline">
+              Create one
+            </a>
           </p>
         </div>
       </div>
@@ -116,7 +119,10 @@ function RegisterPage({ error }: { error?: string }) {
             </button>
           </form>
           <p class="mt-4 text-center text-sm text-gray-500">
-            Already have an account? <a href="/login" class="text-blue-600 hover:underline">Sign in</a>
+            Already have an account?{' '}
+            <a href="/login" class="text-blue-600 hover:underline">
+              Sign in
+            </a>
           </p>
         </div>
       </div>
@@ -147,7 +153,9 @@ export default async function authRoutes(fastify: FastifyInstance): Promise<void
       }
       return reply.redirect('/dashboard');
     } catch {
-      return reply.type('text/html').send(<LoginPage error="Something went wrong. Please try again." />);
+      return reply
+        .type('text/html')
+        .send(<LoginPage error="Something went wrong. Please try again." />);
     }
   });
 

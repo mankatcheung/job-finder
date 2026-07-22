@@ -128,7 +128,10 @@ function DetailPage({ app, activeTab = 'overview' }: { app: FullApp; activeTab?:
         {/* Header */}
         <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
           <div class="flex items-start gap-3">
-            <a href="/applications" class="mt-1 text-gray-400 hover:text-gray-600 transition-colors shrink-0">
+            <a
+              href="/applications"
+              class="mt-1 text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+            >
               <ChevronLeftIcon />
             </a>
             <div>
@@ -157,7 +160,13 @@ function DetailPage({ app, activeTab = 'overview' }: { app: FullApp; activeTab?:
         <div class="flex flex-wrap items-center gap-3 mb-6">
           <StatusSelect id={app.id} status={app.status} />
 
-          {app.salary ? <span class="text-sm text-gray-600" safe>{app.salary}</span> : ''}
+          {app.salary ? (
+            <span class="text-sm text-gray-600" safe>
+              {app.salary}
+            </span>
+          ) : (
+            ''
+          )}
           {overdue ? (
             <span class="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
               Follow-up overdue
@@ -194,7 +203,8 @@ function DetailPage({ app, activeTab = 'overview' }: { app: FullApp; activeTab?:
               const cls = active
                 ? 'px-3 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600'
                 : 'px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-colors';
-              const label = t === 'cover-letter' ? 'Cover Letter' : t.charAt(0).toUpperCase() + t.slice(1);
+              const label =
+                t === 'cover-letter' ? 'Cover Letter' : t.charAt(0).toUpperCase() + t.slice(1);
               return (
                 <a
                   href={`/applications/${app.id}?tab=${t}`}
@@ -266,7 +276,9 @@ function CoverLetterTab({ appId }: { appId: string }) {
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
               Your resume / background
-              <span class="font-normal text-gray-400">(optional — paste for a tailored letter)</span>
+              <span class="font-normal text-gray-400">
+                (optional — paste for a tailored letter)
+              </span>
             </label>
             <textarea
               name="resumeText"
@@ -282,7 +294,10 @@ function CoverLetterTab({ appId }: { appId: string }) {
             >
               ✨ Generate cover letter
             </button>
-            <span id="cover-letter-spinner" class="htmx-indicator text-sm text-blue-500 animate-pulse">
+            <span
+              id="cover-letter-spinner"
+              class="htmx-indicator text-sm text-blue-500 animate-pulse"
+            >
               Generating…
             </span>
           </div>
@@ -345,10 +360,16 @@ function HealthScoreFragment({ hs }: { hs: HealthScore }) {
             </span>
           </div>
           <div class="h-2 rounded-full bg-gray-200 overflow-hidden">
-            <div class={`h-2 rounded-full ${c.bar} transition-all`} style={`width:${hs.score}%`}></div>
+            <div
+              class={`h-2 rounded-full ${c.bar} transition-all`}
+              style={`width:${hs.score}%`}
+            ></div>
           </div>
           <p class="text-xs mt-1">
-            <span class={`inline-flex items-center px-2 py-0.5 rounded-full font-medium ${c.badge}`} safe>
+            <span
+              class={`inline-flex items-center px-2 py-0.5 rounded-full font-medium ${c.badge}`}
+              safe
+            >
               {hs.label}
             </span>
           </p>

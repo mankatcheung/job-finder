@@ -57,7 +57,14 @@ function AutofillFields({ v }: { v: AutofillValues }) {
           <label class={labelCls} for="company">
             Company *
           </label>
-          <input id="company" name="company" type="text" required class={inputCls} value={v.company ?? ''} />
+          <input
+            id="company"
+            name="company"
+            type="text"
+            required
+            class={inputCls}
+            value={v.company ?? ''}
+          />
         </div>
         <div>
           <label class={labelCls} for="role">
@@ -71,7 +78,13 @@ function AutofillFields({ v }: { v: AutofillValues }) {
           <label class={labelCls} for="location">
             Location
           </label>
-          <input id="location" name="location" type="text" class={inputCls} value={v.location ?? ''} />
+          <input
+            id="location"
+            name="location"
+            type="text"
+            class={inputCls}
+            value={v.location ?? ''}
+          />
         </div>
         <div>
           <label class={labelCls} for="salary">
@@ -150,7 +163,12 @@ function JdImportPanel() {
           </div>
           <div>
             <label class={`${labelCls} text-blue-700`}>Job posting URL</label>
-            <input type="url" name="url" placeholder="https://company.com/jobs/..." class={inputCls} />
+            <input
+              type="url"
+              name="url"
+              placeholder="https://company.com/jobs/..."
+              class={inputCls}
+            />
           </div>
           <div class="flex items-center gap-3">
             <button
@@ -187,7 +205,10 @@ function FormPage({ app, error }: { app: App | null; error?: string }) {
         </div>
 
         {error ? (
-          <div class="mb-4 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" safe>
+          <div
+            class="mb-4 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"
+            safe
+          >
             {error}
           </div>
         ) : (
@@ -196,7 +217,11 @@ function FormPage({ app, error }: { app: App | null; error?: string }) {
 
         <JdImportPanel />
 
-        <form action={action} method="POST" class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+        <form
+          action={action}
+          method="POST"
+          class="bg-white rounded-xl border border-gray-200 p-6 space-y-4"
+        >
           <AutofillFields
             v={{
               company: app?.company,
@@ -329,7 +354,9 @@ export default async function applicationFormRoutes(fastify: FastifyInstance): P
       if ((err as Error).message === 'Redirecting') return;
       return reply
         .type('text/html')
-        .send(<FormPage app={null} error={(err as Error).message || 'Failed to create application'} />);
+        .send(
+          <FormPage app={null} error={(err as Error).message || 'Failed to create application'} />,
+        );
     }
   });
 
@@ -368,7 +395,9 @@ export default async function applicationFormRoutes(fastify: FastifyInstance): P
       );
       return reply
         .type('text/html')
-        .send(<FormPage app={data.application} error={(err as Error).message || 'Failed to save'} />);
+        .send(
+          <FormPage app={data.application} error={(err as Error).message || 'Failed to save'} />,
+        );
     }
   });
 

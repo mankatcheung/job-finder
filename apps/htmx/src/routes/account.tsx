@@ -49,9 +49,7 @@ function TokenRow({ t, newToken }: { t: Token; newToken?: string }) {
             <code class="text-xs bg-gray-100 px-2 py-1 rounded font-mono select-all" safe>
               {newToken}
             </code>
-            <span class="text-xs text-orange-600 font-medium">
-              Copy now — won't be shown again
-            </span>
+            <span class="text-xs text-orange-600 font-medium">Copy now — won't be shown again</span>
           </div>
         ) : (
           ''
@@ -105,14 +103,7 @@ function AccountPage({
               <label class={labelCls} for="email">
                 Email
               </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                class={inputCls}
-                value={email}
-              />
+              <input id="email" name="email" type="email" required class={inputCls} value={email} />
             </div>
             <button type="submit" class={btnPrimary}>
               Update email
@@ -140,7 +131,13 @@ function AccountPage({
               <label class={labelCls} for="newPassword">
                 New password
               </label>
-              <input id="newPassword" name="newPassword" type="password" required class={inputCls} />
+              <input
+                id="newPassword"
+                name="newPassword"
+                type="password"
+                required
+                class={inputCls}
+              />
             </div>
             <button type="submit" class={btnPrimary}>
               Update password
@@ -174,7 +171,14 @@ function AccountPage({
               <label class={labelCls} for="tokenName">
                 Name
               </label>
-              <input id="tokenName" name="name" type="text" required class={inputCls} placeholder="My CLI" />
+              <input
+                id="tokenName"
+                name="name"
+                type="text"
+                required
+                class={inputCls}
+                placeholder="My CLI"
+              />
             </div>
             <div>
               <label class={labelCls} for="tokenScope">

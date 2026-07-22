@@ -56,7 +56,12 @@ export function ContactCard({ c, appId }: { c: Contact; appId: string }) {
             )}
             {c.phone ? <span safe>{c.phone}</span> : ''}
             {linkedInHref ? (
-              <a href={linkedInHref} target="_blank" rel="noopener" class="text-blue-600 hover:underline">
+              <a
+                href={linkedInHref}
+                target="_blank"
+                rel="noopener"
+                class="text-blue-600 hover:underline"
+              >
                 LinkedIn
               </a>
             ) : (
@@ -98,7 +103,9 @@ export function ContactCard({ c, appId }: { c: Contact; appId: string }) {
 function ContactForm({ appId, c }: { appId: string; c?: Contact }) {
   const id = c?.id;
   const formId = id ? `contact-${id}` : 'new-contact-form';
-  const action = id ? `/applications/${appId}/contacts/${id}/update` : `/applications/${appId}/contacts`;
+  const action = id
+    ? `/applications/${appId}/contacts/${id}/update`
+    : `/applications/${appId}/contacts`;
   const target = id ? `#contact-${id}` : '#contacts-list';
   const swap = id ? 'outerHTML' : 'beforeend';
 
