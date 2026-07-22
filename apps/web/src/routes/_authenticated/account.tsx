@@ -1,5 +1,7 @@
+import { useMemo } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
@@ -11,6 +13,24 @@ export const Route = createFileRoute('/_authenticated/account')({
 });
 
 // ── GraphQL ────────────────────────────────────────────────────────────────
+
+const ME_QUERY = `
+  query Me {
+    me {
+      id
+      email
+      name
+      timezone
+      targetRole
+    }
+  }
+`;
+
+const UPDATE_PROFILE = `
+  mutation UpdateProfile($name: String, $timezone: String, $targetRole: String) {
+    updateProfile(name: $name, timezone: $timezone, targetRole: $targetRole)
+  }
+`;
 
 const UPDATE_EMAIL = `
   mutation UpdateEmail($currentPassword: String!, $newEmail: String!) {
@@ -38,6 +58,12 @@ const EXPORT_USER_DATA = `
 
 // ── Schemas ────────────────────────────────────────────────────────────────
 
+const profileSchema = z.object({
+  name: z.string().max(100, 'Name is too long'),
+  timezone: z.string(),
+  targetRole: z.string().max(100, 'Target role is too long'),
+});
+
 const emailSchema = z.object({
   currentPassword: z.string().min(1, 'Required'),
   newEmail: z.string().email('Invalid email'),
@@ -58,9 +84,18 @@ const deleteSchema = z.object({
   password: z.string().min(1, 'Required'),
 });
 
+type ProfileForm = z.infer<typeof profileSchema>;
 type EmailForm = z.infer<typeof emailSchema>;
 type PasswordForm = z.infer<typeof passwordSchema>;
 type DeleteForm = z.infer<typeof deleteSchema>;
+
+type Me = {
+  id: string;
+  email: string;
+  name: string | null;
+  timezone: string | null;
+  targetRole: string | null;
+};
 
 // ── Input styles ───────────────────────────────────────────────────────────
 
@@ -73,6 +108,44 @@ const labelCls = 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-
 
 export function AccountPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
+
+  const timezoneOptions = useMemo(() => {
+    try {
+      return Intl.supportedValuesOf('timeZone');
+    } catch {
+      return [];
+    }
+  }, []);
+
+  // Profile form
+  const { data: meData } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => gqlClient.request<{ me: Me | null }>(ME_QUERY),
+  });
+  const me = meData?.me;
+  const profileForm = useForm<ProfileForm>({
+    resolver: zodResolver(profileSchema),
+    values: {
+      name: me?.name ?? '',
+      timezone: me?.timezone ?? '',
+      targetRole: me?.targetRole ?? '',
+    },
+  });
+  const onUpdateProfile = async (data: ProfileForm) => {
+    try {
+      await gqlClient.request(UPDATE_PROFILE, {
+        name: data.name.trim() || null,
+        timezone: data.timezone.trim() || null,
+        targetRole: data.targetRole.trim() || null,
+      });
+      await qc.invalidateQueries({ queryKey: ['me'] });
+    } catch (err) {
+      profileForm.setError('root', {
+        message: extractGqlError(err) ?? 'Failed to update profile.',
+      });
+    }
+  };
 
   // Email form
   const emailForm = useForm<EmailForm>({ resolver: zodResolver(emailSchema) });
@@ -133,6 +206,84 @@ export function AccountPage() {
   return (
     <div className="max-w-xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Account settings</h1>
+
+      {/* ── Profile ── */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Profile</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Personalize your account and improve reminder timing and AI-generated content.
+          </p>
+        </div>
+        <form onSubmit={profileForm.handleSubmit(onUpdateProfile)} className="space-y-3">
+          <div>
+            <label className={labelCls}>Name</label>
+            <input
+              type="text"
+              {...profileForm.register('name')}
+              className={inputCls}
+              placeholder="Jane Doe"
+            />
+            {profileForm.formState.errors.name && (
+              <p className="mt-1 text-xs text-red-600">
+                {profileForm.formState.errors.name.message}
+              </p>
+            )}
+          </div>
+          <div>
+            <label className={labelCls}>Timezone</label>
+            <input
+              type="text"
+              list="timezone-options"
+              {...profileForm.register('timezone')}
+              className={inputCls}
+              placeholder="America/Los_Angeles"
+            />
+            <datalist id="timezone-options">
+              {timezoneOptions.map((tz) => (
+                <option key={tz} value={tz} />
+              ))}
+            </datalist>
+            {profileForm.formState.errors.timezone && (
+              <p className="mt-1 text-xs text-red-600">
+                {profileForm.formState.errors.timezone.message}
+              </p>
+            )}
+          </div>
+          <div>
+            <label className={labelCls}>Target role</label>
+            <input
+              type="text"
+              {...profileForm.register('targetRole')}
+              className={inputCls}
+              placeholder="Senior Product Designer"
+            />
+            {profileForm.formState.errors.targetRole && (
+              <p className="mt-1 text-xs text-red-600">
+                {profileForm.formState.errors.targetRole.message}
+              </p>
+            )}
+          </div>
+          {profileForm.formState.errors.root?.message && (
+            <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+              {profileForm.formState.errors.root.message}
+            </p>
+          )}
+          {profileForm.formState.isSubmitSuccessful &&
+            !profileForm.formState.errors.root?.message && (
+              <p className="text-sm text-green-600">Profile updated successfully.</p>
+            )}
+          <button
+            type="submit"
+            disabled={profileForm.formState.isSubmitting}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            {profileForm.formState.isSubmitting ? 'Saving…' : 'Save profile'}
+          </button>
+        </form>
+      </section>
+
+      <hr className="border-gray-200 dark:border-gray-700" />
 
       {/* ── Email ── */}
       <section className="space-y-4">

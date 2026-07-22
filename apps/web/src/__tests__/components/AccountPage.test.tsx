@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const { mockNavigate, mockGqlRequest, mockClearAuthIndicator } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
@@ -37,28 +38,137 @@ vi.mock('#/lib/queryClient', () => ({
 
 import { AccountPage } from '#/routes/_authenticated/account';
 
+const makeClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return <QueryClientProvider client={makeClient()}>{children}</QueryClientProvider>;
+}
+
+const meResponse = {
+  me: { id: 'user-1', email: 'test@example.com', name: null, timezone: null, targetRole: null },
+};
+
 describe('AccountPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGqlRequest.mockResolvedValue(meResponse);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('renders all sections', () => {
-    render(<AccountPage />);
+  it('renders all sections', async () => {
+    render(<AccountPage />, { wrapper: Wrapper });
     expect(screen.getByText('Account settings')).toBeInTheDocument();
+    expect(screen.getByText('Profile')).toBeInTheDocument();
     expect(screen.getByText('Email address')).toBeInTheDocument();
     expect(screen.getByText('Password')).toBeInTheDocument();
     expect(screen.getByText('Export your data')).toBeInTheDocument();
     expect(screen.getByText('Danger zone')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Me'));
+    });
+  });
+
+  describe('profile form', () => {
+    it('pre-fills fields from the me query', async () => {
+      mockGqlRequest.mockResolvedValue({
+        me: {
+          id: 'user-1',
+          email: 'test@example.com',
+          name: 'Jeff Man',
+          timezone: 'America/Los_Angeles',
+          targetRole: 'Staff Engineer',
+        },
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue('Jeff Man')).toBeInTheDocument();
+      });
+      expect(screen.getByDisplayValue('America/Los_Angeles')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Staff Engineer')).toBeInTheDocument();
+    });
+
+    it('calls updateProfile mutation with trimmed values', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() =>
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Me')),
+      );
+      mockGqlRequest.mockResolvedValue({ updateProfile: true });
+
+      const saveBtn = screen.getByRole('button', { name: /save profile/i });
+      const form = saveBtn.closest('form')!;
+      const nameInput = form.querySelector('input[placeholder="Jane Doe"]')!;
+      const timezoneInput = form.querySelector('input[placeholder="America/Los_Angeles"]')!;
+      const targetRoleInput = form.querySelector('input[placeholder="Senior Product Designer"]')!;
+
+      fireEvent.change(nameInput, { target: { value: '  Jeff Man  ' } });
+      fireEvent.change(timezoneInput, { target: { value: 'UTC' } });
+      fireEvent.change(targetRoleInput, { target: { value: 'Staff Engineer' } });
+      fireEvent.click(saveBtn);
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('UpdateProfile'), {
+          name: 'Jeff Man',
+          timezone: 'UTC',
+          targetRole: 'Staff Engineer',
+        });
+      });
+    });
+
+    it('sends null for cleared fields', async () => {
+      mockGqlRequest.mockResolvedValue({
+        me: {
+          id: 'user-1',
+          email: 'test@example.com',
+          name: 'Old Name',
+          timezone: null,
+          targetRole: null,
+        },
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(screen.getByDisplayValue('Old Name')).toBeInTheDocument());
+      mockGqlRequest.mockResolvedValue({ updateProfile: true });
+
+      const saveBtn = screen.getByRole('button', { name: /save profile/i });
+      const form = saveBtn.closest('form')!;
+      const nameInput = form.querySelector('input[placeholder="Jane Doe"]')!;
+
+      fireEvent.change(nameInput, { target: { value: '   ' } });
+      fireEvent.click(saveBtn);
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('UpdateProfile'),
+          expect.objectContaining({ name: null }),
+        );
+      });
+    });
+
+    it('shows error message on profile update failure', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() =>
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Me')),
+      );
+      mockGqlRequest.mockRejectedValue({
+        response: { errors: [{ message: 'Invalid timezone' }] },
+      });
+
+      const saveBtn = screen.getByRole('button', { name: /save profile/i });
+      fireEvent.click(saveBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText('Invalid timezone')).toBeInTheDocument();
+      });
+    });
   });
 
   describe('email update form', () => {
     it('calls updateEmail mutation with current password and new email', async () => {
       mockGqlRequest.mockResolvedValue({ updateEmail: true });
-      render(<AccountPage />);
+      render(<AccountPage />, { wrapper: Wrapper });
 
       const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
       const form = updateEmailBtn.closest('form')!;
@@ -81,7 +191,7 @@ describe('AccountPage', () => {
       mockGqlRequest.mockRejectedValue({
         response: { errors: [{ message: 'Email already in use' }] },
       });
-      render(<AccountPage />);
+      render(<AccountPage />, { wrapper: Wrapper });
 
       const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
       const form = updateEmailBtn.closest('form')!;
@@ -100,7 +210,7 @@ describe('AccountPage', () => {
 
   describe('password update form', () => {
     it('shows validation error when new passwords do not match', async () => {
-      render(<AccountPage />);
+      render(<AccountPage />, { wrapper: Wrapper });
 
       const updatePasswordBtn = screen.getByRole('button', { name: /update password/i });
       const form = updatePasswordBtn.closest('form')!;
@@ -114,12 +224,15 @@ describe('AccountPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
       });
-      expect(mockGqlRequest).not.toHaveBeenCalled();
+      expect(mockGqlRequest).not.toHaveBeenCalledWith(
+        expect.stringContaining('UpdatePassword'),
+        expect.anything(),
+      );
     });
 
     it('calls updatePassword mutation with matching passwords', async () => {
       mockGqlRequest.mockResolvedValue({ updatePassword: true });
-      render(<AccountPage />);
+      render(<AccountPage />, { wrapper: Wrapper });
 
       const updatePasswordBtn = screen.getByRole('button', { name: /update password/i });
       const form = updatePasswordBtn.closest('form')!;
@@ -140,7 +253,7 @@ describe('AccountPage', () => {
 
     it('shows generic error message when password update fails', async () => {
       mockGqlRequest.mockRejectedValue(new Error('network error'));
-      render(<AccountPage />);
+      render(<AccountPage />, { wrapper: Wrapper });
 
       const updatePasswordBtn = screen.getByRole('button', { name: /update password/i });
       const form = updatePasswordBtn.closest('form')!;
@@ -164,7 +277,7 @@ describe('AccountPage', () => {
       vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
       vi.spyOn(URL, 'revokeObjectURL').mockImplementation(mockRevokeObjectURL);
 
-      render(<AccountPage />);
+      render(<AccountPage />, { wrapper: Wrapper });
       fireEvent.click(screen.getByRole('button', { name: /download export/i }));
 
       await waitFor(() => {
@@ -179,7 +292,7 @@ describe('AccountPage', () => {
   describe('account deletion', () => {
     it('calls deleteAccount mutation, clears auth, and navigates to /login', async () => {
       mockGqlRequest.mockResolvedValue({ deleteAccount: true });
-      render(<AccountPage />);
+      render(<AccountPage />, { wrapper: Wrapper });
 
       const deleteBtn = screen.getByRole('button', { name: /delete my account/i });
       const form = deleteBtn.closest('form')!;
@@ -201,7 +314,7 @@ describe('AccountPage', () => {
       mockGqlRequest.mockRejectedValue({
         response: { errors: [{ message: 'Invalid password' }] },
       });
-      render(<AccountPage />);
+      render(<AccountPage />, { wrapper: Wrapper });
 
       const deleteBtn = screen.getByRole('button', { name: /delete my account/i });
       const form = deleteBtn.closest('form')!;

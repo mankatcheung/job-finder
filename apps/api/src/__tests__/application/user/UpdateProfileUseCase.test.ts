@@ -1,0 +1,132 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { UpdateProfileUseCase } from '@/use-cases/user/UpdateProfileUseCase.js';
+import { makeUserRepository, makeUser } from '@/__tests__/helpers/mocks.js';
+
+describe('UpdateProfileUseCase', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('throws NOT_FOUND when the user does not exist', async () => {
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(null) });
+
+    const err = await new UpdateProfileUseCase({ userRepository })
+      .execute({ userId: 'missing', name: 'Jeff' })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('NOT_FOUND');
+    expect(userRepository.update).not.toHaveBeenCalled();
+  });
+
+  it('updates name, timezone, and targetRole together', async () => {
+    const user = makeUser({ id: 'user-1' });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+
+    await new UpdateProfileUseCase({ userRepository }).execute({
+      userId: 'user-1',
+      name: '  Jeff Man  ',
+      timezone: 'America/Los_Angeles',
+      targetRole: '  Staff Engineer  ',
+    });
+
+    expect(userRepository.update).toHaveBeenCalledWith('user-1', {
+      name: 'Jeff Man',
+      timezone: 'America/Los_Angeles',
+      targetRole: 'Staff Engineer',
+    });
+  });
+
+  it('leaves fields untouched when undefined', async () => {
+    const user = makeUser({ id: 'user-1' });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+
+    await new UpdateProfileUseCase({ userRepository }).execute({ userId: 'user-1', name: 'Jeff' });
+
+    expect(userRepository.update).toHaveBeenCalledWith('user-1', {
+      name: 'Jeff',
+      timezone: undefined,
+      targetRole: undefined,
+    });
+  });
+
+  it('clears a field when given an empty or whitespace-only string', async () => {
+    const user = makeUser({ id: 'user-1', name: 'Old Name' });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+
+    await new UpdateProfileUseCase({ userRepository }).execute({
+      userId: 'user-1',
+      name: '   ',
+    });
+
+    expect(userRepository.update).toHaveBeenCalledWith(
+      'user-1',
+      expect.objectContaining({ name: null }),
+    );
+  });
+
+  it('clears a field when explicitly given null', async () => {
+    const user = makeUser({ id: 'user-1', targetRole: 'Engineer' });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+
+    await new UpdateProfileUseCase({ userRepository }).execute({
+      userId: 'user-1',
+      targetRole: null,
+    });
+
+    expect(userRepository.update).toHaveBeenCalledWith(
+      'user-1',
+      expect.objectContaining({ targetRole: null }),
+    );
+  });
+
+  it('throws VALIDATION for an invalid IANA timezone', async () => {
+    const user = makeUser({ id: 'user-1' });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+
+    const err = await new UpdateProfileUseCase({ userRepository })
+      .execute({ userId: 'user-1', timezone: 'Not/A_Timezone' })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('VALIDATION');
+    expect(userRepository.update).not.toHaveBeenCalled();
+  });
+
+  it('accepts the UTC timezone', async () => {
+    const user = makeUser({ id: 'user-1' });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+
+    await new UpdateProfileUseCase({ userRepository }).execute({
+      userId: 'user-1',
+      timezone: 'UTC',
+    });
+
+    expect(userRepository.update).toHaveBeenCalledWith(
+      'user-1',
+      expect.objectContaining({ timezone: 'UTC' }),
+    );
+  });
+
+  it('throws VALIDATION when name exceeds the max length', async () => {
+    const user = makeUser({ id: 'user-1' });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+
+    const err = await new UpdateProfileUseCase({ userRepository })
+      .execute({ userId: 'user-1', name: 'a'.repeat(101) })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('VALIDATION');
+    expect(userRepository.update).not.toHaveBeenCalled();
+  });
+
+  it('throws VALIDATION when targetRole exceeds the max length', async () => {
+    const user = makeUser({ id: 'user-1' });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+
+    const err = await new UpdateProfileUseCase({ userRepository })
+      .execute({ userId: 'user-1', targetRole: 'a'.repeat(101) })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('VALIDATION');
+    expect(userRepository.update).not.toHaveBeenCalled();
+  });
+});
