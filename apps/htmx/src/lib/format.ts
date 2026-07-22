@@ -29,11 +29,17 @@ export function isoWeek(date: Date): string {
   return `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
 }
 
-export function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+/**
+ * Only http(s) URLs pass through unchanged; anything else (e.g. a
+ * `javascript:` scheme) is rejected, since HTML-escaping an href value does
+ * nothing to stop the browser from executing a dangerous URL scheme.
+ */
+export function sanitizeUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? url : null;
+  } catch {
+    return null;
+  }
 }
