@@ -22,8 +22,6 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.787.0",
-    "@aws-sdk/s3-request-presigner": "^3.787.0",
     "@axiomhq/pino": "^1.8.0",
     "@fastify/awilix": "^8.2.0",
     "@fastify/cookie": "^11.1.2",
@@ -31,6 +29,7 @@
     "@fastify/jwt": "^9.0.0",
     "@fastify/otel": "^0.20.1",
     "@fastify/static": "^8.0.0",
+    "@google-cloud/storage": "^7.21.0",
     "@libsql/client": "^0.14.0",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/auto-instrumentations-node": "^0.78.0",

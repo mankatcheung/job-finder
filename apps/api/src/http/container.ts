@@ -18,7 +18,7 @@ import { PrismaActivityLogRepository } from '@/infrastructure/db/repositories/Pr
 import { PrismaContactRepository } from '@/infrastructure/db/repositories/PrismaContactRepository.js';
 
 import { LocalStorageProvider } from '@/infrastructure/storage/LocalStorageProvider.js';
-import { R2StorageProvider } from '@/infrastructure/storage/R2StorageProvider.js';
+import { GCSStorageProvider } from '@/infrastructure/storage/GCSStorageProvider.js';
 
 import { ApplicationMapper } from '@/interface-adapters/mappers/ApplicationMapper.js';
 import { NoteMapper } from '@/interface-adapters/mappers/NoteMapper.js';
@@ -90,7 +90,7 @@ import type { ILLMProvider } from '@/use-cases/ports/ILLMProvider.js';
 declare module '@fastify/awilix' {
   interface Cradle {
     prisma: typeof prisma;
-    storageProvider: LocalStorageProvider | R2StorageProvider;
+    storageProvider: LocalStorageProvider | GCSStorageProvider;
     generateId: () => string;
     fastify: FastifyInstance;
     tokenService: FastifyJwtTokenService;
@@ -173,10 +173,10 @@ declare module '@fastify/awilix' {
   }
 }
 
-type StorageProviderConstructor = new () => LocalStorageProvider | R2StorageProvider;
+type StorageProviderConstructor = new () => LocalStorageProvider | GCSStorageProvider;
 const StorageProvider: StorageProviderConstructor =
-  process.env[ENV.STORAGE_PROVIDER] === STORAGE_PROVIDER.R2
-    ? R2StorageProvider
+  process.env[ENV.STORAGE_PROVIDER] === STORAGE_PROVIDER.GCS
+    ? GCSStorageProvider
     : LocalStorageProvider;
 
 type LLMProviderConstructor = new () => ILLMProvider;
