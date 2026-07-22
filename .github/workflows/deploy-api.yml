@@ -1,0 +1,63 @@
+name: Deploy api (Zeabur)
+
+# Zeabur has no official GitHub Actions integration — it deploys by watching
+# a branch via its own GitHub App and building on every push to it. This
+# workflow exists to gate that on tests passing: it only fast-forwards the
+# `deploy` branch after tests succeed on `main`, so Zeabur (configured to
+# watch `deploy`, not `main`) only ever builds commits that passed CI.
+#
+# One-time manual setup required in the Zeabur dashboard:
+#   1. Connect this repository.
+#   2. Set the watched branch to `deploy` (not `main`).
+#   3. Set the Dockerfile path to apps/api/Dockerfile, with the build
+#      context at the repository root (see Dockerfile comments for why).
+#
+# If you'd rather have Zeabur auto-deploy every push to `main` directly
+# with no test gate, skip this file entirely and just point Zeabur at
+# `main` in its dashboard — the Dockerfile alone is all it needs.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/deploy-api.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: Test api
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @job-finder/api db:generate
+      - run: pnpm --filter @job-finder/api typecheck
+      - run: pnpm --filter @job-finder/api test
+
+  promote:
+    name: Promote to deploy branch
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # `deploy` is a pure mirror of `main`, only ever written by this job —
+      # force-pushing it is safe and intentional (guarantees it always
+      # matches main's tip, even across history rewrites).
+      - name: Fast-forward the deploy branch
+        run: git push origin HEAD:refs/heads/deploy --force
