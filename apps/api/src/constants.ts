@@ -75,6 +75,12 @@ export const JWT_EXPIRY = {
   REFRESH: '7d',
 } as const;
 
+/** Session (device/refresh-token tracking) settings. */
+export const SESSION = {
+  /** How long a session stays active without a refresh, in milliseconds — mirrors the refresh JWT's lifetime and slides forward on each refresh. */
+  TTL_MS: COOKIE_MAX_AGE_S.REFRESH_TOKEN * 1000,
+} as const;
+
 /** API-token (`jfat_...`) settings. */
 export const API_TOKEN = {
   PREFIX: 'jfat_',

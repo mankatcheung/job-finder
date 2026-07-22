@@ -10,6 +10,8 @@ import type { IInterviewRoundRepository } from '@/use-cases/ports/IInterviewRoun
 import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
 import type { IContactRepository } from '@/use-cases/ports/IContactRepository.js';
 import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
+import type { ISessionRepository } from '@/use-cases/ports/ISessionRepository.js';
+import type { Session } from '@/domain/session/Session.js';
 import type { User } from '@/domain/user/User.js';
 import type { Application } from '@/domain/application/Application.js';
 import type { Document } from '@/domain/document/Document.js';
@@ -105,6 +107,31 @@ export const makeApiToken = (overrides?: Partial<ApiToken>): ApiToken => ({
   scope: 'full',
   lastUsedAt: null,
   createdAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+export const makeSessionRepository = (
+  overrides?: Partial<ISessionRepository>,
+): ISessionRepository => ({
+  create: vi.fn(),
+  findById: vi.fn().mockResolvedValue(null),
+  findByIdAndUserId: vi.fn().mockResolvedValue(null),
+  findActiveByUserId: vi.fn().mockResolvedValue([]),
+  touch: vi.fn().mockResolvedValue(undefined),
+  revoke: vi.fn().mockResolvedValue(undefined),
+  revokeAllForUserExcept: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
+
+export const makeSession = (overrides?: Partial<Session>): Session => ({
+  id: 'session-1',
+  userId: 'user-1',
+  userAgent: 'Mozilla/5.0 (test)',
+  ipAddress: '127.0.0.1',
+  lastUsedAt: new Date('2024-01-01T00:00:00.000Z'),
+  createdAt: new Date('2024-01-01T00:00:00.000Z'),
+  expiresAt: new Date('2024-01-08T00:00:00.000Z'),
+  revokedAt: null,
   ...overrides,
 });
 

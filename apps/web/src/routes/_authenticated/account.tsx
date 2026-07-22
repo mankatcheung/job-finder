@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
@@ -36,6 +37,30 @@ const EXPORT_USER_DATA = `
   }
 `;
 
+const SESSIONS_QUERY = `
+  query Sessions {
+    sessions {
+      id
+      userAgent
+      ipAddress
+      lastUsedAt
+      current
+    }
+  }
+`;
+
+const REVOKE_SESSION = `
+  mutation RevokeSession($id: ID!) {
+    revokeSession(id: $id)
+  }
+`;
+
+const REVOKE_OTHER_SESSIONS = `
+  mutation RevokeOtherSessions {
+    revokeOtherSessions
+  }
+`;
+
 // ── Schemas ────────────────────────────────────────────────────────────────
 
 const emailSchema = z.object({
@@ -62,6 +87,14 @@ type EmailForm = z.infer<typeof emailSchema>;
 type PasswordForm = z.infer<typeof passwordSchema>;
 type DeleteForm = z.infer<typeof deleteSchema>;
 
+type Session = {
+  id: string;
+  userAgent: string | null;
+  ipAddress: string | null;
+  lastUsedAt: string;
+  current: boolean;
+};
+
 // ── Input styles ───────────────────────────────────────────────────────────
 
 const inputCls =
@@ -73,6 +106,24 @@ const labelCls = 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-
 
 export function AccountPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
+
+  // Active sessions
+  const { data: sessionsData } = useQuery({
+    queryKey: ['sessions'],
+    queryFn: () => gqlClient.request<{ sessions: Session[] }>(SESSIONS_QUERY),
+  });
+  const sessions = sessionsData?.sessions ?? [];
+
+  const onRevokeSession = async (id: string) => {
+    await gqlClient.request(REVOKE_SESSION, { id });
+    await qc.invalidateQueries({ queryKey: ['sessions'] });
+  };
+
+  const onRevokeOtherSessions = async () => {
+    await gqlClient.request(REVOKE_OTHER_SESSIONS);
+    await qc.invalidateQueries({ queryKey: ['sessions'] });
+  };
 
   // Email form
   const emailForm = useForm<EmailForm>({ resolver: zodResolver(emailSchema) });
@@ -260,6 +311,61 @@ export function AccountPage() {
             {passwordForm.formState.isSubmitting ? 'Saving…' : 'Update password'}
           </button>
         </form>
+      </section>
+
+      <hr className="border-gray-200 dark:border-gray-700" />
+
+      {/* ── Active sessions ── */}
+      <section className="space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              Active sessions
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Devices currently signed in to your account.
+            </p>
+          </div>
+          {sessions.length > 1 && (
+            <button
+              type="button"
+              onClick={onRevokeOtherSessions}
+              className="shrink-0 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-xs font-medium rounded-lg transition-colors"
+            >
+              Sign out other sessions
+            </button>
+          )}
+        </div>
+        <ul className="space-y-2">
+          {sessions.map((session) => (
+            <li
+              key={session.id}
+              className="flex items-center justify-between gap-4 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg"
+            >
+              <div className="min-w-0">
+                <p className="text-sm text-gray-900 dark:text-gray-100 truncate">
+                  {session.userAgent ?? 'Unknown device'}
+                  {session.current && (
+                    <span className="ml-2 text-xs text-green-600 font-medium">This device</span>
+                  )}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {session.ipAddress ?? 'Unknown IP'} · Last active{' '}
+                  {new Date(session.lastUsedAt).toLocaleString()}
+                </p>
+              </div>
+              {!session.current && (
+                <button
+                  type="button"
+                  onClick={() => onRevokeSession(session.id)}
+                  className="shrink-0 text-xs text-red-600 hover:underline"
+                >
+                  Revoke
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
       </section>
 
       <hr className="border-gray-200 dark:border-gray-700" />

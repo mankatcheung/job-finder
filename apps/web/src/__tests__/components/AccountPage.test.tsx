@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const { mockNavigate, mockGqlRequest, mockClearAuthIndicator } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
@@ -37,28 +38,52 @@ vi.mock('#/lib/queryClient', () => ({
 
 import { AccountPage } from '#/routes/_authenticated/account';
 
+const makeClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return <QueryClientProvider client={makeClient()}>{children}</QueryClientProvider>;
+}
+
+const oneSession = {
+  sessions: [
+    {
+      id: 'session-1',
+      userAgent: 'Mozilla/5.0 (Macintosh)',
+      ipAddress: '10.0.0.1',
+      lastUsedAt: '2024-01-01T00:00:00.000Z',
+      current: true,
+    },
+  ],
+};
+
 describe('AccountPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGqlRequest.mockResolvedValue(oneSession);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('renders all sections', () => {
-    render(<AccountPage />);
+  it('renders all sections', async () => {
+    render(<AccountPage />, { wrapper: Wrapper });
     expect(screen.getByText('Account settings')).toBeInTheDocument();
     expect(screen.getByText('Email address')).toBeInTheDocument();
     expect(screen.getByText('Password')).toBeInTheDocument();
+    expect(screen.getByText('Active sessions')).toBeInTheDocument();
     expect(screen.getByText('Export your data')).toBeInTheDocument();
     expect(screen.getByText('Danger zone')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Sessions'));
+    });
   });
 
   describe('email update form', () => {
     it('calls updateEmail mutation with current password and new email', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockResolvedValue({ updateEmail: true });
-      render(<AccountPage />);
 
       const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
       const form = updateEmailBtn.closest('form')!;
@@ -78,10 +103,11 @@ describe('AccountPage', () => {
     });
 
     it('shows error message on email update failure', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockRejectedValue({
         response: { errors: [{ message: 'Email already in use' }] },
       });
-      render(<AccountPage />);
 
       const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
       const form = updateEmailBtn.closest('form')!;
@@ -100,7 +126,7 @@ describe('AccountPage', () => {
 
   describe('password update form', () => {
     it('shows validation error when new passwords do not match', async () => {
-      render(<AccountPage />);
+      render(<AccountPage />, { wrapper: Wrapper });
 
       const updatePasswordBtn = screen.getByRole('button', { name: /update password/i });
       const form = updatePasswordBtn.closest('form')!;
@@ -114,12 +140,16 @@ describe('AccountPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
       });
-      expect(mockGqlRequest).not.toHaveBeenCalled();
+      expect(mockGqlRequest).not.toHaveBeenCalledWith(
+        expect.stringContaining('UpdatePassword'),
+        expect.anything(),
+      );
     });
 
     it('calls updatePassword mutation with matching passwords', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockResolvedValue({ updatePassword: true });
-      render(<AccountPage />);
 
       const updatePasswordBtn = screen.getByRole('button', { name: /update password/i });
       const form = updatePasswordBtn.closest('form')!;
@@ -139,8 +169,9 @@ describe('AccountPage', () => {
     });
 
     it('shows generic error message when password update fails', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockRejectedValue(new Error('network error'));
-      render(<AccountPage />);
 
       const updatePasswordBtn = screen.getByRole('button', { name: /update password/i });
       const form = updatePasswordBtn.closest('form')!;
@@ -157,14 +188,96 @@ describe('AccountPage', () => {
     });
   });
 
+  describe('active sessions', () => {
+    it('shows the current session without a revoke button', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Mozilla/5.0 (Macintosh)')).toBeInTheDocument();
+      });
+      expect(screen.getByText('This device')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^revoke$/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /sign out other sessions/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('shows a revoke button for non-current sessions and calls revokeSession', async () => {
+      mockGqlRequest.mockResolvedValue({
+        sessions: [
+          {
+            id: 'session-1',
+            userAgent: 'Chrome',
+            ipAddress: '1.1.1.1',
+            lastUsedAt: '2024-01-01T00:00:00.000Z',
+            current: true,
+          },
+          {
+            id: 'session-2',
+            userAgent: 'Safari',
+            ipAddress: '2.2.2.2',
+            lastUsedAt: '2024-01-02T00:00:00.000Z',
+            current: false,
+          },
+        ],
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(screen.getByText('Safari')).toBeInTheDocument());
+
+      mockGqlRequest.mockResolvedValueOnce({ revokeSession: true });
+      fireEvent.click(screen.getByRole('button', { name: /^revoke$/i }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RevokeSession'), {
+          id: 'session-2',
+        });
+      });
+    });
+
+    it('shows "Sign out other sessions" when there is more than one session', async () => {
+      mockGqlRequest.mockResolvedValue({
+        sessions: [
+          {
+            id: 'session-1',
+            userAgent: 'Chrome',
+            ipAddress: '1.1.1.1',
+            lastUsedAt: '2024-01-01T00:00:00.000Z',
+            current: true,
+          },
+          {
+            id: 'session-2',
+            userAgent: 'Safari',
+            ipAddress: '2.2.2.2',
+            lastUsedAt: '2024-01-02T00:00:00.000Z',
+            current: false,
+          },
+        ],
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: /sign out other sessions/i }),
+        ).toBeInTheDocument(),
+      );
+
+      mockGqlRequest.mockResolvedValueOnce({ revokeOtherSessions: true });
+      fireEvent.click(screen.getByRole('button', { name: /sign out other sessions/i }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RevokeOtherSessions'));
+      });
+    });
+  });
+
   describe('data export', () => {
     it('calls exportUserData and triggers download on success', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockResolvedValue({ exportUserData: '{"applications":[]}' });
       const mockRevokeObjectURL = vi.fn();
       vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
       vi.spyOn(URL, 'revokeObjectURL').mockImplementation(mockRevokeObjectURL);
 
-      render(<AccountPage />);
       fireEvent.click(screen.getByRole('button', { name: /download export/i }));
 
       await waitFor(() => {
@@ -178,8 +291,9 @@ describe('AccountPage', () => {
 
   describe('account deletion', () => {
     it('calls deleteAccount mutation, clears auth, and navigates to /login', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockResolvedValue({ deleteAccount: true });
-      render(<AccountPage />);
 
       const deleteBtn = screen.getByRole('button', { name: /delete my account/i });
       const form = deleteBtn.closest('form')!;
@@ -198,10 +312,11 @@ describe('AccountPage', () => {
     });
 
     it('shows error message when deletion fails', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockRejectedValue({
         response: { errors: [{ message: 'Invalid password' }] },
       });
-      render(<AccountPage />);
 
       const deleteBtn = screen.getByRole('button', { name: /delete my account/i });
       const form = deleteBtn.closest('form')!;
