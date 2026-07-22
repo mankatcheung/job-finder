@@ -1,7 +1,7 @@
 # Build context is the monorepo root (not apps/api) — pnpm workspaces need
-# the root lockfile/pnpm-workspace.yaml to resolve correctly. On Zeabur, set
-# the Dockerfile path to apps/api/Dockerfile with the build context at the
-# repository root.
+# the root lockfile/pnpm-workspace.yaml to resolve correctly. The CI deploy
+# workflow (deploy-api.yml) already builds with `-f apps/api/Dockerfile`
+# from the repo root; if building manually, do the same.
 #
 # NOTE: `pnpm deploy` (the usual way to produce a pruned, minimal-size
 # production bundle from a pnpm workspace) was tried here and rejected: in
@@ -26,6 +26,9 @@ WORKDIR /repo
 ENV NODE_ENV=production
 COPY --from=build /repo .
 
+# Cloud Run injects PORT=8080 and expects the container to listen on it;
+# the app already reads process.env.PORT (see src/constants.ts / index.ts),
+# so no code change is needed — this EXPOSE is documentation only.
 WORKDIR /repo/apps/api
-EXPOSE 3001
+EXPOSE 8080
 CMD ["node", "dist/index.js"]

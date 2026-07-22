@@ -1,20 +1,30 @@
-name: Deploy api (Zeabur)
+name: Deploy api (Cloud Run)
 
-# Zeabur has no official GitHub Actions integration — it deploys by watching
-# a branch via its own GitHub App and building on every push to it. This
-# workflow exists to gate that on tests passing: it only fast-forwards the
-# `deploy` branch after tests succeed on `main`, so Zeabur (configured to
-# watch `deploy`, not `main`) only ever builds commits that passed CI.
+# Builds apps/api's Dockerfile, pushes it to Artifact Registry, and deploys
+# the image to Cloud Run. Runs only after tests pass on main — unlike
+# Zeabur (which watches a branch via its own GitHub App with no built-in
+# test gate), Cloud Run is deployed directly from this workflow, so the
+# `test` job blocking `deploy` is the only gate there is.
 #
-# One-time manual setup required in the Zeabur dashboard:
-#   1. Connect this repository.
-#   2. Set the watched branch to `deploy` (not `main`).
-#   3. Set the Dockerfile path to apps/api/Dockerfile, with the build
-#      context at the repository root (see Dockerfile comments for why).
-#
-# If you'd rather have Zeabur auto-deploy every push to `main` directly
-# with no test gate, skip this file entirely and just point Zeabur at
-# `main` in its dashboard — the Dockerfile alone is all it needs.
+# One-time GCP setup required before this workflow can deploy:
+#   1. Enable the Cloud Run, Artifact Registry, and IAM Credentials APIs.
+#   2. Create an Artifact Registry Docker repo:
+#        gcloud artifacts repositories create job-finder \
+#          --repository-format=docker --location=$REGION
+#   3. Create a deploy service account and grant it:
+#        roles/run.admin, roles/artifactregistry.writer,
+#        roles/iam.serviceAccountUser
+#   4. Set up Workload Identity Federation between this GitHub repo and
+#      that service account (keyless — no JSON key stored in GitHub):
+#        https://github.com/google-github-actions/auth#setup
+#   5. Add repo secrets: GCP_PROJECT_ID, GCP_REGION,
+#      GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT.
+#   6. Deploy the service once manually with its real runtime config
+#      (DATABASE_URL, DATABASE_AUTH_TOKEN, JWT_SECRET, JWT_REFRESH_SECRET,
+#      STORAGE_PROVIDER, R2_* if using R2, etc.) via `gcloud run deploy` or
+#      the console — ideally backed by Secret Manager for the secret
+#      values. This workflow only updates the container image on each
+#      deploy; it does not manage the service's env/secret configuration.
 
 on:
   push:
@@ -26,7 +36,12 @@ on:
       - '.github/workflows/deploy-api.yml'
 
 permissions:
-  contents: write
+  contents: read
+  id-token: write
+
+env:
+  SERVICE: job-finder-api
+  REPOSITORY: job-finder
 
 jobs:
   test:
@@ -49,15 +64,35 @@ jobs:
       - run: pnpm --filter @job-finder/api typecheck
       - run: pnpm --filter @job-finder/api test
 
-  promote:
-    name: Promote to deploy branch
+  deploy:
+    name: Build & deploy to Cloud Run
     needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # `deploy` is a pure mirror of `main`, only ever written by this job —
-      # force-pushing it is safe and intentional (guarantees it always
-      # matches main's tip, even across history rewrites).
-      - name: Fast-forward the deploy branch
-        run: git push origin HEAD:refs/heads/deploy --force
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push image
+        run: |
+          IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/api:${{ github.sha }}"
+          docker build -f apps/api/Dockerfile -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE }}
+          region: ${{ secrets.GCP_REGION }}
+          image: ${{ env.IMAGE }}
