@@ -7,13 +7,13 @@ export class OpenRouterLLMProvider implements ILLMProvider {
 
   constructor() {
     this.apiKey = process.env[ENV.OPENROUTER_API_KEY] ?? '';
-    this.model = process.env[ENV.OPENROUTER_MODEL] ?? LLM.DEFAULT_MODEL;
+    this.model = process.env[ENV.OPENROUTER_MODEL] ?? LLM.OPENROUTER_DEFAULT_MODEL;
   }
 
   async complete(messages: LLMMessage[], maxTokens = 512): Promise<string> {
     if (!this.apiKey) throw new Error(`${ENV.OPENROUTER_API_KEY} is not set`);
 
-    const response = await fetch(LLM.API_URL, {
+    const response = await fetch(LLM.OPENROUTER_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
