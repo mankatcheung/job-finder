@@ -41,6 +41,9 @@ export const ENV = {
   GOOGLEAI_API_KEY: 'GOOGLEAI_API_KEY',
   GOOGLEAI_MODEL: 'GOOGLEAI_MODEL',
   DIGEST_ADMIN_SECRET: 'DIGEST_ADMIN_SECRET',
+  AXIOM_TOKEN: 'AXIOM_TOKEN',
+  AXIOM_DATASET: 'AXIOM_DATASET',
+  AXIOM_METRICS_DATASET: 'AXIOM_METRICS_DATASET',
 } as const;
 
 /** `NODE_ENV` values. */
@@ -128,6 +131,21 @@ export const LLM = {
   OPENROUTER_DEFAULT_MODEL: 'openai/gpt-4o-mini',
   GOOGLEAI_API_URL: 'https://generativelanguage.googleapis.com/v1beta/models',
   GOOGLEAI_DEFAULT_MODEL: 'gemini-2.0-flash',
+} as const;
+
+/**
+ * Axiom (observability: logs, traces, metrics) settings.
+ * @see https://axiom.co/docs/send-data/opentelemetry
+ */
+export const AXIOM = {
+  API_URL: 'https://api.axiom.co',
+  TRACES_PATH: '/v1/traces',
+  METRICS_PATH: '/v1/metrics',
+  /** Header carrying the dataset name for logs and traces. */
+  DATASET_HEADER: 'X-Axiom-Dataset',
+  /** Metrics use a distinct dataset (and header) from logs/traces — Axiom requires a Metrics-type dataset. */
+  METRICS_DATASET_HEADER: 'X-Axiom-Metrics-Dataset',
+  SERVICE_NAME: 'job-finder-api',
 } as const;
 
 /** Email provider (Brevo) defaults. */

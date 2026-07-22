@@ -1,0 +1,241 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { ENV, AXIOM } from '@/constants.js';
+import {
+  ATTR_SERVICE_NAME,
+  ATTR_DEPLOYMENT_ENVIRONMENT_NAME,
+} from '@opentelemetry/semantic-conventions';
+
+const {
+  nodeSDKConstructorMock,
+  nodeSDKStartMock,
+  otlpTraceExporterMock,
+  otlpMetricExporterMock,
+  periodicReaderMock,
+  getNodeAutoInstrumentationsMock,
+} = vi.hoisted(() => ({
+  nodeSDKConstructorMock: vi.fn(),
+  nodeSDKStartMock: vi.fn(),
+  otlpTraceExporterMock: vi.fn(),
+  otlpMetricExporterMock: vi.fn(),
+  periodicReaderMock: vi.fn(),
+  getNodeAutoInstrumentationsMock: vi.fn().mockReturnValue(['auto-instrumentations']),
+}));
+
+vi.mock('@opentelemetry/sdk-node', () => ({
+  NodeSDK: class {
+    constructor(config: unknown) {
+      nodeSDKConstructorMock(config);
+    }
+    start() {
+      nodeSDKStartMock();
+    }
+    shutdown() {
+      return Promise.resolve();
+    }
+  },
+}));
+
+vi.mock('@opentelemetry/exporter-trace-otlp-proto', () => ({
+  OTLPTraceExporter: class {
+    constructor(config: unknown) {
+      otlpTraceExporterMock(config);
+    }
+  },
+}));
+
+vi.mock('@opentelemetry/exporter-metrics-otlp-proto', () => ({
+  OTLPMetricExporter: class {
+    constructor(config: unknown) {
+      otlpMetricExporterMock(config);
+    }
+  },
+}));
+
+vi.mock('@opentelemetry/sdk-metrics', () => ({
+  PeriodicExportingMetricReader: class {
+    constructor(config: unknown) {
+      periodicReaderMock(config);
+    }
+  },
+}));
+
+vi.mock('@opentelemetry/auto-instrumentations-node', () => ({
+  getNodeAutoInstrumentations: getNodeAutoInstrumentationsMock,
+}));
+
+vi.mock('@fastify/otel', () => ({
+  FastifyOtelInstrumentation: class {
+    plugin() {
+      return vi.fn();
+    }
+  },
+}));
+
+const ENV_KEYS = [
+  ENV.AXIOM_TOKEN,
+  ENV.AXIOM_DATASET,
+  ENV.AXIOM_METRICS_DATASET,
+  ENV.NODE_ENV,
+] as const;
+
+async function loadTracingModule() {
+  vi.resetModules();
+  return import('@/infrastructure/observability/tracing.js');
+}
+
+describe('tracing', () => {
+  let consoleInfoSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+    for (const key of ENV_KEYS) delete process.env[key];
+  });
+
+  afterEach(() => {
+    consoleInfoSpy.mockRestore();
+    for (const key of ENV_KEYS) delete process.env[key];
+  });
+
+  describe('isObservabilityEnabled', () => {
+    it('is false when neither AXIOM_TOKEN nor AXIOM_DATASET is set', async () => {
+      const mod = await loadTracingModule();
+      expect(mod.isObservabilityEnabled).toBe(false);
+    });
+
+    it('is false when only AXIOM_TOKEN is set', async () => {
+      process.env[ENV.AXIOM_TOKEN] = 'token';
+      const mod = await loadTracingModule();
+      expect(mod.isObservabilityEnabled).toBe(false);
+    });
+
+    it('is false when only AXIOM_DATASET is set', async () => {
+      process.env[ENV.AXIOM_DATASET] = 'dataset';
+      const mod = await loadTracingModule();
+      expect(mod.isObservabilityEnabled).toBe(false);
+    });
+
+    it('is true when both AXIOM_TOKEN and AXIOM_DATASET are set', async () => {
+      process.env[ENV.AXIOM_TOKEN] = 'token';
+      process.env[ENV.AXIOM_DATASET] = 'dataset';
+      const mod = await loadTracingModule();
+      expect(mod.isObservabilityEnabled).toBe(true);
+    });
+  });
+
+  describe('startObservability', () => {
+    it('does not construct the SDK when Axiom is not configured', async () => {
+      const mod = await loadTracingModule();
+      mod.startObservability();
+
+      expect(nodeSDKConstructorMock).not.toHaveBeenCalled();
+      expect(nodeSDKStartMock).not.toHaveBeenCalled();
+      expect(consoleInfoSpy).toHaveBeenCalledWith(
+        expect.stringContaining('AXIOM_TOKEN/AXIOM_DATASET not set'),
+      );
+    });
+
+    it('configures the trace exporter with the Bearer token and dataset header', async () => {
+      process.env[ENV.AXIOM_TOKEN] = 'secret-token';
+      process.env[ENV.AXIOM_DATASET] = 'my-dataset';
+      const mod = await loadTracingModule();
+
+      mod.startObservability();
+
+      expect(otlpTraceExporterMock).toHaveBeenCalledWith({
+        url: `${AXIOM.API_URL}${AXIOM.TRACES_PATH}`,
+        headers: {
+          Authorization: 'Bearer secret-token',
+          [AXIOM.DATASET_HEADER]: 'my-dataset',
+        },
+      });
+      expect(nodeSDKStartMock).toHaveBeenCalledOnce();
+    });
+
+    it('sets service name and deployment environment on the resource', async () => {
+      process.env[ENV.AXIOM_TOKEN] = 'secret-token';
+      process.env[ENV.AXIOM_DATASET] = 'my-dataset';
+      process.env[ENV.NODE_ENV] = 'production';
+      const mod = await loadTracingModule();
+
+      mod.startObservability();
+
+      const [config] = nodeSDKConstructorMock.mock.calls[0] as [
+        { resource: { attributes: Record<string, unknown> } },
+      ];
+      expect(config.resource.attributes[ATTR_SERVICE_NAME]).toBe(AXIOM.SERVICE_NAME);
+      expect(config.resource.attributes[ATTR_DEPLOYMENT_ENVIRONMENT_NAME]).toBe('production');
+    });
+
+    it('defaults the deployment environment to "development" when NODE_ENV is unset', async () => {
+      process.env[ENV.AXIOM_TOKEN] = 'secret-token';
+      process.env[ENV.AXIOM_DATASET] = 'my-dataset';
+      const mod = await loadTracingModule();
+
+      mod.startObservability();
+
+      const [config] = nodeSDKConstructorMock.mock.calls[0] as [
+        { resource: { attributes: Record<string, unknown> } },
+      ];
+      expect(config.resource.attributes[ATTR_DEPLOYMENT_ENVIRONMENT_NAME]).toBe('development');
+    });
+
+    it('omits metric export and logs a notice when AXIOM_METRICS_DATASET is not set', async () => {
+      process.env[ENV.AXIOM_TOKEN] = 'secret-token';
+      process.env[ENV.AXIOM_DATASET] = 'my-dataset';
+      const mod = await loadTracingModule();
+
+      mod.startObservability();
+
+      expect(otlpMetricExporterMock).not.toHaveBeenCalled();
+      expect(periodicReaderMock).not.toHaveBeenCalled();
+      const [config] = nodeSDKConstructorMock.mock.calls[0] as [{ metricReaders: unknown[] }];
+      expect(config.metricReaders).toEqual([]);
+      expect(consoleInfoSpy).toHaveBeenCalledWith(
+        expect.stringContaining('AXIOM_METRICS_DATASET not set'),
+      );
+    });
+
+    it('configures the metrics exporter with its own dataset header when AXIOM_METRICS_DATASET is set', async () => {
+      process.env[ENV.AXIOM_TOKEN] = 'secret-token';
+      process.env[ENV.AXIOM_DATASET] = 'my-dataset';
+      process.env[ENV.AXIOM_METRICS_DATASET] = 'my-metrics-dataset';
+      const mod = await loadTracingModule();
+
+      mod.startObservability();
+
+      expect(otlpMetricExporterMock).toHaveBeenCalledWith({
+        url: `${AXIOM.API_URL}${AXIOM.METRICS_PATH}`,
+        headers: {
+          Authorization: 'Bearer secret-token',
+          [AXIOM.METRICS_DATASET_HEADER]: 'my-metrics-dataset',
+        },
+      });
+      const [config] = nodeSDKConstructorMock.mock.calls[0] as [{ metricReaders: unknown[] }];
+      expect(config.metricReaders).toHaveLength(1);
+    });
+
+    it('includes the Fastify instrumentation instance in the instrumentations list', async () => {
+      process.env[ENV.AXIOM_TOKEN] = 'secret-token';
+      process.env[ENV.AXIOM_DATASET] = 'my-dataset';
+      const mod = await loadTracingModule();
+
+      mod.startObservability();
+
+      const [config] = nodeSDKConstructorMock.mock.calls[0] as [{ instrumentations: unknown[] }];
+      expect(config.instrumentations).toContain(mod.fastifyOtelInstrumentation);
+    });
+
+    it('disables the noisy fs auto-instrumentation', async () => {
+      process.env[ENV.AXIOM_TOKEN] = 'secret-token';
+      process.env[ENV.AXIOM_DATASET] = 'my-dataset';
+      const mod = await loadTracingModule();
+
+      mod.startObservability();
+
+      expect(getNodeAutoInstrumentationsMock).toHaveBeenCalledWith({
+        '@opentelemetry/instrumentation-fs': { enabled: false },
+      });
+    });
+  });
+});
