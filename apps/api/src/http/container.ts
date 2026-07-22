@@ -76,13 +76,15 @@ import { BrevoEmailService } from '@/infrastructure/email/BrevoEmailService.js';
 import { SendFollowUpRemindersUseCase } from '@/use-cases/reminders/SendFollowUpRemindersUseCase.js';
 import { PrismaTransactionManager } from '@/infrastructure/db/PrismaTransactionManager.js';
 import { OpenRouterLLMProvider } from '@/infrastructure/llm/OpenRouterLLMProvider.js';
+import { GoogleAILLMProvider } from '@/infrastructure/llm/GoogleAILLMProvider.js';
 import { ParseJobDescriptionUseCase } from '@/use-cases/jobDescription/ParseJobDescriptionUseCase.js';
 import { GenerateCoverLetterUseCase } from '@/use-cases/coverLetter/GenerateCoverLetterUseCase.js';
 import { ComputeHealthScoreUseCase } from '@/use-cases/application/ComputeHealthScoreUseCase.js';
 import { SendWeeklyDigestUseCase } from '@/use-cases/digest/SendWeeklyDigestUseCase.js';
 
 import type { FastifyInstance } from 'fastify';
-import { ENV, STORAGE_PROVIDER } from '@/constants.js';
+import { ENV, LLM_PROVIDER, STORAGE_PROVIDER } from '@/constants.js';
+import type { ILLMProvider } from '@/use-cases/ports/ILLMProvider.js';
 
 // Augment the @fastify/awilix Cradle interface so diContainer and diScope are fully typed
 declare module '@fastify/awilix' {
@@ -163,7 +165,7 @@ declare module '@fastify/awilix' {
     emailService: BrevoEmailService;
     sendFollowUpRemindersUseCase: SendFollowUpRemindersUseCase;
     transactionManager: PrismaTransactionManager;
-    llmProvider: OpenRouterLLMProvider;
+    llmProvider: ILLMProvider;
     parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
     generateCoverLetterUseCase: GenerateCoverLetterUseCase;
     computeHealthScoreUseCase: ComputeHealthScoreUseCase;
@@ -176,6 +178,12 @@ const StorageProvider: StorageProviderConstructor =
   process.env[ENV.STORAGE_PROVIDER] === STORAGE_PROVIDER.R2
     ? R2StorageProvider
     : LocalStorageProvider;
+
+type LLMProviderConstructor = new () => ILLMProvider;
+const LLMProvider: LLMProviderConstructor =
+  process.env[ENV.LLM_PROVIDER] === LLM_PROVIDER.GOOGLEAI
+    ? GoogleAILLMProvider
+    : OpenRouterLLMProvider;
 
 export function buildContainer(fastify: FastifyInstance): void {
   diContainer.register({
@@ -281,7 +289,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     sendFollowUpRemindersUseCase: asClass(SendFollowUpRemindersUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
-    llmProvider: asClass(OpenRouterLLMProvider, { lifetime: Lifetime.SINGLETON }),
+    llmProvider: asClass(LLMProvider, { lifetime: Lifetime.SINGLETON }),
     parseJobDescriptionUseCase: asClass(ParseJobDescriptionUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

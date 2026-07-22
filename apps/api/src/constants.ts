@@ -35,8 +35,11 @@ export const ENV = {
   BREVO_API_KEY: 'BREVO_API_KEY',
   FROM_EMAIL: 'FROM_EMAIL',
   FROM_NAME: 'FROM_NAME',
+  LLM_PROVIDER: 'LLM_PROVIDER',
   OPENROUTER_API_KEY: 'OPENROUTER_API_KEY',
   OPENROUTER_MODEL: 'OPENROUTER_MODEL',
+  GOOGLEAI_API_KEY: 'GOOGLEAI_API_KEY',
+  GOOGLEAI_MODEL: 'GOOGLEAI_MODEL',
   DIGEST_ADMIN_SECRET: 'DIGEST_ADMIN_SECRET',
 } as const;
 
@@ -113,10 +116,18 @@ export const ROUTES = {
   DIGEST_SEND: '/admin/digest/send',
 } as const;
 
-/** LLM provider (OpenRouter) defaults. */
+/** `LLM_PROVIDER` values. */
+export const LLM_PROVIDER = {
+  OPENROUTER: 'openrouter',
+  GOOGLEAI: 'googleai',
+} as const;
+
+/** LLM provider defaults. */
 export const LLM = {
-  API_URL: 'https://openrouter.ai/api/v1/chat/completions',
-  DEFAULT_MODEL: 'openai/gpt-4o-mini',
+  OPENROUTER_API_URL: 'https://openrouter.ai/api/v1/chat/completions',
+  OPENROUTER_DEFAULT_MODEL: 'openai/gpt-4o-mini',
+  GOOGLEAI_API_URL: 'https://generativelanguage.googleapis.com/v1beta/models',
+  GOOGLEAI_DEFAULT_MODEL: 'gemini-2.0-flash',
 } as const;
 
 /** Email provider (Brevo) defaults. */
