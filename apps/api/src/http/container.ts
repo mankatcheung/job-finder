@@ -16,6 +16,7 @@ import { PrismaInterviewRoundRepository } from '@/infrastructure/db/repositories
 import { CachedInterviewRoundRepository } from '@/infrastructure/db/repositories/CachedInterviewRoundRepository.js';
 import { PrismaActivityLogRepository } from '@/infrastructure/db/repositories/PrismaActivityLogRepository.js';
 import { PrismaContactRepository } from '@/infrastructure/db/repositories/PrismaContactRepository.js';
+import { PrismaEmailVerificationTokenRepository } from '@/infrastructure/db/repositories/PrismaEmailVerificationTokenRepository.js';
 
 import { LocalStorageProvider } from '@/infrastructure/storage/LocalStorageProvider.js';
 import { R2StorageProvider } from '@/infrastructure/storage/R2StorageProvider.js';
@@ -39,6 +40,8 @@ import { McpController } from '@/interface-adapters/mcp/McpController.js';
 
 import { RegisterUseCase } from '@/use-cases/auth/RegisterUseCase.js';
 import { LoginUseCase } from '@/use-cases/auth/LoginUseCase.js';
+import { SendEmailVerificationUseCase } from '@/use-cases/auth/SendEmailVerificationUseCase.js';
+import { VerifyEmailUseCase } from '@/use-cases/auth/VerifyEmailUseCase.js';
 import { CreateApplicationUseCase } from '@/use-cases/jobs/CreateApplicationUseCase.js';
 import { GetApplicationsUseCase } from '@/use-cases/jobs/GetApplicationsUseCase.js';
 import { GetApplicationUseCase } from '@/use-cases/jobs/GetApplicationUseCase.js';
@@ -92,6 +95,7 @@ declare module '@fastify/awilix' {
     prisma: typeof prisma;
     storageProvider: LocalStorageProvider | R2StorageProvider;
     generateId: () => string;
+    webAppOrigin: string;
     fastify: FastifyInstance;
     tokenService: FastifyJwtTokenService;
     cache: MemoryCache;
@@ -111,6 +115,7 @@ declare module '@fastify/awilix' {
     activityLogRepository: PrismaActivityLogRepository;
     apiTokenRepository: PrismaApiTokenRepository;
     contactRepository: PrismaContactRepository;
+    emailVerificationTokenRepository: PrismaEmailVerificationTokenRepository;
 
     applicationMapper: ApplicationMapper;
     apiTokenMapper: ApiTokenMapper;
@@ -132,6 +137,8 @@ declare module '@fastify/awilix' {
 
     registerUseCase: RegisterUseCase;
     loginUseCase: LoginUseCase;
+    sendEmailVerificationUseCase: SendEmailVerificationUseCase;
+    verifyEmailUseCase: VerifyEmailUseCase;
     createApplicationUseCase: CreateApplicationUseCase;
     getApplicationsUseCase: GetApplicationsUseCase;
     getApplicationUseCase: GetApplicationUseCase;
@@ -191,6 +198,9 @@ export function buildContainer(fastify: FastifyInstance): void {
     prisma: asValue(prisma),
     storageProvider: asClass(StorageProvider, { lifetime: Lifetime.SINGLETON }),
     generateId: asValue(() => nanoid()),
+    webAppOrigin: asValue(
+      process.env[ENV.CORS_ORIGIN]?.split(',')[0]?.trim() ?? 'http://localhost:3000',
+    ),
     fastify: asValue(fastify),
     tokenService: asClass(FastifyJwtTokenService, { lifetime: Lifetime.SINGLETON }),
     cache: asValue(new MemoryCache()),
@@ -219,6 +229,9 @@ export function buildContainer(fastify: FastifyInstance): void {
     activityLogRepository: asClass(PrismaActivityLogRepository, { lifetime: Lifetime.SINGLETON }),
     apiTokenRepository: asClass(PrismaApiTokenRepository, { lifetime: Lifetime.SINGLETON }),
     contactRepository: asClass(PrismaContactRepository, { lifetime: Lifetime.SINGLETON }),
+    emailVerificationTokenRepository: asClass(PrismaEmailVerificationTokenRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
 
     // Mappers
     applicationMapper: asClass(ApplicationMapper, { lifetime: Lifetime.SINGLETON }),
@@ -243,6 +256,10 @@ export function buildContainer(fastify: FastifyInstance): void {
     // Use Cases
     registerUseCase: asClass(RegisterUseCase, { lifetime: Lifetime.TRANSIENT }),
     loginUseCase: asClass(LoginUseCase, { lifetime: Lifetime.TRANSIENT }),
+    sendEmailVerificationUseCase: asClass(SendEmailVerificationUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    verifyEmailUseCase: asClass(VerifyEmailUseCase, { lifetime: Lifetime.TRANSIENT }),
     createApplicationUseCase: asClass(CreateApplicationUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

@@ -11,6 +11,7 @@ import { UpdateEmailUseCase } from '@/use-cases/user/UpdateEmailUseCase.js';
 import { UpdatePasswordUseCase } from '@/use-cases/user/UpdatePasswordUseCase.js';
 import { DeleteAccountUseCase } from '@/use-cases/user/DeleteAccountUseCase.js';
 import { makeUserRepository, makeUser } from '@/__tests__/helpers/mocks.js';
+import type { ISendEmailVerificationUseCase } from '@/use-cases/auth/ISendEmailVerificationUseCase.js';
 
 vi.mock('bcryptjs', () => ({
   default: {
@@ -22,6 +23,10 @@ vi.mock('bcryptjs', () => ({
 const WRONG_PW = false as never;
 const RIGHT_PW = true as never;
 
+const sendEmailVerificationUseCase: ISendEmailVerificationUseCase = {
+  execute: vi.fn().mockResolvedValue(undefined),
+};
+
 describe('Authorization guards', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -31,7 +36,10 @@ describe('Authorization guards', () => {
     const notFound = makeUserRepository({ findById: vi.fn().mockResolvedValue(null) });
 
     it('UpdateEmailUseCase', async () => {
-      const err = await new UpdateEmailUseCase({ userRepository: notFound })
+      const err = await new UpdateEmailUseCase({
+        userRepository: notFound,
+        sendEmailVerificationUseCase,
+      })
         .execute({ userId: 'x', currentPassword: 'p', newEmail: 'e@e.com' })
         .catch((e) => e);
       expect((err as { code: string }).code).toBe('NOT_FOUND');
@@ -61,7 +69,10 @@ describe('Authorization guards', () => {
     });
 
     it('UpdateEmailUseCase does not update on wrong password', async () => {
-      const err = await new UpdateEmailUseCase({ userRepository: repo })
+      const err = await new UpdateEmailUseCase({
+        userRepository: repo,
+        sendEmailVerificationUseCase,
+      })
         .execute({ userId: 'user-1', currentPassword: 'wrong', newEmail: 'e@e.com' })
         .catch((e) => e);
 
@@ -100,7 +111,7 @@ describe('Authorization guards', () => {
       vi.mocked(bcrypt.compare).mockResolvedValue(RIGHT_PW);
 
       await expect(
-        new UpdateEmailUseCase({ userRepository: repo }).execute({
+        new UpdateEmailUseCase({ userRepository: repo, sendEmailVerificationUseCase }).execute({
           userId: 'user-1',
           currentPassword: 'correct',
           newEmail: 'new@example.com',

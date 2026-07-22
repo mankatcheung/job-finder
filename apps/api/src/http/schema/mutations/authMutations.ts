@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '@/http/schema/builder.js';
 import { setAuthCookies, clearAuthCookies } from '@/http/schema/types/AuthPayloadType.js';
+import { fromCodedError } from '@/http/errors/AppError.js';
 import { ERROR_CODES } from '@/constants.js';
 
 builder.mutationField('register', (t) =>
@@ -54,6 +55,23 @@ builder.mutationField('logout', (t) =>
     resolve: (_root, _args, ctx) => {
       clearAuthCookies(ctx.reply);
       return true;
+    },
+  }),
+);
+
+builder.mutationField('verifyEmail', (t) =>
+  t.boolean({
+    args: {
+      token: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      const { authResolver } = ctx.diScope.cradle;
+      try {
+        await authResolver.verifyEmail(args.token);
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
     },
   }),
 );

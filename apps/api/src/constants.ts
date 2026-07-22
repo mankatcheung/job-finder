@@ -88,6 +88,14 @@ export const API_TOKEN_SCOPE = {
   READ: 'read',
 } as const;
 
+/** Email-verification token settings. */
+export const EMAIL_VERIFICATION_TOKEN = {
+  /** Number of random bytes hex-encoded into the token body. */
+  RANDOM_BYTES: 32,
+  /** How long a verification link stays valid, in milliseconds. */
+  TTL_MS: 24 * 60 * 60 * 1000, // 24 hours
+} as const;
+
 /** HTTP Authorization header. */
 export const AUTH_HEADER = {
   BEARER_PREFIX: 'Bearer ',
