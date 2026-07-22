@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
@@ -36,11 +38,47 @@ const EXPORT_USER_DATA = `
   }
 `;
 
+const TOTP_ENABLED_QUERY = `
+  query TotpEnabled {
+    totpEnabled
+  }
+`;
+
+const BEGIN_TOTP_SETUP = `
+  mutation BeginTotpSetup {
+    beginTotpSetup {
+      secret
+      otpauthUrl
+      qrCodeDataUrl
+    }
+  }
+`;
+
+const CONFIRM_TOTP_SETUP = `
+  mutation ConfirmTotpSetup($code: String!) {
+    confirmTotpSetup(code: $code)
+  }
+`;
+
+const DISABLE_TOTP = `
+  mutation DisableTotp($password: String!) {
+    disableTotp(password: $password)
+  }
+`;
+
 // ── Schemas ────────────────────────────────────────────────────────────────
 
 const emailSchema = z.object({
   currentPassword: z.string().min(1, 'Required'),
   newEmail: z.string().email('Invalid email'),
+});
+
+const totpConfirmSchema = z.object({
+  code: z.string().min(6, 'Enter the 6-digit code').max(6, 'Enter the 6-digit code'),
+});
+
+const totpDisableSchema = z.object({
+  password: z.string().min(1, 'Required'),
 });
 
 const passwordSchema = z
@@ -61,6 +99,10 @@ const deleteSchema = z.object({
 type EmailForm = z.infer<typeof emailSchema>;
 type PasswordForm = z.infer<typeof passwordSchema>;
 type DeleteForm = z.infer<typeof deleteSchema>;
+type TotpConfirmForm = z.infer<typeof totpConfirmSchema>;
+type TotpDisableForm = z.infer<typeof totpDisableSchema>;
+
+type TotpSetup = { secret: string; otpauthUrl: string; qrCodeDataUrl: string };
 
 // ── Input styles ───────────────────────────────────────────────────────────
 
@@ -73,6 +115,53 @@ const labelCls = 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-
 
 export function AccountPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
+
+  // Two-factor authentication
+  const { data: totpData } = useQuery({
+    queryKey: ['totpEnabled'],
+    queryFn: () => gqlClient.request<{ totpEnabled: boolean }>(TOTP_ENABLED_QUERY),
+  });
+  const totpEnabled = totpData?.totpEnabled ?? false;
+  const [totpSetup, setTotpSetup] = useState<TotpSetup | null>(null);
+  const [totpSetupError, setTotpSetupError] = useState<string | null>(null);
+
+  const onBeginTotpSetup = async () => {
+    setTotpSetupError(null);
+    try {
+      const res = await gqlClient.request<{ beginTotpSetup: TotpSetup }>(BEGIN_TOTP_SETUP);
+      setTotpSetup(res.beginTotpSetup);
+    } catch (err) {
+      setTotpSetupError(extractGqlError(err) ?? 'Failed to start two-factor setup.');
+    }
+  };
+
+  const totpConfirmForm = useForm<TotpConfirmForm>({ resolver: zodResolver(totpConfirmSchema) });
+  const onConfirmTotpSetup = async (data: TotpConfirmForm) => {
+    try {
+      await gqlClient.request(CONFIRM_TOTP_SETUP, data);
+      setTotpSetup(null);
+      totpConfirmForm.reset();
+      await qc.invalidateQueries({ queryKey: ['totpEnabled'] });
+    } catch (err) {
+      totpConfirmForm.setError('root', {
+        message: extractGqlError(err) ?? 'Invalid code. Please try again.',
+      });
+    }
+  };
+
+  const totpDisableForm = useForm<TotpDisableForm>({ resolver: zodResolver(totpDisableSchema) });
+  const onDisableTotp = async (data: TotpDisableForm) => {
+    try {
+      await gqlClient.request(DISABLE_TOTP, data);
+      totpDisableForm.reset();
+      await qc.invalidateQueries({ queryKey: ['totpEnabled'] });
+    } catch (err) {
+      totpDisableForm.setError('root', {
+        message: extractGqlError(err) ?? 'Failed to disable two-factor authentication.',
+      });
+    }
+  };
 
   // Email form
   const emailForm = useForm<EmailForm>({ resolver: zodResolver(emailSchema) });
@@ -260,6 +349,110 @@ export function AccountPage() {
             {passwordForm.formState.isSubmitting ? 'Saving…' : 'Update password'}
           </button>
         </form>
+      </section>
+
+      <hr className="border-gray-200 dark:border-gray-700" />
+
+      {/* ── Two-factor authentication ── */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            Two-factor authentication
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Require a code from an authenticator app in addition to your password.
+          </p>
+        </div>
+
+        {totpEnabled ? (
+          <form onSubmit={totpDisableForm.handleSubmit(onDisableTotp)} className="space-y-3">
+            <p className="text-sm text-green-600">Two-factor authentication is enabled.</p>
+            <div>
+              <label className={labelCls}>Confirm your password to disable</label>
+              <input
+                type="password"
+                {...totpDisableForm.register('password')}
+                className={inputCls}
+                placeholder="••••••••"
+              />
+              {totpDisableForm.formState.errors.password && (
+                <p className="mt-1 text-xs text-red-600">
+                  {totpDisableForm.formState.errors.password.message}
+                </p>
+              )}
+            </div>
+            {totpDisableForm.formState.errors.root && (
+              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+                {totpDisableForm.formState.errors.root.message}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={totpDisableForm.formState.isSubmitting}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              {totpDisableForm.formState.isSubmitting ? 'Disabling…' : 'Disable 2FA'}
+            </button>
+          </form>
+        ) : totpSetup ? (
+          <div className="space-y-3">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Scan this QR code with your authenticator app, or enter the key manually.
+            </p>
+            <img
+              src={totpSetup.qrCodeDataUrl}
+              alt="Two-factor authentication QR code"
+              className="w-40 h-40 rounded-lg border border-gray-200 dark:border-gray-700"
+            />
+            <p className="text-xs font-mono text-gray-500 dark:text-gray-400 break-all">
+              {totpSetup.secret}
+            </p>
+            <form onSubmit={totpConfirmForm.handleSubmit(onConfirmTotpSetup)} className="space-y-3">
+              <div>
+                <label className={labelCls}>Enter the code from your app</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  {...totpConfirmForm.register('code')}
+                  className={inputCls}
+                  placeholder="123456"
+                />
+                {totpConfirmForm.formState.errors.code && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {totpConfirmForm.formState.errors.code.message}
+                  </p>
+                )}
+              </div>
+              {totpConfirmForm.formState.errors.root && (
+                <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+                  {totpConfirmForm.formState.errors.root.message}
+                </p>
+              )}
+              <button
+                type="submit"
+                disabled={totpConfirmForm.formState.isSubmitting}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                {totpConfirmForm.formState.isSubmitting ? 'Confirming…' : 'Confirm'}
+              </button>
+            </form>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {totpSetupError && (
+              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+                {totpSetupError}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={onBeginTotpSetup}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              Enable 2FA
+            </button>
+          </div>
+        )}
       </section>
 
       <hr className="border-gray-200 dark:border-gray-700" />

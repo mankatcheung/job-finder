@@ -17,6 +17,8 @@ import './types/inputs/DocumentInputs.js';
 import './types/ContactType.js';
 import './types/ParsedJobDescriptionType.js';
 import './types/HealthScoreType.js';
+import './types/LoginResultType.js';
+import './types/TotpSetupType.js';
 
 // Queries
 import './queries/applicationQueries.js';

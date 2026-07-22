@@ -4,6 +4,10 @@ import type { IUpdateEmailUseCase } from '@/use-cases/user/IUpdateEmailUseCase.j
 import type { IUpdatePasswordUseCase } from '@/use-cases/user/IUpdatePasswordUseCase.js';
 import type { IDeleteAccountUseCase } from '@/use-cases/user/IDeleteAccountUseCase.js';
 import type { IExportUserDataUseCase } from '@/use-cases/user/IExportUserDataUseCase.js';
+import type { IGenerateTotpSecretUseCase } from '@/use-cases/user/IGenerateTotpSecretUseCase.js';
+import type { IConfirmTotpSetupUseCase } from '@/use-cases/user/IConfirmTotpSetupUseCase.js';
+import type { IDisableTotpUseCase } from '@/use-cases/user/IDisableTotpUseCase.js';
+import type { IGetTotpStatusUseCase } from '@/use-cases/user/IGetTotpStatusUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 
@@ -16,6 +20,12 @@ const makeDeps = (overrides?: object) => ({
     execute: vi.fn().mockResolvedValue(undefined),
   }),
   exportUserDataUseCase: stub<IExportUserDataUseCase>({ execute: vi.fn() }),
+  generateTotpSecretUseCase: stub<IGenerateTotpSecretUseCase>({ execute: vi.fn() }),
+  confirmTotpSetupUseCase: stub<IConfirmTotpSetupUseCase>({
+    execute: vi.fn().mockResolvedValue(undefined),
+  }),
+  disableTotpUseCase: stub<IDisableTotpUseCase>({ execute: vi.fn().mockResolvedValue(undefined) }),
+  getTotpStatusUseCase: stub<IGetTotpStatusUseCase>({ execute: vi.fn() }),
   ...overrides,
 });
 
@@ -98,6 +108,80 @@ describe('UserResolver', () => {
 
       expect(deps.exportUserDataUseCase.execute).toHaveBeenCalledWith('user-1');
       expect(result).toEqual(exportData);
+    });
+  });
+
+  describe('beginTotpSetup', () => {
+    it('delegates to generateTotpSecretUseCase and returns the result', async () => {
+      const setup = {
+        secret: 'ABCD1234',
+        otpauthUrl: 'otpauth://totp/...',
+        qrCodeDataUrl: 'data:image/png;base64,...',
+      };
+      const deps = makeDeps({
+        generateTotpSecretUseCase: stub<IGenerateTotpSecretUseCase>({
+          execute: vi.fn().mockResolvedValue(setup),
+        }),
+      });
+
+      const result = await new UserResolver(deps).beginTotpSetup('user-1');
+
+      expect(deps.generateTotpSecretUseCase.execute).toHaveBeenCalledWith('user-1');
+      expect(result).toEqual(setup);
+    });
+  });
+
+  describe('confirmTotpSetup', () => {
+    it('delegates to confirmTotpSetupUseCase with the correct arguments', async () => {
+      const deps = makeDeps();
+
+      await new UserResolver(deps).confirmTotpSetup('user-1', '123456');
+
+      expect(deps.confirmTotpSetupUseCase.execute).toHaveBeenCalledWith({
+        userId: 'user-1',
+        code: '123456',
+      });
+    });
+
+    it('propagates errors from the use case', async () => {
+      const err = Object.assign(new Error('Invalid verification code'), { code: 'UNAUTHORIZED' });
+      const deps = makeDeps({
+        confirmTotpSetupUseCase: stub<IConfirmTotpSetupUseCase>({
+          execute: vi.fn().mockRejectedValue(err),
+        }),
+      });
+
+      await expect(
+        new UserResolver(deps).confirmTotpSetup('user-1', 'bad-code'),
+      ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    });
+  });
+
+  describe('disableTotp', () => {
+    it('delegates to disableTotpUseCase with the correct arguments', async () => {
+      const deps = makeDeps();
+
+      await new UserResolver(deps).disableTotp('user-1', 'secret');
+
+      expect(deps.disableTotpUseCase.execute).toHaveBeenCalledWith({
+        userId: 'user-1',
+        password: 'secret',
+      });
+    });
+  });
+
+  describe('getTotpStatus', () => {
+    it('delegates to getTotpStatusUseCase and returns the result', async () => {
+      const deps = makeDeps({
+        getTotpStatusUseCase: stub<IGetTotpStatusUseCase>({
+          execute: vi.fn().mockResolvedValue(true),
+        }),
+      });
+
+      const result = await new UserResolver(deps).getTotpStatus('user-1');
+
+      expect(deps.getTotpStatusUseCase.execute).toHaveBeenCalledWith('user-1');
+      expect(result).toBe(true);
     });
   });
 });

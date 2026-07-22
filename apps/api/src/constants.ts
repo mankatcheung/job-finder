@@ -88,6 +88,13 @@ export const API_TOKEN_SCOPE = {
   READ: 'read',
 } as const;
 
+/** TOTP (RFC 6238) two-factor authentication settings. */
+export const TOTP_CONFIG = {
+  ISSUER: 'Job Finder',
+  /** Accept codes from the adjacent time step to absorb minor clock drift. */
+  EPOCH_TOLERANCE_S: 30,
+} as const;
+
 /** HTTP Authorization header. */
 export const AUTH_HEADER = {
   BEARER_PREFIX: 'Bearer ',

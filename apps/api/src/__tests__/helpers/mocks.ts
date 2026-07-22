@@ -123,6 +123,8 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   id: 'user-1',
   email: 'test@example.com',
   passwordHash: 'hashed-pw',
+  totpSecret: null,
+  totpEnabled: false,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,

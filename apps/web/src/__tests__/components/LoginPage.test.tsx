@@ -31,6 +31,15 @@ vi.mock('#/lib/queryClient', () => ({
 
 import { LoginPage } from '#/routes/login';
 
+const noTotpResponse = { login: { success: true, totpRequired: false } };
+const totpRequiredResponse = { login: { success: false, totpRequired: true } };
+
+async function fillCredentials(email: string, password: string) {
+  fireEvent.change(screen.getByPlaceholderText('you@example.com'), { target: { value: email } });
+  fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: password } });
+  fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+}
+
 describe('LoginPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -60,13 +69,7 @@ describe('LoginPage', () => {
 
   it('shows validation error when password is too short', async () => {
     render(<LoginPage />);
-    fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('••••••••'), {
-      target: { value: 'short' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    await fillCredentials('test@example.com', 'short');
 
     await waitFor(() => {
       expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
@@ -75,16 +78,9 @@ describe('LoginPage', () => {
   });
 
   it('calls gqlClient.request with email and password on valid submit', async () => {
-    mockGqlRequest.mockResolvedValue({});
+    mockGqlRequest.mockResolvedValue(noTotpResponse);
     render(<LoginPage />);
-
-    fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('••••••••'), {
-      target: { value: 'password123' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    await fillCredentials('test@example.com', 'password123');
 
     await waitFor(() => {
       expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Login'), {
@@ -94,17 +90,10 @@ describe('LoginPage', () => {
     });
   });
 
-  it('navigates to /dashboard after successful login', async () => {
-    mockGqlRequest.mockResolvedValue({});
+  it('navigates to /dashboard after successful login without 2FA', async () => {
+    mockGqlRequest.mockResolvedValue(noTotpResponse);
     render(<LoginPage />);
-
-    fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('••••••••'), {
-      target: { value: 'password123' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    await fillCredentials('test@example.com', 'password123');
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith({ to: '/dashboard' });
@@ -116,14 +105,7 @@ describe('LoginPage', () => {
       response: { errors: [{ message: 'Invalid credentials' }] },
     });
     render(<LoginPage />);
-
-    fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('••••••••'), {
-      target: { value: 'password123' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    await fillCredentials('test@example.com', 'password123');
 
     await waitFor(() => {
       expect(screen.getByText('Invalid credentials')).toBeInTheDocument();
@@ -134,17 +116,74 @@ describe('LoginPage', () => {
   it('shows generic error message when API error has no message', async () => {
     mockGqlRequest.mockRejectedValue(new Error('Network error'));
     render(<LoginPage />);
-
-    fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('••••••••'), {
-      target: { value: 'password123' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    await fillCredentials('test@example.com', 'password123');
 
     await waitFor(() => {
       expect(screen.getByText('Login failed. Please try again.')).toBeInTheDocument();
+    });
+  });
+
+  describe('two-factor authentication step', () => {
+    it('shows the code entry step when the login response requires 2FA', async () => {
+      mockGqlRequest.mockResolvedValue(totpRequiredResponse);
+      render(<LoginPage />);
+      await fillCredentials('test@example.com', 'password123');
+
+      await waitFor(() => {
+        expect(screen.getByText('Two-factor authentication')).toBeInTheDocument();
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('calls loginWithTotp with the original credentials and the code, then navigates', async () => {
+      mockGqlRequest.mockResolvedValueOnce(totpRequiredResponse);
+      render(<LoginPage />);
+      await fillCredentials('test@example.com', 'password123');
+      await waitFor(() => screen.getByPlaceholderText('123456'));
+
+      mockGqlRequest.mockResolvedValueOnce({ loginWithTotp: true });
+      fireEvent.change(screen.getByPlaceholderText('123456'), { target: { value: '654321' } });
+      fireEvent.click(screen.getByRole('button', { name: /verify/i }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('LoginWithTotp'), {
+          email: 'test@example.com',
+          password: 'password123',
+          code: '654321',
+        });
+      });
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith({ to: '/dashboard' });
+      });
+    });
+
+    it('shows an error message when the code is invalid', async () => {
+      mockGqlRequest.mockResolvedValueOnce(totpRequiredResponse);
+      render(<LoginPage />);
+      await fillCredentials('test@example.com', 'password123');
+      await waitFor(() => screen.getByPlaceholderText('123456'));
+
+      mockGqlRequest.mockRejectedValueOnce({
+        response: { errors: [{ message: 'Invalid verification code' }] },
+      });
+      fireEvent.change(screen.getByPlaceholderText('123456'), { target: { value: '000000' } });
+      fireEvent.click(screen.getByRole('button', { name: /verify/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText('Invalid verification code')).toBeInTheDocument();
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('returns to the credentials form when "Back to sign in" is clicked', async () => {
+      mockGqlRequest.mockResolvedValueOnce(totpRequiredResponse);
+      render(<LoginPage />);
+      await fillCredentials('test@example.com', 'password123');
+      await waitFor(() => screen.getByPlaceholderText('123456'));
+
+      fireEvent.click(screen.getByRole('button', { name: /back to sign in/i }));
+
+      expect(screen.getByPlaceholderText('you@example.com')).toBeInTheDocument();
     });
   });
 });

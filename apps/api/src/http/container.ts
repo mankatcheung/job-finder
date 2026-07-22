@@ -39,6 +39,7 @@ import { McpController } from '@/interface-adapters/mcp/McpController.js';
 
 import { RegisterUseCase } from '@/use-cases/auth/RegisterUseCase.js';
 import { LoginUseCase } from '@/use-cases/auth/LoginUseCase.js';
+import { LoginWithTotpUseCase } from '@/use-cases/auth/LoginWithTotpUseCase.js';
 import { CreateApplicationUseCase } from '@/use-cases/jobs/CreateApplicationUseCase.js';
 import { GetApplicationsUseCase } from '@/use-cases/jobs/GetApplicationsUseCase.js';
 import { GetApplicationUseCase } from '@/use-cases/jobs/GetApplicationUseCase.js';
@@ -56,6 +57,10 @@ import { UpdateEmailUseCase } from '@/use-cases/user/UpdateEmailUseCase.js';
 import { UpdatePasswordUseCase } from '@/use-cases/user/UpdatePasswordUseCase.js';
 import { DeleteAccountUseCase } from '@/use-cases/user/DeleteAccountUseCase.js';
 import { ExportUserDataUseCase } from '@/use-cases/user/ExportUserDataUseCase.js';
+import { GenerateTotpSecretUseCase } from '@/use-cases/user/GenerateTotpSecretUseCase.js';
+import { ConfirmTotpSetupUseCase } from '@/use-cases/user/ConfirmTotpSetupUseCase.js';
+import { DisableTotpUseCase } from '@/use-cases/user/DisableTotpUseCase.js';
+import { GetTotpStatusUseCase } from '@/use-cases/user/GetTotpStatusUseCase.js';
 import { CreateInterviewRoundUseCase } from '@/use-cases/interviewRounds/CreateInterviewRoundUseCase.js';
 import { GetInterviewRoundsUseCase } from '@/use-cases/interviewRounds/GetInterviewRoundsUseCase.js';
 import { UpdateInterviewRoundUseCase } from '@/use-cases/interviewRounds/UpdateInterviewRoundUseCase.js';
@@ -132,6 +137,7 @@ declare module '@fastify/awilix' {
 
     registerUseCase: RegisterUseCase;
     loginUseCase: LoginUseCase;
+    loginWithTotpUseCase: LoginWithTotpUseCase;
     createApplicationUseCase: CreateApplicationUseCase;
     getApplicationsUseCase: GetApplicationsUseCase;
     getApplicationUseCase: GetApplicationUseCase;
@@ -149,6 +155,10 @@ declare module '@fastify/awilix' {
     updatePasswordUseCase: UpdatePasswordUseCase;
     deleteAccountUseCase: DeleteAccountUseCase;
     exportUserDataUseCase: ExportUserDataUseCase;
+    generateTotpSecretUseCase: GenerateTotpSecretUseCase;
+    confirmTotpSetupUseCase: ConfirmTotpSetupUseCase;
+    disableTotpUseCase: DisableTotpUseCase;
+    getTotpStatusUseCase: GetTotpStatusUseCase;
     createInterviewRoundUseCase: CreateInterviewRoundUseCase;
     getInterviewRoundsUseCase: GetInterviewRoundsUseCase;
     updateInterviewRoundUseCase: UpdateInterviewRoundUseCase;
@@ -243,6 +253,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     // Use Cases
     registerUseCase: asClass(RegisterUseCase, { lifetime: Lifetime.TRANSIENT }),
     loginUseCase: asClass(LoginUseCase, { lifetime: Lifetime.TRANSIENT }),
+    loginWithTotpUseCase: asClass(LoginWithTotpUseCase, { lifetime: Lifetime.TRANSIENT }),
     createApplicationUseCase: asClass(CreateApplicationUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
@@ -266,6 +277,12 @@ export function buildContainer(fastify: FastifyInstance): void {
     updatePasswordUseCase: asClass(UpdatePasswordUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteAccountUseCase: asClass(DeleteAccountUseCase, { lifetime: Lifetime.TRANSIENT }),
     exportUserDataUseCase: asClass(ExportUserDataUseCase, { lifetime: Lifetime.TRANSIENT }),
+    generateTotpSecretUseCase: asClass(GenerateTotpSecretUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    confirmTotpSetupUseCase: asClass(ConfirmTotpSetupUseCase, { lifetime: Lifetime.TRANSIENT }),
+    disableTotpUseCase: asClass(DisableTotpUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getTotpStatusUseCase: asClass(GetTotpStatusUseCase, { lifetime: Lifetime.TRANSIENT }),
     createInterviewRoundUseCase: asClass(CreateInterviewRoundUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

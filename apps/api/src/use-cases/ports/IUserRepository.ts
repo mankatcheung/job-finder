@@ -5,6 +5,14 @@ export interface IUserRepository {
   findByEmail(email: string): Promise<User | null>;
   findAll(): Promise<User[]>;
   create(data: { id: string; email: string; passwordHash: string }): Promise<User>;
-  update(id: string, data: { email?: string; passwordHash?: string }): Promise<User>;
+  update(
+    id: string,
+    data: {
+      email?: string;
+      passwordHash?: string;
+      totpSecret?: string | null;
+      totpEnabled?: boolean;
+    },
+  ): Promise<User>;
   delete(id: string): Promise<void>;
 }
