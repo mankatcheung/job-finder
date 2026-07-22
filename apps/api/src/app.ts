@@ -12,14 +12,33 @@ import { buildContainer } from '@/http/container.js';
 import { schema } from '@/http/schema/index.js';
 import { formatError } from '@/http/errors/formatError.js';
 import type { GraphQLContext } from '@/http/context.js';
+import {
+  fastifyOtelInstrumentation,
+  isObservabilityEnabled,
+} from '@/infrastructure/observability/tracing.js';
 import { API_TOKEN, API_TOKEN_SCOPE, AUTH_HEADER, COOKIES, ENV, NODE_ENV } from '@/constants.js';
 
 export async function buildApp() {
   const fastify = Fastify({
     logger: {
       level: process.env[ENV.NODE_ENV] === NODE_ENV.PRODUCTION ? 'warn' : 'info',
+      transport: isObservabilityEnabled
+        ? {
+            target: '@axiomhq/pino',
+            options: {
+              dataset: process.env[ENV.AXIOM_DATASET],
+              token: process.env[ENV.AXIOM_TOKEN],
+            },
+          }
+        : undefined,
     },
   });
+
+  // Must be registered before any routes/plugins are defined so it can wrap
+  // every route handler and lifecycle hook — see tracing.ts.
+  if (isObservabilityEnabled) {
+    await fastify.register(fastifyOtelInstrumentation.plugin());
+  }
 
   await fastify.register(corsPlugin);
   await fastify.register(cookie);
