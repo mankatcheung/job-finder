@@ -8,14 +8,19 @@ datasource db {
 }
 
 model User {
-  id           String          @id
-  email        String          @unique
-  passwordHash String
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  applications JobApplication[]
-  apiTokens    ApiToken[]
-  sessions     Session[]
+  id                     String                  @id
+  email                  String                  @unique
+  passwordHash           String
+  name                   String?
+  timezone               String?
+  targetRole             String?
+  emailVerifiedAt        DateTime?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  applications           JobApplication[]
+  apiTokens              ApiToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  sessions               Session[]
 }
 
 model Session {
@@ -28,6 +33,18 @@ model Session {
   expiresAt  DateTime
   revokedAt  DateTime?
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model EmailVerificationToken {
+  id        String    @id
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }

@@ -3,6 +3,7 @@ import { AuthResolver } from '@/interface-adapters/resolvers/AuthResolver.js';
 import { makeUser, makeSession } from '@/__tests__/helpers/mocks.js';
 import type { IRegisterUseCase } from '@/use-cases/auth/IRegisterUseCase.js';
 import type { ILoginUseCase } from '@/use-cases/auth/ILoginUseCase.js';
+import type { IVerifyEmailUseCase } from '@/use-cases/auth/IVerifyEmailUseCase.js';
 import type { ITokenService } from '@/use-cases/ports/ITokenService.js';
 import type { CreateSessionUseCase } from '@/use-cases/sessions/CreateSessionUseCase.js';
 import type { TouchSessionUseCase } from '@/use-cases/sessions/TouchSessionUseCase.js';
@@ -16,6 +17,11 @@ const makeRegisterUseCase = (overrides?: Partial<IRegisterUseCase>): IRegisterUs
 
 const makeLoginUseCase = (overrides?: Partial<ILoginUseCase>): ILoginUseCase => ({
   execute: vi.fn(),
+  ...overrides,
+});
+
+const makeVerifyEmailUseCase = (overrides?: Partial<IVerifyEmailUseCase>): IVerifyEmailUseCase => ({
+  execute: vi.fn().mockResolvedValue(undefined),
   ...overrides,
 });
 
@@ -37,6 +43,7 @@ const baseDeps = () => ({
   touchSessionUseCase: stub<TouchSessionUseCase>({
     execute: vi.fn().mockResolvedValue(makeSession()),
   }),
+  verifyEmailUseCase: makeVerifyEmailUseCase(),
 });
 
 describe('AuthResolver', () => {
@@ -157,6 +164,31 @@ describe('AuthResolver', () => {
 
       expect((err as { code: string }).code).toBe('UNAUTHORIZED');
       expect(tokenService.sign).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('verifyEmail', () => {
+    it('delegates to verifyEmailUseCase with the given token', async () => {
+      const verifyEmailUseCase = makeVerifyEmailUseCase();
+      const resolver = new AuthResolver({ ...baseDeps(), verifyEmailUseCase });
+
+      await resolver.verifyEmail('raw-token');
+
+      expect(verifyEmailUseCase.execute).toHaveBeenCalledWith({ token: 'raw-token' });
+    });
+
+    it('propagates errors from the use case', async () => {
+      const err = Object.assign(new Error('Invalid or expired verification link'), {
+        code: 'UNAUTHORIZED',
+      });
+      const verifyEmailUseCase = makeVerifyEmailUseCase({
+        execute: vi.fn().mockRejectedValue(err),
+      });
+      const resolver = new AuthResolver({ ...baseDeps(), verifyEmailUseCase });
+
+      await expect(resolver.verifyEmail('bad-token')).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+      });
     });
   });
 });

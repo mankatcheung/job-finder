@@ -9,6 +9,10 @@ const SCHEMA_STATEMENTS = [
     "id" TEXT PRIMARY KEY,
     "email" TEXT NOT NULL UNIQUE,
     "passwordHash" TEXT NOT NULL,
+    "name" TEXT,
+    "timezone" TEXT,
+    "targetRole" TEXT,
+    "emailVerifiedAt" DATETIME,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`,
@@ -124,6 +128,16 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "Session_userId_idx" ON "Session"("userId")`,
+  `CREATE TABLE "EmailVerificationToken" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "tokenHash" TEXT NOT NULL UNIQUE,
+    "expiresAt" DATETIME NOT NULL,
+    "usedAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "EmailVerificationToken_userId_idx" ON "EmailVerificationToken"("userId")`,
 ];
 
 export interface TestDb {

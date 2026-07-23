@@ -17,9 +17,10 @@ import { CachedInterviewRoundRepository } from '@/infrastructure/db/repositories
 import { PrismaActivityLogRepository } from '@/infrastructure/db/repositories/PrismaActivityLogRepository.js';
 import { PrismaContactRepository } from '@/infrastructure/db/repositories/PrismaContactRepository.js';
 import { PrismaSessionRepository } from '@/infrastructure/db/repositories/PrismaSessionRepository.js';
+import { PrismaEmailVerificationTokenRepository } from '@/infrastructure/db/repositories/PrismaEmailVerificationTokenRepository.js';
 
 import { LocalStorageProvider } from '@/infrastructure/storage/LocalStorageProvider.js';
-import { R2StorageProvider } from '@/infrastructure/storage/R2StorageProvider.js';
+import { GCSStorageProvider } from '@/infrastructure/storage/GCSStorageProvider.js';
 
 import { ApplicationMapper } from '@/interface-adapters/mappers/ApplicationMapper.js';
 import { NoteMapper } from '@/interface-adapters/mappers/NoteMapper.js';
@@ -41,6 +42,8 @@ import { McpController } from '@/interface-adapters/mcp/McpController.js';
 
 import { RegisterUseCase } from '@/use-cases/auth/RegisterUseCase.js';
 import { LoginUseCase } from '@/use-cases/auth/LoginUseCase.js';
+import { SendEmailVerificationUseCase } from '@/use-cases/auth/SendEmailVerificationUseCase.js';
+import { VerifyEmailUseCase } from '@/use-cases/auth/VerifyEmailUseCase.js';
 import { CreateApplicationUseCase } from '@/use-cases/jobs/CreateApplicationUseCase.js';
 import { GetApplicationsUseCase } from '@/use-cases/jobs/GetApplicationsUseCase.js';
 import { GetApplicationUseCase } from '@/use-cases/jobs/GetApplicationUseCase.js';
@@ -58,6 +61,8 @@ import { UpdateEmailUseCase } from '@/use-cases/user/UpdateEmailUseCase.js';
 import { UpdatePasswordUseCase } from '@/use-cases/user/UpdatePasswordUseCase.js';
 import { DeleteAccountUseCase } from '@/use-cases/user/DeleteAccountUseCase.js';
 import { ExportUserDataUseCase } from '@/use-cases/user/ExportUserDataUseCase.js';
+import { UpdateProfileUseCase } from '@/use-cases/user/UpdateProfileUseCase.js';
+import { GetUserUseCase } from '@/use-cases/user/GetUserUseCase.js';
 import { CreateInterviewRoundUseCase } from '@/use-cases/interviewRounds/CreateInterviewRoundUseCase.js';
 import { GetInterviewRoundsUseCase } from '@/use-cases/interviewRounds/GetInterviewRoundsUseCase.js';
 import { UpdateInterviewRoundUseCase } from '@/use-cases/interviewRounds/UpdateInterviewRoundUseCase.js';
@@ -97,8 +102,9 @@ import type { ILLMProvider } from '@/use-cases/ports/ILLMProvider.js';
 declare module '@fastify/awilix' {
   interface Cradle {
     prisma: typeof prisma;
-    storageProvider: LocalStorageProvider | R2StorageProvider;
+    storageProvider: LocalStorageProvider | GCSStorageProvider;
     generateId: () => string;
+    webAppOrigin: string;
     fastify: FastifyInstance;
     tokenService: FastifyJwtTokenService;
     cache: MemoryCache;
@@ -119,6 +125,7 @@ declare module '@fastify/awilix' {
     apiTokenRepository: PrismaApiTokenRepository;
     contactRepository: PrismaContactRepository;
     sessionRepository: PrismaSessionRepository;
+    emailVerificationTokenRepository: PrismaEmailVerificationTokenRepository;
 
     applicationMapper: ApplicationMapper;
     apiTokenMapper: ApiTokenMapper;
@@ -141,6 +148,8 @@ declare module '@fastify/awilix' {
 
     registerUseCase: RegisterUseCase;
     loginUseCase: LoginUseCase;
+    sendEmailVerificationUseCase: SendEmailVerificationUseCase;
+    verifyEmailUseCase: VerifyEmailUseCase;
     createApplicationUseCase: CreateApplicationUseCase;
     getApplicationsUseCase: GetApplicationsUseCase;
     getApplicationUseCase: GetApplicationUseCase;
@@ -158,6 +167,8 @@ declare module '@fastify/awilix' {
     updatePasswordUseCase: UpdatePasswordUseCase;
     deleteAccountUseCase: DeleteAccountUseCase;
     exportUserDataUseCase: ExportUserDataUseCase;
+    updateProfileUseCase: UpdateProfileUseCase;
+    getUserUseCase: GetUserUseCase;
     createInterviewRoundUseCase: CreateInterviewRoundUseCase;
     getInterviewRoundsUseCase: GetInterviewRoundsUseCase;
     updateInterviewRoundUseCase: UpdateInterviewRoundUseCase;
@@ -187,10 +198,10 @@ declare module '@fastify/awilix' {
   }
 }
 
-type StorageProviderConstructor = new () => LocalStorageProvider | R2StorageProvider;
+type StorageProviderConstructor = new () => LocalStorageProvider | GCSStorageProvider;
 const StorageProvider: StorageProviderConstructor =
-  process.env[ENV.STORAGE_PROVIDER] === STORAGE_PROVIDER.R2
-    ? R2StorageProvider
+  process.env[ENV.STORAGE_PROVIDER] === STORAGE_PROVIDER.GCS
+    ? GCSStorageProvider
     : LocalStorageProvider;
 
 type LLMProviderConstructor = new () => ILLMProvider;
@@ -205,6 +216,9 @@ export function buildContainer(fastify: FastifyInstance): void {
     prisma: asValue(prisma),
     storageProvider: asClass(StorageProvider, { lifetime: Lifetime.SINGLETON }),
     generateId: asValue(() => nanoid()),
+    webAppOrigin: asValue(
+      process.env[ENV.CORS_ORIGIN]?.split(',')[0]?.trim() ?? 'http://localhost:3000',
+    ),
     fastify: asValue(fastify),
     tokenService: asClass(FastifyJwtTokenService, { lifetime: Lifetime.SINGLETON }),
     cache: asValue(new MemoryCache()),
@@ -234,6 +248,9 @@ export function buildContainer(fastify: FastifyInstance): void {
     apiTokenRepository: asClass(PrismaApiTokenRepository, { lifetime: Lifetime.SINGLETON }),
     contactRepository: asClass(PrismaContactRepository, { lifetime: Lifetime.SINGLETON }),
     sessionRepository: asClass(PrismaSessionRepository, { lifetime: Lifetime.SINGLETON }),
+    emailVerificationTokenRepository: asClass(PrismaEmailVerificationTokenRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
 
     // Mappers
     applicationMapper: asClass(ApplicationMapper, { lifetime: Lifetime.SINGLETON }),
@@ -259,6 +276,10 @@ export function buildContainer(fastify: FastifyInstance): void {
     // Use Cases
     registerUseCase: asClass(RegisterUseCase, { lifetime: Lifetime.TRANSIENT }),
     loginUseCase: asClass(LoginUseCase, { lifetime: Lifetime.TRANSIENT }),
+    sendEmailVerificationUseCase: asClass(SendEmailVerificationUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    verifyEmailUseCase: asClass(VerifyEmailUseCase, { lifetime: Lifetime.TRANSIENT }),
     createApplicationUseCase: asClass(CreateApplicationUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
@@ -282,6 +303,8 @@ export function buildContainer(fastify: FastifyInstance): void {
     updatePasswordUseCase: asClass(UpdatePasswordUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteAccountUseCase: asClass(DeleteAccountUseCase, { lifetime: Lifetime.TRANSIENT }),
     exportUserDataUseCase: asClass(ExportUserDataUseCase, { lifetime: Lifetime.TRANSIENT }),
+    updateProfileUseCase: asClass(UpdateProfileUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getUserUseCase: asClass(GetUserUseCase, { lifetime: Lifetime.TRANSIENT }),
     createInterviewRoundUseCase: asClass(CreateInterviewRoundUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

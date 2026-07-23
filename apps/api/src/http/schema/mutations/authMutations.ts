@@ -3,6 +3,7 @@ import type { FastifyRequest } from 'fastify';
 import { builder } from '@/http/schema/builder.js';
 import { setAuthCookies, clearAuthCookies } from '@/http/schema/types/AuthPayloadType.js';
 import type { DeviceInfo } from '@/interface-adapters/resolvers/AuthResolver.js';
+import { fromCodedError } from '@/http/errors/AppError.js';
 import { ERROR_CODES } from '@/constants.js';
 
 function deviceInfoFrom(request: FastifyRequest): DeviceInfo {
@@ -76,6 +77,23 @@ builder.mutationField('logout', (t) =>
       }
       clearAuthCookies(ctx.reply);
       return true;
+    },
+  }),
+);
+
+builder.mutationField('verifyEmail', (t) =>
+  t.boolean({
+    args: {
+      token: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      const { authResolver } = ctx.diScope.cradle;
+      try {
+        await authResolver.verifyEmail(args.token);
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
     },
   }),
 );

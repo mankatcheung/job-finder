@@ -5,6 +5,16 @@ export interface IUserRepository {
   findByEmail(email: string): Promise<User | null>;
   findAll(): Promise<User[]>;
   create(data: { id: string; email: string; passwordHash: string }): Promise<User>;
-  update(id: string, data: { email?: string; passwordHash?: string }): Promise<User>;
+  update(
+    id: string,
+    data: {
+      email?: string;
+      passwordHash?: string;
+      name?: string | null;
+      timezone?: string | null;
+      targetRole?: string | null;
+      emailVerifiedAt?: Date | null;
+    },
+  ): Promise<User>;
   delete(id: string): Promise<void>;
 }

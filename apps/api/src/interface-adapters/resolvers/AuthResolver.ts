@@ -1,5 +1,6 @@
 import type { IRegisterUseCase } from '@/use-cases/auth/IRegisterUseCase.js';
 import type { ILoginUseCase } from '@/use-cases/auth/ILoginUseCase.js';
+import type { IVerifyEmailUseCase } from '@/use-cases/auth/IVerifyEmailUseCase.js';
 import type { ITokenService, TokenPair } from '@/use-cases/ports/ITokenService.js';
 import type { CreateSessionUseCase } from '@/use-cases/sessions/CreateSessionUseCase.js';
 import type { TouchSessionUseCase } from '@/use-cases/sessions/TouchSessionUseCase.js';
@@ -10,6 +11,7 @@ interface Deps {
   tokenService: ITokenService;
   createSessionUseCase: CreateSessionUseCase;
   touchSessionUseCase: TouchSessionUseCase;
+  verifyEmailUseCase: IVerifyEmailUseCase;
 }
 
 export interface DeviceInfo {
@@ -36,5 +38,9 @@ export class AuthResolver {
     const payload = this.deps.tokenService.verifyRefresh(refreshToken);
     await this.deps.touchSessionUseCase.execute(payload.sid);
     return this.deps.tokenService.sign(payload.sub, payload.email, payload.sid);
+  }
+
+  async verifyEmail(token: string): Promise<void> {
+    await this.deps.verifyEmailUseCase.execute({ token });
   }
 }
