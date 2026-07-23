@@ -2,6 +2,7 @@ import { GraphQLError } from 'graphql';
 import { builder } from '@/http/schema/builder.js';
 import { clearAuthCookies } from '@/http/schema/types/AuthPayloadType.js';
 import { TotpSetupRef } from '@/http/schema/types/TotpSetupType.js';
+import { ConfirmTotpSetupResultRef } from '@/http/schema/types/ConfirmTotpSetupType.js';
 import { ImportSummaryRef } from '@/http/schema/types/ImportSummaryType.js';
 import { fromCodedError } from '@/http/errors/AppError.js';
 import { ERROR_CODES } from '@/constants.js';
@@ -90,12 +91,15 @@ builder.mutationField('deleteAccount', (t) =>
 builder.mutationField('beginTotpSetup', (t) =>
   t.field({
     type: TotpSetupRef,
-    resolve: async (_root, _args, ctx) => {
+    args: {
+      password: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
       if (!ctx.user)
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { userResolver } = ctx.diScope.cradle;
       try {
-        return await userResolver.beginTotpSetup(ctx.user.sub);
+        return await userResolver.beginTotpSetup(ctx.user.sub, args.password);
       } catch (err) {
         throw fromCodedError(err);
       }
@@ -104,7 +108,8 @@ builder.mutationField('beginTotpSetup', (t) =>
 );
 
 builder.mutationField('confirmTotpSetup', (t) =>
-  t.boolean({
+  t.field({
+    type: ConfirmTotpSetupResultRef,
     args: {
       code: t.arg.string({ required: true }),
     },
@@ -113,8 +118,7 @@ builder.mutationField('confirmTotpSetup', (t) =>
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { userResolver } = ctx.diScope.cradle;
       try {
-        await userResolver.confirmTotpSetup(ctx.user.sub, args.code);
-        return true;
+        return await userResolver.confirmTotpSetup(ctx.user.sub, args.code);
       } catch (err) {
         throw fromCodedError(err);
       }

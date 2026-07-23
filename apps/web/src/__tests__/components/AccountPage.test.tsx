@@ -327,8 +327,17 @@ describe('AccountPage', () => {
         },
       };
       mockGqlRequest.mockResolvedValueOnce(setupData);
-      fireEvent.click(screen.getByRole('button', { name: /enable 2fa/i }));
+      const enableBtn = screen.getByRole('button', { name: /enable 2fa/i });
+      const beginForm = enableBtn.closest('form')!;
+      const beginPasswordInput = beginForm.querySelector('input[type="password"]')!;
+      fireEvent.change(beginPasswordInput, { target: { value: 'mypassword' } });
+      fireEvent.click(enableBtn);
 
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('BeginTotpSetup'), {
+          password: 'mypassword',
+        });
+      });
       await waitFor(() => {
         expect(screen.getByAltText('Two-factor authentication QR code')).toHaveAttribute(
           'src',
@@ -337,7 +346,8 @@ describe('AccountPage', () => {
       });
       expect(screen.getByText('ABCD1234')).toBeInTheDocument();
 
-      mockGqlRequest.mockResolvedValueOnce({ confirmTotpSetup: true });
+      const backupCodes = ['aaaa1111bbbb2222', 'cccc3333dddd4444'];
+      mockGqlRequest.mockResolvedValueOnce({ confirmTotpSetup: { backupCodes } });
       fireEvent.change(screen.getByPlaceholderText('123456'), { target: { value: '654321' } });
       fireEvent.click(screen.getByRole('button', { name: /^confirm$/i }));
 
@@ -345,6 +355,9 @@ describe('AccountPage', () => {
         expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('ConfirmTotpSetup'), {
           code: '654321',
         });
+      });
+      await waitFor(() => {
+        backupCodes.forEach((code) => expect(screen.getByText(code)).toBeInTheDocument());
       });
     });
 

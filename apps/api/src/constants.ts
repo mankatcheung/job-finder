@@ -16,6 +16,7 @@ export const ERROR_CODES = {
   NOT_FOUND: 'NOT_FOUND',
   CONFLICT: 'CONFLICT',
   VALIDATION: 'VALIDATION',
+  RATE_LIMITED: 'RATE_LIMITED',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
 } as const;
 
@@ -45,6 +46,7 @@ export const ENV = {
   AXIOM_TOKEN: 'AXIOM_TOKEN',
   AXIOM_DATASET: 'AXIOM_DATASET',
   AXIOM_METRICS_DATASET: 'AXIOM_METRICS_DATASET',
+  TOTP_ENCRYPTION_KEY: 'TOTP_ENCRYPTION_KEY',
 } as const;
 
 /** `NODE_ENV` values. */
@@ -100,6 +102,22 @@ export const TOTP_CONFIG = {
   ISSUER: 'Job Finder',
   /** Accept codes from the adjacent time step to absorb minor clock drift. */
   EPOCH_TOLERANCE_S: 30,
+} as const;
+
+/** Backup/recovery codes issued alongside TOTP enrollment. */
+export const TOTP_BACKUP_CODES = {
+  /** How many single-use codes to generate at enrollment. */
+  COUNT: 10,
+  /** Number of random bytes hex-encoded into each code (16 hex chars). */
+  RANDOM_BYTES: 8,
+} as const;
+
+/** Rate limits for auth endpoints prone to abuse (in-process, fixed-window). */
+export const RATE_LIMIT = {
+  TOTP_VERIFICATION: {
+    MAX_ATTEMPTS: 5,
+    WINDOW_MS: 15 * 60 * 1000, // 15 minutes
+  },
 } as const;
 
 /** Email-verification token settings. */

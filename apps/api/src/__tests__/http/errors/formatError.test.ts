@@ -80,6 +80,19 @@ describe('formatError', () => {
     expect(result.extensions.statusCode).toBe(500);
   });
 
+  it('maps a RATE_LIMITED-coded error to a client-safe GraphQLError without logging', () => {
+    const original = Object.assign(new Error('Too many attempts'), {
+      code: ERROR_CODES.RATE_LIMITED,
+    });
+    const wrapper = new GraphQLError('wrapped', { originalError: original });
+
+    const result = formatError(wrapper);
+
+    expect(result.extensions.code).toBe(ERROR_CODES.RATE_LIMITED);
+    expect(result.extensions.statusCode).toBe(429);
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+  });
+
   it('logs for an error whose code is not in the expected client-facing set', () => {
     const original = Object.assign(new Error('Unexpected'), { code: 'SOME_UNKNOWN_CODE' });
     const wrapper = new GraphQLError('wrapped', { originalError: original });

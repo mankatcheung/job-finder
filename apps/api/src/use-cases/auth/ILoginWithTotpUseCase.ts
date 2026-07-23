@@ -4,6 +4,7 @@ export interface LoginWithTotpInput {
   email: string;
   password: string;
   code: string;
+  ipAddress: string | null;
 }
 
 export interface ILoginWithTotpUseCase {

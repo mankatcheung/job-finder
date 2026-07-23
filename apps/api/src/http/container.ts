@@ -19,6 +19,9 @@ import { PrismaContactRepository } from '@/infrastructure/db/repositories/Prisma
 import { PrismaLoginEventRepository } from '@/infrastructure/db/repositories/PrismaLoginEventRepository.js';
 import { PrismaSessionRepository } from '@/infrastructure/db/repositories/PrismaSessionRepository.js';
 import { PrismaEmailVerificationTokenRepository } from '@/infrastructure/db/repositories/PrismaEmailVerificationTokenRepository.js';
+import { PrismaTotpBackupCodeRepository } from '@/infrastructure/db/repositories/PrismaTotpBackupCodeRepository.js';
+import { RateLimiter } from '@/infrastructure/rateLimit/RateLimiter.js';
+import type { IRateLimiter } from '@/use-cases/ports/IRateLimiter.js';
 
 import { LocalStorageProvider } from '@/infrastructure/storage/LocalStorageProvider.js';
 import { GCSStorageProvider } from '@/infrastructure/storage/GCSStorageProvider.js';
@@ -107,7 +110,7 @@ import { RevokeSessionUseCase } from '@/use-cases/sessions/RevokeSessionUseCase.
 import { RevokeOtherSessionsUseCase } from '@/use-cases/sessions/RevokeOtherSessionsUseCase.js';
 
 import type { FastifyInstance } from 'fastify';
-import { ENV, LLM_PROVIDER, STORAGE_PROVIDER } from '@/constants.js';
+import { ENV, LLM_PROVIDER, STORAGE_PROVIDER, RATE_LIMIT } from '@/constants.js';
 import type { ILLMProvider } from '@/use-cases/ports/ILLMProvider.js';
 
 // Augment the @fastify/awilix Cradle interface so diContainer and diScope are fully typed
@@ -139,6 +142,8 @@ declare module '@fastify/awilix' {
     loginEventRepository: PrismaLoginEventRepository;
     sessionRepository: PrismaSessionRepository;
     emailVerificationTokenRepository: PrismaEmailVerificationTokenRepository;
+    totpBackupCodeRepository: PrismaTotpBackupCodeRepository;
+    totpRateLimiter: IRateLimiter;
 
     applicationMapper: ApplicationMapper;
     apiTokenMapper: ApiTokenMapper;
@@ -276,6 +281,15 @@ export function buildContainer(fastify: FastifyInstance): void {
     emailVerificationTokenRepository: asClass(PrismaEmailVerificationTokenRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
+    totpBackupCodeRepository: asClass(PrismaTotpBackupCodeRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
+    totpRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.TOTP_VERIFICATION.MAX_ATTEMPTS,
+        RATE_LIMIT.TOTP_VERIFICATION.WINDOW_MS,
+      ),
+    ),
 
     // Mappers
     applicationMapper: asClass(ApplicationMapper, { lifetime: Lifetime.SINGLETON }),

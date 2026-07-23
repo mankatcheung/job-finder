@@ -22,6 +22,9 @@ import type { Note } from '@/domain/note/Note.js';
 import type { InterviewRound } from '@/domain/interviewRound/InterviewRound.js';
 import type { Contact } from '@/domain/contact/Contact.js';
 import type { LoginEvent } from '@/domain/loginEvent/LoginEvent.js';
+import type { ITotpBackupCodeRepository } from '@/use-cases/ports/ITotpBackupCodeRepository.js';
+import type { TotpBackupCode } from '@/domain/totpBackupCode/TotpBackupCode.js';
+import type { IRateLimiter } from '@/use-cases/ports/IRateLimiter.js';
 
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
@@ -166,6 +169,30 @@ export const makeEmailVerificationToken = (
   expiresAt: new Date('2024-01-02T00:00:00.000Z'),
   usedAt: null,
   createdAt: new Date('2024-01-01T00:00:00.000Z'),
+  ...overrides,
+});
+
+export const makeTotpBackupCodeRepository = (
+  overrides?: Partial<ITotpBackupCodeRepository>,
+): ITotpBackupCodeRepository => ({
+  create: vi.fn(),
+  findByCodeHash: vi.fn().mockResolvedValue(null),
+  markUsed: vi.fn().mockResolvedValue(undefined),
+  deleteAllForUser: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
+
+export const makeTotpBackupCode = (overrides?: Partial<TotpBackupCode>): TotpBackupCode => ({
+  id: 'backup-code-1',
+  userId: 'user-1',
+  codeHash: 'hashed-backup-code',
+  usedAt: null,
+  createdAt: new Date('2024-01-01T00:00:00.000Z'),
+  ...overrides,
+});
+
+export const makeRateLimiter = (overrides?: Partial<IRateLimiter>): IRateLimiter => ({
+  consume: vi.fn().mockReturnValue(true),
   ...overrides,
 });
 

@@ -3,6 +3,10 @@ export interface ConfirmTotpSetupInput {
   code: string;
 }
 
+export interface ConfirmTotpSetupOutput {
+  backupCodes: string[];
+}
+
 export interface IConfirmTotpSetupUseCase {
-  execute(input: ConfirmTotpSetupInput): Promise<void>;
+  execute(input: ConfirmTotpSetupInput): Promise<ConfirmTotpSetupOutput>;
 }

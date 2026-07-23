@@ -9,7 +9,10 @@ import type {
   IGenerateTotpSecretUseCase,
   TotpSetup,
 } from '@/use-cases/user/IGenerateTotpSecretUseCase.js';
-import type { IConfirmTotpSetupUseCase } from '@/use-cases/user/IConfirmTotpSetupUseCase.js';
+import type {
+  IConfirmTotpSetupUseCase,
+  ConfirmTotpSetupOutput,
+} from '@/use-cases/user/IConfirmTotpSetupUseCase.js';
 import type { IDisableTotpUseCase } from '@/use-cases/user/IDisableTotpUseCase.js';
 import type { IGetTotpStatusUseCase } from '@/use-cases/user/IGetTotpStatusUseCase.js';
 import type {
@@ -64,12 +67,12 @@ export class UserResolver {
     return this.deps.exportUserDataUseCase.execute(userId);
   }
 
-  async beginTotpSetup(userId: string): Promise<TotpSetup> {
-    return this.deps.generateTotpSecretUseCase.execute(userId);
+  async beginTotpSetup(userId: string, password: string): Promise<TotpSetup> {
+    return this.deps.generateTotpSecretUseCase.execute({ userId, password });
   }
 
-  async confirmTotpSetup(userId: string, code: string): Promise<void> {
-    await this.deps.confirmTotpSetupUseCase.execute({ userId, code });
+  async confirmTotpSetup(userId: string, code: string): Promise<ConfirmTotpSetupOutput> {
+    return this.deps.confirmTotpSetupUseCase.execute({ userId, code });
   }
 
   async disableTotp(userId: string, password: string): Promise<void> {

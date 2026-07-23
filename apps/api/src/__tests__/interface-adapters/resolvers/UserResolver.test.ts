@@ -141,23 +141,32 @@ describe('UserResolver', () => {
         }),
       });
 
-      const result = await new UserResolver(deps).beginTotpSetup('user-1');
+      const result = await new UserResolver(deps).beginTotpSetup('user-1', 'secret123');
 
-      expect(deps.generateTotpSecretUseCase.execute).toHaveBeenCalledWith('user-1');
+      expect(deps.generateTotpSecretUseCase.execute).toHaveBeenCalledWith({
+        userId: 'user-1',
+        password: 'secret123',
+      });
       expect(result).toEqual(setup);
     });
   });
 
   describe('confirmTotpSetup', () => {
-    it('delegates to confirmTotpSetupUseCase with the correct arguments', async () => {
-      const deps = makeDeps();
+    it('delegates to confirmTotpSetupUseCase and returns the result', async () => {
+      const output = { backupCodes: ['aaaa1111bbbb2222'] };
+      const deps = makeDeps({
+        confirmTotpSetupUseCase: stub<IConfirmTotpSetupUseCase>({
+          execute: vi.fn().mockResolvedValue(output),
+        }),
+      });
 
-      await new UserResolver(deps).confirmTotpSetup('user-1', '123456');
+      const result = await new UserResolver(deps).confirmTotpSetup('user-1', '123456');
 
       expect(deps.confirmTotpSetupUseCase.execute).toHaveBeenCalledWith({
         userId: 'user-1',
         code: '123456',
       });
+      expect(result).toEqual(output);
     });
 
     it('propagates errors from the use case', async () => {

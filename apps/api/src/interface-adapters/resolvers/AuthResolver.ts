@@ -59,7 +59,12 @@ export class AuthResolver {
     code: string,
     device: DeviceInfo,
   ): Promise<TokenPair> {
-    const user = await this.deps.loginWithTotpUseCase.execute({ email, password, code });
+    const user = await this.deps.loginWithTotpUseCase.execute({
+      email,
+      password,
+      code,
+      ipAddress: device.ipAddress,
+    });
     const session = await this.deps.createSessionUseCase.execute({ userId: user.id, ...device });
     return this.deps.tokenService.sign(user.id, user.email, session.id);
   }

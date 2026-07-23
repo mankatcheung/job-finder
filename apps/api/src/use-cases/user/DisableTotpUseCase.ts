@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
+import type { ITotpBackupCodeRepository } from '@/use-cases/ports/ITotpBackupCodeRepository.js';
 import { ERROR_CODES } from '@/constants.js';
 import type {
   IDisableTotpUseCase,
@@ -8,6 +9,7 @@ import type {
 
 interface Deps {
   userRepository: IUserRepository;
+  totpBackupCodeRepository: ITotpBackupCodeRepository;
 }
 
 export class DisableTotpUseCase implements IDisableTotpUseCase {
@@ -25,5 +27,6 @@ export class DisableTotpUseCase implements IDisableTotpUseCase {
       totpEnabled: false,
       totpSecret: null,
     });
+    await this.deps.totpBackupCodeRepository.deleteAllForUser(input.userId);
   }
 }

@@ -4,6 +4,11 @@ export interface TotpSetup {
   qrCodeDataUrl: string;
 }
 
+export interface GenerateTotpSecretInput {
+  userId: string;
+  password: string;
+}
+
 export interface IGenerateTotpSecretUseCase {
-  execute(userId: string): Promise<TotpSetup>;
+  execute(input: GenerateTotpSecretInput): Promise<TotpSetup>;
 }
