@@ -27,6 +27,26 @@ describe('PrismaUserRepository', () => {
       expect(user.createdAt).toBeInstanceOf(Date);
       expect(user.updatedAt).toBeInstanceOf(Date);
     });
+
+    it('defaults notification preferences to enabled', async () => {
+      const user = await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+
+      expect(user.weeklyDigestEnabled).toBe(true);
+      expect(user.followUpRemindersEnabled).toBe(true);
+    });
+
+    it('defaults emailVerifiedAt to null', async () => {
+      const user = await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      expect(user.emailVerifiedAt).toBeNull();
+    });
+
+    it('defaults profile fields to null', async () => {
+      const user = await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+
+      expect(user.name).toBeNull();
+      expect(user.timezone).toBeNull();
+      expect(user.targetRole).toBeNull();
+    });
   });
 
   describe('findById', () => {
@@ -99,6 +119,54 @@ describe('PrismaUserRepository', () => {
 
       expect(updated.createdAt).toBeInstanceOf(Date);
       expect(updated.updatedAt).toBeInstanceOf(Date);
+    });
+
+    it('updates notification preferences', async () => {
+      await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      const updated = await repo.update('u1', {
+        weeklyDigestEnabled: false,
+        followUpRemindersEnabled: false,
+      });
+
+      expect(updated.weeklyDigestEnabled).toBe(false);
+      expect(updated.followUpRemindersEnabled).toBe(false);
+    });
+
+    it('sets emailVerifiedAt', async () => {
+      await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      const verifiedAt = new Date();
+      const updated = await repo.update('u1', { emailVerifiedAt: verifiedAt });
+
+      expect(updated.emailVerifiedAt).toEqual(verifiedAt);
+    });
+
+    it('clears emailVerifiedAt when given null', async () => {
+      await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      await repo.update('u1', { emailVerifiedAt: new Date() });
+      const updated = await repo.update('u1', { emailVerifiedAt: null });
+
+      expect(updated.emailVerifiedAt).toBeNull();
+    });
+
+    it('updates name, timezone, and targetRole', async () => {
+      await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      const updated = await repo.update('u1', {
+        name: 'Jeff Man',
+        timezone: 'America/Los_Angeles',
+        targetRole: 'Staff Engineer',
+      });
+
+      expect(updated.name).toBe('Jeff Man');
+      expect(updated.timezone).toBe('America/Los_Angeles');
+      expect(updated.targetRole).toBe('Staff Engineer');
+    });
+
+    it('clears a profile field when given null', async () => {
+      await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      await repo.update('u1', { name: 'Jeff Man' });
+      const updated = await repo.update('u1', { name: null });
+
+      expect(updated.name).toBeNull();
     });
   });
 

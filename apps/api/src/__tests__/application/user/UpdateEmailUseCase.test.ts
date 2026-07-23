@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import bcrypt from 'bcryptjs';
 import { UpdateEmailUseCase } from '@/use-cases/user/UpdateEmailUseCase.js';
 import { makeUserRepository, makeUser } from '@/__tests__/helpers/mocks.js';
+import type { ISendEmailVerificationUseCase } from '@/use-cases/auth/ISendEmailVerificationUseCase.js';
 
 vi.mock('bcryptjs', () => ({
   default: {
@@ -9,6 +10,13 @@ vi.mock('bcryptjs', () => ({
     compare: vi.fn(),
   },
 }));
+
+const makeSendEmailVerificationUseCase = (
+  overrides?: Partial<ISendEmailVerificationUseCase>,
+): ISendEmailVerificationUseCase => ({
+  execute: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
 
 describe('UpdateEmailUseCase', () => {
   beforeEach(() => {
@@ -30,12 +38,18 @@ describe('UpdateEmailUseCase', () => {
     });
     vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
 
-    await new UpdateEmailUseCase({ userRepository }).execute(input);
+    await new UpdateEmailUseCase({
+      userRepository,
+      sendEmailVerificationUseCase: makeSendEmailVerificationUseCase(),
+    }).execute(input);
 
     expect(userRepository.findById).toHaveBeenCalledWith('user-1');
     expect(bcrypt.compare).toHaveBeenCalledWith(input.currentPassword, user.passwordHash);
     expect(userRepository.findByEmail).toHaveBeenCalledWith(input.newEmail);
-    expect(userRepository.update).toHaveBeenCalledWith('user-1', { email: input.newEmail });
+    expect(userRepository.update).toHaveBeenCalledWith('user-1', {
+      email: input.newEmail,
+      emailVerifiedAt: null,
+    });
   });
 
   it('throws NOT_FOUND when user does not exist', async () => {
@@ -43,7 +57,12 @@ describe('UpdateEmailUseCase', () => {
       findById: vi.fn().mockResolvedValue(null),
     });
 
-    const err = await new UpdateEmailUseCase({ userRepository }).execute(input).catch((e) => e);
+    const err = await new UpdateEmailUseCase({
+      userRepository,
+      sendEmailVerificationUseCase: makeSendEmailVerificationUseCase(),
+    })
+      .execute(input)
+      .catch((e) => e);
 
     expect((err as { code: string }).code).toBe('NOT_FOUND');
     expect(userRepository.update).not.toHaveBeenCalled();
@@ -56,7 +75,12 @@ describe('UpdateEmailUseCase', () => {
     });
     vi.mocked(bcrypt.compare).mockResolvedValue(false as never);
 
-    const err = await new UpdateEmailUseCase({ userRepository }).execute(input).catch((e) => e);
+    const err = await new UpdateEmailUseCase({
+      userRepository,
+      sendEmailVerificationUseCase: makeSendEmailVerificationUseCase(),
+    })
+      .execute(input)
+      .catch((e) => e);
 
     expect((err as { code: string }).code).toBe('UNAUTHORIZED');
     expect(userRepository.update).not.toHaveBeenCalled();
@@ -71,7 +95,12 @@ describe('UpdateEmailUseCase', () => {
     });
     vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
 
-    const err = await new UpdateEmailUseCase({ userRepository }).execute(input).catch((e) => e);
+    const err = await new UpdateEmailUseCase({
+      userRepository,
+      sendEmailVerificationUseCase: makeSendEmailVerificationUseCase(),
+    })
+      .execute(input)
+      .catch((e) => e);
 
     expect((err as { code: string }).code).toBe('CONFLICT');
     expect(userRepository.update).not.toHaveBeenCalled();
@@ -87,8 +116,43 @@ describe('UpdateEmailUseCase', () => {
     vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
 
     await expect(
-      new UpdateEmailUseCase({ userRepository }).execute(input),
+      new UpdateEmailUseCase({
+        userRepository,
+        sendEmailVerificationUseCase: makeSendEmailVerificationUseCase(),
+      }).execute(input),
     ).resolves.toBeUndefined();
     expect(userRepository.update).toHaveBeenCalled();
+  });
+
+  it('sends a new verification email for the updated address', async () => {
+    const user = makeUser({ id: 'user-1', email: 'old@example.com' });
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(user),
+      findByEmail: vi.fn().mockResolvedValue(null),
+      update: vi.fn().mockResolvedValue({ ...user, email: input.newEmail }),
+    });
+    vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+    const sendEmailVerificationUseCase = makeSendEmailVerificationUseCase();
+
+    await new UpdateEmailUseCase({ userRepository, sendEmailVerificationUseCase }).execute(input);
+
+    expect(sendEmailVerificationUseCase.execute).toHaveBeenCalledWith('user-1');
+  });
+
+  it('still succeeds when sending the verification email fails', async () => {
+    const user = makeUser({ id: 'user-1', email: 'old@example.com' });
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(user),
+      findByEmail: vi.fn().mockResolvedValue(null),
+      update: vi.fn().mockResolvedValue({ ...user, email: input.newEmail }),
+    });
+    vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+    const sendEmailVerificationUseCase = makeSendEmailVerificationUseCase({
+      execute: vi.fn().mockRejectedValue(new Error('Brevo is down')),
+    });
+
+    await expect(
+      new UpdateEmailUseCase({ userRepository, sendEmailVerificationUseCase }).execute(input),
+    ).resolves.toBeUndefined();
   });
 });

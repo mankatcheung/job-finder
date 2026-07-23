@@ -11,6 +11,7 @@ import type { IEmailService } from '@/use-cases/ports/IEmailService.js';
 const makeEmailService = (overrides?: Partial<IEmailService>): IEmailService => ({
   sendFollowUpReminder: vi.fn().mockResolvedValue(undefined),
   sendWeeklyDigest: vi.fn().mockResolvedValue(undefined),
+  sendEmailVerification: vi.fn().mockResolvedValue(undefined),
   ...overrides,
 });
 
@@ -55,6 +56,28 @@ describe('SendFollowUpRemindersUseCase', () => {
     });
     const userRepository = makeUserRepository({
       findById: vi.fn().mockResolvedValue(null),
+    });
+    const emailService = makeEmailService();
+
+    await new SendFollowUpRemindersUseCase({
+      applicationRepository,
+      userRepository,
+      emailService,
+    }).execute();
+
+    expect(emailService.sendFollowUpReminder).not.toHaveBeenCalled();
+    expect(applicationRepository.updateReminderSentAt).not.toHaveBeenCalled();
+  });
+
+  it('skips applications for users who have disabled follow-up reminders', async () => {
+    const app = makeApplication({ followUpAt: new Date() });
+    const user = makeUser({ followUpRemindersEnabled: false });
+    const applicationRepository = makeApplicationRepository({
+      findDueForReminder: vi.fn().mockResolvedValue([app]),
+      updateReminderSentAt: vi.fn(),
+    });
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(user),
     });
     const emailService = makeEmailService();
 

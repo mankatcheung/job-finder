@@ -15,7 +15,7 @@ export class SendFollowUpRemindersUseCase {
     const apps = await this.deps.applicationRepository.findDueForReminder();
     for (const app of apps) {
       const user = await this.deps.userRepository.findById(app.userId);
-      if (!user) continue;
+      if (!user || !user.followUpRemindersEnabled) continue;
       try {
         await this.deps.emailService.sendFollowUpReminder(
           user.email,

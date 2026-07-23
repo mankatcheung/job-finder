@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const { mockNavigate, mockGqlRequest, mockClearAuthIndicator } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
@@ -37,29 +38,161 @@ vi.mock('#/lib/queryClient', () => ({
 
 import { AccountPage } from '#/routes/_authenticated/account';
 
+const makeClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return <QueryClientProvider client={makeClient()}>{children}</QueryClientProvider>;
+}
+
+const defaultResponse = {
+  me: { id: 'user-1', email: 'test@example.com', name: null, timezone: null, targetRole: null },
+  sessions: [
+    {
+      id: 'session-1',
+      userAgent: 'Mozilla/5.0 (Macintosh)',
+      ipAddress: '10.0.0.1',
+      lastUsedAt: '2024-01-01T00:00:00.000Z',
+      current: true,
+    },
+  ],
+  notificationPreferences: { weeklyDigestEnabled: true, followUpRemindersEnabled: true },
+};
+
 describe('AccountPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGqlRequest.mockResolvedValue(defaultResponse);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('renders all sections', () => {
-    render(<AccountPage />);
+  it('renders all sections', async () => {
+    render(<AccountPage />, { wrapper: Wrapper });
     expect(screen.getByText('Account settings')).toBeInTheDocument();
+    expect(screen.getByText('Profile')).toBeInTheDocument();
     expect(screen.getByText('Email address')).toBeInTheDocument();
     expect(screen.getByText('Password')).toBeInTheDocument();
+    expect(screen.getByText('Active sessions')).toBeInTheDocument();
+    expect(screen.getByText('Notification preferences')).toBeInTheDocument();
     expect(screen.getByText('Export your data')).toBeInTheDocument();
     expect(screen.getByText('Import your data')).toBeInTheDocument();
     expect(screen.getByText('Danger zone')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Me'));
+    });
+    await waitFor(() => {
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Sessions'));
+    });
+    await waitFor(() => {
+      expect(mockGqlRequest).toHaveBeenCalledWith(
+        expect.stringContaining('NotificationPreferences'),
+      );
+    });
+  });
+
+  describe('profile form', () => {
+    it('pre-fills fields from the me query', async () => {
+      mockGqlRequest.mockResolvedValue({
+        ...defaultResponse,
+        me: {
+          id: 'user-1',
+          email: 'test@example.com',
+          name: 'Jeff Man',
+          timezone: 'America/Los_Angeles',
+          targetRole: 'Staff Engineer',
+        },
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue('Jeff Man')).toBeInTheDocument();
+      });
+      expect(screen.getByDisplayValue('America/Los_Angeles')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Staff Engineer')).toBeInTheDocument();
+    });
+
+    it('calls updateProfile mutation with trimmed values', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() =>
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Me')),
+      );
+      mockGqlRequest.mockResolvedValue({ updateProfile: true });
+
+      const saveBtn = screen.getByRole('button', { name: /save profile/i });
+      const form = saveBtn.closest('form')!;
+      const nameInput = form.querySelector('input[placeholder="Jane Doe"]')!;
+      const timezoneInput = form.querySelector('input[placeholder="America/Los_Angeles"]')!;
+      const targetRoleInput = form.querySelector('input[placeholder="Senior Product Designer"]')!;
+
+      fireEvent.change(nameInput, { target: { value: '  Jeff Man  ' } });
+      fireEvent.change(timezoneInput, { target: { value: 'UTC' } });
+      fireEvent.change(targetRoleInput, { target: { value: 'Staff Engineer' } });
+      fireEvent.click(saveBtn);
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('UpdateProfile'), {
+          name: 'Jeff Man',
+          timezone: 'UTC',
+          targetRole: 'Staff Engineer',
+        });
+      });
+    });
+
+    it('sends null for cleared fields', async () => {
+      mockGqlRequest.mockResolvedValue({
+        ...defaultResponse,
+        me: {
+          id: 'user-1',
+          email: 'test@example.com',
+          name: 'Old Name',
+          timezone: null,
+          targetRole: null,
+        },
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(screen.getByDisplayValue('Old Name')).toBeInTheDocument());
+      mockGqlRequest.mockResolvedValue({ updateProfile: true });
+
+      const saveBtn = screen.getByRole('button', { name: /save profile/i });
+      const form = saveBtn.closest('form')!;
+      const nameInput = form.querySelector('input[placeholder="Jane Doe"]')!;
+
+      fireEvent.change(nameInput, { target: { value: '   ' } });
+      fireEvent.click(saveBtn);
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('UpdateProfile'),
+          expect.objectContaining({ name: null }),
+        );
+      });
+    });
+
+    it('shows error message on profile update failure', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() =>
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Me')),
+      );
+      mockGqlRequest.mockRejectedValue({
+        response: { errors: [{ message: 'Invalid timezone' }] },
+      });
+
+      const saveBtn = screen.getByRole('button', { name: /save profile/i });
+      fireEvent.click(saveBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText('Invalid timezone')).toBeInTheDocument();
+      });
+    });
   });
 
   describe('email update form', () => {
     it('calls updateEmail mutation with current password and new email', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockResolvedValue({ updateEmail: true });
-      render(<AccountPage />);
 
       const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
       const form = updateEmailBtn.closest('form')!;
@@ -79,10 +212,11 @@ describe('AccountPage', () => {
     });
 
     it('shows error message on email update failure', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockRejectedValue({
         response: { errors: [{ message: 'Email already in use' }] },
       });
-      render(<AccountPage />);
 
       const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
       const form = updateEmailBtn.closest('form')!;
@@ -101,7 +235,7 @@ describe('AccountPage', () => {
 
   describe('password update form', () => {
     it('shows validation error when new passwords do not match', async () => {
-      render(<AccountPage />);
+      render(<AccountPage />, { wrapper: Wrapper });
 
       const updatePasswordBtn = screen.getByRole('button', { name: /update password/i });
       const form = updatePasswordBtn.closest('form')!;
@@ -115,12 +249,16 @@ describe('AccountPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
       });
-      expect(mockGqlRequest).not.toHaveBeenCalled();
+      expect(mockGqlRequest).not.toHaveBeenCalledWith(
+        expect.stringContaining('UpdatePassword'),
+        expect.anything(),
+      );
     });
 
     it('calls updatePassword mutation with matching passwords', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockResolvedValue({ updatePassword: true });
-      render(<AccountPage />);
 
       const updatePasswordBtn = screen.getByRole('button', { name: /update password/i });
       const form = updatePasswordBtn.closest('form')!;
@@ -140,8 +278,9 @@ describe('AccountPage', () => {
     });
 
     it('shows generic error message when password update fails', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockRejectedValue(new Error('network error'));
-      render(<AccountPage />);
 
       const updatePasswordBtn = screen.getByRole('button', { name: /update password/i });
       const form = updatePasswordBtn.closest('form')!;
@@ -158,14 +297,142 @@ describe('AccountPage', () => {
     });
   });
 
+  describe('active sessions', () => {
+    it('shows the current session without a revoke button', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Mozilla/5.0 (Macintosh)')).toBeInTheDocument();
+      });
+      expect(screen.getByText('This device')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^revoke$/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /sign out other sessions/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('shows a revoke button for non-current sessions and calls revokeSession', async () => {
+      mockGqlRequest.mockResolvedValue({
+        ...defaultResponse,
+        sessions: [
+          {
+            id: 'session-1',
+            userAgent: 'Chrome',
+            ipAddress: '1.1.1.1',
+            lastUsedAt: '2024-01-01T00:00:00.000Z',
+            current: true,
+          },
+          {
+            id: 'session-2',
+            userAgent: 'Safari',
+            ipAddress: '2.2.2.2',
+            lastUsedAt: '2024-01-02T00:00:00.000Z',
+            current: false,
+          },
+        ],
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(screen.getByText('Safari')).toBeInTheDocument());
+
+      mockGqlRequest.mockResolvedValueOnce({ revokeSession: true });
+      fireEvent.click(screen.getByRole('button', { name: /^revoke$/i }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RevokeSession'), {
+          id: 'session-2',
+        });
+      });
+    });
+
+    it('shows "Sign out other sessions" when there is more than one session', async () => {
+      mockGqlRequest.mockResolvedValue({
+        ...defaultResponse,
+        sessions: [
+          {
+            id: 'session-1',
+            userAgent: 'Chrome',
+            ipAddress: '1.1.1.1',
+            lastUsedAt: '2024-01-01T00:00:00.000Z',
+            current: true,
+          },
+          {
+            id: 'session-2',
+            userAgent: 'Safari',
+            ipAddress: '2.2.2.2',
+            lastUsedAt: '2024-01-02T00:00:00.000Z',
+            current: false,
+          },
+        ],
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: /sign out other sessions/i }),
+        ).toBeInTheDocument(),
+      );
+
+      mockGqlRequest.mockResolvedValueOnce({ revokeOtherSessions: true });
+      fireEvent.click(screen.getByRole('button', { name: /sign out other sessions/i }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RevokeOtherSessions'));
+      });
+    });
+  });
+
+  describe('notification preferences', () => {
+    it('renders both toggles reflecting current preferences', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Weekly job search digest')).toBeInTheDocument();
+      });
+      const weeklyToggle = screen.getByLabelText('Weekly job search digest') as HTMLInputElement;
+      const reminderToggle = screen.getByLabelText('Follow-up reminder emails') as HTMLInputElement;
+      expect(weeklyToggle.checked).toBe(true);
+      expect(reminderToggle.checked).toBe(true);
+    });
+
+    it('calls updateNotificationPreferences when the weekly digest toggle is switched off', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => screen.getByLabelText('Weekly job search digest'));
+
+      mockGqlRequest.mockResolvedValueOnce({ updateNotificationPreferences: true });
+      fireEvent.click(screen.getByLabelText('Weekly job search digest'));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('UpdateNotificationPreferences'),
+          { weeklyDigestEnabled: false },
+        );
+      });
+    });
+
+    it('calls updateNotificationPreferences when the reminders toggle is switched off', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => screen.getByLabelText('Follow-up reminder emails'));
+
+      mockGqlRequest.mockResolvedValueOnce({ updateNotificationPreferences: true });
+      fireEvent.click(screen.getByLabelText('Follow-up reminder emails'));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('UpdateNotificationPreferences'),
+          { followUpRemindersEnabled: false },
+        );
+      });
+    });
+  });
+
   describe('data export', () => {
     it('calls exportUserData and triggers download on success', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockResolvedValue({ exportUserData: '{"applications":[]}' });
       const mockRevokeObjectURL = vi.fn();
       vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
       vi.spyOn(URL, 'revokeObjectURL').mockImplementation(mockRevokeObjectURL);
 
-      render(<AccountPage />);
       fireEvent.click(screen.getByRole('button', { name: /download export/i }));
 
       await waitFor(() => {
@@ -225,8 +492,9 @@ describe('AccountPage', () => {
 
   describe('account deletion', () => {
     it('calls deleteAccount mutation, clears auth, and navigates to /login', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockResolvedValue({ deleteAccount: true });
-      render(<AccountPage />);
 
       const deleteBtn = screen.getByRole('button', { name: /delete my account/i });
       const form = deleteBtn.closest('form')!;
@@ -245,10 +513,11 @@ describe('AccountPage', () => {
     });
 
     it('shows error message when deletion fails', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockRejectedValue({
         response: { errors: [{ message: 'Invalid password' }] },
       });
-      render(<AccountPage />);
 
       const deleteBtn = screen.getByRole('button', { name: /delete my account/i });
       const form = deleteBtn.closest('form')!;

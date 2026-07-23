@@ -29,10 +29,10 @@ export const ENV = {
   DATABASE_URL: 'DATABASE_URL',
   DATABASE_AUTH_TOKEN: 'DATABASE_AUTH_TOKEN',
   STORAGE_PROVIDER: 'STORAGE_PROVIDER',
-  R2_ENDPOINT: 'R2_ENDPOINT',
-  R2_BUCKET: 'R2_BUCKET',
-  R2_ACCESS_KEY_ID: 'R2_ACCESS_KEY_ID',
-  R2_SECRET_ACCESS_KEY: 'R2_SECRET_ACCESS_KEY',
+  GCS_BUCKET: 'GCS_BUCKET',
+  GCS_PROJECT_ID: 'GCS_PROJECT_ID',
+  GCS_CLIENT_EMAIL: 'GCS_CLIENT_EMAIL',
+  GCS_PRIVATE_KEY: 'GCS_PRIVATE_KEY',
   BREVO_API_KEY: 'BREVO_API_KEY',
   FROM_EMAIL: 'FROM_EMAIL',
   FROM_NAME: 'FROM_NAME',
@@ -76,6 +76,12 @@ export const JWT_EXPIRY = {
   REFRESH: '7d',
 } as const;
 
+/** Session (device/refresh-token tracking) settings. */
+export const SESSION = {
+  /** How long a session stays active without a refresh, in milliseconds — mirrors the refresh JWT's lifetime and slides forward on each refresh. */
+  TTL_MS: COOKIE_MAX_AGE_S.REFRESH_TOKEN * 1000,
+} as const;
+
 /** API-token (`jfat_...`) settings. */
 export const API_TOKEN = {
   PREFIX: 'jfat_',
@@ -87,6 +93,14 @@ export const API_TOKEN = {
 export const API_TOKEN_SCOPE = {
   FULL: 'full',
   READ: 'read',
+} as const;
+
+/** Email-verification token settings. */
+export const EMAIL_VERIFICATION_TOKEN = {
+  /** Number of random bytes hex-encoded into the token body. */
+  RANDOM_BYTES: 32,
+  /** How long a verification link stays valid, in milliseconds. */
+  TTL_MS: 24 * 60 * 60 * 1000, // 24 hours
 } as const;
 
 /** HTTP Authorization header. */
@@ -159,7 +173,7 @@ export const EMAIL = {
 /** `STORAGE_PROVIDER` values. */
 export const STORAGE_PROVIDER = {
   LOCAL: 'local',
-  R2: 'r2',
+  GCS: 'gcs',
 } as const;
 
 /** In-memory cache configuration. */

@@ -9,6 +9,14 @@ import type {
   IImportUserDataUseCase,
   ImportSummary,
 } from '@/use-cases/user/IImportUserDataUseCase.js';
+import type {
+  IGetNotificationPreferencesUseCase,
+  NotificationPreferences,
+} from '@/use-cases/user/IGetNotificationPreferencesUseCase.js';
+import type { IUpdateNotificationPreferencesUseCase } from '@/use-cases/user/IUpdateNotificationPreferencesUseCase.js';
+import type { IUpdateProfileUseCase } from '@/use-cases/user/IUpdateProfileUseCase.js';
+import type { IGetUserUseCase } from '@/use-cases/user/IGetUserUseCase.js';
+import type { User } from '@/domain/user/User.js';
 
 interface Deps {
   updateEmailUseCase: IUpdateEmailUseCase;
@@ -16,6 +24,10 @@ interface Deps {
   deleteAccountUseCase: IDeleteAccountUseCase;
   exportUserDataUseCase: IExportUserDataUseCase;
   importUserDataUseCase: IImportUserDataUseCase;
+  getNotificationPreferencesUseCase: IGetNotificationPreferencesUseCase;
+  updateNotificationPreferencesUseCase: IUpdateNotificationPreferencesUseCase;
+  updateProfileUseCase: IUpdateProfileUseCase;
+  getUserUseCase: IGetUserUseCase;
 }
 
 export class UserResolver {
@@ -43,5 +55,34 @@ export class UserResolver {
 
   async importUserData(userId: string, rawData: string): Promise<ImportSummary> {
     return this.deps.importUserDataUseCase.execute(userId, rawData);
+  }
+
+  async getNotificationPreferences(userId: string): Promise<NotificationPreferences> {
+    return this.deps.getNotificationPreferencesUseCase.execute(userId);
+  }
+
+  async updateNotificationPreferences(
+    userId: string,
+    weeklyDigestEnabled?: boolean,
+    followUpRemindersEnabled?: boolean,
+  ): Promise<void> {
+    await this.deps.updateNotificationPreferencesUseCase.execute({
+      userId,
+      weeklyDigestEnabled,
+      followUpRemindersEnabled,
+    });
+  }
+
+  async updateProfile(
+    userId: string,
+    name?: string | null,
+    timezone?: string | null,
+    targetRole?: string | null,
+  ): Promise<void> {
+    await this.deps.updateProfileUseCase.execute({ userId, name, timezone, targetRole });
+  }
+
+  async getMe(userId: string): Promise<User | null> {
+    return this.deps.getUserUseCase.execute(userId);
   }
 }
