@@ -8,13 +8,15 @@ datasource db {
 }
 
 model User {
-  id           String          @id
-  email        String          @unique
-  passwordHash String
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  applications JobApplication[]
-  apiTokens    ApiToken[]
+  id                        String          @id
+  email                     String          @unique
+  passwordHash              String
+  weeklyDigestEnabled       Boolean         @default(true)
+  followUpRemindersEnabled  Boolean         @default(true)
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+  applications              JobApplication[]
+  apiTokens                 ApiToken[]
 }
 
 model ApiToken {

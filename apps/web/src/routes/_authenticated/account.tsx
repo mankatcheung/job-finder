@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
@@ -36,6 +37,24 @@ const EXPORT_USER_DATA = `
   }
 `;
 
+const NOTIFICATION_PREFERENCES_QUERY = `
+  query NotificationPreferences {
+    notificationPreferences {
+      weeklyDigestEnabled
+      followUpRemindersEnabled
+    }
+  }
+`;
+
+const UPDATE_NOTIFICATION_PREFERENCES = `
+  mutation UpdateNotificationPreferences($weeklyDigestEnabled: Boolean, $followUpRemindersEnabled: Boolean) {
+    updateNotificationPreferences(
+      weeklyDigestEnabled: $weeklyDigestEnabled
+      followUpRemindersEnabled: $followUpRemindersEnabled
+    )
+  }
+`;
+
 // ── Schemas ────────────────────────────────────────────────────────────────
 
 const emailSchema = z.object({
@@ -62,6 +81,11 @@ type EmailForm = z.infer<typeof emailSchema>;
 type PasswordForm = z.infer<typeof passwordSchema>;
 type DeleteForm = z.infer<typeof deleteSchema>;
 
+type NotificationPreferences = {
+  weeklyDigestEnabled: boolean;
+  followUpRemindersEnabled: boolean;
+};
+
 // ── Input styles ───────────────────────────────────────────────────────────
 
 const inputCls =
@@ -73,6 +97,29 @@ const labelCls = 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-
 
 export function AccountPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
+
+  // Notification preferences
+  const { data: prefsData } = useQuery({
+    queryKey: ['notificationPreferences'],
+    queryFn: () =>
+      gqlClient.request<{ notificationPreferences: NotificationPreferences }>(
+        NOTIFICATION_PREFERENCES_QUERY,
+      ),
+  });
+  const prefs = prefsData?.notificationPreferences;
+
+  const onToggleWeeklyDigest = async (checked: boolean) => {
+    await gqlClient.request(UPDATE_NOTIFICATION_PREFERENCES, { weeklyDigestEnabled: checked });
+    await qc.invalidateQueries({ queryKey: ['notificationPreferences'] });
+  };
+
+  const onToggleFollowUpReminders = async (checked: boolean) => {
+    await gqlClient.request(UPDATE_NOTIFICATION_PREFERENCES, {
+      followUpRemindersEnabled: checked,
+    });
+    await qc.invalidateQueries({ queryKey: ['notificationPreferences'] });
+  };
 
   // Email form
   const emailForm = useForm<EmailForm>({ resolver: zodResolver(emailSchema) });
@@ -260,6 +307,42 @@ export function AccountPage() {
             {passwordForm.formState.isSubmitting ? 'Saving…' : 'Update password'}
           </button>
         </form>
+      </section>
+
+      <hr className="border-gray-200 dark:border-gray-700" />
+
+      {/* ── Notification preferences ── */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            Notification preferences
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Choose which emails you want to receive.
+          </p>
+        </div>
+        {prefs && (
+          <div className="space-y-3">
+            <label className="flex items-center gap-3 text-sm text-gray-900 dark:text-gray-100">
+              <input
+                type="checkbox"
+                checked={prefs.weeklyDigestEnabled}
+                onChange={(e) => onToggleWeeklyDigest(e.target.checked)}
+                className="h-4 w-4"
+              />
+              Weekly job search digest
+            </label>
+            <label className="flex items-center gap-3 text-sm text-gray-900 dark:text-gray-100">
+              <input
+                type="checkbox"
+                checked={prefs.followUpRemindersEnabled}
+                onChange={(e) => onToggleFollowUpReminders(e.target.checked)}
+                className="h-4 w-4"
+              />
+              Follow-up reminder emails
+            </label>
+          </div>
+        )}
       </section>
 
       <hr className="border-gray-200 dark:border-gray-700" />

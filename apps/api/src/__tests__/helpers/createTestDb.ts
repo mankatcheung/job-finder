@@ -9,6 +9,8 @@ const SCHEMA_STATEMENTS = [
     "id" TEXT PRIMARY KEY,
     "email" TEXT NOT NULL UNIQUE,
     "passwordHash" TEXT NOT NULL,
+    "weeklyDigestEnabled" INTEGER NOT NULL DEFAULT 1,
+    "followUpRemindersEnabled" INTEGER NOT NULL DEFAULT 1,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`,

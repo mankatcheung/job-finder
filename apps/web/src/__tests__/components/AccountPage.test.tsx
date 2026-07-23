@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const { mockNavigate, mockGqlRequest, mockClearAuthIndicator } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
@@ -37,28 +38,46 @@ vi.mock('#/lib/queryClient', () => ({
 
 import { AccountPage } from '#/routes/_authenticated/account';
 
+const makeClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return <QueryClientProvider client={makeClient()}>{children}</QueryClientProvider>;
+}
+
+const defaultPrefs = {
+  notificationPreferences: { weeklyDigestEnabled: true, followUpRemindersEnabled: true },
+};
+
 describe('AccountPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGqlRequest.mockResolvedValue(defaultPrefs);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('renders all sections', () => {
-    render(<AccountPage />);
+  it('renders all sections', async () => {
+    render(<AccountPage />, { wrapper: Wrapper });
     expect(screen.getByText('Account settings')).toBeInTheDocument();
     expect(screen.getByText('Email address')).toBeInTheDocument();
     expect(screen.getByText('Password')).toBeInTheDocument();
+    expect(screen.getByText('Notification preferences')).toBeInTheDocument();
     expect(screen.getByText('Export your data')).toBeInTheDocument();
     expect(screen.getByText('Danger zone')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(mockGqlRequest).toHaveBeenCalledWith(
+        expect.stringContaining('NotificationPreferences'),
+      );
+    });
   });
 
   describe('email update form', () => {
     it('calls updateEmail mutation with current password and new email', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockResolvedValue({ updateEmail: true });
-      render(<AccountPage />);
 
       const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
       const form = updateEmailBtn.closest('form')!;
@@ -78,10 +97,11 @@ describe('AccountPage', () => {
     });
 
     it('shows error message on email update failure', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockRejectedValue({
         response: { errors: [{ message: 'Email already in use' }] },
       });
-      render(<AccountPage />);
 
       const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
       const form = updateEmailBtn.closest('form')!;
@@ -100,7 +120,7 @@ describe('AccountPage', () => {
 
   describe('password update form', () => {
     it('shows validation error when new passwords do not match', async () => {
-      render(<AccountPage />);
+      render(<AccountPage />, { wrapper: Wrapper });
 
       const updatePasswordBtn = screen.getByRole('button', { name: /update password/i });
       const form = updatePasswordBtn.closest('form')!;
@@ -114,12 +134,16 @@ describe('AccountPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
       });
-      expect(mockGqlRequest).not.toHaveBeenCalled();
+      expect(mockGqlRequest).not.toHaveBeenCalledWith(
+        expect.stringContaining('UpdatePassword'),
+        expect.anything(),
+      );
     });
 
     it('calls updatePassword mutation with matching passwords', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockResolvedValue({ updatePassword: true });
-      render(<AccountPage />);
 
       const updatePasswordBtn = screen.getByRole('button', { name: /update password/i });
       const form = updatePasswordBtn.closest('form')!;
@@ -139,8 +163,9 @@ describe('AccountPage', () => {
     });
 
     it('shows generic error message when password update fails', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockRejectedValue(new Error('network error'));
-      render(<AccountPage />);
 
       const updatePasswordBtn = screen.getByRole('button', { name: /update password/i });
       const form = updatePasswordBtn.closest('form')!;
@@ -157,14 +182,59 @@ describe('AccountPage', () => {
     });
   });
 
+  describe('notification preferences', () => {
+    it('renders both toggles reflecting current preferences', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Weekly job search digest')).toBeInTheDocument();
+      });
+      const weeklyToggle = screen.getByLabelText('Weekly job search digest') as HTMLInputElement;
+      const reminderToggle = screen.getByLabelText('Follow-up reminder emails') as HTMLInputElement;
+      expect(weeklyToggle.checked).toBe(true);
+      expect(reminderToggle.checked).toBe(true);
+    });
+
+    it('calls updateNotificationPreferences when the weekly digest toggle is switched off', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => screen.getByLabelText('Weekly job search digest'));
+
+      mockGqlRequest.mockResolvedValueOnce({ updateNotificationPreferences: true });
+      fireEvent.click(screen.getByLabelText('Weekly job search digest'));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('UpdateNotificationPreferences'),
+          { weeklyDigestEnabled: false },
+        );
+      });
+    });
+
+    it('calls updateNotificationPreferences when the reminders toggle is switched off', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => screen.getByLabelText('Follow-up reminder emails'));
+
+      mockGqlRequest.mockResolvedValueOnce({ updateNotificationPreferences: true });
+      fireEvent.click(screen.getByLabelText('Follow-up reminder emails'));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('UpdateNotificationPreferences'),
+          { followUpRemindersEnabled: false },
+        );
+      });
+    });
+  });
+
   describe('data export', () => {
     it('calls exportUserData and triggers download on success', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockResolvedValue({ exportUserData: '{"applications":[]}' });
       const mockRevokeObjectURL = vi.fn();
       vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
       vi.spyOn(URL, 'revokeObjectURL').mockImplementation(mockRevokeObjectURL);
 
-      render(<AccountPage />);
       fireEvent.click(screen.getByRole('button', { name: /download export/i }));
 
       await waitFor(() => {
@@ -178,8 +248,9 @@ describe('AccountPage', () => {
 
   describe('account deletion', () => {
     it('calls deleteAccount mutation, clears auth, and navigates to /login', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockResolvedValue({ deleteAccount: true });
-      render(<AccountPage />);
 
       const deleteBtn = screen.getByRole('button', { name: /delete my account/i });
       const form = deleteBtn.closest('form')!;
@@ -198,10 +269,11 @@ describe('AccountPage', () => {
     });
 
     it('shows error message when deletion fails', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockRejectedValue({
         response: { errors: [{ message: 'Invalid password' }] },
       });
-      render(<AccountPage />);
 
       const deleteBtn = screen.getByRole('button', { name: /delete my account/i });
       const form = deleteBtn.closest('form')!;

@@ -5,12 +5,19 @@ import type {
   IExportUserDataUseCase,
   ExportUserDataOutput,
 } from '@/use-cases/user/IExportUserDataUseCase.js';
+import type {
+  IGetNotificationPreferencesUseCase,
+  NotificationPreferences,
+} from '@/use-cases/user/IGetNotificationPreferencesUseCase.js';
+import type { IUpdateNotificationPreferencesUseCase } from '@/use-cases/user/IUpdateNotificationPreferencesUseCase.js';
 
 interface Deps {
   updateEmailUseCase: IUpdateEmailUseCase;
   updatePasswordUseCase: IUpdatePasswordUseCase;
   deleteAccountUseCase: IDeleteAccountUseCase;
   exportUserDataUseCase: IExportUserDataUseCase;
+  getNotificationPreferencesUseCase: IGetNotificationPreferencesUseCase;
+  updateNotificationPreferencesUseCase: IUpdateNotificationPreferencesUseCase;
 }
 
 export class UserResolver {
@@ -34,5 +41,21 @@ export class UserResolver {
 
   async exportUserData(userId: string): Promise<ExportUserDataOutput> {
     return this.deps.exportUserDataUseCase.execute(userId);
+  }
+
+  async getNotificationPreferences(userId: string): Promise<NotificationPreferences> {
+    return this.deps.getNotificationPreferencesUseCase.execute(userId);
+  }
+
+  async updateNotificationPreferences(
+    userId: string,
+    weeklyDigestEnabled?: boolean,
+    followUpRemindersEnabled?: boolean,
+  ): Promise<void> {
+    await this.deps.updateNotificationPreferencesUseCase.execute({
+      userId,
+      weeklyDigestEnabled,
+      followUpRemindersEnabled,
+    });
   }
 }

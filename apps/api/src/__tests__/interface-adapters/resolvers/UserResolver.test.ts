@@ -4,6 +4,8 @@ import type { IUpdateEmailUseCase } from '@/use-cases/user/IUpdateEmailUseCase.j
 import type { IUpdatePasswordUseCase } from '@/use-cases/user/IUpdatePasswordUseCase.js';
 import type { IDeleteAccountUseCase } from '@/use-cases/user/IDeleteAccountUseCase.js';
 import type { IExportUserDataUseCase } from '@/use-cases/user/IExportUserDataUseCase.js';
+import type { IGetNotificationPreferencesUseCase } from '@/use-cases/user/IGetNotificationPreferencesUseCase.js';
+import type { IUpdateNotificationPreferencesUseCase } from '@/use-cases/user/IUpdateNotificationPreferencesUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 
@@ -16,6 +18,12 @@ const makeDeps = (overrides?: object) => ({
     execute: vi.fn().mockResolvedValue(undefined),
   }),
   exportUserDataUseCase: stub<IExportUserDataUseCase>({ execute: vi.fn() }),
+  getNotificationPreferencesUseCase: stub<IGetNotificationPreferencesUseCase>({
+    execute: vi.fn(),
+  }),
+  updateNotificationPreferencesUseCase: stub<IUpdateNotificationPreferencesUseCase>({
+    execute: vi.fn().mockResolvedValue(undefined),
+  }),
   ...overrides,
 });
 
@@ -98,6 +106,36 @@ describe('UserResolver', () => {
 
       expect(deps.exportUserDataUseCase.execute).toHaveBeenCalledWith('user-1');
       expect(result).toEqual(exportData);
+    });
+  });
+
+  describe('getNotificationPreferences', () => {
+    it('delegates to getNotificationPreferencesUseCase and returns the result', async () => {
+      const prefs = { weeklyDigestEnabled: true, followUpRemindersEnabled: false };
+      const deps = makeDeps({
+        getNotificationPreferencesUseCase: stub<IGetNotificationPreferencesUseCase>({
+          execute: vi.fn().mockResolvedValue(prefs),
+        }),
+      });
+
+      const result = await new UserResolver(deps).getNotificationPreferences('user-1');
+
+      expect(deps.getNotificationPreferencesUseCase.execute).toHaveBeenCalledWith('user-1');
+      expect(result).toEqual(prefs);
+    });
+  });
+
+  describe('updateNotificationPreferences', () => {
+    it('delegates to updateNotificationPreferencesUseCase with the correct arguments', async () => {
+      const deps = makeDeps();
+
+      await new UserResolver(deps).updateNotificationPreferences('user-1', false, true);
+
+      expect(deps.updateNotificationPreferencesUseCase.execute).toHaveBeenCalledWith({
+        userId: 'user-1',
+        weeklyDigestEnabled: false,
+        followUpRemindersEnabled: true,
+      });
     });
   });
 });

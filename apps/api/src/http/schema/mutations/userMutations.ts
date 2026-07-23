@@ -63,3 +63,27 @@ builder.mutationField('deleteAccount', (t) =>
     },
   }),
 );
+
+builder.mutationField('updateNotificationPreferences', (t) =>
+  t.boolean({
+    args: {
+      weeklyDigestEnabled: t.arg.boolean({ required: false }),
+      followUpRemindersEnabled: t.arg.boolean({ required: false }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        await userResolver.updateNotificationPreferences(
+          ctx.user.sub,
+          args.weeklyDigestEnabled ?? undefined,
+          args.followUpRemindersEnabled ?? undefined,
+        );
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
