@@ -10,6 +10,8 @@ import type { IInterviewRoundRepository } from '@/use-cases/ports/IInterviewRoun
 import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
 import type { IContactRepository } from '@/use-cases/ports/IContactRepository.js';
 import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
+import type { IEmailVerificationTokenRepository } from '@/use-cases/ports/IEmailVerificationTokenRepository.js';
+import type { EmailVerificationToken } from '@/domain/emailVerificationToken/EmailVerificationToken.js';
 import type { User } from '@/domain/user/User.js';
 import type { Application } from '@/domain/application/Application.js';
 import type { Document } from '@/domain/document/Document.js';
@@ -108,6 +110,28 @@ export const makeApiToken = (overrides?: Partial<ApiToken>): ApiToken => ({
   ...overrides,
 });
 
+export const makeEmailVerificationTokenRepository = (
+  overrides?: Partial<IEmailVerificationTokenRepository>,
+): IEmailVerificationTokenRepository => ({
+  create: vi.fn(),
+  findByTokenHash: vi.fn().mockResolvedValue(null),
+  markUsed: vi.fn().mockResolvedValue(undefined),
+  deleteAllForUser: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
+
+export const makeEmailVerificationToken = (
+  overrides?: Partial<EmailVerificationToken>,
+): EmailVerificationToken => ({
+  id: 'verify-token-1',
+  userId: 'user-1',
+  tokenHash: 'hashed-verify-token',
+  expiresAt: new Date('2024-01-02T00:00:00.000Z'),
+  usedAt: null,
+  createdAt: new Date('2024-01-01T00:00:00.000Z'),
+  ...overrides,
+});
+
 // Minimal FastifyInstance stub for AuthResolver (only jwt is used)
 export const makeFastifyJwt = (): {
   jwt: { sign: ReturnType<typeof vi.fn>; verify: ReturnType<typeof vi.fn> };
@@ -126,6 +150,7 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   name: null,
   timezone: null,
   targetRole: null,
+  emailVerifiedAt: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,

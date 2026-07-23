@@ -42,6 +42,7 @@ export class PrismaUserRepository implements IUserRepository {
       name?: string | null;
       timezone?: string | null;
       targetRole?: string | null;
+      emailVerifiedAt?: Date | null;
     },
   ): Promise<User> {
     const row = await this.db.user.update({ where: { id }, data });
@@ -59,6 +60,7 @@ export class PrismaUserRepository implements IUserRepository {
     name: string | null;
     timezone: string | null;
     targetRole: string | null;
+    emailVerifiedAt: Date | null;
     createdAt: Date;
     updatedAt: Date;
   }): User {
@@ -69,6 +71,7 @@ export class PrismaUserRepository implements IUserRepository {
       name: row.name,
       timezone: row.timezone,
       targetRole: row.targetRole,
+      emailVerifiedAt: row.emailVerifiedAt,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

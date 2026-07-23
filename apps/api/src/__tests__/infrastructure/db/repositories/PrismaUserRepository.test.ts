@@ -28,6 +28,11 @@ describe('PrismaUserRepository', () => {
       expect(user.updatedAt).toBeInstanceOf(Date);
     });
 
+    it('defaults emailVerifiedAt to null', async () => {
+      const user = await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      expect(user.emailVerifiedAt).toBeNull();
+    });
+
     it('defaults profile fields to null', async () => {
       const user = await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
 
@@ -107,6 +112,22 @@ describe('PrismaUserRepository', () => {
 
       expect(updated.createdAt).toBeInstanceOf(Date);
       expect(updated.updatedAt).toBeInstanceOf(Date);
+    });
+
+    it('sets emailVerifiedAt', async () => {
+      await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      const verifiedAt = new Date();
+      const updated = await repo.update('u1', { emailVerifiedAt: verifiedAt });
+
+      expect(updated.emailVerifiedAt).toEqual(verifiedAt);
+    });
+
+    it('clears emailVerifiedAt when given null', async () => {
+      await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      await repo.update('u1', { emailVerifiedAt: new Date() });
+      const updated = await repo.update('u1', { emailVerifiedAt: null });
+
+      expect(updated.emailVerifiedAt).toBeNull();
     });
 
     it('updates name, timezone, and targetRole', async () => {

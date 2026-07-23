@@ -13,6 +13,7 @@ export interface IUserRepository {
       name?: string | null;
       timezone?: string | null;
       targetRole?: string | null;
+      emailVerifiedAt?: Date | null;
     },
   ): Promise<User>;
   delete(id: string): Promise<void>;

@@ -5,6 +5,7 @@ export interface User {
   name: string | null;
   timezone: string | null;
   targetRole: string | null;
+  emailVerifiedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
