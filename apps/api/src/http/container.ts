@@ -56,6 +56,7 @@ import { UpdateEmailUseCase } from '@/use-cases/user/UpdateEmailUseCase.js';
 import { UpdatePasswordUseCase } from '@/use-cases/user/UpdatePasswordUseCase.js';
 import { DeleteAccountUseCase } from '@/use-cases/user/DeleteAccountUseCase.js';
 import { ExportUserDataUseCase } from '@/use-cases/user/ExportUserDataUseCase.js';
+import { ImportUserDataUseCase } from '@/use-cases/user/ImportUserDataUseCase.js';
 import { CreateInterviewRoundUseCase } from '@/use-cases/interviewRounds/CreateInterviewRoundUseCase.js';
 import { GetInterviewRoundsUseCase } from '@/use-cases/interviewRounds/GetInterviewRoundsUseCase.js';
 import { UpdateInterviewRoundUseCase } from '@/use-cases/interviewRounds/UpdateInterviewRoundUseCase.js';
@@ -149,6 +150,7 @@ declare module '@fastify/awilix' {
     updatePasswordUseCase: UpdatePasswordUseCase;
     deleteAccountUseCase: DeleteAccountUseCase;
     exportUserDataUseCase: ExportUserDataUseCase;
+    importUserDataUseCase: ImportUserDataUseCase;
     createInterviewRoundUseCase: CreateInterviewRoundUseCase;
     getInterviewRoundsUseCase: GetInterviewRoundsUseCase;
     updateInterviewRoundUseCase: UpdateInterviewRoundUseCase;
@@ -266,6 +268,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     updatePasswordUseCase: asClass(UpdatePasswordUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteAccountUseCase: asClass(DeleteAccountUseCase, { lifetime: Lifetime.TRANSIENT }),
     exportUserDataUseCase: asClass(ExportUserDataUseCase, { lifetime: Lifetime.TRANSIENT }),
+    importUserDataUseCase: asClass(ImportUserDataUseCase, { lifetime: Lifetime.TRANSIENT }),
     createInterviewRoundUseCase: asClass(CreateInterviewRoundUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

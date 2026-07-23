@@ -5,12 +5,17 @@ import type {
   IExportUserDataUseCase,
   ExportUserDataOutput,
 } from '@/use-cases/user/IExportUserDataUseCase.js';
+import type {
+  IImportUserDataUseCase,
+  ImportSummary,
+} from '@/use-cases/user/IImportUserDataUseCase.js';
 
 interface Deps {
   updateEmailUseCase: IUpdateEmailUseCase;
   updatePasswordUseCase: IUpdatePasswordUseCase;
   deleteAccountUseCase: IDeleteAccountUseCase;
   exportUserDataUseCase: IExportUserDataUseCase;
+  importUserDataUseCase: IImportUserDataUseCase;
 }
 
 export class UserResolver {
@@ -34,5 +39,9 @@ export class UserResolver {
 
   async exportUserData(userId: string): Promise<ExportUserDataOutput> {
     return this.deps.exportUserDataUseCase.execute(userId);
+  }
+
+  async importUserData(userId: string, rawData: string): Promise<ImportSummary> {
+    return this.deps.importUserDataUseCase.execute(userId, rawData);
   }
 }

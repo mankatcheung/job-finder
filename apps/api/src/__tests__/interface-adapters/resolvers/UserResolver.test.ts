@@ -4,6 +4,7 @@ import type { IUpdateEmailUseCase } from '@/use-cases/user/IUpdateEmailUseCase.j
 import type { IUpdatePasswordUseCase } from '@/use-cases/user/IUpdatePasswordUseCase.js';
 import type { IDeleteAccountUseCase } from '@/use-cases/user/IDeleteAccountUseCase.js';
 import type { IExportUserDataUseCase } from '@/use-cases/user/IExportUserDataUseCase.js';
+import type { IImportUserDataUseCase } from '@/use-cases/user/IImportUserDataUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 
@@ -16,6 +17,7 @@ const makeDeps = (overrides?: object) => ({
     execute: vi.fn().mockResolvedValue(undefined),
   }),
   exportUserDataUseCase: stub<IExportUserDataUseCase>({ execute: vi.fn() }),
+  importUserDataUseCase: stub<IImportUserDataUseCase>({ execute: vi.fn() }),
   ...overrides,
 });
 
@@ -98,6 +100,45 @@ describe('UserResolver', () => {
 
       expect(deps.exportUserDataUseCase.execute).toHaveBeenCalledWith('user-1');
       expect(result).toEqual(exportData);
+    });
+  });
+
+  describe('importUserData', () => {
+    it('delegates to importUserDataUseCase and returns the summary', async () => {
+      const summary = {
+        applicationsImported: 2,
+        applicationsSkipped: 1,
+        notesImported: 3,
+        documentsSkipped: 1,
+      };
+      const deps = makeDeps({
+        importUserDataUseCase: stub<IImportUserDataUseCase>({
+          execute: vi.fn().mockResolvedValue(summary),
+        }),
+      });
+
+      const result = await new UserResolver(deps).importUserData('user-1', '{"applications":[]}');
+
+      expect(deps.importUserDataUseCase.execute).toHaveBeenCalledWith(
+        'user-1',
+        '{"applications":[]}',
+      );
+      expect(result).toEqual(summary);
+    });
+
+    it('propagates errors from the use case', async () => {
+      const err = Object.assign(new Error('Import file is not valid JSON'), {
+        code: 'VALIDATION',
+      });
+      const deps = makeDeps({
+        importUserDataUseCase: stub<IImportUserDataUseCase>({
+          execute: vi.fn().mockRejectedValue(err),
+        }),
+      });
+
+      await expect(
+        new UserResolver(deps).importUserData('user-1', 'not json'),
+      ).rejects.toMatchObject({ code: 'VALIDATION' });
     });
   });
 });

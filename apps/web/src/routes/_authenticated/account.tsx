@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,6 +37,17 @@ const EXPORT_USER_DATA = `
   }
 `;
 
+const IMPORT_USER_DATA = `
+  mutation ImportUserData($data: String!) {
+    importUserData(data: $data) {
+      applicationsImported
+      applicationsSkipped
+      notesImported
+      documentsSkipped
+    }
+  }
+`;
+
 // ── Schemas ────────────────────────────────────────────────────────────────
 
 const emailSchema = z.object({
@@ -61,6 +73,13 @@ const deleteSchema = z.object({
 type EmailForm = z.infer<typeof emailSchema>;
 type PasswordForm = z.infer<typeof passwordSchema>;
 type DeleteForm = z.infer<typeof deleteSchema>;
+
+interface ImportSummary {
+  applicationsImported: number;
+  applicationsSkipped: number;
+  notesImported: number;
+  documentsSkipped: number;
+}
 
 // ── Input styles ───────────────────────────────────────────────────────────
 
@@ -127,6 +146,31 @@ export function AccountPage() {
       URL.revokeObjectURL(url);
     } catch {
       // silent — export errors are non-critical
+    }
+  };
+
+  // Import
+  const [importResult, setImportResult] = useState<ImportSummary | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const onImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setImporting(true);
+    setImportResult(null);
+    setImportError(null);
+    try {
+      const text = await file.text();
+      const res = await gqlClient.request<{ importUserData: ImportSummary }>(IMPORT_USER_DATA, {
+        data: text,
+      });
+      setImportResult(res.importUserData);
+    } catch (err) {
+      setImportError(extractGqlError(err) ?? 'Failed to import data.');
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -281,6 +325,47 @@ export function AccountPage() {
         >
           Download export
         </button>
+      </section>
+
+      <hr className="border-gray-200 dark:border-gray-700" />
+
+      {/* ── Import ── */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            Import your data
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Upload a JSON export file to recreate your applications and notes. Documents can&apos;t
+            be restored from an export and will be skipped.
+          </p>
+        </div>
+        <label className="inline-block px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-sm font-medium rounded-lg transition-colors cursor-pointer">
+          {importing ? 'Importing…' : 'Choose file to import'}
+          <input
+            type="file"
+            accept="application/json"
+            onChange={onImport}
+            disabled={importing}
+            className="hidden"
+          />
+        </label>
+        {importError && (
+          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+            {importError}
+          </p>
+        )}
+        {importResult && (
+          <p className="text-sm text-green-600">
+            Imported {importResult.applicationsImported} application
+            {importResult.applicationsImported === 1 ? '' : 's'} and {importResult.notesImported}{' '}
+            note{importResult.notesImported === 1 ? '' : 's'}.
+            {importResult.applicationsSkipped > 0 &&
+              ` Skipped ${importResult.applicationsSkipped} invalid application${importResult.applicationsSkipped === 1 ? '' : 's'}.`}
+            {importResult.documentsSkipped > 0 &&
+              ` Skipped ${importResult.documentsSkipped} document${importResult.documentsSkipped === 1 ? '' : 's'} (not supported).`}
+          </p>
+        )}
       </section>
 
       <hr className="border-gray-200 dark:border-gray-700" />
