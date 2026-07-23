@@ -29,7 +29,12 @@ export class AuthResolver {
   }
 
   async login(email: string, password: string, device: DeviceInfo): Promise<TokenPair> {
-    const user = await this.deps.loginUseCase.execute({ email, password });
+    const user = await this.deps.loginUseCase.execute({
+      email,
+      password,
+      ipAddress: device.ipAddress,
+      userAgent: device.userAgent,
+    });
     const session = await this.deps.createSessionUseCase.execute({ userId: user.id, ...device });
     return this.deps.tokenService.sign(user.id, user.email, session.id);
   }

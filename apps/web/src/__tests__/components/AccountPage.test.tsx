@@ -56,6 +56,7 @@ const defaultResponse = {
     },
   ],
   notificationPreferences: { weeklyDigestEnabled: true, followUpRemindersEnabled: true },
+  loginHistory: [],
 };
 
 describe('AccountPage', () => {
@@ -75,6 +76,7 @@ describe('AccountPage', () => {
     expect(screen.getByText('Email address')).toBeInTheDocument();
     expect(screen.getByText('Password')).toBeInTheDocument();
     expect(screen.getByText('Active sessions')).toBeInTheDocument();
+    expect(screen.getByText('Recent login activity')).toBeInTheDocument();
     expect(screen.getByText('Notification preferences')).toBeInTheDocument();
     expect(screen.getByText('Export your data')).toBeInTheDocument();
     expect(screen.getByText('Import your data')).toBeInTheDocument();
@@ -89,6 +91,9 @@ describe('AccountPage', () => {
       expect(mockGqlRequest).toHaveBeenCalledWith(
         expect.stringContaining('NotificationPreferences'),
       );
+    });
+    await waitFor(() => {
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('LoginHistory'));
     });
   });
 
@@ -380,6 +385,55 @@ describe('AccountPage', () => {
     });
   });
 
+  describe('login history', () => {
+    it('renders recent login events with device and IP', async () => {
+      mockGqlRequest.mockImplementation((query: unknown) => {
+        if (typeof query === 'string' && query.includes('LoginHistory')) {
+          return Promise.resolve({
+            loginHistory: [
+              {
+                id: 'event-1',
+                ipAddress: '203.0.113.5',
+                userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+                createdAt: '2024-01-01T00:00:00.000Z',
+              },
+            ],
+          });
+        }
+        return Promise.resolve(defaultResponse);
+      });
+
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Mac · 203.0.113.5/)).toBeInTheDocument();
+      });
+    });
+
+    it('shows a message when there is no login history', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('No login activity yet.')).toBeInTheDocument();
+      });
+    });
+
+    it('shows an error message when login history fails to load', async () => {
+      mockGqlRequest.mockImplementation((query: unknown) => {
+        if (typeof query === 'string' && query.includes('LoginHistory')) {
+          return Promise.reject(new Error('network error'));
+        }
+        return Promise.resolve(defaultResponse);
+      });
+
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Failed to load login history.')).toBeInTheDocument();
+      });
+    });
+  });
+
   describe('notification preferences', () => {
     it('renders both toggles reflecting current preferences', async () => {
       render(<AccountPage />, { wrapper: Wrapper });
@@ -477,8 +531,13 @@ describe('AccountPage', () => {
     });
 
     it('shows error message when import fails', async () => {
-      mockGqlRequest.mockRejectedValue({
-        response: { errors: [{ message: 'Import file is not valid JSON' }] },
+      mockGqlRequest.mockImplementation((query: unknown) => {
+        if (typeof query === 'string' && query.includes('ImportUserData')) {
+          return Promise.reject({
+            response: { errors: [{ message: 'Import file is not valid JSON' }] },
+          });
+        }
+        return Promise.resolve(defaultResponse);
       });
       render(<AccountPage />, { wrapper: Wrapper });
 

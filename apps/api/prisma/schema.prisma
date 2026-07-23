@@ -23,6 +23,18 @@ model User {
   apiTokens                ApiToken[]
   emailVerificationTokens  EmailVerificationToken[]
   sessions                 Session[]
+  loginEvents              LoginEvent[]
+}
+
+model LoginEvent {
+  id        String   @id
+  userId    String
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Session {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -53,6 +53,17 @@ const DELETE_ACCOUNT = `
 const EXPORT_USER_DATA = `
   query ExportUserData {
     exportUserData
+  }
+`;
+
+const LOGIN_HISTORY = `
+  query LoginHistory {
+    loginHistory {
+      id
+      ipAddress
+      userAgent
+      createdAt
+    }
   }
 `;
 
@@ -141,6 +152,23 @@ type ProfileForm = z.infer<typeof profileSchema>;
 type EmailForm = z.infer<typeof emailSchema>;
 type PasswordForm = z.infer<typeof passwordSchema>;
 type DeleteForm = z.infer<typeof deleteSchema>;
+
+interface LoginEvent {
+  id: string;
+  ipAddress: string | null;
+  userAgent: string | null;
+  createdAt: string;
+}
+
+function describeDevice(userAgent: string | null): string {
+  if (!userAgent) return 'Unknown device';
+  if (/iPhone|iPad/.test(userAgent)) return 'iOS device';
+  if (/Android/.test(userAgent)) return 'Android device';
+  if (/Macintosh/.test(userAgent)) return 'Mac';
+  if (/Windows/.test(userAgent)) return 'Windows PC';
+  if (/Linux/.test(userAgent)) return 'Linux device';
+  return 'Unknown device';
+}
 
 interface ImportSummary {
   applicationsImported: number;
@@ -298,6 +326,18 @@ export function AccountPage() {
       });
     }
   };
+
+  // Login history
+  const [loginHistory, setLoginHistory] = useState<LoginEvent[] | null>(null);
+  const [loginHistoryError, setLoginHistoryError] = useState<string | null>(null);
+  useEffect(() => {
+    gqlClient
+      .request<{ loginHistory: LoginEvent[] }>(LOGIN_HISTORY)
+      .then((res) => setLoginHistory(res.loginHistory))
+      .catch((err) =>
+        setLoginHistoryError(extractGqlError(err) ?? 'Failed to load login history.'),
+      );
+  }, []);
 
   // Export
   const onExport = async () => {
@@ -603,6 +643,46 @@ export function AccountPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <hr className="border-gray-200 dark:border-gray-700" />
+
+      {/* ── Login history ── */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            Recent login activity
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            A record of recent successful sign-ins to your account.
+          </p>
+        </div>
+        {loginHistoryError && (
+          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+            {loginHistoryError}
+          </p>
+        )}
+        {!loginHistoryError && loginHistory === null && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
+        )}
+        {!loginHistoryError && loginHistory?.length === 0 && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">No login activity yet.</p>
+        )}
+        {!loginHistoryError && loginHistory && loginHistory.length > 0 && (
+          <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
+            {loginHistory.map((event) => (
+              <li key={event.id} className="px-3 py-2 text-sm">
+                <p className="text-gray-900 dark:text-gray-100">
+                  {describeDevice(event.userAgent)}
+                  {event.ipAddress ? ` · ${event.ipAddress}` : ''}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {new Date(event.createdAt).toLocaleString()}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <hr className="border-gray-200 dark:border-gray-700" />

@@ -29,6 +29,15 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "ApiToken_userId_idx" ON "ApiToken"("userId")`,
+  `CREATE TABLE "LoginEvent" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "ipAddress" TEXT,
+    "userAgent" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "LoginEvent_userId_idx" ON "LoginEvent"("userId")`,
   `CREATE TABLE "JobApplication" (
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,

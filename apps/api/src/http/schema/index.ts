@@ -17,6 +17,7 @@ import './types/inputs/DocumentInputs.js';
 import './types/ContactType.js';
 import './types/ParsedJobDescriptionType.js';
 import './types/HealthScoreType.js';
+import './types/LoginEventType.js';
 import './types/ImportSummaryType.js';
 import './types/NotificationPreferencesType.js';
 import './types/SessionType.js';
@@ -31,6 +32,7 @@ import './queries/activityLogQueries.js';
 import './queries/apiTokenQueries.js';
 import './queries/contactQueries.js';
 import './queries/healthScoreQueries.js';
+import './queries/loginEventQueries.js';
 import './queries/sessionQueries.js';
 
 // Mutations
