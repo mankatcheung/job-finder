@@ -531,8 +531,13 @@ describe('AccountPage', () => {
     });
 
     it('shows error message when import fails', async () => {
-      mockGqlRequest.mockRejectedValue({
-        response: { errors: [{ message: 'Import file is not valid JSON' }] },
+      mockGqlRequest.mockImplementation((query: unknown) => {
+        if (typeof query === 'string' && query.includes('ImportUserData')) {
+          return Promise.reject({
+            response: { errors: [{ message: 'Import file is not valid JSON' }] },
+          });
+        }
+        return Promise.resolve(defaultResponse);
       });
       render(<AccountPage />, { wrapper: Wrapper });
 
