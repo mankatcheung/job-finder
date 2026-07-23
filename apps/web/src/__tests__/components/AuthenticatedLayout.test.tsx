@@ -31,7 +31,12 @@ vi.mock('#/lib/queryClient', () => ({
   queryClient: { clear: vi.fn() },
 }));
 
+import { ThemeProvider } from '#/lib/theme';
 import { AuthenticatedLayout } from '#/routes/_authenticated/route';
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return <ThemeProvider>{children}</ThemeProvider>;
+}
 
 describe('AuthenticatedLayout', () => {
   beforeEach(() => {
@@ -39,7 +44,7 @@ describe('AuthenticatedLayout', () => {
   });
 
   it('renders navigation links', () => {
-    render(<AuthenticatedLayout />);
+    render(<AuthenticatedLayout />, { wrapper: Wrapper });
     // "Job Finder" appears in both mobile header and desktop sidebar
     expect(screen.getAllByText('Job Finder').length).toBeGreaterThanOrEqual(1);
     // "Dashboard" / "Account" appear in sidebar and bottom nav
@@ -50,19 +55,19 @@ describe('AuthenticatedLayout', () => {
   });
 
   it('renders the Outlet for page content', () => {
-    render(<AuthenticatedLayout />);
+    render(<AuthenticatedLayout />, { wrapper: Wrapper });
     expect(screen.getByTestId('outlet')).toBeInTheDocument();
   });
 
   it('renders a sign out button', () => {
-    render(<AuthenticatedLayout />);
+    render(<AuthenticatedLayout />, { wrapper: Wrapper });
     const signOutBtns = screen.getAllByRole('button', { name: /sign out/i });
     expect(signOutBtns.length).toBeGreaterThanOrEqual(1);
   });
 
   it('calls logout mutation and navigates to /login on sign out', async () => {
     mockGqlRequest.mockResolvedValue({ logout: true });
-    render(<AuthenticatedLayout />);
+    render(<AuthenticatedLayout />, { wrapper: Wrapper });
 
     // Click the first sign-out button (mobile header icon button)
     fireEvent.click(screen.getAllByRole('button', { name: /sign out/i })[0]);
