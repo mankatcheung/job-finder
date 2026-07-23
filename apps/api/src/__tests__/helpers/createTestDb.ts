@@ -116,6 +116,18 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "Contact_applicationId_idx" ON "Contact"("applicationId")`,
+  `CREATE TABLE "Session" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "userAgent" TEXT,
+    "ipAddress" TEXT,
+    "lastUsedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expiresAt" DATETIME NOT NULL,
+    "revokedAt" DATETIME,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "Session_userId_idx" ON "Session"("userId")`,
   `CREATE TABLE "EmailVerificationToken" (
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,

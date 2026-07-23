@@ -44,14 +44,23 @@ function Wrapper({ children }: { children: React.ReactNode }) {
   return <QueryClientProvider client={makeClient()}>{children}</QueryClientProvider>;
 }
 
-const meResponse = {
+const defaultResponse = {
   me: { id: 'user-1', email: 'test@example.com', name: null, timezone: null, targetRole: null },
+  sessions: [
+    {
+      id: 'session-1',
+      userAgent: 'Mozilla/5.0 (Macintosh)',
+      ipAddress: '10.0.0.1',
+      lastUsedAt: '2024-01-01T00:00:00.000Z',
+      current: true,
+    },
+  ],
 };
 
 describe('AccountPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGqlRequest.mockResolvedValue(meResponse);
+    mockGqlRequest.mockResolvedValue(defaultResponse);
   });
 
   afterEach(() => {
@@ -64,16 +73,21 @@ describe('AccountPage', () => {
     expect(screen.getByText('Profile')).toBeInTheDocument();
     expect(screen.getByText('Email address')).toBeInTheDocument();
     expect(screen.getByText('Password')).toBeInTheDocument();
+    expect(screen.getByText('Active sessions')).toBeInTheDocument();
     expect(screen.getByText('Export your data')).toBeInTheDocument();
     expect(screen.getByText('Danger zone')).toBeInTheDocument();
     await waitFor(() => {
       expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Me'));
+    });
+    await waitFor(() => {
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Sessions'));
     });
   });
 
   describe('profile form', () => {
     it('pre-fills fields from the me query', async () => {
       mockGqlRequest.mockResolvedValue({
+        ...defaultResponse,
         me: {
           id: 'user-1',
           email: 'test@example.com',
@@ -120,6 +134,7 @@ describe('AccountPage', () => {
 
     it('sends null for cleared fields', async () => {
       mockGqlRequest.mockResolvedValue({
+        ...defaultResponse,
         me: {
           id: 'user-1',
           email: 'test@example.com',
@@ -167,8 +182,9 @@ describe('AccountPage', () => {
 
   describe('email update form', () => {
     it('calls updateEmail mutation with current password and new email', async () => {
-      mockGqlRequest.mockResolvedValue({ updateEmail: true });
       render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+      mockGqlRequest.mockResolvedValue({ updateEmail: true });
 
       const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
       const form = updateEmailBtn.closest('form')!;
@@ -188,10 +204,11 @@ describe('AccountPage', () => {
     });
 
     it('shows error message on email update failure', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockRejectedValue({
         response: { errors: [{ message: 'Email already in use' }] },
       });
-      render(<AccountPage />, { wrapper: Wrapper });
 
       const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
       const form = updateEmailBtn.closest('form')!;
@@ -231,8 +248,9 @@ describe('AccountPage', () => {
     });
 
     it('calls updatePassword mutation with matching passwords', async () => {
-      mockGqlRequest.mockResolvedValue({ updatePassword: true });
       render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+      mockGqlRequest.mockResolvedValue({ updatePassword: true });
 
       const updatePasswordBtn = screen.getByRole('button', { name: /update password/i });
       const form = updatePasswordBtn.closest('form')!;
@@ -252,8 +270,9 @@ describe('AccountPage', () => {
     });
 
     it('shows generic error message when password update fails', async () => {
-      mockGqlRequest.mockRejectedValue(new Error('network error'));
       render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+      mockGqlRequest.mockRejectedValue(new Error('network error'));
 
       const updatePasswordBtn = screen.getByRole('button', { name: /update password/i });
       const form = updatePasswordBtn.closest('form')!;
@@ -270,14 +289,98 @@ describe('AccountPage', () => {
     });
   });
 
+  describe('active sessions', () => {
+    it('shows the current session without a revoke button', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Mozilla/5.0 (Macintosh)')).toBeInTheDocument();
+      });
+      expect(screen.getByText('This device')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^revoke$/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /sign out other sessions/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('shows a revoke button for non-current sessions and calls revokeSession', async () => {
+      mockGqlRequest.mockResolvedValue({
+        ...defaultResponse,
+        sessions: [
+          {
+            id: 'session-1',
+            userAgent: 'Chrome',
+            ipAddress: '1.1.1.1',
+            lastUsedAt: '2024-01-01T00:00:00.000Z',
+            current: true,
+          },
+          {
+            id: 'session-2',
+            userAgent: 'Safari',
+            ipAddress: '2.2.2.2',
+            lastUsedAt: '2024-01-02T00:00:00.000Z',
+            current: false,
+          },
+        ],
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(screen.getByText('Safari')).toBeInTheDocument());
+
+      mockGqlRequest.mockResolvedValueOnce({ revokeSession: true });
+      fireEvent.click(screen.getByRole('button', { name: /^revoke$/i }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RevokeSession'), {
+          id: 'session-2',
+        });
+      });
+    });
+
+    it('shows "Sign out other sessions" when there is more than one session', async () => {
+      mockGqlRequest.mockResolvedValue({
+        ...defaultResponse,
+        sessions: [
+          {
+            id: 'session-1',
+            userAgent: 'Chrome',
+            ipAddress: '1.1.1.1',
+            lastUsedAt: '2024-01-01T00:00:00.000Z',
+            current: true,
+          },
+          {
+            id: 'session-2',
+            userAgent: 'Safari',
+            ipAddress: '2.2.2.2',
+            lastUsedAt: '2024-01-02T00:00:00.000Z',
+            current: false,
+          },
+        ],
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: /sign out other sessions/i }),
+        ).toBeInTheDocument(),
+      );
+
+      mockGqlRequest.mockResolvedValueOnce({ revokeOtherSessions: true });
+      fireEvent.click(screen.getByRole('button', { name: /sign out other sessions/i }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RevokeOtherSessions'));
+      });
+    });
+  });
+
   describe('data export', () => {
     it('calls exportUserData and triggers download on success', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockResolvedValue({ exportUserData: '{"applications":[]}' });
       const mockRevokeObjectURL = vi.fn();
       vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
       vi.spyOn(URL, 'revokeObjectURL').mockImplementation(mockRevokeObjectURL);
 
-      render(<AccountPage />, { wrapper: Wrapper });
       fireEvent.click(screen.getByRole('button', { name: /download export/i }));
 
       await waitFor(() => {
@@ -291,8 +394,9 @@ describe('AccountPage', () => {
 
   describe('account deletion', () => {
     it('calls deleteAccount mutation, clears auth, and navigates to /login', async () => {
-      mockGqlRequest.mockResolvedValue({ deleteAccount: true });
       render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+      mockGqlRequest.mockResolvedValue({ deleteAccount: true });
 
       const deleteBtn = screen.getByRole('button', { name: /delete my account/i });
       const form = deleteBtn.closest('form')!;
@@ -311,10 +415,11 @@ describe('AccountPage', () => {
     });
 
     it('shows error message when deletion fails', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
       mockGqlRequest.mockRejectedValue({
         response: { errors: [{ message: 'Invalid password' }] },
       });
-      render(<AccountPage />, { wrapper: Wrapper });
 
       const deleteBtn = screen.getByRole('button', { name: /delete my account/i });
       const form = deleteBtn.closest('form')!;
