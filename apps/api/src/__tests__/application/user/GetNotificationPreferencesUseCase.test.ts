@@ -1,0 +1,30 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { GetNotificationPreferencesUseCase } from '@/use-cases/user/GetNotificationPreferencesUseCase.js';
+import { makeUserRepository, makeUser } from '@/__tests__/helpers/mocks.js';
+
+describe('GetNotificationPreferencesUseCase', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('throws NOT_FOUND when the user does not exist', async () => {
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(null) });
+
+    const err = await new GetNotificationPreferencesUseCase({ userRepository })
+      .execute('missing')
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('NOT_FOUND');
+  });
+
+  it('returns the preferences from the user record', async () => {
+    const user = makeUser({ weeklyDigestEnabled: false, followUpRemindersEnabled: true });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+
+    const result = await new GetNotificationPreferencesUseCase({ userRepository }).execute(
+      'user-1',
+    );
+
+    expect(result).toEqual({ weeklyDigestEnabled: false, followUpRemindersEnabled: true });
+  });
+});

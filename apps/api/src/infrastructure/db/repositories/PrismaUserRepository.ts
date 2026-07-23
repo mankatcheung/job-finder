@@ -43,6 +43,8 @@ export class PrismaUserRepository implements IUserRepository {
       timezone?: string | null;
       targetRole?: string | null;
       emailVerifiedAt?: Date | null;
+      weeklyDigestEnabled?: boolean;
+      followUpRemindersEnabled?: boolean;
     },
   ): Promise<User> {
     const row = await this.db.user.update({ where: { id }, data });
@@ -61,6 +63,8 @@ export class PrismaUserRepository implements IUserRepository {
     timezone: string | null;
     targetRole: string | null;
     emailVerifiedAt: Date | null;
+    weeklyDigestEnabled: boolean;
+    followUpRemindersEnabled: boolean;
     createdAt: Date;
     updatedAt: Date;
   }): User {
@@ -72,6 +76,8 @@ export class PrismaUserRepository implements IUserRepository {
       timezone: row.timezone,
       targetRole: row.targetRole,
       emailVerifiedAt: row.emailVerifiedAt,
+      weeklyDigestEnabled: row.weeklyDigestEnabled,
+      followUpRemindersEnabled: row.followUpRemindersEnabled,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

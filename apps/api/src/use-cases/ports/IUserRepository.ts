@@ -14,6 +14,8 @@ export interface IUserRepository {
       timezone?: string | null;
       targetRole?: string | null;
       emailVerifiedAt?: Date | null;
+      weeklyDigestEnabled?: boolean;
+      followUpRemindersEnabled?: boolean;
     },
   ): Promise<User>;
   delete(id: string): Promise<void>;

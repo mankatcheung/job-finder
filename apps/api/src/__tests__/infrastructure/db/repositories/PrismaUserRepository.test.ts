@@ -28,6 +28,13 @@ describe('PrismaUserRepository', () => {
       expect(user.updatedAt).toBeInstanceOf(Date);
     });
 
+    it('defaults notification preferences to enabled', async () => {
+      const user = await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+
+      expect(user.weeklyDigestEnabled).toBe(true);
+      expect(user.followUpRemindersEnabled).toBe(true);
+    });
+
     it('defaults emailVerifiedAt to null', async () => {
       const user = await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
       expect(user.emailVerifiedAt).toBeNull();
@@ -112,6 +119,17 @@ describe('PrismaUserRepository', () => {
 
       expect(updated.createdAt).toBeInstanceOf(Date);
       expect(updated.updatedAt).toBeInstanceOf(Date);
+    });
+
+    it('updates notification preferences', async () => {
+      await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      const updated = await repo.update('u1', {
+        weeklyDigestEnabled: false,
+        followUpRemindersEnabled: false,
+      });
+
+      expect(updated.weeklyDigestEnabled).toBe(false);
+      expect(updated.followUpRemindersEnabled).toBe(false);
     });
 
     it('sets emailVerifiedAt', async () => {

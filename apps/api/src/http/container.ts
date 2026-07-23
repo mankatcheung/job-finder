@@ -61,6 +61,8 @@ import { UpdateEmailUseCase } from '@/use-cases/user/UpdateEmailUseCase.js';
 import { UpdatePasswordUseCase } from '@/use-cases/user/UpdatePasswordUseCase.js';
 import { DeleteAccountUseCase } from '@/use-cases/user/DeleteAccountUseCase.js';
 import { ExportUserDataUseCase } from '@/use-cases/user/ExportUserDataUseCase.js';
+import { GetNotificationPreferencesUseCase } from '@/use-cases/user/GetNotificationPreferencesUseCase.js';
+import { UpdateNotificationPreferencesUseCase } from '@/use-cases/user/UpdateNotificationPreferencesUseCase.js';
 import { UpdateProfileUseCase } from '@/use-cases/user/UpdateProfileUseCase.js';
 import { GetUserUseCase } from '@/use-cases/user/GetUserUseCase.js';
 import { CreateInterviewRoundUseCase } from '@/use-cases/interviewRounds/CreateInterviewRoundUseCase.js';
@@ -167,6 +169,8 @@ declare module '@fastify/awilix' {
     updatePasswordUseCase: UpdatePasswordUseCase;
     deleteAccountUseCase: DeleteAccountUseCase;
     exportUserDataUseCase: ExportUserDataUseCase;
+    getNotificationPreferencesUseCase: GetNotificationPreferencesUseCase;
+    updateNotificationPreferencesUseCase: UpdateNotificationPreferencesUseCase;
     updateProfileUseCase: UpdateProfileUseCase;
     getUserUseCase: GetUserUseCase;
     createInterviewRoundUseCase: CreateInterviewRoundUseCase;
@@ -303,6 +307,12 @@ export function buildContainer(fastify: FastifyInstance): void {
     updatePasswordUseCase: asClass(UpdatePasswordUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteAccountUseCase: asClass(DeleteAccountUseCase, { lifetime: Lifetime.TRANSIENT }),
     exportUserDataUseCase: asClass(ExportUserDataUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getNotificationPreferencesUseCase: asClass(GetNotificationPreferencesUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    updateNotificationPreferencesUseCase: asClass(UpdateNotificationPreferencesUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     updateProfileUseCase: asClass(UpdateProfileUseCase, { lifetime: Lifetime.TRANSIENT }),
     getUserUseCase: asClass(GetUserUseCase, { lifetime: Lifetime.TRANSIENT }),
     createInterviewRoundUseCase: asClass(CreateInterviewRoundUseCase, {

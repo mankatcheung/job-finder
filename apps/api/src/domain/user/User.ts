@@ -6,6 +6,8 @@ export interface User {
   timezone: string | null;
   targetRole: string | null;
   emailVerifiedAt: Date | null;
+  weeklyDigestEnabled: boolean;
+  followUpRemindersEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

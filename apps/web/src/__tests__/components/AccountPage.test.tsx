@@ -55,6 +55,7 @@ const defaultResponse = {
       current: true,
     },
   ],
+  notificationPreferences: { weeklyDigestEnabled: true, followUpRemindersEnabled: true },
 };
 
 describe('AccountPage', () => {
@@ -74,6 +75,7 @@ describe('AccountPage', () => {
     expect(screen.getByText('Email address')).toBeInTheDocument();
     expect(screen.getByText('Password')).toBeInTheDocument();
     expect(screen.getByText('Active sessions')).toBeInTheDocument();
+    expect(screen.getByText('Notification preferences')).toBeInTheDocument();
     expect(screen.getByText('Export your data')).toBeInTheDocument();
     expect(screen.getByText('Danger zone')).toBeInTheDocument();
     await waitFor(() => {
@@ -81,6 +83,11 @@ describe('AccountPage', () => {
     });
     await waitFor(() => {
       expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Sessions'));
+    });
+    await waitFor(() => {
+      expect(mockGqlRequest).toHaveBeenCalledWith(
+        expect.stringContaining('NotificationPreferences'),
+      );
     });
   });
 
@@ -368,6 +375,50 @@ describe('AccountPage', () => {
 
       await waitFor(() => {
         expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RevokeOtherSessions'));
+      });
+    });
+  });
+
+  describe('notification preferences', () => {
+    it('renders both toggles reflecting current preferences', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Weekly job search digest')).toBeInTheDocument();
+      });
+      const weeklyToggle = screen.getByLabelText('Weekly job search digest') as HTMLInputElement;
+      const reminderToggle = screen.getByLabelText('Follow-up reminder emails') as HTMLInputElement;
+      expect(weeklyToggle.checked).toBe(true);
+      expect(reminderToggle.checked).toBe(true);
+    });
+
+    it('calls updateNotificationPreferences when the weekly digest toggle is switched off', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => screen.getByLabelText('Weekly job search digest'));
+
+      mockGqlRequest.mockResolvedValueOnce({ updateNotificationPreferences: true });
+      fireEvent.click(screen.getByLabelText('Weekly job search digest'));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('UpdateNotificationPreferences'),
+          { weeklyDigestEnabled: false },
+        );
+      });
+    });
+
+    it('calls updateNotificationPreferences when the reminders toggle is switched off', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => screen.getByLabelText('Follow-up reminder emails'));
+
+      mockGqlRequest.mockResolvedValueOnce({ updateNotificationPreferences: true });
+      fireEvent.click(screen.getByLabelText('Follow-up reminder emails'));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('UpdateNotificationPreferences'),
+          { followUpRemindersEnabled: false },
+        );
       });
     });
   });
