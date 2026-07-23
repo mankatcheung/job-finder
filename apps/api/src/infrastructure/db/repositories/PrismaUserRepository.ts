@@ -3,6 +3,22 @@ import type { User } from '@/domain/user/User.js';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import { getClient } from '../transactionContext.js';
 
+type PrismaUser = {
+  id: string;
+  email: string;
+  passwordHash: string;
+  name: string | null;
+  timezone: string | null;
+  targetRole: string | null;
+  emailVerifiedAt: Date | null;
+  weeklyDigestEnabled: boolean;
+  followUpRemindersEnabled: boolean;
+  totpSecret: string | null;
+  totpEnabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export class PrismaUserRepository implements IUserRepository {
   private readonly prisma: PrismaClient;
 
@@ -26,7 +42,7 @@ export class PrismaUserRepository implements IUserRepository {
 
   async findAll(): Promise<User[]> {
     const rows = await this.db.user.findMany({ orderBy: { createdAt: 'asc' } });
-    return rows.map((r) => this.toEntity(r));
+    return rows.map((r: PrismaUser) => this.toEntity(r));
   }
 
   async create(data: { id: string; email: string; passwordHash: string }): Promise<User> {
@@ -57,21 +73,7 @@ export class PrismaUserRepository implements IUserRepository {
     await this.db.user.delete({ where: { id } });
   }
 
-  private toEntity(row: {
-    id: string;
-    email: string;
-    passwordHash: string;
-    name: string | null;
-    timezone: string | null;
-    targetRole: string | null;
-    emailVerifiedAt: Date | null;
-    weeklyDigestEnabled: boolean;
-    followUpRemindersEnabled: boolean;
-    totpSecret: string | null;
-    totpEnabled: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-  }): User {
+  private toEntity(row: PrismaUser): User {
     return {
       id: row.id,
       email: row.email,

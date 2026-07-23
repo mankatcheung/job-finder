@@ -81,6 +81,7 @@ export function EditApplicationPage() {
 
   useEffect(() => {
     if (app?.tags) setTags(app.tags);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [app?.tags?.join(',')]);
 
   const {
