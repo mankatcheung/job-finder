@@ -36,12 +36,17 @@ vi.mock('#/lib/queryClient', () => ({
   queryClient: { clear: vi.fn(), resetQueries: vi.fn() },
 }));
 
+import { ThemeProvider } from '#/lib/theme';
 import { AccountPage } from '#/routes/_authenticated/account';
 
 const makeClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
 function Wrapper({ children }: { children: React.ReactNode }) {
-  return <QueryClientProvider client={makeClient()}>{children}</QueryClientProvider>;
+  return (
+    <ThemeProvider>
+      <QueryClientProvider client={makeClient()}>{children}</QueryClientProvider>
+    </ThemeProvider>
+  );
 }
 
 const defaultResponse = {

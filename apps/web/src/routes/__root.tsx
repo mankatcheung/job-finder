@@ -3,6 +3,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '#/lib/queryClient';
+import { THEME_INIT_SCRIPT, ThemeProvider } from '#/lib/theme';
 
 import appCss from '../styles.css?url';
 
@@ -35,18 +36,21 @@ function NotFound() {
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body>
-        <QueryClientProvider client={queryClient}>
-          {children}
-          <TanStackDevtools
-            config={{ position: 'bottom-right' }}
-            plugins={[{ name: 'Tanstack Router', render: <TanStackRouterDevtoolsPanel /> }]}
-          />
-        </QueryClientProvider>
+        <ThemeProvider>
+          <QueryClientProvider client={queryClient}>
+            {children}
+            <TanStackDevtools
+              config={{ position: 'bottom-right' }}
+              plugins={[{ name: 'Tanstack Router', render: <TanStackRouterDevtoolsPanel /> }]}
+            />
+          </QueryClientProvider>
+        </ThemeProvider>
         <Scripts />
       </body>
     </html>
