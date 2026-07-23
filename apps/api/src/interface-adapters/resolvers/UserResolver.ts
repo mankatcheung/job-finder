@@ -5,12 +5,17 @@ import type {
   IExportUserDataUseCase,
   ExportUserDataOutput,
 } from '@/use-cases/user/IExportUserDataUseCase.js';
+import type { IUpdateProfileUseCase } from '@/use-cases/user/IUpdateProfileUseCase.js';
+import type { IGetUserUseCase } from '@/use-cases/user/IGetUserUseCase.js';
+import type { User } from '@/domain/user/User.js';
 
 interface Deps {
   updateEmailUseCase: IUpdateEmailUseCase;
   updatePasswordUseCase: IUpdatePasswordUseCase;
   deleteAccountUseCase: IDeleteAccountUseCase;
   exportUserDataUseCase: IExportUserDataUseCase;
+  updateProfileUseCase: IUpdateProfileUseCase;
+  getUserUseCase: IGetUserUseCase;
 }
 
 export class UserResolver {
@@ -34,5 +39,18 @@ export class UserResolver {
 
   async exportUserData(userId: string): Promise<ExportUserDataOutput> {
     return this.deps.exportUserDataUseCase.execute(userId);
+  }
+
+  async updateProfile(
+    userId: string,
+    name?: string | null,
+    timezone?: string | null,
+    targetRole?: string | null,
+  ): Promise<void> {
+    await this.deps.updateProfileUseCase.execute({ userId, name, timezone, targetRole });
+  }
+
+  async getMe(userId: string): Promise<User | null> {
+    return this.deps.getUserUseCase.execute(userId);
   }
 }

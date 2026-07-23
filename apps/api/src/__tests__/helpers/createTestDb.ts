@@ -9,6 +9,9 @@ const SCHEMA_STATEMENTS = [
     "id" TEXT PRIMARY KEY,
     "email" TEXT NOT NULL UNIQUE,
     "passwordHash" TEXT NOT NULL,
+    "name" TEXT,
+    "timezone" TEXT,
+    "targetRole" TEXT,
     "emailVerifiedAt" DATETIME,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP

@@ -7,7 +7,14 @@ export interface IUserRepository {
   create(data: { id: string; email: string; passwordHash: string }): Promise<User>;
   update(
     id: string,
-    data: { email?: string; passwordHash?: string; emailVerifiedAt?: Date | null },
+    data: {
+      email?: string;
+      passwordHash?: string;
+      name?: string | null;
+      timezone?: string | null;
+      targetRole?: string | null;
+      emailVerifiedAt?: Date | null;
+    },
   ): Promise<User>;
   delete(id: string): Promise<void>;
 }

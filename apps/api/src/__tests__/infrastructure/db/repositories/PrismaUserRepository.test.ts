@@ -32,6 +32,14 @@ describe('PrismaUserRepository', () => {
       const user = await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
       expect(user.emailVerifiedAt).toBeNull();
     });
+
+    it('defaults profile fields to null', async () => {
+      const user = await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+
+      expect(user.name).toBeNull();
+      expect(user.timezone).toBeNull();
+      expect(user.targetRole).toBeNull();
+    });
   });
 
   describe('findById', () => {
@@ -120,6 +128,27 @@ describe('PrismaUserRepository', () => {
       const updated = await repo.update('u1', { emailVerifiedAt: null });
 
       expect(updated.emailVerifiedAt).toBeNull();
+    });
+
+    it('updates name, timezone, and targetRole', async () => {
+      await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      const updated = await repo.update('u1', {
+        name: 'Jeff Man',
+        timezone: 'America/Los_Angeles',
+        targetRole: 'Staff Engineer',
+      });
+
+      expect(updated.name).toBe('Jeff Man');
+      expect(updated.timezone).toBe('America/Los_Angeles');
+      expect(updated.targetRole).toBe('Staff Engineer');
+    });
+
+    it('clears a profile field when given null', async () => {
+      await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      await repo.update('u1', { name: 'Jeff Man' });
+      const updated = await repo.update('u1', { name: null });
+
+      expect(updated.name).toBeNull();
     });
   });
 
