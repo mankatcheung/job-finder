@@ -59,7 +59,7 @@ export async function buildApp() {
       return { statusCode: 200, response: { ...result, errors } };
     },
     context: async (request, reply): Promise<GraphQLContext> => {
-      let user: { sub: string; email: string } | null = null;
+      let user: { sub: string; email: string; sid?: string } | null = null;
 
       const cookieToken = request.cookies[COOKIES.ACCESS_TOKEN];
       const authHeader = request.headers.authorization;
@@ -84,7 +84,7 @@ export async function buildApp() {
         } else {
           // JWT path
           try {
-            user = fastify.jwt.verify<{ sub: string; email: string }>(rawToken);
+            user = fastify.jwt.verify<{ sub: string; email: string; sid: string }>(rawToken);
           } catch {
             // Expired/invalid token — resolvers enforce auth
           }

@@ -4,6 +4,6 @@ export interface TokenPair {
 }
 
 export interface ITokenService {
-  sign(userId: string, email: string): TokenPair;
-  verifyRefresh(token: string): { sub: string; email: string };
+  sign(userId: string, email: string, sessionId: string): TokenPair;
+  verifyRefresh(token: string): { sub: string; email: string; sid: string };
 }

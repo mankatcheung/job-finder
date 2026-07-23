@@ -13,6 +13,7 @@ function makeEmailService(): IEmailService {
     sendFollowUpReminder: vi.fn().mockResolvedValue(undefined),
     sendWeeklyDigest: vi.fn().mockResolvedValue(undefined),
     sendPasswordReset: vi.fn().mockResolvedValue(undefined),
+    sendEmailVerification: vi.fn().mockResolvedValue(undefined),
   };
 }
 
@@ -49,6 +50,23 @@ describe('SendWeeklyDigestUseCase', () => {
     }).execute();
 
     expect(result).toEqual({ totalUsers: 1, sent: 0, skipped: 1 });
+    expect(emailService.sendWeeklyDigest).not.toHaveBeenCalled();
+  });
+
+  it('skips users who have disabled the weekly digest', async () => {
+    const user = makeUser({ weeklyDigestEnabled: false });
+    const userRepository = makeUserRepository({ findAll: vi.fn().mockResolvedValue([user]) });
+    const applicationRepository = makeApplicationRepository();
+    const emailService = makeEmailService();
+
+    const result = await new SendWeeklyDigestUseCase({
+      userRepository,
+      applicationRepository,
+      emailService,
+    }).execute();
+
+    expect(result).toEqual({ totalUsers: 1, sent: 0, skipped: 1 });
+    expect(applicationRepository.findAllByUserId).not.toHaveBeenCalled();
     expect(emailService.sendWeeklyDigest).not.toHaveBeenCalled();
   });
 

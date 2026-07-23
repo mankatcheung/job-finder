@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
+import type { ISendEmailVerificationUseCase } from '@/use-cases/auth/ISendEmailVerificationUseCase.js';
 import { ERROR_CODES } from '@/constants.js';
 import type {
   IRegisterUseCase,
@@ -10,6 +11,7 @@ import type {
 interface Deps {
   userRepository: IUserRepository;
   generateId: () => string;
+  sendEmailVerificationUseCase: ISendEmailVerificationUseCase;
 }
 
 export class RegisterUseCase implements IRegisterUseCase {
@@ -27,6 +29,13 @@ export class RegisterUseCase implements IRegisterUseCase {
       email: input.email,
       passwordHash,
     });
+
+    try {
+      await this.deps.sendEmailVerificationUseCase.execute(user.id);
+    } catch {
+      // Verification email delivery is non-critical — don't block account
+      // creation if the email provider is down or unconfigured (e.g. local dev).
+    }
 
     return { userId: user.id, email: user.email };
   }

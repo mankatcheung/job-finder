@@ -1,0 +1,24 @@
+import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
+import { ERROR_CODES } from '@/constants.js';
+import type {
+  IGetNotificationPreferencesUseCase,
+  NotificationPreferences,
+} from '@/use-cases/user/IGetNotificationPreferencesUseCase.js';
+
+interface Deps {
+  userRepository: IUserRepository;
+}
+
+export class GetNotificationPreferencesUseCase implements IGetNotificationPreferencesUseCase {
+  constructor(private readonly deps: Deps) {}
+
+  async execute(userId: string): Promise<NotificationPreferences> {
+    const user = await this.deps.userRepository.findById(userId);
+    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+
+    return {
+      weeklyDigestEnabled: user.weeklyDigestEnabled,
+      followUpRemindersEnabled: user.followUpRemindersEnabled,
+    };
+  }
+}

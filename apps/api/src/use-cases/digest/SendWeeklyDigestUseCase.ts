@@ -27,6 +27,11 @@ export class SendWeeklyDigestUseCase {
 
     await Promise.allSettled(
       users.map(async (user) => {
+        if (!user.weeklyDigestEnabled) {
+          skipped++;
+          return;
+        }
+
         const apps = await this.deps.applicationRepository.findAllByUserId(user.id);
         if (apps.length === 0) {
           skipped++;
