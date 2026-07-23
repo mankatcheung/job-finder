@@ -34,7 +34,16 @@ export class PrismaUserRepository implements IUserRepository {
     return this.toEntity(row);
   }
 
-  async update(id: string, data: { email?: string; passwordHash?: string }): Promise<User> {
+  async update(
+    id: string,
+    data: {
+      email?: string;
+      passwordHash?: string;
+      name?: string | null;
+      timezone?: string | null;
+      targetRole?: string | null;
+    },
+  ): Promise<User> {
     const row = await this.db.user.update({ where: { id }, data });
     return this.toEntity(row);
   }
@@ -47,6 +56,9 @@ export class PrismaUserRepository implements IUserRepository {
     id: string;
     email: string;
     passwordHash: string;
+    name: string | null;
+    timezone: string | null;
+    targetRole: string | null;
     createdAt: Date;
     updatedAt: Date;
   }): User {
@@ -54,6 +66,9 @@ export class PrismaUserRepository implements IUserRepository {
       id: row.id,
       email: row.email,
       passwordHash: row.passwordHash,
+      name: row.name,
+      timezone: row.timezone,
+      targetRole: row.targetRole,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

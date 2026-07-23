@@ -35,6 +35,12 @@ export class ForbiddenError extends AppError {
   }
 }
 
+export class ValidationError extends AppError {
+  constructor(message = 'Invalid input') {
+    super(message, 400, ERROR_CODES.VALIDATION);
+  }
+}
+
 export function fromCodedError(err: unknown): AppError {
   if (err instanceof AppError) return err;
   if (err instanceof Error) {
@@ -48,6 +54,8 @@ export function fromCodedError(err: unknown): AppError {
         return new UnauthorizedError(err.message);
       case ERROR_CODES.FORBIDDEN:
         return new ForbiddenError(err.message);
+      case ERROR_CODES.VALIDATION:
+        return new ValidationError(err.message);
     }
   }
   return new AppError('Internal server error', 500, ERROR_CODES.INTERNAL_ERROR);
