@@ -42,7 +42,11 @@ builder.mutationField('login', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       const { authResolver } = ctx.diScope.cradle;
-      const result = await authResolver.login(args.email, args.password, deviceInfoFrom(ctx.request));
+      const result = await authResolver.login(
+        args.email,
+        args.password,
+        deviceInfoFrom(ctx.request),
+      );
       if (result.tokens) {
         setAuthCookies(ctx.reply, result.tokens.accessToken, result.tokens.refreshToken);
       }
