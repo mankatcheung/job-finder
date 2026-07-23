@@ -5,6 +5,7 @@ import { diContainer } from '@fastify/awilix';
 import { prisma } from '@/infrastructure/db/client.js';
 
 import { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
+import { RateLimiter } from '@/infrastructure/rateLimit/RateLimiter.js';
 import { PrismaUserRepository } from '@/infrastructure/db/repositories/PrismaUserRepository.js';
 import { PrismaApplicationRepository } from '@/infrastructure/db/repositories/PrismaApplicationRepository.js';
 import { PrismaNoteRepository } from '@/infrastructure/db/repositories/PrismaNoteRepository.js';
@@ -105,7 +106,7 @@ import { RevokeSessionUseCase } from '@/use-cases/sessions/RevokeSessionUseCase.
 import { RevokeOtherSessionsUseCase } from '@/use-cases/sessions/RevokeOtherSessionsUseCase.js';
 
 import type { FastifyInstance } from 'fastify';
-import { ENV, LLM_PROVIDER, STORAGE_PROVIDER } from '@/constants.js';
+import { ENV, LLM_PROVIDER, RATE_LIMIT, STORAGE_PROVIDER } from '@/constants.js';
 import type { ILLMProvider } from '@/use-cases/ports/ILLMProvider.js';
 
 // Augment the @fastify/awilix Cradle interface so diContainer and diScope are fully typed
@@ -118,6 +119,7 @@ declare module '@fastify/awilix' {
     fastify: FastifyInstance;
     tokenService: FastifyJwtTokenService;
     cache: MemoryCache;
+    passwordResetRateLimiter: RateLimiter;
 
     // Raw Prisma repositories (used internally by the cached decorators)
     userRepository: PrismaUserRepository;
@@ -242,6 +244,12 @@ export function buildContainer(fastify: FastifyInstance): void {
     fastify: asValue(fastify),
     tokenService: asClass(FastifyJwtTokenService, { lifetime: Lifetime.SINGLETON }),
     cache: asValue(new MemoryCache()),
+    passwordResetRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.PASSWORD_RESET_REQUEST.MAX_ATTEMPTS,
+        RATE_LIMIT.PASSWORD_RESET_REQUEST.WINDOW_MS,
+      ),
+    ),
 
     // Transaction manager
     transactionManager: asClass(PrismaTransactionManager, { lifetime: Lifetime.SINGLETON }),

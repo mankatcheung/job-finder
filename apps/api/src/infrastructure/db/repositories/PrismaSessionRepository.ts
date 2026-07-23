@@ -66,6 +66,13 @@ export class PrismaSessionRepository implements ISessionRepository {
     });
   }
 
+  async revokeAllForUser(userId: string): Promise<void> {
+    await this.db.session.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+  }
+
   private toEntity(row: PrismaSession): Session {
     return {
       id: row.id,

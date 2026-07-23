@@ -53,8 +53,8 @@ export class AuthResolver {
     await this.deps.verifyEmailUseCase.execute({ token });
   }
 
-  async requestPasswordReset(email: string): Promise<void> {
-    await this.deps.requestPasswordResetUseCase.execute({ email });
+  async requestPasswordReset(email: string, ipAddress: string | null): Promise<void> {
+    await this.deps.requestPasswordResetUseCase.execute({ email, ipAddress });
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {

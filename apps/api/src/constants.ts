@@ -16,6 +16,7 @@ export const ERROR_CODES = {
   NOT_FOUND: 'NOT_FOUND',
   CONFLICT: 'CONFLICT',
   VALIDATION: 'VALIDATION',
+  RATE_LIMITED: 'RATE_LIMITED',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
 } as const;
 
@@ -95,6 +96,17 @@ export const PASSWORD_RESET_TOKEN = {
   RANDOM_BYTES: 32,
   /** How long a reset link stays valid, in milliseconds. */
   TTL_MS: 60 * 60 * 1000, // 1 hour
+} as const;
+
+/** Minimum length enforced server-side for any newly-set password. */
+export const PASSWORD_MIN_LENGTH = 8;
+
+/** Rate limits for auth endpoints prone to abuse (in-process, fixed-window). */
+export const RATE_LIMIT = {
+  PASSWORD_RESET_REQUEST: {
+    MAX_ATTEMPTS: 5,
+    WINDOW_MS: 15 * 60 * 1000, // 15 minutes
+  },
 } as const;
 
 /** API-token scopes (mirrors the `ApiTokenScope` domain union). */

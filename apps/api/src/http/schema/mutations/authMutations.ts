@@ -88,8 +88,12 @@ builder.mutationField('requestPasswordReset', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       const { authResolver } = ctx.diScope.cradle;
-      await authResolver.requestPasswordReset(args.email);
-      return true;
+      try {
+        await authResolver.requestPasswordReset(args.email, ctx.request.ip ?? null);
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
     },
   }),
 );

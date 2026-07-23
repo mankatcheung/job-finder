@@ -6,6 +6,7 @@ import {
   UnauthorizedError,
   ForbiddenError,
   ValidationError,
+  RateLimitedError,
   fromCodedError,
 } from '@/http/errors/AppError.js';
 import { ERROR_CODES } from '@/constants.js';
@@ -86,6 +87,22 @@ describe('ValidationError', () => {
   });
 });
 
+describe('RateLimitedError', () => {
+  it('defaults to "Too many requests" with a 429 status and RATE_LIMITED code', () => {
+    const err = new RateLimitedError();
+
+    expect(err.message).toBe('Too many requests');
+    expect(err.statusCode).toBe(429);
+    expect(err.code).toBe(ERROR_CODES.RATE_LIMITED);
+  });
+
+  it('uses the given message when provided', () => {
+    expect(new RateLimitedError('Too many password reset requests').message).toBe(
+      'Too many password reset requests',
+    );
+  });
+});
+
 describe('fromCodedError', () => {
   it('returns the same instance when already an AppError', () => {
     const original = new ConflictError('Already exists');
@@ -97,6 +114,7 @@ describe('fromCodedError', () => {
     [ERROR_CODES.UNAUTHORIZED, UnauthorizedError],
     [ERROR_CODES.FORBIDDEN, ForbiddenError],
     [ERROR_CODES.VALIDATION, ValidationError],
+    [ERROR_CODES.RATE_LIMITED, RateLimitedError],
   ])('maps a %s-coded Error to a %s, preserving the message', (code, ExpectedClass) => {
     const raw = Object.assign(new Error('Domain-specific message'), { code });
 

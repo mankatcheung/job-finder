@@ -213,14 +213,15 @@ describe('AuthResolver', () => {
   });
 
   describe('requestPasswordReset', () => {
-    it('delegates to requestPasswordResetUseCase with the given email', async () => {
+    it('delegates to requestPasswordResetUseCase with the given email and IP', async () => {
       const requestPasswordResetUseCase = makeRequestPasswordResetUseCase();
       const resolver = new AuthResolver({ ...baseDeps(), requestPasswordResetUseCase });
 
-      await resolver.requestPasswordReset('test@example.com');
+      await resolver.requestPasswordReset('test@example.com', '127.0.0.1');
 
       expect(requestPasswordResetUseCase.execute).toHaveBeenCalledWith({
         email: 'test@example.com',
+        ipAddress: '127.0.0.1',
       });
     });
   });

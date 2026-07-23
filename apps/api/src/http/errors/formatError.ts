@@ -8,6 +8,7 @@ const EXPECTED_ERROR_CODES: string[] = [
   ERROR_CODES.CONFLICT,
   ERROR_CODES.UNAUTHORIZED,
   ERROR_CODES.FORBIDDEN,
+  ERROR_CODES.RATE_LIMITED,
 ];
 
 export function formatError(err: GraphQLError): GraphQLError {

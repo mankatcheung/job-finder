@@ -24,6 +24,7 @@ import type { Note } from '@/domain/note/Note.js';
 import type { InterviewRound } from '@/domain/interviewRound/InterviewRound.js';
 import type { Contact } from '@/domain/contact/Contact.js';
 import type { LoginEvent } from '@/domain/loginEvent/LoginEvent.js';
+import type { IRateLimiter } from '@/use-cases/ports/IRateLimiter.js';
 
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
@@ -144,6 +145,7 @@ export const makeSessionRepository = (
   touch: vi.fn().mockResolvedValue(undefined),
   revoke: vi.fn().mockResolvedValue(undefined),
   revokeAllForUserExcept: vi.fn().mockResolvedValue(undefined),
+  revokeAllForUser: vi.fn().mockResolvedValue(undefined),
   ...overrides,
 });
 
@@ -209,6 +211,11 @@ export const makeLoginEvent = (overrides?: Partial<LoginEvent>): LoginEvent => (
   ipAddress: '127.0.0.1',
   userAgent: 'Mozilla/5.0',
   createdAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+export const makeRateLimiter = (overrides?: Partial<IRateLimiter>): IRateLimiter => ({
+  consume: vi.fn().mockReturnValue(true),
   ...overrides,
 });
 

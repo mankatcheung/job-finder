@@ -41,6 +41,12 @@ export class ValidationError extends AppError {
   }
 }
 
+export class RateLimitedError extends AppError {
+  constructor(message = 'Too many requests') {
+    super(message, 429, ERROR_CODES.RATE_LIMITED);
+  }
+}
+
 export function fromCodedError(err: unknown): AppError {
   if (err instanceof AppError) return err;
   if (err instanceof Error) {
@@ -56,6 +62,8 @@ export function fromCodedError(err: unknown): AppError {
         return new ForbiddenError(err.message);
       case ERROR_CODES.VALIDATION:
         return new ValidationError(err.message);
+      case ERROR_CODES.RATE_LIMITED:
+        return new RateLimitedError(err.message);
     }
   }
   return new AppError('Internal server error', 500, ERROR_CODES.INTERNAL_ERROR);
