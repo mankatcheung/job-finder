@@ -8,6 +8,7 @@ import {
 import { isAuthenticated, getIsAuthenticated } from '#/lib/auth';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
+import { useTheme, type Theme } from '#/lib/theme';
 import { useHotkeys } from '#/hooks/useHotkeys';
 import { CommandPalette } from '#/components/CommandPalette';
 import { ShortcutCheatSheet } from '#/components/ShortcutCheatSheet';
@@ -16,8 +17,34 @@ import {
   BriefcaseIcon,
   LayoutDashboardIcon,
   LogOutIcon,
+  MonitorIcon,
+  MoonIcon,
+  SunIcon,
   UserIcon,
 } from 'lucide-react';
+
+const THEME_CYCLE: Record<Theme, Theme> = { light: 'dark', dark: 'system', system: 'light' };
+const THEME_ICON: Record<Theme, React.ReactNode> = {
+  light: <SunIcon size={18} />,
+  dark: <MoonIcon size={18} />,
+  system: <MonitorIcon size={18} />,
+};
+const THEME_LABEL: Record<Theme, string> = { light: 'Light', dark: 'Dark', system: 'System' };
+
+function ThemeToggleButton({ className = '' }: { className?: string }) {
+  const { theme, setTheme } = useTheme();
+  return (
+    <button
+      type="button"
+      onClick={() => setTheme(THEME_CYCLE[theme])}
+      aria-label={`Theme: ${THEME_LABEL[theme]}. Click to switch theme.`}
+      title={`Theme: ${THEME_LABEL[theme]}`}
+      className={`p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 rounded-lg transition-colors ${className}`}
+    >
+      {THEME_ICON[theme]}
+    </button>
+  );
+}
 
 const LOGOUT_MUTATION = `mutation { logout }`;
 
@@ -51,19 +78,23 @@ export function AuthenticatedLayout() {
       {/* Mobile top header */}
       <header className="lg:hidden fixed top-0 inset-x-0 z-40 h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4">
         <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Job Finder</span>
-        <button
-          onClick={handleLogout}
-          aria-label="Sign out"
-          className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 rounded-lg transition-colors"
-        >
-          <LogOutIcon size={18} />
-        </button>
+        <div className="flex items-center gap-1">
+          <ThemeToggleButton />
+          <button
+            onClick={handleLogout}
+            aria-label="Sign out"
+            className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 rounded-lg transition-colors"
+          >
+            <LogOutIcon size={18} />
+          </button>
+        </div>
       </header>
 
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex w-60 flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col">
-        <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+        <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Job Finder</span>
+          <ThemeToggleButton />
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
