@@ -24,6 +24,7 @@ model User {
   emailVerificationTokens  EmailVerificationToken[]
   sessions                 Session[]
   loginEvents              LoginEvent[]
+  passwordResetTokens      PasswordResetToken[]
 }
 
 model LoginEvent {
@@ -52,6 +53,18 @@ model Session {
 }
 
 model EmailVerificationToken {
+  id        String    @id
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
   id        String    @id
   userId    String
   tokenHash String    @unique

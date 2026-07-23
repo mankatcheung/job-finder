@@ -5,6 +5,7 @@ import { diContainer } from '@fastify/awilix';
 import { prisma } from '@/infrastructure/db/client.js';
 
 import { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
+import { RateLimiter } from '@/infrastructure/rateLimit/RateLimiter.js';
 import { PrismaUserRepository } from '@/infrastructure/db/repositories/PrismaUserRepository.js';
 import { PrismaApplicationRepository } from '@/infrastructure/db/repositories/PrismaApplicationRepository.js';
 import { PrismaNoteRepository } from '@/infrastructure/db/repositories/PrismaNoteRepository.js';
@@ -16,6 +17,7 @@ import { PrismaInterviewRoundRepository } from '@/infrastructure/db/repositories
 import { CachedInterviewRoundRepository } from '@/infrastructure/db/repositories/CachedInterviewRoundRepository.js';
 import { PrismaActivityLogRepository } from '@/infrastructure/db/repositories/PrismaActivityLogRepository.js';
 import { PrismaContactRepository } from '@/infrastructure/db/repositories/PrismaContactRepository.js';
+import { PrismaPasswordResetTokenRepository } from '@/infrastructure/db/repositories/PrismaPasswordResetTokenRepository.js';
 import { PrismaLoginEventRepository } from '@/infrastructure/db/repositories/PrismaLoginEventRepository.js';
 import { PrismaSessionRepository } from '@/infrastructure/db/repositories/PrismaSessionRepository.js';
 import { PrismaEmailVerificationTokenRepository } from '@/infrastructure/db/repositories/PrismaEmailVerificationTokenRepository.js';
@@ -45,6 +47,8 @@ import { McpController } from '@/interface-adapters/mcp/McpController.js';
 
 import { RegisterUseCase } from '@/use-cases/auth/RegisterUseCase.js';
 import { LoginUseCase } from '@/use-cases/auth/LoginUseCase.js';
+import { RequestPasswordResetUseCase } from '@/use-cases/auth/RequestPasswordResetUseCase.js';
+import { ResetPasswordUseCase } from '@/use-cases/auth/ResetPasswordUseCase.js';
 import { SendEmailVerificationUseCase } from '@/use-cases/auth/SendEmailVerificationUseCase.js';
 import { VerifyEmailUseCase } from '@/use-cases/auth/VerifyEmailUseCase.js';
 import { CreateApplicationUseCase } from '@/use-cases/jobs/CreateApplicationUseCase.js';
@@ -102,7 +106,7 @@ import { RevokeSessionUseCase } from '@/use-cases/sessions/RevokeSessionUseCase.
 import { RevokeOtherSessionsUseCase } from '@/use-cases/sessions/RevokeOtherSessionsUseCase.js';
 
 import type { FastifyInstance } from 'fastify';
-import { ENV, LLM_PROVIDER, STORAGE_PROVIDER } from '@/constants.js';
+import { ENV, LLM_PROVIDER, RATE_LIMIT, STORAGE_PROVIDER } from '@/constants.js';
 import type { ILLMProvider } from '@/use-cases/ports/ILLMProvider.js';
 
 // Augment the @fastify/awilix Cradle interface so diContainer and diScope are fully typed
@@ -115,6 +119,7 @@ declare module '@fastify/awilix' {
     fastify: FastifyInstance;
     tokenService: FastifyJwtTokenService;
     cache: MemoryCache;
+    passwordResetRateLimiter: RateLimiter;
 
     // Raw Prisma repositories (used internally by the cached decorators)
     userRepository: PrismaUserRepository;
@@ -131,6 +136,7 @@ declare module '@fastify/awilix' {
     activityLogRepository: PrismaActivityLogRepository;
     apiTokenRepository: PrismaApiTokenRepository;
     contactRepository: PrismaContactRepository;
+    passwordResetTokenRepository: PrismaPasswordResetTokenRepository;
     loginEventRepository: PrismaLoginEventRepository;
     sessionRepository: PrismaSessionRepository;
     emailVerificationTokenRepository: PrismaEmailVerificationTokenRepository;
@@ -158,6 +164,8 @@ declare module '@fastify/awilix' {
 
     registerUseCase: RegisterUseCase;
     loginUseCase: LoginUseCase;
+    requestPasswordResetUseCase: RequestPasswordResetUseCase;
+    resetPasswordUseCase: ResetPasswordUseCase;
     sendEmailVerificationUseCase: SendEmailVerificationUseCase;
     verifyEmailUseCase: VerifyEmailUseCase;
     createApplicationUseCase: CreateApplicationUseCase;
@@ -236,6 +244,12 @@ export function buildContainer(fastify: FastifyInstance): void {
     fastify: asValue(fastify),
     tokenService: asClass(FastifyJwtTokenService, { lifetime: Lifetime.SINGLETON }),
     cache: asValue(new MemoryCache()),
+    passwordResetRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.PASSWORD_RESET_REQUEST.MAX_ATTEMPTS,
+        RATE_LIMIT.PASSWORD_RESET_REQUEST.WINDOW_MS,
+      ),
+    ),
 
     // Transaction manager
     transactionManager: asClass(PrismaTransactionManager, { lifetime: Lifetime.SINGLETON }),
@@ -261,6 +275,9 @@ export function buildContainer(fastify: FastifyInstance): void {
     activityLogRepository: asClass(PrismaActivityLogRepository, { lifetime: Lifetime.SINGLETON }),
     apiTokenRepository: asClass(PrismaApiTokenRepository, { lifetime: Lifetime.SINGLETON }),
     contactRepository: asClass(PrismaContactRepository, { lifetime: Lifetime.SINGLETON }),
+    passwordResetTokenRepository: asClass(PrismaPasswordResetTokenRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
     loginEventRepository: asClass(PrismaLoginEventRepository, { lifetime: Lifetime.SINGLETON }),
     sessionRepository: asClass(PrismaSessionRepository, { lifetime: Lifetime.SINGLETON }),
     emailVerificationTokenRepository: asClass(PrismaEmailVerificationTokenRepository, {
@@ -293,6 +310,10 @@ export function buildContainer(fastify: FastifyInstance): void {
     // Use Cases
     registerUseCase: asClass(RegisterUseCase, { lifetime: Lifetime.TRANSIENT }),
     loginUseCase: asClass(LoginUseCase, { lifetime: Lifetime.TRANSIENT }),
+    requestPasswordResetUseCase: asClass(RequestPasswordResetUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    resetPasswordUseCase: asClass(ResetPasswordUseCase, { lifetime: Lifetime.TRANSIENT }),
     sendEmailVerificationUseCase: asClass(SendEmailVerificationUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

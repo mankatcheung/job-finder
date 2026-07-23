@@ -1,5 +1,7 @@
 import type { IRegisterUseCase } from '@/use-cases/auth/IRegisterUseCase.js';
 import type { ILoginUseCase } from '@/use-cases/auth/ILoginUseCase.js';
+import type { IRequestPasswordResetUseCase } from '@/use-cases/auth/IRequestPasswordResetUseCase.js';
+import type { IResetPasswordUseCase } from '@/use-cases/auth/IResetPasswordUseCase.js';
 import type { IVerifyEmailUseCase } from '@/use-cases/auth/IVerifyEmailUseCase.js';
 import type { ITokenService, TokenPair } from '@/use-cases/ports/ITokenService.js';
 import type { CreateSessionUseCase } from '@/use-cases/sessions/CreateSessionUseCase.js';
@@ -9,6 +11,8 @@ interface Deps {
   registerUseCase: IRegisterUseCase;
   loginUseCase: ILoginUseCase;
   tokenService: ITokenService;
+  requestPasswordResetUseCase: IRequestPasswordResetUseCase;
+  resetPasswordUseCase: IResetPasswordUseCase;
   createSessionUseCase: CreateSessionUseCase;
   touchSessionUseCase: TouchSessionUseCase;
   verifyEmailUseCase: IVerifyEmailUseCase;
@@ -47,5 +51,13 @@ export class AuthResolver {
 
   async verifyEmail(token: string): Promise<void> {
     await this.deps.verifyEmailUseCase.execute({ token });
+  }
+
+  async requestPasswordReset(email: string, ipAddress: string | null): Promise<void> {
+    await this.deps.requestPasswordResetUseCase.execute({ email, ipAddress });
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    await this.deps.resetPasswordUseCase.execute({ token, newPassword });
   }
 }

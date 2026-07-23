@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { BrevoEmailService } from '@/infrastructure/email/BrevoEmailService.js';
 import { buildWeeklyDigestHtml } from '@/infrastructure/email/templates/weeklyDigestTemplate.js';
+import { buildPasswordResetHtml } from '@/infrastructure/email/templates/passwordResetTemplate.js';
 import { buildEmailVerificationHtml } from '@/infrastructure/email/templates/emailVerificationTemplate.js';
 import { ENV, EMAIL } from '@/constants.js';
 import type { WeeklyDigestData } from '@/use-cases/ports/IEmailService.js';
@@ -156,6 +157,34 @@ describe('BrevoEmailService', () => {
       const service = new BrevoEmailService();
 
       await expect(service.sendWeeklyDigest('user@example.com', data)).rejects.toThrow(
+        /Brevo API error 503/,
+      );
+    });
+  });
+
+  describe('sendPasswordReset', () => {
+    const resetUrl = 'https://app.jobfinder.com/reset-password?token=abc123';
+
+    it('posts a subject and htmlContent built from the reset URL', async () => {
+      vi.mocked(fetch).mockResolvedValue(jsonResponse(true, 200) as never);
+      const service = new BrevoEmailService();
+
+      await service.sendPasswordReset('user@example.com', resetUrl);
+
+      const [url, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+
+      expect(url).toBe(EMAIL.BREVO_API_URL);
+      expect(body.to).toEqual([{ email: 'user@example.com' }]);
+      expect(body.subject).toBe('Reset your Job Finder password');
+      expect(body.htmlContent).toBe(buildPasswordResetHtml(resetUrl));
+    });
+
+    it('throws with the status and body when the response fails', async () => {
+      vi.mocked(fetch).mockResolvedValue(jsonResponse(false, 503, 'unavailable') as never);
+      const service = new BrevoEmailService();
+
+      await expect(service.sendPasswordReset('user@example.com', resetUrl)).rejects.toThrow(
         /Brevo API error 503/,
       );
     });

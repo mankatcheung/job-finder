@@ -16,4 +16,5 @@ export interface ISessionRepository {
   touch(id: string, expiresAt: Date): Promise<void>;
   revoke(id: string): Promise<void>;
   revokeAllForUserExcept(userId: string, exceptId: string): Promise<void>;
+  revokeAllForUser(userId: string): Promise<void>;
 }

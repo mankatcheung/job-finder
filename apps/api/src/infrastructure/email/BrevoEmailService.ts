@@ -1,5 +1,6 @@
 import type { IEmailService, WeeklyDigestData } from '@/use-cases/ports/IEmailService.js';
 import { buildWeeklyDigestHtml } from './templates/weeklyDigestTemplate.js';
+import { buildPasswordResetHtml } from './templates/passwordResetTemplate.js';
 import { buildEmailVerificationHtml } from './templates/emailVerificationTemplate.js';
 import { EMAIL, ENV } from '@/constants.js';
 
@@ -56,6 +57,24 @@ export class BrevoEmailService implements IEmailService {
         sender: { name: this.fromName, email: this.fromEmail },
         to: [{ email: to }],
         subject: `Your Weekly Job Search Digest — ${weekLabel}`,
+        htmlContent,
+      }),
+    });
+    if (!response.ok && response.status !== 201) {
+      const body = await response.text();
+      throw new Error(`Brevo API error ${response.status}: ${body}`);
+    }
+  }
+
+  async sendPasswordReset(to: string, resetUrl: string): Promise<void> {
+    const htmlContent = buildPasswordResetHtml(resetUrl);
+    const response = await fetch(EMAIL.BREVO_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'api-key': this.apiKey },
+      body: JSON.stringify({
+        sender: { name: this.fromName, email: this.fromEmail },
+        to: [{ email: to }],
+        subject: 'Reset your Job Finder password',
         htmlContent,
       }),
     });

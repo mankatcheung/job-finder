@@ -211,4 +211,51 @@ describe('PrismaSessionRepository', () => {
       expect(await repo.findActiveByUserId('user-2')).toHaveLength(1);
     });
   });
+
+  describe('revokeAllForUser', () => {
+    it('revokes every session for the user, including the most recently used one', async () => {
+      await repo.create({
+        id: 'session-a',
+        userId: 'user-1',
+        userAgent: null,
+        ipAddress: null,
+        expiresAt: futureExpiry(),
+      });
+      await repo.create({
+        id: 'session-b',
+        userId: 'user-1',
+        userAgent: null,
+        ipAddress: null,
+        expiresAt: futureExpiry(),
+      });
+
+      await repo.revokeAllForUser('user-1');
+
+      expect(await repo.findActiveByUserId('user-1')).toHaveLength(0);
+    });
+
+    it('does not affect sessions belonging to other users', async () => {
+      await db.prisma.user.create({
+        data: { id: 'user-2', email: 'c@d.com', passwordHash: 'hashed' },
+      });
+      await repo.create({
+        id: 'mine',
+        userId: 'user-1',
+        userAgent: null,
+        ipAddress: null,
+        expiresAt: futureExpiry(),
+      });
+      await repo.create({
+        id: 'theirs',
+        userId: 'user-2',
+        userAgent: null,
+        ipAddress: null,
+        expiresAt: futureExpiry(),
+      });
+
+      await repo.revokeAllForUser('user-1');
+
+      expect(await repo.findActiveByUserId('user-2')).toHaveLength(1);
+    });
+  });
 });
