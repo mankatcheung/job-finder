@@ -19,21 +19,21 @@ describe('FastifyJwtTokenService', () => {
 
   describe('sign', () => {
     it('signs an access token with the user payload and ACCESS expiry, no explicit key', () => {
-      service.sign('user-1', 'user@example.com');
+      service.sign('user-1', 'user@example.com', 'session-1');
 
       expect(fastifyJwt.jwt.sign).toHaveBeenNthCalledWith(
         1,
-        { sub: 'user-1', email: 'user@example.com' },
+        { sub: 'user-1', email: 'user@example.com', sid: 'session-1' },
         { expiresIn: JWT_EXPIRY.ACCESS },
       );
     });
 
     it('signs a refresh token with the refresh secret and REFRESH expiry', () => {
-      service.sign('user-1', 'user@example.com');
+      service.sign('user-1', 'user@example.com', 'session-1');
 
       expect(fastifyJwt.jwt.sign).toHaveBeenNthCalledWith(
         2,
-        { sub: 'user-1', email: 'user@example.com' },
+        { sub: 'user-1', email: 'user@example.com', sid: 'session-1' },
         { key: REFRESH_SECRET, expiresIn: JWT_EXPIRY.REFRESH },
       );
     });
@@ -43,7 +43,7 @@ describe('FastifyJwtTokenService', () => {
         .mockReturnValueOnce('access-token-value')
         .mockReturnValueOnce('refresh-token-value');
 
-      const result = service.sign('user-1', 'user@example.com');
+      const result = service.sign('user-1', 'user@example.com', 'session-1');
 
       expect(result).toEqual({
         accessToken: 'access-token-value',
@@ -57,6 +57,7 @@ describe('FastifyJwtTokenService', () => {
       vi.mocked(fastifyJwt.jwt.verify).mockReturnValue({
         sub: 'user-1',
         email: 'user@example.com',
+        sid: 'session-1',
       });
 
       const result = service.verifyRefresh('a-refresh-token');
@@ -64,7 +65,7 @@ describe('FastifyJwtTokenService', () => {
       expect(fastifyJwt.jwt.verify).toHaveBeenCalledWith('a-refresh-token', {
         key: REFRESH_SECRET,
       });
-      expect(result).toEqual({ sub: 'user-1', email: 'user@example.com' });
+      expect(result).toEqual({ sub: 'user-1', email: 'user@example.com', sid: 'session-1' });
     });
 
     it('throws an UNAUTHORIZED-coded error when verification fails', () => {

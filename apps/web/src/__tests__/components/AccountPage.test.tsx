@@ -44,14 +44,24 @@ function Wrapper({ children }: { children: React.ReactNode }) {
   return <QueryClientProvider client={makeClient()}>{children}</QueryClientProvider>;
 }
 
-const defaultPrefs = {
+const defaultResponse = {
+  me: { id: 'user-1', email: 'test@example.com', name: null, timezone: null, targetRole: null },
+  sessions: [
+    {
+      id: 'session-1',
+      userAgent: 'Mozilla/5.0 (Macintosh)',
+      ipAddress: '10.0.0.1',
+      lastUsedAt: '2024-01-01T00:00:00.000Z',
+      current: true,
+    },
+  ],
   notificationPreferences: { weeklyDigestEnabled: true, followUpRemindersEnabled: true },
 };
 
 describe('AccountPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGqlRequest.mockResolvedValue(defaultPrefs);
+    mockGqlRequest.mockResolvedValue(defaultResponse);
   });
 
   afterEach(() => {
@@ -61,15 +71,119 @@ describe('AccountPage', () => {
   it('renders all sections', async () => {
     render(<AccountPage />, { wrapper: Wrapper });
     expect(screen.getByText('Account settings')).toBeInTheDocument();
+    expect(screen.getByText('Profile')).toBeInTheDocument();
     expect(screen.getByText('Email address')).toBeInTheDocument();
     expect(screen.getByText('Password')).toBeInTheDocument();
+    expect(screen.getByText('Active sessions')).toBeInTheDocument();
     expect(screen.getByText('Notification preferences')).toBeInTheDocument();
     expect(screen.getByText('Export your data')).toBeInTheDocument();
     expect(screen.getByText('Danger zone')).toBeInTheDocument();
     await waitFor(() => {
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Me'));
+    });
+    await waitFor(() => {
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Sessions'));
+    });
+    await waitFor(() => {
       expect(mockGqlRequest).toHaveBeenCalledWith(
         expect.stringContaining('NotificationPreferences'),
       );
+    });
+  });
+
+  describe('profile form', () => {
+    it('pre-fills fields from the me query', async () => {
+      mockGqlRequest.mockResolvedValue({
+        ...defaultResponse,
+        me: {
+          id: 'user-1',
+          email: 'test@example.com',
+          name: 'Jeff Man',
+          timezone: 'America/Los_Angeles',
+          targetRole: 'Staff Engineer',
+        },
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue('Jeff Man')).toBeInTheDocument();
+      });
+      expect(screen.getByDisplayValue('America/Los_Angeles')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Staff Engineer')).toBeInTheDocument();
+    });
+
+    it('calls updateProfile mutation with trimmed values', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() =>
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Me')),
+      );
+      mockGqlRequest.mockResolvedValue({ updateProfile: true });
+
+      const saveBtn = screen.getByRole('button', { name: /save profile/i });
+      const form = saveBtn.closest('form')!;
+      const nameInput = form.querySelector('input[placeholder="Jane Doe"]')!;
+      const timezoneInput = form.querySelector('input[placeholder="America/Los_Angeles"]')!;
+      const targetRoleInput = form.querySelector('input[placeholder="Senior Product Designer"]')!;
+
+      fireEvent.change(nameInput, { target: { value: '  Jeff Man  ' } });
+      fireEvent.change(timezoneInput, { target: { value: 'UTC' } });
+      fireEvent.change(targetRoleInput, { target: { value: 'Staff Engineer' } });
+      fireEvent.click(saveBtn);
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('UpdateProfile'), {
+          name: 'Jeff Man',
+          timezone: 'UTC',
+          targetRole: 'Staff Engineer',
+        });
+      });
+    });
+
+    it('sends null for cleared fields', async () => {
+      mockGqlRequest.mockResolvedValue({
+        ...defaultResponse,
+        me: {
+          id: 'user-1',
+          email: 'test@example.com',
+          name: 'Old Name',
+          timezone: null,
+          targetRole: null,
+        },
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(screen.getByDisplayValue('Old Name')).toBeInTheDocument());
+      mockGqlRequest.mockResolvedValue({ updateProfile: true });
+
+      const saveBtn = screen.getByRole('button', { name: /save profile/i });
+      const form = saveBtn.closest('form')!;
+      const nameInput = form.querySelector('input[placeholder="Jane Doe"]')!;
+
+      fireEvent.change(nameInput, { target: { value: '   ' } });
+      fireEvent.click(saveBtn);
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('UpdateProfile'),
+          expect.objectContaining({ name: null }),
+        );
+      });
+    });
+
+    it('shows error message on profile update failure', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() =>
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Me')),
+      );
+      mockGqlRequest.mockRejectedValue({
+        response: { errors: [{ message: 'Invalid timezone' }] },
+      });
+
+      const saveBtn = screen.getByRole('button', { name: /save profile/i });
+      fireEvent.click(saveBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText('Invalid timezone')).toBeInTheDocument();
+      });
     });
   });
 
@@ -178,6 +292,89 @@ describe('AccountPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Failed to update password.')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('active sessions', () => {
+    it('shows the current session without a revoke button', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Mozilla/5.0 (Macintosh)')).toBeInTheDocument();
+      });
+      expect(screen.getByText('This device')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^revoke$/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /sign out other sessions/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('shows a revoke button for non-current sessions and calls revokeSession', async () => {
+      mockGqlRequest.mockResolvedValue({
+        ...defaultResponse,
+        sessions: [
+          {
+            id: 'session-1',
+            userAgent: 'Chrome',
+            ipAddress: '1.1.1.1',
+            lastUsedAt: '2024-01-01T00:00:00.000Z',
+            current: true,
+          },
+          {
+            id: 'session-2',
+            userAgent: 'Safari',
+            ipAddress: '2.2.2.2',
+            lastUsedAt: '2024-01-02T00:00:00.000Z',
+            current: false,
+          },
+        ],
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(screen.getByText('Safari')).toBeInTheDocument());
+
+      mockGqlRequest.mockResolvedValueOnce({ revokeSession: true });
+      fireEvent.click(screen.getByRole('button', { name: /^revoke$/i }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RevokeSession'), {
+          id: 'session-2',
+        });
+      });
+    });
+
+    it('shows "Sign out other sessions" when there is more than one session', async () => {
+      mockGqlRequest.mockResolvedValue({
+        ...defaultResponse,
+        sessions: [
+          {
+            id: 'session-1',
+            userAgent: 'Chrome',
+            ipAddress: '1.1.1.1',
+            lastUsedAt: '2024-01-01T00:00:00.000Z',
+            current: true,
+          },
+          {
+            id: 'session-2',
+            userAgent: 'Safari',
+            ipAddress: '2.2.2.2',
+            lastUsedAt: '2024-01-02T00:00:00.000Z',
+            current: false,
+          },
+        ],
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: /sign out other sessions/i }),
+        ).toBeInTheDocument(),
+      );
+
+      mockGqlRequest.mockResolvedValueOnce({ revokeOtherSessions: true });
+      fireEvent.click(screen.getByRole('button', { name: /sign out other sessions/i }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RevokeOtherSessions'));
       });
     });
   });

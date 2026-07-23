@@ -44,6 +44,27 @@ builder.mutationField('updatePassword', (t) =>
   }),
 );
 
+builder.mutationField('updateProfile', (t) =>
+  t.boolean({
+    args: {
+      name: t.arg.string({ required: false }),
+      timezone: t.arg.string({ required: false }),
+      targetRole: t.arg.string({ required: false }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        await userResolver.updateProfile(ctx.user.sub, args.name, args.timezone, args.targetRole);
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
 builder.mutationField('deleteAccount', (t) =>
   t.boolean({
     args: {

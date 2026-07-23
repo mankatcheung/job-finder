@@ -10,6 +10,9 @@ import type {
   NotificationPreferences,
 } from '@/use-cases/user/IGetNotificationPreferencesUseCase.js';
 import type { IUpdateNotificationPreferencesUseCase } from '@/use-cases/user/IUpdateNotificationPreferencesUseCase.js';
+import type { IUpdateProfileUseCase } from '@/use-cases/user/IUpdateProfileUseCase.js';
+import type { IGetUserUseCase } from '@/use-cases/user/IGetUserUseCase.js';
+import type { User } from '@/domain/user/User.js';
 
 interface Deps {
   updateEmailUseCase: IUpdateEmailUseCase;
@@ -18,6 +21,8 @@ interface Deps {
   exportUserDataUseCase: IExportUserDataUseCase;
   getNotificationPreferencesUseCase: IGetNotificationPreferencesUseCase;
   updateNotificationPreferencesUseCase: IUpdateNotificationPreferencesUseCase;
+  updateProfileUseCase: IUpdateProfileUseCase;
+  getUserUseCase: IGetUserUseCase;
 }
 
 export class UserResolver {
@@ -57,5 +62,18 @@ export class UserResolver {
       weeklyDigestEnabled,
       followUpRemindersEnabled,
     });
+  }
+
+  async updateProfile(
+    userId: string,
+    name?: string | null,
+    timezone?: string | null,
+    targetRole?: string | null,
+  ): Promise<void> {
+    await this.deps.updateProfileUseCase.execute({ userId, name, timezone, targetRole });
+  }
+
+  async getMe(userId: string): Promise<User | null> {
+    return this.deps.getUserUseCase.execute(userId);
   }
 }

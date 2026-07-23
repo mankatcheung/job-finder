@@ -6,6 +6,9 @@ import type { IDeleteAccountUseCase } from '@/use-cases/user/IDeleteAccountUseCa
 import type { IExportUserDataUseCase } from '@/use-cases/user/IExportUserDataUseCase.js';
 import type { IGetNotificationPreferencesUseCase } from '@/use-cases/user/IGetNotificationPreferencesUseCase.js';
 import type { IUpdateNotificationPreferencesUseCase } from '@/use-cases/user/IUpdateNotificationPreferencesUseCase.js';
+import type { IUpdateProfileUseCase } from '@/use-cases/user/IUpdateProfileUseCase.js';
+import type { IGetUserUseCase } from '@/use-cases/user/IGetUserUseCase.js';
+import { makeUser } from '@/__tests__/helpers/mocks.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 
@@ -24,6 +27,10 @@ const makeDeps = (overrides?: object) => ({
   updateNotificationPreferencesUseCase: stub<IUpdateNotificationPreferencesUseCase>({
     execute: vi.fn().mockResolvedValue(undefined),
   }),
+  updateProfileUseCase: stub<IUpdateProfileUseCase>({
+    execute: vi.fn().mockResolvedValue(undefined),
+  }),
+  getUserUseCase: stub<IGetUserUseCase>({ execute: vi.fn() }),
   ...overrides,
 });
 
@@ -136,6 +143,59 @@ describe('UserResolver', () => {
         weeklyDigestEnabled: false,
         followUpRemindersEnabled: true,
       });
+    });
+  });
+
+  describe('updateProfile', () => {
+    it('delegates to updateProfileUseCase with the correct arguments', async () => {
+      const deps = makeDeps();
+      const resolver = new UserResolver(deps);
+
+      await resolver.updateProfile('user-1', 'Jeff', 'UTC', 'Staff Engineer');
+
+      expect(deps.updateProfileUseCase.execute).toHaveBeenCalledWith({
+        userId: 'user-1',
+        name: 'Jeff',
+        timezone: 'UTC',
+        targetRole: 'Staff Engineer',
+      });
+    });
+
+    it('propagates errors from the use case', async () => {
+      const err = Object.assign(new Error('VALIDATION'), { code: 'VALIDATION' });
+      const deps = makeDeps({
+        updateProfileUseCase: stub<IUpdateProfileUseCase>({
+          execute: vi.fn().mockRejectedValue(err),
+        }),
+      });
+
+      await expect(
+        new UserResolver(deps).updateProfile('user-1', undefined, 'Not/A_Zone', undefined),
+      ).rejects.toMatchObject({ code: 'VALIDATION' });
+    });
+  });
+
+  describe('getMe', () => {
+    it('delegates to getUserUseCase and returns the result', async () => {
+      const user = makeUser({ id: 'user-1' });
+      const deps = makeDeps({
+        getUserUseCase: stub<IGetUserUseCase>({ execute: vi.fn().mockResolvedValue(user) }),
+      });
+
+      const result = await new UserResolver(deps).getMe('user-1');
+
+      expect(deps.getUserUseCase.execute).toHaveBeenCalledWith('user-1');
+      expect(result).toEqual(user);
+    });
+
+    it('returns null when the use case returns null', async () => {
+      const deps = makeDeps({
+        getUserUseCase: stub<IGetUserUseCase>({ execute: vi.fn().mockResolvedValue(null) }),
+      });
+
+      const result = await new UserResolver(deps).getMe('missing');
+
+      expect(result).toBeNull();
     });
   });
 });

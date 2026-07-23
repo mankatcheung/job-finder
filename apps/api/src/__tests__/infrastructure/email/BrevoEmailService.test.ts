@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { BrevoEmailService } from '@/infrastructure/email/BrevoEmailService.js';
 import { buildWeeklyDigestHtml } from '@/infrastructure/email/templates/weeklyDigestTemplate.js';
+import { buildEmailVerificationHtml } from '@/infrastructure/email/templates/emailVerificationTemplate.js';
 import { ENV, EMAIL } from '@/constants.js';
 import type { WeeklyDigestData } from '@/use-cases/ports/IEmailService.js';
 
@@ -155,6 +156,34 @@ describe('BrevoEmailService', () => {
       const service = new BrevoEmailService();
 
       await expect(service.sendWeeklyDigest('user@example.com', data)).rejects.toThrow(
+        /Brevo API error 503/,
+      );
+    });
+  });
+
+  describe('sendEmailVerification', () => {
+    const verifyUrl = 'https://app.jobfinder.com/verify-email?token=abc123';
+
+    it('posts a subject and htmlContent built from the verify URL', async () => {
+      vi.mocked(fetch).mockResolvedValue(jsonResponse(true, 200) as never);
+      const service = new BrevoEmailService();
+
+      await service.sendEmailVerification('user@example.com', verifyUrl);
+
+      const [url, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+
+      expect(url).toBe(EMAIL.BREVO_API_URL);
+      expect(body.to).toEqual([{ email: 'user@example.com' }]);
+      expect(body.subject).toBe('Verify your Job Finder email');
+      expect(body.htmlContent).toBe(buildEmailVerificationHtml(verifyUrl));
+    });
+
+    it('throws with the status and body when the response fails', async () => {
+      vi.mocked(fetch).mockResolvedValue(jsonResponse(false, 503, 'unavailable') as never);
+      const service = new BrevoEmailService();
+
+      await expect(service.sendEmailVerification('user@example.com', verifyUrl)).rejects.toThrow(
         /Brevo API error 503/,
       );
     });
