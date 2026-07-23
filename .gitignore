@@ -4,6 +4,7 @@ dist
 .turbo
 coverage
 *.db
+local.db.*
 *.db-shm
 *.db-wal
 uploads/
