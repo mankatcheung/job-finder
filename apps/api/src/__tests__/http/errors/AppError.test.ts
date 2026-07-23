@@ -81,6 +81,7 @@ describe('ValidationError', () => {
   });
 
   it('uses the given message when provided', () => {
+    expect(new ValidationError('Invalid import file').message).toBe('Invalid import file');
     expect(new ValidationError('Invalid timezone').message).toBe('Invalid timezone');
   });
 });

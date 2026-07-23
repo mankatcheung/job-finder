@@ -77,6 +77,7 @@ describe('AccountPage', () => {
     expect(screen.getByText('Active sessions')).toBeInTheDocument();
     expect(screen.getByText('Notification preferences')).toBeInTheDocument();
     expect(screen.getByText('Export your data')).toBeInTheDocument();
+    expect(screen.getByText('Import your data')).toBeInTheDocument();
     expect(screen.getByText('Danger zone')).toBeInTheDocument();
     await waitFor(() => {
       expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Me'));
@@ -439,6 +440,52 @@ describe('AccountPage', () => {
       });
       await waitFor(() => {
         expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
+      });
+    });
+  });
+
+  describe('data import', () => {
+    const selectFile = (content: string, name = 'export.json') => {
+      const file = new File([content], name, { type: 'application/json' });
+      const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [file] } });
+    };
+
+    it('calls importUserData with the file contents and shows the summary', async () => {
+      mockGqlRequest.mockResolvedValue({
+        importUserData: {
+          applicationsImported: 2,
+          applicationsSkipped: 1,
+          notesImported: 3,
+          documentsSkipped: 1,
+        },
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      selectFile('{"applications":[]}');
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('ImportUserData'), {
+          data: '{"applications":[]}',
+        });
+      });
+      await waitFor(() => {
+        expect(screen.getByText(/Imported 2 applications and 3 notes/)).toBeInTheDocument();
+      });
+      expect(screen.getByText(/Skipped 1 invalid application/)).toBeInTheDocument();
+      expect(screen.getByText(/Skipped 1 document/)).toBeInTheDocument();
+    });
+
+    it('shows error message when import fails', async () => {
+      mockGqlRequest.mockRejectedValue({
+        response: { errors: [{ message: 'Import file is not valid JSON' }] },
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      selectFile('not json');
+
+      await waitFor(() => {
+        expect(screen.getByText('Import file is not valid JSON')).toBeInTheDocument();
       });
     });
   });

@@ -6,6 +6,10 @@ import type {
   ExportUserDataOutput,
 } from '@/use-cases/user/IExportUserDataUseCase.js';
 import type {
+  IImportUserDataUseCase,
+  ImportSummary,
+} from '@/use-cases/user/IImportUserDataUseCase.js';
+import type {
   IGetNotificationPreferencesUseCase,
   NotificationPreferences,
 } from '@/use-cases/user/IGetNotificationPreferencesUseCase.js';
@@ -19,6 +23,7 @@ interface Deps {
   updatePasswordUseCase: IUpdatePasswordUseCase;
   deleteAccountUseCase: IDeleteAccountUseCase;
   exportUserDataUseCase: IExportUserDataUseCase;
+  importUserDataUseCase: IImportUserDataUseCase;
   getNotificationPreferencesUseCase: IGetNotificationPreferencesUseCase;
   updateNotificationPreferencesUseCase: IUpdateNotificationPreferencesUseCase;
   updateProfileUseCase: IUpdateProfileUseCase;
@@ -46,6 +51,10 @@ export class UserResolver {
 
   async exportUserData(userId: string): Promise<ExportUserDataOutput> {
     return this.deps.exportUserDataUseCase.execute(userId);
+  }
+
+  async importUserData(userId: string, rawData: string): Promise<ImportSummary> {
+    return this.deps.importUserDataUseCase.execute(userId, rawData);
   }
 
   async getNotificationPreferences(userId: string): Promise<NotificationPreferences> {

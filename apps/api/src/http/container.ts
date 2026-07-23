@@ -61,6 +61,7 @@ import { UpdateEmailUseCase } from '@/use-cases/user/UpdateEmailUseCase.js';
 import { UpdatePasswordUseCase } from '@/use-cases/user/UpdatePasswordUseCase.js';
 import { DeleteAccountUseCase } from '@/use-cases/user/DeleteAccountUseCase.js';
 import { ExportUserDataUseCase } from '@/use-cases/user/ExportUserDataUseCase.js';
+import { ImportUserDataUseCase } from '@/use-cases/user/ImportUserDataUseCase.js';
 import { GetNotificationPreferencesUseCase } from '@/use-cases/user/GetNotificationPreferencesUseCase.js';
 import { UpdateNotificationPreferencesUseCase } from '@/use-cases/user/UpdateNotificationPreferencesUseCase.js';
 import { UpdateProfileUseCase } from '@/use-cases/user/UpdateProfileUseCase.js';
@@ -169,6 +170,7 @@ declare module '@fastify/awilix' {
     updatePasswordUseCase: UpdatePasswordUseCase;
     deleteAccountUseCase: DeleteAccountUseCase;
     exportUserDataUseCase: ExportUserDataUseCase;
+    importUserDataUseCase: ImportUserDataUseCase;
     getNotificationPreferencesUseCase: GetNotificationPreferencesUseCase;
     updateNotificationPreferencesUseCase: UpdateNotificationPreferencesUseCase;
     updateProfileUseCase: UpdateProfileUseCase;
@@ -307,6 +309,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     updatePasswordUseCase: asClass(UpdatePasswordUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteAccountUseCase: asClass(DeleteAccountUseCase, { lifetime: Lifetime.TRANSIENT }),
     exportUserDataUseCase: asClass(ExportUserDataUseCase, { lifetime: Lifetime.TRANSIENT }),
+    importUserDataUseCase: asClass(ImportUserDataUseCase, { lifetime: Lifetime.TRANSIENT }),
     getNotificationPreferencesUseCase: asClass(GetNotificationPreferencesUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
