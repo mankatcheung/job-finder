@@ -10,12 +10,14 @@ import type { IInterviewRoundRepository } from '@/use-cases/ports/IInterviewRoun
 import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
 import type { IContactRepository } from '@/use-cases/ports/IContactRepository.js';
 import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
+import type { ILoginEventRepository } from '@/use-cases/ports/ILoginEventRepository.js';
 import type { User } from '@/domain/user/User.js';
 import type { Application } from '@/domain/application/Application.js';
 import type { Document } from '@/domain/document/Document.js';
 import type { Note } from '@/domain/note/Note.js';
 import type { InterviewRound } from '@/domain/interviewRound/InterviewRound.js';
 import type { Contact } from '@/domain/contact/Contact.js';
+import type { LoginEvent } from '@/domain/loginEvent/LoginEvent.js';
 
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
@@ -78,6 +80,14 @@ export const makeActivityLogRepository = (
   ...overrides,
 });
 
+export const makeLoginEventRepository = (
+  overrides?: Partial<ILoginEventRepository>,
+): ILoginEventRepository => ({
+  create: vi.fn(),
+  findRecentByUserId: vi.fn().mockResolvedValue([]),
+  ...overrides,
+});
+
 export const makeStorageProvider = (overrides?: Partial<IStorageProvider>): IStorageProvider => ({
   getPresignedUploadUrl: vi.fn(),
   getSignedUrl: vi.fn(),
@@ -116,6 +126,15 @@ export const makeFastifyJwt = (): {
     sign: vi.fn().mockReturnValue('signed-token'),
     verify: vi.fn(),
   },
+});
+
+export const makeLoginEvent = (overrides?: Partial<LoginEvent>): LoginEvent => ({
+  id: 'event-1',
+  userId: 'user-1',
+  ipAddress: '127.0.0.1',
+  userAgent: 'Mozilla/5.0',
+  createdAt: new Date('2024-01-01'),
+  ...overrides,
 });
 
 // Domain object fixtures

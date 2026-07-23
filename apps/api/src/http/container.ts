@@ -16,6 +16,7 @@ import { PrismaInterviewRoundRepository } from '@/infrastructure/db/repositories
 import { CachedInterviewRoundRepository } from '@/infrastructure/db/repositories/CachedInterviewRoundRepository.js';
 import { PrismaActivityLogRepository } from '@/infrastructure/db/repositories/PrismaActivityLogRepository.js';
 import { PrismaContactRepository } from '@/infrastructure/db/repositories/PrismaContactRepository.js';
+import { PrismaLoginEventRepository } from '@/infrastructure/db/repositories/PrismaLoginEventRepository.js';
 
 import { LocalStorageProvider } from '@/infrastructure/storage/LocalStorageProvider.js';
 import { GCSStorageProvider } from '@/infrastructure/storage/GCSStorageProvider.js';
@@ -26,6 +27,7 @@ import { DocumentMapper } from '@/interface-adapters/mappers/DocumentMapper.js';
 import { InterviewRoundMapper } from '@/interface-adapters/mappers/InterviewRoundMapper.js';
 import { ActivityLogMapper } from '@/interface-adapters/mappers/ActivityLogMapper.js';
 import { ContactMapper } from '@/interface-adapters/mappers/ContactMapper.js';
+import { LoginEventMapper } from '@/interface-adapters/mappers/LoginEventMapper.js';
 
 import { AuthResolver } from '@/interface-adapters/resolvers/AuthResolver.js';
 import { ApplicationResolver } from '@/interface-adapters/resolvers/ApplicationResolver.js';
@@ -35,6 +37,7 @@ import { UserResolver } from '@/interface-adapters/resolvers/UserResolver.js';
 import { InterviewRoundResolver } from '@/interface-adapters/resolvers/InterviewRoundResolver.js';
 import { ActivityLogResolver } from '@/interface-adapters/resolvers/ActivityLogResolver.js';
 import { ContactResolver } from '@/interface-adapters/resolvers/ContactResolver.js';
+import { LoginEventResolver } from '@/interface-adapters/resolvers/LoginEventResolver.js';
 import { McpController } from '@/interface-adapters/mcp/McpController.js';
 
 import { RegisterUseCase } from '@/use-cases/auth/RegisterUseCase.js';
@@ -61,6 +64,7 @@ import { GetInterviewRoundsUseCase } from '@/use-cases/interviewRounds/GetInterv
 import { UpdateInterviewRoundUseCase } from '@/use-cases/interviewRounds/UpdateInterviewRoundUseCase.js';
 import { DeleteInterviewRoundUseCase } from '@/use-cases/interviewRounds/DeleteInterviewRoundUseCase.js';
 import { GetActivityLogsUseCase } from '@/use-cases/activityLogs/GetActivityLogsUseCase.js';
+import { GetLoginHistoryUseCase } from '@/use-cases/loginEvents/GetLoginHistoryUseCase.js';
 import { FastifyJwtTokenService } from '@/infrastructure/auth/FastifyJwtTokenService.js';
 import { PrismaApiTokenRepository } from '@/infrastructure/db/repositories/PrismaApiTokenRepository.js';
 import { ApiTokenMapper } from '@/interface-adapters/mappers/ApiTokenMapper.js';
@@ -111,6 +115,7 @@ declare module '@fastify/awilix' {
     activityLogRepository: PrismaActivityLogRepository;
     apiTokenRepository: PrismaApiTokenRepository;
     contactRepository: PrismaContactRepository;
+    loginEventRepository: PrismaLoginEventRepository;
 
     applicationMapper: ApplicationMapper;
     apiTokenMapper: ApiTokenMapper;
@@ -119,6 +124,7 @@ declare module '@fastify/awilix' {
     interviewRoundMapper: InterviewRoundMapper;
     activityLogMapper: ActivityLogMapper;
     contactMapper: ContactMapper;
+    loginEventMapper: LoginEventMapper;
 
     authResolver: AuthResolver;
     applicationResolver: ApplicationResolver;
@@ -128,6 +134,7 @@ declare module '@fastify/awilix' {
     interviewRoundResolver: InterviewRoundResolver;
     activityLogResolver: ActivityLogResolver;
     contactResolver: ContactResolver;
+    loginEventResolver: LoginEventResolver;
     mcpController: McpController;
 
     registerUseCase: RegisterUseCase;
@@ -154,6 +161,7 @@ declare module '@fastify/awilix' {
     updateInterviewRoundUseCase: UpdateInterviewRoundUseCase;
     deleteInterviewRoundUseCase: DeleteInterviewRoundUseCase;
     getActivityLogsUseCase: GetActivityLogsUseCase;
+    getLoginHistoryUseCase: GetLoginHistoryUseCase;
     createApiTokenUseCase: CreateApiTokenUseCase;
     listApiTokensUseCase: ListApiTokensUseCase;
     deleteApiTokenUseCase: DeleteApiTokenUseCase;
@@ -219,6 +227,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     activityLogRepository: asClass(PrismaActivityLogRepository, { lifetime: Lifetime.SINGLETON }),
     apiTokenRepository: asClass(PrismaApiTokenRepository, { lifetime: Lifetime.SINGLETON }),
     contactRepository: asClass(PrismaContactRepository, { lifetime: Lifetime.SINGLETON }),
+    loginEventRepository: asClass(PrismaLoginEventRepository, { lifetime: Lifetime.SINGLETON }),
 
     // Mappers
     applicationMapper: asClass(ApplicationMapper, { lifetime: Lifetime.SINGLETON }),
@@ -228,6 +237,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     interviewRoundMapper: asClass(InterviewRoundMapper, { lifetime: Lifetime.SINGLETON }),
     activityLogMapper: asClass(ActivityLogMapper, { lifetime: Lifetime.SINGLETON }),
     contactMapper: asClass(ContactMapper, { lifetime: Lifetime.SINGLETON }),
+    loginEventMapper: asClass(LoginEventMapper, { lifetime: Lifetime.SINGLETON }),
 
     // Resolvers
     authResolver: asClass(AuthResolver, { lifetime: Lifetime.SINGLETON }),
@@ -238,6 +248,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     interviewRoundResolver: asClass(InterviewRoundResolver, { lifetime: Lifetime.SINGLETON }),
     activityLogResolver: asClass(ActivityLogResolver, { lifetime: Lifetime.SINGLETON }),
     contactResolver: asClass(ContactResolver, { lifetime: Lifetime.SINGLETON }),
+    loginEventResolver: asClass(LoginEventResolver, { lifetime: Lifetime.SINGLETON }),
     mcpController: asClass(McpController, { lifetime: Lifetime.SINGLETON }),
 
     // Use Cases
@@ -277,6 +288,7 @@ export function buildContainer(fastify: FastifyInstance): void {
       lifetime: Lifetime.TRANSIENT,
     }),
     getActivityLogsUseCase: asClass(GetActivityLogsUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getLoginHistoryUseCase: asClass(GetLoginHistoryUseCase, { lifetime: Lifetime.TRANSIENT }),
     createApiTokenUseCase: asClass(CreateApiTokenUseCase, { lifetime: Lifetime.TRANSIENT }),
     listApiTokensUseCase: asClass(ListApiTokensUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteApiTokenUseCase: asClass(DeleteApiTokenUseCase, { lifetime: Lifetime.TRANSIENT }),

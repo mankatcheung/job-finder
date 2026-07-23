@@ -202,3 +202,9 @@ export const DEFAULTS = {
   INTERVIEW_OUTCOME: 'pending',
   API_TOKEN_SCOPE: API_TOKEN_SCOPE.FULL,
 } as const;
+
+/** Account security activity log settings. */
+export const LOGIN_HISTORY = {
+  /** Max number of recent login events surfaced to the user. */
+  LIMIT: 20,
+} as const;

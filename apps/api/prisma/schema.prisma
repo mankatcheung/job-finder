@@ -15,6 +15,18 @@ model User {
   updatedAt    DateTime        @updatedAt
   applications JobApplication[]
   apiTokens    ApiToken[]
+  loginEvents  LoginEvent[]
+}
+
+model LoginEvent {
+  id        String   @id
+  userId    String
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model ApiToken {

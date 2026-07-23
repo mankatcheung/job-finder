@@ -16,8 +16,13 @@ export class AuthResolver {
     return this.deps.tokenService.sign(userId, email);
   }
 
-  async login(email: string, password: string): Promise<TokenPair> {
-    const user = await this.deps.loginUseCase.execute({ email, password });
+  async login(
+    email: string,
+    password: string,
+    ipAddress?: string | null,
+    userAgent?: string | null,
+  ): Promise<TokenPair> {
+    const user = await this.deps.loginUseCase.execute({ email, password, ipAddress, userAgent });
     return this.deps.tokenService.sign(user.id, user.email);
   }
 

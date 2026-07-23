@@ -64,14 +64,44 @@ describe('AuthResolver', () => {
         tokenService,
       });
 
-      const result = await resolver.login('test@example.com', 'password123');
+      const result = await resolver.login(
+        'test@example.com',
+        'password123',
+        '127.0.0.1',
+        'test-agent',
+      );
 
       expect(loginUseCase.execute).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'password123',
+        ipAddress: '127.0.0.1',
+        userAgent: 'test-agent',
       });
       expect(tokenService.sign).toHaveBeenCalledWith(user.id, user.email);
       expect(result).toEqual({ accessToken: 'access-token', refreshToken: 'refresh-token' });
+    });
+
+    it('passes undefined ip/userAgent through when omitted', async () => {
+      const user = makeUser();
+      const loginUseCase = makeLoginUseCase({
+        execute: vi.fn().mockResolvedValue(user),
+      });
+      const tokenService = makeTokenService();
+
+      const resolver = new AuthResolver({
+        registerUseCase: makeRegisterUseCase(),
+        loginUseCase,
+        tokenService,
+      });
+
+      await resolver.login('test@example.com', 'password123');
+
+      expect(loginUseCase.execute).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'password123',
+        ipAddress: undefined,
+        userAgent: undefined,
+      });
     });
   });
 

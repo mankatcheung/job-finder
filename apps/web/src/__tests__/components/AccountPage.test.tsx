@@ -40,6 +40,14 @@ import { AccountPage } from '#/routes/_authenticated/account';
 describe('AccountPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Login history loads in the background on every mount — give it a benign
+    // default so tests that don't care about it don't have to stub it out.
+    mockGqlRequest.mockImplementation((query: unknown) => {
+      if (typeof query === 'string' && query.includes('LoginHistory')) {
+        return Promise.resolve({ loginHistory: [] });
+      }
+      return Promise.resolve(undefined);
+    });
   });
 
   afterEach(() => {
@@ -51,6 +59,7 @@ describe('AccountPage', () => {
     expect(screen.getByText('Account settings')).toBeInTheDocument();
     expect(screen.getByText('Email address')).toBeInTheDocument();
     expect(screen.getByText('Password')).toBeInTheDocument();
+    expect(screen.getByText('Recent login activity')).toBeInTheDocument();
     expect(screen.getByText('Export your data')).toBeInTheDocument();
     expect(screen.getByText('Danger zone')).toBeInTheDocument();
   });
@@ -78,8 +87,11 @@ describe('AccountPage', () => {
     });
 
     it('shows error message on email update failure', async () => {
-      mockGqlRequest.mockRejectedValue({
-        response: { errors: [{ message: 'Email already in use' }] },
+      mockGqlRequest.mockImplementation((query: unknown) => {
+        if (typeof query === 'string' && query.includes('LoginHistory')) {
+          return Promise.resolve({ loginHistory: [] });
+        }
+        return Promise.reject({ response: { errors: [{ message: 'Email already in use' }] } });
       });
       render(<AccountPage />);
 
@@ -114,7 +126,10 @@ describe('AccountPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
       });
-      expect(mockGqlRequest).not.toHaveBeenCalled();
+      expect(mockGqlRequest).not.toHaveBeenCalledWith(
+        expect.stringContaining('UpdatePassword'),
+        expect.anything(),
+      );
     });
 
     it('calls updatePassword mutation with matching passwords', async () => {
@@ -153,6 +168,55 @@ describe('AccountPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Failed to update password.')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('login history', () => {
+    it('renders recent login events with device and IP', async () => {
+      mockGqlRequest.mockImplementation((query: unknown) => {
+        if (typeof query === 'string' && query.includes('LoginHistory')) {
+          return Promise.resolve({
+            loginHistory: [
+              {
+                id: 'event-1',
+                ipAddress: '203.0.113.5',
+                userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+                createdAt: '2024-01-01T00:00:00.000Z',
+              },
+            ],
+          });
+        }
+        return Promise.resolve(undefined);
+      });
+
+      render(<AccountPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Mac · 203.0.113.5/)).toBeInTheDocument();
+      });
+    });
+
+    it('shows a message when there is no login history', async () => {
+      render(<AccountPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('No login activity yet.')).toBeInTheDocument();
+      });
+    });
+
+    it('shows an error message when login history fails to load', async () => {
+      mockGqlRequest.mockImplementation((query: unknown) => {
+        if (typeof query === 'string' && query.includes('LoginHistory')) {
+          return Promise.reject(new Error('network error'));
+        }
+        return Promise.resolve(undefined);
+      });
+
+      render(<AccountPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Failed to load login history.')).toBeInTheDocument();
       });
     });
   });
@@ -198,8 +262,11 @@ describe('AccountPage', () => {
     });
 
     it('shows error message when deletion fails', async () => {
-      mockGqlRequest.mockRejectedValue({
-        response: { errors: [{ message: 'Invalid password' }] },
+      mockGqlRequest.mockImplementation((query: unknown) => {
+        if (typeof query === 'string' && query.includes('LoginHistory')) {
+          return Promise.resolve({ loginHistory: [] });
+        }
+        return Promise.reject({ response: { errors: [{ message: 'Invalid password' }] } });
       });
       render(<AccountPage />);
 

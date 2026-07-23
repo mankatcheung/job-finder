@@ -26,7 +26,13 @@ builder.mutationField('login', (t) =>
     },
     resolve: async (_root, args, ctx) => {
       const { authResolver } = ctx.diScope.cradle;
-      const tokens = await authResolver.login(args.email, args.password);
+      const userAgent = ctx.request.headers['user-agent'];
+      const tokens = await authResolver.login(
+        args.email,
+        args.password,
+        ctx.request.ip,
+        Array.isArray(userAgent) ? (userAgent[0] ?? null) : (userAgent ?? null),
+      );
       setAuthCookies(ctx.reply, tokens.accessToken, tokens.refreshToken);
       return true;
     },
