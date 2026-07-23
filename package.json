@@ -11,9 +11,12 @@
     "format:check": "prettier --check .",
     "clean": "turbo run clean",
     "db:generate": "turbo run db:generate --filter=@job-finder/api",
-    "db:migrate": "turbo run db:migrate --filter=@job-finder/api"
+    "db:migrate": "turbo run db:migrate --filter=@job-finder/api",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.2.0",
     "prettier": "^3.9.5",
     "turbo": "^2.5.4",
     "typescript": "^5.4.5"
@@ -21,6 +24,9 @@
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,css,md}": "prettier --write"
   },
   "packageManager": "pnpm@9.15.4"
 }
