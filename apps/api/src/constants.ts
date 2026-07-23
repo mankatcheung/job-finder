@@ -15,6 +15,7 @@ export const ERROR_CODES = {
   FORBIDDEN: 'FORBIDDEN',
   NOT_FOUND: 'NOT_FOUND',
   CONFLICT: 'CONFLICT',
+  VALIDATION: 'VALIDATION',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
 } as const;
 
@@ -75,6 +76,12 @@ export const JWT_EXPIRY = {
   REFRESH: '7d',
 } as const;
 
+/** Session (device/refresh-token tracking) settings. */
+export const SESSION = {
+  /** How long a session stays active without a refresh, in milliseconds — mirrors the refresh JWT's lifetime and slides forward on each refresh. */
+  TTL_MS: COOKIE_MAX_AGE_S.REFRESH_TOKEN * 1000,
+} as const;
+
 /** API-token (`jfat_...`) settings. */
 export const API_TOKEN = {
   PREFIX: 'jfat_',
@@ -86,6 +93,14 @@ export const API_TOKEN = {
 export const API_TOKEN_SCOPE = {
   FULL: 'full',
   READ: 'read',
+} as const;
+
+/** Email-verification token settings. */
+export const EMAIL_VERIFICATION_TOKEN = {
+  /** Number of random bytes hex-encoded into the token body. */
+  RANDOM_BYTES: 32,
+  /** How long a verification link stays valid, in milliseconds. */
+  TTL_MS: 24 * 60 * 60 * 1000, // 24 hours
 } as const;
 
 /** HTTP Authorization header. */

@@ -11,6 +11,10 @@ import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepos
 import type { IContactRepository } from '@/use-cases/ports/IContactRepository.js';
 import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
 import type { ILoginEventRepository } from '@/use-cases/ports/ILoginEventRepository.js';
+import type { ISessionRepository } from '@/use-cases/ports/ISessionRepository.js';
+import type { Session } from '@/domain/session/Session.js';
+import type { IEmailVerificationTokenRepository } from '@/use-cases/ports/IEmailVerificationTokenRepository.js';
+import type { EmailVerificationToken } from '@/domain/emailVerificationToken/EmailVerificationToken.js';
 import type { User } from '@/domain/user/User.js';
 import type { Application } from '@/domain/application/Application.js';
 import type { Document } from '@/domain/document/Document.js';
@@ -118,6 +122,53 @@ export const makeApiToken = (overrides?: Partial<ApiToken>): ApiToken => ({
   ...overrides,
 });
 
+export const makeSessionRepository = (
+  overrides?: Partial<ISessionRepository>,
+): ISessionRepository => ({
+  create: vi.fn(),
+  findById: vi.fn().mockResolvedValue(null),
+  findByIdAndUserId: vi.fn().mockResolvedValue(null),
+  findActiveByUserId: vi.fn().mockResolvedValue([]),
+  touch: vi.fn().mockResolvedValue(undefined),
+  revoke: vi.fn().mockResolvedValue(undefined),
+  revokeAllForUserExcept: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
+
+export const makeSession = (overrides?: Partial<Session>): Session => ({
+  id: 'session-1',
+  userId: 'user-1',
+  userAgent: 'Mozilla/5.0 (test)',
+  ipAddress: '127.0.0.1',
+  lastUsedAt: new Date('2024-01-01T00:00:00.000Z'),
+  createdAt: new Date('2024-01-01T00:00:00.000Z'),
+  expiresAt: new Date('2024-01-08T00:00:00.000Z'),
+  revokedAt: null,
+  ...overrides,
+});
+
+export const makeEmailVerificationTokenRepository = (
+  overrides?: Partial<IEmailVerificationTokenRepository>,
+): IEmailVerificationTokenRepository => ({
+  create: vi.fn(),
+  findByTokenHash: vi.fn().mockResolvedValue(null),
+  markUsed: vi.fn().mockResolvedValue(undefined),
+  deleteAllForUser: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
+
+export const makeEmailVerificationToken = (
+  overrides?: Partial<EmailVerificationToken>,
+): EmailVerificationToken => ({
+  id: 'verify-token-1',
+  userId: 'user-1',
+  tokenHash: 'hashed-verify-token',
+  expiresAt: new Date('2024-01-02T00:00:00.000Z'),
+  usedAt: null,
+  createdAt: new Date('2024-01-01T00:00:00.000Z'),
+  ...overrides,
+});
+
 // Minimal FastifyInstance stub for AuthResolver (only jwt is used)
 export const makeFastifyJwt = (): {
   jwt: { sign: ReturnType<typeof vi.fn>; verify: ReturnType<typeof vi.fn> };
@@ -142,6 +193,12 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   id: 'user-1',
   email: 'test@example.com',
   passwordHash: 'hashed-pw',
+  name: null,
+  timezone: null,
+  targetRole: null,
+  emailVerifiedAt: null,
+  weeklyDigestEnabled: true,
+  followUpRemindersEnabled: true,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,

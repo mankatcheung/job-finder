@@ -8,14 +8,22 @@ datasource db {
 }
 
 model User {
-  id           String          @id
-  email        String          @unique
-  passwordHash String
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  applications JobApplication[]
-  apiTokens    ApiToken[]
-  loginEvents  LoginEvent[]
+  id                       String                   @id
+  email                    String                   @unique
+  passwordHash             String
+  name                     String?
+  timezone                 String?
+  targetRole               String?
+  emailVerifiedAt          DateTime?
+  weeklyDigestEnabled      Boolean                  @default(true)
+  followUpRemindersEnabled Boolean                  @default(true)
+  createdAt                DateTime                 @default(now())
+  updatedAt                DateTime                 @updatedAt
+  applications             JobApplication[]
+  apiTokens                ApiToken[]
+  emailVerificationTokens  EmailVerificationToken[]
+  sessions                 Session[]
+  loginEvents              LoginEvent[]
 }
 
 model LoginEvent {
@@ -25,6 +33,32 @@ model LoginEvent {
   userAgent String?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Session {
+  id         String    @id
+  userId     String
+  userAgent  String?
+  ipAddress  String?
+  lastUsedAt DateTime  @default(now())
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model EmailVerificationToken {
+  id        String    @id
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }

@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '@/http/schema/builder.js';
 import { clearAuthCookies } from '@/http/schema/types/AuthPayloadType.js';
+import { ImportSummaryRef } from '@/http/schema/types/ImportSummaryType.js';
 import { fromCodedError } from '@/http/errors/AppError.js';
 import { ERROR_CODES } from '@/constants.js';
 
@@ -44,6 +45,27 @@ builder.mutationField('updatePassword', (t) =>
   }),
 );
 
+builder.mutationField('updateProfile', (t) =>
+  t.boolean({
+    args: {
+      name: t.arg.string({ required: false }),
+      timezone: t.arg.string({ required: false }),
+      targetRole: t.arg.string({ required: false }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        await userResolver.updateProfile(ctx.user.sub, args.name, args.timezone, args.targetRole);
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
 builder.mutationField('deleteAccount', (t) =>
   t.boolean({
     args: {
@@ -56,6 +78,49 @@ builder.mutationField('deleteAccount', (t) =>
       try {
         await userResolver.deleteAccount(ctx.user.sub, args.password);
         clearAuthCookies(ctx.reply);
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
+builder.mutationField('importUserData', (t) =>
+  t.field({
+    type: ImportSummaryRef,
+    args: {
+      data: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        return await userResolver.importUserData(ctx.user.sub, args.data);
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
+builder.mutationField('updateNotificationPreferences', (t) =>
+  t.boolean({
+    args: {
+      weeklyDigestEnabled: t.arg.boolean({ required: false }),
+      followUpRemindersEnabled: t.arg.boolean({ required: false }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        await userResolver.updateNotificationPreferences(
+          ctx.user.sub,
+          args.weeklyDigestEnabled ?? undefined,
+          args.followUpRemindersEnabled ?? undefined,
+        );
         return true;
       } catch (err) {
         throw fromCodedError(err);

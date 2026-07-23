@@ -5,6 +5,7 @@ import {
   ConflictError,
   UnauthorizedError,
   ForbiddenError,
+  ValidationError,
   fromCodedError,
 } from '@/http/errors/AppError.js';
 import { ERROR_CODES } from '@/constants.js';
@@ -70,6 +71,21 @@ describe('ForbiddenError', () => {
   });
 });
 
+describe('ValidationError', () => {
+  it('defaults to "Invalid input" with a 400 status and VALIDATION code', () => {
+    const err = new ValidationError();
+
+    expect(err.message).toBe('Invalid input');
+    expect(err.statusCode).toBe(400);
+    expect(err.code).toBe(ERROR_CODES.VALIDATION);
+  });
+
+  it('uses the given message when provided', () => {
+    expect(new ValidationError('Invalid import file').message).toBe('Invalid import file');
+    expect(new ValidationError('Invalid timezone').message).toBe('Invalid timezone');
+  });
+});
+
 describe('fromCodedError', () => {
   it('returns the same instance when already an AppError', () => {
     const original = new ConflictError('Already exists');
@@ -80,6 +96,7 @@ describe('fromCodedError', () => {
     [ERROR_CODES.CONFLICT, ConflictError],
     [ERROR_CODES.UNAUTHORIZED, UnauthorizedError],
     [ERROR_CODES.FORBIDDEN, ForbiddenError],
+    [ERROR_CODES.VALIDATION, ValidationError],
   ])('maps a %s-coded Error to a %s, preserving the message', (code, ExpectedClass) => {
     const raw = Object.assign(new Error('Domain-specific message'), { code });
 

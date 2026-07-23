@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
@@ -12,6 +13,24 @@ export const Route = createFileRoute('/_authenticated/account')({
 });
 
 // ── GraphQL ────────────────────────────────────────────────────────────────
+
+const ME_QUERY = `
+  query Me {
+    me {
+      id
+      email
+      name
+      timezone
+      targetRole
+    }
+  }
+`;
+
+const UPDATE_PROFILE = `
+  mutation UpdateProfile($name: String, $timezone: String, $targetRole: String) {
+    updateProfile(name: $name, timezone: $timezone, targetRole: $targetRole)
+  }
+`;
 
 const UPDATE_EMAIL = `
   mutation UpdateEmail($currentPassword: String!, $newEmail: String!) {
@@ -48,7 +67,66 @@ const LOGIN_HISTORY = `
   }
 `;
 
+const IMPORT_USER_DATA = `
+  mutation ImportUserData($data: String!) {
+    importUserData(data: $data) {
+      applicationsImported
+      applicationsSkipped
+      notesImported
+      documentsSkipped
+    }
+  }
+`;
+
+const SESSIONS_QUERY = `
+  query Sessions {
+    sessions {
+      id
+      userAgent
+      ipAddress
+      lastUsedAt
+      current
+    }
+  }
+`;
+
+const REVOKE_SESSION = `
+  mutation RevokeSession($id: ID!) {
+    revokeSession(id: $id)
+  }
+`;
+
+const REVOKE_OTHER_SESSIONS = `
+  mutation RevokeOtherSessions {
+    revokeOtherSessions
+  }
+`;
+
+const NOTIFICATION_PREFERENCES_QUERY = `
+  query NotificationPreferences {
+    notificationPreferences {
+      weeklyDigestEnabled
+      followUpRemindersEnabled
+    }
+  }
+`;
+
+const UPDATE_NOTIFICATION_PREFERENCES = `
+  mutation UpdateNotificationPreferences($weeklyDigestEnabled: Boolean, $followUpRemindersEnabled: Boolean) {
+    updateNotificationPreferences(
+      weeklyDigestEnabled: $weeklyDigestEnabled
+      followUpRemindersEnabled: $followUpRemindersEnabled
+    )
+  }
+`;
+
 // ── Schemas ────────────────────────────────────────────────────────────────
+
+const profileSchema = z.object({
+  name: z.string().max(100, 'Name is too long'),
+  timezone: z.string(),
+  targetRole: z.string().max(100, 'Target role is too long'),
+});
 
 const emailSchema = z.object({
   currentPassword: z.string().min(1, 'Required'),
@@ -70,6 +148,7 @@ const deleteSchema = z.object({
   password: z.string().min(1, 'Required'),
 });
 
+type ProfileForm = z.infer<typeof profileSchema>;
 type EmailForm = z.infer<typeof emailSchema>;
 type PasswordForm = z.infer<typeof passwordSchema>;
 type DeleteForm = z.infer<typeof deleteSchema>;
@@ -91,6 +170,34 @@ function describeDevice(userAgent: string | null): string {
   return 'Unknown device';
 }
 
+interface ImportSummary {
+  applicationsImported: number;
+  applicationsSkipped: number;
+  notesImported: number;
+  documentsSkipped: number;
+}
+
+type Session = {
+  id: string;
+  userAgent: string | null;
+  ipAddress: string | null;
+  lastUsedAt: string;
+  current: boolean;
+};
+
+type Me = {
+  id: string;
+  email: string;
+  name: string | null;
+  timezone: string | null;
+  targetRole: string | null;
+};
+
+type NotificationPreferences = {
+  weeklyDigestEnabled: boolean;
+  followUpRemindersEnabled: boolean;
+};
+
 // ── Input styles ───────────────────────────────────────────────────────────
 
 const inputCls =
@@ -102,6 +209,83 @@ const labelCls = 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-
 
 export function AccountPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
+
+  // Active sessions
+  const { data: sessionsData } = useQuery({
+    queryKey: ['sessions'],
+    queryFn: () => gqlClient.request<{ sessions: Session[] }>(SESSIONS_QUERY),
+  });
+  const sessions = sessionsData?.sessions ?? [];
+
+  const onRevokeSession = async (id: string) => {
+    await gqlClient.request(REVOKE_SESSION, { id });
+    await qc.invalidateQueries({ queryKey: ['sessions'] });
+  };
+
+  const onRevokeOtherSessions = async () => {
+    await gqlClient.request(REVOKE_OTHER_SESSIONS);
+    await qc.invalidateQueries({ queryKey: ['sessions'] });
+  };
+
+  const timezoneOptions = useMemo(() => {
+    try {
+      return Intl.supportedValuesOf('timeZone');
+    } catch {
+      return [];
+    }
+  }, []);
+
+  // Profile form
+  const { data: meData } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => gqlClient.request<{ me: Me | null }>(ME_QUERY),
+  });
+  const me = meData?.me;
+  const profileForm = useForm<ProfileForm>({
+    resolver: zodResolver(profileSchema),
+    values: {
+      name: me?.name ?? '',
+      timezone: me?.timezone ?? '',
+      targetRole: me?.targetRole ?? '',
+    },
+  });
+  const onUpdateProfile = async (data: ProfileForm) => {
+    try {
+      await gqlClient.request(UPDATE_PROFILE, {
+        name: data.name.trim() || null,
+        timezone: data.timezone.trim() || null,
+        targetRole: data.targetRole.trim() || null,
+      });
+      await qc.invalidateQueries({ queryKey: ['me'] });
+    } catch (err) {
+      profileForm.setError('root', {
+        message: extractGqlError(err) ?? 'Failed to update profile.',
+      });
+    }
+  };
+
+  // Notification preferences
+  const { data: prefsData } = useQuery({
+    queryKey: ['notificationPreferences'],
+    queryFn: () =>
+      gqlClient.request<{ notificationPreferences: NotificationPreferences }>(
+        NOTIFICATION_PREFERENCES_QUERY,
+      ),
+  });
+  const prefs = prefsData?.notificationPreferences;
+
+  const onToggleWeeklyDigest = async (checked: boolean) => {
+    await gqlClient.request(UPDATE_NOTIFICATION_PREFERENCES, { weeklyDigestEnabled: checked });
+    await qc.invalidateQueries({ queryKey: ['notificationPreferences'] });
+  };
+
+  const onToggleFollowUpReminders = async (checked: boolean) => {
+    await gqlClient.request(UPDATE_NOTIFICATION_PREFERENCES, {
+      followUpRemindersEnabled: checked,
+    });
+    await qc.invalidateQueries({ queryKey: ['notificationPreferences'] });
+  };
 
   // Email form
   const emailForm = useForm<EmailForm>({ resolver: zodResolver(emailSchema) });
@@ -171,9 +355,112 @@ export function AccountPage() {
     }
   };
 
+  // Import
+  const [importResult, setImportResult] = useState<ImportSummary | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const onImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setImporting(true);
+    setImportResult(null);
+    setImportError(null);
+    try {
+      const text = await file.text();
+      const res = await gqlClient.request<{ importUserData: ImportSummary }>(IMPORT_USER_DATA, {
+        data: text,
+      });
+      setImportResult(res.importUserData);
+    } catch (err) {
+      setImportError(extractGqlError(err) ?? 'Failed to import data.');
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <div className="max-w-xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Account settings</h1>
+
+      {/* ── Profile ── */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Profile</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Personalize your account and improve reminder timing and AI-generated content.
+          </p>
+        </div>
+        <form onSubmit={profileForm.handleSubmit(onUpdateProfile)} className="space-y-3">
+          <div>
+            <label className={labelCls}>Name</label>
+            <input
+              type="text"
+              {...profileForm.register('name')}
+              className={inputCls}
+              placeholder="Jane Doe"
+            />
+            {profileForm.formState.errors.name && (
+              <p className="mt-1 text-xs text-red-600">
+                {profileForm.formState.errors.name.message}
+              </p>
+            )}
+          </div>
+          <div>
+            <label className={labelCls}>Timezone</label>
+            <input
+              type="text"
+              list="timezone-options"
+              {...profileForm.register('timezone')}
+              className={inputCls}
+              placeholder="America/Los_Angeles"
+            />
+            <datalist id="timezone-options">
+              {timezoneOptions.map((tz) => (
+                <option key={tz} value={tz} />
+              ))}
+            </datalist>
+            {profileForm.formState.errors.timezone && (
+              <p className="mt-1 text-xs text-red-600">
+                {profileForm.formState.errors.timezone.message}
+              </p>
+            )}
+          </div>
+          <div>
+            <label className={labelCls}>Target role</label>
+            <input
+              type="text"
+              {...profileForm.register('targetRole')}
+              className={inputCls}
+              placeholder="Senior Product Designer"
+            />
+            {profileForm.formState.errors.targetRole && (
+              <p className="mt-1 text-xs text-red-600">
+                {profileForm.formState.errors.targetRole.message}
+              </p>
+            )}
+          </div>
+          {profileForm.formState.errors.root?.message && (
+            <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+              {profileForm.formState.errors.root.message}
+            </p>
+          )}
+          {profileForm.formState.isSubmitSuccessful &&
+            !profileForm.formState.errors.root?.message && (
+              <p className="text-sm text-green-600">Profile updated successfully.</p>
+            )}
+          <button
+            type="submit"
+            disabled={profileForm.formState.isSubmitting}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            {profileForm.formState.isSubmitting ? 'Saving…' : 'Save profile'}
+          </button>
+        </form>
+      </section>
+
+      <hr className="border-gray-200 dark:border-gray-700" />
 
       {/* ── Email ── */}
       <section className="space-y-4">
@@ -305,6 +592,61 @@ export function AccountPage() {
 
       <hr className="border-gray-200 dark:border-gray-700" />
 
+      {/* ── Active sessions ── */}
+      <section className="space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              Active sessions
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Devices currently signed in to your account.
+            </p>
+          </div>
+          {sessions.length > 1 && (
+            <button
+              type="button"
+              onClick={onRevokeOtherSessions}
+              className="shrink-0 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-xs font-medium rounded-lg transition-colors"
+            >
+              Sign out other sessions
+            </button>
+          )}
+        </div>
+        <ul className="space-y-2">
+          {sessions.map((session) => (
+            <li
+              key={session.id}
+              className="flex items-center justify-between gap-4 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg"
+            >
+              <div className="min-w-0">
+                <p className="text-sm text-gray-900 dark:text-gray-100 truncate">
+                  {session.userAgent ?? 'Unknown device'}
+                  {session.current && (
+                    <span className="ml-2 text-xs text-green-600 font-medium">This device</span>
+                  )}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {session.ipAddress ?? 'Unknown IP'} · Last active{' '}
+                  {new Date(session.lastUsedAt).toLocaleString()}
+                </p>
+              </div>
+              {!session.current && (
+                <button
+                  type="button"
+                  onClick={() => onRevokeSession(session.id)}
+                  className="shrink-0 text-xs text-red-600 hover:underline"
+                >
+                  Revoke
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <hr className="border-gray-200 dark:border-gray-700" />
+
       {/* ── Login history ── */}
       <section className="space-y-4">
         <div>
@@ -345,6 +687,42 @@ export function AccountPage() {
 
       <hr className="border-gray-200 dark:border-gray-700" />
 
+      {/* ── Notification preferences ── */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            Notification preferences
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Choose which emails you want to receive.
+          </p>
+        </div>
+        {prefs && (
+          <div className="space-y-3">
+            <label className="flex items-center gap-3 text-sm text-gray-900 dark:text-gray-100">
+              <input
+                type="checkbox"
+                checked={prefs.weeklyDigestEnabled}
+                onChange={(e) => onToggleWeeklyDigest(e.target.checked)}
+                className="h-4 w-4"
+              />
+              Weekly job search digest
+            </label>
+            <label className="flex items-center gap-3 text-sm text-gray-900 dark:text-gray-100">
+              <input
+                type="checkbox"
+                checked={prefs.followUpRemindersEnabled}
+                onChange={(e) => onToggleFollowUpReminders(e.target.checked)}
+                className="h-4 w-4"
+              />
+              Follow-up reminder emails
+            </label>
+          </div>
+        )}
+      </section>
+
+      <hr className="border-gray-200 dark:border-gray-700" />
+
       {/* ── Export ── */}
       <section className="space-y-4">
         <div>
@@ -362,6 +740,47 @@ export function AccountPage() {
         >
           Download export
         </button>
+      </section>
+
+      <hr className="border-gray-200 dark:border-gray-700" />
+
+      {/* ── Import ── */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            Import your data
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Upload a JSON export file to recreate your applications and notes. Documents can&apos;t
+            be restored from an export and will be skipped.
+          </p>
+        </div>
+        <label className="inline-block px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-sm font-medium rounded-lg transition-colors cursor-pointer">
+          {importing ? 'Importing…' : 'Choose file to import'}
+          <input
+            type="file"
+            accept="application/json"
+            onChange={onImport}
+            disabled={importing}
+            className="hidden"
+          />
+        </label>
+        {importError && (
+          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+            {importError}
+          </p>
+        )}
+        {importResult && (
+          <p className="text-sm text-green-600">
+            Imported {importResult.applicationsImported} application
+            {importResult.applicationsImported === 1 ? '' : 's'} and {importResult.notesImported}{' '}
+            note{importResult.notesImported === 1 ? '' : 's'}.
+            {importResult.applicationsSkipped > 0 &&
+              ` Skipped ${importResult.applicationsSkipped} invalid application${importResult.applicationsSkipped === 1 ? '' : 's'}.`}
+            {importResult.documentsSkipped > 0 &&
+              ` Skipped ${importResult.documentsSkipped} document${importResult.documentsSkipped === 1 ? '' : 's'} (not supported).`}
+          </p>
+        )}
       </section>
 
       <hr className="border-gray-200 dark:border-gray-700" />
