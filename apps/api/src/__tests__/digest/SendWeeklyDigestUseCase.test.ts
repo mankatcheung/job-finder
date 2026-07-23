@@ -12,6 +12,7 @@ function makeEmailService(): IEmailService {
   return {
     sendFollowUpReminder: vi.fn().mockResolvedValue(undefined),
     sendWeeklyDigest: vi.fn().mockResolvedValue(undefined),
+    sendPasswordReset: vi.fn().mockResolvedValue(undefined),
     sendEmailVerification: vi.fn().mockResolvedValue(undefined),
   };
 }

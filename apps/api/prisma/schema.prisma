@@ -27,6 +27,7 @@ model User {
   sessions                 Session[]
   loginEvents              LoginEvent[]
   totpBackupCodes          TotpBackupCode[]
+  passwordResetTokens      PasswordResetToken[]
 }
 
 model TotpBackupCode {
@@ -66,6 +67,18 @@ model Session {
 }
 
 model EmailVerificationToken {
+  id        String    @id
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
   id        String    @id
   userId    String
   tokenHash String    @unique

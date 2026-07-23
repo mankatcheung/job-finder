@@ -4,6 +4,8 @@ import { makeUser, makeSession } from '@/__tests__/helpers/mocks.js';
 import type { IRegisterUseCase } from '@/use-cases/auth/IRegisterUseCase.js';
 import type { ILoginUseCase } from '@/use-cases/auth/ILoginUseCase.js';
 import type { ILoginWithTotpUseCase } from '@/use-cases/auth/ILoginWithTotpUseCase.js';
+import type { IRequestPasswordResetUseCase } from '@/use-cases/auth/IRequestPasswordResetUseCase.js';
+import type { IResetPasswordUseCase } from '@/use-cases/auth/IResetPasswordUseCase.js';
 import type { IVerifyEmailUseCase } from '@/use-cases/auth/IVerifyEmailUseCase.js';
 import type { ITokenService } from '@/use-cases/ports/ITokenService.js';
 import type { CreateSessionUseCase } from '@/use-cases/sessions/CreateSessionUseCase.js';
@@ -28,6 +30,20 @@ const makeLoginWithTotpUseCase = (
   ...overrides,
 });
 
+const makeRequestPasswordResetUseCase = (
+  overrides?: Partial<IRequestPasswordResetUseCase>,
+): IRequestPasswordResetUseCase => ({
+  execute: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
+
+const makeResetPasswordUseCase = (
+  overrides?: Partial<IResetPasswordUseCase>,
+): IResetPasswordUseCase => ({
+  execute: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
+
 const makeVerifyEmailUseCase = (overrides?: Partial<IVerifyEmailUseCase>): IVerifyEmailUseCase => ({
   execute: vi.fn().mockResolvedValue(undefined),
   ...overrides,
@@ -46,6 +62,8 @@ const baseDeps = () => ({
   loginUseCase: makeLoginUseCase(),
   loginWithTotpUseCase: makeLoginWithTotpUseCase(),
   tokenService: makeTokenService(),
+  requestPasswordResetUseCase: makeRequestPasswordResetUseCase(),
+  resetPasswordUseCase: makeResetPasswordUseCase(),
   createSessionUseCase: stub<CreateSessionUseCase>({
     execute: vi.fn().mockResolvedValue(makeSession()),
   }),
@@ -272,6 +290,48 @@ describe('AuthResolver', () => {
       const resolver = new AuthResolver({ ...baseDeps(), verifyEmailUseCase });
 
       await expect(resolver.verifyEmail('bad-token')).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+      });
+    });
+  });
+
+  describe('requestPasswordReset', () => {
+    it('delegates to requestPasswordResetUseCase with the given email and IP', async () => {
+      const requestPasswordResetUseCase = makeRequestPasswordResetUseCase();
+      const resolver = new AuthResolver({ ...baseDeps(), requestPasswordResetUseCase });
+
+      await resolver.requestPasswordReset('test@example.com', '127.0.0.1');
+
+      expect(requestPasswordResetUseCase.execute).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        ipAddress: '127.0.0.1',
+      });
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('delegates to resetPasswordUseCase with the token and new password', async () => {
+      const resetPasswordUseCase = makeResetPasswordUseCase();
+      const resolver = new AuthResolver({ ...baseDeps(), resetPasswordUseCase });
+
+      await resolver.resetPassword('raw-token', 'newPassword123');
+
+      expect(resetPasswordUseCase.execute).toHaveBeenCalledWith({
+        token: 'raw-token',
+        newPassword: 'newPassword123',
+      });
+    });
+
+    it('propagates errors from the use case', async () => {
+      const err = Object.assign(new Error('Invalid or expired reset link'), {
+        code: 'UNAUTHORIZED',
+      });
+      const resetPasswordUseCase = makeResetPasswordUseCase({
+        execute: vi.fn().mockRejectedValue(err),
+      });
+      const resolver = new AuthResolver({ ...baseDeps(), resetPasswordUseCase });
+
+      await expect(resolver.resetPassword('bad-token', 'newPassword123')).rejects.toMatchObject({
         code: 'UNAUTHORIZED',
       });
     });

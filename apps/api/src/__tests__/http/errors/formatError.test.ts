@@ -67,6 +67,19 @@ describe('formatError', () => {
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 
+  it('maps a RATE_LIMITED-coded error to a client-safe GraphQLError without logging', () => {
+    const original = Object.assign(new Error('Too many password reset requests'), {
+      code: ERROR_CODES.RATE_LIMITED,
+    });
+    const wrapper = new GraphQLError('wrapped', { originalError: original });
+
+    const result = formatError(wrapper);
+
+    expect(result.extensions.code).toBe(ERROR_CODES.RATE_LIMITED);
+    expect(result.extensions.statusCode).toBe(429);
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+  });
+
   it('logs and returns a generic 500 error for an uncoded error, without leaking its message', () => {
     const original = new Error('TypeError: cannot read property x of undefined at db.ts:42');
     const wrapper = new GraphQLError('wrapped', { originalError: original });

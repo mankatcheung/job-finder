@@ -106,6 +106,41 @@ builder.mutationField('logout', (t) =>
   }),
 );
 
+builder.mutationField('requestPasswordReset', (t) =>
+  t.boolean({
+    args: {
+      email: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      const { authResolver } = ctx.diScope.cradle;
+      try {
+        await authResolver.requestPasswordReset(args.email, ctx.request.ip ?? null);
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
+builder.mutationField('resetPassword', (t) =>
+  t.boolean({
+    args: {
+      token: t.arg.string({ required: true }),
+      newPassword: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      const { authResolver } = ctx.diScope.cradle;
+      try {
+        await authResolver.resetPassword(args.token, args.newPassword);
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
 builder.mutationField('verifyEmail', (t) =>
   t.boolean({
     args: {

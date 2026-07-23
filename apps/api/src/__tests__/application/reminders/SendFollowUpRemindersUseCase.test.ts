@@ -11,6 +11,7 @@ import type { IEmailService } from '@/use-cases/ports/IEmailService.js';
 const makeEmailService = (overrides?: Partial<IEmailService>): IEmailService => ({
   sendFollowUpReminder: vi.fn().mockResolvedValue(undefined),
   sendWeeklyDigest: vi.fn().mockResolvedValue(undefined),
+  sendPasswordReset: vi.fn().mockResolvedValue(undefined),
   sendEmailVerification: vi.fn().mockResolvedValue(undefined),
   ...overrides,
 });

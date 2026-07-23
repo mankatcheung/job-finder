@@ -52,6 +52,14 @@ describe('LoginPage', () => {
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 
+  it('links to the forgot-password page', () => {
+    render(<LoginPage />);
+    expect(screen.getByRole('link', { name: /forgot password/i })).toHaveAttribute(
+      'href',
+      '/forgot-password',
+    );
+  });
+
   it('shows validation error for invalid email', async () => {
     const user = userEvent.setup();
     render(<LoginPage />);

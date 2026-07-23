@@ -98,6 +98,9 @@ describe('RateLimitedError', () => {
 
   it('uses the given message when provided', () => {
     expect(new RateLimitedError('Slow down').message).toBe('Slow down');
+    expect(new RateLimitedError('Too many password reset requests').message).toBe(
+      'Too many password reset requests',
+    );
   });
 });
 
