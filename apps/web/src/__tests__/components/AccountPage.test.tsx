@@ -460,7 +460,7 @@ describe('AccountPage', () => {
           documentsSkipped: 1,
         },
       });
-      render(<AccountPage />);
+      render(<AccountPage />, { wrapper: Wrapper });
 
       selectFile('{"applications":[]}');
 
@@ -480,7 +480,7 @@ describe('AccountPage', () => {
       mockGqlRequest.mockRejectedValue({
         response: { errors: [{ message: 'Import file is not valid JSON' }] },
       });
-      render(<AccountPage />);
+      render(<AccountPage />, { wrapper: Wrapper });
 
       selectFile('not json');
 
