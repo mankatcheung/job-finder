@@ -108,7 +108,6 @@ describe('AuthResolver', () => {
       expect(tokenService.sign).toHaveBeenCalledWith(user.id, user.email, 'session-1');
       expect(result).toEqual({ accessToken: 'access-token', refreshToken: 'refresh-token' });
     });
-
   });
 
   describe('refreshToken', () => {
