@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 
 type KeyCombo = {
   key: string;
@@ -10,10 +10,9 @@ type KeyCombo = {
 
 type HotkeyHandler = (e: KeyboardEvent) => void;
 
-const isMac = typeof navigator !== 'undefined' && navigator.platform.startsWith('Mac');
-
 export function getKeyModifier(): string {
-  return isMac ? '⌘' : 'Ctrl';
+  if (typeof navigator === 'undefined') return 'Ctrl';
+  return navigator.platform.startsWith('Mac') ? '⌘' : 'Ctrl';
 }
 
 export function formatKeyCombo(combo: KeyCombo): string {
@@ -49,4 +48,14 @@ export function useHotkeys(combo: KeyCombo, handler: HotkeyHandler, enabled = tr
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
+}
+
+export function useIsMac(): boolean {
+  const [isMac, setIsMac] = useState(false);
+
+  useEffect(() => {
+    setIsMac(navigator.platform.startsWith('Mac'));
+  }, []);
+
+  return isMac;
 }
