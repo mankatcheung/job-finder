@@ -5,6 +5,8 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 export interface JwtUser {
   sub: string;
   email: string;
+  /** Session id — present for JWT-authenticated requests, absent for API-token auth (no session). */
+  sid?: string;
 }
 
 export interface GraphQLContext {

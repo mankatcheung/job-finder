@@ -9,21 +9,21 @@ interface Deps {
 export class FastifyJwtTokenService implements ITokenService {
   constructor(private readonly deps: Deps) {}
 
-  sign(userId: string, email: string): TokenPair {
+  sign(userId: string, email: string, sessionId: string): TokenPair {
     const accessToken = this.deps.fastify.jwt.sign(
-      { sub: userId, email },
+      { sub: userId, email, sid: sessionId },
       { expiresIn: JWT_EXPIRY.ACCESS },
     );
     const refreshToken = this.deps.fastify.jwt.sign(
-      { sub: userId, email },
+      { sub: userId, email, sid: sessionId },
       { key: process.env[ENV.JWT_REFRESH_SECRET]!, expiresIn: JWT_EXPIRY.REFRESH },
     );
     return { accessToken, refreshToken };
   }
 
-  verifyRefresh(token: string): { sub: string; email: string } {
+  verifyRefresh(token: string): { sub: string; email: string; sid: string } {
     try {
-      return this.deps.fastify.jwt.verify<{ sub: string; email: string }>(token, {
+      return this.deps.fastify.jwt.verify<{ sub: string; email: string; sid: string }>(token, {
         key: process.env[ENV.JWT_REFRESH_SECRET]!,
       });
     } catch {

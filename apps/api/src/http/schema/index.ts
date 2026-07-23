@@ -19,6 +19,10 @@ import './types/ParsedJobDescriptionType.js';
 import './types/HealthScoreType.js';
 import './types/LoginResultType.js';
 import './types/TotpSetupType.js';
+import './types/LoginEventType.js';
+import './types/ImportSummaryType.js';
+import './types/NotificationPreferencesType.js';
+import './types/SessionType.js';
 
 // Queries
 import './queries/applicationQueries.js';
@@ -30,6 +34,8 @@ import './queries/activityLogQueries.js';
 import './queries/apiTokenQueries.js';
 import './queries/contactQueries.js';
 import './queries/healthScoreQueries.js';
+import './queries/loginEventQueries.js';
+import './queries/sessionQueries.js';
 
 // Mutations
 import './mutations/authMutations.js';
@@ -42,5 +48,6 @@ import './mutations/apiTokenMutations.js';
 import './mutations/contactMutations.js';
 import './mutations/jobDescriptionMutations.js';
 import './mutations/coverLetterMutations.js';
+import './mutations/sessionMutations.js';
 
 export const schema = builder.toSchema();

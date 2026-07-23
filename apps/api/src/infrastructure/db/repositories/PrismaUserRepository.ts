@@ -39,6 +39,12 @@ export class PrismaUserRepository implements IUserRepository {
     data: {
       email?: string;
       passwordHash?: string;
+      name?: string | null;
+      timezone?: string | null;
+      targetRole?: string | null;
+      emailVerifiedAt?: Date | null;
+      weeklyDigestEnabled?: boolean;
+      followUpRemindersEnabled?: boolean;
       totpSecret?: string | null;
       totpEnabled?: boolean;
     },
@@ -55,6 +61,12 @@ export class PrismaUserRepository implements IUserRepository {
     id: string;
     email: string;
     passwordHash: string;
+    name: string | null;
+    timezone: string | null;
+    targetRole: string | null;
+    emailVerifiedAt: Date | null;
+    weeklyDigestEnabled: boolean;
+    followUpRemindersEnabled: boolean;
     totpSecret: string | null;
     totpEnabled: boolean;
     createdAt: Date;
@@ -64,6 +76,12 @@ export class PrismaUserRepository implements IUserRepository {
       id: row.id,
       email: row.email,
       passwordHash: row.passwordHash,
+      name: row.name,
+      timezone: row.timezone,
+      targetRole: row.targetRole,
+      emailVerifiedAt: row.emailVerifiedAt,
+      weeklyDigestEnabled: row.weeklyDigestEnabled,
+      followUpRemindersEnabled: row.followUpRemindersEnabled,
       totpSecret: row.totpSecret,
       totpEnabled: row.totpEnabled,
       createdAt: row.createdAt,

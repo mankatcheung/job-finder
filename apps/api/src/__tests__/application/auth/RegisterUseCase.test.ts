@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RegisterUseCase } from '@/use-cases/auth/RegisterUseCase.js';
 import { makeUserRepository, makeUser } from '@/__tests__/helpers/mocks.js';
+import type { ISendEmailVerificationUseCase } from '@/use-cases/auth/ISendEmailVerificationUseCase.js';
 
 vi.mock('bcryptjs', () => ({
   default: {
@@ -8,6 +9,13 @@ vi.mock('bcryptjs', () => ({
     compare: vi.fn(),
   },
 }));
+
+const makeSendEmailVerificationUseCase = (
+  overrides?: Partial<ISendEmailVerificationUseCase>,
+): ISendEmailVerificationUseCase => ({
+  execute: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
 
 describe('RegisterUseCase', () => {
   beforeEach(() => {
@@ -22,7 +30,11 @@ describe('RegisterUseCase', () => {
     });
     const generateId = vi.fn().mockReturnValue('user-1');
 
-    const useCase = new RegisterUseCase({ userRepository, generateId });
+    const useCase = new RegisterUseCase({
+      userRepository,
+      generateId,
+      sendEmailVerificationUseCase: makeSendEmailVerificationUseCase(),
+    });
     const result = await useCase.execute({ email: 'test@example.com', password: 'password123' });
 
     expect(result).toEqual({ userId: 'user-1', email: 'test@example.com' });
@@ -40,7 +52,11 @@ describe('RegisterUseCase', () => {
     });
     const generateId = vi.fn().mockReturnValue('custom-id');
 
-    const useCase = new RegisterUseCase({ userRepository, generateId });
+    const useCase = new RegisterUseCase({
+      userRepository,
+      generateId,
+      sendEmailVerificationUseCase: makeSendEmailVerificationUseCase(),
+    });
     await useCase.execute({ email: 'test@example.com', password: 'pass' });
 
     expect(generateId).toHaveBeenCalledOnce();
@@ -54,7 +70,11 @@ describe('RegisterUseCase', () => {
       findByEmail: vi.fn().mockResolvedValue(makeUser()),
     });
 
-    const useCase = new RegisterUseCase({ userRepository, generateId: vi.fn() });
+    const useCase = new RegisterUseCase({
+      userRepository,
+      generateId: vi.fn(),
+      sendEmailVerificationUseCase: makeSendEmailVerificationUseCase(),
+    });
     const err = await useCase
       .execute({ email: 'test@example.com', password: 'pass' })
       .catch((e) => e);
@@ -62,5 +82,46 @@ describe('RegisterUseCase', () => {
     expect(err).toBeInstanceOf(Error);
     expect((err as { code: string }).code).toBe('CONFLICT');
     expect(userRepository.create).not.toHaveBeenCalled();
+  });
+
+  it('sends an email verification for the new user', async () => {
+    const user = makeUser({ id: 'user-1' });
+    const userRepository = makeUserRepository({
+      findByEmail: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue(user),
+    });
+    const sendEmailVerificationUseCase = makeSendEmailVerificationUseCase();
+
+    const useCase = new RegisterUseCase({
+      userRepository,
+      generateId: vi.fn().mockReturnValue('user-1'),
+      sendEmailVerificationUseCase,
+    });
+    await useCase.execute({ email: 'test@example.com', password: 'password123' });
+
+    expect(sendEmailVerificationUseCase.execute).toHaveBeenCalledWith('user-1');
+  });
+
+  it('still returns successfully when sending the verification email fails', async () => {
+    const user = makeUser({ id: 'user-1' });
+    const userRepository = makeUserRepository({
+      findByEmail: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue(user),
+    });
+    const sendEmailVerificationUseCase = makeSendEmailVerificationUseCase({
+      execute: vi.fn().mockRejectedValue(new Error('Brevo is down')),
+    });
+
+    const useCase = new RegisterUseCase({
+      userRepository,
+      generateId: vi.fn().mockReturnValue('user-1'),
+      sendEmailVerificationUseCase,
+    });
+    const result = await useCase.execute({
+      email: 'test@example.com',
+      password: 'password123',
+    });
+
+    expect(result).toEqual({ userId: 'user-1', email: 'test@example.com' });
   });
 });
