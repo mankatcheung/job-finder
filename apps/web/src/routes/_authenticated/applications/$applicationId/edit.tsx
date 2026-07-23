@@ -70,6 +70,7 @@ export function EditApplicationPage() {
   const navigate = useNavigate();
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data } = useQuery({
     queryKey: ['application', applicationId],
@@ -81,6 +82,7 @@ export function EditApplicationPage() {
 
   useEffect(() => {
     if (app?.tags) setTags(app.tags);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [app?.tags?.join(',')]);
 
   const {
@@ -107,212 +109,241 @@ export function EditApplicationPage() {
       : undefined,
   });
 
-  const onSubmit = async (data: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     try {
-      const input = {
-        company: data.company,
-        role: data.role,
-        status: data.status,
-        ...(data.jobUrl ? { jobUrl: data.jobUrl } : {}),
-        ...(data.location ? { location: data.location } : {}),
-        ...(data.salaryRange ? { salaryRange: data.salaryRange } : {}),
-        ...(data.description ? { description: data.description } : {}),
-        ...(data.source ? { source: data.source } : { source: null }),
-        ...(data.followUpAt ? { followUpAt: data.followUpAt } : { followUpAt: null }),
-        starred: data.starred ?? false,
-        tags,
-      };
-      await gqlClient.request(UPDATE_MUTATION, { id: applicationId, input });
+      await gqlClient.request(UPDATE_MUTATION, {
+        id: applicationId,
+        input: {
+          ...values,
+          tags,
+          followUpAt: values.followUpAt || null,
+        },
+      });
       await queryClient.invalidateQueries({ queryKey: ['applications'] });
       await queryClient.invalidateQueries({ queryKey: ['application', applicationId] });
-      await navigate({ to: '/applications/$applicationId', params: { applicationId } });
+      navigate({ to: '/applications/$applicationId', params: { applicationId } });
     } catch {
-      setError('root', { message: 'Failed to update application. Please try again.' });
+      setError('root', { message: 'Failed to update application' });
     }
   };
 
-  if (!app)
-    return (
-      <div className="p-4 sm:p-8">
-        <div className="h-8 w-64 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
-      </div>
-    );
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const newTag = tagInput.trim();
+      if (newTag && !tags.includes(newTag)) {
+        setTags([...tags, newTag]);
+      }
+      setTagInput('');
+    }
+  };
+
+  const removeTag = (tag: string) => {
+    setTags(tags.filter((t) => t !== tag));
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this application?')) return;
+    try {
+      await gqlClient.request(
+        `mutation DeleteApplication($id: ID!) { deleteApplication(id: $id) }`,
+        { id: applicationId },
+      );
+      await queryClient.invalidateQueries({ queryKey: ['applications'] });
+      navigate({ to: '/applications' });
+    } catch {
+      alert('Failed to delete application');
+    }
+  };
+
+  if (!app) return <div className="p-8 text-gray-500">Loading...</div>;
 
   return (
-    <div className="p-4 sm:p-8 max-w-2xl mx-auto">
-      <div className="mb-6">
-        <a
-          href={`/applications/${applicationId}`}
-          className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+    <div className="max-w-2xl mx-auto p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-semibold text-gray-900">Edit Application</h1>
+        <button
+          onClick={handleDelete}
+          className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg"
         >
-          ← Back
-        </a>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">
-          Edit application
-        </h1>
+          <StarIcon size={18} />
+        </button>
       </div>
 
-      <JdImportPanel
-        onFill={(parsed) => {
-          if (parsed.company) setValue('company', parsed.company);
-          if (parsed.role) setValue('role', parsed.role);
-          if (parsed.location) setValue('location', parsed.location);
-          if (parsed.salary) setValue('salaryRange', parsed.salary);
-          if (parsed.description) setValue('description', parsed.description);
-        }}
-      />
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={() => setImportOpen(!importOpen)}
+          className="text-sm text-blue-600 hover:text-blue-800"
+        >
+          {importOpen ? 'Hide' : 'Show'} AI Job Description Import
+        </button>
+        {importOpen && (
+          <div className="mt-2">
+            <JdImportPanel
+              onFill={(data) => {
+                if (data.company) setValue('company', data.company);
+                if (data.role) setValue('role', data.role);
+                if (data.location) setValue('location', data.location);
+                if (data.salary) setValue('salaryRange', data.salary);
+                if (data.description) setValue('description', data.description);
+              }}
+            />
+          </div>
+        )}
+      </div>
 
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 space-y-4"
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Company *" error={errors.company?.message}>
-            <input {...register('company')} className={inputClass} />
-          </Field>
-          <Field label="Role *" error={errors.role?.message}>
-            <input {...register('role')} className={inputClass} />
-          </Field>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {errors.root && (
+          <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">{errors.root.message}</div>
+        )}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Company *</label>
+          <input
+            {...register('company')}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          {errors.company && <p className="text-red-500 text-xs mt-1">{errors.company.message}</p>}
         </div>
 
-        <Field label="Status">
-          <select {...register('status')} className={inputClass}>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Role *</label>
+          <input
+            {...register('role')}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          {errors.role && <p className="text-red-500 text-xs mt-1">{errors.role.message}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <select
+            {...register('status')}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
             {APPLICATION_STATUSES.map((s) => (
               <option key={s} value={s}>
                 {s.charAt(0).toUpperCase() + s.slice(1)}
               </option>
             ))}
           </select>
-        </Field>
-
-        <Field label="Job URL" error={errors.jobUrl?.message}>
-          <input {...register('jobUrl')} className={inputClass} type="url" />
-        </Field>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Location">
-            <input {...register('location')} className={inputClass} />
-          </Field>
-          <Field label="Salary range">
-            <input {...register('salaryRange')} className={inputClass} />
-          </Field>
         </div>
 
-        <Field label="Description / Notes">
-          <textarea {...register('description')} className={`${inputClass} h-28 resize-none`} />
-        </Field>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Source">
-            <input
-              {...register('source')}
-              className={inputClass}
-              placeholder="LinkedIn, referral, Indeed…"
-            />
-          </Field>
-          <Field label="Follow-up date">
-            <input {...register('followUpAt')} className={inputClass} type="date" />
-          </Field>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Job URL</label>
+          <input
+            {...register('jobUrl')}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="https://..."
+          />
+          {errors.jobUrl && <p className="text-red-500 text-xs mt-1">{errors.jobUrl.message}</p>}
         </div>
 
-        <Field label="Tags">
-          <div className="space-y-2">
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
-                      className="hover:text-blue-600 dark:hover:text-blue-200"
-                    >
-                      <XIcon size={10} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
             <input
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ',') {
-                  e.preventDefault();
-                  const val = tagInput.trim().toLowerCase();
-                  if (val && !tags.includes(val)) setTags((prev) => [...prev, val]);
-                  setTagInput('');
-                }
-              }}
-              className={inputClass}
-              placeholder="Type a tag and press Enter…"
+              {...register('location')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-        </Field>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Salary Range</label>
+            <input
+              {...register('salaryRange')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
 
-        <div className="flex items-center gap-3">
-          <input
-            {...register('starred')}
-            id="starred-edit"
-            type="checkbox"
-            className="w-4 h-4 rounded border-gray-300 text-yellow-400 focus:ring-yellow-400"
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea
+            {...register('description')}
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
-          <label
-            htmlFor="starred-edit"
-            className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none"
-          >
-            <StarIcon size={14} className="text-yellow-400" /> Star this application
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Source</label>
+            <input
+              {...register('source')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="LinkedIn, referral, etc."
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Follow-up Date</label>
+            <input
+              {...register('followUpAt')}
+              type="date"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+              >
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => removeTag(tag)}
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  <XIcon size={14} />
+                </button>
+              </span>
+            ))}
+          </div>
+          <input
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={handleTagKeyDown}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Type a tag and press Enter"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            {...register('starred')}
+            id="starred"
+            className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+          />
+          <label htmlFor="starred" className="text-sm text-gray-700">
+            Starred
           </label>
         </div>
 
-        {errors.root && (
-          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-            {errors.root.message}
-          </p>
-        )}
-
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-3 pt-4">
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
           >
-            {isSubmitting ? 'Saving…' : 'Save changes'}
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
           </button>
-          <a
-            href={`/applications/${applicationId}`}
-            className="px-5 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+          <button
+            type="button"
+            onClick={() =>
+              navigate({ to: '/applications/$applicationId', params: { applicationId } })
+            }
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
           >
             Cancel
-          </a>
+          </button>
         </div>
       </form>
-    </div>
-  );
-}
-
-const inputClass =
-  'w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500';
-
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-        {label}
-      </label>
-      {children}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
     </div>
   );
 }

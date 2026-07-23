@@ -33,7 +33,7 @@ export class PrismaActivityLogRepository implements IActivityLogRepository {
       WHERE applicationId = ${applicationId}
       ORDER BY createdAt DESC
     `;
-    return rows.map((r) => this.toEntity(r));
+    return rows.map((r: PrismaActivityLog) => this.toEntity(r));
   }
 
   async append(data: AppendActivityLogData): Promise<ActivityLog> {

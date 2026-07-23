@@ -48,7 +48,7 @@ export class PrismaSessionRepository implements ISessionRepository {
       where: { userId, revokedAt: null, expiresAt: { gt: new Date() } },
       orderBy: { lastUsedAt: 'desc' },
     });
-    return rows.map((r) => this.toEntity(r));
+    return rows.map((r: PrismaSession) => this.toEntity(r));
   }
 
   async touch(id: string, expiresAt: Date): Promise<void> {
