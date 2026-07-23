@@ -57,6 +57,7 @@ const defaultResponse = {
   ],
   notificationPreferences: { weeklyDigestEnabled: true, followUpRemindersEnabled: true },
   loginHistory: [],
+  totpEnabled: false,
 };
 
 describe('AccountPage', () => {
@@ -75,6 +76,7 @@ describe('AccountPage', () => {
     expect(screen.getByText('Profile')).toBeInTheDocument();
     expect(screen.getByText('Email address')).toBeInTheDocument();
     expect(screen.getByText('Password')).toBeInTheDocument();
+    expect(screen.getByText('Two-factor authentication')).toBeInTheDocument();
     expect(screen.getByText('Active sessions')).toBeInTheDocument();
     expect(screen.getByText('Recent login activity')).toBeInTheDocument();
     expect(screen.getByText('Notification preferences')).toBeInTheDocument();
@@ -94,6 +96,9 @@ describe('AccountPage', () => {
     });
     await waitFor(() => {
       expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('LoginHistory'));
+    });
+    await waitFor(() => {
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('TotpEnabled'));
     });
   });
 
@@ -298,6 +303,83 @@ describe('AccountPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Failed to update password.')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('two-factor authentication', () => {
+    it('shows an "Enable 2FA" button when disabled', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /enable 2fa/i })).toBeInTheDocument();
+      });
+    });
+
+    it('starts setup, shows the QR code and secret, and confirms with a code', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+
+      const setupData = {
+        beginTotpSetup: {
+          secret: 'ABCD1234',
+          otpauthUrl: 'otpauth://totp/Job%20Finder:test@example.com?secret=ABCD1234',
+          qrCodeDataUrl: 'data:image/png;base64,abc123',
+        },
+      };
+      mockGqlRequest.mockResolvedValueOnce(setupData);
+      const enableBtn = screen.getByRole('button', { name: /enable 2fa/i });
+      const beginForm = enableBtn.closest('form')!;
+      const beginPasswordInput = beginForm.querySelector('input[type="password"]')!;
+      fireEvent.change(beginPasswordInput, { target: { value: 'mypassword' } });
+      fireEvent.click(enableBtn);
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('BeginTotpSetup'), {
+          password: 'mypassword',
+        });
+      });
+      await waitFor(() => {
+        expect(screen.getByAltText('Two-factor authentication QR code')).toHaveAttribute(
+          'src',
+          setupData.beginTotpSetup.qrCodeDataUrl,
+        );
+      });
+      expect(screen.getByText('ABCD1234')).toBeInTheDocument();
+
+      const backupCodes = ['aaaa1111bbbb2222', 'cccc3333dddd4444'];
+      mockGqlRequest.mockResolvedValueOnce({ confirmTotpSetup: { backupCodes } });
+      fireEvent.change(screen.getByPlaceholderText('123456'), { target: { value: '654321' } });
+      fireEvent.click(screen.getByRole('button', { name: /^confirm$/i }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('ConfirmTotpSetup'), {
+          code: '654321',
+        });
+      });
+      await waitFor(() => {
+        backupCodes.forEach((code) => expect(screen.getByText(code)).toBeInTheDocument());
+      });
+    });
+
+    it('shows a disable form when 2FA is already enabled', async () => {
+      mockGqlRequest.mockResolvedValue({ ...defaultResponse, totpEnabled: true });
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Two-factor authentication is enabled.')).toBeInTheDocument();
+      });
+
+      mockGqlRequest.mockResolvedValueOnce({ disableTotp: true });
+      const disableBtn = screen.getByRole('button', { name: /disable 2fa/i });
+      const form = disableBtn.closest('form')!;
+      const passwordInput = form.querySelector('input[type="password"]')!;
+      fireEvent.change(passwordInput, { target: { value: 'mypassword' } });
+      fireEvent.click(disableBtn);
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('DisableTotp'), {
+          password: 'mypassword',
+        });
       });
     });
   });

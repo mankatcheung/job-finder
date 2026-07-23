@@ -15,6 +15,8 @@ const SCHEMA_STATEMENTS = [
     "emailVerifiedAt" DATETIME,
     "weeklyDigestEnabled" INTEGER NOT NULL DEFAULT 1,
     "followUpRemindersEnabled" INTEGER NOT NULL DEFAULT 1,
+    "totpSecret" TEXT,
+    "totpEnabled" INTEGER NOT NULL DEFAULT 0,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`,
@@ -149,6 +151,15 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "EmailVerificationToken_userId_idx" ON "EmailVerificationToken"("userId")`,
+  `CREATE TABLE "TotpBackupCode" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "codeHash" TEXT NOT NULL UNIQUE,
+    "usedAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "TotpBackupCode_userId_idx" ON "TotpBackupCode"("userId")`,
   `CREATE TABLE "PasswordResetToken" (
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,

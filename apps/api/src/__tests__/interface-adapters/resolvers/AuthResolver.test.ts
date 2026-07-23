@@ -3,6 +3,7 @@ import { AuthResolver } from '@/interface-adapters/resolvers/AuthResolver.js';
 import { makeUser, makeSession } from '@/__tests__/helpers/mocks.js';
 import type { IRegisterUseCase } from '@/use-cases/auth/IRegisterUseCase.js';
 import type { ILoginUseCase } from '@/use-cases/auth/ILoginUseCase.js';
+import type { ILoginWithTotpUseCase } from '@/use-cases/auth/ILoginWithTotpUseCase.js';
 import type { IRequestPasswordResetUseCase } from '@/use-cases/auth/IRequestPasswordResetUseCase.js';
 import type { IResetPasswordUseCase } from '@/use-cases/auth/IResetPasswordUseCase.js';
 import type { IVerifyEmailUseCase } from '@/use-cases/auth/IVerifyEmailUseCase.js';
@@ -18,6 +19,13 @@ const makeRegisterUseCase = (overrides?: Partial<IRegisterUseCase>): IRegisterUs
 });
 
 const makeLoginUseCase = (overrides?: Partial<ILoginUseCase>): ILoginUseCase => ({
+  execute: vi.fn(),
+  ...overrides,
+});
+
+const makeLoginWithTotpUseCase = (
+  overrides?: Partial<ILoginWithTotpUseCase>,
+): ILoginWithTotpUseCase => ({
   execute: vi.fn(),
   ...overrides,
 });
@@ -52,6 +60,7 @@ const device = { userAgent: 'test-agent', ipAddress: '127.0.0.1' };
 const baseDeps = () => ({
   registerUseCase: makeRegisterUseCase(),
   loginUseCase: makeLoginUseCase(),
+  loginWithTotpUseCase: makeLoginWithTotpUseCase(),
   tokenService: makeTokenService(),
   requestPasswordResetUseCase: makeRequestPasswordResetUseCase(),
   resetPasswordUseCase: makeResetPasswordUseCase(),
@@ -99,8 +108,8 @@ describe('AuthResolver', () => {
   });
 
   describe('login', () => {
-    it('logs in, creates a session, and returns a token pair', async () => {
-      const user = makeUser();
+    it('logs in, creates a session, and returns totpRequired: false for a user without 2FA', async () => {
+      const user = makeUser({ totpEnabled: false });
       const loginUseCase = makeLoginUseCase({ execute: vi.fn().mockResolvedValue(user) });
       const tokenService = makeTokenService();
       const createSessionUseCase = stub<CreateSessionUseCase>({
@@ -124,7 +133,81 @@ describe('AuthResolver', () => {
       });
       expect(createSessionUseCase.execute).toHaveBeenCalledWith({ userId: user.id, ...device });
       expect(tokenService.sign).toHaveBeenCalledWith(user.id, user.email, 'session-1');
+      expect(result).toEqual({
+        totpRequired: false,
+        tokens: { accessToken: 'access-token', refreshToken: 'refresh-token' },
+      });
+    });
+
+    it('does not create a session or sign tokens for a user with 2FA enabled', async () => {
+      const user = makeUser({ totpEnabled: true });
+      const loginUseCase = makeLoginUseCase({ execute: vi.fn().mockResolvedValue(user) });
+      const tokenService = makeTokenService();
+      const createSessionUseCase = stub<CreateSessionUseCase>({ execute: vi.fn() });
+
+      const resolver = new AuthResolver({
+        ...baseDeps(),
+        loginUseCase,
+        tokenService,
+        createSessionUseCase,
+      });
+
+      const result = await resolver.login('test@example.com', 'password123', device);
+
+      expect(createSessionUseCase.execute).not.toHaveBeenCalled();
+      expect(tokenService.sign).not.toHaveBeenCalled();
+      expect(result).toEqual({ totpRequired: true, tokens: null });
+    });
+  });
+
+  describe('loginWithTotp', () => {
+    it('delegates to loginWithTotpUseCase, creates a session, and signs tokens', async () => {
+      const user = makeUser({ totpEnabled: true });
+      const loginWithTotpUseCase = makeLoginWithTotpUseCase({
+        execute: vi.fn().mockResolvedValue(user),
+      });
+      const tokenService = makeTokenService();
+      const createSessionUseCase = stub<CreateSessionUseCase>({
+        execute: vi.fn().mockResolvedValue(makeSession({ id: 'session-1' })),
+      });
+
+      const resolver = new AuthResolver({
+        ...baseDeps(),
+        loginWithTotpUseCase,
+        tokenService,
+        createSessionUseCase,
+      });
+
+      const result = await resolver.loginWithTotp(
+        'test@example.com',
+        'password123',
+        '123456',
+        device,
+      );
+
+      expect(loginWithTotpUseCase.execute).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'password123',
+        code: '123456',
+        ipAddress: device.ipAddress,
+      });
+      expect(createSessionUseCase.execute).toHaveBeenCalledWith({ userId: user.id, ...device });
+      expect(tokenService.sign).toHaveBeenCalledWith(user.id, user.email, 'session-1');
       expect(result).toEqual({ accessToken: 'access-token', refreshToken: 'refresh-token' });
+    });
+
+    it('propagates errors from the use case', async () => {
+      const err = Object.assign(new Error('Invalid verification code'), {
+        code: 'UNAUTHORIZED',
+      });
+      const loginWithTotpUseCase = makeLoginWithTotpUseCase({
+        execute: vi.fn().mockRejectedValue(err),
+      });
+      const resolver = new AuthResolver({ ...baseDeps(), loginWithTotpUseCase });
+
+      await expect(
+        resolver.loginWithTotp('test@example.com', 'password123', 'bad-code', device),
+      ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
     });
   });
 

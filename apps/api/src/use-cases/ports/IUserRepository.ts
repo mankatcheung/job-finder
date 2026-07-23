@@ -16,6 +16,8 @@ export interface IUserRepository {
       emailVerifiedAt?: Date | null;
       weeklyDigestEnabled?: boolean;
       followUpRemindersEnabled?: boolean;
+      totpSecret?: string | null;
+      totpEnabled?: boolean;
     },
   ): Promise<User>;
   delete(id: string): Promise<void>;

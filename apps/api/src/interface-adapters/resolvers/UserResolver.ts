@@ -6,6 +6,16 @@ import type {
   ExportUserDataOutput,
 } from '@/use-cases/user/IExportUserDataUseCase.js';
 import type {
+  IGenerateTotpSecretUseCase,
+  TotpSetup,
+} from '@/use-cases/user/IGenerateTotpSecretUseCase.js';
+import type {
+  IConfirmTotpSetupUseCase,
+  ConfirmTotpSetupOutput,
+} from '@/use-cases/user/IConfirmTotpSetupUseCase.js';
+import type { IDisableTotpUseCase } from '@/use-cases/user/IDisableTotpUseCase.js';
+import type { IGetTotpStatusUseCase } from '@/use-cases/user/IGetTotpStatusUseCase.js';
+import type {
   IImportUserDataUseCase,
   ImportSummary,
 } from '@/use-cases/user/IImportUserDataUseCase.js';
@@ -23,6 +33,10 @@ interface Deps {
   updatePasswordUseCase: IUpdatePasswordUseCase;
   deleteAccountUseCase: IDeleteAccountUseCase;
   exportUserDataUseCase: IExportUserDataUseCase;
+  generateTotpSecretUseCase: IGenerateTotpSecretUseCase;
+  confirmTotpSetupUseCase: IConfirmTotpSetupUseCase;
+  disableTotpUseCase: IDisableTotpUseCase;
+  getTotpStatusUseCase: IGetTotpStatusUseCase;
   importUserDataUseCase: IImportUserDataUseCase;
   getNotificationPreferencesUseCase: IGetNotificationPreferencesUseCase;
   updateNotificationPreferencesUseCase: IUpdateNotificationPreferencesUseCase;
@@ -51,6 +65,22 @@ export class UserResolver {
 
   async exportUserData(userId: string): Promise<ExportUserDataOutput> {
     return this.deps.exportUserDataUseCase.execute(userId);
+  }
+
+  async beginTotpSetup(userId: string, password: string): Promise<TotpSetup> {
+    return this.deps.generateTotpSecretUseCase.execute({ userId, password });
+  }
+
+  async confirmTotpSetup(userId: string, code: string): Promise<ConfirmTotpSetupOutput> {
+    return this.deps.confirmTotpSetupUseCase.execute({ userId, code });
+  }
+
+  async disableTotp(userId: string, password: string): Promise<void> {
+    await this.deps.disableTotpUseCase.execute({ userId, password });
+  }
+
+  async getTotpStatus(userId: string): Promise<boolean> {
+    return this.deps.getTotpStatusUseCase.execute(userId);
   }
 
   async importUserData(userId: string, rawData: string): Promise<ImportSummary> {

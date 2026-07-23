@@ -45,6 +45,8 @@ export class PrismaUserRepository implements IUserRepository {
       emailVerifiedAt?: Date | null;
       weeklyDigestEnabled?: boolean;
       followUpRemindersEnabled?: boolean;
+      totpSecret?: string | null;
+      totpEnabled?: boolean;
     },
   ): Promise<User> {
     const row = await this.db.user.update({ where: { id }, data });
@@ -65,6 +67,8 @@ export class PrismaUserRepository implements IUserRepository {
     emailVerifiedAt: Date | null;
     weeklyDigestEnabled: boolean;
     followUpRemindersEnabled: boolean;
+    totpSecret: string | null;
+    totpEnabled: boolean;
     createdAt: Date;
     updatedAt: Date;
   }): User {
@@ -78,6 +82,8 @@ export class PrismaUserRepository implements IUserRepository {
       emailVerifiedAt: row.emailVerifiedAt,
       weeklyDigestEnabled: row.weeklyDigestEnabled,
       followUpRemindersEnabled: row.followUpRemindersEnabled,
+      totpSecret: row.totpSecret,
+      totpEnabled: row.totpEnabled,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

@@ -28,6 +28,12 @@ describe('PrismaUserRepository', () => {
       expect(user.updatedAt).toBeInstanceOf(Date);
     });
 
+    it('defaults totpSecret to null and totpEnabled to false', async () => {
+      const user = await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      expect(user.totpSecret).toBeNull();
+      expect(user.totpEnabled).toBe(false);
+    });
+
     it('defaults notification preferences to enabled', async () => {
       const user = await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
 
@@ -119,6 +125,23 @@ describe('PrismaUserRepository', () => {
 
       expect(updated.createdAt).toBeInstanceOf(Date);
       expect(updated.updatedAt).toBeInstanceOf(Date);
+    });
+
+    it('sets totpSecret and totpEnabled', async () => {
+      await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      const updated = await repo.update('u1', { totpSecret: 'ABCD1234', totpEnabled: true });
+
+      expect(updated.totpSecret).toBe('ABCD1234');
+      expect(updated.totpEnabled).toBe(true);
+    });
+
+    it('clears totpSecret when given null', async () => {
+      await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      await repo.update('u1', { totpSecret: 'ABCD1234', totpEnabled: true });
+      const updated = await repo.update('u1', { totpSecret: null, totpEnabled: false });
+
+      expect(updated.totpSecret).toBeNull();
+      expect(updated.totpEnabled).toBe(false);
     });
 
     it('updates notification preferences', async () => {

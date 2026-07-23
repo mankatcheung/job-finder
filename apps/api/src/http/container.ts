@@ -5,7 +5,6 @@ import { diContainer } from '@fastify/awilix';
 import { prisma } from '@/infrastructure/db/client.js';
 
 import { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
-import { RateLimiter } from '@/infrastructure/rateLimit/RateLimiter.js';
 import { PrismaUserRepository } from '@/infrastructure/db/repositories/PrismaUserRepository.js';
 import { PrismaApplicationRepository } from '@/infrastructure/db/repositories/PrismaApplicationRepository.js';
 import { PrismaNoteRepository } from '@/infrastructure/db/repositories/PrismaNoteRepository.js';
@@ -21,6 +20,9 @@ import { PrismaPasswordResetTokenRepository } from '@/infrastructure/db/reposito
 import { PrismaLoginEventRepository } from '@/infrastructure/db/repositories/PrismaLoginEventRepository.js';
 import { PrismaSessionRepository } from '@/infrastructure/db/repositories/PrismaSessionRepository.js';
 import { PrismaEmailVerificationTokenRepository } from '@/infrastructure/db/repositories/PrismaEmailVerificationTokenRepository.js';
+import { PrismaTotpBackupCodeRepository } from '@/infrastructure/db/repositories/PrismaTotpBackupCodeRepository.js';
+import { RateLimiter } from '@/infrastructure/rateLimit/RateLimiter.js';
+import type { IRateLimiter } from '@/use-cases/ports/IRateLimiter.js';
 
 import { LocalStorageProvider } from '@/infrastructure/storage/LocalStorageProvider.js';
 import { GCSStorageProvider } from '@/infrastructure/storage/GCSStorageProvider.js';
@@ -47,6 +49,7 @@ import { McpController } from '@/interface-adapters/mcp/McpController.js';
 
 import { RegisterUseCase } from '@/use-cases/auth/RegisterUseCase.js';
 import { LoginUseCase } from '@/use-cases/auth/LoginUseCase.js';
+import { LoginWithTotpUseCase } from '@/use-cases/auth/LoginWithTotpUseCase.js';
 import { RequestPasswordResetUseCase } from '@/use-cases/auth/RequestPasswordResetUseCase.js';
 import { ResetPasswordUseCase } from '@/use-cases/auth/ResetPasswordUseCase.js';
 import { SendEmailVerificationUseCase } from '@/use-cases/auth/SendEmailVerificationUseCase.js';
@@ -68,6 +71,10 @@ import { UpdateEmailUseCase } from '@/use-cases/user/UpdateEmailUseCase.js';
 import { UpdatePasswordUseCase } from '@/use-cases/user/UpdatePasswordUseCase.js';
 import { DeleteAccountUseCase } from '@/use-cases/user/DeleteAccountUseCase.js';
 import { ExportUserDataUseCase } from '@/use-cases/user/ExportUserDataUseCase.js';
+import { GenerateTotpSecretUseCase } from '@/use-cases/user/GenerateTotpSecretUseCase.js';
+import { ConfirmTotpSetupUseCase } from '@/use-cases/user/ConfirmTotpSetupUseCase.js';
+import { DisableTotpUseCase } from '@/use-cases/user/DisableTotpUseCase.js';
+import { GetTotpStatusUseCase } from '@/use-cases/user/GetTotpStatusUseCase.js';
 import { ImportUserDataUseCase } from '@/use-cases/user/ImportUserDataUseCase.js';
 import { GetNotificationPreferencesUseCase } from '@/use-cases/user/GetNotificationPreferencesUseCase.js';
 import { UpdateNotificationPreferencesUseCase } from '@/use-cases/user/UpdateNotificationPreferencesUseCase.js';
@@ -140,6 +147,8 @@ declare module '@fastify/awilix' {
     loginEventRepository: PrismaLoginEventRepository;
     sessionRepository: PrismaSessionRepository;
     emailVerificationTokenRepository: PrismaEmailVerificationTokenRepository;
+    totpBackupCodeRepository: PrismaTotpBackupCodeRepository;
+    totpRateLimiter: IRateLimiter;
 
     applicationMapper: ApplicationMapper;
     apiTokenMapper: ApiTokenMapper;
@@ -164,6 +173,7 @@ declare module '@fastify/awilix' {
 
     registerUseCase: RegisterUseCase;
     loginUseCase: LoginUseCase;
+    loginWithTotpUseCase: LoginWithTotpUseCase;
     requestPasswordResetUseCase: RequestPasswordResetUseCase;
     resetPasswordUseCase: ResetPasswordUseCase;
     sendEmailVerificationUseCase: SendEmailVerificationUseCase;
@@ -185,6 +195,10 @@ declare module '@fastify/awilix' {
     updatePasswordUseCase: UpdatePasswordUseCase;
     deleteAccountUseCase: DeleteAccountUseCase;
     exportUserDataUseCase: ExportUserDataUseCase;
+    generateTotpSecretUseCase: GenerateTotpSecretUseCase;
+    confirmTotpSetupUseCase: ConfirmTotpSetupUseCase;
+    disableTotpUseCase: DisableTotpUseCase;
+    getTotpStatusUseCase: GetTotpStatusUseCase;
     importUserDataUseCase: ImportUserDataUseCase;
     getNotificationPreferencesUseCase: GetNotificationPreferencesUseCase;
     updateNotificationPreferencesUseCase: UpdateNotificationPreferencesUseCase;
@@ -283,6 +297,15 @@ export function buildContainer(fastify: FastifyInstance): void {
     emailVerificationTokenRepository: asClass(PrismaEmailVerificationTokenRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
+    totpBackupCodeRepository: asClass(PrismaTotpBackupCodeRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
+    totpRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.TOTP_VERIFICATION.MAX_ATTEMPTS,
+        RATE_LIMIT.TOTP_VERIFICATION.WINDOW_MS,
+      ),
+    ),
 
     // Mappers
     applicationMapper: asClass(ApplicationMapper, { lifetime: Lifetime.SINGLETON }),
@@ -310,6 +333,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     // Use Cases
     registerUseCase: asClass(RegisterUseCase, { lifetime: Lifetime.TRANSIENT }),
     loginUseCase: asClass(LoginUseCase, { lifetime: Lifetime.TRANSIENT }),
+    loginWithTotpUseCase: asClass(LoginWithTotpUseCase, { lifetime: Lifetime.TRANSIENT }),
     requestPasswordResetUseCase: asClass(RequestPasswordResetUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
@@ -341,6 +365,12 @@ export function buildContainer(fastify: FastifyInstance): void {
     updatePasswordUseCase: asClass(UpdatePasswordUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteAccountUseCase: asClass(DeleteAccountUseCase, { lifetime: Lifetime.TRANSIENT }),
     exportUserDataUseCase: asClass(ExportUserDataUseCase, { lifetime: Lifetime.TRANSIENT }),
+    generateTotpSecretUseCase: asClass(GenerateTotpSecretUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    confirmTotpSetupUseCase: asClass(ConfirmTotpSetupUseCase, { lifetime: Lifetime.TRANSIENT }),
+    disableTotpUseCase: asClass(DisableTotpUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getTotpStatusUseCase: asClass(GetTotpStatusUseCase, { lifetime: Lifetime.TRANSIENT }),
     importUserDataUseCase: asClass(ImportUserDataUseCase, { lifetime: Lifetime.TRANSIENT }),
     getNotificationPreferencesUseCase: asClass(GetNotificationPreferencesUseCase, {
       lifetime: Lifetime.TRANSIENT,

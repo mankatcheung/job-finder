@@ -2,6 +2,7 @@ import { GraphQLError } from 'graphql';
 import type { FastifyRequest } from 'fastify';
 import { builder } from '@/http/schema/builder.js';
 import { setAuthCookies, clearAuthCookies } from '@/http/schema/types/AuthPayloadType.js';
+import { LoginResultRef } from '@/http/schema/types/LoginResultType.js';
 import type { DeviceInfo } from '@/interface-adapters/resolvers/AuthResolver.js';
 import { fromCodedError } from '@/http/errors/AppError.js';
 import { ERROR_CODES } from '@/constants.js';
@@ -33,16 +34,40 @@ builder.mutationField('register', (t) =>
 );
 
 builder.mutationField('login', (t) =>
-  t.boolean({
+  t.field({
+    type: LoginResultRef,
     args: {
       email: t.arg.string({ required: true }),
       password: t.arg.string({ required: true }),
     },
     resolve: async (_root, args, ctx) => {
       const { authResolver } = ctx.diScope.cradle;
-      const tokens = await authResolver.login(
+      const result = await authResolver.login(
         args.email,
         args.password,
+        deviceInfoFrom(ctx.request),
+      );
+      if (result.tokens) {
+        setAuthCookies(ctx.reply, result.tokens.accessToken, result.tokens.refreshToken);
+      }
+      return { success: !result.totpRequired, totpRequired: result.totpRequired };
+    },
+  }),
+);
+
+builder.mutationField('loginWithTotp', (t) =>
+  t.boolean({
+    args: {
+      email: t.arg.string({ required: true }),
+      password: t.arg.string({ required: true }),
+      code: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      const { authResolver } = ctx.diScope.cradle;
+      const tokens = await authResolver.loginWithTotp(
+        args.email,
+        args.password,
+        args.code,
         deviceInfoFrom(ctx.request),
       );
       setAuthCookies(ctx.reply, tokens.accessToken, tokens.refreshToken);

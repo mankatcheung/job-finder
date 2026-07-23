@@ -1,5 +1,6 @@
 import type { IRegisterUseCase } from '@/use-cases/auth/IRegisterUseCase.js';
 import type { ILoginUseCase } from '@/use-cases/auth/ILoginUseCase.js';
+import type { ILoginWithTotpUseCase } from '@/use-cases/auth/ILoginWithTotpUseCase.js';
 import type { IRequestPasswordResetUseCase } from '@/use-cases/auth/IRequestPasswordResetUseCase.js';
 import type { IResetPasswordUseCase } from '@/use-cases/auth/IResetPasswordUseCase.js';
 import type { IVerifyEmailUseCase } from '@/use-cases/auth/IVerifyEmailUseCase.js';
@@ -10,6 +11,7 @@ import type { TouchSessionUseCase } from '@/use-cases/sessions/TouchSessionUseCa
 interface Deps {
   registerUseCase: IRegisterUseCase;
   loginUseCase: ILoginUseCase;
+  loginWithTotpUseCase: ILoginWithTotpUseCase;
   tokenService: ITokenService;
   requestPasswordResetUseCase: IRequestPasswordResetUseCase;
   resetPasswordUseCase: IResetPasswordUseCase;
@@ -23,6 +25,11 @@ export interface DeviceInfo {
   ipAddress: string | null;
 }
 
+export interface LoginResult {
+  totpRequired: boolean;
+  tokens: TokenPair | null;
+}
+
 export class AuthResolver {
   constructor(private readonly deps: Deps) {}
 
@@ -32,12 +39,35 @@ export class AuthResolver {
     return this.deps.tokenService.sign(userId, email, session.id);
   }
 
-  async login(email: string, password: string, device: DeviceInfo): Promise<TokenPair> {
+  async login(email: string, password: string, device: DeviceInfo): Promise<LoginResult> {
     const user = await this.deps.loginUseCase.execute({
       email,
       password,
       ipAddress: device.ipAddress,
       userAgent: device.userAgent,
+    });
+    if (user.totpEnabled) {
+      // Login isn't complete until TOTP is verified — no session yet.
+      return { totpRequired: true, tokens: null };
+    }
+    const session = await this.deps.createSessionUseCase.execute({ userId: user.id, ...device });
+    return {
+      totpRequired: false,
+      tokens: this.deps.tokenService.sign(user.id, user.email, session.id),
+    };
+  }
+
+  async loginWithTotp(
+    email: string,
+    password: string,
+    code: string,
+    device: DeviceInfo,
+  ): Promise<TokenPair> {
+    const user = await this.deps.loginWithTotpUseCase.execute({
+      email,
+      password,
+      code,
+      ipAddress: device.ipAddress,
     });
     const session = await this.deps.createSessionUseCase.execute({ userId: user.id, ...device });
     return this.deps.tokenService.sign(user.id, user.email, session.id);

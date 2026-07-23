@@ -24,6 +24,8 @@ import type { Note } from '@/domain/note/Note.js';
 import type { InterviewRound } from '@/domain/interviewRound/InterviewRound.js';
 import type { Contact } from '@/domain/contact/Contact.js';
 import type { LoginEvent } from '@/domain/loginEvent/LoginEvent.js';
+import type { ITotpBackupCodeRepository } from '@/use-cases/ports/ITotpBackupCodeRepository.js';
+import type { TotpBackupCode } from '@/domain/totpBackupCode/TotpBackupCode.js';
 import type { IRateLimiter } from '@/use-cases/ports/IRateLimiter.js';
 
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
@@ -195,6 +197,30 @@ export const makeEmailVerificationToken = (
   ...overrides,
 });
 
+export const makeTotpBackupCodeRepository = (
+  overrides?: Partial<ITotpBackupCodeRepository>,
+): ITotpBackupCodeRepository => ({
+  create: vi.fn(),
+  findByCodeHash: vi.fn().mockResolvedValue(null),
+  markUsed: vi.fn().mockResolvedValue(undefined),
+  deleteAllForUser: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
+
+export const makeTotpBackupCode = (overrides?: Partial<TotpBackupCode>): TotpBackupCode => ({
+  id: 'backup-code-1',
+  userId: 'user-1',
+  codeHash: 'hashed-backup-code',
+  usedAt: null,
+  createdAt: new Date('2024-01-01T00:00:00.000Z'),
+  ...overrides,
+});
+
+export const makeRateLimiter = (overrides?: Partial<IRateLimiter>): IRateLimiter => ({
+  consume: vi.fn().mockReturnValue(true),
+  ...overrides,
+});
+
 // Minimal FastifyInstance stub for AuthResolver (only jwt is used)
 export const makeFastifyJwt = (): {
   jwt: { sign: ReturnType<typeof vi.fn>; verify: ReturnType<typeof vi.fn> };
@@ -214,11 +240,6 @@ export const makeLoginEvent = (overrides?: Partial<LoginEvent>): LoginEvent => (
   ...overrides,
 });
 
-export const makeRateLimiter = (overrides?: Partial<IRateLimiter>): IRateLimiter => ({
-  consume: vi.fn().mockReturnValue(true),
-  ...overrides,
-});
-
 // Domain object fixtures
 export const makeUser = (overrides?: Partial<User>): User => ({
   id: 'user-1',
@@ -230,6 +251,8 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   emailVerifiedAt: null,
   weeklyDigestEnabled: true,
   followUpRemindersEnabled: true,
+  totpSecret: null,
+  totpEnabled: false,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,

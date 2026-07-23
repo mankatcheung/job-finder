@@ -8,6 +8,8 @@ export interface User {
   emailVerifiedAt: Date | null;
   weeklyDigestEnabled: boolean;
   followUpRemindersEnabled: boolean;
+  totpSecret: string | null;
+  totpEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
