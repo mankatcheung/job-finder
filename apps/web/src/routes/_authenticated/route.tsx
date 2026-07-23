@@ -8,6 +8,9 @@ import {
 import { isAuthenticated, getIsAuthenticated } from '#/lib/auth';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
+import { useHotkeys } from '#/hooks/useHotkeys';
+import { CommandPalette } from '#/components/CommandPalette';
+import { ShortcutCheatSheet } from '#/components/ShortcutCheatSheet';
 import {
   BarChart2Icon,
   BriefcaseIcon,
@@ -36,8 +39,15 @@ export function AuthenticatedLayout() {
     await navigate({ to: '/login' });
   };
 
+  useHotkeys({ key: 'n', ctrl: true }, () => {
+    navigate({ to: '/applications/new' });
+  });
+
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
+      <CommandPalette />
+      <ShortcutCheatSheet />
+
       {/* Mobile top header */}
       <header className="lg:hidden fixed top-0 inset-x-0 z-40 h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4">
         <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Job Finder</span>
