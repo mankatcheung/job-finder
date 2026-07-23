@@ -4,9 +4,11 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { MonitorIcon, MoonIcon, SunIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { clearAuthIndicator } from '#/lib/auth';
 import { queryClient } from '#/lib/queryClient';
+import { useTheme, type Theme } from '#/lib/theme';
 
 export const Route = createFileRoute('/_authenticated/account')({
   component: AccountPage,
@@ -252,11 +254,18 @@ const inputCls =
 
 const labelCls = 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1';
 
+const THEME_OPTIONS: { value: Theme; label: string; icon: React.ReactNode }[] = [
+  { value: 'light', label: 'Light', icon: <SunIcon size={16} /> },
+  { value: 'dark', label: 'Dark', icon: <MoonIcon size={16} /> },
+  { value: 'system', label: 'System', icon: <MonitorIcon size={16} /> },
+];
+
 // ── Component ──────────────────────────────────────────────────────────────
 
 export function AccountPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { theme, setTheme } = useTheme();
 
   // Active sessions
   const { data: sessionsData } = useQuery({
@@ -484,6 +493,36 @@ export function AccountPage() {
   return (
     <div className="max-w-xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Account settings</h1>
+
+      {/* ── Appearance ── */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Appearance</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Choose how Job Finder looks on this device.
+          </p>
+        </div>
+        <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 p-1 gap-1">
+          {THEME_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setTheme(option.value)}
+              aria-pressed={theme === option.value}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                theme === option.value
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              {option.icon}
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <hr className="border-gray-200 dark:border-gray-700" />
 
       {/* ── Profile ── */}
       <section className="space-y-4">
