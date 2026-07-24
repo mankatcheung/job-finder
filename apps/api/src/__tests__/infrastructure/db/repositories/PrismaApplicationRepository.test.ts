@@ -90,6 +90,97 @@ describe('PrismaApplicationRepository', () => {
     });
   });
 
+  describe('findPageByUserId', () => {
+    it('paginates through a full result set with no gaps or duplicates, newest first', async () => {
+      for (let i = 1; i <= 5; i++) {
+        await repo.create({ ...BASE_APP, id: `app-${i}` });
+      }
+
+      const seen: string[] = [];
+      let cursor: string | undefined;
+      for (let page = 0; page < 10; page++) {
+        const { items, hasNextPage } = await repo.findPageByUserId('u1', {}, { cursor, limit: 2 });
+        seen.push(...items.map((a) => a.id));
+        if (!hasNextPage) break;
+        cursor = items[items.length - 1].id;
+      }
+
+      expect(seen).toEqual(['app-5', 'app-4', 'app-3', 'app-2', 'app-1']);
+    });
+
+    it('reports hasNextPage correctly on the last page', async () => {
+      await repo.create({ ...BASE_APP, id: 'app-1' });
+      await repo.create({ ...BASE_APP, id: 'app-2' });
+
+      const page1 = await repo.findPageByUserId('u1', {}, { limit: 2 });
+      expect(page1.items.map((a) => a.id)).toEqual(['app-2', 'app-1']);
+      expect(page1.hasNextPage).toBe(false);
+    });
+
+    it('paginates correctly even when every row shares the same createdAt timestamp', async () => {
+      const sameInstant = new Date('2024-01-01T00:00:00.000Z');
+      for (let i = 1; i <= 4; i++) {
+        await repo.create({ ...BASE_APP, id: `app-${i}` });
+        await db.prisma.jobApplication.update({
+          where: { id: `app-${i}` },
+          data: { createdAt: sameInstant },
+        });
+      }
+
+      const page1 = await repo.findPageByUserId('u1', {}, { limit: 2 });
+      expect(page1.items).toHaveLength(2);
+      expect(page1.hasNextPage).toBe(true);
+
+      const page2 = await repo.findPageByUserId('u1', {}, { cursor: page1.items[1].id, limit: 2 });
+      expect(page2.items).toHaveLength(2);
+      expect(page2.hasNextPage).toBe(false);
+
+      const allIds = [...page1.items, ...page2.items].map((a) => a.id).sort();
+      expect(allIds).toEqual(['app-1', 'app-2', 'app-3', 'app-4']);
+    });
+
+    it('filters by status', async () => {
+      await repo.create({ ...BASE_APP, id: 'app-1', status: 'draft' });
+      await repo.create({ ...BASE_APP, id: 'app-2', status: 'applied' });
+
+      const { items } = await repo.findPageByUserId('u1', { status: 'applied' }, { limit: 10 });
+      expect(items.map((a) => a.id)).toEqual(['app-2']);
+    });
+
+    it('filters by starred', async () => {
+      await repo.create({ ...BASE_APP, id: 'app-1', starred: true });
+      await repo.create({ ...BASE_APP, id: 'app-2', starred: false });
+
+      const { items } = await repo.findPageByUserId('u1', { starred: true }, { limit: 10 });
+      expect(items.map((a) => a.id)).toEqual(['app-1']);
+    });
+
+    it('filters by a case-insensitive search across company, role, location, and description', async () => {
+      await repo.create({ ...BASE_APP, id: 'app-1', company: 'Stripe', role: 'Engineer' });
+      await repo.create({
+        ...BASE_APP,
+        id: 'app-2',
+        company: 'Vercel',
+        role: 'stripe-integrations',
+      });
+      await repo.create({ ...BASE_APP, id: 'app-3', company: 'Anthropic', role: 'Researcher' });
+
+      const { items } = await repo.findPageByUserId('u1', { search: 'STRIPE' }, { limit: 10 });
+      expect(items.map((a) => a.id).sort()).toEqual(['app-1', 'app-2']);
+    });
+
+    it('scopes results to the given user', async () => {
+      await db.prisma.user.create({
+        data: { id: 'u2', email: 'other@test.com', passwordHash: 'hash' },
+      });
+      await repo.create({ ...BASE_APP, id: 'app-1', userId: 'u1' });
+      await repo.create({ ...BASE_APP, id: 'app-2', userId: 'u2' });
+
+      const { items } = await repo.findPageByUserId('u1', {}, { limit: 10 });
+      expect(items.map((a) => a.id)).toEqual(['app-1']);
+    });
+  });
+
   describe('update', () => {
     it('updates only the provided fields', async () => {
       await repo.create(BASE_APP);

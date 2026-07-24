@@ -42,6 +42,7 @@ export const makeApplicationRepository = (
   overrides?: Partial<IApplicationRepository>,
 ): IApplicationRepository => ({
   findAllByUserId: vi.fn(),
+  findPageByUserId: vi.fn().mockResolvedValue({ items: [], hasNextPage: false }),
   findById: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),

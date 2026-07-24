@@ -56,6 +56,7 @@ import { SendEmailVerificationUseCase } from '@/use-cases/auth/SendEmailVerifica
 import { VerifyEmailUseCase } from '@/use-cases/auth/VerifyEmailUseCase.js';
 import { CreateApplicationUseCase } from '@/use-cases/jobs/CreateApplicationUseCase.js';
 import { GetApplicationsUseCase } from '@/use-cases/jobs/GetApplicationsUseCase.js';
+import { GetApplicationsPageUseCase } from '@/use-cases/jobs/GetApplicationsPageUseCase.js';
 import { GetApplicationUseCase } from '@/use-cases/jobs/GetApplicationUseCase.js';
 import { UpdateApplicationUseCase } from '@/use-cases/jobs/UpdateApplicationUseCase.js';
 import { DeleteApplicationUseCase } from '@/use-cases/jobs/DeleteApplicationUseCase.js';
@@ -183,6 +184,7 @@ declare module '@fastify/awilix' {
     verifyEmailUseCase: VerifyEmailUseCase;
     createApplicationUseCase: CreateApplicationUseCase;
     getApplicationsUseCase: GetApplicationsUseCase;
+    getApplicationsPageUseCase: GetApplicationsPageUseCase;
     getApplicationUseCase: GetApplicationUseCase;
     updateApplicationUseCase: UpdateApplicationUseCase;
     deleteApplicationUseCase: DeleteApplicationUseCase;
@@ -352,6 +354,9 @@ export function buildContainer(fastify: FastifyInstance): void {
       lifetime: Lifetime.TRANSIENT,
     }),
     getApplicationsUseCase: asClass(GetApplicationsUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getApplicationsPageUseCase: asClass(GetApplicationsPageUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     getApplicationUseCase: asClass(GetApplicationUseCase, { lifetime: Lifetime.TRANSIENT }),
     updateApplicationUseCase: asClass(UpdateApplicationUseCase, {
       lifetime: Lifetime.TRANSIENT,

@@ -6,6 +6,7 @@ import './types/enums/InterviewRoundEnums.js';
 import './types/enums/ActivityEventTypeEnum.js';
 import './types/UserType.js';
 import './types/ApplicationType.js';
+import './types/ApplicationConnectionType.js';
 import './types/NoteType.js';
 import './types/DocumentType.js';
 import './types/InterviewRoundType.js';

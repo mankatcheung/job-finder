@@ -6,6 +6,9 @@ import type {
   IApplicationRepository,
   CreateApplicationData,
   UpdateApplicationData,
+  FindApplicationsPageFilters,
+  FindApplicationsPagePagination,
+  ApplicationsPage,
 } from '@/use-cases/ports/IApplicationRepository.js';
 import { txStorage, getClient } from '../transactionContext.js';
 import { REMINDER_WINDOW_MS } from '@/constants.js';
@@ -58,6 +61,41 @@ export class PrismaApplicationRepository implements IApplicationRepository {
       orderBy: { createdAt: 'desc' },
     });
     return rows.map(this.toEntity);
+  }
+
+  async findPageByUserId(
+    userId: string,
+    filters: FindApplicationsPageFilters,
+    pagination: FindApplicationsPagePagination,
+  ): Promise<ApplicationsPage> {
+    const search = filters.search?.trim();
+    const { limit, cursor } = pagination;
+
+    const rows = await this.db.jobApplication.findMany({
+      where: {
+        userId,
+        ...(filters.status ? { status: filters.status } : {}),
+        ...(filters.starred ? { starred: true } : {}),
+        ...(search
+          ? {
+              OR: [
+                { company: { contains: search } },
+                { role: { contains: search } },
+                { location: { contains: search } },
+                { description: { contains: search } },
+              ],
+            }
+          : {}),
+      },
+      include: INCLUDE_TAGS,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: limit + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    });
+
+    const hasNextPage = rows.length > limit;
+    const items = hasNextPage ? rows.slice(0, limit) : rows;
+    return { items: items.map(this.toEntity), hasNextPage };
   }
 
   async findById(id: string): Promise<Application | null> {

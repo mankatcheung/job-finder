@@ -12,3 +12,19 @@ if (typeof window.matchMedia !== 'function') {
     dispatchEvent: () => false,
   });
 }
+
+if (typeof window.IntersectionObserver !== 'function') {
+  class NoopIntersectionObserver implements IntersectionObserver {
+    readonly root = null;
+    readonly rootMargin = '';
+    readonly scrollMargin = '';
+    readonly thresholds: ReadonlyArray<number> = [];
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords(): IntersectionObserverEntry[] {
+      return [];
+    }
+  }
+  window.IntersectionObserver = NoopIntersectionObserver;
+}
