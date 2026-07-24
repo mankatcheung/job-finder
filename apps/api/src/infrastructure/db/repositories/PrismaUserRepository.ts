@@ -12,6 +12,7 @@ type PrismaUser = {
   targetRole: string | null;
   emailVerifiedAt: Date | null;
   weeklyDigestEnabled: boolean;
+  lastDigestSentAt: Date | null;
   followUpRemindersEnabled: boolean;
   totpSecret: string | null;
   totpEnabled: boolean;
@@ -73,6 +74,10 @@ export class PrismaUserRepository implements IUserRepository {
     await this.db.user.delete({ where: { id } });
   }
 
+  async updateLastDigestSentAt(id: string, sentAt: Date): Promise<void> {
+    await this.db.user.update({ where: { id }, data: { lastDigestSentAt: sentAt } });
+  }
+
   private toEntity(row: PrismaUser): User {
     return {
       id: row.id,
@@ -83,6 +88,7 @@ export class PrismaUserRepository implements IUserRepository {
       targetRole: row.targetRole,
       emailVerifiedAt: row.emailVerifiedAt,
       weeklyDigestEnabled: row.weeklyDigestEnabled,
+      lastDigestSentAt: row.lastDigestSentAt,
       followUpRemindersEnabled: row.followUpRemindersEnabled,
       totpSecret: row.totpSecret,
       totpEnabled: row.totpEnabled,

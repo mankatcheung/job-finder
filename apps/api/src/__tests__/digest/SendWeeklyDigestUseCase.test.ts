@@ -95,6 +95,47 @@ describe('SendWeeklyDigestUseCase', () => {
     expect(result).toEqual({ totalUsers: 2, sent: 1, skipped: 1 });
     expect(emailService.sendWeeklyDigest).toHaveBeenCalledOnce();
     expect(emailService.sendWeeklyDigest).toHaveBeenCalledWith('a@test.com', expect.any(Object));
+    expect(userRepository.updateLastDigestSentAt).toHaveBeenCalledOnce();
+    expect(userRepository.updateLastDigestSentAt).toHaveBeenCalledWith('u1', expect.any(Date));
+  });
+
+  it('skips a user whose lastDigestSentAt is within the resend window', async () => {
+    const user = makeUser({ lastDigestSentAt: new Date(Date.now() - 1 * DAY_MS) });
+    const userRepository = makeUserRepository({ findAll: vi.fn().mockResolvedValue([user]) });
+    const applicationRepository = makeApplicationRepository({
+      findAllByUserId: vi.fn().mockResolvedValue([makeApplication()]),
+    });
+    const emailService = makeEmailService();
+
+    const result = await new SendWeeklyDigestUseCase({
+      userRepository,
+      applicationRepository,
+      emailService,
+    }).execute();
+
+    expect(result).toEqual({ totalUsers: 1, sent: 0, skipped: 1 });
+    expect(applicationRepository.findAllByUserId).not.toHaveBeenCalled();
+    expect(emailService.sendWeeklyDigest).not.toHaveBeenCalled();
+    expect(userRepository.updateLastDigestSentAt).not.toHaveBeenCalled();
+  });
+
+  it('sends again once the resend window has elapsed', async () => {
+    const user = makeUser({ lastDigestSentAt: new Date(Date.now() - 7 * DAY_MS) });
+    const userRepository = makeUserRepository({ findAll: vi.fn().mockResolvedValue([user]) });
+    const applicationRepository = makeApplicationRepository({
+      findAllByUserId: vi.fn().mockResolvedValue([makeApplication()]),
+    });
+    const emailService = makeEmailService();
+
+    const result = await new SendWeeklyDigestUseCase({
+      userRepository,
+      applicationRepository,
+      emailService,
+    }).execute();
+
+    expect(result).toEqual({ totalUsers: 1, sent: 1, skipped: 0 });
+    expect(emailService.sendWeeklyDigest).toHaveBeenCalledOnce();
+    expect(userRepository.updateLastDigestSentAt).toHaveBeenCalledWith(user.id, expect.any(Date));
   });
 
   it('categorises new applications created in the last 7 days', async () => {

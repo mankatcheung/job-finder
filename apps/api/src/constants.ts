@@ -249,6 +249,12 @@ export const REMINDER_WINDOW_MS = {
   RESEND_AFTER: 23 * 60 * 60 * 1000, // don't resend within 23h
 } as const;
 
+/** Weekly-digest resend-guard window, in milliseconds. */
+export const DIGEST_WINDOW_MS = {
+  /** Don't resend the digest if the last send was within this window (digest cadence is 7 days). */
+  RESEND_AFTER: 6 * 24 * 60 * 60 * 1000, // 6 days
+} as const;
+
 /** Default field values applied when the caller omits them. */
 export const DEFAULTS = {
   APPLICATION_STATUS: 'draft',

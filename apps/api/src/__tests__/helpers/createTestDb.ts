@@ -14,6 +14,7 @@ const SCHEMA_STATEMENTS = [
     "targetRole" TEXT,
     "emailVerifiedAt" DATETIME,
     "weeklyDigestEnabled" INTEGER NOT NULL DEFAULT 1,
+    "lastDigestSentAt" DATETIME,
     "followUpRemindersEnabled" INTEGER NOT NULL DEFAULT 1,
     "totpSecret" TEXT,
     "totpEnabled" INTEGER NOT NULL DEFAULT 0,

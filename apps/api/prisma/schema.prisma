@@ -16,6 +16,7 @@ model User {
   targetRole               String?
   emailVerifiedAt          DateTime?
   weeklyDigestEnabled      Boolean                  @default(true)
+  lastDigestSentAt         DateTime?
   followUpRemindersEnabled Boolean                  @default(true)
   totpSecret               String?
   totpEnabled              Boolean                  @default(false)

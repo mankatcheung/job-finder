@@ -4,6 +4,7 @@ import {
   makeApplicationRepository,
   makeApplication,
   makeTransactionManager,
+  makeActivityLogRepository,
 } from '@/__tests__/helpers/mocks.js';
 
 describe('UpdateApplicationUseCase', () => {
@@ -132,5 +133,118 @@ describe('UpdateApplicationUseCase', () => {
     await expect(
       useCase.execute({ userId: 'user-1', applicationId: 'app-1', company: 'Acme' }),
     ).resolves.toBeDefined();
+  });
+
+  it('does not log field_updated when the submitted value equals the current value', async () => {
+    const existing = makeApplication({ company: 'Acme' });
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(existing),
+      update: vi.fn().mockResolvedValue(existing),
+    });
+    const activityLogRepository = makeActivityLogRepository();
+
+    const useCase = new UpdateApplicationUseCase({
+      applicationRepository,
+      activityLogRepository,
+      generateId: () => 'log-1',
+    });
+    await useCase.execute({ userId: 'user-1', applicationId: 'app-1', company: 'Acme' });
+
+    expect(activityLogRepository.append).not.toHaveBeenCalled();
+  });
+
+  it('logs field_updated only for fields that actually changed', async () => {
+    const existing = makeApplication({ company: 'Acme', role: 'Engineer' });
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(existing),
+      update: vi.fn().mockResolvedValue(makeApplication({ company: 'Acme', role: 'Staff Eng' })),
+    });
+    const activityLogRepository = makeActivityLogRepository();
+
+    const useCase = new UpdateApplicationUseCase({
+      applicationRepository,
+      activityLogRepository,
+      generateId: () => 'log-1',
+    });
+    await useCase.execute({
+      userId: 'user-1',
+      applicationId: 'app-1',
+      company: 'Acme',
+      role: 'Staff Eng',
+    });
+
+    expect(activityLogRepository.append).toHaveBeenCalledOnce();
+    expect(activityLogRepository.append).toHaveBeenCalledWith(
+      expect.objectContaining({ payload: JSON.stringify({ fields: ['role'] }) }),
+    );
+  });
+
+  it('treats an identical followUpAt instant as unchanged even with a new Date object', async () => {
+    const existing = makeApplication({ followUpAt: new Date('2026-08-01T00:00:00.000Z') });
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(existing),
+      update: vi.fn().mockResolvedValue(existing),
+    });
+    const activityLogRepository = makeActivityLogRepository();
+
+    const useCase = new UpdateApplicationUseCase({
+      applicationRepository,
+      activityLogRepository,
+      generateId: () => 'log-1',
+    });
+    await useCase.execute({
+      userId: 'user-1',
+      applicationId: 'app-1',
+      followUpAt: new Date('2026-08-01T00:00:00.000Z'),
+    });
+
+    expect(activityLogRepository.append).not.toHaveBeenCalled();
+  });
+
+  it('logs field_updated when followUpAt actually changes', async () => {
+    const existing = makeApplication({ followUpAt: new Date('2026-08-01T00:00:00.000Z') });
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(existing),
+      update: vi.fn().mockResolvedValue(existing),
+    });
+    const activityLogRepository = makeActivityLogRepository();
+
+    const useCase = new UpdateApplicationUseCase({
+      applicationRepository,
+      activityLogRepository,
+      generateId: () => 'log-1',
+    });
+    await useCase.execute({
+      userId: 'user-1',
+      applicationId: 'app-1',
+      followUpAt: new Date('2026-08-15T00:00:00.000Z'),
+    });
+
+    expect(activityLogRepository.append).toHaveBeenCalledWith(
+      expect.objectContaining({ payload: JSON.stringify({ fields: ['followUpAt'] }) }),
+    );
+  });
+
+  it('still logs status_changed as before (regression guard)', async () => {
+    const existing = makeApplication({ status: 'draft' });
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(existing),
+      update: vi.fn().mockResolvedValue(makeApplication({ status: 'applied' })),
+    });
+    const activityLogRepository = makeActivityLogRepository();
+
+    const useCase = new UpdateApplicationUseCase({
+      applicationRepository,
+      activityLogRepository,
+      generateId: () => 'log-1',
+    });
+    await useCase.execute({ userId: 'user-1', applicationId: 'app-1', status: 'applied' });
+
+    expect(activityLogRepository.append).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: 'status_changed',
+        payload: JSON.stringify({ from: 'draft', to: 'applied' }),
+      }),
+    );
   });
 });

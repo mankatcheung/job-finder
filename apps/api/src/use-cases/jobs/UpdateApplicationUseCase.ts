@@ -56,19 +56,29 @@ export class UpdateApplicationUseCase implements IUpdateApplicationUseCase {
             payload: JSON.stringify({ from: app.status, to: input.status }),
           });
         } else {
-          const changed = (
-            [
-              'company',
-              'role',
-              'jobUrl',
-              'location',
-              'salaryRange',
-              'description',
-              'source',
-              'followUpAt',
-              'starred',
-            ] as const
-          ).filter((f) => input[f as keyof typeof input] !== undefined);
+          const primitiveFields = [
+            'company',
+            'role',
+            'jobUrl',
+            'location',
+            'salaryRange',
+            'description',
+            'source',
+            'starred',
+          ] as const;
+
+          const changed: string[] = primitiveFields.filter(
+            (f) => input[f] !== undefined && input[f] !== app[f],
+          );
+
+          if (input.followUpAt !== undefined) {
+            const nextTime = input.followUpAt ? input.followUpAt.getTime() : null;
+            const prevTime = app.followUpAt ? app.followUpAt.getTime() : null;
+            if (nextTime !== prevTime) {
+              changed.push('followUpAt');
+            }
+          }
+
           if (changed.length > 0) {
             await this.deps.activityLogRepository.append({
               id: genId(),
