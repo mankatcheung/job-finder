@@ -1,19 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { TOTP, NobleCryptoPlugin, ScureBase32Plugin } from 'otplib';
 import { ConfirmTotpSetupUseCase } from '@/use-cases/user/ConfirmTotpSetupUseCase.js';
-import { createTotp } from '@/infrastructure/auth/totp.js';
 import {
   makeUserRepository,
   makeUser,
   makeTotpBackupCodeRepository,
+  makeTotpProvider,
 } from '@/__tests__/helpers/mocks.js';
 
-vi.mock('@/infrastructure/auth/totpSecretCrypto.js', () => ({
-  encryptTotpSecret: (secret: string) => `encrypted:${secret}`,
-  decryptTotpSecret: (secret: string) => secret.replace(/^encrypted:/, ''),
-}));
+// Test-only fixture helper: production code only ever verifies codes (a real
+// authenticator app generates them), so "generate a currently-valid code" has
+// no place on ITotpProvider — it's needed here purely to build test fixtures.
+const fixtureCrypto = new NobleCryptoPlugin();
+const fixtureBase32 = new ScureBase32Plugin();
+function generateValidCode(secret: string): Promise<string> {
+  return new TOTP({ crypto: fixtureCrypto, base32: fixtureBase32, secret }).generate();
+}
 
 describe('ConfirmTotpSetupUseCase', () => {
   const generateId = vi.fn(() => 'backup-code-id');
+  const totpProvider = makeTotpProvider();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -27,6 +33,7 @@ describe('ConfirmTotpSetupUseCase', () => {
     const err = await new ConfirmTotpSetupUseCase({
       userRepository,
       totpBackupCodeRepository,
+      totpProvider,
       generateId,
     })
       .execute({ userId: 'missing', code: '123456' })
@@ -43,6 +50,7 @@ describe('ConfirmTotpSetupUseCase', () => {
     const err = await new ConfirmTotpSetupUseCase({
       userRepository,
       totpBackupCodeRepository,
+      totpProvider,
       generateId,
     })
       .execute({ userId: 'user-1', code: '123456' })
@@ -59,6 +67,7 @@ describe('ConfirmTotpSetupUseCase', () => {
     const err = await new ConfirmTotpSetupUseCase({
       userRepository,
       totpBackupCodeRepository,
+      totpProvider,
       generateId,
     })
       .execute({ userId: 'user-1', code: '123456' })
@@ -68,7 +77,7 @@ describe('ConfirmTotpSetupUseCase', () => {
   });
 
   it('throws UNAUTHORIZED for an invalid code', async () => {
-    const secret = createTotp().generateSecret();
+    const secret = totpProvider.generateSecret();
     const user = makeUser({
       totpEnabled: false,
       totpSecret: `encrypted:${secret}`,
@@ -79,6 +88,7 @@ describe('ConfirmTotpSetupUseCase', () => {
     const err = await new ConfirmTotpSetupUseCase({
       userRepository,
       totpBackupCodeRepository,
+      totpProvider,
       generateId,
     })
       .execute({ userId: 'user-1', code: '000000' })
@@ -90,8 +100,8 @@ describe('ConfirmTotpSetupUseCase', () => {
   });
 
   it('enables 2FA and issues backup codes when given a valid code', async () => {
-    const secret = createTotp().generateSecret();
-    const validCode = await createTotp({ secret }).generate();
+    const secret = totpProvider.generateSecret();
+    const validCode = await generateValidCode(secret);
     const user = makeUser({ id: 'user-1', totpEnabled: false, totpSecret: `encrypted:${secret}` });
     const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
     const totpBackupCodeRepository = makeTotpBackupCodeRepository();
@@ -99,6 +109,7 @@ describe('ConfirmTotpSetupUseCase', () => {
     const result = await new ConfirmTotpSetupUseCase({
       userRepository,
       totpBackupCodeRepository,
+      totpProvider,
       generateId,
     }).execute({
       userId: 'user-1',

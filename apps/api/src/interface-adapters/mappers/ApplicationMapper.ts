@@ -20,6 +20,12 @@ export interface ApplicationDTO {
   updatedAt: string;
 }
 
+export interface ApplicationConnectionDTO {
+  items: ApplicationDTO[];
+  nextCursor: string | null;
+  hasNextPage: boolean;
+}
+
 export class ApplicationMapper {
   toDTO(app: Application): ApplicationDTO {
     return {

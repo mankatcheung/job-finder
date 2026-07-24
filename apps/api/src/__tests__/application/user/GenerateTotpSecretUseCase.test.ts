@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import bcrypt from 'bcryptjs';
 import { GenerateTotpSecretUseCase } from '@/use-cases/user/GenerateTotpSecretUseCase.js';
-import { makeUserRepository, makeUser } from '@/__tests__/helpers/mocks.js';
+import { makeUserRepository, makeUser, makeTotpProvider } from '@/__tests__/helpers/mocks.js';
 
 vi.mock('bcryptjs', () => ({
   default: {
@@ -10,13 +10,9 @@ vi.mock('bcryptjs', () => ({
   },
 }));
 
-vi.mock('@/infrastructure/auth/totpSecretCrypto.js', () => ({
-  encryptTotpSecret: (secret: string) => `encrypted:${secret}`,
-  decryptTotpSecret: (secret: string) => secret.replace(/^encrypted:/, ''),
-}));
-
 describe('GenerateTotpSecretUseCase', () => {
   const input = { userId: 'user-1', password: 'secret123' };
+  const totpProvider = makeTotpProvider();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -26,7 +22,7 @@ describe('GenerateTotpSecretUseCase', () => {
   it('throws NOT_FOUND when the user does not exist', async () => {
     const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(null) });
 
-    const err = await new GenerateTotpSecretUseCase({ userRepository })
+    const err = await new GenerateTotpSecretUseCase({ userRepository, totpProvider })
       .execute({ ...input, userId: 'missing' })
       .catch((e) => e);
 
@@ -37,7 +33,7 @@ describe('GenerateTotpSecretUseCase', () => {
     const user = makeUser({ totpEnabled: true });
     const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
 
-    const err = await new GenerateTotpSecretUseCase({ userRepository })
+    const err = await new GenerateTotpSecretUseCase({ userRepository, totpProvider })
       .execute(input)
       .catch((e) => e);
 
@@ -50,7 +46,7 @@ describe('GenerateTotpSecretUseCase', () => {
     const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
     vi.mocked(bcrypt.compare).mockResolvedValue(false as never);
 
-    const err = await new GenerateTotpSecretUseCase({ userRepository })
+    const err = await new GenerateTotpSecretUseCase({ userRepository, totpProvider })
       .execute(input)
       .catch((e) => e);
 
@@ -62,7 +58,9 @@ describe('GenerateTotpSecretUseCase', () => {
     const user = makeUser({ id: 'user-1', email: 'test@example.com', totpEnabled: false });
     const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
 
-    const result = await new GenerateTotpSecretUseCase({ userRepository }).execute(input);
+    const result = await new GenerateTotpSecretUseCase({ userRepository, totpProvider }).execute(
+      input,
+    );
 
     expect(result.secret).toMatch(/^[A-Z2-7]+$/); // base32
     expect(result.otpauthUrl).toMatch(/^otpauth:\/\/totp\//);

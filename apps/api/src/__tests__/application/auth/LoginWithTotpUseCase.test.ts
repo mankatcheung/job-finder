@@ -1,14 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createHash } from 'crypto';
+import { TOTP, NobleCryptoPlugin, ScureBase32Plugin } from 'otplib';
 import bcrypt from 'bcryptjs';
 import { LoginWithTotpUseCase } from '@/use-cases/auth/LoginWithTotpUseCase.js';
-import { createTotp } from '@/infrastructure/auth/totp.js';
 import {
   makeUserRepository,
   makeUser,
   makeTotpBackupCodeRepository,
   makeTotpBackupCode,
   makeRateLimiter,
+  makeTotpProvider,
 } from '@/__tests__/helpers/mocks.js';
 
 vi.mock('bcryptjs', () => ({
@@ -18,12 +19,18 @@ vi.mock('bcryptjs', () => ({
   },
 }));
 
-vi.mock('@/infrastructure/auth/totpSecretCrypto.js', () => ({
-  encryptTotpSecret: (secret: string) => `encrypted:${secret}`,
-  decryptTotpSecret: (secret: string) => secret.replace(/^encrypted:/, ''),
-}));
+// Test-only fixture helper: production code only ever verifies codes (a real
+// authenticator app generates them), so "generate a currently-valid code" has
+// no place on ITotpProvider — it's needed here purely to build test fixtures.
+const fixtureCrypto = new NobleCryptoPlugin();
+const fixtureBase32 = new ScureBase32Plugin();
+function generateValidCode(secret: string): Promise<string> {
+  return new TOTP({ crypto: fixtureCrypto, base32: fixtureBase32, secret }).generate();
+}
 
 describe('LoginWithTotpUseCase', () => {
+  const totpProvider = makeTotpProvider();
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -44,6 +51,7 @@ describe('LoginWithTotpUseCase', () => {
       userRepository,
       totpBackupCodeRepository,
       totpRateLimiter,
+      totpProvider,
     })
       .execute(input)
       .catch((e) => e);
@@ -62,6 +70,7 @@ describe('LoginWithTotpUseCase', () => {
       userRepository,
       totpBackupCodeRepository,
       totpRateLimiter,
+      totpProvider,
     })
       .execute(input)
       .catch((e) => e);
@@ -80,6 +89,7 @@ describe('LoginWithTotpUseCase', () => {
       userRepository,
       totpBackupCodeRepository,
       totpRateLimiter,
+      totpProvider,
     })
       .execute(input)
       .catch((e) => e);
@@ -88,7 +98,7 @@ describe('LoginWithTotpUseCase', () => {
   });
 
   it('throws RATE_LIMITED when too many verification attempts have been made', async () => {
-    const secret = createTotp().generateSecret();
+    const secret = totpProvider.generateSecret();
     const user = makeUser({ totpEnabled: true, totpSecret: `encrypted:${secret}` });
     const userRepository = makeUserRepository({ findByEmail: vi.fn().mockResolvedValue(user) });
     const totpBackupCodeRepository = makeTotpBackupCodeRepository();
@@ -99,6 +109,7 @@ describe('LoginWithTotpUseCase', () => {
       userRepository,
       totpBackupCodeRepository,
       totpRateLimiter,
+      totpProvider,
     })
       .execute(input)
       .catch((e) => e);
@@ -107,7 +118,7 @@ describe('LoginWithTotpUseCase', () => {
   });
 
   it('throws UNAUTHORIZED for an invalid code with no matching backup code', async () => {
-    const secret = createTotp().generateSecret();
+    const secret = totpProvider.generateSecret();
     const user = makeUser({ totpEnabled: true, totpSecret: `encrypted:${secret}` });
     const userRepository = makeUserRepository({ findByEmail: vi.fn().mockResolvedValue(user) });
     const totpBackupCodeRepository = makeTotpBackupCodeRepository();
@@ -118,6 +129,7 @@ describe('LoginWithTotpUseCase', () => {
       userRepository,
       totpBackupCodeRepository,
       totpRateLimiter,
+      totpProvider,
     })
       .execute({ ...input, code: '000000' })
       .catch((e) => e);
@@ -126,8 +138,8 @@ describe('LoginWithTotpUseCase', () => {
   });
 
   it('returns the user for valid credentials and a valid code', async () => {
-    const secret = createTotp().generateSecret();
-    const validCode = await createTotp({ secret }).generate();
+    const secret = totpProvider.generateSecret();
+    const validCode = await generateValidCode(secret);
     const user = makeUser({ totpEnabled: true, totpSecret: `encrypted:${secret}` });
     const userRepository = makeUserRepository({ findByEmail: vi.fn().mockResolvedValue(user) });
     const totpBackupCodeRepository = makeTotpBackupCodeRepository();
@@ -138,6 +150,7 @@ describe('LoginWithTotpUseCase', () => {
       userRepository,
       totpBackupCodeRepository,
       totpRateLimiter,
+      totpProvider,
     }).execute({
       ...input,
       code: validCode,
@@ -147,7 +160,7 @@ describe('LoginWithTotpUseCase', () => {
   });
 
   it('accepts a valid, unused backup code as a fallback and marks it used', async () => {
-    const secret = createTotp().generateSecret();
+    const secret = totpProvider.generateSecret();
     const user = makeUser({ id: 'user-1', totpEnabled: true, totpSecret: `encrypted:${secret}` });
     const userRepository = makeUserRepository({ findByEmail: vi.fn().mockResolvedValue(user) });
     const rawBackupCode = 'a1b2c3d4e5f60718';
@@ -163,6 +176,7 @@ describe('LoginWithTotpUseCase', () => {
       userRepository,
       totpBackupCodeRepository,
       totpRateLimiter,
+      totpProvider,
     }).execute({ ...input, code: rawBackupCode });
 
     expect(result).toEqual(user);
@@ -170,7 +184,7 @@ describe('LoginWithTotpUseCase', () => {
   });
 
   it('rejects an already-used backup code', async () => {
-    const secret = createTotp().generateSecret();
+    const secret = totpProvider.generateSecret();
     const user = makeUser({ id: 'user-1', totpEnabled: true, totpSecret: `encrypted:${secret}` });
     const userRepository = makeUserRepository({ findByEmail: vi.fn().mockResolvedValue(user) });
     const rawBackupCode = 'a1b2c3d4e5f60718';
@@ -191,6 +205,7 @@ describe('LoginWithTotpUseCase', () => {
       userRepository,
       totpBackupCodeRepository,
       totpRateLimiter,
+      totpProvider,
     })
       .execute({ ...input, code: rawBackupCode })
       .catch((e) => e);

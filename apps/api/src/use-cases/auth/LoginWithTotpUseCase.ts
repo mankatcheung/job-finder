@@ -4,9 +4,8 @@ import type { User } from '@/domain/user/User.js';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import type { ITotpBackupCodeRepository } from '@/use-cases/ports/ITotpBackupCodeRepository.js';
 import type { IRateLimiter } from '@/use-cases/ports/IRateLimiter.js';
-import { createTotp } from '@/infrastructure/auth/totp.js';
-import { decryptTotpSecret } from '@/infrastructure/auth/totpSecretCrypto.js';
-import { ERROR_CODES, TOTP_CONFIG } from '@/constants.js';
+import type { ITotpProvider } from '@/use-cases/ports/ITotpProvider.js';
+import { ERROR_CODES } from '@/constants.js';
 import type {
   ILoginWithTotpUseCase,
   LoginWithTotpInput,
@@ -16,6 +15,7 @@ interface Deps {
   userRepository: IUserRepository;
   totpBackupCodeRepository: ITotpBackupCodeRepository;
   totpRateLimiter: IRateLimiter;
+  totpProvider: ITotpProvider;
 }
 
 export class LoginWithTotpUseCase implements ILoginWithTotpUseCase {
@@ -50,13 +50,9 @@ export class LoginWithTotpUseCase implements ILoginWithTotpUseCase {
 
     // TOTP codes are always 6 digits — anything else can only be a backup code.
     const isTotpFormat = /^\d{6}$/.test(input.code);
-    const secret = decryptTotpSecret(user.totpSecret);
+    const secret = this.deps.totpProvider.decryptSecret(user.totpSecret);
     const validTotp = isTotpFormat
-      ? (
-          await createTotp({ secret }).verify(input.code, {
-            epochTolerance: TOTP_CONFIG.EPOCH_TOLERANCE_S,
-          })
-        ).valid
+      ? await this.deps.totpProvider.verifyCode(secret, input.code)
       : false;
 
     if (!validTotp) {

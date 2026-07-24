@@ -1,6 +1,5 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '@/http/schema/builder.js';
-import { fromCodedError } from '@/http/errors/AppError.js';
 import { ERROR_CODES } from '@/constants.js';
 
 builder.mutationField('revokeSession', (t) =>
@@ -11,13 +10,8 @@ builder.mutationField('revokeSession', (t) =>
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
-      const { revokeSessionUseCase } = ctx.diScope.cradle;
-      try {
-        await revokeSessionUseCase.execute(String(args.id), ctx.user.sub);
-        return true;
-      } catch (err) {
-        throw fromCodedError(err);
-      }
+      const { sessionResolver } = ctx.diScope.cradle;
+      return sessionResolver.revokeSession(ctx.user.sub, String(args.id));
     },
   }),
 );
@@ -32,9 +26,8 @@ builder.mutationField('revokeOtherSessions', (t) =>
         throw new GraphQLError('No active session', {
           extensions: { code: ERROR_CODES.UNAUTHORIZED },
         });
-      const { revokeOtherSessionsUseCase } = ctx.diScope.cradle;
-      await revokeOtherSessionsUseCase.execute(user.sub, user.sid);
-      return true;
+      const { sessionResolver } = ctx.diScope.cradle;
+      return sessionResolver.revokeOtherSessions(user.sub, user.sid);
     },
   }),
 );

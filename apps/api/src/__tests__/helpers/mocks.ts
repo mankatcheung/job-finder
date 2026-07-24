@@ -27,6 +27,8 @@ import type { LoginEvent } from '@/domain/loginEvent/LoginEvent.js';
 import type { ITotpBackupCodeRepository } from '@/use-cases/ports/ITotpBackupCodeRepository.js';
 import type { TotpBackupCode } from '@/domain/totpBackupCode/TotpBackupCode.js';
 import type { IRateLimiter } from '@/use-cases/ports/IRateLimiter.js';
+import type { ITotpProvider } from '@/use-cases/ports/ITotpProvider.js';
+import { TotpProvider } from '@/infrastructure/auth/TotpProvider.js';
 
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
@@ -221,6 +223,21 @@ export const makeRateLimiter = (overrides?: Partial<IRateLimiter>): IRateLimiter
   consume: vi.fn().mockReturnValue(true),
   ...overrides,
 });
+
+// generateSecret/getOtpauthUrl/verifyCode delegate to the real TOTP algorithm so
+// tests can generate and verify genuinely valid codes; encryptSecret/decryptSecret
+// use a simple reversible scheme so tests don't need TOTP_ENCRYPTION_KEY configured.
+export const makeTotpProvider = (overrides?: Partial<ITotpProvider>): ITotpProvider => {
+  const real = new TotpProvider();
+  return {
+    generateSecret: () => real.generateSecret(),
+    getOtpauthUrl: (secret, label) => real.getOtpauthUrl(secret, label),
+    verifyCode: (secret, code) => real.verifyCode(secret, code),
+    encryptSecret: (secret) => `encrypted:${secret}`,
+    decryptSecret: (secret) => secret.replace(/^encrypted:/, ''),
+    ...overrides,
+  };
+};
 
 // Minimal FastifyInstance stub for AuthResolver (only jwt is used)
 export const makeFastifyJwt = (): {

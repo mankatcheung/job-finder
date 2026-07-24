@@ -11,8 +11,8 @@ import type { IBulkAddTagToApplicationsUseCase } from '@/use-cases/jobs/IBulkAdd
 import type {
   ApplicationMapper,
   ApplicationDTO,
+  ApplicationConnectionDTO,
 } from '@/interface-adapters/mappers/ApplicationMapper.js';
-import type { ApplicationConnectionDTO } from '@/http/schema/types/ApplicationConnectionType.js';
 
 interface Deps {
   createApplicationUseCase: ICreateApplicationUseCase;

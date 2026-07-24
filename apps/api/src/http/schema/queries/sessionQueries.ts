@@ -10,9 +10,8 @@ builder.queryField('sessions', (t) =>
       const user = ctx.user;
       if (!user)
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
-      const { listSessionsUseCase, sessionMapper } = ctx.diScope.cradle;
-      const sessions = await listSessionsUseCase.execute(user.sub);
-      return sessions.map((session) => sessionMapper.toDTO(session, user.sid));
+      const { sessionResolver } = ctx.diScope.cradle;
+      return sessionResolver.listSessions(user.sub, user.sid);
     },
   }),
 );

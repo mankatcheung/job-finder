@@ -1,9 +1,8 @@
 import { createHash, randomBytes } from 'crypto';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import type { ITotpBackupCodeRepository } from '@/use-cases/ports/ITotpBackupCodeRepository.js';
-import { createTotp } from '@/infrastructure/auth/totp.js';
-import { decryptTotpSecret } from '@/infrastructure/auth/totpSecretCrypto.js';
-import { ERROR_CODES, TOTP_CONFIG, TOTP_BACKUP_CODES } from '@/constants.js';
+import type { ITotpProvider } from '@/use-cases/ports/ITotpProvider.js';
+import { ERROR_CODES, TOTP_BACKUP_CODES } from '@/constants.js';
 import type {
   IConfirmTotpSetupUseCase,
   ConfirmTotpSetupInput,
@@ -13,6 +12,7 @@ import type {
 interface Deps {
   userRepository: IUserRepository;
   totpBackupCodeRepository: ITotpBackupCodeRepository;
+  totpProvider: ITotpProvider;
   generateId: () => string;
 }
 
@@ -34,11 +34,9 @@ export class ConfirmTotpSetupUseCase implements IConfirmTotpSetupUseCase {
       });
     }
 
-    const secret = decryptTotpSecret(user.totpSecret);
-    const result = await createTotp({ secret }).verify(input.code, {
-      epochTolerance: TOTP_CONFIG.EPOCH_TOLERANCE_S,
-    });
-    if (!result.valid) {
+    const secret = this.deps.totpProvider.decryptSecret(user.totpSecret);
+    const valid = await this.deps.totpProvider.verifyCode(secret, input.code);
+    if (!valid) {
       throw Object.assign(new Error('Invalid verification code'), {
         code: ERROR_CODES.UNAUTHORIZED,
       });
