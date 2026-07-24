@@ -1,6 +1,7 @@
 import type { ApplicationStatus } from '@/domain/application/ApplicationStatus.js';
 import type { ICreateApplicationUseCase } from '@/use-cases/jobs/ICreateApplicationUseCase.js';
 import type { IGetApplicationsUseCase } from '@/use-cases/jobs/IGetApplicationsUseCase.js';
+import type { IGetApplicationsPageUseCase } from '@/use-cases/jobs/IGetApplicationsPageUseCase.js';
 import type { IGetApplicationUseCase } from '@/use-cases/jobs/IGetApplicationUseCase.js';
 import type { IUpdateApplicationUseCase } from '@/use-cases/jobs/IUpdateApplicationUseCase.js';
 import type { IDeleteApplicationUseCase } from '@/use-cases/jobs/IDeleteApplicationUseCase.js';
@@ -11,10 +12,12 @@ import type {
   ApplicationMapper,
   ApplicationDTO,
 } from '@/interface-adapters/mappers/ApplicationMapper.js';
+import type { ApplicationConnectionDTO } from '@/http/schema/types/ApplicationConnectionType.js';
 
 interface Deps {
   createApplicationUseCase: ICreateApplicationUseCase;
   getApplicationsUseCase: IGetApplicationsUseCase;
+  getApplicationsPageUseCase: IGetApplicationsPageUseCase;
   getApplicationUseCase: IGetApplicationUseCase;
   updateApplicationUseCase: IUpdateApplicationUseCase;
   deleteApplicationUseCase: IDeleteApplicationUseCase;
@@ -22,6 +25,14 @@ interface Deps {
   bulkDeleteApplicationsUseCase: IBulkDeleteApplicationsUseCase;
   bulkAddTagToApplicationsUseCase: IBulkAddTagToApplicationsUseCase;
   applicationMapper: ApplicationMapper;
+}
+
+interface GetApplicationsPageInput {
+  status?: ApplicationStatus;
+  starred?: boolean;
+  search?: string;
+  cursor?: string;
+  limit?: number;
 }
 
 interface BulkUpdateInput {
@@ -63,6 +74,18 @@ export class ApplicationResolver {
   async getApplications(userId: string, status?: ApplicationStatus): Promise<ApplicationDTO[]> {
     const apps = await this.deps.getApplicationsUseCase.execute({ userId, status });
     return apps.map((a) => this.deps.applicationMapper.toDTO(a));
+  }
+
+  async getApplicationsPage(
+    userId: string,
+    input: GetApplicationsPageInput,
+  ): Promise<ApplicationConnectionDTO> {
+    const result = await this.deps.getApplicationsPageUseCase.execute({ userId, ...input });
+    return {
+      items: result.items.map((a) => this.deps.applicationMapper.toDTO(a)),
+      nextCursor: result.nextCursor,
+      hasNextPage: result.hasNextPage,
+    };
   }
 
   async getApplication(userId: string, id: string): Promise<ApplicationDTO> {

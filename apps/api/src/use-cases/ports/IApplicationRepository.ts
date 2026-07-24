@@ -32,8 +32,29 @@ export interface UpdateApplicationData {
   tags?: string[];
 }
 
+export interface FindApplicationsPageFilters {
+  status?: ApplicationStatus;
+  starred?: boolean;
+  search?: string;
+}
+
+export interface FindApplicationsPagePagination {
+  cursor?: string;
+  limit: number;
+}
+
+export interface ApplicationsPage {
+  items: Application[];
+  hasNextPage: boolean;
+}
+
 export interface IApplicationRepository {
   findAllByUserId(userId: string, filters?: { status?: ApplicationStatus }): Promise<Application[]>;
+  findPageByUserId(
+    userId: string,
+    filters: FindApplicationsPageFilters,
+    pagination: FindApplicationsPagePagination,
+  ): Promise<ApplicationsPage>;
   findById(id: string): Promise<Application | null>;
   create(data: CreateApplicationData): Promise<Application>;
   update(id: string, data: UpdateApplicationData): Promise<Application>;

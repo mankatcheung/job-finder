@@ -4,6 +4,9 @@ import type {
   IApplicationRepository,
   CreateApplicationData,
   UpdateApplicationData,
+  FindApplicationsPageFilters,
+  FindApplicationsPagePagination,
+  ApplicationsPage,
 } from '@/use-cases/ports/IApplicationRepository.js';
 import type { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
 import { CACHE_KEYS } from '@/constants.js';
@@ -36,6 +39,16 @@ export class CachedApplicationRepository implements IApplicationRepository {
     this.cache.set(key, result);
     for (const app of result) this.userIdByAppId.set(app.id, app.userId);
     return result;
+  }
+
+  // Not cached: cursor/search/filter combinations are too varied to key
+  // usefully, and infinite-scroll pages are rarely re-requested identically.
+  async findPageByUserId(
+    userId: string,
+    filters: FindApplicationsPageFilters,
+    pagination: FindApplicationsPagePagination,
+  ): Promise<ApplicationsPage> {
+    return this.inner.findPageByUserId(userId, filters, pagination);
   }
 
   async findById(id: string): Promise<Application | null> {

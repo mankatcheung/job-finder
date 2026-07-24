@@ -37,6 +37,22 @@ function Wrapper({ children }: { children: React.ReactNode }) {
   return <QueryClientProvider client={makeClient()}>{children}</QueryClientProvider>;
 }
 
+type ApplicationFixture = {
+  id: string;
+  company: string;
+  role: string;
+  status: string;
+  location: string | null;
+  starred?: boolean;
+  appliedAt: string | null;
+  tags: string[];
+  createdAt: string;
+};
+
+function page(items: ApplicationFixture[], hasNextPage = false, nextCursor: string | null = null) {
+  return { applicationsPage: { items, hasNextPage, nextCursor } };
+}
+
 describe('ApplicationsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -44,7 +60,7 @@ describe('ApplicationsPage', () => {
   });
 
   it('shows empty state when no applications', async () => {
-    mockGqlRequest.mockResolvedValue({ applications: [] });
+    mockGqlRequest.mockResolvedValue(page([]));
     render(<ApplicationsPage />, { wrapper: Wrapper });
 
     await waitFor(() => {
@@ -53,8 +69,8 @@ describe('ApplicationsPage', () => {
   });
 
   it('renders application rows', async () => {
-    mockGqlRequest.mockResolvedValue({
-      applications: [
+    mockGqlRequest.mockResolvedValue(
+      page([
         {
           id: '1',
           company: 'Stripe',
@@ -75,8 +91,8 @@ describe('ApplicationsPage', () => {
           tags: [],
           createdAt: '2024-01-02T00:00:00.000Z',
         },
-      ],
-    });
+      ]),
+    );
     render(<ApplicationsPage />, { wrapper: Wrapper });
 
     await waitFor(() => {
@@ -87,7 +103,7 @@ describe('ApplicationsPage', () => {
   });
 
   it('shows status filter chips', async () => {
-    mockGqlRequest.mockResolvedValue({ applications: [] });
+    mockGqlRequest.mockResolvedValue(page([]));
     render(<ApplicationsPage />, { wrapper: Wrapper });
 
     await waitFor(() => {
@@ -99,7 +115,7 @@ describe('ApplicationsPage', () => {
 
   it('shows filtered empty state when status filter active', async () => {
     mockUseSearch.mockReturnValue({ status: 'applied' });
-    mockGqlRequest.mockResolvedValue({ applications: [] });
+    mockGqlRequest.mockResolvedValue(page([]));
     render(<ApplicationsPage />, { wrapper: Wrapper });
 
     await waitFor(() => {
@@ -108,14 +124,177 @@ describe('ApplicationsPage', () => {
   });
 
   it('shows the page heading', async () => {
-    mockGqlRequest.mockResolvedValue({ applications: [] });
+    mockGqlRequest.mockResolvedValue(page([]));
     render(<ApplicationsPage />, { wrapper: Wrapper });
 
     expect(screen.getByText('Applications')).toBeInTheDocument();
   });
 
+  describe('server-side query variables', () => {
+    it('requests the first page with default status/starred/search and the page-size limit', async () => {
+      mockGqlRequest.mockResolvedValue(page([]));
+      render(<ApplicationsPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('applicationsPage'), {
+          status: null,
+          starred: null,
+          search: null,
+          cursor: undefined,
+          limit: 20,
+        });
+      });
+    });
+
+    it('passes the status and starred filters from the route search params', async () => {
+      mockUseSearch.mockReturnValue({ status: 'applied', starred: true });
+      mockGqlRequest.mockResolvedValue(page([]));
+      render(<ApplicationsPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('applicationsPage'),
+          expect.objectContaining({ status: 'applied', starred: true }),
+        );
+      });
+    });
+
+    it('debounces the search input and sends it as the search variable', async () => {
+      vi.useFakeTimers();
+      mockGqlRequest.mockResolvedValue(page([]));
+      render(<ApplicationsPage />, { wrapper: Wrapper });
+
+      fireEvent.change(screen.getByPlaceholderText('Search company, role, location…'), {
+        target: { value: 'Stripe' },
+      });
+
+      vi.advanceTimersByTime(250);
+      vi.useRealTimers();
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('applicationsPage'),
+          expect.objectContaining({ search: 'stripe' }),
+        );
+      });
+    });
+  });
+
+  describe('infinite scroll', () => {
+    class FakeIntersectionObserver implements IntersectionObserver {
+      static instances: FakeIntersectionObserver[] = [];
+      readonly root = null;
+      readonly rootMargin = '';
+      readonly scrollMargin = '';
+      readonly thresholds: ReadonlyArray<number> = [];
+      observe = vi.fn();
+      unobserve = vi.fn();
+      disconnect = vi.fn();
+      takeRecords(): IntersectionObserverEntry[] {
+        return [];
+      }
+      private readonly callback: IntersectionObserverCallback;
+      constructor(callback: IntersectionObserverCallback) {
+        this.callback = callback;
+        FakeIntersectionObserver.instances.push(this);
+      }
+      trigger(isIntersecting: boolean) {
+        this.callback([{ isIntersecting } as IntersectionObserverEntry], this);
+      }
+    }
+
+    let originalIntersectionObserver: typeof IntersectionObserver;
+
+    beforeEach(() => {
+      FakeIntersectionObserver.instances = [];
+      originalIntersectionObserver = window.IntersectionObserver;
+      window.IntersectionObserver =
+        FakeIntersectionObserver as unknown as typeof IntersectionObserver;
+    });
+
+    afterEach(() => {
+      window.IntersectionObserver = originalIntersectionObserver;
+    });
+
+    it('fetches the next page with the returned cursor when the sentinel intersects', async () => {
+      mockGqlRequest.mockResolvedValueOnce(
+        page(
+          [
+            {
+              id: '1',
+              company: 'Stripe',
+              role: 'Engineer',
+              status: 'applied',
+              location: null,
+              appliedAt: null,
+              tags: [],
+              createdAt: '2024-01-01T00:00:00.000Z',
+            },
+          ],
+          true,
+          '1',
+        ),
+      );
+      render(<ApplicationsPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+      mockGqlRequest.mockResolvedValueOnce(
+        page(
+          [
+            {
+              id: '2',
+              company: 'Vercel',
+              role: 'Frontend',
+              status: 'draft',
+              location: null,
+              appliedAt: null,
+              tags: [],
+              createdAt: '2024-01-02T00:00:00.000Z',
+            },
+          ],
+          false,
+          null,
+        ),
+      );
+
+      expect(FakeIntersectionObserver.instances).toHaveLength(1);
+      FakeIntersectionObserver.instances[0].trigger(true);
+
+      await waitFor(() => expect(screen.getByText('Vercel')).toBeInTheDocument());
+      expect(mockGqlRequest).toHaveBeenLastCalledWith(
+        expect.stringContaining('applicationsPage'),
+        expect.objectContaining({ cursor: '1' }),
+      );
+    });
+
+    it('does not observe the sentinel when there is no next page', async () => {
+      mockGqlRequest.mockResolvedValue(
+        page(
+          [
+            {
+              id: '1',
+              company: 'Stripe',
+              role: 'Engineer',
+              status: 'applied',
+              location: null,
+              appliedAt: null,
+              tags: [],
+              createdAt: '2024-01-01T00:00:00.000Z',
+            },
+          ],
+          false,
+          null,
+        ),
+      );
+      render(<ApplicationsPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+      expect(FakeIntersectionObserver.instances).toHaveLength(0);
+    });
+  });
+
   describe('bulk actions', () => {
-    const apps = [
+    const apps: ApplicationFixture[] = [
       {
         id: '1',
         company: 'Stripe',
@@ -141,8 +320,20 @@ describe('ApplicationsPage', () => {
     ];
 
     beforeEach(() => {
-      mockGqlRequest.mockResolvedValue({ applications: apps });
+      mockGqlRequest.mockResolvedValue(page(apps));
     });
+
+    // The bulk-action hook invalidates the applicationsPage query after each
+    // mutation, which triggers a refetch through this same mock — so the
+    // mock must keep answering that refetch correctly rather than being
+    // blanket-overridden to only the mutation's response.
+    function mockMutationResult(result: unknown) {
+      mockGqlRequest.mockImplementation((query: unknown) =>
+        typeof query === 'string' && query.includes('applicationsPage')
+          ? Promise.resolve(page(apps))
+          : Promise.resolve(result),
+      );
+    }
 
     it('shows a select-all checkbox with no selection message initially', async () => {
       render(<ApplicationsPage />, { wrapper: Wrapper });
@@ -176,7 +367,7 @@ describe('ApplicationsPage', () => {
       await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
 
       fireEvent.click(screen.getByLabelText('Select all'));
-      mockGqlRequest.mockResolvedValue({ updateApplication: { id: '1' } });
+      mockMutationResult({ updateApplication: { id: '1' } });
 
       fireEvent.change(screen.getByDisplayValue('Change status…'), {
         target: { value: 'interviewing' },
@@ -199,7 +390,7 @@ describe('ApplicationsPage', () => {
       await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
 
       fireEvent.click(screen.getByLabelText('Select all'));
-      mockGqlRequest.mockResolvedValue({ updateApplication: { id: '1' } });
+      mockMutationResult({ updateApplication: { id: '1' } });
 
       fireEvent.change(screen.getByPlaceholderText('Add tag…'), { target: { value: 'urgent' } });
       fireEvent.click(screen.getByLabelText('Add tag to selected'));
@@ -221,7 +412,7 @@ describe('ApplicationsPage', () => {
       await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
 
       fireEvent.click(screen.getByLabelText('Select Stripe'));
-      mockGqlRequest.mockResolvedValue({ updateApplication: { id: '1' } });
+      mockMutationResult({ updateApplication: { id: '1' } });
 
       fireEvent.click(screen.getByRole('button', { name: /^star$/i }));
       await waitFor(() => {
@@ -246,7 +437,7 @@ describe('ApplicationsPage', () => {
       await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
 
       fireEvent.click(screen.getByLabelText('Select all'));
-      mockGqlRequest.mockResolvedValue({ deleteApplication: true });
+      mockMutationResult({ deleteApplication: true });
 
       fireEvent.click(screen.getByRole('button', { name: /delete/i }));
 

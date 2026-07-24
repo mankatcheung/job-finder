@@ -1,13 +1,15 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useState, useEffect, useMemo } from 'react';
 import { gqlClient } from '#/graphql/client';
 import { StatusBadge } from '../dashboard';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { useBulkActions } from './-useBulkActions';
+import { useInfiniteScrollSentinel } from '#/lib/useInfiniteScrollSentinel';
 import {
   BriefcaseIcon,
   KanbanIcon,
+  Loader2Icon,
   SearchIcon,
   StarIcon,
   StarOffIcon,
@@ -16,6 +18,8 @@ import {
   XIcon,
 } from 'lucide-react';
 import { z } from 'zod';
+
+const PAGE_SIZE = 20;
 
 const APPLICATION_STATUSES: ApplicationStatus[] = [
   'draft',
@@ -29,21 +33,37 @@ const APPLICATION_STATUSES: ApplicationStatus[] = [
 
 const searchSchema = z.object({ status: z.string().optional(), starred: z.boolean().optional() });
 
-const APPLICATIONS_QUERY = `
-  query Applications($status: ApplicationStatus) {
-    applications(status: $status) {
-      id
-      company
-      role
-      status
-      location
-      description
-      appliedAt
-      starred
-      source
-      followUpAt
-      tags
-      createdAt
+const APPLICATIONS_PAGE_QUERY = `
+  query ApplicationsPage(
+    $status: ApplicationStatus
+    $starred: Boolean
+    $search: String
+    $cursor: String
+    $limit: Int
+  ) {
+    applicationsPage(
+      status: $status
+      starred: $starred
+      search: $search
+      cursor: $cursor
+      limit: $limit
+    ) {
+      hasNextPage
+      nextCursor
+      items {
+        id
+        company
+        role
+        status
+        location
+        description
+        appliedAt
+        starred
+        source
+        followUpAt
+        tags
+        createdAt
+      }
     }
   }
 `;
@@ -63,6 +83,14 @@ type Application = {
   createdAt: string;
 };
 
+type ApplicationsPageResult = {
+  applicationsPage: {
+    items: Application[];
+    hasNextPage: boolean;
+    nextCursor: string | null;
+  };
+};
+
 export const Route = createFileRoute('/_authenticated/applications/')({
   validateSearch: searchSchema,
   component: ApplicationsPage,
@@ -80,25 +108,27 @@ export function ApplicationsPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['applications', status],
-    queryFn: () =>
-      gqlClient.request<{ applications: Application[] }>(APPLICATIONS_QUERY, {
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: ['applications', 'page', status ?? null, starred ?? false, searchTerm],
+    queryFn: ({ pageParam }) =>
+      gqlClient.request<ApplicationsPageResult>(APPLICATIONS_PAGE_QUERY, {
         status: status ?? null,
+        starred: starred ?? null,
+        search: searchTerm || null,
+        cursor: pageParam,
+        limit: PAGE_SIZE,
       }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.applicationsPage.hasNextPage ? lastPage.applicationsPage.nextCursor : undefined,
   });
 
-  const allApps = data?.applications ?? [];
-  let apps = starred ? allApps.filter((a) => a.starred) : allApps;
-  if (searchTerm) {
-    apps = apps.filter(
-      (a) =>
-        a.company.toLowerCase().includes(searchTerm) ||
-        a.role.toLowerCase().includes(searchTerm) ||
-        (a.location ?? '').toLowerCase().includes(searchTerm) ||
-        (a.description ?? '').toLowerCase().includes(searchTerm),
-    );
-  }
+  const apps = useMemo(
+    () => data?.pages.flatMap((page) => page.applicationsPage.items) ?? [],
+    [data],
+  );
+
+  const sentinelRef = useInfiniteScrollSentinel(() => fetchNextPage(), Boolean(hasNextPage));
 
   const allSelected = apps.length > 0 && apps.every((a) => selectedIds.has(a.id));
 
@@ -270,6 +300,13 @@ export function ApplicationsPage() {
               </Link>
             </div>
           ))}
+
+          <div ref={sentinelRef} className="h-1" />
+          {isFetchingNextPage && (
+            <div className="flex justify-center py-4 text-gray-400">
+              <Loader2Icon size={18} className="animate-spin" />
+            </div>
+          )}
         </div>
       )}
 

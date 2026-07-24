@@ -269,3 +269,9 @@ export const BULK_ACTIONS = {
   /** Max number of IDs accepted in a single bulk mutation call. */
   MAX_IDS: 200,
 } as const;
+
+/** Defaults/limits for cursor-paginated list queries. */
+export const PAGINATION = {
+  DEFAULT_LIMIT: 20,
+  MAX_LIMIT: 100,
+} as const;

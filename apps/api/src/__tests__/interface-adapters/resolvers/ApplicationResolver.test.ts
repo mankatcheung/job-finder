@@ -4,6 +4,7 @@ import { ApplicationMapper } from '@/interface-adapters/mappers/ApplicationMappe
 import { makeApplication } from '@/__tests__/helpers/mocks.js';
 import type { ICreateApplicationUseCase } from '@/use-cases/jobs/ICreateApplicationUseCase.js';
 import type { IGetApplicationsUseCase } from '@/use-cases/jobs/IGetApplicationsUseCase.js';
+import type { IGetApplicationsPageUseCase } from '@/use-cases/jobs/IGetApplicationsPageUseCase.js';
 import type { IGetApplicationUseCase } from '@/use-cases/jobs/IGetApplicationUseCase.js';
 import type { IUpdateApplicationUseCase } from '@/use-cases/jobs/IUpdateApplicationUseCase.js';
 import type { IDeleteApplicationUseCase } from '@/use-cases/jobs/IDeleteApplicationUseCase.js';
@@ -16,6 +17,7 @@ const stub = <T>(methods: Partial<T>): T => methods as T;
 const makeDeps = (overrides?: object) => ({
   createApplicationUseCase: stub<ICreateApplicationUseCase>({ execute: vi.fn() }),
   getApplicationsUseCase: stub<IGetApplicationsUseCase>({ execute: vi.fn() }),
+  getApplicationsPageUseCase: stub<IGetApplicationsPageUseCase>({ execute: vi.fn() }),
   getApplicationUseCase: stub<IGetApplicationUseCase>({ execute: vi.fn() }),
   updateApplicationUseCase: stub<IUpdateApplicationUseCase>({ execute: vi.fn() }),
   deleteApplicationUseCase: stub<IDeleteApplicationUseCase>({ execute: vi.fn() }),
@@ -46,6 +48,35 @@ describe('ApplicationResolver', () => {
     expect(result[0].id).toBe('app-1');
     expect(result[1].id).toBe('app-2');
     expect(typeof result[0].createdAt).toBe('string');
+  });
+
+  it('getApplicationsPage: returns a mapped connection', async () => {
+    const apps = [makeApplication({ id: 'app-1' }), makeApplication({ id: 'app-2' })];
+    const deps = makeDeps({
+      getApplicationsPageUseCase: stub<IGetApplicationsPageUseCase>({
+        execute: vi.fn().mockResolvedValue({ items: apps, hasNextPage: true, nextCursor: 'app-2' }),
+      }),
+    });
+
+    const resolver = new ApplicationResolver(deps);
+    const result = await resolver.getApplicationsPage('user-1', {
+      status: 'applied',
+      search: 'acme',
+      cursor: 'app-0',
+      limit: 10,
+    });
+
+    expect(deps.getApplicationsPageUseCase.execute).toHaveBeenCalledWith({
+      userId: 'user-1',
+      status: 'applied',
+      search: 'acme',
+      cursor: 'app-0',
+      limit: 10,
+    });
+    expect(result.items).toHaveLength(2);
+    expect(result.items[0].id).toBe('app-1');
+    expect(result.hasNextPage).toBe(true);
+    expect(result.nextCursor).toBe('app-2');
   });
 
   it('getApplication: returns a single mapped DTO', async () => {
