@@ -2,6 +2,10 @@ import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepos
 import type { IDocumentRepository } from '@/use-cases/ports/IDocumentRepository.js';
 import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
 import { ERROR_CODES } from '@/constants.js';
+import {
+  assertAllowedMimeType,
+  assertValidSizeBytes,
+} from '@/use-cases/documents/documentValidation.js';
 import type {
   IConfirmDocumentUseCase,
   ConfirmDocumentInput,
@@ -19,6 +23,9 @@ export class ConfirmDocumentUseCase implements IConfirmDocumentUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: ConfirmDocumentInput): Promise<ConfirmDocumentOutput> {
+    assertAllowedMimeType(input.mimeType);
+    assertValidSizeBytes(input.sizeBytes);
+
     const app = await this.deps.applicationRepository.findById(input.applicationId);
     if (!app) {
       throw Object.assign(new Error('Application not found'), { code: ERROR_CODES.NOT_FOUND });
