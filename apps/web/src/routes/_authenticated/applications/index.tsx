@@ -4,7 +4,17 @@ import { useState, useEffect } from 'react';
 import { gqlClient } from '#/graphql/client';
 import { StatusBadge } from '../dashboard';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
-import { BriefcaseIcon, KanbanIcon, SearchIcon, StarIcon, XIcon } from 'lucide-react';
+import { useBulkActions } from './-useBulkActions';
+import {
+  BriefcaseIcon,
+  KanbanIcon,
+  SearchIcon,
+  StarIcon,
+  StarOffIcon,
+  TagIcon,
+  Trash2Icon,
+  XIcon,
+} from 'lucide-react';
 import { z } from 'zod';
 
 const APPLICATION_STATUSES: ApplicationStatus[] = [
@@ -62,6 +72,8 @@ export function ApplicationsPage() {
   const { status, starred } = Route.useSearch();
   const [searchInput, setSearchInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const bulk = useBulkActions();
 
   useEffect(() => {
     const t = setTimeout(() => setSearchTerm(searchInput.trim().toLowerCase()), 200);
@@ -88,8 +100,31 @@ export function ApplicationsPage() {
     );
   }
 
+  const allSelected = apps.length > 0 && apps.every((a) => selectedIds.has(a.id));
+
+  const toggleOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allSelected) apps.forEach((a) => next.delete(a.id));
+      else apps.forEach((a) => next.add(a.id));
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+  const selectedCount = selectedIds.size;
+
   return (
-    <div className="p-4 sm:p-8 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-5xl mx-auto pb-24">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Applications</h1>
         <div className="flex items-center gap-2">
@@ -169,52 +204,190 @@ export function ApplicationsPage() {
         </div>
       ) : (
         <div className="space-y-2">
+          <label className="flex items-center gap-2 px-1 text-xs text-gray-500 dark:text-gray-400 select-none cursor-pointer">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={toggleAll}
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              aria-label={allSelected ? 'Deselect all' : 'Select all'}
+            />
+            {selectedCount > 0 ? `${selectedCount} of ${apps.length} selected` : 'Select all'}
+          </label>
+
           {apps.map((app) => (
-            <Link
+            <div
               key={app.id}
-              to="/applications/$applicationId"
-              params={{ applicationId: app.id }}
-              className="flex items-center justify-between px-5 py-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors group"
+              className="flex items-center gap-3 px-5 py-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
             >
-              <div className="min-w-0">
-                <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
-                  {app.company}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                  {app.role}
-                  {app.location ? ` · ${app.location}` : ''}
-                </p>
-                {app.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1.5">
-                    {app.tags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                    {app.tags.length > 3 && (
-                      <span className="text-[10px] text-gray-400">+{app.tags.length - 3}</span>
-                    )}
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center gap-3 shrink-0">
-                {app.starred && (
-                  <StarIcon size={13} className="text-yellow-400 fill-yellow-400 shrink-0" />
-                )}
-                <p className="text-xs text-gray-400 hidden sm:block">
-                  {app.appliedAt
-                    ? new Date(app.appliedAt).toLocaleDateString()
-                    : new Date(app.createdAt).toLocaleDateString()}
-                </p>
-                <StatusBadge status={app.status} />
-              </div>
-            </Link>
+              <input
+                type="checkbox"
+                checked={selectedIds.has(app.id)}
+                onChange={() => toggleOne(app.id)}
+                className="h-4 w-4 shrink-0 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                aria-label={`Select ${app.company}`}
+              />
+              <Link
+                to="/applications/$applicationId"
+                params={{ applicationId: app.id }}
+                className="flex-1 flex items-center justify-between min-w-0 group"
+              >
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                    {app.company}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {app.role}
+                    {app.location ? ` · ${app.location}` : ''}
+                  </p>
+                  {app.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {app.tags.slice(0, 3).map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {app.tags.length > 3 && (
+                        <span className="text-[10px] text-gray-400">+{app.tags.length - 3}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  {app.starred && (
+                    <StarIcon size={13} className="text-yellow-400 fill-yellow-400 shrink-0" />
+                  )}
+                  <p className="text-xs text-gray-400 hidden sm:block">
+                    {app.appliedAt
+                      ? new Date(app.appliedAt).toLocaleDateString()
+                      : new Date(app.createdAt).toLocaleDateString()}
+                  </p>
+                  <StatusBadge status={app.status} />
+                </div>
+              </Link>
+            </div>
           ))}
         </div>
       )}
+
+      {selectedCount > 0 && (
+        <BulkActionBar selectedIds={selectedIds} apps={apps} onClear={clearSelection} bulk={bulk} />
+      )}
+    </div>
+  );
+}
+
+function BulkActionBar({
+  selectedIds,
+  apps,
+  onClear,
+  bulk,
+}: {
+  selectedIds: Set<string>;
+  apps: Application[];
+  onClear: () => void;
+  bulk: ReturnType<typeof useBulkActions>;
+}) {
+  const [tagInput, setTagInput] = useState('');
+  const ids = [...selectedIds];
+
+  const onAddTag = () => {
+    const tag = tagInput.trim();
+    if (!tag) return;
+    bulk.bulkAddTag(ids, tag, apps);
+    setTagInput('');
+  };
+
+  const onDelete = () => {
+    if (confirm(`Delete ${ids.length} selected application${ids.length === 1 ? '' : 's'}?`)) {
+      bulk.bulkDelete(ids);
+      onClear();
+    }
+  };
+
+  return (
+    <div className="fixed bottom-16 lg:bottom-4 inset-x-0 z-40 flex justify-center px-4">
+      <div className="flex flex-wrap items-center gap-2 px-4 py-3 bg-gray-900 dark:bg-gray-700 text-white rounded-xl shadow-lg max-w-full">
+        <span className="text-sm font-medium pr-1">{ids.length} selected</span>
+
+        <select
+          value=""
+          disabled={bulk.isPending}
+          onChange={(e) => {
+            if (e.target.value) bulk.bulkUpdateStatus(ids, e.target.value as ApplicationStatus);
+          }}
+          className="text-sm bg-gray-800 dark:bg-gray-600 border border-gray-700 dark:border-gray-500 rounded-lg px-2 py-1.5 disabled:opacity-60"
+        >
+          <option value="">Change status…</option>
+          {APPLICATION_STATUSES.map((s) => (
+            <option key={s} value={s}>
+              {s.charAt(0).toUpperCase() + s.slice(1)}
+            </option>
+          ))}
+        </select>
+
+        <div className="flex items-center gap-1">
+          <input
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                onAddTag();
+              }
+            }}
+            placeholder="Add tag…"
+            disabled={bulk.isPending}
+            className="w-24 text-sm bg-gray-800 dark:bg-gray-600 border border-gray-700 dark:border-gray-500 rounded-lg px-2 py-1.5 placeholder-gray-400 disabled:opacity-60"
+          />
+          <button
+            type="button"
+            onClick={onAddTag}
+            disabled={bulk.isPending || !tagInput.trim()}
+            aria-label="Add tag to selected"
+            className="p-1.5 hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-60"
+          >
+            <TagIcon size={16} />
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => bulk.bulkSetStarred(ids, true)}
+          disabled={bulk.isPending}
+          className="flex items-center gap-1 px-2 py-1.5 text-sm hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-60"
+        >
+          <StarIcon size={14} /> Star
+        </button>
+        <button
+          type="button"
+          onClick={() => bulk.bulkSetStarred(ids, false)}
+          disabled={bulk.isPending}
+          className="flex items-center gap-1 px-2 py-1.5 text-sm hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-60"
+        >
+          <StarOffIcon size={14} /> Unstar
+        </button>
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={bulk.isPending}
+          className="flex items-center gap-1 px-2 py-1.5 text-sm text-red-300 hover:bg-red-900/40 rounded-lg transition-colors disabled:opacity-60"
+        >
+          <Trash2Icon size={14} /> Delete
+        </button>
+
+        <button
+          type="button"
+          onClick={onClear}
+          aria-label="Clear selection"
+          className="p-1.5 hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-colors ml-1"
+        >
+          <XIcon size={16} />
+        </button>
+      </div>
     </div>
   );
 }
