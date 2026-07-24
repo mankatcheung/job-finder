@@ -1,8 +1,7 @@
 import QRCode from 'qrcode';
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import { createTotp } from '@/infrastructure/auth/totp.js';
-import { encryptTotpSecret } from '@/infrastructure/auth/totpSecretCrypto.js';
+import type { ITotpProvider } from '@/use-cases/ports/ITotpProvider.js';
 import { ERROR_CODES } from '@/constants.js';
 import type {
   IGenerateTotpSecretUseCase,
@@ -12,6 +11,7 @@ import type {
 
 interface Deps {
   userRepository: IUserRepository;
+  totpProvider: ITotpProvider;
 }
 
 export class GenerateTotpSecretUseCase implements IGenerateTotpSecretUseCase {
@@ -32,12 +32,12 @@ export class GenerateTotpSecretUseCase implements IGenerateTotpSecretUseCase {
       throw Object.assign(new Error('Invalid password'), { code: ERROR_CODES.UNAUTHORIZED });
     }
 
-    const secret = createTotp().generateSecret();
-    const otpauthUrl = createTotp({ secret, label: user.email }).toURI();
+    const secret = this.deps.totpProvider.generateSecret();
+    const otpauthUrl = this.deps.totpProvider.getOtpauthUrl(secret, user.email);
     const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
 
     await this.deps.userRepository.update(input.userId, {
-      totpSecret: encryptTotpSecret(secret),
+      totpSecret: this.deps.totpProvider.encryptSecret(secret),
     });
 
     return { secret, otpauthUrl, qrCodeDataUrl };

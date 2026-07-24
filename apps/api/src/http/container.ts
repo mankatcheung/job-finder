@@ -23,6 +23,8 @@ import { PrismaEmailVerificationTokenRepository } from '@/infrastructure/db/repo
 import { PrismaTotpBackupCodeRepository } from '@/infrastructure/db/repositories/PrismaTotpBackupCodeRepository.js';
 import { RateLimiter } from '@/infrastructure/rateLimit/RateLimiter.js';
 import type { IRateLimiter } from '@/use-cases/ports/IRateLimiter.js';
+import { TotpProvider } from '@/infrastructure/auth/TotpProvider.js';
+import type { ITotpProvider } from '@/use-cases/ports/ITotpProvider.js';
 
 import { LocalStorageProvider } from '@/infrastructure/storage/LocalStorageProvider.js';
 import { GCSStorageProvider } from '@/infrastructure/storage/GCSStorageProvider.js';
@@ -45,6 +47,8 @@ import { InterviewRoundResolver } from '@/interface-adapters/resolvers/Interview
 import { ActivityLogResolver } from '@/interface-adapters/resolvers/ActivityLogResolver.js';
 import { ContactResolver } from '@/interface-adapters/resolvers/ContactResolver.js';
 import { LoginEventResolver } from '@/interface-adapters/resolvers/LoginEventResolver.js';
+import { ApiTokenResolver } from '@/interface-adapters/resolvers/ApiTokenResolver.js';
+import { SessionResolver } from '@/interface-adapters/resolvers/SessionResolver.js';
 import { McpController } from '@/interface-adapters/mcp/McpController.js';
 
 import { RegisterUseCase } from '@/use-cases/auth/RegisterUseCase.js';
@@ -153,6 +157,7 @@ declare module '@fastify/awilix' {
     emailVerificationTokenRepository: PrismaEmailVerificationTokenRepository;
     totpBackupCodeRepository: PrismaTotpBackupCodeRepository;
     totpRateLimiter: IRateLimiter;
+    totpProvider: ITotpProvider;
 
     applicationMapper: ApplicationMapper;
     apiTokenMapper: ApiTokenMapper;
@@ -173,6 +178,8 @@ declare module '@fastify/awilix' {
     activityLogResolver: ActivityLogResolver;
     contactResolver: ContactResolver;
     loginEventResolver: LoginEventResolver;
+    apiTokenResolver: ApiTokenResolver;
+    sessionResolver: SessionResolver;
     mcpController: McpController;
 
     registerUseCase: RegisterUseCase;
@@ -314,6 +321,7 @@ export function buildContainer(fastify: FastifyInstance): void {
         RATE_LIMIT.TOTP_VERIFICATION.WINDOW_MS,
       ),
     ),
+    totpProvider: asClass(TotpProvider, { lifetime: Lifetime.SINGLETON }),
 
     // Mappers
     applicationMapper: asClass(ApplicationMapper, { lifetime: Lifetime.SINGLETON }),
@@ -336,6 +344,8 @@ export function buildContainer(fastify: FastifyInstance): void {
     activityLogResolver: asClass(ActivityLogResolver, { lifetime: Lifetime.SINGLETON }),
     contactResolver: asClass(ContactResolver, { lifetime: Lifetime.SINGLETON }),
     loginEventResolver: asClass(LoginEventResolver, { lifetime: Lifetime.SINGLETON }),
+    apiTokenResolver: asClass(ApiTokenResolver, { lifetime: Lifetime.SINGLETON }),
+    sessionResolver: asClass(SessionResolver, { lifetime: Lifetime.SINGLETON }),
     mcpController: asClass(McpController, { lifetime: Lifetime.SINGLETON }),
 
     // Use Cases

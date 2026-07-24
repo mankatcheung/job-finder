@@ -4,6 +4,7 @@ import { builder } from '@/http/schema/builder.js';
 import './types/enums/ApplicationStatusEnum.js';
 import './types/enums/InterviewRoundEnums.js';
 import './types/enums/ActivityEventTypeEnum.js';
+import './types/enums/ApiTokenScopeEnum.js';
 import './types/UserType.js';
 import './types/ApplicationType.js';
 import './types/ApplicationConnectionType.js';
