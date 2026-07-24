@@ -8,7 +8,7 @@ interface Shortcut {
 }
 
 const shortcuts: Shortcut[] = [
-  { keys: { key: 'k', ctrl: true }, label: 'Open command palette' },
+  { keys: { key: 'k', ctrl: true, shift: true }, label: 'Open command palette' },
   { keys: { key: 'n', ctrl: true }, label: 'New application' },
   { keys: { key: '/', ctrl: true }, label: 'Show keyboard shortcuts' },
   { keys: { key: 'Escape' }, label: 'Close modal / dialog' },
