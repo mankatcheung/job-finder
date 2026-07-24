@@ -21,4 +21,5 @@ export interface IUserRepository {
     },
   ): Promise<User>;
   delete(id: string): Promise<void>;
+  updateLastDigestSentAt(id: string, sentAt: Date): Promise<void>;
 }

@@ -37,6 +37,7 @@ export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserR
   create: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
+  updateLastDigestSentAt: vi.fn().mockResolvedValue(undefined),
   ...overrides,
 });
 
@@ -268,6 +269,7 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   targetRole: null,
   emailVerifiedAt: null,
   weeklyDigestEnabled: true,
+  lastDigestSentAt: null,
   followUpRemindersEnabled: true,
   totpSecret: null,
   totpEnabled: false,

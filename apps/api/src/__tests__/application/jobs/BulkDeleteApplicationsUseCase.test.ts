@@ -45,7 +45,7 @@ describe('BulkDeleteApplicationsUseCase', () => {
     });
   });
 
-  it('propagates a per-item error (e.g. NOT_FOUND for a stale id)', async () => {
+  it('treats a NOT_FOUND item as an idempotent no-op (retried bulk-delete)', async () => {
     const deleteApplicationUseCase = stub<IDeleteApplicationUseCase>({
       execute: vi.fn().mockImplementation(({ applicationId }: { applicationId: string }) => {
         if (applicationId === 'app-2') {
@@ -56,10 +56,26 @@ describe('BulkDeleteApplicationsUseCase', () => {
     });
     const useCase = new BulkDeleteApplicationsUseCase({ deleteApplicationUseCase });
 
+    await expect(
+      useCase.execute({ userId: 'user-1', applicationIds: ['app-1', 'app-2'] }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('still throws when an item fails for a real reason (e.g. FORBIDDEN)', async () => {
+    const deleteApplicationUseCase = stub<IDeleteApplicationUseCase>({
+      execute: vi.fn().mockImplementation(({ applicationId }: { applicationId: string }) => {
+        if (applicationId === 'app-2') {
+          return Promise.reject(Object.assign(new Error('Forbidden'), { code: 'FORBIDDEN' }));
+        }
+        return Promise.resolve(undefined);
+      }),
+    });
+    const useCase = new BulkDeleteApplicationsUseCase({ deleteApplicationUseCase });
+
     const err = await useCase
       .execute({ userId: 'user-1', applicationIds: ['app-1', 'app-2'] })
       .catch((e) => e);
 
-    expect((err as { code: string }).code).toBe('NOT_FOUND');
+    expect((err as { code: string }).code).toBe('FORBIDDEN');
   });
 });

@@ -1,7 +1,7 @@
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
 import type { IEmailService, WeeklyDigestData } from '@/use-cases/ports/IEmailService.js';
-import { DURATIONS_MS } from '@/constants.js';
+import { DURATIONS_MS, DIGEST_WINDOW_MS } from '@/constants.js';
 
 interface Deps {
   userRepository: IUserRepository;
@@ -32,13 +32,22 @@ export class SendWeeklyDigestUseCase {
           return;
         }
 
+        const now = new Date();
+
+        if (
+          user.lastDigestSentAt &&
+          user.lastDigestSentAt.getTime() > now.getTime() - DIGEST_WINDOW_MS.RESEND_AFTER
+        ) {
+          skipped++;
+          return;
+        }
+
         const apps = await this.deps.applicationRepository.findAllByUserId(user.id);
         if (apps.length === 0) {
           skipped++;
           return;
         }
 
-        const now = new Date();
         const weekAgo = new Date(now.getTime() - SEVEN_DAYS_MS);
         const nextWeek = new Date(now.getTime() + SEVEN_DAYS_MS);
 
@@ -73,6 +82,7 @@ export class SendWeeklyDigestUseCase {
         };
 
         await this.deps.emailService.sendWeeklyDigest(user.email, data);
+        await this.deps.userRepository.updateLastDigestSentAt(user.id, now);
         sent++;
       }),
     );

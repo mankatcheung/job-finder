@@ -7,6 +7,7 @@ export interface User {
   targetRole: string | null;
   emailVerifiedAt: Date | null;
   weeklyDigestEnabled: boolean;
+  lastDigestSentAt: Date | null;
   followUpRemindersEnabled: boolean;
   totpSecret: string | null;
   totpEnabled: boolean;
