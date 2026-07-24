@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '@/http/schema/builder.js';
 import { JobApplicationRef } from '@/http/schema/types/ApplicationType.js';
+import { ApplicationStatusEnum } from '@/http/schema/types/enums/ApplicationStatusEnum.js';
 import {
   CreateApplicationInput,
   UpdateApplicationInput,
@@ -79,6 +80,61 @@ builder.mutationField('deleteApplication', (t) =>
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { applicationResolver } = ctx.diScope.cradle;
       return applicationResolver.deleteApplication(ctx.user.sub, args.id);
+    },
+  }),
+);
+
+builder.mutationField('bulkUpdateApplications', (t) =>
+  t.field({
+    type: [JobApplicationRef],
+    args: {
+      ids: t.arg.idList({ required: true }),
+      status: t.arg({ type: ApplicationStatusEnum, required: false }),
+      starred: t.arg.boolean({ required: false }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { applicationResolver } = ctx.diScope.cradle;
+      return applicationResolver.bulkUpdateApplications(ctx.user.sub, args.ids as string[], {
+        status: (args.status as ApplicationStatus) ?? undefined,
+        starred: args.starred ?? undefined,
+      });
+    },
+  }),
+);
+
+builder.mutationField('bulkAddTagToApplications', (t) =>
+  t.field({
+    type: [JobApplicationRef],
+    args: {
+      ids: t.arg.idList({ required: true }),
+      tag: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { applicationResolver } = ctx.diScope.cradle;
+      return applicationResolver.bulkAddTagToApplications(
+        ctx.user.sub,
+        args.ids as string[],
+        args.tag,
+      );
+    },
+  }),
+);
+
+builder.mutationField('bulkDeleteApplications', (t) =>
+  t.field({
+    type: 'Boolean',
+    args: {
+      ids: t.arg.idList({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { applicationResolver } = ctx.diScope.cradle;
+      return applicationResolver.bulkDeleteApplications(ctx.user.sub, args.ids as string[]);
     },
   }),
 );

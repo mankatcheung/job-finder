@@ -263,3 +263,9 @@ export const LOGIN_HISTORY = {
   /** Max number of recent login events surfaced to the user. */
   LIMIT: 20,
 } as const;
+
+/** Limits for bulk-write mutations (e.g. bulk update/delete applications). */
+export const BULK_ACTIONS = {
+  /** Max number of IDs accepted in a single bulk mutation call. */
+  MAX_IDS: 200,
+} as const;
