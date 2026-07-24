@@ -7,6 +7,9 @@ import type { IGetApplicationsUseCase } from '@/use-cases/jobs/IGetApplicationsU
 import type { IGetApplicationUseCase } from '@/use-cases/jobs/IGetApplicationUseCase.js';
 import type { IUpdateApplicationUseCase } from '@/use-cases/jobs/IUpdateApplicationUseCase.js';
 import type { IDeleteApplicationUseCase } from '@/use-cases/jobs/IDeleteApplicationUseCase.js';
+import type { IBulkUpdateApplicationsUseCase } from '@/use-cases/jobs/IBulkUpdateApplicationsUseCase.js';
+import type { IBulkDeleteApplicationsUseCase } from '@/use-cases/jobs/IBulkDeleteApplicationsUseCase.js';
+import type { IBulkAddTagToApplicationsUseCase } from '@/use-cases/jobs/IBulkAddTagToApplicationsUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 
@@ -16,6 +19,9 @@ const makeDeps = (overrides?: object) => ({
   getApplicationUseCase: stub<IGetApplicationUseCase>({ execute: vi.fn() }),
   updateApplicationUseCase: stub<IUpdateApplicationUseCase>({ execute: vi.fn() }),
   deleteApplicationUseCase: stub<IDeleteApplicationUseCase>({ execute: vi.fn() }),
+  bulkUpdateApplicationsUseCase: stub<IBulkUpdateApplicationsUseCase>({ execute: vi.fn() }),
+  bulkDeleteApplicationsUseCase: stub<IBulkDeleteApplicationsUseCase>({ execute: vi.fn() }),
+  bulkAddTagToApplicationsUseCase: stub<IBulkAddTagToApplicationsUseCase>({ execute: vi.fn() }),
   applicationMapper: new ApplicationMapper(),
   ...overrides,
 });
@@ -95,6 +101,63 @@ describe('ApplicationResolver', () => {
       expect.objectContaining({ userId: 'user-1', applicationId: 'app-1', role: 'Staff Engineer' }),
     );
     expect(result.role).toBe('Staff Engineer');
+  });
+
+  it('bulkUpdateApplications: calls the bulk use case and returns mapped DTOs', async () => {
+    const apps = [makeApplication({ id: 'app-1' }), makeApplication({ id: 'app-2' })];
+    const deps = makeDeps({
+      bulkUpdateApplicationsUseCase: stub<IBulkUpdateApplicationsUseCase>({
+        execute: vi.fn().mockResolvedValue(apps),
+      }),
+    });
+
+    const resolver = new ApplicationResolver(deps);
+    const result = await resolver.bulkUpdateApplications('user-1', ['app-1', 'app-2'], {
+      status: 'interviewing',
+    });
+
+    expect(deps.bulkUpdateApplicationsUseCase.execute).toHaveBeenCalledWith({
+      userId: 'user-1',
+      applicationIds: ['app-1', 'app-2'],
+      status: 'interviewing',
+    });
+    expect(result).toHaveLength(2);
+  });
+
+  it('bulkAddTagToApplications: calls the bulk use case and returns mapped DTOs', async () => {
+    const apps = [makeApplication({ id: 'app-1', tags: ['urgent'] })];
+    const deps = makeDeps({
+      bulkAddTagToApplicationsUseCase: stub<IBulkAddTagToApplicationsUseCase>({
+        execute: vi.fn().mockResolvedValue(apps),
+      }),
+    });
+
+    const resolver = new ApplicationResolver(deps);
+    const result = await resolver.bulkAddTagToApplications('user-1', ['app-1'], 'urgent');
+
+    expect(deps.bulkAddTagToApplicationsUseCase.execute).toHaveBeenCalledWith({
+      userId: 'user-1',
+      applicationIds: ['app-1'],
+      tag: 'urgent',
+    });
+    expect(result[0].tags).toEqual(['urgent']);
+  });
+
+  it('bulkDeleteApplications: calls the bulk use case and returns true', async () => {
+    const deps = makeDeps({
+      bulkDeleteApplicationsUseCase: stub<IBulkDeleteApplicationsUseCase>({
+        execute: vi.fn().mockResolvedValue(undefined),
+      }),
+    });
+
+    const resolver = new ApplicationResolver(deps);
+    const result = await resolver.bulkDeleteApplications('user-1', ['app-1', 'app-2']);
+
+    expect(deps.bulkDeleteApplicationsUseCase.execute).toHaveBeenCalledWith({
+      userId: 'user-1',
+      applicationIds: ['app-1', 'app-2'],
+    });
+    expect(result).toBe(true);
   });
 
   it('deleteApplication: calls delete use case and returns true', async () => {

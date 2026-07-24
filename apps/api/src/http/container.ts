@@ -59,6 +59,9 @@ import { GetApplicationsUseCase } from '@/use-cases/jobs/GetApplicationsUseCase.
 import { GetApplicationUseCase } from '@/use-cases/jobs/GetApplicationUseCase.js';
 import { UpdateApplicationUseCase } from '@/use-cases/jobs/UpdateApplicationUseCase.js';
 import { DeleteApplicationUseCase } from '@/use-cases/jobs/DeleteApplicationUseCase.js';
+import { BulkUpdateApplicationsUseCase } from '@/use-cases/jobs/BulkUpdateApplicationsUseCase.js';
+import { BulkDeleteApplicationsUseCase } from '@/use-cases/jobs/BulkDeleteApplicationsUseCase.js';
+import { BulkAddTagToApplicationsUseCase } from '@/use-cases/jobs/BulkAddTagToApplicationsUseCase.js';
 import { CreateNoteUseCase } from '@/use-cases/notes/CreateNoteUseCase.js';
 import { GetNotesUseCase } from '@/use-cases/notes/GetNotesUseCase.js';
 import { UpdateNoteUseCase } from '@/use-cases/notes/UpdateNoteUseCase.js';
@@ -183,6 +186,9 @@ declare module '@fastify/awilix' {
     getApplicationUseCase: GetApplicationUseCase;
     updateApplicationUseCase: UpdateApplicationUseCase;
     deleteApplicationUseCase: DeleteApplicationUseCase;
+    bulkUpdateApplicationsUseCase: BulkUpdateApplicationsUseCase;
+    bulkDeleteApplicationsUseCase: BulkDeleteApplicationsUseCase;
+    bulkAddTagToApplicationsUseCase: BulkAddTagToApplicationsUseCase;
     createNoteUseCase: CreateNoteUseCase;
     getNotesUseCase: GetNotesUseCase;
     updateNoteUseCase: UpdateNoteUseCase;
@@ -351,6 +357,15 @@ export function buildContainer(fastify: FastifyInstance): void {
       lifetime: Lifetime.TRANSIENT,
     }),
     deleteApplicationUseCase: asClass(DeleteApplicationUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    bulkUpdateApplicationsUseCase: asClass(BulkUpdateApplicationsUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    bulkDeleteApplicationsUseCase: asClass(BulkDeleteApplicationsUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    bulkAddTagToApplicationsUseCase: asClass(BulkAddTagToApplicationsUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
     createNoteUseCase: asClass(CreateNoteUseCase, { lifetime: Lifetime.TRANSIENT }),
