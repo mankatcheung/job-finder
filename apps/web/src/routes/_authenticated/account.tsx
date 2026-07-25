@@ -34,9 +34,9 @@ const UPDATE_PROFILE = `
   }
 `;
 
-const UPDATE_EMAIL = `
-  mutation UpdateEmail($currentPassword: String!, $newEmail: String!) {
-    updateEmail(currentPassword: $currentPassword, newEmail: $newEmail)
+const REQUEST_EMAIL_CHANGE = `
+  mutation RequestEmailChange($currentPassword: String!, $newEmail: String!) {
+    requestEmailChange(currentPassword: $currentPassword, newEmail: $newEmail)
   }
 `;
 
@@ -347,7 +347,7 @@ export function AccountPage() {
   const emailForm = useForm<EmailForm>({ resolver: zodResolver(emailSchema) });
   const onUpdateEmail = async (data: EmailForm) => {
     try {
-      await gqlClient.request(UPDATE_EMAIL, data);
+      await gqlClient.request(REQUEST_EMAIL_CHANGE, data);
       emailForm.reset();
       emailForm.setError('root', { message: '' });
     } catch (err) {
@@ -609,7 +609,8 @@ export function AccountPage() {
             Email address
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Update the email you sign in with.
+            Update the email you sign in with. We&apos;ll send a confirmation link to the new
+            address before the change takes effect.
           </p>
         </div>
         <form onSubmit={emailForm.handleSubmit(onUpdateEmail)} className="space-y-3">
@@ -647,14 +648,16 @@ export function AccountPage() {
             </p>
           )}
           {emailForm.formState.isSubmitSuccessful && !emailForm.formState.errors.root?.message && (
-            <p className="text-sm text-green-600">Email updated successfully.</p>
+            <p className="text-sm text-green-600">
+              Confirmation link sent. Check the new address&apos;s inbox to complete the change.
+            </p>
           )}
           <button
             type="submit"
             disabled={emailForm.formState.isSubmitting}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            {emailForm.formState.isSubmitting ? 'Saving…' : 'Update email'}
+            {emailForm.formState.isSubmitting ? 'Sending…' : 'Update email'}
           </button>
         </form>
       </section>

@@ -75,7 +75,8 @@ import { RequestUploadUrlUseCase } from '@/use-cases/documents/RequestUploadUrlU
 import { ConfirmDocumentUseCase } from '@/use-cases/documents/ConfirmDocumentUseCase.js';
 import { GetDocumentsUseCase } from '@/use-cases/documents/GetDocumentsUseCase.js';
 import { DeleteDocumentUseCase } from '@/use-cases/documents/DeleteDocumentUseCase.js';
-import { UpdateEmailUseCase } from '@/use-cases/user/UpdateEmailUseCase.js';
+import { RequestEmailChangeUseCase } from '@/use-cases/user/RequestEmailChangeUseCase.js';
+import { ConfirmEmailChangeUseCase } from '@/use-cases/user/ConfirmEmailChangeUseCase.js';
 import { UpdatePasswordUseCase } from '@/use-cases/user/UpdatePasswordUseCase.js';
 import { DeleteAccountUseCase } from '@/use-cases/user/DeleteAccountUseCase.js';
 import { ExportUserDataUseCase } from '@/use-cases/user/ExportUserDataUseCase.js';
@@ -206,7 +207,8 @@ declare module '@fastify/awilix' {
     confirmDocumentUseCase: ConfirmDocumentUseCase;
     getDocumentsUseCase: GetDocumentsUseCase;
     deleteDocumentUseCase: DeleteDocumentUseCase;
-    updateEmailUseCase: UpdateEmailUseCase;
+    requestEmailChangeUseCase: RequestEmailChangeUseCase;
+    confirmEmailChangeUseCase: ConfirmEmailChangeUseCase;
     updatePasswordUseCase: UpdatePasswordUseCase;
     deleteAccountUseCase: DeleteAccountUseCase;
     exportUserDataUseCase: ExportUserDataUseCase;
@@ -391,7 +393,12 @@ export function buildContainer(fastify: FastifyInstance): void {
     confirmDocumentUseCase: asClass(ConfirmDocumentUseCase, { lifetime: Lifetime.TRANSIENT }),
     getDocumentsUseCase: asClass(GetDocumentsUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteDocumentUseCase: asClass(DeleteDocumentUseCase, { lifetime: Lifetime.TRANSIENT }),
-    updateEmailUseCase: asClass(UpdateEmailUseCase, { lifetime: Lifetime.TRANSIENT }),
+    requestEmailChangeUseCase: asClass(RequestEmailChangeUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    confirmEmailChangeUseCase: asClass(ConfirmEmailChangeUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     updatePasswordUseCase: asClass(UpdatePasswordUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteAccountUseCase: asClass(DeleteAccountUseCase, { lifetime: Lifetime.TRANSIENT }),
     exportUserDataUseCase: asClass(ExportUserDataUseCase, { lifetime: Lifetime.TRANSIENT }),

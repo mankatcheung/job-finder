@@ -7,7 +7,7 @@ import { ImportSummaryRef } from '@/http/schema/types/ImportSummaryType.js';
 import { fromCodedError } from '@/http/errors/AppError.js';
 import { ERROR_CODES } from '@/constants.js';
 
-builder.mutationField('updateEmail', (t) =>
+builder.mutationField('requestEmailChange', (t) =>
   t.boolean({
     args: {
       currentPassword: t.arg.string({ required: true }),
@@ -18,7 +18,24 @@ builder.mutationField('updateEmail', (t) =>
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { userResolver } = ctx.diScope.cradle;
       try {
-        await userResolver.updateEmail(ctx.user.sub, args.currentPassword, args.newEmail);
+        await userResolver.requestEmailChange(ctx.user.sub, args.currentPassword, args.newEmail);
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
+builder.mutationField('confirmEmailChange', (t) =>
+  t.boolean({
+    args: {
+      token: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        await userResolver.confirmEmailChange(args.token);
         return true;
       } catch (err) {
         throw fromCodedError(err);

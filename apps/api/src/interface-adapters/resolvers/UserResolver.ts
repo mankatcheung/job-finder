@@ -1,4 +1,5 @@
-import type { IUpdateEmailUseCase } from '@/use-cases/user/IUpdateEmailUseCase.js';
+import type { IRequestEmailChangeUseCase } from '@/use-cases/user/IRequestEmailChangeUseCase.js';
+import type { IConfirmEmailChangeUseCase } from '@/use-cases/user/IConfirmEmailChangeUseCase.js';
 import type { IUpdatePasswordUseCase } from '@/use-cases/user/IUpdatePasswordUseCase.js';
 import type { IDeleteAccountUseCase } from '@/use-cases/user/IDeleteAccountUseCase.js';
 import type {
@@ -29,7 +30,8 @@ import type { IGetUserUseCase } from '@/use-cases/user/IGetUserUseCase.js';
 import type { User } from '@/domain/user/User.js';
 
 interface Deps {
-  updateEmailUseCase: IUpdateEmailUseCase;
+  requestEmailChangeUseCase: IRequestEmailChangeUseCase;
+  confirmEmailChangeUseCase: IConfirmEmailChangeUseCase;
   updatePasswordUseCase: IUpdatePasswordUseCase;
   deleteAccountUseCase: IDeleteAccountUseCase;
   exportUserDataUseCase: IExportUserDataUseCase;
@@ -47,8 +49,16 @@ interface Deps {
 export class UserResolver {
   constructor(private readonly deps: Deps) {}
 
-  async updateEmail(userId: string, currentPassword: string, newEmail: string): Promise<void> {
-    await this.deps.updateEmailUseCase.execute({ userId, currentPassword, newEmail });
+  async requestEmailChange(
+    userId: string,
+    currentPassword: string,
+    newEmail: string,
+  ): Promise<void> {
+    await this.deps.requestEmailChangeUseCase.execute({ userId, currentPassword, newEmail });
+  }
+
+  async confirmEmailChange(token: string): Promise<void> {
+    await this.deps.confirmEmailChangeUseCase.execute({ token });
   }
 
   async updatePassword(

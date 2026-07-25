@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UserResolver } from '@/interface-adapters/resolvers/UserResolver.js';
-import type { IUpdateEmailUseCase } from '@/use-cases/user/IUpdateEmailUseCase.js';
+import type { IRequestEmailChangeUseCase } from '@/use-cases/user/IRequestEmailChangeUseCase.js';
+import type { IConfirmEmailChangeUseCase } from '@/use-cases/user/IConfirmEmailChangeUseCase.js';
 import type { IUpdatePasswordUseCase } from '@/use-cases/user/IUpdatePasswordUseCase.js';
 import type { IDeleteAccountUseCase } from '@/use-cases/user/IDeleteAccountUseCase.js';
 import type { IExportUserDataUseCase } from '@/use-cases/user/IExportUserDataUseCase.js';
@@ -18,7 +19,12 @@ import { makeUser } from '@/__tests__/helpers/mocks.js';
 const stub = <T>(methods: Partial<T>): T => methods as T;
 
 const makeDeps = (overrides?: object) => ({
-  updateEmailUseCase: stub<IUpdateEmailUseCase>({ execute: vi.fn().mockResolvedValue(undefined) }),
+  requestEmailChangeUseCase: stub<IRequestEmailChangeUseCase>({
+    execute: vi.fn().mockResolvedValue(undefined),
+  }),
+  confirmEmailChangeUseCase: stub<IConfirmEmailChangeUseCase>({
+    execute: vi.fn().mockResolvedValue(undefined),
+  }),
   updatePasswordUseCase: stub<IUpdatePasswordUseCase>({
     execute: vi.fn().mockResolvedValue(undefined),
   }),
@@ -51,14 +57,14 @@ describe('UserResolver', () => {
     vi.clearAllMocks();
   });
 
-  describe('updateEmail', () => {
-    it('delegates to updateEmailUseCase with the correct arguments', async () => {
+  describe('requestEmailChange', () => {
+    it('delegates to requestEmailChangeUseCase with the correct arguments', async () => {
       const deps = makeDeps();
       const resolver = new UserResolver(deps);
 
-      await resolver.updateEmail('user-1', 'oldPass', 'new@example.com');
+      await resolver.requestEmailChange('user-1', 'oldPass', 'new@example.com');
 
-      expect(deps.updateEmailUseCase.execute).toHaveBeenCalledWith({
+      expect(deps.requestEmailChangeUseCase.execute).toHaveBeenCalledWith({
         userId: 'user-1',
         currentPassword: 'oldPass',
         newEmail: 'new@example.com',
@@ -68,14 +74,40 @@ describe('UserResolver', () => {
     it('propagates errors from the use case', async () => {
       const err = Object.assign(new Error('CONFLICT'), { code: 'CONFLICT' });
       const deps = makeDeps({
-        updateEmailUseCase: stub<IUpdateEmailUseCase>({
+        requestEmailChangeUseCase: stub<IRequestEmailChangeUseCase>({
           execute: vi.fn().mockRejectedValue(err),
         }),
       });
 
       await expect(
-        new UserResolver(deps).updateEmail('user-1', 'pass', 'taken@example.com'),
+        new UserResolver(deps).requestEmailChange('user-1', 'pass', 'taken@example.com'),
       ).rejects.toMatchObject({ code: 'CONFLICT' });
+    });
+  });
+
+  describe('confirmEmailChange', () => {
+    it('delegates to confirmEmailChangeUseCase with the token', async () => {
+      const deps = makeDeps();
+      const resolver = new UserResolver(deps);
+
+      await resolver.confirmEmailChange('raw-token');
+
+      expect(deps.confirmEmailChangeUseCase.execute).toHaveBeenCalledWith({
+        token: 'raw-token',
+      });
+    });
+
+    it('propagates errors from the use case', async () => {
+      const err = Object.assign(new Error('UNAUTHORIZED'), { code: 'UNAUTHORIZED' });
+      const deps = makeDeps({
+        confirmEmailChangeUseCase: stub<IConfirmEmailChangeUseCase>({
+          execute: vi.fn().mockRejectedValue(err),
+        }),
+      });
+
+      await expect(new UserResolver(deps).confirmEmailChange('bad-token')).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+      });
     });
   });
 

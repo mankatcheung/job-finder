@@ -5,6 +5,7 @@ export interface IEmailVerificationTokenRepository {
     id: string;
     userId: string;
     tokenHash: string;
+    newEmail?: string;
     expiresAt: Date;
   }): Promise<EmailVerificationToken>;
   findByTokenHash(tokenHash: string): Promise<EmailVerificationToken | null>;
