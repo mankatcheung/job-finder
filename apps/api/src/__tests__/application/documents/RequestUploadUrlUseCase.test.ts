@@ -81,6 +81,28 @@ describe('RequestUploadUrlUseCase', () => {
     );
   });
 
+  it('throws VALIDATION when the mimeType is not allowed', async () => {
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(makeApplication()),
+    });
+
+    const useCase = new RequestUploadUrlUseCase({
+      applicationRepository,
+      storageProvider: makeStorageProvider(),
+    });
+    const err = await useCase
+      .execute({
+        userId: 'user-1',
+        applicationId: 'app-1',
+        filename: 'malware.exe',
+        mimeType: 'application/x-msdownload',
+      })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('VALIDATION');
+    expect(applicationRepository.findById).not.toHaveBeenCalled();
+  });
+
   it('sanitizes the filename — replaces spaces and strips special characters', async () => {
     const applicationRepository = makeApplicationRepository({
       findById: vi.fn().mockResolvedValue(makeApplication()),

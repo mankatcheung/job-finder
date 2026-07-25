@@ -281,3 +281,16 @@ export const PAGINATION = {
   DEFAULT_LIMIT: 20,
   MAX_LIMIT: 100,
 } as const;
+
+/** MIME types accepted for document uploads (resumes, cover letters, portfolios). */
+export const ALLOWED_DOCUMENT_MIME_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/plain',
+  'image/png',
+  'image/jpeg',
+] as const;
+
+/** Max accepted document upload size, in bytes. */
+export const MAX_DOCUMENT_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB

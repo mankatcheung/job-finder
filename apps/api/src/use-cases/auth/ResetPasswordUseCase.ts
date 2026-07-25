@@ -3,7 +3,8 @@ import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import type { IPasswordResetTokenRepository } from '@/use-cases/ports/IPasswordResetTokenRepository.js';
 import type { ISessionRepository } from '@/use-cases/ports/ISessionRepository.js';
-import { ERROR_CODES, PASSWORD_MIN_LENGTH } from '@/constants.js';
+import { ERROR_CODES } from '@/constants.js';
+import { assertValidPassword } from '@/use-cases/auth/passwordValidation.js';
 import type {
   IResetPasswordUseCase,
   ResetPasswordInput,
@@ -19,12 +20,7 @@ export class ResetPasswordUseCase implements IResetPasswordUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: ResetPasswordInput): Promise<void> {
-    if (input.newPassword.length < PASSWORD_MIN_LENGTH) {
-      throw Object.assign(
-        new Error(`Password must be at least ${PASSWORD_MIN_LENGTH} characters`),
-        { code: ERROR_CODES.VALIDATION },
-      );
-    }
+    assertValidPassword(input.newPassword);
 
     const tokenHash = createHash('sha256').update(input.token).digest('hex');
     const resetToken = await this.deps.passwordResetTokenRepository.findByTokenHash(tokenHash);

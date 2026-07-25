@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import type { ISendEmailVerificationUseCase } from '@/use-cases/auth/ISendEmailVerificationUseCase.js';
 import { ERROR_CODES } from '@/constants.js';
+import { assertValidPassword } from '@/use-cases/auth/passwordValidation.js';
 import type {
   IRegisterUseCase,
   RegisterInput,
@@ -18,6 +19,8 @@ export class RegisterUseCase implements IRegisterUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: RegisterInput): Promise<RegisterOutput> {
+    assertValidPassword(input.password);
+
     const existing = await this.deps.userRepository.findByEmail(input.email);
     if (existing) {
       throw Object.assign(new Error('Email already registered'), { code: ERROR_CODES.CONFLICT });

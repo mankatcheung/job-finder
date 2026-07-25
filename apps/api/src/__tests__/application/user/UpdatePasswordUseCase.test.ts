@@ -61,4 +61,16 @@ describe('UpdatePasswordUseCase', () => {
     expect(userRepository.update).not.toHaveBeenCalled();
     expect(bcrypt.hash).not.toHaveBeenCalled();
   });
+
+  it('throws VALIDATION when the new password is too short', async () => {
+    const userRepository = makeUserRepository();
+
+    const err = await new UpdatePasswordUseCase({ userRepository })
+      .execute({ ...input, newPassword: 'short1' })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('VALIDATION');
+    expect(userRepository.findById).not.toHaveBeenCalled();
+    expect(userRepository.update).not.toHaveBeenCalled();
+  });
 });

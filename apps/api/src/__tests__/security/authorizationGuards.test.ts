@@ -47,7 +47,7 @@ describe('Authorization guards', () => {
 
     it('UpdatePasswordUseCase', async () => {
       const err = await new UpdatePasswordUseCase({ userRepository: notFound })
-        .execute({ userId: 'x', currentPassword: 'p', newPassword: 'np' })
+        .execute({ userId: 'x', currentPassword: 'p', newPassword: 'newpassword1' })
         .catch((e) => e);
       expect((err as { code: string }).code).toBe('NOT_FOUND');
     });
@@ -82,7 +82,7 @@ describe('Authorization guards', () => {
 
     it('UpdatePasswordUseCase does not hash or update on wrong password', async () => {
       const err = await new UpdatePasswordUseCase({ userRepository: repo })
-        .execute({ userId: 'user-1', currentPassword: 'wrong', newPassword: 'new' })
+        .execute({ userId: 'user-1', currentPassword: 'wrong', newPassword: 'newpassword1' })
         .catch((e) => e);
 
       expect((err as { code: string }).code).toBe('UNAUTHORIZED');

@@ -57,7 +57,7 @@ describe('RegisterUseCase', () => {
       generateId,
       sendEmailVerificationUseCase: makeSendEmailVerificationUseCase(),
     });
-    await useCase.execute({ email: 'test@example.com', password: 'pass' });
+    await useCase.execute({ email: 'test@example.com', password: 'password123' });
 
     expect(generateId).toHaveBeenCalledOnce();
     expect(userRepository.create).toHaveBeenCalledWith(
@@ -76,11 +76,30 @@ describe('RegisterUseCase', () => {
       sendEmailVerificationUseCase: makeSendEmailVerificationUseCase(),
     });
     const err = await useCase
-      .execute({ email: 'test@example.com', password: 'pass' })
+      .execute({ email: 'test@example.com', password: 'password123' })
       .catch((e) => e);
 
     expect(err).toBeInstanceOf(Error);
     expect((err as { code: string }).code).toBe('CONFLICT');
+    expect(userRepository.create).not.toHaveBeenCalled();
+  });
+
+  it('throws VALIDATION when the password is too short', async () => {
+    const userRepository = makeUserRepository({
+      findByEmail: vi.fn().mockResolvedValue(null),
+    });
+
+    const useCase = new RegisterUseCase({
+      userRepository,
+      generateId: vi.fn(),
+      sendEmailVerificationUseCase: makeSendEmailVerificationUseCase(),
+    });
+    const err = await useCase
+      .execute({ email: 'test@example.com', password: 'short' })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('VALIDATION');
+    expect(userRepository.findByEmail).not.toHaveBeenCalled();
     expect(userRepository.create).not.toHaveBeenCalled();
   });
 
