@@ -39,10 +39,20 @@ function getOrStartRefresh(): Promise<boolean> {
 export const gqlClient = new GraphQLClient(API_URL, {
   credentials: 'include',
   responseMiddleware: async (response) => {
-    if (response instanceof Error) return;
+    // graphql-request v7 wraps GraphQL errors in a ClientError (extends Error).
+    // The errors live on response.response.errors, not directly on response.
+    const payload =
+      response instanceof Error
+        ? (
+            response as unknown as {
+              response?: { errors?: Array<{ extensions?: { code?: string } }> };
+            }
+          ).response
+        : (response as { errors?: Array<{ extensions?: { code?: string } }> });
 
-    const gqlErrors = (response as { errors?: Array<{ extensions?: { code?: string } }> }).errors;
-    const hasUnauthorized = gqlErrors?.some((e) => e.extensions?.code === ERROR_CODES.UNAUTHORIZED);
+    const hasUnauthorized = payload?.errors?.some(
+      (e) => e.extensions?.code === ERROR_CODES.UNAUTHORIZED,
+    );
 
     if (!hasUnauthorized) return;
 
