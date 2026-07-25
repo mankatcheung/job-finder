@@ -13,7 +13,11 @@ import type { IGetNotificationPreferencesUseCase } from '@/use-cases/user/IGetNo
 import type { IUpdateNotificationPreferencesUseCase } from '@/use-cases/user/IUpdateNotificationPreferencesUseCase.js';
 import type { IUpdateProfileUseCase } from '@/use-cases/user/IUpdateProfileUseCase.js';
 import type { IGetUserUseCase } from '@/use-cases/user/IGetUserUseCase.js';
-import { makeUser } from '@/__tests__/helpers/mocks.js';
+import type { IRequestAvatarUploadUrlUseCase } from '@/use-cases/user/IRequestAvatarUploadUrlUseCase.js';
+import type { IConfirmAvatarUseCase } from '@/use-cases/user/IConfirmAvatarUseCase.js';
+import type { IRemoveAvatarUseCase } from '@/use-cases/user/IRemoveAvatarUseCase.js';
+import { UserMapper } from '@/interface-adapters/mappers/UserMapper.js';
+import { makeUser, makeStorageProvider } from '@/__tests__/helpers/mocks.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 
@@ -43,6 +47,17 @@ const makeDeps = (overrides?: object) => ({
     execute: vi.fn().mockResolvedValue(undefined),
   }),
   getUserUseCase: stub<IGetUserUseCase>({ execute: vi.fn() }),
+  requestAvatarUploadUrlUseCase: stub<IRequestAvatarUploadUrlUseCase>({ execute: vi.fn() }),
+  confirmAvatarUseCase: stub<IConfirmAvatarUseCase>({
+    execute: vi.fn().mockResolvedValue(undefined),
+  }),
+  removeAvatarUseCase: stub<IRemoveAvatarUseCase>({
+    execute: vi.fn().mockResolvedValue(undefined),
+  }),
+  storageProvider: makeStorageProvider({
+    getSignedUrl: vi.fn().mockResolvedValue('https://cdn.example.com/signed-url'),
+  }),
+  userMapper: new UserMapper(),
   ...overrides,
 });
 
@@ -310,8 +325,8 @@ describe('UserResolver', () => {
   });
 
   describe('getMe', () => {
-    it('delegates to getUserUseCase and returns the result', async () => {
-      const user = makeUser({ id: 'user-1' });
+    it('delegates to getUserUseCase and maps the result, with no avatarUrl when avatarKey is unset', async () => {
+      const user = makeUser({ id: 'user-1', avatarKey: null });
       const deps = makeDeps({
         getUserUseCase: stub<IGetUserUseCase>({ execute: vi.fn().mockResolvedValue(user) }),
       });
@@ -319,7 +334,22 @@ describe('UserResolver', () => {
       const result = await new UserResolver(deps).getMe('user-1');
 
       expect(deps.getUserUseCase.execute).toHaveBeenCalledWith('user-1');
-      expect(result).toEqual(user);
+      expect(result).toEqual(
+        expect.objectContaining({ id: 'user-1', email: user.email, avatarUrl: null }),
+      );
+      expect(deps.storageProvider.getSignedUrl).not.toHaveBeenCalled();
+    });
+
+    it('resolves avatarKey to a signed avatarUrl when set', async () => {
+      const user = makeUser({ id: 'user-1', avatarKey: 'users/user-1/avatar/key.png' });
+      const deps = makeDeps({
+        getUserUseCase: stub<IGetUserUseCase>({ execute: vi.fn().mockResolvedValue(user) }),
+      });
+
+      const result = await new UserResolver(deps).getMe('user-1');
+
+      expect(deps.storageProvider.getSignedUrl).toHaveBeenCalledWith('users/user-1/avatar/key.png');
+      expect(result?.avatarUrl).toBe('https://cdn.example.com/signed-url');
     });
 
     it('returns null when the use case returns null', async () => {
@@ -330,6 +360,62 @@ describe('UserResolver', () => {
       const result = await new UserResolver(deps).getMe('missing');
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('requestAvatarUploadUrl', () => {
+    it('delegates to requestAvatarUploadUrlUseCase and returns the result', async () => {
+      const payload = { uploadUrl: 'https://r2.example.com/upload', storageKey: 'key.png' };
+      const deps = makeDeps({
+        requestAvatarUploadUrlUseCase: stub<IRequestAvatarUploadUrlUseCase>({
+          execute: vi.fn().mockResolvedValue(payload),
+        }),
+      });
+
+      const result = await new UserResolver(deps).requestAvatarUploadUrl(
+        'user-1',
+        'me.png',
+        'image/png',
+      );
+
+      expect(deps.requestAvatarUploadUrlUseCase.execute).toHaveBeenCalledWith({
+        userId: 'user-1',
+        filename: 'me.png',
+        mimeType: 'image/png',
+      });
+      expect(result).toEqual(payload);
+    });
+  });
+
+  describe('confirmAvatar', () => {
+    it('delegates to confirmAvatarUseCase and returns the resolved signed URL', async () => {
+      const deps = makeDeps();
+
+      const result = await new UserResolver(deps).confirmAvatar(
+        'user-1',
+        'users/user-1/avatar/key.png',
+        'image/png',
+        12345,
+      );
+
+      expect(deps.confirmAvatarUseCase.execute).toHaveBeenCalledWith({
+        userId: 'user-1',
+        storageKey: 'users/user-1/avatar/key.png',
+        mimeType: 'image/png',
+        sizeBytes: 12345,
+      });
+      expect(deps.storageProvider.getSignedUrl).toHaveBeenCalledWith('users/user-1/avatar/key.png');
+      expect(result).toBe('https://cdn.example.com/signed-url');
+    });
+  });
+
+  describe('removeAvatar', () => {
+    it('delegates to removeAvatarUseCase with the correct user id', async () => {
+      const deps = makeDeps();
+
+      await new UserResolver(deps).removeAvatar('user-1');
+
+      expect(deps.removeAvatarUseCase.execute).toHaveBeenCalledWith('user-1');
     });
   });
 });

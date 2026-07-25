@@ -13,6 +13,7 @@ const SCHEMA_STATEMENTS = [
     "timezone" TEXT,
     "targetRole" TEXT,
     "emailVerifiedAt" DATETIME,
+    "avatarKey" TEXT,
     "weeklyDigestEnabled" INTEGER NOT NULL DEFAULT 1,
     "lastDigestSentAt" DATETIME,
     "followUpRemindersEnabled" INTEGER NOT NULL DEFAULT 1,

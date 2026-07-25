@@ -32,6 +32,7 @@ import { GCSStorageProvider } from '@/infrastructure/storage/GCSStorageProvider.
 import { ApplicationMapper } from '@/interface-adapters/mappers/ApplicationMapper.js';
 import { NoteMapper } from '@/interface-adapters/mappers/NoteMapper.js';
 import { DocumentMapper } from '@/interface-adapters/mappers/DocumentMapper.js';
+import { UserMapper } from '@/interface-adapters/mappers/UserMapper.js';
 import { InterviewRoundMapper } from '@/interface-adapters/mappers/InterviewRoundMapper.js';
 import { ActivityLogMapper } from '@/interface-adapters/mappers/ActivityLogMapper.js';
 import { ContactMapper } from '@/interface-adapters/mappers/ContactMapper.js';
@@ -88,6 +89,9 @@ import { GetNotificationPreferencesUseCase } from '@/use-cases/user/GetNotificat
 import { UpdateNotificationPreferencesUseCase } from '@/use-cases/user/UpdateNotificationPreferencesUseCase.js';
 import { UpdateProfileUseCase } from '@/use-cases/user/UpdateProfileUseCase.js';
 import { GetUserUseCase } from '@/use-cases/user/GetUserUseCase.js';
+import { RequestAvatarUploadUrlUseCase } from '@/use-cases/user/RequestAvatarUploadUrlUseCase.js';
+import { ConfirmAvatarUseCase } from '@/use-cases/user/ConfirmAvatarUseCase.js';
+import { RemoveAvatarUseCase } from '@/use-cases/user/RemoveAvatarUseCase.js';
 import { CreateInterviewRoundUseCase } from '@/use-cases/interviewRounds/CreateInterviewRoundUseCase.js';
 import { GetInterviewRoundsUseCase } from '@/use-cases/interviewRounds/GetInterviewRoundsUseCase.js';
 import { UpdateInterviewRoundUseCase } from '@/use-cases/interviewRounds/UpdateInterviewRoundUseCase.js';
@@ -163,6 +167,7 @@ declare module '@fastify/awilix' {
     apiTokenMapper: ApiTokenMapper;
     noteMapper: NoteMapper;
     documentMapper: DocumentMapper;
+    userMapper: UserMapper;
     interviewRoundMapper: InterviewRoundMapper;
     activityLogMapper: ActivityLogMapper;
     contactMapper: ContactMapper;
@@ -219,6 +224,9 @@ declare module '@fastify/awilix' {
     updateNotificationPreferencesUseCase: UpdateNotificationPreferencesUseCase;
     updateProfileUseCase: UpdateProfileUseCase;
     getUserUseCase: GetUserUseCase;
+    requestAvatarUploadUrlUseCase: RequestAvatarUploadUrlUseCase;
+    confirmAvatarUseCase: ConfirmAvatarUseCase;
+    removeAvatarUseCase: RemoveAvatarUseCase;
     createInterviewRoundUseCase: CreateInterviewRoundUseCase;
     getInterviewRoundsUseCase: GetInterviewRoundsUseCase;
     updateInterviewRoundUseCase: UpdateInterviewRoundUseCase;
@@ -328,6 +336,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     apiTokenMapper: asClass(ApiTokenMapper, { lifetime: Lifetime.SINGLETON }),
     noteMapper: asClass(NoteMapper, { lifetime: Lifetime.SINGLETON }),
     documentMapper: asClass(DocumentMapper, { lifetime: Lifetime.SINGLETON }),
+    userMapper: asClass(UserMapper, { lifetime: Lifetime.SINGLETON }),
     interviewRoundMapper: asClass(InterviewRoundMapper, { lifetime: Lifetime.SINGLETON }),
     activityLogMapper: asClass(ActivityLogMapper, { lifetime: Lifetime.SINGLETON }),
     contactMapper: asClass(ContactMapper, { lifetime: Lifetime.SINGLETON }),
@@ -410,6 +419,11 @@ export function buildContainer(fastify: FastifyInstance): void {
     }),
     updateProfileUseCase: asClass(UpdateProfileUseCase, { lifetime: Lifetime.TRANSIENT }),
     getUserUseCase: asClass(GetUserUseCase, { lifetime: Lifetime.TRANSIENT }),
+    requestAvatarUploadUrlUseCase: asClass(RequestAvatarUploadUrlUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    confirmAvatarUseCase: asClass(ConfirmAvatarUseCase, { lifetime: Lifetime.TRANSIENT }),
+    removeAvatarUseCase: asClass(RemoveAvatarUseCase, { lifetime: Lifetime.TRANSIENT }),
     createInterviewRoundUseCase: asClass(CreateInterviewRoundUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

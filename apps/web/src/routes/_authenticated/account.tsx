@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { MonitorIcon, MoonIcon, SunIcon } from 'lucide-react';
+import { MonitorIcon, MoonIcon, SunIcon, UserIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { clearAuthIndicator } from '#/lib/auth';
 import { queryClient } from '#/lib/queryClient';
@@ -24,7 +24,29 @@ const ME_QUERY = `
       name
       timezone
       targetRole
+      avatarUrl
     }
+  }
+`;
+
+const REQUEST_AVATAR_UPLOAD_URL = `
+  mutation RequestAvatarUploadUrl($filename: String!, $mimeType: String!) {
+    requestAvatarUploadUrl(filename: $filename, mimeType: $mimeType) {
+      uploadUrl
+      storageKey
+    }
+  }
+`;
+
+const CONFIRM_AVATAR = `
+  mutation ConfirmAvatar($storageKey: String!, $mimeType: String!, $sizeBytes: Int!) {
+    confirmAvatar(storageKey: $storageKey, mimeType: $mimeType, sizeBytes: $sizeBytes)
+  }
+`;
+
+const REMOVE_AVATAR = `
+  mutation RemoveAvatar {
+    removeAvatar
   }
 `;
 
@@ -240,6 +262,7 @@ type Me = {
   name: string | null;
   timezone: string | null;
   targetRole: string | null;
+  avatarUrl: string | null;
 };
 
 type NotificationPreferences = {
@@ -318,6 +341,52 @@ export function AccountPage() {
       profileForm.setError('root', {
         message: extractGqlError(err) ?? 'Failed to update profile.',
       });
+    }
+  };
+
+  // Avatar
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const onAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setAvatarUploading(true);
+    setAvatarError(null);
+    try {
+      const { requestAvatarUploadUrl } = await gqlClient.request<{
+        requestAvatarUploadUrl: { uploadUrl: string; storageKey: string };
+      }>(REQUEST_AVATAR_UPLOAD_URL, { filename: file.name, mimeType: file.type });
+
+      await fetch(requestAvatarUploadUrl.uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type },
+      });
+
+      await gqlClient.request(CONFIRM_AVATAR, {
+        storageKey: requestAvatarUploadUrl.storageKey,
+        mimeType: file.type,
+        sizeBytes: file.size,
+      });
+      await qc.invalidateQueries({ queryKey: ['me'] });
+    } catch (err) {
+      setAvatarError(extractGqlError(err) ?? 'Failed to upload photo.');
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
+  const onRemoveAvatar = async () => {
+    setAvatarUploading(true);
+    setAvatarError(null);
+    try {
+      await gqlClient.request(REMOVE_AVATAR);
+      await qc.invalidateQueries({ queryKey: ['me'] });
+    } catch (err) {
+      setAvatarError(extractGqlError(err) ?? 'Failed to remove photo.');
+    } finally {
+      setAvatarUploading(false);
     }
   };
 
@@ -532,6 +601,46 @@ export function AccountPage() {
             Personalize your account and improve reminder timing and AI-generated content.
           </p>
         </div>
+
+        <div className="flex items-center gap-4">
+          {me?.avatarUrl ? (
+            <img
+              src={me.avatarUrl}
+              alt="Profile photo"
+              className="w-16 h-16 rounded-full object-cover border border-gray-200 dark:border-gray-600"
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-600">
+              <UserIcon size={28} />
+            </div>
+          )}
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <label className="cursor-pointer px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline">
+                {avatarUploading ? 'Uploading…' : me?.avatarUrl ? 'Change photo' : 'Upload photo'}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  onChange={onAvatarFileChange}
+                  disabled={avatarUploading}
+                />
+              </label>
+              {me?.avatarUrl && (
+                <button
+                  type="button"
+                  onClick={onRemoveAvatar}
+                  disabled={avatarUploading}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 disabled:opacity-60"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+            {avatarError && <p className="text-xs text-red-600">{avatarError}</p>}
+          </div>
+        </div>
+
         <form onSubmit={profileForm.handleSubmit(onUpdateProfile)} className="space-y-3">
           <div>
             <label className={labelCls}>Name</label>

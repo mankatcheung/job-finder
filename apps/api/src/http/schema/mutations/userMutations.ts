@@ -4,6 +4,7 @@ import { clearAuthCookies } from '@/http/schema/types/AuthPayloadType.js';
 import { TotpSetupRef } from '@/http/schema/types/TotpSetupType.js';
 import { ConfirmTotpSetupResultRef } from '@/http/schema/types/ConfirmTotpSetupType.js';
 import { ImportSummaryRef } from '@/http/schema/types/ImportSummaryType.js';
+import { UploadUrlPayloadRef } from '@/http/schema/types/AuthPayloadType.js';
 import { fromCodedError } from '@/http/errors/AppError.js';
 import { ERROR_CODES } from '@/constants.js';
 
@@ -157,6 +158,71 @@ builder.mutationField('importUserData', (t) =>
       const { userResolver } = ctx.diScope.cradle;
       try {
         return await userResolver.importUserData(ctx.user.sub, args.data);
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
+builder.mutationField('requestAvatarUploadUrl', (t) =>
+  t.field({
+    type: UploadUrlPayloadRef,
+    args: {
+      filename: t.arg.string({ required: true }),
+      mimeType: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        return await userResolver.requestAvatarUploadUrl(
+          ctx.user.sub,
+          args.filename,
+          args.mimeType,
+        );
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
+builder.mutationField('confirmAvatar', (t) =>
+  t.string({
+    args: {
+      storageKey: t.arg.string({ required: true }),
+      mimeType: t.arg.string({ required: true }),
+      sizeBytes: t.arg.int({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        return await userResolver.confirmAvatar(
+          ctx.user.sub,
+          args.storageKey,
+          args.mimeType,
+          args.sizeBytes,
+        );
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
+builder.mutationField('removeAvatar', (t) =>
+  t.boolean({
+    resolve: async (_root, _args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        await userResolver.removeAvatar(ctx.user.sub);
+        return true;
       } catch (err) {
         throw fromCodedError(err);
       }

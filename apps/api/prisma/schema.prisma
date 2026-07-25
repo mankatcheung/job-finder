@@ -15,6 +15,7 @@ model User {
   timezone                 String?
   targetRole               String?
   emailVerifiedAt          DateTime?
+  avatarKey                String?
   weeklyDigestEnabled      Boolean                  @default(true)
   lastDigestSentAt         DateTime?
   followUpRemindersEnabled Boolean                  @default(true)

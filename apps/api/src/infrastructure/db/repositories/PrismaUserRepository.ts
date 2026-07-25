@@ -11,6 +11,7 @@ type PrismaUser = {
   timezone: string | null;
   targetRole: string | null;
   emailVerifiedAt: Date | null;
+  avatarKey: string | null;
   weeklyDigestEnabled: boolean;
   lastDigestSentAt: Date | null;
   followUpRemindersEnabled: boolean;
@@ -60,6 +61,7 @@ export class PrismaUserRepository implements IUserRepository {
       timezone?: string | null;
       targetRole?: string | null;
       emailVerifiedAt?: Date | null;
+      avatarKey?: string | null;
       weeklyDigestEnabled?: boolean;
       followUpRemindersEnabled?: boolean;
       totpSecret?: string | null;
@@ -87,6 +89,7 @@ export class PrismaUserRepository implements IUserRepository {
       timezone: row.timezone,
       targetRole: row.targetRole,
       emailVerifiedAt: row.emailVerifiedAt,
+      avatarKey: row.avatarKey,
       weeklyDigestEnabled: row.weeklyDigestEnabled,
       lastDigestSentAt: row.lastDigestSentAt,
       followUpRemindersEnabled: row.followUpRemindersEnabled,
