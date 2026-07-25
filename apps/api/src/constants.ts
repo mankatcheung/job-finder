@@ -322,3 +322,9 @@ export const ALLOWED_DOCUMENT_MIME_TYPES = [
 
 /** Max accepted document upload size, in bytes. */
 export const MAX_DOCUMENT_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+
+/** MIME types accepted for avatar/profile-photo uploads. */
+export const ALLOWED_AVATAR_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
+
+/** Max accepted avatar upload size, in bytes. */
+export const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB

@@ -50,7 +50,14 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 }
 
 const defaultResponse = {
-  me: { id: 'user-1', email: 'test@example.com', name: null, timezone: null, targetRole: null },
+  me: {
+    id: 'user-1',
+    email: 'test@example.com',
+    name: null,
+    timezone: null,
+    targetRole: null,
+    avatarUrl: null,
+  },
   sessions: [
     {
       id: 'session-1',
@@ -205,10 +212,10 @@ describe('AccountPage', () => {
   });
 
   describe('email update form', () => {
-    it('calls updateEmail mutation with current password and new email', async () => {
+    it('calls requestEmailChange mutation with current password and new email', async () => {
       render(<AccountPage />, { wrapper: Wrapper });
       await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
-      mockGqlRequest.mockResolvedValue({ updateEmail: true });
+      mockGqlRequest.mockResolvedValue({ requestEmailChange: true });
 
       const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
       const form = updateEmailBtn.closest('form')!;
@@ -220,7 +227,7 @@ describe('AccountPage', () => {
       fireEvent.click(updateEmailBtn);
 
       await waitFor(() => {
-        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('UpdateEmail'), {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RequestEmailChange'), {
           currentPassword: 'mypassword',
           newEmail: 'new@example.com',
         });
@@ -246,6 +253,109 @@ describe('AccountPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Email already in use')).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('avatar', () => {
+    const selectAvatarFile = (name = 'me.png', type = 'image/png') => {
+      const file = new File(['fake-image-bytes'], name, { type });
+      const section = screen.getByText('Profile').closest('section')!;
+      const input = section.querySelector('input[type="file"]') as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [file] } });
+    };
+
+    it('uploads a photo via requestAvatarUploadUrl then confirmAvatar', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+      vi.stubGlobal('fetch', mockFetch);
+
+      mockGqlRequest.mockImplementation((query: unknown) => {
+        if (typeof query === 'string' && query.includes('RequestAvatarUploadUrl')) {
+          return Promise.resolve({
+            requestAvatarUploadUrl: {
+              uploadUrl: 'https://storage.example.com/upload',
+              storageKey: 'users/user-1/avatar/key.png',
+            },
+          });
+        }
+        if (typeof query === 'string' && query.includes('ConfirmAvatar')) {
+          return Promise.resolve({ confirmAvatar: 'https://cdn.example.com/avatar.png' });
+        }
+        return Promise.resolve(defaultResponse);
+      });
+
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() =>
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Me')),
+      );
+
+      selectAvatarFile();
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('RequestAvatarUploadUrl'),
+          { filename: 'me.png', mimeType: 'image/png' },
+        );
+      });
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://storage.example.com/upload',
+        expect.objectContaining({ method: 'PUT' }),
+      );
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('ConfirmAvatar'), {
+          storageKey: 'users/user-1/avatar/key.png',
+          mimeType: 'image/png',
+          sizeBytes: expect.any(Number) as number,
+        });
+      });
+
+      vi.unstubAllGlobals();
+    });
+
+    it('shows an error message when the upload fails', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+      mockGqlRequest.mockImplementation((query: unknown) => {
+        if (typeof query === 'string' && query.includes('RequestAvatarUploadUrl')) {
+          return Promise.reject({ response: { errors: [{ message: 'Unsupported file type' }] } });
+        }
+        return Promise.resolve(defaultResponse);
+      });
+
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() =>
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Me')),
+      );
+
+      selectAvatarFile();
+
+      await waitFor(() => {
+        expect(screen.getByText('Unsupported file type')).toBeInTheDocument();
+      });
+
+      vi.unstubAllGlobals();
+    });
+
+    it('calls removeAvatar when Remove is clicked', async () => {
+      mockGqlRequest.mockResolvedValue({
+        ...defaultResponse,
+        me: { ...defaultResponse.me, avatarUrl: 'https://cdn.example.com/avatar.png' },
+      });
+
+      render(<AccountPage />, { wrapper: Wrapper });
+      const removeBtn = await screen.findByRole('button', { name: /remove/i });
+      fireEvent.click(removeBtn);
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RemoveAvatar'));
+      });
+    });
+
+    it('does not show a Remove button when there is no avatar', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() =>
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Me')),
+      );
+
+      expect(screen.queryByRole('button', { name: /remove/i })).not.toBeInTheDocument();
     });
   });
 
@@ -589,7 +699,8 @@ describe('AccountPage', () => {
   describe('data import', () => {
     const selectFile = (content: string, name = 'export.json') => {
       const file = new File([content], name, { type: 'application/json' });
-      const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+      const section = screen.getByText('Import your data').closest('section')!;
+      const input = section.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [file] } });
     };
 

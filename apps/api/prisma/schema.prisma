@@ -16,6 +16,7 @@ model User {
   timezone                 String?
   targetRole               String?
   emailVerifiedAt          DateTime?
+  avatarKey                String?
   weeklyDigestEnabled      Boolean                  @default(true)
   lastDigestSentAt         DateTime?
   followUpRemindersEnabled Boolean                  @default(true)
@@ -86,6 +87,8 @@ model EmailVerificationToken {
   id        String    @id
   userId    String
   tokenHash String    @unique
+  /// Set only for email-change confirmation tokens; null for plain registration-verification tokens.
+  newEmail  String?
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())

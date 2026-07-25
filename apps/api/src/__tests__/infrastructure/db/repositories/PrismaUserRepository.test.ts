@@ -68,6 +68,11 @@ describe('PrismaUserRepository', () => {
       expect(user.name).toBe('Jeff Man');
       expect(user.emailVerifiedAt).toEqual(verifiedAt);
     });
+
+    it('defaults avatarKey to null', async () => {
+      const user = await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      expect(user.avatarKey).toBeNull();
+    });
   });
 
   describe('findById', () => {
@@ -205,6 +210,15 @@ describe('PrismaUserRepository', () => {
       const updated = await repo.update('u1', { name: null });
 
       expect(updated.name).toBeNull();
+    });
+
+    it('sets and clears avatarKey', async () => {
+      await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      const withAvatar = await repo.update('u1', { avatarKey: 'users/u1/avatar/key.png' });
+      expect(withAvatar.avatarKey).toBe('users/u1/avatar/key.png');
+
+      const cleared = await repo.update('u1', { avatarKey: null });
+      expect(cleared.avatarKey).toBeNull();
     });
   });
 

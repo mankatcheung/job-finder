@@ -7,11 +7,15 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import bcrypt from 'bcryptjs';
-import { UpdateEmailUseCase } from '@/use-cases/user/UpdateEmailUseCase.js';
+import { RequestEmailChangeUseCase } from '@/use-cases/user/RequestEmailChangeUseCase.js';
 import { UpdatePasswordUseCase } from '@/use-cases/user/UpdatePasswordUseCase.js';
 import { DeleteAccountUseCase } from '@/use-cases/user/DeleteAccountUseCase.js';
-import { makeUserRepository, makeUser } from '@/__tests__/helpers/mocks.js';
-import type { ISendEmailVerificationUseCase } from '@/use-cases/auth/ISendEmailVerificationUseCase.js';
+import {
+  makeUserRepository,
+  makeUser,
+  makeEmailVerificationTokenRepository,
+} from '@/__tests__/helpers/mocks.js';
+import type { IEmailService } from '@/use-cases/ports/IEmailService.js';
 
 vi.mock('bcryptjs', () => ({
   default: {
@@ -23,9 +27,25 @@ vi.mock('bcryptjs', () => ({
 const WRONG_PW = false as never;
 const RIGHT_PW = true as never;
 
-const sendEmailVerificationUseCase: ISendEmailVerificationUseCase = {
-  execute: vi.fn().mockResolvedValue(undefined),
+const emailService: IEmailService = {
+  sendFollowUpReminder: vi.fn().mockResolvedValue(undefined),
+  sendWeeklyDigest: vi.fn().mockResolvedValue(undefined),
+  sendPasswordReset: vi.fn().mockResolvedValue(undefined),
+  sendEmailVerification: vi.fn().mockResolvedValue(undefined),
 };
+
+const emailVerificationTokenRepository = makeEmailVerificationTokenRepository();
+
+const makeEmailChangeDeps = (overrides?: {
+  userRepository: ReturnType<typeof makeUserRepository>;
+}) => ({
+  userRepository: makeUserRepository(),
+  emailVerificationTokenRepository,
+  emailService,
+  generateId: vi.fn().mockReturnValue('token-1'),
+  webAppOrigin: 'https://app.example.com',
+  ...overrides,
+});
 
 describe('Authorization guards', () => {
   beforeEach(() => {
@@ -35,11 +55,10 @@ describe('Authorization guards', () => {
   describe('all protected mutations reject missing users with NOT_FOUND', () => {
     const notFound = makeUserRepository({ findById: vi.fn().mockResolvedValue(null) });
 
-    it('UpdateEmailUseCase', async () => {
-      const err = await new UpdateEmailUseCase({
-        userRepository: notFound,
-        sendEmailVerificationUseCase,
-      })
+    it('RequestEmailChangeUseCase', async () => {
+      const err = await new RequestEmailChangeUseCase(
+        makeEmailChangeDeps({ userRepository: notFound }),
+      )
         .execute({ userId: 'x', currentPassword: 'p', newEmail: 'e@e.com' })
         .catch((e) => e);
       expect((err as { code: string }).code).toBe('NOT_FOUND');
@@ -68,16 +87,13 @@ describe('Authorization guards', () => {
       vi.mocked(bcrypt.compare).mockResolvedValue(WRONG_PW);
     });
 
-    it('UpdateEmailUseCase does not update on wrong password', async () => {
-      const err = await new UpdateEmailUseCase({
-        userRepository: repo,
-        sendEmailVerificationUseCase,
-      })
+    it('RequestEmailChangeUseCase does not send a confirmation on wrong password', async () => {
+      const err = await new RequestEmailChangeUseCase(makeEmailChangeDeps({ userRepository: repo }))
         .execute({ userId: 'user-1', currentPassword: 'wrong', newEmail: 'e@e.com' })
         .catch((e) => e);
 
       expect((err as { code: string }).code).toBe('UNAUTHORIZED');
-      expect(repo.update).not.toHaveBeenCalled();
+      expect(emailService.sendEmailVerification).not.toHaveBeenCalled();
     });
 
     it('UpdatePasswordUseCase does not hash or update on wrong password', async () => {
@@ -101,23 +117,25 @@ describe('Authorization guards', () => {
   });
 
   describe('all protected mutations proceed on correct password', () => {
-    it('UpdateEmailUseCase calls update on correct password', async () => {
+    it('RequestEmailChangeUseCase sends a confirmation on correct password', async () => {
       const user = makeUser();
       const repo = makeUserRepository({
         findById: vi.fn().mockResolvedValue(user),
         findByEmail: vi.fn().mockResolvedValue(null),
-        update: vi.fn().mockResolvedValue(user),
       });
       vi.mocked(bcrypt.compare).mockResolvedValue(RIGHT_PW);
 
       await expect(
-        new UpdateEmailUseCase({ userRepository: repo, sendEmailVerificationUseCase }).execute({
+        new RequestEmailChangeUseCase(makeEmailChangeDeps({ userRepository: repo })).execute({
           userId: 'user-1',
           currentPassword: 'correct',
           newEmail: 'new@example.com',
         }),
       ).resolves.toBeUndefined();
-      expect(repo.update).toHaveBeenCalledOnce();
+      expect(emailService.sendEmailVerification).toHaveBeenCalledWith(
+        'new@example.com',
+        expect.stringContaining('/confirm-email-change?token='),
+      );
     });
 
     it('DeleteAccountUseCase calls delete on correct password', async () => {

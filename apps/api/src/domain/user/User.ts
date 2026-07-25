@@ -7,6 +7,7 @@ export interface User {
   timezone: string | null;
   targetRole: string | null;
   emailVerifiedAt: Date | null;
+  avatarKey: string | null;
   weeklyDigestEnabled: boolean;
   lastDigestSentAt: Date | null;
   followUpRemindersEnabled: boolean;

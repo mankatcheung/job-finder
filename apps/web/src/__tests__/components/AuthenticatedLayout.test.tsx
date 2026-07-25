@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const { mockNavigate, mockGqlRequest } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
-  mockGqlRequest: vi.fn(),
+  mockGqlRequest: vi.fn().mockResolvedValue({ me: { avatarUrl: null } }),
 }));
 
 vi.mock('@tanstack/react-router', () => ({
@@ -34,8 +35,14 @@ vi.mock('#/lib/queryClient', () => ({
 import { ThemeProvider } from '#/lib/theme';
 import { AuthenticatedLayout } from '#/routes/_authenticated/route';
 
+const makeClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
 function Wrapper({ children }: { children: React.ReactNode }) {
-  return <ThemeProvider>{children}</ThemeProvider>;
+  return (
+    <ThemeProvider>
+      <QueryClientProvider client={makeClient()}>{children}</QueryClientProvider>
+    </ThemeProvider>
+  );
 }
 
 describe('AuthenticatedLayout', () => {
@@ -75,6 +82,18 @@ describe('AuthenticatedLayout', () => {
     await waitFor(() => {
       expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('logout'));
       expect(mockNavigate).toHaveBeenCalledWith({ to: '/login' });
+    });
+  });
+
+  it('shows the avatar image in the Account nav item when one is set', async () => {
+    mockGqlRequest.mockResolvedValue({ me: { avatarUrl: 'https://cdn.example.com/avatar.png' } });
+    render(<AuthenticatedLayout />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      const images = screen.getAllByAltText('Your avatar');
+      expect(
+        images.some((img) => img.getAttribute('src') === 'https://cdn.example.com/avatar.png'),
+      ).toBe(true);
     });
   });
 });
