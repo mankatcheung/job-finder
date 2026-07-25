@@ -221,7 +221,7 @@ export const LLM = {
  * @see https://axiom.co/docs/send-data/opentelemetry
  */
 export const AXIOM = {
-  API_URL: 'https://api.axiom.co',
+  API_URL: 'https://eu-central-1.aws.edge.axiom.co',
   TRACES_PATH: '/v1/traces',
   METRICS_PATH: '/v1/metrics',
   /** Header carrying the dataset name for logs and traces. */
