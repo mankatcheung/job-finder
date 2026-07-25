@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   createFileRoute,
   Outlet,
@@ -10,12 +11,13 @@ import { isAuthenticated, getIsAuthenticated } from '#/lib/auth';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { useTheme, type Theme } from '#/lib/theme';
-import { useHotkeys } from '#/hooks/useHotkeys';
+import { useHotkeys, getKeyModifier } from '#/hooks/useHotkeys';
 import { CommandPalette } from '#/components/CommandPalette';
 import { ShortcutCheatSheet } from '#/components/ShortcutCheatSheet';
 import {
   BarChart2Icon,
   BriefcaseIcon,
+  KeyboardIcon,
   LayoutDashboardIcon,
   LogOutIcon,
   MonitorIcon,
@@ -81,6 +83,7 @@ export const Route = createFileRoute('/_authenticated')({
 export function AuthenticatedLayout() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   const { data: avatarData } = useQuery({
     queryKey: ['me', 'avatarUrl'],
@@ -98,10 +101,21 @@ export function AuthenticatedLayout() {
     navigate({ to: '/applications/new' });
   });
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+        e.preventDefault();
+        setShortcutsOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
       <CommandPalette />
-      <ShortcutCheatSheet />
+      <ShortcutCheatSheet isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
 
       {/* Mobile top header */}
       <header className="lg:hidden fixed top-0 inset-x-0 z-40 h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4">
@@ -155,7 +169,18 @@ export function AuthenticatedLayout() {
           />
         </div>
 
-        <div className="px-3 py-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="px-3 py-4 border-t border-gray-200 dark:border-gray-700 space-y-1">
+          <button
+            onClick={() => setShortcutsOpen(true)}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            title="Show keyboard shortcuts"
+          >
+            <KeyboardIcon size={18} />
+            Shortcuts
+            <kbd className="ml-auto text-[10px] text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded font-mono">
+              {getKeyModifier()}+/
+            </kbd>
+          </button>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
