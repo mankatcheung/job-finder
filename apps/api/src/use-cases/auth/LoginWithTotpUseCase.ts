@@ -6,6 +6,7 @@ import type { ITotpBackupCodeRepository } from '@/use-cases/ports/ITotpBackupCod
 import type { IRateLimiter } from '@/use-cases/ports/IRateLimiter.js';
 import type { ITotpProvider } from '@/use-cases/ports/ITotpProvider.js';
 import { ERROR_CODES } from '@/constants.js';
+import { assertHasPassword } from '@/use-cases/auth/passwordHashGuard.js';
 import type {
   ILoginWithTotpUseCase,
   LoginWithTotpInput,
@@ -27,6 +28,7 @@ export class LoginWithTotpUseCase implements ILoginWithTotpUseCase {
       throw Object.assign(new Error('Invalid credentials'), { code: ERROR_CODES.UNAUTHORIZED });
     }
 
+    assertHasPassword(user.passwordHash);
     const validPassword = await bcrypt.compare(input.password, user.passwordHash);
     if (!validPassword) {
       throw Object.assign(new Error('Invalid credentials'), { code: ERROR_CODES.UNAUTHORIZED });

@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
 import { isAuthenticated, getIsAuthenticated } from '#/lib/auth';
 import { queryClient } from '#/lib/queryClient';
+import { OAuthButtons } from '#/components/OAuthButtons';
 
 const schema = z.object({
   email: z.string().email('Invalid email'),
@@ -36,7 +37,10 @@ const LOGIN_WITH_TOTP_MUTATION = `
   }
 `;
 
+const searchSchema = z.object({ oauthError: z.string().optional() });
+
 export const Route = createFileRoute('/login')({
+  validateSearch: searchSchema,
   beforeLoad: async () => {
     const authed = typeof window !== 'undefined' ? isAuthenticated() : await getIsAuthenticated();
     if (authed) throw redirect({ to: '/dashboard' });
@@ -46,6 +50,7 @@ export const Route = createFileRoute('/login')({
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const { oauthError } = Route.useSearch();
   const [pendingCredentials, setPendingCredentials] = useState<FormValues | null>(null);
 
   const {
@@ -90,6 +95,12 @@ export function LoginPage() {
             </a>
           </p>
         </div>
+
+        {oauthError && (
+          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+            {oauthError}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
@@ -139,6 +150,8 @@ export function LoginPage() {
             {isSubmitting ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
+
+        <OAuthButtons label="Sign in" />
       </div>
     </div>
   );

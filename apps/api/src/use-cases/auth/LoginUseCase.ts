@@ -3,6 +3,7 @@ import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import type { ILoginEventRepository } from '@/use-cases/ports/ILoginEventRepository.js';
 import type { ILoginUseCase, LoginInput, LoginOutput } from '@/use-cases/auth/ILoginUseCase.js';
 import { ERROR_CODES } from '@/constants.js';
+import { assertHasPassword } from '@/use-cases/auth/passwordHashGuard.js';
 
 interface Deps {
   userRepository: IUserRepository;
@@ -18,6 +19,7 @@ export class LoginUseCase implements ILoginUseCase {
     if (!user) {
       throw Object.assign(new Error('Invalid credentials'), { code: ERROR_CODES.UNAUTHORIZED });
     }
+    assertHasPassword(user.passwordHash);
 
     const valid = await bcrypt.compare(input.password, user.passwordHash);
     if (!valid) {

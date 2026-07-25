@@ -9,7 +9,7 @@ const { mockNavigate, mockGqlRequest, mockClearAuthIndicator } = vi.hoisted(() =
 }));
 
 vi.mock('@tanstack/react-router', () => ({
-  createFileRoute: () => (opts: unknown) => opts,
+  createFileRoute: () => (opts: object) => ({ ...opts, useSearch: () => ({}) }),
   useNavigate: () => mockNavigate,
   redirect: vi.fn(),
 }));
@@ -63,6 +63,7 @@ const defaultResponse = {
   notificationPreferences: { weeklyDigestEnabled: true, followUpRemindersEnabled: true },
   loginHistory: [],
   totpEnabled: false,
+  linkedOAuthAccounts: [],
 };
 
 describe('AccountPage', () => {
@@ -676,6 +677,54 @@ describe('AccountPage', () => {
         expect(screen.getByText('Invalid password')).toBeInTheDocument();
       });
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('linked accounts', () => {
+    it('shows both providers as not linked, with a Link link to the start route', async () => {
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+
+      const links = screen.getAllByRole('link', { name: /^link$/i });
+      const hrefs = links.map((l) => l.getAttribute('href')).sort();
+      expect(hrefs).toEqual([
+        '/auth/oauth/github/start?mode=link',
+        '/auth/oauth/google/start?mode=link',
+      ]);
+    });
+
+    it('shows a linked provider with its email and an Unlink button', async () => {
+      mockGqlRequest.mockResolvedValue({
+        ...defaultResponse,
+        linkedOAuthAccounts: [
+          { provider: 'google', email: 'jeff@example.com', createdAt: '2024-01-01T00:00:00.000Z' },
+        ],
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('jeff@example.com')).toBeInTheDocument();
+      });
+      expect(screen.getByRole('button', { name: /unlink/i })).toBeInTheDocument();
+    });
+
+    it('calls unlinkOAuthAccount when Unlink is clicked', async () => {
+      mockGqlRequest.mockResolvedValue({
+        ...defaultResponse,
+        linkedOAuthAccounts: [
+          { provider: 'google', email: 'jeff@example.com', createdAt: '2024-01-01T00:00:00.000Z' },
+        ],
+      });
+      render(<AccountPage />, { wrapper: Wrapper });
+      await waitFor(() => screen.getByRole('button', { name: /unlink/i }));
+
+      fireEvent.click(screen.getByRole('button', { name: /unlink/i }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('UnlinkOAuthAccount'), {
+          provider: 'google',
+        });
+      });
     });
   });
 });

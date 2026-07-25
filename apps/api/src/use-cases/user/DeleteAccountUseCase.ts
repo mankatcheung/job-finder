@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import { ERROR_CODES } from '@/constants.js';
+import { assertHasPassword } from '@/use-cases/auth/passwordHashGuard.js';
 import type {
   IDeleteAccountUseCase,
   DeleteAccountInput,
@@ -16,6 +17,7 @@ export class DeleteAccountUseCase implements IDeleteAccountUseCase {
   async execute(input: DeleteAccountInput): Promise<void> {
     const user = await this.deps.userRepository.findById(input.userId);
     if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    assertHasPassword(user.passwordHash);
 
     const valid = await bcrypt.compare(input.password, user.passwordHash);
     if (!valid)

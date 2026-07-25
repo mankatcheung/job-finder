@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import type { ISendEmailVerificationUseCase } from '@/use-cases/auth/ISendEmailVerificationUseCase.js';
 import { ERROR_CODES } from '@/constants.js';
+import { assertHasPassword } from '@/use-cases/auth/passwordHashGuard.js';
 import type {
   IUpdateEmailUseCase,
   UpdateEmailInput,
@@ -18,6 +19,7 @@ export class UpdateEmailUseCase implements IUpdateEmailUseCase {
   async execute(input: UpdateEmailInput): Promise<void> {
     const user = await this.deps.userRepository.findById(input.userId);
     if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    assertHasPassword(user.passwordHash);
 
     const valid = await bcrypt.compare(input.currentPassword, user.passwordHash);
     if (!valid)

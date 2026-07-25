@@ -5,7 +5,9 @@ import './types/enums/ApplicationStatusEnum.js';
 import './types/enums/InterviewRoundEnums.js';
 import './types/enums/ActivityEventTypeEnum.js';
 import './types/enums/ApiTokenScopeEnum.js';
+import './types/enums/OAuthProviderEnum.js';
 import './types/UserType.js';
+import './types/LinkedOAuthAccountType.js';
 import './types/ApplicationType.js';
 import './types/ApplicationConnectionType.js';
 import './types/NoteType.js';
@@ -38,6 +40,7 @@ import './queries/contactQueries.js';
 import './queries/healthScoreQueries.js';
 import './queries/loginEventQueries.js';
 import './queries/sessionQueries.js';
+import './queries/oauthQueries.js';
 
 // Mutations
 import './mutations/authMutations.js';
@@ -51,5 +54,6 @@ import './mutations/contactMutations.js';
 import './mutations/jobDescriptionMutations.js';
 import './mutations/coverLetterMutations.js';
 import './mutations/sessionMutations.js';
+import './mutations/oauthMutations.js';
 
 export const schema = builder.toSchema();

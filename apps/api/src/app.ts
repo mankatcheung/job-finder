@@ -8,6 +8,7 @@ import corsPlugin from '@/http/plugins/cors.plugin.js';
 import remindersPlugin from '@/http/plugins/reminders.plugin.js';
 import digestPlugin from '@/http/plugins/digest.plugin.js';
 import mcpPlugin from '@/http/plugins/mcp.plugin.js';
+import oauthPlugin from '@/http/plugins/oauth.plugin.js';
 import { buildContainer } from '@/http/container.js';
 import { schema } from '@/http/schema/index.js';
 import { formatError } from '@/http/errors/formatError.js';
@@ -50,6 +51,7 @@ export async function buildApp() {
   await fastify.register(remindersPlugin);
   await fastify.register(digestPlugin);
   await fastify.register(mcpPlugin);
+  await fastify.register(oauthPlugin);
 
   await fastify.register(mercurius, {
     schema,

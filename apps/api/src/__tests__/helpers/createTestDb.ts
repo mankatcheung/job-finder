@@ -8,7 +8,7 @@ const SCHEMA_STATEMENTS = [
   `CREATE TABLE "User" (
     "id" TEXT PRIMARY KEY,
     "email" TEXT NOT NULL UNIQUE,
-    "passwordHash" TEXT NOT NULL,
+    "passwordHash" TEXT,
     "name" TEXT,
     "timezone" TEXT,
     "targetRole" TEXT,
@@ -171,6 +171,17 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "PasswordResetToken_userId_idx" ON "PasswordResetToken"("userId")`,
+  `CREATE TABLE "OAuthAccount" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "provider" TEXT NOT NULL,
+    "providerAccountId" TEXT NOT NULL,
+    "email" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "OAuthAccount_userId_idx" ON "OAuthAccount"("userId")`,
+  `CREATE UNIQUE INDEX "OAuthAccount_provider_providerAccountId_key" ON "OAuthAccount"("provider", "providerAccountId")`,
 ];
 
 export interface TestDb {

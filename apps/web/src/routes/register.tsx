@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
 import { isAuthenticated, getIsAuthenticated } from '#/lib/auth';
 import { queryClient } from '#/lib/queryClient';
+import { OAuthButtons } from '#/components/OAuthButtons';
 
 const schema = z
   .object({
@@ -125,6 +126,8 @@ export function RegisterPage() {
             {isSubmitting ? 'Creating account…' : 'Create account'}
           </button>
         </form>
+
+        <OAuthButtons label="Sign up" />
       </div>
     </div>
   );

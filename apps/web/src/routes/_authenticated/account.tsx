@@ -10,7 +10,13 @@ import { clearAuthIndicator } from '#/lib/auth';
 import { queryClient } from '#/lib/queryClient';
 import { useTheme, type Theme } from '#/lib/theme';
 
+const searchSchema = z.object({
+  oauthLinked: z.string().optional(),
+  oauthError: z.string().optional(),
+});
+
 export const Route = createFileRoute('/_authenticated/account')({
+  validateSearch: searchSchema,
   component: AccountPage,
 });
 
@@ -152,6 +158,22 @@ const DISABLE_TOTP = `
   }
 `;
 
+const LINKED_OAUTH_ACCOUNTS_QUERY = `
+  query LinkedOAuthAccounts {
+    linkedOAuthAccounts {
+      provider
+      email
+      createdAt
+    }
+  }
+`;
+
+const UNLINK_OAUTH_ACCOUNT = `
+  mutation UnlinkOAuthAccount($provider: OAuthProvider!) {
+    unlinkOAuthAccount(provider: $provider)
+  }
+`;
+
 // ── Schemas ────────────────────────────────────────────────────────────────
 
 const profileSchema = z.object({
@@ -247,6 +269,17 @@ type NotificationPreferences = {
   followUpRemindersEnabled: boolean;
 };
 
+type LinkedOAuthAccount = {
+  provider: 'google' | 'github';
+  email: string | null;
+  createdAt: string;
+};
+
+const OAUTH_PROVIDER_LABEL: Record<LinkedOAuthAccount['provider'], string> = {
+  google: 'Google',
+  github: 'GitHub',
+};
+
 // ── Input styles ───────────────────────────────────────────────────────────
 
 const inputCls =
@@ -282,6 +315,25 @@ export function AccountPage() {
   const onRevokeOtherSessions = async () => {
     await gqlClient.request(REVOKE_OTHER_SESSIONS);
     await qc.invalidateQueries({ queryKey: ['sessions'] });
+  };
+
+  // Linked OAuth accounts
+  const { oauthLinked, oauthError: oauthErrorParam } = Route.useSearch();
+  const { data: linkedAccountsData } = useQuery({
+    queryKey: ['linkedOAuthAccounts'],
+    queryFn: () =>
+      gqlClient.request<{ linkedOAuthAccounts: LinkedOAuthAccount[] }>(LINKED_OAUTH_ACCOUNTS_QUERY),
+  });
+  const linkedAccounts = linkedAccountsData?.linkedOAuthAccounts ?? [];
+  const [unlinkError, setUnlinkError] = useState<string | null>(null);
+  const onUnlink = async (provider: LinkedOAuthAccount['provider']) => {
+    setUnlinkError(null);
+    try {
+      await gqlClient.request(UNLINK_OAUTH_ACCOUNT, { provider });
+      await qc.invalidateQueries({ queryKey: ['linkedOAuthAccounts'] });
+    } catch (err) {
+      setUnlinkError(extractGqlError(err) ?? 'Failed to unlink account.');
+    }
   };
 
   const timezoneOptions = useMemo(() => {
@@ -728,6 +780,72 @@ export function AccountPage() {
             {passwordForm.formState.isSubmitting ? 'Saving…' : 'Update password'}
           </button>
         </form>
+      </section>
+
+      <hr className="border-gray-200 dark:border-gray-700" />
+
+      {/* ── Linked accounts ── */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            Linked accounts
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Sign in faster by linking a provider to your account.
+          </p>
+        </div>
+        {oauthLinked && (
+          <p className="text-sm text-green-600">
+            {OAUTH_PROVIDER_LABEL[oauthLinked as LinkedOAuthAccount['provider']] ?? oauthLinked}{' '}
+            linked successfully.
+          </p>
+        )}
+        {oauthErrorParam && (
+          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+            {oauthErrorParam}
+          </p>
+        )}
+        {unlinkError && (
+          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+            {unlinkError}
+          </p>
+        )}
+        <div className="space-y-2">
+          {(['google', 'github'] as const).map((provider) => {
+            const linked = linkedAccounts.find((a) => a.provider === provider);
+            return (
+              <div
+                key={provider}
+                className="flex items-center justify-between px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg"
+              >
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {OAUTH_PROVIDER_LABEL[provider]}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {linked ? (linked.email ?? 'Linked') : 'Not linked'}
+                  </p>
+                </div>
+                {linked ? (
+                  <button
+                    type="button"
+                    onClick={() => onUnlink(provider)}
+                    className="text-sm text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
+                  >
+                    Unlink
+                  </button>
+                ) : (
+                  <a
+                    href={`/auth/oauth/${provider}/start?mode=link`}
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    Link
+                  </a>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       <hr className="border-gray-200 dark:border-gray-700" />

@@ -108,4 +108,23 @@ describe('LoginUseCase', () => {
     expect((err as { code: string }).code).toBe('UNAUTHORIZED');
     expect(loginEventRepository.create).not.toHaveBeenCalled();
   });
+
+  it('throws UNAUTHORIZED (not a bcrypt crash) for an OAuth-only account with no password', async () => {
+    const loginEventRepository = makeLoginEventRepository();
+    const deps = makeDeps({
+      userRepository: makeUserRepository({
+        findByEmail: vi.fn().mockResolvedValue(makeUser({ passwordHash: null })),
+      }),
+      loginEventRepository,
+    });
+
+    const useCase = new LoginUseCase(deps);
+    const err = await useCase
+      .execute({ email: 'test@example.com', password: 'anything' })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('UNAUTHORIZED');
+    expect(vi.mocked(bcrypt.compare)).not.toHaveBeenCalled();
+    expect(loginEventRepository.create).not.toHaveBeenCalled();
+  });
 });

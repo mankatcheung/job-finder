@@ -2,13 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-const { mockNavigate, mockGqlRequest } = vi.hoisted(() => ({
+const { mockNavigate, mockGqlRequest, mockUseSearch } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockGqlRequest: vi.fn(),
+  mockUseSearch: vi.fn().mockReturnValue({}),
 }));
 
 vi.mock('@tanstack/react-router', () => ({
-  createFileRoute: () => (opts: unknown) => opts,
+  createFileRoute: () => (opts: object) => ({ ...opts, useSearch: mockUseSearch }),
   useNavigate: () => mockNavigate,
   redirect: vi.fn(),
 }));
@@ -43,6 +44,7 @@ async function fillCredentials(email: string, password: string) {
 describe('LoginPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseSearch.mockReturnValue({});
   });
 
   it('renders email and password inputs', () => {
@@ -193,5 +195,22 @@ describe('LoginPage', () => {
 
       expect(screen.getByPlaceholderText('you@example.com')).toBeInTheDocument();
     });
+  });
+
+  it('renders links to sign in with Google and GitHub', () => {
+    render(<LoginPage />);
+
+    const google = screen.getByRole('link', { name: /sign in with google/i });
+    const github = screen.getByRole('link', { name: /sign in with github/i });
+
+    expect(google).toHaveAttribute('href', '/auth/oauth/google/start');
+    expect(github).toHaveAttribute('href', '/auth/oauth/github/start');
+  });
+
+  it('shows an error banner when redirected back with an oauthError param', () => {
+    mockUseSearch.mockReturnValue({ oauthError: 'provider_mismatch' });
+    render(<LoginPage />);
+
+    expect(screen.getByText('provider_mismatch')).toBeInTheDocument();
   });
 });
