@@ -204,10 +204,10 @@ describe('AccountPage', () => {
   });
 
   describe('email update form', () => {
-    it('calls updateEmail mutation with current password and new email', async () => {
+    it('calls requestEmailChange mutation with current password and new email', async () => {
       render(<AccountPage />, { wrapper: Wrapper });
       await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
-      mockGqlRequest.mockResolvedValue({ updateEmail: true });
+      mockGqlRequest.mockResolvedValue({ requestEmailChange: true });
 
       const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
       const form = updateEmailBtn.closest('form')!;
@@ -219,7 +219,7 @@ describe('AccountPage', () => {
       fireEvent.click(updateEmailBtn);
 
       await waitFor(() => {
-        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('UpdateEmail'), {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RequestEmailChange'), {
           currentPassword: 'mypassword',
           newEmail: 'new@example.com',
         });

@@ -7,6 +7,7 @@ type PrismaEmailVerificationToken = {
   id: string;
   userId: string;
   tokenHash: string;
+  newEmail: string | null;
   expiresAt: Date;
   usedAt: Date | null;
   createdAt: Date;
@@ -27,6 +28,7 @@ export class PrismaEmailVerificationTokenRepository implements IEmailVerificatio
     id: string;
     userId: string;
     tokenHash: string;
+    newEmail?: string;
     expiresAt: Date;
   }): Promise<EmailVerificationToken> {
     const row = await this.db.emailVerificationToken.create({ data });
@@ -54,6 +56,7 @@ export class PrismaEmailVerificationTokenRepository implements IEmailVerificatio
       id: row.id,
       userId: row.userId,
       tokenHash: row.tokenHash,
+      newEmail: row.newEmail,
       expiresAt: row.expiresAt,
       usedAt: row.usedAt,
       createdAt: row.createdAt,

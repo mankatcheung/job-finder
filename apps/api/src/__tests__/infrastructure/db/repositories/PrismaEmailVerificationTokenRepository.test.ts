@@ -37,6 +37,22 @@ describe('PrismaEmailVerificationTokenRepository', () => {
       expect(token.expiresAt).toEqual(expiresAt);
       expect(token.usedAt).toBeNull();
       expect(token.createdAt).toBeInstanceOf(Date);
+      expect(token.newEmail).toBeNull();
+    });
+
+    it('persists newEmail when creating an email-change confirmation token', async () => {
+      const token = await repo.create({
+        id: 'verify-2',
+        userId: 'user-1',
+        tokenHash: 'hash-2',
+        newEmail: 'new@example.com',
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      });
+
+      expect(token.newEmail).toBe('new@example.com');
+
+      const found = await repo.findByTokenHash('hash-2');
+      expect(found?.newEmail).toBe('new@example.com');
     });
   });
 

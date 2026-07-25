@@ -146,6 +146,7 @@ const SCHEMA_STATEMENTS = [
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,
     "tokenHash" TEXT NOT NULL UNIQUE,
+    "newEmail" TEXT,
     "expiresAt" DATETIME NOT NULL,
     "usedAt" DATETIME,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
