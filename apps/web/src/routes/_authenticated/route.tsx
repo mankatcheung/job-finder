@@ -5,6 +5,7 @@ import {
   useNavigate,
   useRouterState,
 } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import { isAuthenticated, getIsAuthenticated } from '#/lib/auth';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
@@ -47,6 +48,27 @@ function ThemeToggleButton({ className = '' }: { className?: string }) {
 }
 
 const LOGOUT_MUTATION = `mutation { logout }`;
+const AVATAR_QUERY = `query AccountAvatar { me { avatarUrl } }`;
+
+function AccountAvatarIcon({
+  avatarUrl,
+  size,
+}: {
+  avatarUrl: string | null | undefined;
+  size: number;
+}) {
+  if (avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt="Your avatar"
+        className="rounded-full object-cover"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  return <UserIcon size={size} />;
+}
 
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async () => {
@@ -59,6 +81,12 @@ export const Route = createFileRoute('/_authenticated')({
 export function AuthenticatedLayout() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  const { data: avatarData } = useQuery({
+    queryKey: ['me', 'avatarUrl'],
+    queryFn: () => gqlClient.request<{ me: { avatarUrl: string | null } | null }>(AVATAR_QUERY),
+  });
+  const avatarUrl = avatarData?.me?.avatarUrl;
 
   const handleLogout = async () => {
     await gqlClient.request(LOGOUT_MUTATION);
@@ -121,7 +149,7 @@ export function AuthenticatedLayout() {
         <div className="px-3 pb-2 space-y-1">
           <NavItem
             to="/account"
-            icon={<UserIcon size={18} />}
+            icon={<AccountAvatarIcon avatarUrl={avatarUrl} size={18} />}
             label="Account"
             active={pathname.startsWith('/account')}
           />
@@ -164,7 +192,7 @@ export function AuthenticatedLayout() {
         />
         <BottomNavItem
           to="/account"
-          icon={<UserIcon size={20} />}
+          icon={<AccountAvatarIcon avatarUrl={avatarUrl} size={20} />}
           label="Account"
           active={pathname.startsWith('/account')}
         />

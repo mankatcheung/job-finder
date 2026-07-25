@@ -27,7 +27,14 @@ import type {
 import type { IUpdateNotificationPreferencesUseCase } from '@/use-cases/user/IUpdateNotificationPreferencesUseCase.js';
 import type { IUpdateProfileUseCase } from '@/use-cases/user/IUpdateProfileUseCase.js';
 import type { IGetUserUseCase } from '@/use-cases/user/IGetUserUseCase.js';
-import type { User } from '@/domain/user/User.js';
+import type {
+  IRequestAvatarUploadUrlUseCase,
+  RequestAvatarUploadUrlOutput,
+} from '@/use-cases/user/IRequestAvatarUploadUrlUseCase.js';
+import type { IConfirmAvatarUseCase } from '@/use-cases/user/IConfirmAvatarUseCase.js';
+import type { IRemoveAvatarUseCase } from '@/use-cases/user/IRemoveAvatarUseCase.js';
+import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
+import { UserMapper, type UserDTO } from '@/interface-adapters/mappers/UserMapper.js';
 
 interface Deps {
   requestEmailChangeUseCase: IRequestEmailChangeUseCase;
@@ -44,6 +51,11 @@ interface Deps {
   updateNotificationPreferencesUseCase: IUpdateNotificationPreferencesUseCase;
   updateProfileUseCase: IUpdateProfileUseCase;
   getUserUseCase: IGetUserUseCase;
+  requestAvatarUploadUrlUseCase: IRequestAvatarUploadUrlUseCase;
+  confirmAvatarUseCase: IConfirmAvatarUseCase;
+  removeAvatarUseCase: IRemoveAvatarUseCase;
+  storageProvider: IStorageProvider;
+  userMapper: UserMapper;
 }
 
 export class UserResolver {
@@ -122,7 +134,34 @@ export class UserResolver {
     await this.deps.updateProfileUseCase.execute({ userId, name, timezone, targetRole });
   }
 
-  async getMe(userId: string): Promise<User | null> {
-    return this.deps.getUserUseCase.execute(userId);
+  async getMe(userId: string): Promise<UserDTO | null> {
+    const user = await this.deps.getUserUseCase.execute(userId);
+    if (!user) return null;
+    const avatarUrl = user.avatarKey
+      ? await this.deps.storageProvider.getSignedUrl(user.avatarKey)
+      : null;
+    return this.deps.userMapper.toDTO(user, avatarUrl);
+  }
+
+  async requestAvatarUploadUrl(
+    userId: string,
+    filename: string,
+    mimeType: string,
+  ): Promise<RequestAvatarUploadUrlOutput> {
+    return this.deps.requestAvatarUploadUrlUseCase.execute({ userId, filename, mimeType });
+  }
+
+  async confirmAvatar(
+    userId: string,
+    storageKey: string,
+    mimeType: string,
+    sizeBytes: number,
+  ): Promise<string> {
+    await this.deps.confirmAvatarUseCase.execute({ userId, storageKey, mimeType, sizeBytes });
+    return this.deps.storageProvider.getSignedUrl(storageKey);
+  }
+
+  async removeAvatar(userId: string): Promise<void> {
+    await this.deps.removeAvatarUseCase.execute(userId);
   }
 }

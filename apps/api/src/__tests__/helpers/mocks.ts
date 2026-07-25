@@ -269,6 +269,7 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   timezone: null,
   targetRole: null,
   emailVerifiedAt: null,
+  avatarKey: null,
   weeklyDigestEnabled: true,
   lastDigestSentAt: null,
   followUpRemindersEnabled: true,

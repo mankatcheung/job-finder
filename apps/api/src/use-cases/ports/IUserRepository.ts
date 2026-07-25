@@ -14,6 +14,7 @@ export interface IUserRepository {
       timezone?: string | null;
       targetRole?: string | null;
       emailVerifiedAt?: Date | null;
+      avatarKey?: string | null;
       weeklyDigestEnabled?: boolean;
       followUpRemindersEnabled?: boolean;
       totpSecret?: string | null;
