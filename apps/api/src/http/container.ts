@@ -25,6 +25,18 @@ import { RateLimiter } from '@/infrastructure/rateLimit/RateLimiter.js';
 import type { IRateLimiter } from '@/use-cases/ports/IRateLimiter.js';
 import { TotpProvider } from '@/infrastructure/auth/TotpProvider.js';
 import type { ITotpProvider } from '@/use-cases/ports/ITotpProvider.js';
+import { PrismaOAuthAccountRepository } from '@/infrastructure/db/repositories/PrismaOAuthAccountRepository.js';
+import { GoogleOAuthProvider } from '@/infrastructure/auth/GoogleOAuthProvider.js';
+import { GitHubOAuthProvider } from '@/infrastructure/auth/GitHubOAuthProvider.js';
+import { OAuthProviderRegistry } from '@/infrastructure/auth/OAuthProviderRegistry.js';
+import { OAuthStateService } from '@/infrastructure/auth/OAuthStateService.js';
+import type { IOAuthProvider } from '@/use-cases/ports/IOAuthProvider.js';
+import { LoginOrSignupWithOAuthUseCase } from '@/use-cases/oauth/LoginOrSignupWithOAuthUseCase.js';
+import { LinkOAuthAccountUseCase } from '@/use-cases/oauth/LinkOAuthAccountUseCase.js';
+import { UnlinkOAuthAccountUseCase } from '@/use-cases/oauth/UnlinkOAuthAccountUseCase.js';
+import { ListLinkedOAuthAccountsUseCase } from '@/use-cases/oauth/ListLinkedOAuthAccountsUseCase.js';
+import { OAuthAccountMapper } from '@/interface-adapters/mappers/OAuthAccountMapper.js';
+import { OAuthResolver } from '@/interface-adapters/resolvers/OAuthResolver.js';
 
 import { LocalStorageProvider } from '@/infrastructure/storage/LocalStorageProvider.js';
 import { GCSStorageProvider } from '@/infrastructure/storage/GCSStorageProvider.js';
@@ -163,6 +175,11 @@ declare module '@fastify/awilix' {
     totpBackupCodeRepository: PrismaTotpBackupCodeRepository;
     totpRateLimiter: IRateLimiter;
     totpProvider: ITotpProvider;
+    oauthAccountRepository: PrismaOAuthAccountRepository;
+    googleOAuthProvider: IOAuthProvider;
+    gitHubOAuthProvider: IOAuthProvider;
+    oauthProviderRegistry: OAuthProviderRegistry;
+    oauthStateService: OAuthStateService;
 
     applicationMapper: ApplicationMapper;
     apiTokenMapper: ApiTokenMapper;
@@ -174,6 +191,7 @@ declare module '@fastify/awilix' {
     contactMapper: ContactMapper;
     loginEventMapper: LoginEventMapper;
     sessionMapper: SessionMapper;
+    oauthAccountMapper: OAuthAccountMapper;
 
     authResolver: AuthResolver;
     applicationResolver: ApplicationResolver;
@@ -186,7 +204,13 @@ declare module '@fastify/awilix' {
     loginEventResolver: LoginEventResolver;
     apiTokenResolver: ApiTokenResolver;
     sessionResolver: SessionResolver;
+    oauthResolver: OAuthResolver;
     mcpController: McpController;
+
+    loginOrSignupWithOAuthUseCase: LoginOrSignupWithOAuthUseCase;
+    linkOAuthAccountUseCase: LinkOAuthAccountUseCase;
+    unlinkOAuthAccountUseCase: UnlinkOAuthAccountUseCase;
+    listLinkedOAuthAccountsUseCase: ListLinkedOAuthAccountsUseCase;
 
     registerUseCase: RegisterUseCase;
     loginUseCase: LoginUseCase;
@@ -332,6 +356,13 @@ export function buildContainer(fastify: FastifyInstance): void {
       ),
     ),
     totpProvider: asClass(TotpProvider, { lifetime: Lifetime.SINGLETON }),
+    oauthAccountRepository: asClass(PrismaOAuthAccountRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
+    googleOAuthProvider: asClass(GoogleOAuthProvider, { lifetime: Lifetime.SINGLETON }),
+    gitHubOAuthProvider: asClass(GitHubOAuthProvider, { lifetime: Lifetime.SINGLETON }),
+    oauthProviderRegistry: asClass(OAuthProviderRegistry, { lifetime: Lifetime.SINGLETON }),
+    oauthStateService: asClass(OAuthStateService, { lifetime: Lifetime.SINGLETON }),
 
     // Mappers
     applicationMapper: asClass(ApplicationMapper, { lifetime: Lifetime.SINGLETON }),
@@ -344,6 +375,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     contactMapper: asClass(ContactMapper, { lifetime: Lifetime.SINGLETON }),
     loginEventMapper: asClass(LoginEventMapper, { lifetime: Lifetime.SINGLETON }),
     sessionMapper: asClass(SessionMapper, { lifetime: Lifetime.SINGLETON }),
+    oauthAccountMapper: asClass(OAuthAccountMapper, { lifetime: Lifetime.SINGLETON }),
 
     // Resolvers
     authResolver: asClass(AuthResolver, { lifetime: Lifetime.SINGLETON }),
@@ -357,9 +389,20 @@ export function buildContainer(fastify: FastifyInstance): void {
     loginEventResolver: asClass(LoginEventResolver, { lifetime: Lifetime.SINGLETON }),
     apiTokenResolver: asClass(ApiTokenResolver, { lifetime: Lifetime.SINGLETON }),
     sessionResolver: asClass(SessionResolver, { lifetime: Lifetime.SINGLETON }),
+    oauthResolver: asClass(OAuthResolver, { lifetime: Lifetime.SINGLETON }),
     mcpController: asClass(McpController, { lifetime: Lifetime.SINGLETON }),
 
     // Use Cases
+    loginOrSignupWithOAuthUseCase: asClass(LoginOrSignupWithOAuthUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    linkOAuthAccountUseCase: asClass(LinkOAuthAccountUseCase, { lifetime: Lifetime.TRANSIENT }),
+    unlinkOAuthAccountUseCase: asClass(UnlinkOAuthAccountUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    listLinkedOAuthAccountsUseCase: asClass(ListLinkedOAuthAccountsUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     registerUseCase: asClass(RegisterUseCase, { lifetime: Lifetime.TRANSIENT }),
     loginUseCase: asClass(LoginUseCase, { lifetime: Lifetime.TRANSIENT }),
     loginWithTotpUseCase: asClass(LoginWithTotpUseCase, { lifetime: Lifetime.TRANSIENT }),

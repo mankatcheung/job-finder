@@ -1,7 +1,8 @@
 export interface User {
   id: string;
   email: string;
-  passwordHash: string;
+  /** Null for accounts created via OAuth sign-up that never set a password. */
+  passwordHash: string | null;
   name: string | null;
   timezone: string | null;
   targetRole: string | null;

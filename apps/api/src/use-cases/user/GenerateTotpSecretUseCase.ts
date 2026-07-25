@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import type { ITotpProvider } from '@/use-cases/ports/ITotpProvider.js';
 import { ERROR_CODES } from '@/constants.js';
+import { assertHasPassword } from '@/use-cases/auth/passwordHashGuard.js';
 import type {
   IGenerateTotpSecretUseCase,
   GenerateTotpSecretInput,
@@ -27,6 +28,7 @@ export class GenerateTotpSecretUseCase implements IGenerateTotpSecretUseCase {
       });
     }
 
+    assertHasPassword(user.passwordHash);
     const validPassword = await bcrypt.compare(input.password, user.passwordHash);
     if (!validPassword) {
       throw Object.assign(new Error('Invalid password'), { code: ERROR_CODES.UNAUTHORIZED });

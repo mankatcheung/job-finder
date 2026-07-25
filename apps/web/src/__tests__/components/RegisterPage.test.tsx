@@ -146,4 +146,14 @@ describe('RegisterPage', () => {
     });
     expect(mockNavigate).not.toHaveBeenCalled();
   });
+
+  it('renders links to sign up with Google and GitHub', () => {
+    render(<RegisterPage />);
+
+    const google = screen.getByRole('link', { name: /sign up with google/i });
+    const github = screen.getByRole('link', { name: /sign up with github/i });
+
+    expect(google).toHaveAttribute('href', '/auth/oauth/google/start');
+    expect(github).toHaveAttribute('href', '/auth/oauth/github/start');
+  });
 });

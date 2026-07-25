@@ -47,6 +47,10 @@ export const ENV = {
   AXIOM_DATASET: 'AXIOM_DATASET',
   AXIOM_METRICS_DATASET: 'AXIOM_METRICS_DATASET',
   TOTP_ENCRYPTION_KEY: 'TOTP_ENCRYPTION_KEY',
+  GOOGLE_OAUTH_CLIENT_ID: 'GOOGLE_OAUTH_CLIENT_ID',
+  GOOGLE_OAUTH_CLIENT_SECRET: 'GOOGLE_OAUTH_CLIENT_SECRET',
+  GITHUB_OAUTH_CLIENT_ID: 'GITHUB_OAUTH_CLIENT_ID',
+  GITHUB_OAUTH_CLIENT_SECRET: 'GITHUB_OAUTH_CLIENT_SECRET',
 } as const;
 
 /** `NODE_ENV` values. */
@@ -172,6 +176,30 @@ export const ROUTES = {
   GRAPHQL: '/graphql',
   MCP: '/mcp',
   DIGEST_SEND: '/admin/digest/send',
+  OAUTH_START: '/auth/oauth/:provider/start',
+  OAUTH_CALLBACK: '/auth/oauth/:provider/callback',
+} as const;
+
+/** OAuth provider names (mirrors the `OAuthProviderName` domain union). */
+export const OAUTH_PROVIDER = {
+  GOOGLE: 'google',
+  GITHUB: 'github',
+} as const;
+
+/** OAuth (Google/GitHub) sign-in settings. */
+export const OAUTH = {
+  GOOGLE_AUTHORIZATION_URL: 'https://accounts.google.com/o/oauth2/v2/auth',
+  GOOGLE_TOKEN_URL: 'https://oauth2.googleapis.com/token',
+  GOOGLE_USERINFO_URL: 'https://openidconnect.googleapis.com/v1/userinfo',
+  GITHUB_AUTHORIZATION_URL: 'https://github.com/login/oauth/authorize',
+  GITHUB_TOKEN_URL: 'https://github.com/login/oauth/access_token',
+  GITHUB_USER_URL: 'https://api.github.com/user',
+  GITHUB_EMAILS_URL: 'https://api.github.com/user/emails',
+  /** How long the signed `state` redirect param stays valid, in milliseconds. */
+  STATE_TTL_MS: 5 * 60 * 1000, // 5 minutes
+  /** Builds the concrete callback path (Fastify's `:provider` filled in) used as the OAuth redirect_uri. */
+  callbackPath: (provider: string) => `/auth/oauth/${provider}/callback`,
+  startPath: (provider: string) => `/auth/oauth/${provider}/start`,
 } as const;
 
 /** `LLM_PROVIDER` values. */

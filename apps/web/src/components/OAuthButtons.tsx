@@ -1,0 +1,33 @@
+interface OAuthButtonsProps {
+  label: string;
+}
+
+export function OAuthButtons({ label }: OAuthButtonsProps) {
+  return (
+    <div className="space-y-3">
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-white dark:bg-gray-800 px-2 text-gray-500 dark:text-gray-400">
+            or
+          </span>
+        </div>
+      </div>
+
+      <a
+        href="/auth/oauth/google/start"
+        className="flex w-full items-center justify-center gap-2 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+      >
+        {label} with Google
+      </a>
+      <a
+        href="/auth/oauth/github/start"
+        className="flex w-full items-center justify-center gap-2 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+      >
+        {label} with GitHub
+      </a>
+    </div>
+  );
+}

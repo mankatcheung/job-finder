@@ -1,0 +1,25 @@
+import type { OAuthProviderName } from '@/domain/oauthAccount/OAuthAccount.js';
+import type { IListLinkedOAuthAccountsUseCase } from '@/use-cases/oauth/IListLinkedOAuthAccountsUseCase.js';
+import type { IUnlinkOAuthAccountUseCase } from '@/use-cases/oauth/IUnlinkOAuthAccountUseCase.js';
+import type { LinkedOAuthAccountDTO } from '@/interface-adapters/mappers/OAuthAccountMapper.js';
+import type { OAuthAccountMapper } from '@/interface-adapters/mappers/OAuthAccountMapper.js';
+
+interface Deps {
+  listLinkedOAuthAccountsUseCase: IListLinkedOAuthAccountsUseCase;
+  unlinkOAuthAccountUseCase: IUnlinkOAuthAccountUseCase;
+  oauthAccountMapper: OAuthAccountMapper;
+}
+
+export class OAuthResolver {
+  constructor(private readonly deps: Deps) {}
+
+  async listLinkedAccounts(userId: string): Promise<LinkedOAuthAccountDTO[]> {
+    const links = await this.deps.listLinkedOAuthAccountsUseCase.execute(userId);
+    return links.map((l) => this.deps.oauthAccountMapper.toDTO(l));
+  }
+
+  async unlinkAccount(userId: string, provider: OAuthProviderName): Promise<boolean> {
+    await this.deps.unlinkOAuthAccountUseCase.execute({ userId, provider });
+    return true;
+  }
+}

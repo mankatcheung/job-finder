@@ -29,6 +29,10 @@ import type { TotpBackupCode } from '@/domain/totpBackupCode/TotpBackupCode.js';
 import type { IRateLimiter } from '@/use-cases/ports/IRateLimiter.js';
 import type { ITotpProvider } from '@/use-cases/ports/ITotpProvider.js';
 import { TotpProvider } from '@/infrastructure/auth/TotpProvider.js';
+import type { IOAuthAccountRepository } from '@/use-cases/ports/IOAuthAccountRepository.js';
+import type { IOAuthProvider } from '@/use-cases/ports/IOAuthProvider.js';
+import type { IOAuthProviderRegistry } from '@/use-cases/ports/IOAuthProviderRegistry.js';
+import type { OAuthAccount } from '@/domain/oauthAccount/OAuthAccount.js';
 
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
@@ -366,5 +370,43 @@ export const makeDocument = (overrides?: Partial<Document>): Document => ({
   documentType: 'other',
   version: null,
   createdAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+export const makeOAuthAccountRepository = (
+  overrides?: Partial<IOAuthAccountRepository>,
+): IOAuthAccountRepository => ({
+  findByProvider: vi.fn().mockResolvedValue(null),
+  findAllByUserId: vi.fn().mockResolvedValue([]),
+  create: vi.fn(),
+  delete: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
+
+export const makeOAuthAccount = (overrides?: Partial<OAuthAccount>): OAuthAccount => ({
+  id: 'oauth-account-1',
+  userId: 'user-1',
+  provider: 'google',
+  providerAccountId: 'google-sub-1',
+  email: 'test@example.com',
+  createdAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+export const makeOAuthProvider = (overrides?: Partial<IOAuthProvider>): IOAuthProvider => ({
+  getAuthorizationUrl: vi.fn().mockReturnValue('https://provider.example.com/authorize'),
+  exchangeCodeForProfile: vi.fn().mockResolvedValue({
+    providerAccountId: 'google-sub-1',
+    email: 'test@example.com',
+    emailVerified: true,
+    name: 'Jeff Man',
+  }),
+  ...overrides,
+});
+
+export const makeOAuthProviderRegistry = (
+  overrides?: Partial<IOAuthProviderRegistry>,
+): IOAuthProviderRegistry => ({
+  get: vi.fn().mockReturnValue(makeOAuthProvider()),
   ...overrides,
 });

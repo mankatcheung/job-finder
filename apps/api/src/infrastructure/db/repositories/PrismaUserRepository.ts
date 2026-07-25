@@ -6,7 +6,7 @@ import { getClient } from '../transactionContext.js';
 type PrismaUser = {
   id: string;
   email: string;
-  passwordHash: string;
+  passwordHash: string | null;
   name: string | null;
   timezone: string | null;
   targetRole: string | null;
@@ -47,7 +47,13 @@ export class PrismaUserRepository implements IUserRepository {
     return rows.map((r: PrismaUser) => this.toEntity(r));
   }
 
-  async create(data: { id: string; email: string; passwordHash: string }): Promise<User> {
+  async create(data: {
+    id: string;
+    email: string;
+    passwordHash?: string | null;
+    name?: string | null;
+    emailVerifiedAt?: Date | null;
+  }): Promise<User> {
     const row = await this.db.user.create({ data });
     return this.toEntity(row);
   }

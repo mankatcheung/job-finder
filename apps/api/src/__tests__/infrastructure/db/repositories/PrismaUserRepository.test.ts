@@ -54,6 +54,21 @@ describe('PrismaUserRepository', () => {
       expect(user.targetRole).toBeNull();
     });
 
+    it('creates a passwordless, pre-verified user for OAuth sign-up', async () => {
+      const verifiedAt = new Date();
+      const user = await repo.create({
+        id: 'u1',
+        email: 'oauth-user@example.com',
+        passwordHash: null,
+        name: 'Jeff Man',
+        emailVerifiedAt: verifiedAt,
+      });
+
+      expect(user.passwordHash).toBeNull();
+      expect(user.name).toBe('Jeff Man');
+      expect(user.emailVerifiedAt).toEqual(verifiedAt);
+    });
+
     it('defaults avatarKey to null', async () => {
       const user = await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
       expect(user.avatarKey).toBeNull();

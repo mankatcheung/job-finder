@@ -4,6 +4,7 @@ import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
 import type { IEmailVerificationTokenRepository } from '@/use-cases/ports/IEmailVerificationTokenRepository.js';
 import type { IEmailService } from '@/use-cases/ports/IEmailService.js';
 import { ERROR_CODES, EMAIL_VERIFICATION_TOKEN } from '@/constants.js';
+import { assertHasPassword } from '@/use-cases/auth/passwordHashGuard.js';
 import type {
   IRequestEmailChangeUseCase,
   RequestEmailChangeInput,
@@ -23,6 +24,7 @@ export class RequestEmailChangeUseCase implements IRequestEmailChangeUseCase {
   async execute(input: RequestEmailChangeInput): Promise<void> {
     const user = await this.deps.userRepository.findById(input.userId);
     if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    assertHasPassword(user.passwordHash);
 
     const valid = await bcrypt.compare(input.currentPassword, user.passwordHash);
     if (!valid)

@@ -10,7 +10,8 @@ datasource db {
 model User {
   id                       String                   @id
   email                    String                   @unique
-  passwordHash             String
+  /// Null for accounts created via OAuth sign-up that never set a password.
+  passwordHash             String?
   name                     String?
   timezone                 String?
   targetRole               String?
@@ -30,6 +31,20 @@ model User {
   loginEvents              LoginEvent[]
   totpBackupCodes          TotpBackupCode[]
   passwordResetTokens      PasswordResetToken[]
+  oauthAccounts            OAuthAccount[]
+}
+
+model OAuthAccount {
+  id                String   @id
+  userId            String
+  provider          String
+  providerAccountId String
+  email             String?
+  createdAt         DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model TotpBackupCode {
