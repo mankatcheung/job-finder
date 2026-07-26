@@ -1,4 +1,4 @@
-import type { FastifyReply } from 'fastify';
+import type { IHttpResponse } from '@/http/ports/IHttpResponse.js';
 
 export interface UploadUrlPayloadDTO {
   uploadUrl: string;
@@ -30,7 +30,7 @@ const COOKIE_BASE = {
 } as const;
 
 export function setAuthCookies(
-  reply: FastifyReply,
+  reply: IHttpResponse,
   accessToken: string,
   refreshToken: string,
 ): void {
@@ -51,7 +51,7 @@ export function setAuthCookies(
   });
 }
 
-export function clearAuthCookies(reply: FastifyReply): void {
+export function clearAuthCookies(reply: IHttpResponse): void {
   reply.clearCookie(COOKIES.ACCESS_TOKEN, { path: COOKIE_PATH });
   reply.clearCookie(COOKIES.REFRESH_TOKEN, { path: COOKIE_PATH });
   reply.clearCookie(COOKIES.LOGGED_IN, { path: COOKIE_PATH });

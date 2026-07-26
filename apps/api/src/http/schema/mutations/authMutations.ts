@@ -1,16 +1,17 @@
 import { GraphQLError } from 'graphql';
-import type { FastifyRequest } from 'fastify';
+import type { IHttpRequest } from '@/http/ports/IHttpRequest.js';
 import { builder } from '@/http/schema/builder.js';
 import { setAuthCookies, clearAuthCookies } from '@/http/schema/types/AuthPayloadType.js';
 import { LoginResultRef } from '@/http/schema/types/LoginResultType.js';
 import type { DeviceInfo } from '@/interface-adapters/resolvers/AuthResolver.js';
 import { fromCodedError } from '@/http/errors/AppError.js';
-import { ERROR_CODES } from '@/constants.js';
+import { COOKIES, ERROR_CODES } from '@/constants.js';
 
-function deviceInfoFrom(request: FastifyRequest): DeviceInfo {
+function deviceInfoFrom(request: IHttpRequest): DeviceInfo {
+  const userAgent = request.headers['user-agent'];
   return {
-    userAgent: request.headers['user-agent'] ?? null,
-    ipAddress: request.ip ?? null,
+    userAgent: typeof userAgent === 'string' ? userAgent : null,
+    ipAddress: request.ip,
   };
 }
 
@@ -79,7 +80,7 @@ builder.mutationField('loginWithTotp', (t) =>
 builder.mutationField('refreshToken', (t) =>
   t.boolean({
     resolve: async (_root, _args, ctx) => {
-      const refreshTokenCookie = ctx.request.cookies.jf_refresh_token;
+      const refreshTokenCookie = ctx.request.cookies[COOKIES.REFRESH_TOKEN];
       if (!refreshTokenCookie)
         throw new GraphQLError('No refresh token', {
           extensions: { code: ERROR_CODES.UNAUTHORIZED },

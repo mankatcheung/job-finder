@@ -1,6 +1,7 @@
 import type { AwilixContainer } from 'awilix';
-import type { Cradle } from '@fastify/awilix';
-import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { Cradle } from '@/http/container.js';
+import type { IHttpRequest } from '@/http/ports/IHttpRequest.js';
+import type { IHttpResponse } from '@/http/ports/IHttpResponse.js';
 
 export interface JwtUser {
   sub: string;
@@ -12,6 +13,6 @@ export interface JwtUser {
 export interface GraphQLContext {
   user: JwtUser | null;
   diScope: AwilixContainer<Cradle>;
-  request: FastifyRequest;
-  reply: FastifyReply;
+  request: IHttpRequest;
+  reply: IHttpResponse;
 }

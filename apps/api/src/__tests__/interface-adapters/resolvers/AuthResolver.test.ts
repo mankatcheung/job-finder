@@ -52,6 +52,7 @@ const makeVerifyEmailUseCase = (overrides?: Partial<IVerifyEmailUseCase>): IVeri
 const makeTokenService = (overrides?: Partial<ITokenService>): ITokenService => ({
   sign: vi.fn().mockReturnValue({ accessToken: 'access-token', refreshToken: 'refresh-token' }),
   verifyRefresh: vi.fn(),
+  verifyAccess: vi.fn(),
   ...overrides,
 });
 
