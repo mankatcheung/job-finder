@@ -245,16 +245,6 @@ export const makeTotpProvider = (overrides?: Partial<ITotpProvider>): ITotpProvi
   };
 };
 
-// Minimal FastifyInstance stub for AuthResolver (only jwt is used)
-export const makeFastifyJwt = (): {
-  jwt: { sign: ReturnType<typeof vi.fn>; verify: ReturnType<typeof vi.fn> };
-} => ({
-  jwt: {
-    sign: vi.fn().mockReturnValue('signed-token'),
-    verify: vi.fn(),
-  },
-});
-
 export const makeLoginEvent = (overrides?: Partial<LoginEvent>): LoginEvent => ({
   id: 'event-1',
   userId: 'user-1',

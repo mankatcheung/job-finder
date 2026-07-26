@@ -1,4 +1,4 @@
-import type { FastifyRequest } from 'fastify';
+import type { IHttpRequest } from '@/http/ports/IHttpRequest.js';
 import { AUTH_HEADER, ENV } from '@/constants.js';
 
 /**
@@ -9,9 +9,9 @@ import { AUTH_HEADER, ENV } from '@/constants.js';
  * invocations, and it never has to be committed anywhere since Vercel Cron
  * can't send custom headers of its own).
  */
-export function isAuthorizedCronTrigger(request: FastifyRequest, ownSecretEnvKey: string): boolean {
+export function isAuthorizedCronTrigger(request: IHttpRequest, ownSecretEnvKey: string): boolean {
   const auth = request.headers.authorization;
-  if (!auth?.startsWith(AUTH_HEADER.BEARER_PREFIX)) return false;
+  if (typeof auth !== 'string' || !auth.startsWith(AUTH_HEADER.BEARER_PREFIX)) return false;
 
   const token = auth.slice(AUTH_HEADER.BEARER_PREFIX.length);
   const ownSecret = process.env[ownSecretEnvKey];

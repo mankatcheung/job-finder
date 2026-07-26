@@ -1,6 +1,5 @@
 import { nanoid } from 'nanoid';
-import { asClass, asValue, Lifetime } from 'awilix';
-import { diContainer } from '@fastify/awilix';
+import { asClass, asValue, createContainer, Lifetime, type AwilixContainer } from 'awilix';
 
 import { prisma } from '@/infrastructure/db/client.js';
 
@@ -111,7 +110,7 @@ import { UpdateInterviewRoundUseCase } from '@/use-cases/interviewRounds/UpdateI
 import { DeleteInterviewRoundUseCase } from '@/use-cases/interviewRounds/DeleteInterviewRoundUseCase.js';
 import { GetActivityLogsUseCase } from '@/use-cases/activityLogs/GetActivityLogsUseCase.js';
 import { GetLoginHistoryUseCase } from '@/use-cases/loginEvents/GetLoginHistoryUseCase.js';
-import { FastifyJwtTokenService } from '@/infrastructure/auth/FastifyJwtTokenService.js';
+import { JwtTokenService } from '@/infrastructure/auth/JwtTokenService.js';
 import { PrismaApiTokenRepository } from '@/infrastructure/db/repositories/PrismaApiTokenRepository.js';
 import { ApiTokenMapper } from '@/interface-adapters/mappers/ApiTokenMapper.js';
 import { CreateApiTokenUseCase } from '@/use-cases/apiTokens/CreateApiTokenUseCase.js';
@@ -137,150 +136,147 @@ import { ListSessionsUseCase } from '@/use-cases/sessions/ListSessionsUseCase.js
 import { RevokeSessionUseCase } from '@/use-cases/sessions/RevokeSessionUseCase.js';
 import { RevokeOtherSessionsUseCase } from '@/use-cases/sessions/RevokeOtherSessionsUseCase.js';
 
-import type { FastifyInstance } from 'fastify';
 import { ENV, LLM_PROVIDER, RATE_LIMIT, STORAGE_PROVIDER } from '@/constants.js';
 import type { ILLMProvider } from '@/use-cases/ports/ILLMProvider.js';
+import type { ILogger } from '@/use-cases/ports/ILogger.js';
 
-// Augment the @fastify/awilix Cradle interface so diContainer and diScope are fully typed
-declare module '@fastify/awilix' {
-  interface Cradle {
-    prisma: typeof prisma;
-    storageProvider: LocalStorageProvider | VercelBlobStorageProvider;
-    generateId: () => string;
-    webAppOrigin: string;
-    fastify: FastifyInstance;
-    tokenService: FastifyJwtTokenService;
-    cache: MemoryCache;
-    passwordResetRateLimiter: RateLimiter;
+export interface Cradle {
+  prisma: typeof prisma;
+  storageProvider: LocalStorageProvider | VercelBlobStorageProvider;
+  generateId: () => string;
+  webAppOrigin: string;
+  logger: ILogger;
+  tokenService: JwtTokenService;
+  cache: MemoryCache;
+  passwordResetRateLimiter: RateLimiter;
 
-    // Raw Prisma repositories (used internally by the cached decorators)
-    userRepository: PrismaUserRepository;
-    prismaApplicationRepository: PrismaApplicationRepository;
-    prismaNoteRepository: PrismaNoteRepository;
-    prismaDocumentRepository: PrismaDocumentRepository;
+  // Raw Prisma repositories (used internally by the cached decorators)
+  userRepository: PrismaUserRepository;
+  prismaApplicationRepository: PrismaApplicationRepository;
+  prismaNoteRepository: PrismaNoteRepository;
+  prismaDocumentRepository: PrismaDocumentRepository;
 
-    // Cached repository decorators (what use-cases consume)
-    applicationRepository: CachedApplicationRepository;
-    noteRepository: CachedNoteRepository;
-    documentRepository: CachedDocumentRepository;
-    prismaInterviewRoundRepository: PrismaInterviewRoundRepository;
-    interviewRoundRepository: CachedInterviewRoundRepository;
-    activityLogRepository: PrismaActivityLogRepository;
-    apiTokenRepository: PrismaApiTokenRepository;
-    contactRepository: PrismaContactRepository;
-    passwordResetTokenRepository: PrismaPasswordResetTokenRepository;
-    loginEventRepository: PrismaLoginEventRepository;
-    sessionRepository: PrismaSessionRepository;
-    emailVerificationTokenRepository: PrismaEmailVerificationTokenRepository;
-    totpBackupCodeRepository: PrismaTotpBackupCodeRepository;
-    totpRateLimiter: IRateLimiter;
-    totpProvider: ITotpProvider;
-    oauthAccountRepository: PrismaOAuthAccountRepository;
-    googleOAuthProvider: IOAuthProvider;
-    gitHubOAuthProvider: IOAuthProvider;
-    oauthProviderRegistry: OAuthProviderRegistry;
-    oauthStateService: OAuthStateService;
+  // Cached repository decorators (what use-cases consume)
+  applicationRepository: CachedApplicationRepository;
+  noteRepository: CachedNoteRepository;
+  documentRepository: CachedDocumentRepository;
+  prismaInterviewRoundRepository: PrismaInterviewRoundRepository;
+  interviewRoundRepository: CachedInterviewRoundRepository;
+  activityLogRepository: PrismaActivityLogRepository;
+  apiTokenRepository: PrismaApiTokenRepository;
+  contactRepository: PrismaContactRepository;
+  passwordResetTokenRepository: PrismaPasswordResetTokenRepository;
+  loginEventRepository: PrismaLoginEventRepository;
+  sessionRepository: PrismaSessionRepository;
+  emailVerificationTokenRepository: PrismaEmailVerificationTokenRepository;
+  totpBackupCodeRepository: PrismaTotpBackupCodeRepository;
+  totpRateLimiter: IRateLimiter;
+  totpProvider: ITotpProvider;
+  oauthAccountRepository: PrismaOAuthAccountRepository;
+  googleOAuthProvider: IOAuthProvider;
+  gitHubOAuthProvider: IOAuthProvider;
+  oauthProviderRegistry: OAuthProviderRegistry;
+  oauthStateService: OAuthStateService;
 
-    applicationMapper: ApplicationMapper;
-    apiTokenMapper: ApiTokenMapper;
-    noteMapper: NoteMapper;
-    documentMapper: DocumentMapper;
-    userMapper: UserMapper;
-    interviewRoundMapper: InterviewRoundMapper;
-    activityLogMapper: ActivityLogMapper;
-    contactMapper: ContactMapper;
-    loginEventMapper: LoginEventMapper;
-    sessionMapper: SessionMapper;
-    oauthAccountMapper: OAuthAccountMapper;
+  applicationMapper: ApplicationMapper;
+  apiTokenMapper: ApiTokenMapper;
+  noteMapper: NoteMapper;
+  documentMapper: DocumentMapper;
+  userMapper: UserMapper;
+  interviewRoundMapper: InterviewRoundMapper;
+  activityLogMapper: ActivityLogMapper;
+  contactMapper: ContactMapper;
+  loginEventMapper: LoginEventMapper;
+  sessionMapper: SessionMapper;
+  oauthAccountMapper: OAuthAccountMapper;
 
-    authResolver: AuthResolver;
-    applicationResolver: ApplicationResolver;
-    noteResolver: NoteResolver;
-    documentResolver: DocumentResolver;
-    userResolver: UserResolver;
-    interviewRoundResolver: InterviewRoundResolver;
-    activityLogResolver: ActivityLogResolver;
-    contactResolver: ContactResolver;
-    loginEventResolver: LoginEventResolver;
-    apiTokenResolver: ApiTokenResolver;
-    sessionResolver: SessionResolver;
-    oauthResolver: OAuthResolver;
-    mcpController: McpController;
+  authResolver: AuthResolver;
+  applicationResolver: ApplicationResolver;
+  noteResolver: NoteResolver;
+  documentResolver: DocumentResolver;
+  userResolver: UserResolver;
+  interviewRoundResolver: InterviewRoundResolver;
+  activityLogResolver: ActivityLogResolver;
+  contactResolver: ContactResolver;
+  loginEventResolver: LoginEventResolver;
+  apiTokenResolver: ApiTokenResolver;
+  sessionResolver: SessionResolver;
+  oauthResolver: OAuthResolver;
+  mcpController: McpController;
 
-    loginOrSignupWithOAuthUseCase: LoginOrSignupWithOAuthUseCase;
-    linkOAuthAccountUseCase: LinkOAuthAccountUseCase;
-    unlinkOAuthAccountUseCase: UnlinkOAuthAccountUseCase;
-    listLinkedOAuthAccountsUseCase: ListLinkedOAuthAccountsUseCase;
+  loginOrSignupWithOAuthUseCase: LoginOrSignupWithOAuthUseCase;
+  linkOAuthAccountUseCase: LinkOAuthAccountUseCase;
+  unlinkOAuthAccountUseCase: UnlinkOAuthAccountUseCase;
+  listLinkedOAuthAccountsUseCase: ListLinkedOAuthAccountsUseCase;
 
-    registerUseCase: RegisterUseCase;
-    loginUseCase: LoginUseCase;
-    loginWithTotpUseCase: LoginWithTotpUseCase;
-    requestPasswordResetUseCase: RequestPasswordResetUseCase;
-    resetPasswordUseCase: ResetPasswordUseCase;
-    sendEmailVerificationUseCase: SendEmailVerificationUseCase;
-    verifyEmailUseCase: VerifyEmailUseCase;
-    createApplicationUseCase: CreateApplicationUseCase;
-    getApplicationsUseCase: GetApplicationsUseCase;
-    getApplicationsPageUseCase: GetApplicationsPageUseCase;
-    getApplicationUseCase: GetApplicationUseCase;
-    updateApplicationUseCase: UpdateApplicationUseCase;
-    deleteApplicationUseCase: DeleteApplicationUseCase;
-    bulkUpdateApplicationsUseCase: BulkUpdateApplicationsUseCase;
-    bulkDeleteApplicationsUseCase: BulkDeleteApplicationsUseCase;
-    bulkAddTagToApplicationsUseCase: BulkAddTagToApplicationsUseCase;
-    createNoteUseCase: CreateNoteUseCase;
-    getNotesUseCase: GetNotesUseCase;
-    updateNoteUseCase: UpdateNoteUseCase;
-    deleteNoteUseCase: DeleteNoteUseCase;
-    requestUploadUrlUseCase: RequestUploadUrlUseCase;
-    confirmDocumentUseCase: ConfirmDocumentUseCase;
-    getDocumentsUseCase: GetDocumentsUseCase;
-    deleteDocumentUseCase: DeleteDocumentUseCase;
-    requestEmailChangeUseCase: RequestEmailChangeUseCase;
-    confirmEmailChangeUseCase: ConfirmEmailChangeUseCase;
-    updatePasswordUseCase: UpdatePasswordUseCase;
-    deleteAccountUseCase: DeleteAccountUseCase;
-    exportUserDataUseCase: ExportUserDataUseCase;
-    generateTotpSecretUseCase: GenerateTotpSecretUseCase;
-    confirmTotpSetupUseCase: ConfirmTotpSetupUseCase;
-    disableTotpUseCase: DisableTotpUseCase;
-    getTotpStatusUseCase: GetTotpStatusUseCase;
-    importUserDataUseCase: ImportUserDataUseCase;
-    getNotificationPreferencesUseCase: GetNotificationPreferencesUseCase;
-    updateNotificationPreferencesUseCase: UpdateNotificationPreferencesUseCase;
-    updateProfileUseCase: UpdateProfileUseCase;
-    getUserUseCase: GetUserUseCase;
-    requestAvatarUploadUrlUseCase: RequestAvatarUploadUrlUseCase;
-    confirmAvatarUseCase: ConfirmAvatarUseCase;
-    removeAvatarUseCase: RemoveAvatarUseCase;
-    createInterviewRoundUseCase: CreateInterviewRoundUseCase;
-    getInterviewRoundsUseCase: GetInterviewRoundsUseCase;
-    updateInterviewRoundUseCase: UpdateInterviewRoundUseCase;
-    deleteInterviewRoundUseCase: DeleteInterviewRoundUseCase;
-    getActivityLogsUseCase: GetActivityLogsUseCase;
-    getLoginHistoryUseCase: GetLoginHistoryUseCase;
-    createApiTokenUseCase: CreateApiTokenUseCase;
-    listApiTokensUseCase: ListApiTokensUseCase;
-    deleteApiTokenUseCase: DeleteApiTokenUseCase;
-    validateApiTokenUseCase: ValidateApiTokenUseCase;
-    createContactUseCase: CreateContactUseCase;
-    getContactsUseCase: GetContactsUseCase;
-    updateContactUseCase: UpdateContactUseCase;
-    deleteContactUseCase: DeleteContactUseCase;
-    emailService: BrevoEmailService;
-    sendFollowUpRemindersUseCase: SendFollowUpRemindersUseCase;
-    transactionManager: PrismaTransactionManager;
-    llmProvider: ILLMProvider;
-    parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
-    generateCoverLetterUseCase: GenerateCoverLetterUseCase;
-    computeHealthScoreUseCase: ComputeHealthScoreUseCase;
-    sendWeeklyDigestUseCase: SendWeeklyDigestUseCase;
-    createSessionUseCase: CreateSessionUseCase;
-    touchSessionUseCase: TouchSessionUseCase;
-    listSessionsUseCase: ListSessionsUseCase;
-    revokeSessionUseCase: RevokeSessionUseCase;
-    revokeOtherSessionsUseCase: RevokeOtherSessionsUseCase;
-  }
+  registerUseCase: RegisterUseCase;
+  loginUseCase: LoginUseCase;
+  loginWithTotpUseCase: LoginWithTotpUseCase;
+  requestPasswordResetUseCase: RequestPasswordResetUseCase;
+  resetPasswordUseCase: ResetPasswordUseCase;
+  sendEmailVerificationUseCase: SendEmailVerificationUseCase;
+  verifyEmailUseCase: VerifyEmailUseCase;
+  createApplicationUseCase: CreateApplicationUseCase;
+  getApplicationsUseCase: GetApplicationsUseCase;
+  getApplicationsPageUseCase: GetApplicationsPageUseCase;
+  getApplicationUseCase: GetApplicationUseCase;
+  updateApplicationUseCase: UpdateApplicationUseCase;
+  deleteApplicationUseCase: DeleteApplicationUseCase;
+  bulkUpdateApplicationsUseCase: BulkUpdateApplicationsUseCase;
+  bulkDeleteApplicationsUseCase: BulkDeleteApplicationsUseCase;
+  bulkAddTagToApplicationsUseCase: BulkAddTagToApplicationsUseCase;
+  createNoteUseCase: CreateNoteUseCase;
+  getNotesUseCase: GetNotesUseCase;
+  updateNoteUseCase: UpdateNoteUseCase;
+  deleteNoteUseCase: DeleteNoteUseCase;
+  requestUploadUrlUseCase: RequestUploadUrlUseCase;
+  confirmDocumentUseCase: ConfirmDocumentUseCase;
+  getDocumentsUseCase: GetDocumentsUseCase;
+  deleteDocumentUseCase: DeleteDocumentUseCase;
+  requestEmailChangeUseCase: RequestEmailChangeUseCase;
+  confirmEmailChangeUseCase: ConfirmEmailChangeUseCase;
+  updatePasswordUseCase: UpdatePasswordUseCase;
+  deleteAccountUseCase: DeleteAccountUseCase;
+  exportUserDataUseCase: ExportUserDataUseCase;
+  generateTotpSecretUseCase: GenerateTotpSecretUseCase;
+  confirmTotpSetupUseCase: ConfirmTotpSetupUseCase;
+  disableTotpUseCase: DisableTotpUseCase;
+  getTotpStatusUseCase: GetTotpStatusUseCase;
+  importUserDataUseCase: ImportUserDataUseCase;
+  getNotificationPreferencesUseCase: GetNotificationPreferencesUseCase;
+  updateNotificationPreferencesUseCase: UpdateNotificationPreferencesUseCase;
+  updateProfileUseCase: UpdateProfileUseCase;
+  getUserUseCase: GetUserUseCase;
+  requestAvatarUploadUrlUseCase: RequestAvatarUploadUrlUseCase;
+  confirmAvatarUseCase: ConfirmAvatarUseCase;
+  removeAvatarUseCase: RemoveAvatarUseCase;
+  createInterviewRoundUseCase: CreateInterviewRoundUseCase;
+  getInterviewRoundsUseCase: GetInterviewRoundsUseCase;
+  updateInterviewRoundUseCase: UpdateInterviewRoundUseCase;
+  deleteInterviewRoundUseCase: DeleteInterviewRoundUseCase;
+  getActivityLogsUseCase: GetActivityLogsUseCase;
+  getLoginHistoryUseCase: GetLoginHistoryUseCase;
+  createApiTokenUseCase: CreateApiTokenUseCase;
+  listApiTokensUseCase: ListApiTokensUseCase;
+  deleteApiTokenUseCase: DeleteApiTokenUseCase;
+  validateApiTokenUseCase: ValidateApiTokenUseCase;
+  createContactUseCase: CreateContactUseCase;
+  getContactsUseCase: GetContactsUseCase;
+  updateContactUseCase: UpdateContactUseCase;
+  deleteContactUseCase: DeleteContactUseCase;
+  emailService: BrevoEmailService;
+  sendFollowUpRemindersUseCase: SendFollowUpRemindersUseCase;
+  transactionManager: PrismaTransactionManager;
+  llmProvider: ILLMProvider;
+  parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
+  generateCoverLetterUseCase: GenerateCoverLetterUseCase;
+  computeHealthScoreUseCase: ComputeHealthScoreUseCase;
+  sendWeeklyDigestUseCase: SendWeeklyDigestUseCase;
+  createSessionUseCase: CreateSessionUseCase;
+  touchSessionUseCase: TouchSessionUseCase;
+  listSessionsUseCase: ListSessionsUseCase;
+  revokeSessionUseCase: RevokeSessionUseCase;
+  revokeOtherSessionsUseCase: RevokeOtherSessionsUseCase;
 }
 
 type StorageProviderConstructor = new () => LocalStorageProvider | VercelBlobStorageProvider;
@@ -295,8 +291,9 @@ const LLMProvider: LLMProviderConstructor =
     ? GoogleAILLMProvider
     : OpenRouterLLMProvider;
 
-export function buildContainer(fastify: FastifyInstance): void {
-  diContainer.register({
+export function buildContainer(): AwilixContainer<Cradle> {
+  const container = createContainer<Cradle>();
+  container.register({
     // Infrastructure
     prisma: asValue(prisma),
     storageProvider: asClass(StorageProvider, { lifetime: Lifetime.SINGLETON }),
@@ -304,8 +301,7 @@ export function buildContainer(fastify: FastifyInstance): void {
     webAppOrigin: asValue(
       process.env[ENV.CORS_ORIGIN]?.split(',')[0]?.trim() ?? 'http://localhost:3000',
     ),
-    fastify: asValue(fastify),
-    tokenService: asClass(FastifyJwtTokenService, { lifetime: Lifetime.SINGLETON }),
+    tokenService: asClass(JwtTokenService, { lifetime: Lifetime.SINGLETON }),
     cache: asValue(new MemoryCache()),
     passwordResetRateLimiter: asValue(
       new RateLimiter(
@@ -515,4 +511,5 @@ export function buildContainer(fastify: FastifyInstance): void {
       lifetime: Lifetime.TRANSIENT,
     }),
   });
+  return container;
 }
