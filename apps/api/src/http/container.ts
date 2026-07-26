@@ -39,7 +39,6 @@ import { OAuthAccountMapper } from '@/interface-adapters/mappers/OAuthAccountMap
 import { OAuthResolver } from '@/interface-adapters/resolvers/OAuthResolver.js';
 
 import { LocalStorageProvider } from '@/infrastructure/storage/LocalStorageProvider.js';
-import { GCSStorageProvider } from '@/infrastructure/storage/GCSStorageProvider.js';
 import { VercelBlobStorageProvider } from '@/infrastructure/storage/VercelBlobStorageProvider.js';
 
 import { ApplicationMapper } from '@/interface-adapters/mappers/ApplicationMapper.js';
@@ -146,7 +145,7 @@ import type { ILLMProvider } from '@/use-cases/ports/ILLMProvider.js';
 declare module '@fastify/awilix' {
   interface Cradle {
     prisma: typeof prisma;
-    storageProvider: LocalStorageProvider | GCSStorageProvider | VercelBlobStorageProvider;
+    storageProvider: LocalStorageProvider | VercelBlobStorageProvider;
     generateId: () => string;
     webAppOrigin: string;
     fastify: FastifyInstance;
@@ -284,14 +283,11 @@ declare module '@fastify/awilix' {
   }
 }
 
-type StorageProviderConstructor = new () =>
-  LocalStorageProvider | GCSStorageProvider | VercelBlobStorageProvider;
+type StorageProviderConstructor = new () => LocalStorageProvider | VercelBlobStorageProvider;
 const StorageProvider: StorageProviderConstructor =
-  process.env[ENV.STORAGE_PROVIDER] === STORAGE_PROVIDER.GCS
-    ? GCSStorageProvider
-    : process.env[ENV.STORAGE_PROVIDER] === STORAGE_PROVIDER.VERCEL_BLOB
-      ? VercelBlobStorageProvider
-      : LocalStorageProvider;
+  process.env[ENV.STORAGE_PROVIDER] === STORAGE_PROVIDER.VERCEL_BLOB
+    ? VercelBlobStorageProvider
+    : LocalStorageProvider;
 
 type LLMProviderConstructor = new () => ILLMProvider;
 const LLMProvider: LLMProviderConstructor =

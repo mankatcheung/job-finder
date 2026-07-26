@@ -56,7 +56,7 @@ interface-adapters/
   mappers/        Convert Prisma models → domain entities
 infrastructure/
   db/             PrismaClient setup; Prisma repository implementations
-  storage/        LocalStorageProvider (dev) / GCSStorageProvider (prod)
+  storage/        LocalStorageProvider (dev) / VercelBlobStorageProvider (prod)
 http/
   schema/         Pothos schema builder, types, queries, mutations
   plugins/        Fastify plugins (auth/JWT, CORS)
@@ -68,7 +68,7 @@ http/
 
 **Auth:** JWT access token in `jf_access_token` HttpOnly cookie. Refresh token flow is handled by the `refreshToken` mutation. The GraphQL context extracts and verifies the access token on every request; resolvers enforce authorization.
 
-**Storage:** Toggled by `STORAGE_PROVIDER` env var (`local` | `gcs`). `LocalStorageProvider` writes to disk for dev; `GCSStorageProvider` uses Google Cloud Storage for prod. Document upload uses a presigned URL flow: `requestUploadUrl` → client uploads directly → `confirmDocument`.
+**Storage:** Toggled by `STORAGE_PROVIDER` env var (`local` | `vercel-blob`). `LocalStorageProvider` writes to disk for dev; `VercelBlobStorageProvider` uses Vercel Blob for prod. Document upload flow: `requestUploadUrl` → client uploads directly to storage (a Vercel Blob client token, used via `@vercel/blob/client`'s `put()`) → `confirmDocument`.
 
 **Database:** Prisma with libSQL adapter. Dev uses a local SQLite file (`local.db`). Prod targets Turso (`DATABASE_URL` + `DATABASE_AUTH_TOKEN`). Schema: `User → JobApplication → [Note, Document]` (all cascade-delete).
 
