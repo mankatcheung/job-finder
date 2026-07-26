@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createHash } from 'crypto';
-import { createTestDb, type TestDb } from '@/__tests__/helpers/createTestDb.js';
-import { PrismaApiTokenRepository } from '@/infrastructure/db/repositories/PrismaApiTokenRepository.js';
+import { createTestDb, type TestDb } from '#src/__tests__/helpers/createTestDb.js';
+import { PrismaApiTokenRepository } from '#src/infrastructure/db/repositories/PrismaApiTokenRepository.js';
 
 describe('PrismaApiTokenRepository', () => {
   let db: TestDb;

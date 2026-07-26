@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import bcrypt from 'bcryptjs';
-import { UpdatePasswordUseCase } from '@/use-cases/user/UpdatePasswordUseCase.js';
-import { makeUserRepository, makeUser } from '@/__tests__/helpers/mocks.js';
+import { UpdatePasswordUseCase } from '#src/use-cases/user/UpdatePasswordUseCase.js';
+import { makeUserRepository, makeUser } from '#src/__tests__/helpers/mocks.js';
 
 vi.mock('bcryptjs', () => ({
   default: {

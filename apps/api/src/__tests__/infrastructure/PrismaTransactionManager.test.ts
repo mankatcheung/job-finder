@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createTestDb } from '@/__tests__/helpers/createTestDb.js';
-import { PrismaTransactionManager } from '@/infrastructure/db/PrismaTransactionManager.js';
-import { PrismaUserRepository } from '@/infrastructure/db/repositories/PrismaUserRepository.js';
+import { createTestDb } from '#src/__tests__/helpers/createTestDb.js';
+import { PrismaTransactionManager } from '#src/infrastructure/db/PrismaTransactionManager.js';
+import { PrismaUserRepository } from '#src/infrastructure/db/repositories/PrismaUserRepository.js';
 import { nanoid } from 'nanoid';
 
 describe('PrismaTransactionManager', () => {

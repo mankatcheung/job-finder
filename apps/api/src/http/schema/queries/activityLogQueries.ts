@@ -1,5 +1,5 @@
-import { builder } from '@/http/schema/builder.js';
-import { ActivityLogRef } from '@/http/schema/types/ActivityLogType.js';
+import { builder } from '#src/http/schema/builder.js';
+import { ActivityLogRef } from '#src/http/schema/types/ActivityLogType.js';
 
 builder.queryField('activityLogs', (t) =>
   t.field({

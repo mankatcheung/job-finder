@@ -1,5 +1,5 @@
-import { builder } from '@/http/schema/builder.js';
-import type { DocumentDTO } from '@/interface-adapters/mappers/DocumentMapper.js';
+import { builder } from '#src/http/schema/builder.js';
+import type { DocumentDTO } from '#src/interface-adapters/mappers/DocumentMapper.js';
 
 export const DocumentRef = builder.objectRef<DocumentDTO>('Document');
 DocumentRef.implement({

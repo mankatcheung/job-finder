@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { GenerateCoverLetterUseCase } from '@/use-cases/coverLetter/GenerateCoverLetterUseCase.js';
-import { makeApplicationRepository, makeApplication } from '@/__tests__/helpers/mocks.js';
-import type { ILLMProvider } from '@/use-cases/ports/ILLMProvider.js';
+import { GenerateCoverLetterUseCase } from '#src/use-cases/coverLetter/GenerateCoverLetterUseCase.js';
+import { makeApplicationRepository, makeApplication } from '#src/__tests__/helpers/mocks.js';
+import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
 
 const COVER_LETTER = 'Dear Hiring Manager,\n\nI am excited to apply…\n\nSincerely,\nJane';
 

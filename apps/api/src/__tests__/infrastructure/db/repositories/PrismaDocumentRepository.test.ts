@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { PrismaDocumentRepository } from '@/infrastructure/db/repositories/PrismaDocumentRepository.js';
-import { createTestDb, type TestDb } from '@/__tests__/helpers/createTestDb.js';
+import { PrismaDocumentRepository } from '#src/infrastructure/db/repositories/PrismaDocumentRepository.js';
+import { createTestDb, type TestDb } from '#src/__tests__/helpers/createTestDb.js';
 
 const BASE_DOC = {
   id: 'doc-1',

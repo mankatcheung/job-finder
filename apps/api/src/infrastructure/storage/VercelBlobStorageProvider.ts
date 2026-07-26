@@ -1,7 +1,7 @@
 import { head, del } from '@vercel/blob';
 import { generateClientTokenFromReadWriteToken } from '@vercel/blob/client';
-import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
-import { ENV } from '@/constants.js';
+import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
+import { ENV } from '#src/constants.js';
 
 /**
  * Vercel Blob has no raw presigned-PUT URL like S3/GCS — the client must

@@ -1,5 +1,5 @@
-import type { ILLMProvider } from '@/use-cases/ports/ILLMProvider.js';
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
+import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 
 export interface GenerateCoverLetterInput {
   applicationId: string;

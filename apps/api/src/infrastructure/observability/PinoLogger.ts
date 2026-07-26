@@ -1,5 +1,5 @@
 import type { FastifyBaseLogger } from 'fastify';
-import type { ILogger } from '@/use-cases/ports/ILogger.js';
+import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 
 export class PinoLogger implements ILogger {
   constructor(private readonly logger: FastifyBaseLogger) {}

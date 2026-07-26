@@ -1,5 +1,5 @@
 import type { FastifyRequest } from 'fastify';
-import type { IHttpRequest } from '@/http/ports/IHttpRequest.js';
+import type { IHttpRequest } from '#src/http/ports/IHttpRequest.js';
 
 export function toHttpRequest(request: FastifyRequest): IHttpRequest {
   return {

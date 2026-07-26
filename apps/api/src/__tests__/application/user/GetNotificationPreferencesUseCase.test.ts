@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { GetNotificationPreferencesUseCase } from '@/use-cases/user/GetNotificationPreferencesUseCase.js';
-import { makeUserRepository, makeUser } from '@/__tests__/helpers/mocks.js';
+import { GetNotificationPreferencesUseCase } from '#src/use-cases/user/GetNotificationPreferencesUseCase.js';
+import { makeUserRepository, makeUser } from '#src/__tests__/helpers/mocks.js';
 
 describe('GetNotificationPreferencesUseCase', () => {
   beforeEach(() => {

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { BrevoEmailService } from '@/infrastructure/email/BrevoEmailService.js';
-import { buildWeeklyDigestHtml } from '@/infrastructure/email/templates/weeklyDigestTemplate.js';
-import { buildPasswordResetHtml } from '@/infrastructure/email/templates/passwordResetTemplate.js';
-import { buildEmailVerificationHtml } from '@/infrastructure/email/templates/emailVerificationTemplate.js';
-import { ENV, EMAIL } from '@/constants.js';
-import type { WeeklyDigestData } from '@/use-cases/ports/IEmailService.js';
+import { BrevoEmailService } from '#src/infrastructure/email/BrevoEmailService.js';
+import { buildWeeklyDigestHtml } from '#src/infrastructure/email/templates/weeklyDigestTemplate.js';
+import { buildPasswordResetHtml } from '#src/infrastructure/email/templates/passwordResetTemplate.js';
+import { buildEmailVerificationHtml } from '#src/infrastructure/email/templates/emailVerificationTemplate.js';
+import { ENV, EMAIL } from '#src/constants.js';
+import type { WeeklyDigestData } from '#src/use-cases/ports/IEmailService.js';
 
 const jsonResponse = (ok: boolean, status: number, body = '') => ({
   ok,

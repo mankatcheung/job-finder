@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ExportUserDataUseCase } from '@/use-cases/user/ExportUserDataUseCase.js';
+import { ExportUserDataUseCase } from '#src/use-cases/user/ExportUserDataUseCase.js';
 import {
   makeUserRepository,
   makeApplicationRepository,
@@ -9,7 +9,7 @@ import {
   makeApplication,
   makeNote,
   makeDocument,
-} from '@/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks.js';
 
 describe('ExportUserDataUseCase', () => {
   beforeEach(() => {

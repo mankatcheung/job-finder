@@ -1,11 +1,11 @@
 import { createHash } from 'crypto';
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { IEmailVerificationTokenRepository } from '@/use-cases/ports/IEmailVerificationTokenRepository.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IEmailVerificationTokenRepository } from '#src/use-cases/ports/IEmailVerificationTokenRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   IVerifyEmailUseCase,
   VerifyEmailInput,
-} from '@/use-cases/auth/IVerifyEmailUseCase.js';
+} from '#src/use-cases/auth/IVerifyEmailUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

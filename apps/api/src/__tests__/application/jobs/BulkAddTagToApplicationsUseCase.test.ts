@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { BulkAddTagToApplicationsUseCase } from '@/use-cases/jobs/BulkAddTagToApplicationsUseCase.js';
-import { makeApplicationRepository, makeApplication } from '@/__tests__/helpers/mocks.js';
-import type { IUpdateApplicationUseCase } from '@/use-cases/jobs/IUpdateApplicationUseCase.js';
+import { BulkAddTagToApplicationsUseCase } from '#src/use-cases/jobs/BulkAddTagToApplicationsUseCase.js';
+import { makeApplicationRepository, makeApplication } from '#src/__tests__/helpers/mocks.js';
+import type { IUpdateApplicationUseCase } from '#src/use-cases/jobs/IUpdateApplicationUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

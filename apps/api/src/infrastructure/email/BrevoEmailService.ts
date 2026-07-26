@@ -1,8 +1,8 @@
-import type { IEmailService, WeeklyDigestData } from '@/use-cases/ports/IEmailService.js';
+import type { IEmailService, WeeklyDigestData } from '#src/use-cases/ports/IEmailService.js';
 import { buildWeeklyDigestHtml } from './templates/weeklyDigestTemplate.js';
 import { buildPasswordResetHtml } from './templates/passwordResetTemplate.js';
 import { buildEmailVerificationHtml } from './templates/emailVerificationTemplate.js';
-import { EMAIL, ENV } from '@/constants.js';
+import { EMAIL, ENV } from '#src/constants.js';
 
 export class BrevoEmailService implements IEmailService {
   private readonly apiKey: string;

@@ -1,12 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
-import { SendWeeklyDigestUseCase } from '@/use-cases/digest/SendWeeklyDigestUseCase.js';
+import { SendWeeklyDigestUseCase } from '#src/use-cases/digest/SendWeeklyDigestUseCase.js';
 import {
   makeUserRepository,
   makeApplicationRepository,
   makeUser,
   makeApplication,
-} from '@/__tests__/helpers/mocks.js';
-import type { IEmailService, WeeklyDigestData } from '@/use-cases/ports/IEmailService.js';
+} from '#src/__tests__/helpers/mocks.js';
+import type { IEmailService, WeeklyDigestData } from '#src/use-cases/ports/IEmailService.js';
 
 function makeEmailService(): IEmailService {
   return {

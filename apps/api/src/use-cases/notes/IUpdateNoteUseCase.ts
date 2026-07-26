@@ -1,4 +1,4 @@
-import type { Note } from '@/domain/note/Note.js';
+import type { Note } from '#src/domain/note/Note.js';
 
 export interface UpdateNoteInput {
   userId: string;

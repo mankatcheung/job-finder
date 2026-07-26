@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { CreateApplicationUseCase } from '@/use-cases/jobs/CreateApplicationUseCase.js';
-import { makeApplicationRepository, makeApplication } from '@/__tests__/helpers/mocks.js';
+import { CreateApplicationUseCase } from '#src/use-cases/jobs/CreateApplicationUseCase.js';
+import { makeApplicationRepository, makeApplication } from '#src/__tests__/helpers/mocks.js';
 
 describe('CreateApplicationUseCase', () => {
   it('creates an application with all provided fields', async () => {

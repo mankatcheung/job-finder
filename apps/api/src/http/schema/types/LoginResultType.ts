@@ -1,4 +1,4 @@
-import { builder } from '@/http/schema/builder.js';
+import { builder } from '#src/http/schema/builder.js';
 
 export interface LoginResultDTO {
   success: boolean;

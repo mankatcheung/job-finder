@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { PrismaInterviewRoundRepository } from '@/infrastructure/db/repositories/PrismaInterviewRoundRepository.js';
-import { createTestDb, type TestDb } from '@/__tests__/helpers/createTestDb.js';
+import { PrismaInterviewRoundRepository } from '#src/infrastructure/db/repositories/PrismaInterviewRoundRepository.js';
+import { createTestDb, type TestDb } from '#src/__tests__/helpers/createTestDb.js';
 
 describe('PrismaInterviewRoundRepository', () => {
   let db: TestDb;

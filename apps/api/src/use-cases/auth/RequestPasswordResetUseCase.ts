@@ -1,13 +1,13 @@
 import { createHash, randomBytes } from 'crypto';
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { IPasswordResetTokenRepository } from '@/use-cases/ports/IPasswordResetTokenRepository.js';
-import type { IEmailService } from '@/use-cases/ports/IEmailService.js';
-import type { IRateLimiter } from '@/use-cases/ports/IRateLimiter.js';
-import { ERROR_CODES, PASSWORD_RESET_TOKEN } from '@/constants.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IPasswordResetTokenRepository } from '#src/use-cases/ports/IPasswordResetTokenRepository.js';
+import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
+import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
+import { ERROR_CODES, PASSWORD_RESET_TOKEN } from '#src/constants.js';
 import type {
   IRequestPasswordResetUseCase,
   RequestPasswordResetInput,
-} from '@/use-cases/auth/IRequestPasswordResetUseCase.js';
+} from '#src/use-cases/auth/IRequestPasswordResetUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

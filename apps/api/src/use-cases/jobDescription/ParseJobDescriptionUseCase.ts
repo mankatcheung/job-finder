@@ -1,4 +1,4 @@
-import type { ILLMProvider } from '@/use-cases/ports/ILLMProvider.js';
+import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
 
 export interface ParseJobDescriptionInput {
   text?: string | null;

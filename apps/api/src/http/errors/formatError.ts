@@ -1,6 +1,6 @@
 import { GraphQLError } from 'graphql';
-import { fromCodedError } from '@/http/errors/AppError.js';
-import { ERROR_CODES } from '@/constants.js';
+import { fromCodedError } from '#src/http/errors/AppError.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 // Expected client-facing error codes — these are not logged as server errors.
 const EXPECTED_ERROR_CODES: string[] = [

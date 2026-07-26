@@ -1,14 +1,14 @@
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
+import { ERROR_CODES } from '#src/constants.js';
 import {
   assertAllowedAvatarMimeType,
   assertValidAvatarSizeBytes,
-} from '@/use-cases/user/avatarValidation.js';
+} from '#src/use-cases/user/avatarValidation.js';
 import type {
   IConfirmAvatarUseCase,
   ConfirmAvatarInput,
-} from '@/use-cases/user/IConfirmAvatarUseCase.js';
+} from '#src/use-cases/user/IConfirmAvatarUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

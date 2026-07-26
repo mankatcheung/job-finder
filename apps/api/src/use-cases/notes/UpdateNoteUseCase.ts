@@ -1,11 +1,11 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   IUpdateNoteUseCase,
   UpdateNoteInput,
   UpdateNoteOutput,
-} from '@/use-cases/notes/IUpdateNoteUseCase.js';
+} from '#src/use-cases/notes/IUpdateNoteUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

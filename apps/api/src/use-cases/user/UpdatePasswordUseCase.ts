@@ -1,12 +1,12 @@
 import bcrypt from 'bcryptjs';
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import { ERROR_CODES } from '@/constants.js';
-import { assertValidPassword } from '@/use-cases/auth/passwordValidation.js';
-import { assertHasPassword } from '@/use-cases/auth/passwordHashGuard.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
+import { assertValidPassword } from '#src/use-cases/auth/passwordValidation.js';
+import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
 import type {
   IUpdatePasswordUseCase,
   UpdatePasswordInput,
-} from '@/use-cases/user/IUpdatePasswordUseCase.js';
+} from '#src/use-cases/user/IUpdatePasswordUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

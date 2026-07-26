@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { LoginEventResolver } from '@/interface-adapters/resolvers/LoginEventResolver.js';
-import { LoginEventMapper } from '@/interface-adapters/mappers/LoginEventMapper.js';
-import type { IGetLoginHistoryUseCase } from '@/use-cases/loginEvents/IGetLoginHistoryUseCase.js';
+import { LoginEventResolver } from '#src/interface-adapters/resolvers/LoginEventResolver.js';
+import { LoginEventMapper } from '#src/interface-adapters/mappers/LoginEventMapper.js';
+import type { IGetLoginHistoryUseCase } from '#src/use-cases/loginEvents/IGetLoginHistoryUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

@@ -1,6 +1,6 @@
 import type { FastifyRequest } from 'fastify';
 import type { AwilixContainer } from 'awilix';
-import type { Cradle } from '@/http/container.js';
+import type { Cradle } from '#src/http/container.js';
 
 /**
  * `@fastify/awilix` types `request.diScope` against its own (unaugmented)

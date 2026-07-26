@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import { join, dirname } from 'path';
-import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
-import { ENV } from '@/constants.js';
+import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
+import { ENV } from '#src/constants.js';
 
 export class LocalStorageProvider implements IStorageProvider {
   private readonly uploadDir: string;

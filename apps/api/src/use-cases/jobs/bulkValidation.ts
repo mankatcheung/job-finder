@@ -1,4 +1,4 @@
-import { BULK_ACTIONS, ERROR_CODES } from '@/constants.js';
+import { BULK_ACTIONS, ERROR_CODES } from '#src/constants.js';
 
 /** Shared guard for bulk-write use cases: rejects empty or oversized ID batches. */
 export function assertValidBulkIds(ids: string[]): void {

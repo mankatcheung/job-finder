@@ -1,4 +1,4 @@
-import type { Contact } from '@/domain/contact/Contact.js';
+import type { Contact } from '#src/domain/contact/Contact.js';
 
 export interface UpdateContactInput {
   userId: string;

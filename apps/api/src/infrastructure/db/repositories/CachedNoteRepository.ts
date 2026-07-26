@@ -1,7 +1,7 @@
-import type { Note } from '@/domain/note/Note.js';
-import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
-import type { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
-import { CACHE_KEYS } from '@/constants.js';
+import type { Note } from '#src/domain/note/Note.js';
+import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
+import type { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
+import { CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   prismaNoteRepository: INoteRepository;

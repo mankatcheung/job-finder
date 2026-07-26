@@ -1,40 +1,40 @@
-import type { IRequestEmailChangeUseCase } from '@/use-cases/user/IRequestEmailChangeUseCase.js';
-import type { IConfirmEmailChangeUseCase } from '@/use-cases/user/IConfirmEmailChangeUseCase.js';
-import type { IUpdatePasswordUseCase } from '@/use-cases/user/IUpdatePasswordUseCase.js';
-import type { IDeleteAccountUseCase } from '@/use-cases/user/IDeleteAccountUseCase.js';
+import type { IRequestEmailChangeUseCase } from '#src/use-cases/user/IRequestEmailChangeUseCase.js';
+import type { IConfirmEmailChangeUseCase } from '#src/use-cases/user/IConfirmEmailChangeUseCase.js';
+import type { IUpdatePasswordUseCase } from '#src/use-cases/user/IUpdatePasswordUseCase.js';
+import type { IDeleteAccountUseCase } from '#src/use-cases/user/IDeleteAccountUseCase.js';
 import type {
   IExportUserDataUseCase,
   ExportUserDataOutput,
-} from '@/use-cases/user/IExportUserDataUseCase.js';
+} from '#src/use-cases/user/IExportUserDataUseCase.js';
 import type {
   IGenerateTotpSecretUseCase,
   TotpSetup,
-} from '@/use-cases/user/IGenerateTotpSecretUseCase.js';
+} from '#src/use-cases/user/IGenerateTotpSecretUseCase.js';
 import type {
   IConfirmTotpSetupUseCase,
   ConfirmTotpSetupOutput,
-} from '@/use-cases/user/IConfirmTotpSetupUseCase.js';
-import type { IDisableTotpUseCase } from '@/use-cases/user/IDisableTotpUseCase.js';
-import type { IGetTotpStatusUseCase } from '@/use-cases/user/IGetTotpStatusUseCase.js';
+} from '#src/use-cases/user/IConfirmTotpSetupUseCase.js';
+import type { IDisableTotpUseCase } from '#src/use-cases/user/IDisableTotpUseCase.js';
+import type { IGetTotpStatusUseCase } from '#src/use-cases/user/IGetTotpStatusUseCase.js';
 import type {
   IImportUserDataUseCase,
   ImportSummary,
-} from '@/use-cases/user/IImportUserDataUseCase.js';
+} from '#src/use-cases/user/IImportUserDataUseCase.js';
 import type {
   IGetNotificationPreferencesUseCase,
   NotificationPreferences,
-} from '@/use-cases/user/IGetNotificationPreferencesUseCase.js';
-import type { IUpdateNotificationPreferencesUseCase } from '@/use-cases/user/IUpdateNotificationPreferencesUseCase.js';
-import type { IUpdateProfileUseCase } from '@/use-cases/user/IUpdateProfileUseCase.js';
-import type { IGetUserUseCase } from '@/use-cases/user/IGetUserUseCase.js';
+} from '#src/use-cases/user/IGetNotificationPreferencesUseCase.js';
+import type { IUpdateNotificationPreferencesUseCase } from '#src/use-cases/user/IUpdateNotificationPreferencesUseCase.js';
+import type { IUpdateProfileUseCase } from '#src/use-cases/user/IUpdateProfileUseCase.js';
+import type { IGetUserUseCase } from '#src/use-cases/user/IGetUserUseCase.js';
 import type {
   IRequestAvatarUploadUrlUseCase,
   RequestAvatarUploadUrlOutput,
-} from '@/use-cases/user/IRequestAvatarUploadUrlUseCase.js';
-import type { IConfirmAvatarUseCase } from '@/use-cases/user/IConfirmAvatarUseCase.js';
-import type { IRemoveAvatarUseCase } from '@/use-cases/user/IRemoveAvatarUseCase.js';
-import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
-import { UserMapper, type UserDTO } from '@/interface-adapters/mappers/UserMapper.js';
+} from '#src/use-cases/user/IRequestAvatarUploadUrlUseCase.js';
+import type { IConfirmAvatarUseCase } from '#src/use-cases/user/IConfirmAvatarUseCase.js';
+import type { IRemoveAvatarUseCase } from '#src/use-cases/user/IRemoveAvatarUseCase.js';
+import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
+import { UserMapper, type UserDTO } from '#src/interface-adapters/mappers/UserMapper.js';
 
 interface Deps {
   requestEmailChangeUseCase: IRequestEmailChangeUseCase;

@@ -1,11 +1,11 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { IDocumentRepository } from '@/use-cases/ports/IDocumentRepository.js';
-import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentRepository.js';
+import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   IDeleteApplicationUseCase,
   DeleteApplicationInput,
-} from '@/use-cases/jobs/IDeleteApplicationUseCase.js';
+} from '#src/use-cases/jobs/IDeleteApplicationUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

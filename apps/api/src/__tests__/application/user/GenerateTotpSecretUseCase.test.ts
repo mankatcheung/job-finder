@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import bcrypt from 'bcryptjs';
-import { GenerateTotpSecretUseCase } from '@/use-cases/user/GenerateTotpSecretUseCase.js';
-import { makeUserRepository, makeUser, makeTotpProvider } from '@/__tests__/helpers/mocks.js';
+import { GenerateTotpSecretUseCase } from '#src/use-cases/user/GenerateTotpSecretUseCase.js';
+import { makeUserRepository, makeUser, makeTotpProvider } from '#src/__tests__/helpers/mocks.js';
 
 vi.mock('bcryptjs', () => ({
   default: {

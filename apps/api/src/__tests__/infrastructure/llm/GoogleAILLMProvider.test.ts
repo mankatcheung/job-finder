@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { GoogleAILLMProvider } from '@/infrastructure/llm/GoogleAILLMProvider.js';
-import { ENV, LLM } from '@/constants.js';
-import type { LLMMessage } from '@/use-cases/ports/ILLMProvider.js';
+import { GoogleAILLMProvider } from '#src/infrastructure/llm/GoogleAILLMProvider.js';
+import { ENV, LLM } from '#src/constants.js';
+import type { LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
 
 const jsonResponse = (body: unknown, ok = true, status = 200) => ({
   ok,

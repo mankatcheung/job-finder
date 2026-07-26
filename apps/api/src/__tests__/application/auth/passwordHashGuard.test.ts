@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { assertHasPassword } from '@/use-cases/auth/passwordHashGuard.js';
+import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
 
 describe('assertHasPassword', () => {
   it('does not throw for a set password hash', () => {

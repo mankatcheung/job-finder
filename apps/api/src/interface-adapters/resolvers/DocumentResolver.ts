@@ -1,9 +1,12 @@
-import type { IRequestUploadUrlUseCase } from '@/use-cases/documents/IRequestUploadUrlUseCase.js';
-import type { IConfirmDocumentUseCase } from '@/use-cases/documents/IConfirmDocumentUseCase.js';
-import type { IGetDocumentsUseCase } from '@/use-cases/documents/IGetDocumentsUseCase.js';
-import type { IDeleteDocumentUseCase } from '@/use-cases/documents/IDeleteDocumentUseCase.js';
-import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
-import type { DocumentMapper, DocumentDTO } from '@/interface-adapters/mappers/DocumentMapper.js';
+import type { IRequestUploadUrlUseCase } from '#src/use-cases/documents/IRequestUploadUrlUseCase.js';
+import type { IConfirmDocumentUseCase } from '#src/use-cases/documents/IConfirmDocumentUseCase.js';
+import type { IGetDocumentsUseCase } from '#src/use-cases/documents/IGetDocumentsUseCase.js';
+import type { IDeleteDocumentUseCase } from '#src/use-cases/documents/IDeleteDocumentUseCase.js';
+import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
+import type {
+  DocumentMapper,
+  DocumentDTO,
+} from '#src/interface-adapters/mappers/DocumentMapper.js';
 
 interface Deps {
   requestUploadUrlUseCase: IRequestUploadUrlUseCase;

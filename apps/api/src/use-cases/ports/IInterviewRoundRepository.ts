@@ -1,8 +1,8 @@
-import type { InterviewRound } from '@/domain/interviewRound/InterviewRound.js';
+import type { InterviewRound } from '#src/domain/interviewRound/InterviewRound.js';
 import type {
   InterviewRoundType,
   InterviewRoundOutcome,
-} from '@/domain/interviewRound/InterviewRound.js';
+} from '#src/domain/interviewRound/InterviewRound.js';
 
 export interface CreateInterviewRoundData {
   id: string;

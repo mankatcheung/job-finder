@@ -1,15 +1,15 @@
-import type { ICreateInterviewRoundUseCase } from '@/use-cases/interviewRounds/ICreateInterviewRoundUseCase.js';
-import type { IGetInterviewRoundsUseCase } from '@/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
-import type { IUpdateInterviewRoundUseCase } from '@/use-cases/interviewRounds/IUpdateInterviewRoundUseCase.js';
-import type { IDeleteInterviewRoundUseCase } from '@/use-cases/interviewRounds/IDeleteInterviewRoundUseCase.js';
+import type { ICreateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/ICreateInterviewRoundUseCase.js';
+import type { IGetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
+import type { IUpdateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/IUpdateInterviewRoundUseCase.js';
+import type { IDeleteInterviewRoundUseCase } from '#src/use-cases/interviewRounds/IDeleteInterviewRoundUseCase.js';
 import type {
   InterviewRoundMapper,
   InterviewRoundDTO,
-} from '@/interface-adapters/mappers/InterviewRoundMapper.js';
+} from '#src/interface-adapters/mappers/InterviewRoundMapper.js';
 import type {
   InterviewRoundType,
   InterviewRoundOutcome,
-} from '@/domain/interviewRound/InterviewRound.js';
+} from '#src/domain/interviewRound/InterviewRound.js';
 
 interface Deps {
   createInterviewRoundUseCase: ICreateInterviewRoundUseCase;

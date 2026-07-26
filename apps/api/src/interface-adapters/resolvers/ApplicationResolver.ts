@@ -1,18 +1,18 @@
-import type { ApplicationStatus } from '@/domain/application/ApplicationStatus.js';
-import type { ICreateApplicationUseCase } from '@/use-cases/jobs/ICreateApplicationUseCase.js';
-import type { IGetApplicationsUseCase } from '@/use-cases/jobs/IGetApplicationsUseCase.js';
-import type { IGetApplicationsPageUseCase } from '@/use-cases/jobs/IGetApplicationsPageUseCase.js';
-import type { IGetApplicationUseCase } from '@/use-cases/jobs/IGetApplicationUseCase.js';
-import type { IUpdateApplicationUseCase } from '@/use-cases/jobs/IUpdateApplicationUseCase.js';
-import type { IDeleteApplicationUseCase } from '@/use-cases/jobs/IDeleteApplicationUseCase.js';
-import type { IBulkUpdateApplicationsUseCase } from '@/use-cases/jobs/IBulkUpdateApplicationsUseCase.js';
-import type { IBulkDeleteApplicationsUseCase } from '@/use-cases/jobs/IBulkDeleteApplicationsUseCase.js';
-import type { IBulkAddTagToApplicationsUseCase } from '@/use-cases/jobs/IBulkAddTagToApplicationsUseCase.js';
+import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
+import type { ICreateApplicationUseCase } from '#src/use-cases/jobs/ICreateApplicationUseCase.js';
+import type { IGetApplicationsUseCase } from '#src/use-cases/jobs/IGetApplicationsUseCase.js';
+import type { IGetApplicationsPageUseCase } from '#src/use-cases/jobs/IGetApplicationsPageUseCase.js';
+import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplicationUseCase.js';
+import type { IUpdateApplicationUseCase } from '#src/use-cases/jobs/IUpdateApplicationUseCase.js';
+import type { IDeleteApplicationUseCase } from '#src/use-cases/jobs/IDeleteApplicationUseCase.js';
+import type { IBulkUpdateApplicationsUseCase } from '#src/use-cases/jobs/IBulkUpdateApplicationsUseCase.js';
+import type { IBulkDeleteApplicationsUseCase } from '#src/use-cases/jobs/IBulkDeleteApplicationsUseCase.js';
+import type { IBulkAddTagToApplicationsUseCase } from '#src/use-cases/jobs/IBulkAddTagToApplicationsUseCase.js';
 import type {
   ApplicationMapper,
   ApplicationDTO,
   ApplicationConnectionDTO,
-} from '@/interface-adapters/mappers/ApplicationMapper.js';
+} from '#src/interface-adapters/mappers/ApplicationMapper.js';
 
 interface Deps {
   createApplicationUseCase: ICreateApplicationUseCase;

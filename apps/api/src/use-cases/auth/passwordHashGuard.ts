@@ -1,4 +1,4 @@
-import { ERROR_CODES } from '@/constants.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 /**
  * OAuth-only accounts have no passwordHash. bcrypt.compare throws on a null

@@ -1,8 +1,8 @@
-import type { OAuthProviderName } from '@/domain/oauthAccount/OAuthAccount.js';
-import type { IListLinkedOAuthAccountsUseCase } from '@/use-cases/oauth/IListLinkedOAuthAccountsUseCase.js';
-import type { IUnlinkOAuthAccountUseCase } from '@/use-cases/oauth/IUnlinkOAuthAccountUseCase.js';
-import type { LinkedOAuthAccountDTO } from '@/interface-adapters/mappers/OAuthAccountMapper.js';
-import type { OAuthAccountMapper } from '@/interface-adapters/mappers/OAuthAccountMapper.js';
+import type { OAuthProviderName } from '#src/domain/oauthAccount/OAuthAccount.js';
+import type { IListLinkedOAuthAccountsUseCase } from '#src/use-cases/oauth/IListLinkedOAuthAccountsUseCase.js';
+import type { IUnlinkOAuthAccountUseCase } from '#src/use-cases/oauth/IUnlinkOAuthAccountUseCase.js';
+import type { LinkedOAuthAccountDTO } from '#src/interface-adapters/mappers/OAuthAccountMapper.js';
+import type { OAuthAccountMapper } from '#src/interface-adapters/mappers/OAuthAccountMapper.js';
 
 interface Deps {
   listLinkedOAuthAccountsUseCase: IListLinkedOAuthAccountsUseCase;

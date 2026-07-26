@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ContactMapper } from '@/interface-adapters/mappers/ContactMapper.js';
-import { makeContact } from '@/__tests__/helpers/mocks.js';
+import { ContactMapper } from '#src/interface-adapters/mappers/ContactMapper.js';
+import { makeContact } from '#src/__tests__/helpers/mocks.js';
 
 describe('ContactMapper', () => {
   const mapper = new ContactMapper();

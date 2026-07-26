@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { DocumentResolver } from '@/interface-adapters/resolvers/DocumentResolver.js';
-import { DocumentMapper } from '@/interface-adapters/mappers/DocumentMapper.js';
-import { makeDocument, makeStorageProvider } from '@/__tests__/helpers/mocks.js';
-import type { IRequestUploadUrlUseCase } from '@/use-cases/documents/IRequestUploadUrlUseCase.js';
-import type { IConfirmDocumentUseCase } from '@/use-cases/documents/IConfirmDocumentUseCase.js';
-import type { IGetDocumentsUseCase } from '@/use-cases/documents/IGetDocumentsUseCase.js';
-import type { IDeleteDocumentUseCase } from '@/use-cases/documents/IDeleteDocumentUseCase.js';
+import { DocumentResolver } from '#src/interface-adapters/resolvers/DocumentResolver.js';
+import { DocumentMapper } from '#src/interface-adapters/mappers/DocumentMapper.js';
+import { makeDocument, makeStorageProvider } from '#src/__tests__/helpers/mocks.js';
+import type { IRequestUploadUrlUseCase } from '#src/use-cases/documents/IRequestUploadUrlUseCase.js';
+import type { IConfirmDocumentUseCase } from '#src/use-cases/documents/IConfirmDocumentUseCase.js';
+import type { IGetDocumentsUseCase } from '#src/use-cases/documents/IGetDocumentsUseCase.js';
+import type { IDeleteDocumentUseCase } from '#src/use-cases/documents/IDeleteDocumentUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

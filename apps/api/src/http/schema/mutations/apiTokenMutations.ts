@@ -1,9 +1,9 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { CreateApiTokenPayloadRef } from '@/http/schema/types/ApiTokenType.js';
-import { ApiTokenScopeEnum } from '@/http/schema/types/enums/ApiTokenScopeEnum.js';
-import type { ApiTokenScope } from '@/domain/apiToken/ApiToken.js';
-import { ERROR_CODES } from '@/constants.js';
+import { builder } from '#src/http/schema/builder.js';
+import { CreateApiTokenPayloadRef } from '#src/http/schema/types/ApiTokenType.js';
+import { ApiTokenScopeEnum } from '#src/http/schema/types/enums/ApiTokenScopeEnum.js';
+import type { ApiTokenScope } from '#src/domain/apiToken/ApiToken.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 builder.mutationField('createApiToken', (t) =>
   t.field({

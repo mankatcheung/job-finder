@@ -1,12 +1,12 @@
 import bcrypt from 'bcryptjs';
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { ITotpBackupCodeRepository } from '@/use-cases/ports/ITotpBackupCodeRepository.js';
-import { ERROR_CODES } from '@/constants.js';
-import { assertHasPassword } from '@/use-cases/auth/passwordHashGuard.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { ITotpBackupCodeRepository } from '#src/use-cases/ports/ITotpBackupCodeRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
+import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
 import type {
   IDisableTotpUseCase,
   DisableTotpInput,
-} from '@/use-cases/user/IDisableTotpUseCase.js';
+} from '#src/use-cases/user/IDisableTotpUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

@@ -1,12 +1,12 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { DocumentRef } from '@/http/schema/types/DocumentType.js';
-import { UploadUrlPayloadRef } from '@/http/schema/types/AuthPayloadType.js';
-import { ERROR_CODES } from '@/constants.js';
+import { builder } from '#src/http/schema/builder.js';
+import { DocumentRef } from '#src/http/schema/types/DocumentType.js';
+import { UploadUrlPayloadRef } from '#src/http/schema/types/AuthPayloadType.js';
+import { ERROR_CODES } from '#src/constants.js';
 import {
   RequestUploadUrlInput,
   ConfirmDocumentInput,
-} from '@/http/schema/types/inputs/DocumentInputs.js';
+} from '#src/http/schema/types/inputs/DocumentInputs.js';
 
 builder.mutationField('requestUploadUrl', (t) =>
   t.field({

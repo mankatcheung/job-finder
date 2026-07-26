@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { GitHubOAuthProvider } from '@/infrastructure/auth/GitHubOAuthProvider.js';
+import { GitHubOAuthProvider } from '#src/infrastructure/auth/GitHubOAuthProvider.js';
 
 describe('GitHubOAuthProvider', () => {
   beforeEach(() => {

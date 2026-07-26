@@ -1,4 +1,4 @@
-import type { ApiToken, ApiTokenScope } from '@/domain/apiToken/ApiToken.js';
+import type { ApiToken, ApiTokenScope } from '#src/domain/apiToken/ApiToken.js';
 
 export interface CreateApiTokenData {
   id: string;

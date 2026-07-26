@@ -1,10 +1,10 @@
-import type { IGetActivityLogsUseCase } from '@/use-cases/activityLogs/IGetActivityLogsUseCase.js';
-import type { GraphQLContext } from '@/http/context.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IGetActivityLogsUseCase } from '#src/use-cases/activityLogs/IGetActivityLogsUseCase.js';
+import type { GraphQLContext } from '#src/http/context.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   ActivityLogMapper,
   ActivityLogDTO,
-} from '@/interface-adapters/mappers/ActivityLogMapper.js';
+} from '#src/interface-adapters/mappers/ActivityLogMapper.js';
 
 interface Deps {
   getActivityLogsUseCase: IGetActivityLogsUseCase;

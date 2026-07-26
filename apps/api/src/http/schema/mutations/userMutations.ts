@@ -1,12 +1,12 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { clearAuthCookies } from '@/http/schema/types/AuthPayloadType.js';
-import { TotpSetupRef } from '@/http/schema/types/TotpSetupType.js';
-import { ConfirmTotpSetupResultRef } from '@/http/schema/types/ConfirmTotpSetupType.js';
-import { ImportSummaryRef } from '@/http/schema/types/ImportSummaryType.js';
-import { UploadUrlPayloadRef } from '@/http/schema/types/AuthPayloadType.js';
-import { fromCodedError } from '@/http/errors/AppError.js';
-import { ERROR_CODES } from '@/constants.js';
+import { builder } from '#src/http/schema/builder.js';
+import { clearAuthCookies } from '#src/http/schema/types/AuthPayloadType.js';
+import { TotpSetupRef } from '#src/http/schema/types/TotpSetupType.js';
+import { ConfirmTotpSetupResultRef } from '#src/http/schema/types/ConfirmTotpSetupType.js';
+import { ImportSummaryRef } from '#src/http/schema/types/ImportSummaryType.js';
+import { UploadUrlPayloadRef } from '#src/http/schema/types/AuthPayloadType.js';
+import { fromCodedError } from '#src/http/errors/AppError.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 builder.mutationField('requestEmailChange', (t) =>
   t.boolean({

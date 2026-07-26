@@ -1,6 +1,6 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { ERROR_CODES } from '@/constants.js';
+import { builder } from '#src/http/schema/builder.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 builder.mutationField('revokeSession', (t) =>
   t.boolean({

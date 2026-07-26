@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildPasswordResetHtml } from '@/infrastructure/email/templates/passwordResetTemplate.js';
+import { buildPasswordResetHtml } from '#src/infrastructure/email/templates/passwordResetTemplate.js';
 
 describe('buildPasswordResetHtml', () => {
   it('includes the reset URL as the button link', () => {

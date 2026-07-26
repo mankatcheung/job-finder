@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { CachedInterviewRoundRepository } from '@/infrastructure/db/repositories/CachedInterviewRoundRepository.js';
-import { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
-import { makeInterviewRoundRepository, makeInterviewRound } from '@/__tests__/helpers/mocks.js';
+import { CachedInterviewRoundRepository } from '#src/infrastructure/db/repositories/CachedInterviewRoundRepository.js';
+import { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
+import { makeInterviewRoundRepository, makeInterviewRound } from '#src/__tests__/helpers/mocks.js';
 
 function makeRepo() {
   const inner = makeInterviewRoundRepository();

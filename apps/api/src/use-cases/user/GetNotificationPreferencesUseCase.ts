@@ -1,9 +1,9 @@
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   IGetNotificationPreferencesUseCase,
   NotificationPreferences,
-} from '@/use-cases/user/IGetNotificationPreferencesUseCase.js';
+} from '#src/use-cases/user/IGetNotificationPreferencesUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

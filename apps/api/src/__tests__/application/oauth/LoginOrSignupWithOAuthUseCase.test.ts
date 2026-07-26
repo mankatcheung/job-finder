@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { LoginOrSignupWithOAuthUseCase } from '@/use-cases/oauth/LoginOrSignupWithOAuthUseCase.js';
+import { LoginOrSignupWithOAuthUseCase } from '#src/use-cases/oauth/LoginOrSignupWithOAuthUseCase.js';
 import {
   makeUserRepository,
   makeUser,
@@ -7,7 +7,7 @@ import {
   makeOAuthAccount,
   makeOAuthProviderRegistry,
   makeOAuthProvider,
-} from '@/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks.js';
 
 const input = { provider: 'google' as const, code: 'auth-code', redirectUri: 'https://api/cb' };
 

@@ -1,4 +1,4 @@
-import type { OAuthProviderName } from '@/domain/oauthAccount/OAuthAccount.js';
+import type { OAuthProviderName } from '#src/domain/oauthAccount/OAuthAccount.js';
 
 export interface UnlinkOAuthAccountInput {
   userId: string;

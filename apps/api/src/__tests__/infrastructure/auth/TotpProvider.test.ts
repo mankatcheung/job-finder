@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { ENV } from '@/constants.js';
-import { TotpProvider } from '@/infrastructure/auth/TotpProvider.js';
+import { ENV } from '#src/constants.js';
+import { TotpProvider } from '#src/infrastructure/auth/TotpProvider.js';
 
 describe('TotpProvider', () => {
   const originalKey = process.env[ENV.TOTP_ENCRYPTION_KEY];

@@ -1,5 +1,5 @@
-import type { ILLMProvider, LLMMessage } from '@/use-cases/ports/ILLMProvider.js';
-import { ENV, LLM } from '@/constants.js';
+import type { ILLMProvider, LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
+import { ENV, LLM } from '#src/constants.js';
 
 export class GoogleAILLMProvider implements ILLMProvider {
   private readonly apiKey: string;

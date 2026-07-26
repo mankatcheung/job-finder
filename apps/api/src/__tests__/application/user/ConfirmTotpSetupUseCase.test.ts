@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TOTP, NobleCryptoPlugin, ScureBase32Plugin } from 'otplib';
-import { ConfirmTotpSetupUseCase } from '@/use-cases/user/ConfirmTotpSetupUseCase.js';
+import { ConfirmTotpSetupUseCase } from '#src/use-cases/user/ConfirmTotpSetupUseCase.js';
 import {
   makeUserRepository,
   makeUser,
   makeTotpBackupCodeRepository,
   makeTotpProvider,
-} from '@/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks.js';
 
 // Test-only fixture helper: production code only ever verifies codes (a real
 // authenticator app generates them), so "generate a currently-valid code" has

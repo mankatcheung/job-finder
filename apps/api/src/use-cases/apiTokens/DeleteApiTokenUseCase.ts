@@ -1,5 +1,5 @@
-import type { IApiTokenRepository } from '@/use-cases/ports/IApiTokenRepository.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IApiTokenRepository } from '#src/use-cases/ports/IApiTokenRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 interface Deps {
   apiTokenRepository: IApiTokenRepository;

@@ -1,14 +1,14 @@
 import { createHash, randomBytes } from 'crypto';
 import bcrypt from 'bcryptjs';
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { IEmailVerificationTokenRepository } from '@/use-cases/ports/IEmailVerificationTokenRepository.js';
-import type { IEmailService } from '@/use-cases/ports/IEmailService.js';
-import { ERROR_CODES, EMAIL_VERIFICATION_TOKEN } from '@/constants.js';
-import { assertHasPassword } from '@/use-cases/auth/passwordHashGuard.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IEmailVerificationTokenRepository } from '#src/use-cases/ports/IEmailVerificationTokenRepository.js';
+import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
+import { ERROR_CODES, EMAIL_VERIFICATION_TOKEN } from '#src/constants.js';
+import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
 import type {
   IRequestEmailChangeUseCase,
   RequestEmailChangeInput,
-} from '@/use-cases/user/IRequestEmailChangeUseCase.js';
+} from '#src/use-cases/user/IRequestEmailChangeUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

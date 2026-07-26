@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { PrismaTotpBackupCodeRepository } from '@/infrastructure/db/repositories/PrismaTotpBackupCodeRepository.js';
-import { createTestDb, type TestDb } from '@/__tests__/helpers/createTestDb.js';
+import { PrismaTotpBackupCodeRepository } from '#src/infrastructure/db/repositories/PrismaTotpBackupCodeRepository.js';
+import { createTestDb, type TestDb } from '#src/__tests__/helpers/createTestDb.js';
 
 describe('PrismaTotpBackupCodeRepository', () => {
   let db: TestDb;

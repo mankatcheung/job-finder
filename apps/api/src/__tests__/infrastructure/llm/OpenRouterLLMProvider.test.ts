@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OpenRouterLLMProvider } from '@/infrastructure/llm/OpenRouterLLMProvider.js';
-import { ENV, LLM } from '@/constants.js';
-import type { LLMMessage } from '@/use-cases/ports/ILLMProvider.js';
+import { OpenRouterLLMProvider } from '#src/infrastructure/llm/OpenRouterLLMProvider.js';
+import { ENV, LLM } from '#src/constants.js';
+import type { LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
 
 const jsonResponse = (body: unknown, ok = true, status = 200) => ({
   ok,

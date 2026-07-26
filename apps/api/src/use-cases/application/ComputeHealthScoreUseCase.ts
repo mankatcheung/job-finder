@@ -1,8 +1,8 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
-import type { IDocumentRepository } from '@/use-cases/ports/IDocumentRepository.js';
-import type { IInterviewRoundRepository } from '@/use-cases/ports/IInterviewRoundRepository.js';
-import type { IContactRepository } from '@/use-cases/ports/IContactRepository.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
+import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentRepository.js';
+import type { IInterviewRoundRepository } from '#src/use-cases/ports/IInterviewRoundRepository.js';
+import type { IContactRepository } from '#src/use-cases/ports/IContactRepository.js';
 
 export interface HealthScoreCriterion {
   key: string;

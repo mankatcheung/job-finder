@@ -1,5 +1,5 @@
-import { builder } from '@/http/schema/builder.js';
-import type { NotificationPreferences } from '@/use-cases/user/IGetNotificationPreferencesUseCase.js';
+import { builder } from '#src/http/schema/builder.js';
+import type { NotificationPreferences } from '#src/use-cases/user/IGetNotificationPreferencesUseCase.js';
 
 export const NotificationPreferencesRef =
   builder.objectRef<NotificationPreferences>('NotificationPreferences');

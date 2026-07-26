@@ -1,5 +1,5 @@
-import { builder } from '@/http/schema/builder.js';
-import type { ContactDTO } from '@/interface-adapters/mappers/ContactMapper.js';
+import { builder } from '#src/http/schema/builder.js';
+import type { ContactDTO } from '#src/interface-adapters/mappers/ContactMapper.js';
 
 export const ContactRef = builder.objectRef<ContactDTO>('Contact');
 ContactRef.implement({

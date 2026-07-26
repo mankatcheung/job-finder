@@ -1,4 +1,4 @@
-import type { ApplicationStatus } from '@/domain/application/ApplicationStatus.js';
+import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
 
 export interface Application {
   id: string;

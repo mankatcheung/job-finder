@@ -1,11 +1,11 @@
-import type { IUpdateApplicationUseCase } from '@/use-cases/jobs/IUpdateApplicationUseCase.js';
-import type { ITransactionManager } from '@/use-cases/ports/ITransactionManager.js';
-import { assertValidBulkIds } from '@/use-cases/jobs/bulkValidation.js';
+import type { IUpdateApplicationUseCase } from '#src/use-cases/jobs/IUpdateApplicationUseCase.js';
+import type { ITransactionManager } from '#src/use-cases/ports/ITransactionManager.js';
+import { assertValidBulkIds } from '#src/use-cases/jobs/bulkValidation.js';
 import type {
   IBulkUpdateApplicationsUseCase,
   BulkUpdateApplicationsInput,
   BulkUpdateApplicationsOutput,
-} from '@/use-cases/jobs/IBulkUpdateApplicationsUseCase.js';
+} from '#src/use-cases/jobs/IBulkUpdateApplicationsUseCase.js';
 
 interface Deps {
   updateApplicationUseCase: IUpdateApplicationUseCase;

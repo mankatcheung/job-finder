@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { ContactRef } from '@/http/schema/types/ContactType.js';
-import { ERROR_CODES } from '@/constants.js';
+import { builder } from '#src/http/schema/builder.js';
+import { ContactRef } from '#src/http/schema/types/ContactType.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 builder.mutationField('createContact', (t) =>
   t.field({

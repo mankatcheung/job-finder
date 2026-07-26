@@ -1,6 +1,6 @@
-import type { User } from '@/domain/user/User.js';
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { IGetUserUseCase } from '@/use-cases/user/IGetUserUseCase.js';
+import type { User } from '#src/domain/user/User.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IGetUserUseCase } from '#src/use-cases/user/IGetUserUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

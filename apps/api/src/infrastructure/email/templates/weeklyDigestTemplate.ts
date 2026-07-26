@@ -1,4 +1,4 @@
-import type { WeeklyDigestData } from '@/use-cases/ports/IEmailService.js';
+import type { WeeklyDigestData } from '#src/use-cases/ports/IEmailService.js';
 
 const STATUS_LABELS: Record<string, string> = {
   draft: 'Draft',

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { ContactResolver } from '@/interface-adapters/resolvers/ContactResolver.js';
-import { ContactMapper } from '@/interface-adapters/mappers/ContactMapper.js';
-import { makeContact } from '@/__tests__/helpers/mocks.js';
-import type { ICreateContactUseCase } from '@/use-cases/contacts/ICreateContactUseCase.js';
-import type { IGetContactsUseCase } from '@/use-cases/contacts/IGetContactsUseCase.js';
-import type { IUpdateContactUseCase } from '@/use-cases/contacts/IUpdateContactUseCase.js';
-import type { IDeleteContactUseCase } from '@/use-cases/contacts/IDeleteContactUseCase.js';
+import { ContactResolver } from '#src/interface-adapters/resolvers/ContactResolver.js';
+import { ContactMapper } from '#src/interface-adapters/mappers/ContactMapper.js';
+import { makeContact } from '#src/__tests__/helpers/mocks.js';
+import type { ICreateContactUseCase } from '#src/use-cases/contacts/ICreateContactUseCase.js';
+import type { IGetContactsUseCase } from '#src/use-cases/contacts/IGetContactsUseCase.js';
+import type { IUpdateContactUseCase } from '#src/use-cases/contacts/IUpdateContactUseCase.js';
+import type { IDeleteContactUseCase } from '#src/use-cases/contacts/IDeleteContactUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

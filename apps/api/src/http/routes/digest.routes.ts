@@ -1,7 +1,7 @@
-import type { RouteDefinition } from '@/http/ports/RouteDefinition.js';
-import type { Cradle } from '@/http/container.js';
-import { ENV, ROUTES } from '@/constants.js';
-import { isAuthorizedCronTrigger } from '@/http/routes/cronAuth.js';
+import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
+import type { Cradle } from '#src/http/container.js';
+import { ENV, ROUTES } from '#src/constants.js';
+import { isAuthorizedCronTrigger } from '#src/http/routes/cronAuth.js';
 
 export function digestRoutes(getCradle: () => Cradle): RouteDefinition[] {
   return [

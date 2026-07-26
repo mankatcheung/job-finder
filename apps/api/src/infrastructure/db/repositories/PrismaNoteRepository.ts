@@ -1,6 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
-import type { Note } from '@/domain/note/Note.js';
-import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
+import type { Note } from '#src/domain/note/Note.js';
+import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
 import { getClient } from '../transactionContext.js';
 
 export class PrismaNoteRepository implements INoteRepository {

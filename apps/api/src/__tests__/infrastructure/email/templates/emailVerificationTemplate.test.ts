@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildEmailVerificationHtml } from '@/infrastructure/email/templates/emailVerificationTemplate.js';
+import { buildEmailVerificationHtml } from '#src/infrastructure/email/templates/emailVerificationTemplate.js';
 
 describe('buildEmailVerificationHtml', () => {
   it('includes the verify URL as the button link', () => {

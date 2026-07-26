@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { NoteResolver } from '@/interface-adapters/resolvers/NoteResolver.js';
-import { NoteMapper } from '@/interface-adapters/mappers/NoteMapper.js';
-import { makeNote } from '@/__tests__/helpers/mocks.js';
-import type { ICreateNoteUseCase } from '@/use-cases/notes/ICreateNoteUseCase.js';
-import type { IGetNotesUseCase } from '@/use-cases/notes/IGetNotesUseCase.js';
-import type { IUpdateNoteUseCase } from '@/use-cases/notes/IUpdateNoteUseCase.js';
-import type { IDeleteNoteUseCase } from '@/use-cases/notes/IDeleteNoteUseCase.js';
+import { NoteResolver } from '#src/interface-adapters/resolvers/NoteResolver.js';
+import { NoteMapper } from '#src/interface-adapters/mappers/NoteMapper.js';
+import { makeNote } from '#src/__tests__/helpers/mocks.js';
+import type { ICreateNoteUseCase } from '#src/use-cases/notes/ICreateNoteUseCase.js';
+import type { IGetNotesUseCase } from '#src/use-cases/notes/IGetNotesUseCase.js';
+import type { IUpdateNoteUseCase } from '#src/use-cases/notes/IUpdateNoteUseCase.js';
+import type { IDeleteNoteUseCase } from '#src/use-cases/notes/IDeleteNoteUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

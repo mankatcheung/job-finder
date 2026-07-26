@@ -1,11 +1,11 @@
 import type { PrismaClient } from '@prisma/client';
-import type { Document } from '@/domain/document/Document.js';
+import type { Document } from '#src/domain/document/Document.js';
 import type {
   IDocumentRepository,
   CreateDocumentData,
-} from '@/use-cases/ports/IDocumentRepository.js';
+} from '#src/use-cases/ports/IDocumentRepository.js';
 import { getClient } from '../transactionContext.js';
-import { DEFAULTS } from '@/constants.js';
+import { DEFAULTS } from '#src/constants.js';
 
 export class PrismaDocumentRepository implements IDocumentRepository {
   private readonly prisma: PrismaClient;

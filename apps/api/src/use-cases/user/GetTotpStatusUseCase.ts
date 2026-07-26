@@ -1,6 +1,6 @@
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import { ERROR_CODES } from '@/constants.js';
-import type { IGetTotpStatusUseCase } from '@/use-cases/user/IGetTotpStatusUseCase.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
+import type { IGetTotpStatusUseCase } from '#src/use-cases/user/IGetTotpStatusUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

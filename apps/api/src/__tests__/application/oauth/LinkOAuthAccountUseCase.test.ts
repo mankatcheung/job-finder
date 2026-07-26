@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { LinkOAuthAccountUseCase } from '@/use-cases/oauth/LinkOAuthAccountUseCase.js';
+import { LinkOAuthAccountUseCase } from '#src/use-cases/oauth/LinkOAuthAccountUseCase.js';
 import {
   makeOAuthAccountRepository,
   makeOAuthAccount,
   makeOAuthProviderRegistry,
-} from '@/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks.js';
 
 const input = {
   userId: 'user-1',

@@ -1,11 +1,11 @@
-import type { InterviewRound } from '@/domain/interviewRound/InterviewRound.js';
+import type { InterviewRound } from '#src/domain/interviewRound/InterviewRound.js';
 import type {
   IInterviewRoundRepository,
   CreateInterviewRoundData,
   UpdateInterviewRoundData,
-} from '@/use-cases/ports/IInterviewRoundRepository.js';
-import type { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
-import { CACHE_KEYS } from '@/constants.js';
+} from '#src/use-cases/ports/IInterviewRoundRepository.js';
+import type { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
+import { CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   prismaInterviewRoundRepository: IInterviewRoundRepository;

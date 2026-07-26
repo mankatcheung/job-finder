@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { GoogleOAuthProvider } from '@/infrastructure/auth/GoogleOAuthProvider.js';
+import { GoogleOAuthProvider } from '#src/infrastructure/auth/GoogleOAuthProvider.js';
 
 describe('GoogleOAuthProvider', () => {
   beforeEach(() => {

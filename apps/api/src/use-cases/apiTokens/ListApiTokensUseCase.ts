@@ -1,5 +1,5 @@
-import type { IApiTokenRepository } from '@/use-cases/ports/IApiTokenRepository.js';
-import type { ApiToken } from '@/domain/apiToken/ApiToken.js';
+import type { IApiTokenRepository } from '#src/use-cases/ports/IApiTokenRepository.js';
+import type { ApiToken } from '#src/domain/apiToken/ApiToken.js';
 
 interface Deps {
   apiTokenRepository: IApiTokenRepository;

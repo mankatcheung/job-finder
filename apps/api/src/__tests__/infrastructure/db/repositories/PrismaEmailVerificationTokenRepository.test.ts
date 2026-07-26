@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { PrismaEmailVerificationTokenRepository } from '@/infrastructure/db/repositories/PrismaEmailVerificationTokenRepository.js';
-import { createTestDb, type TestDb } from '@/__tests__/helpers/createTestDb.js';
+import { PrismaEmailVerificationTokenRepository } from '#src/infrastructure/db/repositories/PrismaEmailVerificationTokenRepository.js';
+import { createTestDb, type TestDb } from '#src/__tests__/helpers/createTestDb.js';
 
 describe('PrismaEmailVerificationTokenRepository', () => {
   let db: TestDb;

@@ -1,5 +1,5 @@
-import { builder } from '@/http/schema/builder.js';
-import type { LoginEventDTO } from '@/interface-adapters/mappers/LoginEventMapper.js';
+import { builder } from '#src/http/schema/builder.js';
+import type { LoginEventDTO } from '#src/interface-adapters/mappers/LoginEventMapper.js';
 
 export const LoginEventRef = builder.objectRef<LoginEventDTO>('LoginEvent');
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { PrismaPasswordResetTokenRepository } from '@/infrastructure/db/repositories/PrismaPasswordResetTokenRepository.js';
-import { createTestDb, type TestDb } from '@/__tests__/helpers/createTestDb.js';
+import { PrismaPasswordResetTokenRepository } from '#src/infrastructure/db/repositories/PrismaPasswordResetTokenRepository.js';
+import { createTestDb, type TestDb } from '#src/__tests__/helpers/createTestDb.js';
 
 describe('PrismaPasswordResetTokenRepository', () => {
   let db: TestDb;

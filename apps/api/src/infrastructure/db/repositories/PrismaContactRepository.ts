@@ -1,10 +1,10 @@
 import type { PrismaClient } from '@prisma/client';
-import type { Contact } from '@/domain/contact/Contact.js';
+import type { Contact } from '#src/domain/contact/Contact.js';
 import type {
   IContactRepository,
   CreateContactData,
   UpdateContactData,
-} from '@/use-cases/ports/IContactRepository.js';
+} from '#src/use-cases/ports/IContactRepository.js';
 import { getClient } from '../transactionContext.js';
 
 export class PrismaContactRepository implements IContactRepository {

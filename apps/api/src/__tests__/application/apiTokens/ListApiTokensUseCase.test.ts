@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { ListApiTokensUseCase } from '@/use-cases/apiTokens/ListApiTokensUseCase.js';
-import { makeApiTokenRepository, makeApiToken } from '@/__tests__/helpers/mocks.js';
+import { ListApiTokensUseCase } from '#src/use-cases/apiTokens/ListApiTokensUseCase.js';
+import { makeApiTokenRepository, makeApiToken } from '#src/__tests__/helpers/mocks.js';
 
 describe('ListApiTokensUseCase', () => {
   it('returns all tokens for the given user', async () => {

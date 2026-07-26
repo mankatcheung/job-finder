@@ -1,4 +1,4 @@
-import { CACHE } from '@/constants.js';
+import { CACHE } from '#src/constants.js';
 
 interface CacheEntry<T> {
   value: T;

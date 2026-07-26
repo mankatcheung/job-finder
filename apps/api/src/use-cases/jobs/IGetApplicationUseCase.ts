@@ -1,4 +1,4 @@
-import type { Application } from '@/domain/application/Application.js';
+import type { Application } from '#src/domain/application/Application.js';
 
 export interface GetApplicationInput {
   userId: string;

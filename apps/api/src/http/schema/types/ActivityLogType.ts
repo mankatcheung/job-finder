@@ -1,5 +1,5 @@
-import { builder } from '@/http/schema/builder.js';
-import type { ActivityLogDTO } from '@/interface-adapters/mappers/ActivityLogMapper.js';
+import { builder } from '#src/http/schema/builder.js';
+import type { ActivityLogDTO } from '#src/interface-adapters/mappers/ActivityLogMapper.js';
 
 export const ActivityLogRef = builder.objectRef<ActivityLogDTO>('ActivityLog');
 

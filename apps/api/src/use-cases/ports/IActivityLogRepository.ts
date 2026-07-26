@@ -1,4 +1,4 @@
-import type { ActivityLog } from '@/domain/activityLog/ActivityLog.js';
+import type { ActivityLog } from '#src/domain/activityLog/ActivityLog.js';
 
 export interface AppendActivityLogData {
   id: string;

@@ -1,5 +1,5 @@
-import type { ISessionRepository } from '@/use-cases/ports/ISessionRepository.js';
-import type { Session } from '@/domain/session/Session.js';
+import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
+import type { Session } from '#src/domain/session/Session.js';
 
 interface Deps {
   sessionRepository: ISessionRepository;

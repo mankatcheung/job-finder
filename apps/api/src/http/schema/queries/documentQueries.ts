@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { DocumentRef } from '@/http/schema/types/DocumentType.js';
-import { ERROR_CODES } from '@/constants.js';
+import { builder } from '#src/http/schema/builder.js';
+import { DocumentRef } from '#src/http/schema/types/DocumentType.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 builder.queryField('documents', (t) =>
   t.field({

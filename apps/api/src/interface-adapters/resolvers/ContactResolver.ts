@@ -1,8 +1,8 @@
-import type { ICreateContactUseCase } from '@/use-cases/contacts/ICreateContactUseCase.js';
-import type { IGetContactsUseCase } from '@/use-cases/contacts/IGetContactsUseCase.js';
-import type { IUpdateContactUseCase } from '@/use-cases/contacts/IUpdateContactUseCase.js';
-import type { IDeleteContactUseCase } from '@/use-cases/contacts/IDeleteContactUseCase.js';
-import type { ContactMapper, ContactDTO } from '@/interface-adapters/mappers/ContactMapper.js';
+import type { ICreateContactUseCase } from '#src/use-cases/contacts/ICreateContactUseCase.js';
+import type { IGetContactsUseCase } from '#src/use-cases/contacts/IGetContactsUseCase.js';
+import type { IUpdateContactUseCase } from '#src/use-cases/contacts/IUpdateContactUseCase.js';
+import type { IDeleteContactUseCase } from '#src/use-cases/contacts/IDeleteContactUseCase.js';
+import type { ContactMapper, ContactDTO } from '#src/interface-adapters/mappers/ContactMapper.js';
 
 interface Deps {
   createContactUseCase: ICreateContactUseCase;

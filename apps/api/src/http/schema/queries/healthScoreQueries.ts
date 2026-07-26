@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { HealthScoreRef } from '@/http/schema/types/HealthScoreType.js';
-import { ERROR_CODES } from '@/constants.js';
+import { builder } from '#src/http/schema/builder.js';
+import { HealthScoreRef } from '#src/http/schema/types/HealthScoreType.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 builder.queryField('applicationHealthScore', (t) =>
   t.field({

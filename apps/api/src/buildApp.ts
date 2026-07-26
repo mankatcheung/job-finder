@@ -3,26 +3,26 @@ import { fastifyAwilixPlugin } from '@fastify/awilix';
 import mercurius from 'mercurius';
 import cookie from '@fastify/cookie';
 
-import corsPlugin from '@/http/adapters/fastify/corsPlugin.js';
-import { registerRoutes } from '@/http/adapters/fastify/registerRoutes.js';
-import { toHttpRequest } from '@/http/adapters/fastify/toHttpRequest.js';
-import { toHttpResponse } from '@/http/adapters/fastify/toHttpResponse.js';
-import { buildGraphQLContext } from '@/http/adapters/fastify/buildGraphQLContext.js';
-import { diScopeOf } from '@/http/adapters/fastify/diScope.js';
-import { remindersRoutes } from '@/http/routes/reminders.routes.js';
-import { digestRoutes } from '@/http/routes/digest.routes.js';
-import { mcpRoutes } from '@/http/routes/mcp.routes.js';
-import { oauthRoutes } from '@/http/routes/oauth.routes.js';
-import { buildContainer } from '@/http/container.js';
-import { schema } from '@/http/schema/index.js';
-import { formatError } from '@/http/errors/formatError.js';
-import { PinoLogger } from '@/infrastructure/observability/PinoLogger.js';
+import corsPlugin from '#src/http/adapters/fastify/corsPlugin.js';
+import { registerRoutes } from '#src/http/adapters/fastify/registerRoutes.js';
+import { toHttpRequest } from '#src/http/adapters/fastify/toHttpRequest.js';
+import { toHttpResponse } from '#src/http/adapters/fastify/toHttpResponse.js';
+import { buildGraphQLContext } from '#src/http/adapters/fastify/buildGraphQLContext.js';
+import { diScopeOf } from '#src/http/adapters/fastify/diScope.js';
+import { remindersRoutes } from '#src/http/routes/reminders.routes.js';
+import { digestRoutes } from '#src/http/routes/digest.routes.js';
+import { mcpRoutes } from '#src/http/routes/mcp.routes.js';
+import { oauthRoutes } from '#src/http/routes/oauth.routes.js';
+import { buildContainer } from '#src/http/container.js';
+import { schema } from '#src/http/schema/index.js';
+import { formatError } from '#src/http/errors/formatError.js';
+import { PinoLogger } from '#src/infrastructure/observability/PinoLogger.js';
 import {
   fastifyOtelInstrumentation,
   isObservabilityEnabled,
-} from '@/infrastructure/observability/tracing.js';
+} from '#src/infrastructure/observability/tracing.js';
 import { asValue } from 'awilix';
-import { ENV, NODE_ENV, ROUTES } from '@/constants.js';
+import { ENV, NODE_ENV, ROUTES } from '#src/constants.js';
 
 export async function buildApp() {
   const fastify = Fastify({

@@ -1,4 +1,4 @@
-import type { EmailVerificationToken } from '@/domain/emailVerificationToken/EmailVerificationToken.js';
+import type { EmailVerificationToken } from '#src/domain/emailVerificationToken/EmailVerificationToken.js';
 
 export interface IEmailVerificationTokenRepository {
   create(data: {

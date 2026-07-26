@@ -1,11 +1,11 @@
 import { createHash } from 'crypto';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { VerifyEmailUseCase } from '@/use-cases/auth/VerifyEmailUseCase.js';
+import { VerifyEmailUseCase } from '#src/use-cases/auth/VerifyEmailUseCase.js';
 import {
   makeUserRepository,
   makeEmailVerificationTokenRepository,
   makeEmailVerificationToken,
-} from '@/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks.js';
 
 const RAW_TOKEN = 'raw-verify-token';
 const TOKEN_HASH = createHash('sha256').update(RAW_TOKEN).digest('hex');

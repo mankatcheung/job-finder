@@ -1,12 +1,12 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { IInterviewRoundRepository } from '@/use-cases/ports/IInterviewRoundRepository.js';
-import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
-import { DEFAULTS, ERROR_CODES } from '@/constants.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { IInterviewRoundRepository } from '#src/use-cases/ports/IInterviewRoundRepository.js';
+import type { IActivityLogRepository } from '#src/use-cases/ports/IActivityLogRepository.js';
+import { DEFAULTS, ERROR_CODES } from '#src/constants.js';
 import type {
   ICreateInterviewRoundUseCase,
   CreateInterviewRoundInput,
   CreateInterviewRoundOutput,
-} from '@/use-cases/interviewRounds/ICreateInterviewRoundUseCase.js';
+} from '#src/use-cases/interviewRounds/ICreateInterviewRoundUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

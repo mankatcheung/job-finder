@@ -1,16 +1,16 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { IDocumentRepository } from '@/use-cases/ports/IDocumentRepository.js';
-import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentRepository.js';
+import type { IActivityLogRepository } from '#src/use-cases/ports/IActivityLogRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 import {
   assertAllowedMimeType,
   assertValidSizeBytes,
-} from '@/use-cases/documents/documentValidation.js';
+} from '#src/use-cases/documents/documentValidation.js';
 import type {
   IConfirmDocumentUseCase,
   ConfirmDocumentInput,
   ConfirmDocumentOutput,
-} from '@/use-cases/documents/IConfirmDocumentUseCase.js';
+} from '#src/use-cases/documents/IConfirmDocumentUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

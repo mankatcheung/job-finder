@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ParseJobDescriptionUseCase } from '@/use-cases/jobDescription/ParseJobDescriptionUseCase.js';
-import type { ILLMProvider } from '@/use-cases/ports/ILLMProvider.js';
+import { ParseJobDescriptionUseCase } from '#src/use-cases/jobDescription/ParseJobDescriptionUseCase.js';
+import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
 
 function makeLLMProvider(response: string): ILLMProvider {
   return { complete: vi.fn().mockResolvedValue(response) };

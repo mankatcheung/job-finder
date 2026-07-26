@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { CreateNoteUseCase } from '@/use-cases/notes/CreateNoteUseCase.js';
+import { CreateNoteUseCase } from '#src/use-cases/notes/CreateNoteUseCase.js';
 import {
   makeApplicationRepository,
   makeNoteRepository,
   makeApplication,
   makeNote,
-} from '@/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks.js';
 
 describe('CreateNoteUseCase', () => {
   it('throws NOT_FOUND when the application does not exist', async () => {

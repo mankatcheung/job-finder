@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { ParsedJobDescriptionRef } from '@/http/schema/types/ParsedJobDescriptionType.js';
-import { ERROR_CODES } from '@/constants.js';
+import { builder } from '#src/http/schema/builder.js';
+import { ParsedJobDescriptionRef } from '#src/http/schema/types/ParsedJobDescriptionType.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 builder.mutationField('parseJobDescription', (t) =>
   t.field({

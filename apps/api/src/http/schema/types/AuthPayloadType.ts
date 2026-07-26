@@ -1,11 +1,11 @@
-import type { IHttpResponse } from '@/http/ports/IHttpResponse.js';
+import type { IHttpResponse } from '#src/http/ports/IHttpResponse.js';
 
 export interface UploadUrlPayloadDTO {
   uploadUrl: string;
   storageKey: string;
 }
 
-import { builder } from '@/http/schema/builder.js';
+import { builder } from '#src/http/schema/builder.js';
 import {
   COOKIE_MAX_AGE_S,
   COOKIE_PATH,
@@ -13,7 +13,7 @@ import {
   COOKIES,
   ENV,
   NODE_ENV,
-} from '@/constants.js';
+} from '#src/constants.js';
 
 export const UploadUrlPayloadRef = builder.objectRef<UploadUrlPayloadDTO>('UploadUrlPayload');
 UploadUrlPayloadRef.implement({

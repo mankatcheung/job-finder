@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { UpdateApplicationUseCase } from '@/use-cases/jobs/UpdateApplicationUseCase.js';
+import { UpdateApplicationUseCase } from '#src/use-cases/jobs/UpdateApplicationUseCase.js';
 import {
   makeApplicationRepository,
   makeApplication,
   makeTransactionManager,
   makeActivityLogRepository,
-} from '@/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks.js';
 
 describe('UpdateApplicationUseCase', () => {
   it('throws NOT_FOUND when the application does not exist', async () => {

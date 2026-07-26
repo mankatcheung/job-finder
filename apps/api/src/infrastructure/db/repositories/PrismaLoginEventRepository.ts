@@ -1,9 +1,9 @@
 import type { PrismaClient } from '@prisma/client';
-import type { LoginEvent } from '@/domain/loginEvent/LoginEvent.js';
+import type { LoginEvent } from '#src/domain/loginEvent/LoginEvent.js';
 import type {
   ILoginEventRepository,
   CreateLoginEventData,
-} from '@/use-cases/ports/ILoginEventRepository.js';
+} from '#src/use-cases/ports/ILoginEventRepository.js';
 import { getClient } from '../transactionContext.js';
 
 type PrismaLoginEvent = {

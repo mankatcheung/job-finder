@@ -1,14 +1,14 @@
 import { createHash } from 'crypto';
 import bcrypt from 'bcryptjs';
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { IPasswordResetTokenRepository } from '@/use-cases/ports/IPasswordResetTokenRepository.js';
-import type { ISessionRepository } from '@/use-cases/ports/ISessionRepository.js';
-import { ERROR_CODES } from '@/constants.js';
-import { assertValidPassword } from '@/use-cases/auth/passwordValidation.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IPasswordResetTokenRepository } from '#src/use-cases/ports/IPasswordResetTokenRepository.js';
+import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
+import { assertValidPassword } from '#src/use-cases/auth/passwordValidation.js';
 import type {
   IResetPasswordUseCase,
   ResetPasswordInput,
-} from '@/use-cases/auth/IResetPasswordUseCase.js';
+} from '#src/use-cases/auth/IResetPasswordUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

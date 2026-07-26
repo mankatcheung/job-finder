@@ -1,12 +1,12 @@
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
-import type { IDocumentRepository } from '@/use-cases/ports/IDocumentRepository.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
+import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   IExportUserDataUseCase,
   ExportUserDataOutput,
-} from '@/use-cases/user/IExportUserDataUseCase.js';
+} from '#src/use-cases/user/IExportUserDataUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

@@ -1,8 +1,8 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { NotificationPreferencesRef } from '@/http/schema/types/NotificationPreferencesType.js';
-import { UserRef } from '@/http/schema/types/UserType.js';
-import { ERROR_CODES } from '@/constants.js';
+import { builder } from '#src/http/schema/builder.js';
+import { NotificationPreferencesRef } from '#src/http/schema/types/NotificationPreferencesType.js';
+import { UserRef } from '#src/http/schema/types/UserType.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 builder.queryField('exportUserData', (t) =>
   t.string({

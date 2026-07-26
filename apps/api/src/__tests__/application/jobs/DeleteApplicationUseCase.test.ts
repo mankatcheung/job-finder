@@ -1,12 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
-import { DeleteApplicationUseCase } from '@/use-cases/jobs/DeleteApplicationUseCase.js';
+import { DeleteApplicationUseCase } from '#src/use-cases/jobs/DeleteApplicationUseCase.js';
 import {
   makeApplicationRepository,
   makeDocumentRepository,
   makeStorageProvider,
   makeApplication,
   makeDocument,
-} from '@/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks.js';
 
 describe('DeleteApplicationUseCase', () => {
   it('throws NOT_FOUND when the application does not exist', async () => {

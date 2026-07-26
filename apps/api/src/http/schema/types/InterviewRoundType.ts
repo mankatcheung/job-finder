@@ -1,9 +1,9 @@
-import { builder } from '@/http/schema/builder.js';
+import { builder } from '#src/http/schema/builder.js';
 import {
   InterviewRoundTypeEnum,
   InterviewRoundOutcomeEnum,
-} from '@/http/schema/types/enums/InterviewRoundEnums.js';
-import type { InterviewRoundDTO } from '@/interface-adapters/mappers/InterviewRoundMapper.js';
+} from '#src/http/schema/types/enums/InterviewRoundEnums.js';
+import type { InterviewRoundDTO } from '#src/interface-adapters/mappers/InterviewRoundMapper.js';
 
 export const InterviewRoundRef = builder.objectRef<InterviewRoundDTO>('InterviewRound');
 InterviewRoundRef.implement({

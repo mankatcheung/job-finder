@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { InterviewRoundResolver } from '@/interface-adapters/resolvers/InterviewRoundResolver.js';
-import { InterviewRoundMapper } from '@/interface-adapters/mappers/InterviewRoundMapper.js';
-import { makeInterviewRound } from '@/__tests__/helpers/mocks.js';
-import type { ICreateInterviewRoundUseCase } from '@/use-cases/interviewRounds/ICreateInterviewRoundUseCase.js';
-import type { IGetInterviewRoundsUseCase } from '@/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
-import type { IUpdateInterviewRoundUseCase } from '@/use-cases/interviewRounds/IUpdateInterviewRoundUseCase.js';
-import type { IDeleteInterviewRoundUseCase } from '@/use-cases/interviewRounds/IDeleteInterviewRoundUseCase.js';
+import { InterviewRoundResolver } from '#src/interface-adapters/resolvers/InterviewRoundResolver.js';
+import { InterviewRoundMapper } from '#src/interface-adapters/mappers/InterviewRoundMapper.js';
+import { makeInterviewRound } from '#src/__tests__/helpers/mocks.js';
+import type { ICreateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/ICreateInterviewRoundUseCase.js';
+import type { IGetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
+import type { IUpdateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/IUpdateInterviewRoundUseCase.js';
+import type { IDeleteInterviewRoundUseCase } from '#src/use-cases/interviewRounds/IDeleteInterviewRoundUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

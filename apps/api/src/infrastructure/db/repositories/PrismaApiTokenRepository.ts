@@ -1,11 +1,11 @@
 import type { PrismaClient } from '@prisma/client';
-import type { ApiToken, ApiTokenScope } from '@/domain/apiToken/ApiToken.js';
+import type { ApiToken, ApiTokenScope } from '#src/domain/apiToken/ApiToken.js';
 import { getClient } from '../transactionContext.js';
-import { DEFAULTS } from '@/constants.js';
+import { DEFAULTS } from '#src/constants.js';
 import type {
   IApiTokenRepository,
   CreateApiTokenData,
-} from '@/use-cases/ports/IApiTokenRepository.js';
+} from '#src/use-cases/ports/IApiTokenRepository.js';
 
 type PrismaToken = {
   id: string;

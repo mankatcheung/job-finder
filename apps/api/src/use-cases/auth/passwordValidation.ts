@@ -1,4 +1,4 @@
-import { ERROR_CODES, PASSWORD_MIN_LENGTH } from '@/constants.js';
+import { ERROR_CODES, PASSWORD_MIN_LENGTH } from '#src/constants.js';
 
 export function assertValidPassword(password: string): void {
   if (password.length < PASSWORD_MIN_LENGTH) {

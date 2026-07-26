@@ -1,4 +1,4 @@
-import type { IRateLimiter } from '@/use-cases/ports/IRateLimiter.js';
+import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 
 interface Bucket {
   count: number;

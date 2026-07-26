@@ -1,10 +1,10 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import { PAGINATION } from '@/constants.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import { PAGINATION } from '#src/constants.js';
 import type {
   IGetApplicationsPageUseCase,
   GetApplicationsPageInput,
   GetApplicationsPageOutput,
-} from '@/use-cases/jobs/IGetApplicationsPageUseCase.js';
+} from '#src/use-cases/jobs/IGetApplicationsPageUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;
