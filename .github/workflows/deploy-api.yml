@@ -26,23 +26,33 @@ name: Deploy api (Vercel)
 # step in the deploy job rather than an implicit side effect of `pnpm
 # install`.
 #
-# api/index.ts (and everything it transitively imports — i.e. all of
-# src/**) uses this repo's `@/*` -> `src/*` path alias. That alias only
-# exists in tsconfig.json for the TypeScript compiler's own type-checking;
-# nothing rewrites it into a real import at runtime. tsx (local dev) and
-# vitest (tests) both have their own tsconfig-paths resolution built in,
-# but Vercel's Node function builder just transpiles api/index.ts's TS
-# syntax to JS in place — it does not rewrite bare specifiers — so a
-# deployed function crashes on first invocation with "Cannot find package
-# '@/constants.js'" (Node treats `@/` as an npm scope, since Node's own
-# native subpath-imports feature only intercepts `#`-prefixed specifiers,
-# confirmed against this exact repo's alias by reproducing both failure
-# and fix locally). The fix is to bundle api/index.ts ourselves first
-# (esbuild, which does understand tsconfig `paths` and inlines everything
-# under src/** into one file) so nothing bare-specifier-shaped reaches
-# Vercel's builder; --packages=external keeps real npm dependencies
-# (fastify, @prisma/client, etc.) unbundled so Vercel's own dependency
-# tracing still finds them normally in node_modules.
+# There is no custom serverless function here (an earlier version of this
+# workflow had one at apps/api/api/index.ts) — Vercel has zero-config
+# Fastify support that auto-detects src/app.ts as the entrypoint and wraps
+# the whole app as one Vercel Function:
+# https://vercel.com/docs/frameworks/backend/fastify
+# That auto-detection runs regardless of any custom /api function, so the
+# custom one was redundant (worse: Vercel's Fastify builder was the thing
+# actually serving traffic all along, silently ignoring the custom
+# function entirely).
+#
+# Same underlying problem as before, in the file Vercel actually uses:
+# src/index.ts (and everything it transitively imports, i.e. all of
+# src/**) uses this repo's `@/*` -> `src/*` path alias, which only exists
+# in tsconfig.json for the TypeScript compiler's own type-checking —
+# nothing rewrites it into a real import at runtime. Vercel's Fastify
+# builder transpiles the detected entrypoint's TS syntax to JS in place;
+# it does not rewrite bare specifiers, so the deployed function crashed
+# with "Cannot find package '@/constants.js'" (then, after fixing the
+# entrypoint but not what it imports, "Cannot find package '@/http'" from
+# src/app.js). Fix is the same technique as before, just retargeted:
+# bundle src/index.ts with esbuild first (which does understand tsconfig
+# `paths` and inlines everything under src/** into one file), then delete
+# both src/index.ts and src/app.ts so Vercel's entrypoint detection can't
+# pick the un-bundled src/app.ts instead (its filename pattern takes
+# priority over src/index.* per Vercel's docs). --packages=external keeps
+# real npm dependencies (fastify, @prisma/client, etc.) unbundled so
+# Vercel's own dependency tracing still finds them normally.
 #
 # One-time setup required before this workflow can deploy:
 #   1. Create a Vercel project for apps/api (from the repo root, run
@@ -123,10 +133,10 @@ jobs:
       - name: Generate Prisma client
         run: pnpm --filter @job-finder/api db:generate
 
-      - name: Bundle api function (resolves @/ path aliases — Vercel's own per-file transpile doesn't)
+      - name: Bundle entrypoint (resolves @/ path aliases — Vercel's own per-file transpile doesn't)
         run: |
           pnpm --filter @job-finder/api bundle:vercel
-          rm apps/api/api/index.ts
+          rm apps/api/src/index.ts apps/api/src/app.ts
 
       - name: Install Vercel CLI
         run: pnpm add --global vercel@latest
