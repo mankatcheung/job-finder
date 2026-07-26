@@ -8,6 +8,17 @@ name: Deploy api (Vercel)
 # result (`vercel deploy --prebuilt`), rather than letting Vercel's cloud
 # build run un-reviewed.
 #
+# IMPORTANT: every `vercel` command below runs from the repo root, NOT
+# `apps/api`. Per Vercel's own monorepo docs ("Vercel CLI should not be
+# invoked from the subdirectory"), the CLI must run at the monorepo root;
+# the project's own Root Directory setting (see setup step 2) is what
+# tells Vercel to operate on apps/api. Invoking from inside apps/api
+# instead (an earlier version of this workflow did) causes two different
+# failures depending on Root Directory: doubled paths like
+# "apps/api/apps/api" if Root Directory is also apps/api, or a monorepo-
+# unaware install ("File does not exist: apps/api/node_modules/fastify")
+# if Root Directory is blank.
+#
 # `vercel build` performs its own install internally but has no idea it
 # needs to run `prisma generate` afterwards, so the Prisma client is
 # generated explicitly as its own step below, before `vercel build` runs —
@@ -16,21 +27,27 @@ name: Deploy api (Vercel)
 # install`.
 #
 # One-time setup required before this workflow can deploy:
-#   1. Create a Vercel project for apps/api. Do NOT connect it to this
-#      GitHub repo in the Vercel dashboard (Settings -> Git) — leaving it
-#      disconnected is what stops Vercel's own integration from also
-#      deploying on every push, so this workflow stays the only trigger.
-#   2. From apps/api locally, run `vercel link` and select that project.
-#      This writes apps/api/.vercel/project.json (gitignored) containing
-#      orgId/projectId — copy those two values into the repo secrets below.
-#   3. Attach a Blob store to the project (Storage tab) — this sets
+#   1. Create a Vercel project for apps/api (from the repo root, run
+#      `vercel link` — not from inside apps/api). Do NOT connect it to
+#      this GitHub repo in the Vercel dashboard (Settings -> Git) —
+#      leaving it disconnected is what stops Vercel's own integration from
+#      also deploying on every push, so this workflow stays the only
+#      trigger.
+#   2. In the project's Settings -> Build and Deployment -> Root
+#      Directory, set it to `apps/api`. This is required, not optional —
+#      it's how Vercel knows which part of the monorepo this project is,
+#      since the CLI itself is invoked from the repo root (see above).
+#   3. `vercel link` (step 1) writes .vercel/project.json (gitignored)
+#      containing orgId/projectId — copy those two values into the repo
+#      secrets below.
+#   4. Attach a Blob store to the project (Storage tab) — this sets
 #      BLOB_READ_WRITE_TOKEN as a project env var automatically.
-#   4. Set the rest of the project's env vars (Settings -> Environment
+#   5. Set the rest of the project's env vars (Settings -> Environment
 #      Variables, Production): everything in apps/api/.env.production
 #      (DATABASE_URL, DATABASE_AUTH_TOKEN, JWT_SECRET, JWT_REFRESH_SECRET,
 #      TOTP_ENCRYPTION_KEY, CORS_ORIGIN, CRON_SECRET, etc.) — this workflow
 #      builds/deploys the code, it does not manage runtime env/secrets.
-#   5. Create a Vercel access token (https://vercel.com/account/tokens) and
+#   6. Create a Vercel access token (https://vercel.com/account/tokens) and
 #      add repo secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_API_PROJECT_ID.
 #      (VERCEL_ORG_ID is shared with deploy-web.yml; VERCEL_API_PROJECT_ID
 #      is this project's own ID — the web app is a separate Vercel project
@@ -92,7 +109,6 @@ jobs:
         run: pnpm add --global vercel@latest
 
       - name: Pull Vercel project settings & env vars
-        working-directory: apps/api
         run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -100,7 +116,6 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_API_PROJECT_ID }}
 
       - name: Build (runs in this CI environment, not Vercel's cloud build)
-        working-directory: apps/api
         run: vercel build --prod --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -108,7 +123,6 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_API_PROJECT_ID }}
 
       - name: Deploy prebuilt output to Vercel
-        working-directory: apps/api
         run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
