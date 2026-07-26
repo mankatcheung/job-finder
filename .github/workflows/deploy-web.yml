@@ -1,0 +1,107 @@
+name: Deploy web (Vercel)
+
+# Same CLI-driven pattern as deploy-api.yml: `test` gates `deploy`, which
+# runs the actual build in this CI environment (`vercel build`) and uploads
+# the result (`vercel deploy --prebuilt`) rather than using Vercel's own
+# GitHub integration.
+#
+# `vite build` alone only emits a generic Node fetch-handler with no
+# platform adapter — the `nitro()` plugin in vite.config.ts is what makes
+# `vercel build` (which sets VERCEL=1) produce .vercel/output (Build Output
+# API v3) instead. See the comment there if this build ever starts
+# producing a plain dist/ instead of .output/.
+#
+# One-time setup required before this workflow can deploy:
+#   1. Create a Vercel project for apps/web. Do NOT connect it to this
+#      GitHub repo in the Vercel dashboard (Settings -> Git) — leaving it
+#      disconnected is what stops Vercel's own integration from also
+#      deploying on every push, so this workflow stays the only trigger.
+#   2. From apps/web locally, run `vercel link` and select that project.
+#      This writes apps/web/.vercel/project.json (gitignored) containing
+#      orgId/projectId — copy those two values into the repo secrets below.
+#   3. Set the project's env vars (Settings -> Environment Variables,
+#      Production): at minimum VITE_API_URL, set to the deployed api's full
+#      GraphQL endpoint (e.g. https://job-finder-api.vercel.app/graphql —
+#      see apps/api's deploy-api.yml). This is a Vite build-time env var
+#      (baked into the client bundle by `vercel build`, not read at
+#      runtime), so it must be set before this workflow's build step runs.
+#   4. Create a Vercel access token (https://vercel.com/account/tokens) and
+#      add repo secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_WEB_PROJECT_ID.
+#      (VERCEL_ORG_ID is shared with deploy-api.yml; VERCEL_WEB_PROJECT_ID
+#      is this project's own ID — the api is a separate Vercel project with
+#      its own VERCEL_API_PROJECT_ID.)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/deploy-web.yml'
+
+jobs:
+  test:
+    name: Test web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @job-finder/web typecheck
+      - run: pnpm --filter @job-finder/web test
+
+  deploy:
+    name: Build & deploy to Vercel
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Vercel CLI
+        run: pnpm add --global vercel@latest
+
+      - name: Pull Vercel project settings & env vars
+        working-directory: apps/web
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+
+      - name: Build (runs in this CI environment, not Vercel's cloud build)
+        working-directory: apps/web
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+
+      - name: Deploy prebuilt output to Vercel
+        working-directory: apps/web
+        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
