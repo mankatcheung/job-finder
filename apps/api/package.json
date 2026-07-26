@@ -20,7 +20,7 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "clean": "rm -rf dist",
-    "bundle:vercel": "esbuild api/index.ts --bundle --platform=node --format=esm --target=node22 --packages=external --outfile=api/index.js"
+    "bundle:vercel": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --packages=external --outfile=src/index.js"
   },
   "dependencies": {
     "@axiomhq/pino": "^1.8.0",

@@ -1,11 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }],
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 60
-    }
-  },
   "crons": [
     { "path": "/admin/digest/send", "schedule": "0 9 * * 1" },
     { "path": "/admin/reminders/send", "schedule": "0 9 * * *" }
