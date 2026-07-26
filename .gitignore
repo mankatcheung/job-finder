@@ -11,3 +11,4 @@ uploads/
 .env
 .env.local
 .env.*.local
+.env.production
