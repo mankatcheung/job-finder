@@ -5,27 +5,45 @@ name: Deploy web (Vercel)
 # the result (`vercel deploy --prebuilt`) rather than using Vercel's own
 # GitHub integration.
 #
+# IMPORTANT: every `vercel` command below runs from the repo root, NOT
+# `apps/web`. Per Vercel's own monorepo docs ("Vercel CLI should not be
+# invoked from the subdirectory"), the CLI must run at the monorepo root;
+# the project's own Root Directory setting (see setup step 2) is what
+# tells Vercel to operate on apps/web. Invoking from inside apps/web
+# instead (an earlier version of this workflow did) causes two different
+# failures depending on Root Directory: doubled paths like
+# "apps/web/apps/web" if Root Directory is also apps/web, or a monorepo-
+# unaware install if Root Directory is blank (see deploy-api.yml, which
+# hit both variants).
+#
 # `vite build` alone only emits a generic Node fetch-handler with no
-# platform adapter — the `nitro()` plugin in vite.config.ts is what makes
-# `vercel build` (which sets VERCEL=1) produce .vercel/output (Build Output
-# API v3) instead. See the comment there if this build ever starts
-# producing a plain dist/ instead of .output/.
+# platform adapter — the `nitro({ preset: 'vercel' })` plugin config in
+# vite.config.ts is what makes `vercel build` produce .vercel/output
+# (Build Output API v3) instead. The preset is explicit, not
+# auto-detected — this nitro package has no VERCEL=1 auto-detection (see
+# the comment in vite.config.ts).
 #
 # One-time setup required before this workflow can deploy:
-#   1. Create a Vercel project for apps/web. Do NOT connect it to this
-#      GitHub repo in the Vercel dashboard (Settings -> Git) — leaving it
-#      disconnected is what stops Vercel's own integration from also
-#      deploying on every push, so this workflow stays the only trigger.
-#   2. From apps/web locally, run `vercel link` and select that project.
-#      This writes apps/web/.vercel/project.json (gitignored) containing
-#      orgId/projectId — copy those two values into the repo secrets below.
-#   3. Set the project's env vars (Settings -> Environment Variables,
+#   1. Create a Vercel project for apps/web (from the repo root, run
+#      `vercel link` — not from inside apps/web). Do NOT connect it to
+#      this GitHub repo in the Vercel dashboard (Settings -> Git) —
+#      leaving it disconnected is what stops Vercel's own integration from
+#      also deploying on every push, so this workflow stays the only
+#      trigger.
+#   2. In the project's Settings -> Build and Deployment -> Root
+#      Directory, set it to `apps/web`. This is required, not optional —
+#      it's how Vercel knows which part of the monorepo this project is,
+#      since the CLI itself is invoked from the repo root (see above).
+#   3. `vercel link` (step 1) writes .vercel/project.json (gitignored)
+#      containing orgId/projectId — copy those two values into the repo
+#      secrets below.
+#   4. Set the project's env vars (Settings -> Environment Variables,
 #      Production): at minimum VITE_API_URL, set to the deployed api's full
 #      GraphQL endpoint (e.g. https://job-finder-api.vercel.app/graphql —
 #      see apps/api's deploy-api.yml). This is a Vite build-time env var
 #      (baked into the client bundle by `vercel build`, not read at
 #      runtime), so it must be set before this workflow's build step runs.
-#   4. Create a Vercel access token (https://vercel.com/account/tokens) and
+#   5. Create a Vercel access token (https://vercel.com/account/tokens) and
 #      add repo secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_WEB_PROJECT_ID.
 #      (VERCEL_ORG_ID is shared with deploy-api.yml; VERCEL_WEB_PROJECT_ID
 #      is this project's own ID — the api is a separate Vercel project with
@@ -83,7 +101,6 @@ jobs:
         run: pnpm add --global vercel@latest
 
       - name: Pull Vercel project settings & env vars
-        working-directory: apps/web
         run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -91,7 +108,6 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
 
       - name: Build (runs in this CI environment, not Vercel's cloud build)
-        working-directory: apps/web
         run: vercel build --prod --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -99,7 +115,6 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
 
       - name: Deploy prebuilt output to Vercel
-        working-directory: apps/web
         run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
