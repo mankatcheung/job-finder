@@ -26,6 +26,24 @@ name: Deploy api (Vercel)
 # step in the deploy job rather than an implicit side effect of `pnpm
 # install`.
 #
+# api/index.ts (and everything it transitively imports — i.e. all of
+# src/**) uses this repo's `@/*` -> `src/*` path alias. That alias only
+# exists in tsconfig.json for the TypeScript compiler's own type-checking;
+# nothing rewrites it into a real import at runtime. tsx (local dev) and
+# vitest (tests) both have their own tsconfig-paths resolution built in,
+# but Vercel's Node function builder just transpiles api/index.ts's TS
+# syntax to JS in place — it does not rewrite bare specifiers — so a
+# deployed function crashes on first invocation with "Cannot find package
+# '@/constants.js'" (Node treats `@/` as an npm scope, since Node's own
+# native subpath-imports feature only intercepts `#`-prefixed specifiers,
+# confirmed against this exact repo's alias by reproducing both failure
+# and fix locally). The fix is to bundle api/index.ts ourselves first
+# (esbuild, which does understand tsconfig `paths` and inlines everything
+# under src/** into one file) so nothing bare-specifier-shaped reaches
+# Vercel's builder; --packages=external keeps real npm dependencies
+# (fastify, @prisma/client, etc.) unbundled so Vercel's own dependency
+# tracing still finds them normally in node_modules.
+#
 # One-time setup required before this workflow can deploy:
 #   1. Create a Vercel project for apps/api (from the repo root, run
 #      `vercel link` — not from inside apps/api). Do NOT connect it to
@@ -104,6 +122,11 @@ jobs:
 
       - name: Generate Prisma client
         run: pnpm --filter @job-finder/api db:generate
+
+      - name: Bundle api function (resolves @/ path aliases — Vercel's own per-file transpile doesn't)
+        run: |
+          pnpm --filter @job-finder/api bundle:vercel
+          rm apps/api/api/index.ts
 
       - name: Install Vercel CLI
         run: pnpm add --global vercel@latest

@@ -13,3 +13,4 @@ uploads/
 .env.*.local
 .env.production
 .vercel
+apps/api/api/index.js
