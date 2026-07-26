@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { put as putBlob } from '@vercel/blob/client';
 import { gqlClient } from '#/graphql/client';
 import { StatusBadge } from '../../dashboard';
 import {
@@ -1381,10 +1382,12 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
         input: { applicationId, filename: file.name, mimeType: file.type, sizeBytes: file.size },
       });
 
-      await fetch(requestUploadUrl.uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type },
+      // `uploadUrl` is a Vercel Blob client token (not a fetchable URL) —
+      // put() uploads directly to Blob storage, bypassing our API.
+      await putBlob(requestUploadUrl.storageKey, file, {
+        access: 'public',
+        token: requestUploadUrl.uploadUrl,
+        contentType: file.type,
       });
 
       setPendingUpload({

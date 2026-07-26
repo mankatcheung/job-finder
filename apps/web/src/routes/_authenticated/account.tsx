@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { MonitorIcon, MoonIcon, SunIcon, UserIcon } from 'lucide-react';
+import { put as putBlob } from '@vercel/blob/client';
 import { gqlClient } from '#/graphql/client';
 import { clearAuthIndicator } from '#/lib/auth';
 import { queryClient } from '#/lib/queryClient';
@@ -410,10 +411,12 @@ export function AccountPage() {
         requestAvatarUploadUrl: { uploadUrl: string; storageKey: string };
       }>(REQUEST_AVATAR_UPLOAD_URL, { filename: file.name, mimeType: file.type });
 
-      await fetch(requestAvatarUploadUrl.uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type },
+      // `uploadUrl` is a Vercel Blob client token (not a fetchable URL) —
+      // put() uploads directly to Blob storage, bypassing our API.
+      await putBlob(requestAvatarUploadUrl.storageKey, file, {
+        access: 'public',
+        token: requestAvatarUploadUrl.uploadUrl,
+        contentType: file.type,
       });
 
       await gqlClient.request(CONFIRM_AVATAR, {

@@ -18,6 +18,7 @@ export const ERROR_CODES = {
   VALIDATION: 'VALIDATION',
   RATE_LIMITED: 'RATE_LIMITED',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
+  SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
 } as const;
 
 /** Environment-variable key names. */
@@ -34,6 +35,7 @@ export const ENV = {
   GCS_PROJECT_ID: 'GCS_PROJECT_ID',
   GCS_CLIENT_EMAIL: 'GCS_CLIENT_EMAIL',
   GCS_PRIVATE_KEY: 'GCS_PRIVATE_KEY',
+  BLOB_READ_WRITE_TOKEN: 'BLOB_READ_WRITE_TOKEN',
   BREVO_API_KEY: 'BREVO_API_KEY',
   FROM_EMAIL: 'FROM_EMAIL',
   FROM_NAME: 'FROM_NAME',
@@ -43,6 +45,7 @@ export const ENV = {
   GOOGLEAI_API_KEY: 'GOOGLEAI_API_KEY',
   GOOGLEAI_MODEL: 'GOOGLEAI_MODEL',
   DIGEST_ADMIN_SECRET: 'DIGEST_ADMIN_SECRET',
+  CRON_SECRET: 'CRON_SECRET',
   AXIOM_TOKEN: 'AXIOM_TOKEN',
   AXIOM_DATASET: 'AXIOM_DATASET',
   AXIOM_METRICS_DATASET: 'AXIOM_METRICS_DATASET',
@@ -176,6 +179,7 @@ export const ROUTES = {
   GRAPHQL: '/graphql',
   MCP: '/mcp',
   DIGEST_SEND: '/admin/digest/send',
+  REMINDERS_SEND: '/admin/reminders/send',
   OAUTH_START: '/auth/oauth/:provider/start',
   OAUTH_CALLBACK: '/auth/oauth/:provider/callback',
 } as const;
@@ -242,6 +246,7 @@ export const EMAIL = {
 export const STORAGE_PROVIDER = {
   LOCAL: 'local',
   GCS: 'gcs',
+  VERCEL_BLOB: 'vercel-blob',
 } as const;
 
 /** In-memory cache configuration. */
@@ -267,7 +272,6 @@ export const CACHE_KEYS = {
 
 /** Background-job and business-rule durations, in milliseconds. */
 export const DURATIONS_MS = {
-  REMINDER_INTERVAL: 60 * 60 * 1000, // reminders plugin poll interval — 1 hour
   WEEK: 7 * 24 * 60 * 60 * 1000, // weekly-digest window — 7 days
 } as const;
 

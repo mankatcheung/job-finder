@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const { mockNavigate, mockGqlRequest, mockClearAuthIndicator } = vi.hoisted(() => ({
+const { mockNavigate, mockGqlRequest, mockClearAuthIndicator, mockPutBlob } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockGqlRequest: vi.fn(),
   mockClearAuthIndicator: vi.fn(),
+  mockPutBlob: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-router', () => ({
@@ -34,6 +35,10 @@ vi.mock('#/lib/auth', () => ({
 
 vi.mock('#/lib/queryClient', () => ({
   queryClient: { clear: vi.fn(), resetQueries: vi.fn() },
+}));
+
+vi.mock('@vercel/blob/client', () => ({
+  put: mockPutBlob,
 }));
 
 import { ThemeProvider } from '#/lib/theme';
@@ -265,8 +270,7 @@ describe('AccountPage', () => {
     };
 
     it('uploads a photo via requestAvatarUploadUrl then confirmAvatar', async () => {
-      const mockFetch = vi.fn().mockResolvedValue({ ok: true });
-      vi.stubGlobal('fetch', mockFetch);
+      mockPutBlob.mockResolvedValue({ url: 'https://blob.example.com/avatar.png' });
 
       mockGqlRequest.mockImplementation((query: unknown) => {
         if (typeof query === 'string' && query.includes('RequestAvatarUploadUrl')) {
@@ -296,10 +300,11 @@ describe('AccountPage', () => {
           { filename: 'me.png', mimeType: 'image/png' },
         );
       });
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://storage.example.com/upload',
-        expect.objectContaining({ method: 'PUT' }),
-      );
+      expect(mockPutBlob).toHaveBeenCalledWith('users/user-1/avatar/key.png', expect.any(File), {
+        access: 'public',
+        token: 'https://storage.example.com/upload',
+        contentType: 'image/png',
+      });
       await waitFor(() => {
         expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('ConfirmAvatar'), {
           storageKey: 'users/user-1/avatar/key.png',
@@ -307,12 +312,10 @@ describe('AccountPage', () => {
           sizeBytes: expect.any(Number) as number,
         });
       });
-
-      vi.unstubAllGlobals();
     });
 
     it('shows an error message when the upload fails', async () => {
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+      mockPutBlob.mockResolvedValue({ url: 'https://blob.example.com/avatar.png' });
       mockGqlRequest.mockImplementation((query: unknown) => {
         if (typeof query === 'string' && query.includes('RequestAvatarUploadUrl')) {
           return Promise.reject({ response: { errors: [{ message: 'Unsupported file type' }] } });
