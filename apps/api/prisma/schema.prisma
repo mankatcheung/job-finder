@@ -4,7 +4,12 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  // Never actually used — prisma.config.ts's `adapter` always supplies the
+  // real connection (local file: or Turso libsql:, from DATABASE_URL /
+  // DATABASE_AUTH_TOKEN). This just has to statically satisfy the
+  // provider's own `file:`-prefix validation, which runs before the
+  // adapter override applies.
+  url      = "file:unused-see-prisma-config-ts.db"
 }
 
 model User {
