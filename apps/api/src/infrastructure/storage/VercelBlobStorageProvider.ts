@@ -49,7 +49,7 @@ export class VercelBlobStorageProvider implements IStorageProvider {
     try {
       await del(key, { token: this.token });
     } catch {
-      // Best-effort cleanup — matches LocalStorageProvider/GCSStorageProvider.
+      // Best-effort cleanup — matches LocalStorageProvider.
     }
   }
 }
