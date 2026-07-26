@@ -5,7 +5,13 @@ import prettierConfig from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'node_modules/**', 'src/graphql/generated/**', 'src/routeTree.gen.ts'],
+    ignores: [
+      'dist/**',
+      '.output/**',
+      'node_modules/**',
+      'src/graphql/generated/**',
+      'src/routeTree.gen.ts',
+    ],
   },
   ...tseslint.configs.recommended,
   reactPlugin.configs.flat.recommended,

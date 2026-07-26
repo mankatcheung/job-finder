@@ -38,6 +38,7 @@
     "graphql": "^16.10.0",
     "graphql-request": "^7.2.0",
     "lucide-react": "^0.545.0",
+    "nitro": "3.0.260610-beta",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.57.0",

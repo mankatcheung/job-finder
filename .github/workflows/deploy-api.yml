@@ -8,6 +8,13 @@ name: Deploy api (Vercel)
 # result (`vercel deploy --prebuilt`), rather than letting Vercel's cloud
 # build run un-reviewed.
 #
+# `vercel build` performs its own install internally but has no idea it
+# needs to run `prisma generate` afterwards, so the Prisma client is
+# generated explicitly as its own step below, before `vercel build` runs —
+# deliberately not a postinstall hook, so this stays a visible, debuggable
+# step in the deploy job rather than an implicit side effect of `pnpm
+# install`.
+#
 # One-time setup required before this workflow can deploy:
 #   1. Create a Vercel project for apps/api. Do NOT connect it to this
 #      GitHub repo in the Vercel dashboard (Settings -> Git) — leaving it
@@ -24,7 +31,10 @@ name: Deploy api (Vercel)
 #      TOTP_ENCRYPTION_KEY, CORS_ORIGIN, CRON_SECRET, etc.) — this workflow
 #      builds/deploys the code, it does not manage runtime env/secrets.
 #   5. Create a Vercel access token (https://vercel.com/account/tokens) and
-#      add repo secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID.
+#      add repo secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_API_PROJECT_ID.
+#      (VERCEL_ORG_ID is shared with deploy-web.yml; VERCEL_API_PROJECT_ID
+#      is this project's own ID — the web app is a separate Vercel project
+#      with its own VERCEL_WEB_PROJECT_ID.)
 
 on:
   push:
@@ -72,6 +82,12 @@ jobs:
           node-version: 22
           cache: pnpm
 
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @job-finder/api db:generate
+
       - name: Install Vercel CLI
         run: pnpm add --global vercel@latest
 
@@ -81,7 +97,7 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_API_PROJECT_ID }}
 
       - name: Build (runs in this CI environment, not Vercel's cloud build)
         working-directory: apps/api
@@ -89,7 +105,7 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_API_PROJECT_ID }}
 
       - name: Deploy prebuilt output to Vercel
         working-directory: apps/api
@@ -97,4 +113,4 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_API_PROJECT_ID }}
