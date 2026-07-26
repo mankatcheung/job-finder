@@ -4,7 +4,7 @@ import type { FastifyInstance } from 'fastify';
 import { ENV } from '@/constants.js';
 
 export default fp(async function authPlugin(fastify: FastifyInstance) {
-  fastify.register(jwt, {
+  await fastify.register(jwt, {
     secret: process.env[ENV.JWT_SECRET]!,
   });
 });
