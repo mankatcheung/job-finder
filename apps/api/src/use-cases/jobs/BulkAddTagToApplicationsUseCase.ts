@@ -1,13 +1,13 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { IUpdateApplicationUseCase } from '@/use-cases/jobs/IUpdateApplicationUseCase.js';
-import type { ITransactionManager } from '@/use-cases/ports/ITransactionManager.js';
-import { ERROR_CODES } from '@/constants.js';
-import { assertValidBulkIds } from '@/use-cases/jobs/bulkValidation.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { IUpdateApplicationUseCase } from '#src/use-cases/jobs/IUpdateApplicationUseCase.js';
+import type { ITransactionManager } from '#src/use-cases/ports/ITransactionManager.js';
+import { ERROR_CODES } from '#src/constants.js';
+import { assertValidBulkIds } from '#src/use-cases/jobs/bulkValidation.js';
 import type {
   IBulkAddTagToApplicationsUseCase,
   BulkAddTagToApplicationsInput,
   BulkAddTagToApplicationsOutput,
-} from '@/use-cases/jobs/IBulkAddTagToApplicationsUseCase.js';
+} from '#src/use-cases/jobs/IBulkAddTagToApplicationsUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

@@ -1,12 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
-import { SendFollowUpRemindersUseCase } from '@/use-cases/reminders/SendFollowUpRemindersUseCase.js';
+import { SendFollowUpRemindersUseCase } from '#src/use-cases/reminders/SendFollowUpRemindersUseCase.js';
 import {
   makeApplicationRepository,
   makeUserRepository,
   makeApplication,
   makeUser,
-} from '@/__tests__/helpers/mocks.js';
-import type { IEmailService } from '@/use-cases/ports/IEmailService.js';
+} from '#src/__tests__/helpers/mocks.js';
+import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 
 const makeEmailService = (overrides?: Partial<IEmailService>): IEmailService => ({
   sendFollowUpReminder: vi.fn().mockResolvedValue(undefined),

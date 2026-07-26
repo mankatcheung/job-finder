@@ -1,10 +1,10 @@
-import type { Document } from '@/domain/document/Document.js';
+import type { Document } from '#src/domain/document/Document.js';
 import type {
   IDocumentRepository,
   CreateDocumentData,
-} from '@/use-cases/ports/IDocumentRepository.js';
-import type { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
-import { CACHE_KEYS } from '@/constants.js';
+} from '#src/use-cases/ports/IDocumentRepository.js';
+import type { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
+import { CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   prismaDocumentRepository: IDocumentRepository;

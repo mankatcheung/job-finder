@@ -3,14 +3,14 @@ import type {
   InterviewRound,
   InterviewRoundType,
   InterviewRoundOutcome,
-} from '@/domain/interviewRound/InterviewRound.js';
+} from '#src/domain/interviewRound/InterviewRound.js';
 import { getClient } from '../transactionContext.js';
-import { DEFAULTS } from '@/constants.js';
+import { DEFAULTS } from '#src/constants.js';
 import type {
   IInterviewRoundRepository,
   CreateInterviewRoundData,
   UpdateInterviewRoundData,
-} from '@/use-cases/ports/IInterviewRoundRepository.js';
+} from '#src/use-cases/ports/IInterviewRoundRepository.js';
 
 type PrismaRound = {
   id: string;

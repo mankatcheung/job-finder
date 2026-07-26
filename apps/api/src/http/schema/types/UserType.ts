@@ -1,5 +1,5 @@
-import { builder } from '@/http/schema/builder.js';
-import type { UserDTO } from '@/interface-adapters/mappers/UserMapper.js';
+import { builder } from '#src/http/schema/builder.js';
+import type { UserDTO } from '#src/interface-adapters/mappers/UserMapper.js';
 
 export const UserRef = builder.objectRef<UserDTO>('User');
 UserRef.implement({

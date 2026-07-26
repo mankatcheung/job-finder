@@ -1,5 +1,5 @@
-import { builder } from '@/http/schema/builder.js';
-import { ApplicationStatusEnum } from '@/http/schema/types/enums/ApplicationStatusEnum.js';
+import { builder } from '#src/http/schema/builder.js';
+import { ApplicationStatusEnum } from '#src/http/schema/types/enums/ApplicationStatusEnum.js';
 
 export const CreateApplicationInput = builder.inputType('CreateApplicationInput', {
   fields: (t) => ({

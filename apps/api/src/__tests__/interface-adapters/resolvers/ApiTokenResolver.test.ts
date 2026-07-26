@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { ApiTokenResolver } from '@/interface-adapters/resolvers/ApiTokenResolver.js';
-import { ApiTokenMapper } from '@/interface-adapters/mappers/ApiTokenMapper.js';
-import type { CreateApiTokenUseCase } from '@/use-cases/apiTokens/CreateApiTokenUseCase.js';
-import type { DeleteApiTokenUseCase } from '@/use-cases/apiTokens/DeleteApiTokenUseCase.js';
-import type { ListApiTokensUseCase } from '@/use-cases/apiTokens/ListApiTokensUseCase.js';
-import type { ApiToken } from '@/domain/apiToken/ApiToken.js';
+import { ApiTokenResolver } from '#src/interface-adapters/resolvers/ApiTokenResolver.js';
+import { ApiTokenMapper } from '#src/interface-adapters/mappers/ApiTokenMapper.js';
+import type { CreateApiTokenUseCase } from '#src/use-cases/apiTokens/CreateApiTokenUseCase.js';
+import type { DeleteApiTokenUseCase } from '#src/use-cases/apiTokens/DeleteApiTokenUseCase.js';
+import type { ListApiTokensUseCase } from '#src/use-cases/apiTokens/ListApiTokensUseCase.js';
+import type { ApiToken } from '#src/domain/apiToken/ApiToken.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

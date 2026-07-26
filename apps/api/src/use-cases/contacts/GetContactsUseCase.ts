@@ -1,11 +1,11 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { IContactRepository } from '@/use-cases/ports/IContactRepository.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { IContactRepository } from '#src/use-cases/ports/IContactRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   IGetContactsUseCase,
   GetContactsInput,
   GetContactsOutput,
-} from '@/use-cases/contacts/IGetContactsUseCase.js';
+} from '#src/use-cases/contacts/IGetContactsUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

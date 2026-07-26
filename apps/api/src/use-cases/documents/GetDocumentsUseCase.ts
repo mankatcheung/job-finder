@@ -1,11 +1,11 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { IDocumentRepository } from '@/use-cases/ports/IDocumentRepository.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   IGetDocumentsUseCase,
   GetDocumentsInput,
   GetDocumentsOutput,
-} from '@/use-cases/documents/IGetDocumentsUseCase.js';
+} from '#src/use-cases/documents/IGetDocumentsUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

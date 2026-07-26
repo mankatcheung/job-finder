@@ -1,8 +1,8 @@
-import { builder } from '@/http/schema/builder.js';
+import { builder } from '#src/http/schema/builder.js';
 import type {
   HealthScore,
   HealthScoreCriterion,
-} from '@/use-cases/application/ComputeHealthScoreUseCase.js';
+} from '#src/use-cases/application/ComputeHealthScoreUseCase.js';
 
 const HealthScoreCriterionRef = builder.objectRef<HealthScoreCriterion>('HealthScoreCriterion');
 HealthScoreCriterionRef.implement({

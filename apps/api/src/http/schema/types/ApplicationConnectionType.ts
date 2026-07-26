@@ -1,6 +1,6 @@
-import { builder } from '@/http/schema/builder.js';
-import { JobApplicationRef } from '@/http/schema/types/ApplicationType.js';
-import type { ApplicationConnectionDTO } from '@/interface-adapters/mappers/ApplicationMapper.js';
+import { builder } from '#src/http/schema/builder.js';
+import { JobApplicationRef } from '#src/http/schema/types/ApplicationType.js';
+import type { ApplicationConnectionDTO } from '#src/interface-adapters/mappers/ApplicationMapper.js';
 
 export const ApplicationConnectionRef =
   builder.objectRef<ApplicationConnectionDTO>('ApplicationConnection');

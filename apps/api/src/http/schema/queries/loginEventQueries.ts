@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { LoginEventRef } from '@/http/schema/types/LoginEventType.js';
-import { ERROR_CODES } from '@/constants.js';
+import { builder } from '#src/http/schema/builder.js';
+import { LoginEventRef } from '#src/http/schema/types/LoginEventType.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 builder.queryField('loginHistory', (t) =>
   t.field({

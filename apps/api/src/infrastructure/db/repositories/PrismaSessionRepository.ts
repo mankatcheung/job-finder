@@ -1,10 +1,10 @@
 import type { PrismaClient } from '@prisma/client';
-import type { Session } from '@/domain/session/Session.js';
+import type { Session } from '#src/domain/session/Session.js';
 import { getClient } from '../transactionContext.js';
 import type {
   ISessionRepository,
   CreateSessionData,
-} from '@/use-cases/ports/ISessionRepository.js';
+} from '#src/use-cases/ports/ISessionRepository.js';
 
 type PrismaSession = {
   id: string;

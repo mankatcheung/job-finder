@@ -1,5 +1,5 @@
-import { builder } from '@/http/schema/builder.js';
-import type { TotpSetup } from '@/use-cases/user/IGenerateTotpSecretUseCase.js';
+import { builder } from '#src/http/schema/builder.js';
+import type { TotpSetup } from '#src/use-cases/user/IGenerateTotpSecretUseCase.js';
 
 export const TotpSetupRef = builder.objectRef<TotpSetup>('TotpSetup');
 TotpSetupRef.implement({

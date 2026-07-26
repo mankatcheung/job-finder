@@ -1,10 +1,10 @@
-import type { IDeleteApplicationUseCase } from '@/use-cases/jobs/IDeleteApplicationUseCase.js';
-import { assertValidBulkIds } from '@/use-cases/jobs/bulkValidation.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IDeleteApplicationUseCase } from '#src/use-cases/jobs/IDeleteApplicationUseCase.js';
+import { assertValidBulkIds } from '#src/use-cases/jobs/bulkValidation.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   IBulkDeleteApplicationsUseCase,
   BulkDeleteApplicationsInput,
-} from '@/use-cases/jobs/IBulkDeleteApplicationsUseCase.js';
+} from '#src/use-cases/jobs/IBulkDeleteApplicationsUseCase.js';
 
 interface Deps {
   deleteApplicationUseCase: IDeleteApplicationUseCase;

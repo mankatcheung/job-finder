@@ -1,9 +1,9 @@
 import type { PrismaClient } from '@prisma/client';
-import type { ActivityLog } from '@/domain/activityLog/ActivityLog.js';
+import type { ActivityLog } from '#src/domain/activityLog/ActivityLog.js';
 import type {
   IActivityLogRepository,
   AppendActivityLogData,
-} from '@/use-cases/ports/IActivityLogRepository.js';
+} from '#src/use-cases/ports/IActivityLogRepository.js';
 import { getClient } from '../transactionContext.js';
 
 type PrismaActivityLog = {

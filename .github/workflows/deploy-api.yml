@@ -28,31 +28,39 @@ name: Deploy api (Vercel)
 #
 # There is no custom serverless function here (an earlier version of this
 # workflow had one at apps/api/api/index.ts) — Vercel has zero-config
-# Fastify support that auto-detects src/app.ts as the entrypoint and wraps
-# the whole app as one Vercel Function:
-# https://vercel.com/docs/frameworks/backend/fastify
+# Fastify support that auto-detects an entrypoint file and wraps the whole
+# app as one Vercel Function: https://vercel.com/docs/frameworks/backend/fastify
 # That auto-detection runs regardless of any custom /api function, so the
 # custom one was redundant (worse: Vercel's Fastify builder was the thing
 # actually serving traffic all along, silently ignoring the custom
 # function entirely).
 #
-# Same underlying problem as before, in the file Vercel actually uses:
-# src/index.ts (and everything it transitively imports, i.e. all of
-# src/**) uses this repo's `@/*` -> `src/*` path alias, which only exists
-# in tsconfig.json for the TypeScript compiler's own type-checking —
-# nothing rewrites it into a real import at runtime. Vercel's Fastify
-# builder transpiles the detected entrypoint's TS syntax to JS in place;
-# it does not rewrite bare specifiers, so the deployed function crashed
-# with "Cannot find package '@/constants.js'" (then, after fixing the
-# entrypoint but not what it imports, "Cannot find package '@/http'" from
-# src/app.js). Fix is the same technique as before, just retargeted:
-# bundle src/index.ts with esbuild first (which does understand tsconfig
-# `paths` and inlines everything under src/** into one file), then delete
-# both src/index.ts and src/app.ts so Vercel's entrypoint detection can't
-# pick the un-bundled src/app.ts instead (its filename pattern takes
-# priority over src/index.* per Vercel's docs). --packages=external keeps
-# real npm dependencies (fastify, @prisma/client, etc.) unbundled so
-# Vercel's own dependency tracing still finds them normally.
+# src/index.ts is that entrypoint. Vercel's builder only transpiles its
+# TypeScript syntax to JS in place — it does not bundle, so any bare
+# specifier import needs to resolve the same way at runtime as it does
+# during local dev. This repo previously used a `@/*` -> `src/*` alias that
+# only existed in tsconfig.json for the TypeScript compiler's own
+# type-checking, with nothing to rewrite it into a real import at runtime —
+# that crashed the deployed function with "Cannot find package
+# '@/constants.js'". apps/api now uses Node's native subpath imports
+# instead (`#src/*`, declared in apps/api/package.json's `imports` field —
+# see also tsconfig.json's matching `paths` entry, needed only for
+# TypeScript's own resolution, same dual-declaration pattern apps/web
+# already uses, though apps/web's key is `#/*` — Node's subpath-imports spec
+# explicitly forbids a key starting with `#/`, confirmed by reproducing the
+# exact `ERR_INVALID_MODULE_SPECIFIER` failure locally, hence `#src/*` here
+# instead): Node itself resolves `#src/*` specifiers via that `imports`
+# field, identically whether run locally (`node`, `tsx`), in tests, or in
+# Vercel's deployed function — no bundler required.
+#
+# The other half of the original problem was entrypoint ambiguity: Vercel's
+# detection prioritizes an `app.*` file over `index.*` if both exist, and
+# apps/api/src/app.ts (an async `buildApp()` factory with no `.listen()`
+# call) was the wrong file for Vercel to treat as the entrypoint. That file
+# is named apps/api/src/buildApp.ts instead specifically so it doesn't match
+# any of Vercel's recognized entrypoint filenames, leaving src/index.ts (the
+# file that actually calls `buildApp()` and `.listen()`) as the sole,
+# unambiguous match — no bundling or source-file deletion needed.
 #
 # One-time setup required before this workflow can deploy:
 #   1. Create a Vercel project for apps/api (from the repo root, run
@@ -132,11 +140,6 @@ jobs:
 
       - name: Generate Prisma client
         run: pnpm --filter @job-finder/api db:generate
-
-      - name: Bundle entrypoint (resolves @/ path aliases — Vercel's own per-file transpile doesn't)
-        run: |
-          pnpm --filter @job-finder/api bundle:vercel
-          rm apps/api/src/index.ts apps/api/src/app.ts
 
       - name: Install Vercel CLI
         run: pnpm add --global vercel@latest

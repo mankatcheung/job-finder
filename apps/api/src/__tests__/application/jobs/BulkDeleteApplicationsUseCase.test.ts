@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { BulkDeleteApplicationsUseCase } from '@/use-cases/jobs/BulkDeleteApplicationsUseCase.js';
-import type { IDeleteApplicationUseCase } from '@/use-cases/jobs/IDeleteApplicationUseCase.js';
+import { BulkDeleteApplicationsUseCase } from '#src/use-cases/jobs/BulkDeleteApplicationsUseCase.js';
+import type { IDeleteApplicationUseCase } from '#src/use-cases/jobs/IDeleteApplicationUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

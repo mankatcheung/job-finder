@@ -1,9 +1,9 @@
 import { createHash, randomBytes } from 'crypto';
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { IEmailVerificationTokenRepository } from '@/use-cases/ports/IEmailVerificationTokenRepository.js';
-import type { IEmailService } from '@/use-cases/ports/IEmailService.js';
-import { ERROR_CODES, EMAIL_VERIFICATION_TOKEN } from '@/constants.js';
-import type { ISendEmailVerificationUseCase } from '@/use-cases/auth/ISendEmailVerificationUseCase.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IEmailVerificationTokenRepository } from '#src/use-cases/ports/IEmailVerificationTokenRepository.js';
+import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
+import { ERROR_CODES, EMAIL_VERIFICATION_TOKEN } from '#src/constants.js';
+import type { ISendEmailVerificationUseCase } from '#src/use-cases/auth/ISendEmailVerificationUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

@@ -1,4 +1,4 @@
-import type { InterviewRound } from '@/domain/interviewRound/InterviewRound.js';
+import type { InterviewRound } from '#src/domain/interviewRound/InterviewRound.js';
 
 export interface GetInterviewRoundsInput {
   userId: string;

@@ -1,10 +1,10 @@
-import type { IOAuthAccountRepository } from '@/use-cases/ports/IOAuthAccountRepository.js';
-import type { IOAuthProviderRegistry } from '@/use-cases/ports/IOAuthProviderRegistry.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IOAuthAccountRepository } from '#src/use-cases/ports/IOAuthAccountRepository.js';
+import type { IOAuthProviderRegistry } from '#src/use-cases/ports/IOAuthProviderRegistry.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   ILinkOAuthAccountUseCase,
   LinkOAuthAccountInput,
-} from '@/use-cases/oauth/ILinkOAuthAccountUseCase.js';
+} from '#src/use-cases/oauth/ILinkOAuthAccountUseCase.js';
 
 interface Deps {
   oauthAccountRepository: IOAuthAccountRepository;

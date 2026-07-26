@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { GetUserUseCase } from '@/use-cases/user/GetUserUseCase.js';
-import { makeUserRepository, makeUser } from '@/__tests__/helpers/mocks.js';
+import { GetUserUseCase } from '#src/use-cases/user/GetUserUseCase.js';
+import { makeUserRepository, makeUser } from '#src/__tests__/helpers/mocks.js';
 
 describe('GetUserUseCase', () => {
   beforeEach(() => {

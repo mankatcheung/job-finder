@@ -1,9 +1,9 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import type { GraphQLContext, JwtUser } from '@/http/context.js';
-import { toHttpRequest } from '@/http/adapters/fastify/toHttpRequest.js';
-import { toHttpResponse } from '@/http/adapters/fastify/toHttpResponse.js';
-import { diScopeOf } from '@/http/adapters/fastify/diScope.js';
-import { API_TOKEN, API_TOKEN_SCOPE, AUTH_HEADER, COOKIES } from '@/constants.js';
+import type { GraphQLContext, JwtUser } from '#src/http/context.js';
+import { toHttpRequest } from '#src/http/adapters/fastify/toHttpRequest.js';
+import { toHttpResponse } from '#src/http/adapters/fastify/toHttpResponse.js';
+import { diScopeOf } from '#src/http/adapters/fastify/diScope.js';
+import { API_TOKEN, API_TOKEN_SCOPE, AUTH_HEADER, COOKIES } from '#src/constants.js';
 
 export async function buildGraphQLContext(
   request: FastifyRequest,

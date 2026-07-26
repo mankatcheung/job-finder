@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createHash } from 'crypto';
 import { TOTP, NobleCryptoPlugin, ScureBase32Plugin } from 'otplib';
 import bcrypt from 'bcryptjs';
-import { LoginWithTotpUseCase } from '@/use-cases/auth/LoginWithTotpUseCase.js';
+import { LoginWithTotpUseCase } from '#src/use-cases/auth/LoginWithTotpUseCase.js';
 import {
   makeUserRepository,
   makeUser,
@@ -10,7 +10,7 @@ import {
   makeTotpBackupCode,
   makeRateLimiter,
   makeTotpProvider,
-} from '@/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks.js';
 
 vi.mock('bcryptjs', () => ({
   default: {

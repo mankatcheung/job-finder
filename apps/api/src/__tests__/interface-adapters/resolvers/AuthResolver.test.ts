@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AuthResolver } from '@/interface-adapters/resolvers/AuthResolver.js';
-import { makeUser, makeSession } from '@/__tests__/helpers/mocks.js';
-import type { IRegisterUseCase } from '@/use-cases/auth/IRegisterUseCase.js';
-import type { ILoginUseCase } from '@/use-cases/auth/ILoginUseCase.js';
-import type { ILoginWithTotpUseCase } from '@/use-cases/auth/ILoginWithTotpUseCase.js';
-import type { IRequestPasswordResetUseCase } from '@/use-cases/auth/IRequestPasswordResetUseCase.js';
-import type { IResetPasswordUseCase } from '@/use-cases/auth/IResetPasswordUseCase.js';
-import type { IVerifyEmailUseCase } from '@/use-cases/auth/IVerifyEmailUseCase.js';
-import type { ITokenService } from '@/use-cases/ports/ITokenService.js';
-import type { CreateSessionUseCase } from '@/use-cases/sessions/CreateSessionUseCase.js';
-import type { TouchSessionUseCase } from '@/use-cases/sessions/TouchSessionUseCase.js';
+import { AuthResolver } from '#src/interface-adapters/resolvers/AuthResolver.js';
+import { makeUser, makeSession } from '#src/__tests__/helpers/mocks.js';
+import type { IRegisterUseCase } from '#src/use-cases/auth/IRegisterUseCase.js';
+import type { ILoginUseCase } from '#src/use-cases/auth/ILoginUseCase.js';
+import type { ILoginWithTotpUseCase } from '#src/use-cases/auth/ILoginWithTotpUseCase.js';
+import type { IRequestPasswordResetUseCase } from '#src/use-cases/auth/IRequestPasswordResetUseCase.js';
+import type { IResetPasswordUseCase } from '#src/use-cases/auth/IResetPasswordUseCase.js';
+import type { IVerifyEmailUseCase } from '#src/use-cases/auth/IVerifyEmailUseCase.js';
+import type { ITokenService } from '#src/use-cases/ports/ITokenService.js';
+import type { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
+import type { TouchSessionUseCase } from '#src/use-cases/sessions/TouchSessionUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

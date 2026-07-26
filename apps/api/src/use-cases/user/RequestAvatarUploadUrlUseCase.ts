@@ -1,11 +1,11 @@
 import { nanoid } from 'nanoid';
-import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
-import { assertAllowedAvatarMimeType } from '@/use-cases/user/avatarValidation.js';
+import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
+import { assertAllowedAvatarMimeType } from '#src/use-cases/user/avatarValidation.js';
 import type {
   IRequestAvatarUploadUrlUseCase,
   RequestAvatarUploadUrlInput,
   RequestAvatarUploadUrlOutput,
-} from '@/use-cases/user/IRequestAvatarUploadUrlUseCase.js';
+} from '#src/use-cases/user/IRequestAvatarUploadUrlUseCase.js';
 
 interface Deps {
   storageProvider: IStorageProvider;

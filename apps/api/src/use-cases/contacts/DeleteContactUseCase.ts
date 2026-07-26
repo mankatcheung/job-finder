@@ -1,10 +1,10 @@
-import type { IContactRepository } from '@/use-cases/ports/IContactRepository.js';
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IContactRepository } from '#src/use-cases/ports/IContactRepository.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   IDeleteContactUseCase,
   DeleteContactInput,
-} from '@/use-cases/contacts/IDeleteContactUseCase.js';
+} from '#src/use-cases/contacts/IDeleteContactUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

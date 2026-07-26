@@ -1,5 +1,5 @@
-import { builder } from '@/http/schema/builder.js';
-import type { ConfirmTotpSetupOutput } from '@/use-cases/user/IConfirmTotpSetupUseCase.js';
+import { builder } from '#src/http/schema/builder.js';
+import type { ConfirmTotpSetupOutput } from '#src/use-cases/user/IConfirmTotpSetupUseCase.js';
 
 export const ConfirmTotpSetupResultRef =
   builder.objectRef<ConfirmTotpSetupOutput>('ConfirmTotpSetupResult');

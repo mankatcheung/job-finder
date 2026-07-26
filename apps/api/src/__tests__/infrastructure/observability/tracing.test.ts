@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ENV, AXIOM } from '@/constants.js';
+import { ENV, AXIOM } from '#src/constants.js';
 import {
   ATTR_SERVICE_NAME,
   ATTR_DEPLOYMENT_ENVIRONMENT_NAME,
@@ -80,7 +80,7 @@ const ENV_KEYS = [
 
 async function loadTracingModule() {
   vi.resetModules();
-  return import('@/infrastructure/observability/tracing.js');
+  return import('#src/infrastructure/observability/tracing.js');
 }
 
 describe('tracing', () => {

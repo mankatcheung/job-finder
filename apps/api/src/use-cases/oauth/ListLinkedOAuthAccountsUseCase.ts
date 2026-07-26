@@ -1,6 +1,6 @@
-import type { OAuthAccount } from '@/domain/oauthAccount/OAuthAccount.js';
-import type { IOAuthAccountRepository } from '@/use-cases/ports/IOAuthAccountRepository.js';
-import type { IListLinkedOAuthAccountsUseCase } from '@/use-cases/oauth/IListLinkedOAuthAccountsUseCase.js';
+import type { OAuthAccount } from '#src/domain/oauthAccount/OAuthAccount.js';
+import type { IOAuthAccountRepository } from '#src/use-cases/ports/IOAuthAccountRepository.js';
+import type { IListLinkedOAuthAccountsUseCase } from '#src/use-cases/oauth/IListLinkedOAuthAccountsUseCase.js';
 
 interface Deps {
   oauthAccountRepository: IOAuthAccountRepository;

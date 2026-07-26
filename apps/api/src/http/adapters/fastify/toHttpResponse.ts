@@ -1,5 +1,5 @@
 import type { FastifyReply } from 'fastify';
-import type { IHttpResponse, CookieOptions } from '@/http/ports/IHttpResponse.js';
+import type { IHttpResponse, CookieOptions } from '#src/http/ports/IHttpResponse.js';
 
 export function toHttpResponse(reply: FastifyReply): IHttpResponse {
   const wrapper: IHttpResponse = {

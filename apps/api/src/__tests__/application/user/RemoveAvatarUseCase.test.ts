@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { RemoveAvatarUseCase } from '@/use-cases/user/RemoveAvatarUseCase.js';
-import { makeUserRepository, makeUser, makeStorageProvider } from '@/__tests__/helpers/mocks.js';
+import { RemoveAvatarUseCase } from '#src/use-cases/user/RemoveAvatarUseCase.js';
+import { makeUserRepository, makeUser, makeStorageProvider } from '#src/__tests__/helpers/mocks.js';
 
 describe('RemoveAvatarUseCase', () => {
   it('throws NOT_FOUND when the user does not exist', async () => {

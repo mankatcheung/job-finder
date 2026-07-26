@@ -1,4 +1,4 @@
-import { builder } from '@/http/schema/builder.js';
+import { builder } from '#src/http/schema/builder.js';
 
 export const ParsedJobDescriptionRef = builder.objectRef<{
   company: string | null;

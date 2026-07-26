@@ -1,8 +1,8 @@
-import type { IGetLoginHistoryUseCase } from '@/use-cases/loginEvents/IGetLoginHistoryUseCase.js';
+import type { IGetLoginHistoryUseCase } from '#src/use-cases/loginEvents/IGetLoginHistoryUseCase.js';
 import type {
   LoginEventMapper,
   LoginEventDTO,
-} from '@/interface-adapters/mappers/LoginEventMapper.js';
+} from '#src/interface-adapters/mappers/LoginEventMapper.js';
 
 interface Deps {
   getLoginHistoryUseCase: IGetLoginHistoryUseCase;

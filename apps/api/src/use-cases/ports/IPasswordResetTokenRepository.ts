@@ -1,4 +1,4 @@
-import type { PasswordResetToken } from '@/domain/passwordResetToken/PasswordResetToken.js';
+import type { PasswordResetToken } from '#src/domain/passwordResetToken/PasswordResetToken.js';
 
 export interface IPasswordResetTokenRepository {
   create(data: {

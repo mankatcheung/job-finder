@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 import type { PrismaClient, Prisma } from '@prisma/client';
-import type { Application } from '@/domain/application/Application.js';
-import type { ApplicationStatus } from '@/domain/application/ApplicationStatus.js';
+import type { Application } from '#src/domain/application/Application.js';
+import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
 import type {
   IApplicationRepository,
   CreateApplicationData,
@@ -9,9 +9,9 @@ import type {
   FindApplicationsPageFilters,
   FindApplicationsPagePagination,
   ApplicationsPage,
-} from '@/use-cases/ports/IApplicationRepository.js';
+} from '#src/use-cases/ports/IApplicationRepository.js';
 import { txStorage, getClient } from '../transactionContext.js';
-import { REMINDER_WINDOW_MS } from '@/constants.js';
+import { REMINDER_WINDOW_MS } from '#src/constants.js';
 
 type PrismaTag = { id: string; applicationId: string; name: string };
 

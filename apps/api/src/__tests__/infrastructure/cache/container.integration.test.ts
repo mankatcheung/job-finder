@@ -5,12 +5,12 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createContainer, asClass, asValue, Lifetime } from 'awilix';
-import { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
-import { CachedApplicationRepository } from '@/infrastructure/db/repositories/CachedApplicationRepository.js';
-import { CachedNoteRepository } from '@/infrastructure/db/repositories/CachedNoteRepository.js';
-import { CachedDocumentRepository } from '@/infrastructure/db/repositories/CachedDocumentRepository.js';
-import { GetApplicationsUseCase } from '@/use-cases/jobs/GetApplicationsUseCase.js';
-import { makeApplicationRepository, makeApplication } from '@/__tests__/helpers/mocks.js';
+import { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
+import { CachedApplicationRepository } from '#src/infrastructure/db/repositories/CachedApplicationRepository.js';
+import { CachedNoteRepository } from '#src/infrastructure/db/repositories/CachedNoteRepository.js';
+import { CachedDocumentRepository } from '#src/infrastructure/db/repositories/CachedDocumentRepository.js';
+import { GetApplicationsUseCase } from '#src/use-cases/jobs/GetApplicationsUseCase.js';
+import { makeApplicationRepository, makeApplication } from '#src/__tests__/helpers/mocks.js';
 
 /**
  * Builds a minimal container matching the real app's registration names,

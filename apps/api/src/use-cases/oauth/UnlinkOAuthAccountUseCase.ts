@@ -1,10 +1,10 @@
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { IOAuthAccountRepository } from '@/use-cases/ports/IOAuthAccountRepository.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IOAuthAccountRepository } from '#src/use-cases/ports/IOAuthAccountRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   IUnlinkOAuthAccountUseCase,
   UnlinkOAuthAccountInput,
-} from '@/use-cases/oauth/IUnlinkOAuthAccountUseCase.js';
+} from '#src/use-cases/oauth/IUnlinkOAuthAccountUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

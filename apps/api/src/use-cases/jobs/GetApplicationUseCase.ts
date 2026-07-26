@@ -1,10 +1,10 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   IGetApplicationUseCase,
   GetApplicationInput,
   GetApplicationOutput,
-} from '@/use-cases/jobs/IGetApplicationUseCase.js';
+} from '#src/use-cases/jobs/IGetApplicationUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

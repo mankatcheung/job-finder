@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { CachedApplicationRepository } from '@/infrastructure/db/repositories/CachedApplicationRepository.js';
-import { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
-import { makeApplicationRepository, makeApplication } from '@/__tests__/helpers/mocks.js';
+import { CachedApplicationRepository } from '#src/infrastructure/db/repositories/CachedApplicationRepository.js';
+import { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
+import { makeApplicationRepository, makeApplication } from '#src/__tests__/helpers/mocks.js';
 
 function makeRepo() {
   const inner = makeApplicationRepository();

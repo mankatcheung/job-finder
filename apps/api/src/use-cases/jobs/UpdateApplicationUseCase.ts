@@ -1,12 +1,12 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
-import type { ITransactionManager } from '@/use-cases/ports/ITransactionManager.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { IActivityLogRepository } from '#src/use-cases/ports/IActivityLogRepository.js';
+import type { ITransactionManager } from '#src/use-cases/ports/ITransactionManager.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   IUpdateApplicationUseCase,
   UpdateApplicationInput,
   UpdateApplicationOutput,
-} from '@/use-cases/jobs/IUpdateApplicationUseCase.js';
+} from '#src/use-cases/jobs/IUpdateApplicationUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

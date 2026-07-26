@@ -1,13 +1,13 @@
 import { createHash } from 'crypto';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import bcrypt from 'bcryptjs';
-import { ResetPasswordUseCase } from '@/use-cases/auth/ResetPasswordUseCase.js';
+import { ResetPasswordUseCase } from '#src/use-cases/auth/ResetPasswordUseCase.js';
 import {
   makeUserRepository,
   makePasswordResetTokenRepository,
   makePasswordResetToken,
   makeSessionRepository,
-} from '@/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks.js';
 
 vi.mock('bcryptjs', () => ({
   default: {

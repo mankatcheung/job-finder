@@ -1,5 +1,5 @@
-import { builder } from '@/http/schema/builder.js';
-import type { SessionDTO } from '@/interface-adapters/mappers/SessionMapper.js';
+import { builder } from '#src/http/schema/builder.js';
+import type { SessionDTO } from '#src/interface-adapters/mappers/SessionMapper.js';
 
 export const SessionRef = builder.objectRef<SessionDTO>('Session');
 SessionRef.implement({

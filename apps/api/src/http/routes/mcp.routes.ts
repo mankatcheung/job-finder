@@ -1,6 +1,6 @@
-import type { RouteDefinition } from '@/http/ports/RouteDefinition.js';
-import type { Cradle } from '@/http/container.js';
-import { API_TOKEN, AUTH_HEADER, ROUTES } from '@/constants.js';
+import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
+import type { Cradle } from '#src/http/container.js';
+import { API_TOKEN, AUTH_HEADER, ROUTES } from '#src/constants.js';
 
 /**
  * MCP transport. Authenticates the Bearer API token, then hands the JSON-RPC

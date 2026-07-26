@@ -1,4 +1,4 @@
-import type { TotpBackupCode } from '@/domain/totpBackupCode/TotpBackupCode.js';
+import type { TotpBackupCode } from '#src/domain/totpBackupCode/TotpBackupCode.js';
 
 export interface ITotpBackupCodeRepository {
   create(data: { id: string; userId: string; codeHash: string }): Promise<TotpBackupCode>;

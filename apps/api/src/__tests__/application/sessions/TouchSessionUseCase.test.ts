@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { TouchSessionUseCase } from '@/use-cases/sessions/TouchSessionUseCase.js';
-import { makeSessionRepository, makeSession } from '@/__tests__/helpers/mocks.js';
+import { TouchSessionUseCase } from '#src/use-cases/sessions/TouchSessionUseCase.js';
+import { makeSessionRepository, makeSession } from '#src/__tests__/helpers/mocks.js';
 
 describe('TouchSessionUseCase', () => {
   beforeEach(() => {

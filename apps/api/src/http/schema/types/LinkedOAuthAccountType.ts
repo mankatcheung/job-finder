@@ -1,6 +1,6 @@
-import { builder } from '@/http/schema/builder.js';
-import type { LinkedOAuthAccountDTO } from '@/interface-adapters/mappers/OAuthAccountMapper.js';
-import { OAuthProviderEnum } from '@/http/schema/types/enums/OAuthProviderEnum.js';
+import { builder } from '#src/http/schema/builder.js';
+import type { LinkedOAuthAccountDTO } from '#src/interface-adapters/mappers/OAuthAccountMapper.js';
+import { OAuthProviderEnum } from '#src/http/schema/types/enums/OAuthProviderEnum.js';
 
 export const LinkedOAuthAccountRef = builder.objectRef<LinkedOAuthAccountDTO>('LinkedOAuthAccount');
 LinkedOAuthAccountRef.implement({

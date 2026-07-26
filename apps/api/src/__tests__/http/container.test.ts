@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { ENV } from '@/constants.js';
+import { ENV } from '#src/constants.js';
 
 describe('buildContainer', () => {
   beforeAll(() => {
@@ -11,8 +11,8 @@ describe('buildContainer', () => {
   });
 
   it('builds a container whose tokenService resolves to a JwtTokenService', async () => {
-    const { buildContainer } = await import('@/http/container.js');
-    const { JwtTokenService } = await import('@/infrastructure/auth/JwtTokenService.js');
+    const { buildContainer } = await import('#src/http/container.js');
+    const { JwtTokenService } = await import('#src/infrastructure/auth/JwtTokenService.js');
 
     const container = buildContainer();
 

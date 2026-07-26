@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { LocalStorageProvider } from '@/infrastructure/storage/LocalStorageProvider.js';
+import { LocalStorageProvider } from '#src/infrastructure/storage/LocalStorageProvider.js';
 
 vi.mock('fs', () => ({
   promises: {

@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { NoteRef } from '@/http/schema/types/NoteType.js';
-import { ERROR_CODES } from '@/constants.js';
+import { builder } from '#src/http/schema/builder.js';
+import { NoteRef } from '#src/http/schema/types/NoteType.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 builder.queryField('notes', (t) =>
   t.field({

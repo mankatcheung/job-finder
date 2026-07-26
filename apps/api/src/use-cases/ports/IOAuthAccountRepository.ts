@@ -1,4 +1,4 @@
-import type { OAuthAccount, OAuthProviderName } from '@/domain/oauthAccount/OAuthAccount.js';
+import type { OAuthAccount, OAuthProviderName } from '#src/domain/oauthAccount/OAuthAccount.js';
 
 export interface IOAuthAccountRepository {
   findByProvider(

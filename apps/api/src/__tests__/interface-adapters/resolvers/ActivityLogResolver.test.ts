@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { ActivityLogResolver } from '@/interface-adapters/resolvers/ActivityLogResolver.js';
-import { ActivityLogMapper } from '@/interface-adapters/mappers/ActivityLogMapper.js';
-import type { IGetActivityLogsUseCase } from '@/use-cases/activityLogs/IGetActivityLogsUseCase.js';
-import type { GraphQLContext } from '@/http/context.js';
+import { ActivityLogResolver } from '#src/interface-adapters/resolvers/ActivityLogResolver.js';
+import { ActivityLogMapper } from '#src/interface-adapters/mappers/ActivityLogMapper.js';
+import type { IGetActivityLogsUseCase } from '#src/use-cases/activityLogs/IGetActivityLogsUseCase.js';
+import type { GraphQLContext } from '#src/http/context.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

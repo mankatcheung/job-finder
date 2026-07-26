@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { SessionResolver } from '@/interface-adapters/resolvers/SessionResolver.js';
-import { SessionMapper } from '@/interface-adapters/mappers/SessionMapper.js';
-import type { ListSessionsUseCase } from '@/use-cases/sessions/ListSessionsUseCase.js';
-import type { RevokeSessionUseCase } from '@/use-cases/sessions/RevokeSessionUseCase.js';
-import type { RevokeOtherSessionsUseCase } from '@/use-cases/sessions/RevokeOtherSessionsUseCase.js';
-import type { Session } from '@/domain/session/Session.js';
+import { SessionResolver } from '#src/interface-adapters/resolvers/SessionResolver.js';
+import { SessionMapper } from '#src/interface-adapters/mappers/SessionMapper.js';
+import type { ListSessionsUseCase } from '#src/use-cases/sessions/ListSessionsUseCase.js';
+import type { RevokeSessionUseCase } from '#src/use-cases/sessions/RevokeSessionUseCase.js';
+import type { RevokeOtherSessionsUseCase } from '#src/use-cases/sessions/RevokeOtherSessionsUseCase.js';
+import type { Session } from '#src/domain/session/Session.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

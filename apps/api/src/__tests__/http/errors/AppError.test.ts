@@ -8,8 +8,8 @@ import {
   ValidationError,
   RateLimitedError,
   fromCodedError,
-} from '@/http/errors/AppError.js';
-import { ERROR_CODES } from '@/constants.js';
+} from '#src/http/errors/AppError.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 describe('AppError', () => {
   it('sets message, statusCode, code, and name', () => {

@@ -1,14 +1,14 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
 import {
   APPLICATION_STATUSES,
   type ApplicationStatus,
-} from '@/domain/application/ApplicationStatus.js';
-import { ERROR_CODES, DEFAULTS } from '@/constants.js';
+} from '#src/domain/application/ApplicationStatus.js';
+import { ERROR_CODES, DEFAULTS } from '#src/constants.js';
 import type {
   IImportUserDataUseCase,
   ImportSummary,
-} from '@/use-cases/user/IImportUserDataUseCase.js';
+} from '#src/use-cases/user/IImportUserDataUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

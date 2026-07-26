@@ -1,16 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
-import { ApplicationResolver } from '@/interface-adapters/resolvers/ApplicationResolver.js';
-import { ApplicationMapper } from '@/interface-adapters/mappers/ApplicationMapper.js';
-import { makeApplication } from '@/__tests__/helpers/mocks.js';
-import type { ICreateApplicationUseCase } from '@/use-cases/jobs/ICreateApplicationUseCase.js';
-import type { IGetApplicationsUseCase } from '@/use-cases/jobs/IGetApplicationsUseCase.js';
-import type { IGetApplicationsPageUseCase } from '@/use-cases/jobs/IGetApplicationsPageUseCase.js';
-import type { IGetApplicationUseCase } from '@/use-cases/jobs/IGetApplicationUseCase.js';
-import type { IUpdateApplicationUseCase } from '@/use-cases/jobs/IUpdateApplicationUseCase.js';
-import type { IDeleteApplicationUseCase } from '@/use-cases/jobs/IDeleteApplicationUseCase.js';
-import type { IBulkUpdateApplicationsUseCase } from '@/use-cases/jobs/IBulkUpdateApplicationsUseCase.js';
-import type { IBulkDeleteApplicationsUseCase } from '@/use-cases/jobs/IBulkDeleteApplicationsUseCase.js';
-import type { IBulkAddTagToApplicationsUseCase } from '@/use-cases/jobs/IBulkAddTagToApplicationsUseCase.js';
+import { ApplicationResolver } from '#src/interface-adapters/resolvers/ApplicationResolver.js';
+import { ApplicationMapper } from '#src/interface-adapters/mappers/ApplicationMapper.js';
+import { makeApplication } from '#src/__tests__/helpers/mocks.js';
+import type { ICreateApplicationUseCase } from '#src/use-cases/jobs/ICreateApplicationUseCase.js';
+import type { IGetApplicationsUseCase } from '#src/use-cases/jobs/IGetApplicationsUseCase.js';
+import type { IGetApplicationsPageUseCase } from '#src/use-cases/jobs/IGetApplicationsPageUseCase.js';
+import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplicationUseCase.js';
+import type { IUpdateApplicationUseCase } from '#src/use-cases/jobs/IUpdateApplicationUseCase.js';
+import type { IDeleteApplicationUseCase } from '#src/use-cases/jobs/IDeleteApplicationUseCase.js';
+import type { IBulkUpdateApplicationsUseCase } from '#src/use-cases/jobs/IBulkUpdateApplicationsUseCase.js';
+import type { IBulkDeleteApplicationsUseCase } from '#src/use-cases/jobs/IBulkDeleteApplicationsUseCase.js';
+import type { IBulkAddTagToApplicationsUseCase } from '#src/use-cases/jobs/IBulkAddTagToApplicationsUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SendEmailVerificationUseCase } from '@/use-cases/auth/SendEmailVerificationUseCase.js';
+import { SendEmailVerificationUseCase } from '#src/use-cases/auth/SendEmailVerificationUseCase.js';
 import {
   makeUserRepository,
   makeEmailVerificationTokenRepository,
   makeUser,
-} from '@/__tests__/helpers/mocks.js';
-import type { IEmailService } from '@/use-cases/ports/IEmailService.js';
+} from '#src/__tests__/helpers/mocks.js';
+import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 
 const makeEmailService = (overrides?: Partial<IEmailService>): IEmailService => ({
   sendFollowUpReminder: vi.fn().mockResolvedValue(undefined),

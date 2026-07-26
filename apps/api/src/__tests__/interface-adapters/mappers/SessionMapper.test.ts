@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { SessionMapper } from '@/interface-adapters/mappers/SessionMapper.js';
-import { makeSession } from '@/__tests__/helpers/mocks.js';
+import { SessionMapper } from '#src/interface-adapters/mappers/SessionMapper.js';
+import { makeSession } from '#src/__tests__/helpers/mocks.js';
 
 describe('SessionMapper', () => {
   const mapper = new SessionMapper();

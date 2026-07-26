@@ -1,8 +1,8 @@
-import type { ICreateNoteUseCase } from '@/use-cases/notes/ICreateNoteUseCase.js';
-import type { IGetNotesUseCase } from '@/use-cases/notes/IGetNotesUseCase.js';
-import type { IUpdateNoteUseCase } from '@/use-cases/notes/IUpdateNoteUseCase.js';
-import type { IDeleteNoteUseCase } from '@/use-cases/notes/IDeleteNoteUseCase.js';
-import type { NoteMapper, NoteDTO } from '@/interface-adapters/mappers/NoteMapper.js';
+import type { ICreateNoteUseCase } from '#src/use-cases/notes/ICreateNoteUseCase.js';
+import type { IGetNotesUseCase } from '#src/use-cases/notes/IGetNotesUseCase.js';
+import type { IUpdateNoteUseCase } from '#src/use-cases/notes/IUpdateNoteUseCase.js';
+import type { IDeleteNoteUseCase } from '#src/use-cases/notes/IDeleteNoteUseCase.js';
+import type { NoteMapper, NoteDTO } from '#src/interface-adapters/mappers/NoteMapper.js';
 
 interface Deps {
   createNoteUseCase: ICreateNoteUseCase;

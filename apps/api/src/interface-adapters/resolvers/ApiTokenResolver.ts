@@ -1,8 +1,11 @@
-import type { CreateApiTokenUseCase } from '@/use-cases/apiTokens/CreateApiTokenUseCase.js';
-import type { DeleteApiTokenUseCase } from '@/use-cases/apiTokens/DeleteApiTokenUseCase.js';
-import type { ListApiTokensUseCase } from '@/use-cases/apiTokens/ListApiTokensUseCase.js';
-import type { ApiTokenMapper, ApiTokenDTO } from '@/interface-adapters/mappers/ApiTokenMapper.js';
-import type { ApiTokenScope } from '@/domain/apiToken/ApiToken.js';
+import type { CreateApiTokenUseCase } from '#src/use-cases/apiTokens/CreateApiTokenUseCase.js';
+import type { DeleteApiTokenUseCase } from '#src/use-cases/apiTokens/DeleteApiTokenUseCase.js';
+import type { ListApiTokensUseCase } from '#src/use-cases/apiTokens/ListApiTokensUseCase.js';
+import type {
+  ApiTokenMapper,
+  ApiTokenDTO,
+} from '#src/interface-adapters/mappers/ApiTokenMapper.js';
+import type { ApiTokenScope } from '#src/domain/apiToken/ApiToken.js';
 
 interface Deps {
   createApiTokenUseCase: CreateApiTokenUseCase;

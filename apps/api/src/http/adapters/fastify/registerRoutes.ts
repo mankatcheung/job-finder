@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
-import type { RouteDefinition } from '@/http/ports/RouteDefinition.js';
-import { toHttpRequest } from '@/http/adapters/fastify/toHttpRequest.js';
-import { toHttpResponse } from '@/http/adapters/fastify/toHttpResponse.js';
+import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
+import { toHttpRequest } from '#src/http/adapters/fastify/toHttpRequest.js';
+import { toHttpResponse } from '#src/http/adapters/fastify/toHttpResponse.js';
 
 export function registerRoutes(fastify: FastifyInstance, routes: RouteDefinition[]): void {
   for (const route of routes) {

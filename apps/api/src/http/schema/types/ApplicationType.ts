@@ -1,6 +1,6 @@
-import { builder } from '@/http/schema/builder.js';
-import { ApplicationStatusEnum } from '@/http/schema/types/enums/ApplicationStatusEnum.js';
-import type { ApplicationDTO } from '@/interface-adapters/mappers/ApplicationMapper.js';
+import { builder } from '#src/http/schema/builder.js';
+import { ApplicationStatusEnum } from '#src/http/schema/types/enums/ApplicationStatusEnum.js';
+import type { ApplicationDTO } from '#src/interface-adapters/mappers/ApplicationMapper.js';
 
 export const JobApplicationRef = builder.objectRef<ApplicationDTO>('JobApplication');
 JobApplicationRef.implement({

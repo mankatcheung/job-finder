@@ -1,7 +1,7 @@
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { IEmailService, WeeklyDigestData } from '@/use-cases/ports/IEmailService.js';
-import { DURATIONS_MS, DIGEST_WINDOW_MS } from '@/constants.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { IEmailService, WeeklyDigestData } from '#src/use-cases/ports/IEmailService.js';
+import { DURATIONS_MS, DIGEST_WINDOW_MS } from '#src/constants.js';
 
 interface Deps {
   userRepository: IUserRepository;

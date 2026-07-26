@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { SessionRef } from '@/http/schema/types/SessionType.js';
-import { ERROR_CODES } from '@/constants.js';
+import { builder } from '#src/http/schema/builder.js';
+import { SessionRef } from '#src/http/schema/types/SessionType.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 builder.queryField('sessions', (t) =>
   t.field({

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { buildWeeklyDigestHtml } from '@/infrastructure/email/templates/weeklyDigestTemplate.js';
-import type { WeeklyDigestData } from '@/use-cases/ports/IEmailService.js';
+import { buildWeeklyDigestHtml } from '#src/infrastructure/email/templates/weeklyDigestTemplate.js';
+import type { WeeklyDigestData } from '#src/use-cases/ports/IEmailService.js';
 
 const emptyData: WeeklyDigestData = {
   totalApplications: 0,

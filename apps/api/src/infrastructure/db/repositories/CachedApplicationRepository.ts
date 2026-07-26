@@ -1,5 +1,5 @@
-import type { Application } from '@/domain/application/Application.js';
-import type { ApplicationStatus } from '@/domain/application/ApplicationStatus.js';
+import type { Application } from '#src/domain/application/Application.js';
+import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
 import type {
   IApplicationRepository,
   CreateApplicationData,
@@ -7,9 +7,9 @@ import type {
   FindApplicationsPageFilters,
   FindApplicationsPagePagination,
   ApplicationsPage,
-} from '@/use-cases/ports/IApplicationRepository.js';
-import type { MemoryCache } from '@/infrastructure/cache/MemoryCache.js';
-import { CACHE_KEYS } from '@/constants.js';
+} from '#src/use-cases/ports/IApplicationRepository.js';
+import type { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
+import { CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   prismaApplicationRepository: IApplicationRepository;

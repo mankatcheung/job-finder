@@ -1,16 +1,16 @@
 import bcrypt from 'bcryptjs';
 import { createHash } from 'crypto';
-import type { User } from '@/domain/user/User.js';
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { ITotpBackupCodeRepository } from '@/use-cases/ports/ITotpBackupCodeRepository.js';
-import type { IRateLimiter } from '@/use-cases/ports/IRateLimiter.js';
-import type { ITotpProvider } from '@/use-cases/ports/ITotpProvider.js';
-import { ERROR_CODES } from '@/constants.js';
-import { assertHasPassword } from '@/use-cases/auth/passwordHashGuard.js';
+import type { User } from '#src/domain/user/User.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { ITotpBackupCodeRepository } from '#src/use-cases/ports/ITotpBackupCodeRepository.js';
+import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
+import type { ITotpProvider } from '#src/use-cases/ports/ITotpProvider.js';
+import { ERROR_CODES } from '#src/constants.js';
+import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
 import type {
   ILoginWithTotpUseCase,
   LoginWithTotpInput,
-} from '@/use-cases/auth/ILoginWithTotpUseCase.js';
+} from '#src/use-cases/auth/ILoginWithTotpUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

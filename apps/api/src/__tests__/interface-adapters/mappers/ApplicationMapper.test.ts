@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ApplicationMapper } from '@/interface-adapters/mappers/ApplicationMapper.js';
-import { makeApplication } from '@/__tests__/helpers/mocks.js';
+import { ApplicationMapper } from '#src/interface-adapters/mappers/ApplicationMapper.js';
+import { makeApplication } from '#src/__tests__/helpers/mocks.js';
 
 describe('ApplicationMapper', () => {
   const mapper = new ApplicationMapper();

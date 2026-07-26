@@ -1,5 +1,5 @@
-import { builder } from '@/http/schema/builder.js';
-import { APPLICATION_STATUSES } from '@/domain/application/ApplicationStatus.js';
+import { builder } from '#src/http/schema/builder.js';
+import { APPLICATION_STATUSES } from '#src/domain/application/ApplicationStatus.js';
 
 export const ApplicationStatusEnum = builder.enumType('ApplicationStatus', {
   values: Object.fromEntries(APPLICATION_STATUSES.map((s) => [s, { value: s }])) as Record<

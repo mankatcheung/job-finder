@@ -1,6 +1,6 @@
-import type { ISessionRepository } from '@/use-cases/ports/ISessionRepository.js';
-import type { Session } from '@/domain/session/Session.js';
-import { ERROR_CODES, SESSION } from '@/constants.js';
+import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
+import type { Session } from '#src/domain/session/Session.js';
+import { ERROR_CODES, SESSION } from '#src/constants.js';
 
 interface Deps {
   sessionRepository: ISessionRepository;

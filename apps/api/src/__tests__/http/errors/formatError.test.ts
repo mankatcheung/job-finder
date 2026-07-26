@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GraphQLError } from 'graphql';
-import { formatError } from '@/http/errors/formatError.js';
-import { ERROR_CODES } from '@/constants.js';
+import { formatError } from '#src/http/errors/formatError.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 describe('formatError', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;

@@ -1,5 +1,5 @@
-import { builder } from '@/http/schema/builder.js';
-import type { ApiTokenDTO } from '@/interface-adapters/mappers/ApiTokenMapper.js';
+import { builder } from '#src/http/schema/builder.js';
+import type { ApiTokenDTO } from '#src/interface-adapters/mappers/ApiTokenMapper.js';
 
 export const ApiTokenRef = builder.objectRef<ApiTokenDTO>('ApiToken');
 ApiTokenRef.implement({

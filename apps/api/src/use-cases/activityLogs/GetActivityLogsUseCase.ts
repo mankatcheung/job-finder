@@ -1,11 +1,11 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { IActivityLogRepository } from '#src/use-cases/ports/IActivityLogRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   IGetActivityLogsUseCase,
   GetActivityLogsInput,
   GetActivityLogsOutput,
-} from '@/use-cases/activityLogs/IGetActivityLogsUseCase.js';
+} from '#src/use-cases/activityLogs/IGetActivityLogsUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

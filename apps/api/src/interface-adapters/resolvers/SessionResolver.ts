@@ -1,7 +1,7 @@
-import type { ListSessionsUseCase } from '@/use-cases/sessions/ListSessionsUseCase.js';
-import type { RevokeSessionUseCase } from '@/use-cases/sessions/RevokeSessionUseCase.js';
-import type { RevokeOtherSessionsUseCase } from '@/use-cases/sessions/RevokeOtherSessionsUseCase.js';
-import type { SessionMapper, SessionDTO } from '@/interface-adapters/mappers/SessionMapper.js';
+import type { ListSessionsUseCase } from '#src/use-cases/sessions/ListSessionsUseCase.js';
+import type { RevokeSessionUseCase } from '#src/use-cases/sessions/RevokeSessionUseCase.js';
+import type { RevokeOtherSessionsUseCase } from '#src/use-cases/sessions/RevokeOtherSessionsUseCase.js';
+import type { SessionMapper, SessionDTO } from '#src/interface-adapters/mappers/SessionMapper.js';
 
 interface Deps {
   listSessionsUseCase: ListSessionsUseCase;

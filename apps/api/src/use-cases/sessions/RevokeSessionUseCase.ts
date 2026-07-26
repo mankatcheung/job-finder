@@ -1,5 +1,5 @@
-import type { ISessionRepository } from '@/use-cases/ports/ISessionRepository.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 interface Deps {
   sessionRepository: ISessionRepository;

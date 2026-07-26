@@ -1,12 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
-import { DeleteDocumentUseCase } from '@/use-cases/documents/DeleteDocumentUseCase.js';
+import { DeleteDocumentUseCase } from '#src/use-cases/documents/DeleteDocumentUseCase.js';
 import {
   makeApplicationRepository,
   makeDocumentRepository,
   makeStorageProvider,
   makeApplication,
   makeDocument,
-} from '@/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks.js';
 
 describe('DeleteDocumentUseCase', () => {
   it('throws NOT_FOUND when the document does not exist', async () => {

@@ -1,7 +1,7 @@
 import type { AwilixContainer } from 'awilix';
-import type { Cradle } from '@/http/container.js';
-import type { IHttpRequest } from '@/http/ports/IHttpRequest.js';
-import type { IHttpResponse } from '@/http/ports/IHttpResponse.js';
+import type { Cradle } from '#src/http/container.js';
+import type { IHttpRequest } from '#src/http/ports/IHttpRequest.js';
+import type { IHttpResponse } from '#src/http/ports/IHttpResponse.js';
 
 export interface JwtUser {
   sub: string;

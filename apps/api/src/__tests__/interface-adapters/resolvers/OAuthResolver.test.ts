@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
-import { OAuthResolver } from '@/interface-adapters/resolvers/OAuthResolver.js';
-import { OAuthAccountMapper } from '@/interface-adapters/mappers/OAuthAccountMapper.js';
-import type { IListLinkedOAuthAccountsUseCase } from '@/use-cases/oauth/IListLinkedOAuthAccountsUseCase.js';
-import type { IUnlinkOAuthAccountUseCase } from '@/use-cases/oauth/IUnlinkOAuthAccountUseCase.js';
-import { makeOAuthAccount } from '@/__tests__/helpers/mocks.js';
+import { OAuthResolver } from '#src/interface-adapters/resolvers/OAuthResolver.js';
+import { OAuthAccountMapper } from '#src/interface-adapters/mappers/OAuthAccountMapper.js';
+import type { IListLinkedOAuthAccountsUseCase } from '#src/use-cases/oauth/IListLinkedOAuthAccountsUseCase.js';
+import type { IUnlinkOAuthAccountUseCase } from '#src/use-cases/oauth/IUnlinkOAuthAccountUseCase.js';
+import { makeOAuthAccount } from '#src/__tests__/helpers/mocks.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

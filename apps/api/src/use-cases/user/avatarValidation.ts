@@ -1,4 +1,4 @@
-import { ERROR_CODES, ALLOWED_AVATAR_MIME_TYPES, MAX_AVATAR_SIZE_BYTES } from '@/constants.js';
+import { ERROR_CODES, ALLOWED_AVATAR_MIME_TYPES, MAX_AVATAR_SIZE_BYTES } from '#src/constants.js';
 
 export function assertAllowedAvatarMimeType(mimeType: string): void {
   if (!(ALLOWED_AVATAR_MIME_TYPES as readonly string[]).includes(mimeType)) {

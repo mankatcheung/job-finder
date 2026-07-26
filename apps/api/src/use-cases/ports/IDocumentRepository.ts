@@ -1,4 +1,4 @@
-import type { Document } from '@/domain/document/Document.js';
+import type { Document } from '#src/domain/document/Document.js';
 
 export interface CreateDocumentData {
   id: string;

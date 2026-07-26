@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OAuthStateService } from '@/infrastructure/auth/OAuthStateService.js';
+import { OAuthStateService } from '#src/infrastructure/auth/OAuthStateService.js';
 
 describe('OAuthStateService', () => {
   const originalSecret = process.env.JWT_SECRET;

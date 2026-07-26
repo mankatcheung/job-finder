@@ -1,4 +1,4 @@
-import type { Session } from '@/domain/session/Session.js';
+import type { Session } from '#src/domain/session/Session.js';
 
 export interface CreateSessionData {
   id: string;

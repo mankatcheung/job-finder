@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { LoginEventMapper } from '@/interface-adapters/mappers/LoginEventMapper.js';
-import type { LoginEvent } from '@/domain/loginEvent/LoginEvent.js';
+import { LoginEventMapper } from '#src/interface-adapters/mappers/LoginEventMapper.js';
+import type { LoginEvent } from '#src/domain/loginEvent/LoginEvent.js';
 
 describe('LoginEventMapper', () => {
   const mapper = new LoginEventMapper();

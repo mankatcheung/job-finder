@@ -1,5 +1,5 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
-import type { ITransactionManager } from '@/use-cases/ports/ITransactionManager.js';
+import type { ITransactionManager } from '#src/use-cases/ports/ITransactionManager.js';
 import { txStorage } from './transactionContext.js';
 
 export class PrismaTransactionManager implements ITransactionManager {

@@ -1,13 +1,13 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { JobApplicationRef } from '@/http/schema/types/ApplicationType.js';
-import { ApplicationStatusEnum } from '@/http/schema/types/enums/ApplicationStatusEnum.js';
+import { builder } from '#src/http/schema/builder.js';
+import { JobApplicationRef } from '#src/http/schema/types/ApplicationType.js';
+import { ApplicationStatusEnum } from '#src/http/schema/types/enums/ApplicationStatusEnum.js';
 import {
   CreateApplicationInput,
   UpdateApplicationInput,
-} from '@/http/schema/types/inputs/ApplicationInputs.js';
-import type { ApplicationStatus } from '@/domain/application/ApplicationStatus.js';
-import { ERROR_CODES } from '@/constants.js';
+} from '#src/http/schema/types/inputs/ApplicationInputs.js';
+import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 builder.mutationField('createApplication', (t) =>
   t.field({

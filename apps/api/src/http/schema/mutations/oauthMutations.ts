@@ -1,8 +1,8 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { OAuthProviderEnum } from '@/http/schema/types/enums/OAuthProviderEnum.js';
-import { fromCodedError } from '@/http/errors/AppError.js';
-import { ERROR_CODES } from '@/constants.js';
+import { builder } from '#src/http/schema/builder.js';
+import { OAuthProviderEnum } from '#src/http/schema/types/enums/OAuthProviderEnum.js';
+import { fromCodedError } from '#src/http/errors/AppError.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 builder.mutationField('unlinkOAuthAccount', (t) =>
   t.boolean({

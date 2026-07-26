@@ -1,6 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
-import type { TotpBackupCode } from '@/domain/totpBackupCode/TotpBackupCode.js';
-import type { ITotpBackupCodeRepository } from '@/use-cases/ports/ITotpBackupCodeRepository.js';
+import type { TotpBackupCode } from '#src/domain/totpBackupCode/TotpBackupCode.js';
+import type { ITotpBackupCodeRepository } from '#src/use-cases/ports/ITotpBackupCodeRepository.js';
 import { getClient } from '../transactionContext.js';
 
 type PrismaTotpBackupCode = {

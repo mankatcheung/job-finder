@@ -1,4 +1,4 @@
-import type { User } from '@/domain/user/User.js';
+import type { User } from '#src/domain/user/User.js';
 
 export type LoginInput = {
   email: string;

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { ComputeHealthScoreUseCase } from '@/use-cases/application/ComputeHealthScoreUseCase.js';
+import { ComputeHealthScoreUseCase } from '#src/use-cases/application/ComputeHealthScoreUseCase.js';
 import {
   makeApplicationRepository,
   makeNoteRepository,
@@ -11,7 +11,7 @@ import {
   makeDocument,
   makeInterviewRound,
   makeContact,
-} from '@/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks.js';
 
 function makeDeps(
   appOverrides = {},

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import bcrypt from 'bcryptjs';
-import { DisableTotpUseCase } from '@/use-cases/user/DisableTotpUseCase.js';
+import { DisableTotpUseCase } from '#src/use-cases/user/DisableTotpUseCase.js';
 import {
   makeUserRepository,
   makeUser,
   makeTotpBackupCodeRepository,
-} from '@/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks.js';
 
 vi.mock('bcryptjs', () => ({
   default: {

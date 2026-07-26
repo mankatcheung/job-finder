@@ -1,6 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
-import type { EmailVerificationToken } from '@/domain/emailVerificationToken/EmailVerificationToken.js';
-import type { IEmailVerificationTokenRepository } from '@/use-cases/ports/IEmailVerificationTokenRepository.js';
+import type { EmailVerificationToken } from '#src/domain/emailVerificationToken/EmailVerificationToken.js';
+import type { IEmailVerificationTokenRepository } from '#src/use-cases/ports/IEmailVerificationTokenRepository.js';
 import { getClient } from '../transactionContext.js';
 
 type PrismaEmailVerificationToken = {

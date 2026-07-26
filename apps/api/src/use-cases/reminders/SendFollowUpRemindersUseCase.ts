@@ -1,6 +1,6 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { IEmailService } from '@/use-cases/ports/IEmailService.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

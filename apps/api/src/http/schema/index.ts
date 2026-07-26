@@ -1,4 +1,4 @@
-import { builder } from '@/http/schema/builder.js';
+import { builder } from '#src/http/schema/builder.js';
 
 // Types must be imported before queries/mutations to register with builder
 import './types/enums/ApplicationStatusEnum.js';

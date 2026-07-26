@@ -1,5 +1,5 @@
-import { builder } from '@/http/schema/builder.js';
-import type { NoteDTO } from '@/interface-adapters/mappers/NoteMapper.js';
+import { builder } from '#src/http/schema/builder.js';
+import type { NoteDTO } from '#src/interface-adapters/mappers/NoteMapper.js';
 
 export const NoteRef = builder.objectRef<NoteDTO>('Note');
 NoteRef.implement({

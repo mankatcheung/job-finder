@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
-import type { IApiTokenRepository } from '@/use-cases/ports/IApiTokenRepository.js';
-import type { ApiTokenScope } from '@/domain/apiToken/ApiToken.js';
+import type { IApiTokenRepository } from '#src/use-cases/ports/IApiTokenRepository.js';
+import type { ApiTokenScope } from '#src/domain/apiToken/ApiToken.js';
 
 interface Deps {
   apiTokenRepository: IApiTokenRepository;

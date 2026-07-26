@@ -1,9 +1,9 @@
-import type { IHttpRequest } from '@/http/ports/IHttpRequest.js';
-import type { RouteDefinition } from '@/http/ports/RouteDefinition.js';
-import type { Cradle } from '@/http/container.js';
-import { setAuthCookies } from '@/http/schema/types/AuthPayloadType.js';
-import { COOKIES, ENV, OAUTH, OAUTH_PROVIDER, ROUTES } from '@/constants.js';
-import type { OAuthProviderName } from '@/domain/oauthAccount/OAuthAccount.js';
+import type { IHttpRequest } from '#src/http/ports/IHttpRequest.js';
+import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
+import type { Cradle } from '#src/http/container.js';
+import { setAuthCookies } from '#src/http/schema/types/AuthPayloadType.js';
+import { COOKIES, ENV, OAUTH, OAUTH_PROVIDER, ROUTES } from '#src/constants.js';
+import type { OAuthProviderName } from '#src/domain/oauthAccount/OAuthAccount.js';
 
 const KNOWN_PROVIDERS = new Set<string>(Object.values(OAUTH_PROVIDER));
 

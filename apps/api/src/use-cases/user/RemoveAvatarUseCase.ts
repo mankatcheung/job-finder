@@ -1,7 +1,7 @@
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
-import { ERROR_CODES } from '@/constants.js';
-import type { IRemoveAvatarUseCase } from '@/use-cases/user/IRemoveAvatarUseCase.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
+import { ERROR_CODES } from '#src/constants.js';
+import type { IRemoveAvatarUseCase } from '#src/use-cases/user/IRemoveAvatarUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

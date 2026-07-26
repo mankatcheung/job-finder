@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ApiTokenMapper } from '@/interface-adapters/mappers/ApiTokenMapper.js';
-import { makeApiToken } from '@/__tests__/helpers/mocks.js';
+import { ApiTokenMapper } from '#src/interface-adapters/mappers/ApiTokenMapper.js';
+import { makeApiToken } from '#src/__tests__/helpers/mocks.js';
 
 describe('ApiTokenMapper', () => {
   const mapper = new ApiTokenMapper();

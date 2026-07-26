@@ -1,4 +1,8 @@
-import { ERROR_CODES, ALLOWED_DOCUMENT_MIME_TYPES, MAX_DOCUMENT_SIZE_BYTES } from '@/constants.js';
+import {
+  ERROR_CODES,
+  ALLOWED_DOCUMENT_MIME_TYPES,
+  MAX_DOCUMENT_SIZE_BYTES,
+} from '#src/constants.js';
 
 export function assertAllowedMimeType(mimeType: string): void {
   if (!(ALLOWED_DOCUMENT_MIME_TYPES as readonly string[]).includes(mimeType)) {

@@ -1,5 +1,5 @@
-import type { IHttpRequest } from '@/http/ports/IHttpRequest.js';
-import { AUTH_HEADER, ENV } from '@/constants.js';
+import type { IHttpRequest } from '#src/http/ports/IHttpRequest.js';
+import { AUTH_HEADER, ENV } from '#src/constants.js';
 
 /**
  * Shared auth check for the admin/cron-triggered routes (digest, reminders).

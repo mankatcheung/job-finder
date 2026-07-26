@@ -7,15 +7,15 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import bcrypt from 'bcryptjs';
-import { RequestEmailChangeUseCase } from '@/use-cases/user/RequestEmailChangeUseCase.js';
-import { UpdatePasswordUseCase } from '@/use-cases/user/UpdatePasswordUseCase.js';
-import { DeleteAccountUseCase } from '@/use-cases/user/DeleteAccountUseCase.js';
+import { RequestEmailChangeUseCase } from '#src/use-cases/user/RequestEmailChangeUseCase.js';
+import { UpdatePasswordUseCase } from '#src/use-cases/user/UpdatePasswordUseCase.js';
+import { DeleteAccountUseCase } from '#src/use-cases/user/DeleteAccountUseCase.js';
 import {
   makeUserRepository,
   makeUser,
   makeEmailVerificationTokenRepository,
-} from '@/__tests__/helpers/mocks.js';
-import type { IEmailService } from '@/use-cases/ports/IEmailService.js';
+} from '#src/__tests__/helpers/mocks.js';
+import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 
 vi.mock('bcryptjs', () => ({
   default: {

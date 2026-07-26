@@ -1,6 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
-import type { PasswordResetToken } from '@/domain/passwordResetToken/PasswordResetToken.js';
-import type { IPasswordResetTokenRepository } from '@/use-cases/ports/IPasswordResetTokenRepository.js';
+import type { PasswordResetToken } from '#src/domain/passwordResetToken/PasswordResetToken.js';
+import type { IPasswordResetTokenRepository } from '#src/use-cases/ports/IPasswordResetTokenRepository.js';
 import { getClient } from '../transactionContext.js';
 
 type PrismaPasswordResetToken = {

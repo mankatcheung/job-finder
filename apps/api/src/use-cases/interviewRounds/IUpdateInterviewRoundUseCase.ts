@@ -2,7 +2,7 @@ import type {
   InterviewRound,
   InterviewRoundType,
   InterviewRoundOutcome,
-} from '@/domain/interviewRound/InterviewRound.js';
+} from '#src/domain/interviewRound/InterviewRound.js';
 
 export interface UpdateInterviewRoundInput {
   userId: string;

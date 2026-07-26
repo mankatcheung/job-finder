@@ -1,6 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
-import type { User } from '@/domain/user/User.js';
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
+import type { User } from '#src/domain/user/User.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import { getClient } from '../transactionContext.js';
 
 type PrismaUser = {

@@ -1,10 +1,10 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { JobApplicationRef } from '@/http/schema/types/ApplicationType.js';
-import { ApplicationConnectionRef } from '@/http/schema/types/ApplicationConnectionType.js';
-import { ApplicationStatusEnum } from '@/http/schema/types/enums/ApplicationStatusEnum.js';
-import type { ApplicationStatus } from '@/domain/application/ApplicationStatus.js';
-import { ERROR_CODES } from '@/constants.js';
+import { builder } from '#src/http/schema/builder.js';
+import { JobApplicationRef } from '#src/http/schema/types/ApplicationType.js';
+import { ApplicationConnectionRef } from '#src/http/schema/types/ApplicationConnectionType.js';
+import { ApplicationStatusEnum } from '#src/http/schema/types/enums/ApplicationStatusEnum.js';
+import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 builder.queryField('applications', (t) =>
   t.field({

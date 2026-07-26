@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { RequestPasswordResetUseCase } from '@/use-cases/auth/RequestPasswordResetUseCase.js';
+import { RequestPasswordResetUseCase } from '#src/use-cases/auth/RequestPasswordResetUseCase.js';
 import {
   makeUserRepository,
   makePasswordResetTokenRepository,
   makeUser,
   makeRateLimiter,
-} from '@/__tests__/helpers/mocks.js';
-import type { IEmailService } from '@/use-cases/ports/IEmailService.js';
+} from '#src/__tests__/helpers/mocks.js';
+import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 
 const makeEmailService = (overrides?: Partial<IEmailService>): IEmailService => ({
   sendFollowUpReminder: vi.fn().mockResolvedValue(undefined),

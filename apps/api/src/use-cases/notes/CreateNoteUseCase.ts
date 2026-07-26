@@ -1,12 +1,12 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { INoteRepository } from '@/use-cases/ports/INoteRepository.js';
-import type { IActivityLogRepository } from '@/use-cases/ports/IActivityLogRepository.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
+import type { IActivityLogRepository } from '#src/use-cases/ports/IActivityLogRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   ICreateNoteUseCase,
   CreateNoteInput,
   CreateNoteOutput,
-} from '@/use-cases/notes/ICreateNoteUseCase.js';
+} from '#src/use-cases/notes/ICreateNoteUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

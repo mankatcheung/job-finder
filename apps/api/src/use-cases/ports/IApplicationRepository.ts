@@ -1,5 +1,5 @@
-import type { Application } from '@/domain/application/Application.js';
-import type { ApplicationStatus } from '@/domain/application/ApplicationStatus.js';
+import type { Application } from '#src/domain/application/Application.js';
+import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
 
 export interface CreateApplicationData {
   id: string;

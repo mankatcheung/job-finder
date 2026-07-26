@@ -1,7 +1,7 @@
-import type { ILoginEventRepository } from '@/use-cases/ports/ILoginEventRepository.js';
-import type { LoginEvent } from '@/domain/loginEvent/LoginEvent.js';
-import type { IGetLoginHistoryUseCase } from '@/use-cases/loginEvents/IGetLoginHistoryUseCase.js';
-import { LOGIN_HISTORY } from '@/constants.js';
+import type { ILoginEventRepository } from '#src/use-cases/ports/ILoginEventRepository.js';
+import type { LoginEvent } from '#src/domain/loginEvent/LoginEvent.js';
+import type { IGetLoginHistoryUseCase } from '#src/use-cases/loginEvents/IGetLoginHistoryUseCase.js';
+import { LOGIN_HISTORY } from '#src/constants.js';
 
 interface Deps {
   loginEventRepository: ILoginEventRepository;

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { DeleteInterviewRoundUseCase } from '@/use-cases/interviewRounds/DeleteInterviewRoundUseCase.js';
+import { DeleteInterviewRoundUseCase } from '#src/use-cases/interviewRounds/DeleteInterviewRoundUseCase.js';
 import {
   makeApplicationRepository,
   makeInterviewRoundRepository,
   makeApplication,
   makeInterviewRound,
-} from '@/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks.js';
 
 describe('DeleteInterviewRoundUseCase', () => {
   it('throws NOT_FOUND when the round does not exist', async () => {

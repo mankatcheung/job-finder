@@ -1,5 +1,5 @@
-import type { OAuthProviderName } from '@/domain/oauthAccount/OAuthAccount.js';
-import type { User } from '@/domain/user/User.js';
+import type { OAuthProviderName } from '#src/domain/oauthAccount/OAuthAccount.js';
+import type { User } from '#src/domain/user/User.js';
 
 export interface LoginOrSignupWithOAuthInput {
   provider: OAuthProviderName;

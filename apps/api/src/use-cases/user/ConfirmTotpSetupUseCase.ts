@@ -1,13 +1,13 @@
 import { createHash, randomBytes } from 'crypto';
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { ITotpBackupCodeRepository } from '@/use-cases/ports/ITotpBackupCodeRepository.js';
-import type { ITotpProvider } from '@/use-cases/ports/ITotpProvider.js';
-import { ERROR_CODES, TOTP_BACKUP_CODES } from '@/constants.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { ITotpBackupCodeRepository } from '#src/use-cases/ports/ITotpBackupCodeRepository.js';
+import type { ITotpProvider } from '#src/use-cases/ports/ITotpProvider.js';
+import { ERROR_CODES, TOTP_BACKUP_CODES } from '#src/constants.js';
 import type {
   IConfirmTotpSetupUseCase,
   ConfirmTotpSetupInput,
   ConfirmTotpSetupOutput,
-} from '@/use-cases/user/IConfirmTotpSetupUseCase.js';
+} from '#src/use-cases/user/IConfirmTotpSetupUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

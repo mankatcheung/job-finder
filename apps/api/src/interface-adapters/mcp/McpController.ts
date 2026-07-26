@@ -1,10 +1,10 @@
-import type { ApplicationStatus } from '@/domain/application/ApplicationStatus.js';
-import type { IGetApplicationsUseCase } from '@/use-cases/jobs/IGetApplicationsUseCase.js';
-import type { IGetApplicationUseCase } from '@/use-cases/jobs/IGetApplicationUseCase.js';
-import type { IGetNotesUseCase } from '@/use-cases/notes/IGetNotesUseCase.js';
-import type { IGetContactsUseCase } from '@/use-cases/contacts/IGetContactsUseCase.js';
-import type { IGetInterviewRoundsUseCase } from '@/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
-import { ERROR_CODES, JSON_RPC_ERROR, MCP } from '@/constants.js';
+import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
+import type { IGetApplicationsUseCase } from '#src/use-cases/jobs/IGetApplicationsUseCase.js';
+import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplicationUseCase.js';
+import type { IGetNotesUseCase } from '#src/use-cases/notes/IGetNotesUseCase.js';
+import type { IGetContactsUseCase } from '#src/use-cases/contacts/IGetContactsUseCase.js';
+import type { IGetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
+import { ERROR_CODES, JSON_RPC_ERROR, MCP } from '#src/constants.js';
 
 /** HTTP status for a malformed JSON-RPC envelope (matches Fastify `reply.code`). */
 const HTTP_BAD_REQUEST = 400;

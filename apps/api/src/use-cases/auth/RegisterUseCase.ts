@@ -1,13 +1,13 @@
 import bcrypt from 'bcryptjs';
-import type { IUserRepository } from '@/use-cases/ports/IUserRepository.js';
-import type { ISendEmailVerificationUseCase } from '@/use-cases/auth/ISendEmailVerificationUseCase.js';
-import { ERROR_CODES } from '@/constants.js';
-import { assertValidPassword } from '@/use-cases/auth/passwordValidation.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { ISendEmailVerificationUseCase } from '#src/use-cases/auth/ISendEmailVerificationUseCase.js';
+import { ERROR_CODES } from '#src/constants.js';
+import { assertValidPassword } from '#src/use-cases/auth/passwordValidation.js';
 import type {
   IRegisterUseCase,
   RegisterInput,
   RegisterOutput,
-} from '@/use-cases/auth/IRegisterUseCase.js';
+} from '#src/use-cases/auth/IRegisterUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;

@@ -1,11 +1,11 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { IInterviewRoundRepository } from '@/use-cases/ports/IInterviewRoundRepository.js';
-import { ERROR_CODES } from '@/constants.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { IInterviewRoundRepository } from '#src/use-cases/ports/IInterviewRoundRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 import type {
   IGetInterviewRoundsUseCase,
   GetInterviewRoundsInput,
   GetInterviewRoundsOutput,
-} from '@/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
+} from '#src/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

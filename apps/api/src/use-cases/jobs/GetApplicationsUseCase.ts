@@ -1,9 +1,9 @@
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type {
   IGetApplicationsUseCase,
   GetApplicationsInput,
   GetApplicationsOutput,
-} from '@/use-cases/jobs/IGetApplicationsUseCase.js';
+} from '#src/use-cases/jobs/IGetApplicationsUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

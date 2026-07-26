@@ -1,13 +1,13 @@
 import { nanoid } from 'nanoid';
-import type { IApplicationRepository } from '@/use-cases/ports/IApplicationRepository.js';
-import type { IStorageProvider } from '@/use-cases/ports/IStorageProvider.js';
-import { ERROR_CODES } from '@/constants.js';
-import { assertAllowedMimeType } from '@/use-cases/documents/documentValidation.js';
+import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
+import { ERROR_CODES } from '#src/constants.js';
+import { assertAllowedMimeType } from '#src/use-cases/documents/documentValidation.js';
 import type {
   IRequestUploadUrlUseCase,
   RequestUploadUrlInput,
   RequestUploadUrlOutput,
-} from '@/use-cases/documents/IRequestUploadUrlUseCase.js';
+} from '#src/use-cases/documents/IRequestUploadUrlUseCase.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

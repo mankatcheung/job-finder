@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createHash } from 'crypto';
-import { ValidateApiTokenUseCase } from '@/use-cases/apiTokens/ValidateApiTokenUseCase.js';
-import { makeApiTokenRepository, makeApiToken } from '@/__tests__/helpers/mocks.js';
+import { ValidateApiTokenUseCase } from '#src/use-cases/apiTokens/ValidateApiTokenUseCase.js';
+import { makeApiTokenRepository, makeApiToken } from '#src/__tests__/helpers/mocks.js';
 
 describe('ValidateApiTokenUseCase', () => {
   it('returns null when token hash is not found', async () => {

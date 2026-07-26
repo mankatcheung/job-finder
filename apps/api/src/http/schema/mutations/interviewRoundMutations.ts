@@ -1,15 +1,15 @@
 import { GraphQLError } from 'graphql';
-import { builder } from '@/http/schema/builder.js';
-import { InterviewRoundRef } from '@/http/schema/types/InterviewRoundType.js';
-import { ERROR_CODES } from '@/constants.js';
+import { builder } from '#src/http/schema/builder.js';
+import { InterviewRoundRef } from '#src/http/schema/types/InterviewRoundType.js';
+import { ERROR_CODES } from '#src/constants.js';
 import {
   InterviewRoundTypeEnum,
   InterviewRoundOutcomeEnum,
-} from '@/http/schema/types/enums/InterviewRoundEnums.js';
+} from '#src/http/schema/types/enums/InterviewRoundEnums.js';
 import type {
   InterviewRoundType,
   InterviewRoundOutcome,
-} from '@/domain/interviewRound/InterviewRound.js';
+} from '#src/domain/interviewRound/InterviewRound.js';
 
 const CreateInterviewRoundInput = builder.inputType('CreateInterviewRoundInput', {
   fields: (t) => ({

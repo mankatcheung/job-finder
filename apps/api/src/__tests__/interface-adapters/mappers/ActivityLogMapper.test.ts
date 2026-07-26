@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ActivityLogMapper } from '@/interface-adapters/mappers/ActivityLogMapper.js';
-import type { ActivityLog } from '@/domain/activityLog/ActivityLog.js';
+import { ActivityLogMapper } from '#src/interface-adapters/mappers/ActivityLogMapper.js';
+import type { ActivityLog } from '#src/domain/activityLog/ActivityLog.js';
 
 describe('ActivityLogMapper', () => {
   const mapper = new ActivityLogMapper();
