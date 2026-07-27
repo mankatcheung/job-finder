@@ -21,12 +21,11 @@ import { PinoLogger } from '#src/infrastructure/observability/PinoLogger.js';
 import {
   fastifyOtelInstrumentation,
   isObservabilityEnabled,
-  startObservability,
 } from '#src/infrastructure/observability/tracing.js';
 import { asValue } from 'awilix';
 import { ENV, NODE_ENV, ROUTES } from '#src/constants.js';
 
-startObservability();
+// startObservability();
 
 const fastify = Fastify({
   logger: {
