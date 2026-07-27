@@ -12,12 +12,7 @@ name: Deploy api (Vercel)
 # `apps/api`. Per Vercel's own monorepo docs ("Vercel CLI should not be
 # invoked from the subdirectory"), the CLI must run at the monorepo root;
 # the project's own Root Directory setting (see setup step 2) is what
-# tells Vercel to operate on apps/api. Invoking from inside apps/api
-# instead (an earlier version of this workflow did) causes two different
-# failures depending on Root Directory: doubled paths like
-# "apps/api/apps/api" if Root Directory is also apps/api, or a monorepo-
-# unaware install ("File does not exist: apps/api/node_modules/fastify")
-# if Root Directory is blank.
+# tells Vercel to operate on apps/api.
 #
 # `vercel build` performs its own install internally but has no idea it
 # needs to run `prisma generate` afterwards, so the Prisma client is
@@ -26,55 +21,10 @@ name: Deploy api (Vercel)
 # step in the deploy job rather than an implicit side effect of `pnpm
 # install`.
 #
-# There is no custom serverless function here (an earlier version of this
-# workflow had one at apps/api/api/index.ts) — Vercel has zero-config
-# Fastify support that auto-detects an entrypoint file and wraps the whole
-# app as one Vercel Function: https://vercel.com/docs/frameworks/backend/fastify
-# That auto-detection runs regardless of any custom /api function, so the
-# custom one was redundant (worse: Vercel's Fastify builder was the thing
-# actually serving traffic all along, silently ignoring the custom
-# function entirely).
-#
-# src/index.ts is that entrypoint. apps/api uses Node's native subpath
-# imports (`#src/*`, declared in apps/api/package.json's `imports` field —
-# see also tsconfig.json's matching `paths` entry, needed only for
-# TypeScript's own resolution, same dual-declaration pattern apps/web
-# already uses, though apps/web's key is `#/*` — Node's subpath-imports spec
-# explicitly forbids a key starting with `#/`, confirmed by reproducing the
-# exact `ERR_INVALID_MODULE_SPECIFIER` failure locally, hence `#src/*` here
-# instead): unlike this repo's old `@/*` TypeScript-only alias, `#src/*` is
-# real Node behavior, resolved identically whether run locally (`node`,
-# `tsx`), in tests, or in a plain `node <file>` execution of Vercel's
-# deployed function — confirmed by transpiling every file in place (no
-# bundling) and running the result directly with `node`.
-#
-# apps/api/src/app.ts is named apps/api/src/buildApp.ts instead, so it
-# doesn't match any of Vercel's recognized entrypoint filenames (Vercel's
-# detection prioritizes an `app.*` file over `index.*` if both exist, and
-# buildApp.ts — an async factory with no `.listen()` call — would be the
-# wrong file for Vercel to treat as the entrypoint). This leaves
-# src/index.ts as the sole, unambiguous match by filename.
-#
-# Despite both of the above being individually correct, bundling is still
-# required, for a third, separate reason discovered by reading @vercel/
-# fastify's own source after a deploy failed with "No entrypoint found
-# which imports fastify. Found possible entrypoint: src/index.ts": its
-# zero-config detection does not trace the entrypoint's import graph at
-# all — it runs a shallow regex over the entrypoint file's own source text,
-# `/(?:from|require|import)\s*(?:\(\s*)?["']fastify["']\s*(?:\))?/g`,
-# looking for a literal `from "fastify"`-shaped substring in that one file.
-# src/index.ts deliberately never contains that: it only reaches Fastify
-# indirectly via a *dynamic* `import('#src/buildApp.js')`, specifically so
-# startObservability() can patch Node's `http` module before Fastify (which
-# uses `http` internally) ever loads — see index.ts's own comment. The
-# literal `import Fastify from 'fastify'` lives one file away, in
-# buildApp.ts, invisible to a single-file regex scan no matter the import
-# style used to reach it. Bundling src/index.ts folds buildApp.ts's real
-# fastify import into the same file Vercel scans, satisfying the regex.
-# `#src/*` still does its job everywhere else — dev, tests, a plain
-# `node`/`tsx` run of the unbundled source — none of which ever needed a
-# bundler to resolve correctly in the first place; only this one Vercel
-# quirk does.
+# src/index.ts is the entrypoint. Vercel's zero-config Fastify support
+# auto-detects it via a shallow regex scan for `from "fastify"` in the
+# entrypoint file's source text, then wraps the whole app as one Vercel
+# Function: https://vercel.com/docs/frameworks/backend/fastify
 #
 # One-time setup required before this workflow can deploy:
 #   1. Create a Vercel project for apps/api (from the repo root, run
@@ -154,11 +104,6 @@ jobs:
 
       - name: Generate Prisma client
         run: pnpm --filter @job-finder/api db:generate
-
-      - name: Bundle entrypoint (folds buildApp.ts's real `fastify` import into src/index.ts, for Vercel's regex-based entrypoint detection — see comment above)
-        run: |
-          pnpm --filter @job-finder/api bundle:vercel
-          rm apps/api/src/index.ts
 
       - name: Install Vercel CLI
         run: pnpm add --global vercel@latest
