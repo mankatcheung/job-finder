@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { StarIcon, XIcon } from 'lucide-react';
-import { JdImportPanel } from './_components/JdImportPanel';
+import { JdImportPanel } from './-components/JdImportPanel';
 
 const schema = z.object({
   company: z.string().min(1, 'Company is required'),

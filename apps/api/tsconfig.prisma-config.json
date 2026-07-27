@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "node16",
+    "moduleResolution": "node16",
+    "composite": true,
+    "outDir": "dist/prisma-config-build",
+    "types": ["node"]
+  },
+  "include": ["prisma.config.ts"]
+}

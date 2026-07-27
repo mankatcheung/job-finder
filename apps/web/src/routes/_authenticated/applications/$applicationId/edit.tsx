@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { StarIcon, XIcon } from 'lucide-react';
-import { JdImportPanel } from '../_components/JdImportPanel';
+import { JdImportPanel } from '../-components/JdImportPanel';
 
 const APPLICATION_STATUSES = [
   'draft',
