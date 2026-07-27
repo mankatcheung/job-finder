@@ -173,6 +173,7 @@ export const JSON_RPC_ERROR = {
 /** HTTP route paths registered outside the GraphQL endpoint. */
 export const ROUTES = {
   GRAPHQL: '/graphql',
+  HEALTH: '/health',
   MCP: '/mcp',
   DIGEST_SEND: '/admin/digest/send',
   REMINDERS_SEND: '/admin/reminders/send',
