@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '#src/generated/prisma/client.js';
 import type { Contact } from '#src/domain/contact/Contact.js';
 import type {
   IContactRepository,

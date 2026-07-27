@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '#src/generated/prisma/client.js';
 import type { ApiToken, ApiTokenScope } from '#src/domain/apiToken/ApiToken.js';
 import { getClient } from '../transactionContext.js';
 import { DEFAULTS } from '#src/constants.js';

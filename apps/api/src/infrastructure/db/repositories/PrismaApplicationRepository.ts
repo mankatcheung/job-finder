@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import type { PrismaClient, Prisma } from '@prisma/client';
+import type { PrismaClient, Prisma } from '#src/generated/prisma/client.js';
 import type { Application } from '#src/domain/application/Application.js';
 import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
 import type {

@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '#src/generated/prisma/client.js';
 import type { OAuthAccount, OAuthProviderName } from '#src/domain/oauthAccount/OAuthAccount.js';
 import type { IOAuthAccountRepository } from '#src/use-cases/ports/IOAuthAccountRepository.js';
 import { getClient } from '../transactionContext.js';
