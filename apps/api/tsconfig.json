@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "types": ["node"],
+    "moduleResolution": "node16",
+    "module": "node16",
     "paths": {
       "#src/*": ["./src/*"]
     }
