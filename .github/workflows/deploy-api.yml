@@ -71,11 +71,11 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 9.15.4
+          version: 11.17.0
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
@@ -98,11 +98,11 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 9.15.4
+          version: 11.17.0
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
 
       - name: Install dependencies
