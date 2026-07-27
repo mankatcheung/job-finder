@@ -7,10 +7,13 @@
     "node": ">=24.0.0"
   },
   "imports": {
-    "#src/*": "./src/*"
+    "#src/*": {
+      "development": "./src/*",
+      "default": "./dist/*"
+    }
   },
   "scripts": {
-    "dev": "tsx watch --env-file=.env src/index.ts",
+    "dev": "tsx watch -C development --env-file=.env src/index.ts",
     "build": "tsc --project tsconfig.json >/dev/null 2>&1; exit 0",
     "typecheck": "tsc --noEmit",
     "start": "node --env-file=.env dist/index.js",
