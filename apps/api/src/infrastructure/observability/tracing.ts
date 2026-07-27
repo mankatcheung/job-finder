@@ -41,7 +41,7 @@ let sdk: NodeSDK | undefined;
 export function startObservability(): void {
   if (!isObservabilityEnabled) {
     console.info(
-      '[observability] AXIOM_TOKEN/AXIOM_DATASET not set — tracing, metrics, and log shipping are disabled.',
+      '[observability] AXIOM_TOKEN/AXIOM_DATASET not set — tracing and metrics are disabled.',
     );
     return;
   }

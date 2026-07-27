@@ -26,7 +26,6 @@
     "bundle:vercel": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --packages=external --outfile=src/index.js"
   },
   "dependencies": {
-    "@axiomhq/pino": "^1.8.0",
     "@fastify/awilix": "^8.2.0",
     "@fastify/cookie": "^11.1.2",
     "@fastify/cors": "^10.0.0",
