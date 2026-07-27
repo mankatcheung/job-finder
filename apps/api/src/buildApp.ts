@@ -28,15 +28,6 @@ export async function buildApp() {
   const fastify = Fastify({
     logger: {
       level: process.env[ENV.NODE_ENV] === NODE_ENV.PRODUCTION ? 'warn' : 'info',
-      transport: isObservabilityEnabled
-        ? {
-            target: '@axiomhq/pino',
-            options: {
-              dataset: process.env[ENV.AXIOM_DATASET],
-              token: process.env[ENV.AXIOM_TOKEN],
-            },
-          }
-        : undefined,
     },
   });
 
