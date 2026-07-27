@@ -11,6 +11,7 @@ import { buildGraphQLContext } from '#src/http/adapters/fastify/buildGraphQLCont
 import { diScopeOf } from '#src/http/adapters/fastify/diScope.js';
 import { remindersRoutes } from '#src/http/routes/reminders.routes.js';
 import { digestRoutes } from '#src/http/routes/digest.routes.js';
+import { healthRoutes } from '#src/http/routes/health.routes.js';
 import { mcpRoutes } from '#src/http/routes/mcp.routes.js';
 import { oauthRoutes } from '#src/http/routes/oauth.routes.js';
 import { buildContainer } from '#src/http/container.js';
@@ -51,6 +52,7 @@ export async function buildApp() {
 
   // Root-scope routes — no per-request DI resolution needed.
   registerRoutes(fastify, [
+    ...healthRoutes(),
     ...remindersRoutes(() => container.cradle),
     ...digestRoutes(() => container.cradle),
   ]);
