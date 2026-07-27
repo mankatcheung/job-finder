@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '#src/generated/prisma/client.js';
 import type { Document } from '#src/domain/document/Document.js';
 import type {
   IDocumentRepository,

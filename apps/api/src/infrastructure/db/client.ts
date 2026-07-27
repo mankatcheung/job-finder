@@ -1,8 +1,8 @@
-import { PrismaLibSQL } from '@prisma/adapter-libsql';
-import { PrismaClient } from '@prisma/client';
+import { PrismaLibSql } from '@prisma/adapter-libsql';
+import { PrismaClient } from '#src/generated/prisma/client.js';
 import { ENV } from '#src/constants.js';
 
-const adapter = new PrismaLibSQL({
+const adapter = new PrismaLibSql({
   url: process.env[ENV.DATABASE_URL]!,
   authToken: process.env[ENV.DATABASE_AUTH_TOKEN] ?? undefined,
 });

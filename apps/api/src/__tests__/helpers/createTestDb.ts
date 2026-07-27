@@ -1,5 +1,5 @@
-import { PrismaLibSQL } from '@prisma/adapter-libsql';
-import { PrismaClient } from '@prisma/client';
+import { PrismaLibSql } from '@prisma/adapter-libsql';
+import { PrismaClient } from '#src/generated/prisma/client.js';
 import { unlinkSync, existsSync } from 'fs';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
@@ -193,7 +193,7 @@ export interface TestDb {
 
 export async function createTestDb(): Promise<TestDb> {
   const dbPath = join(process.cwd(), `prisma/test-${randomUUID()}.db`);
-  const adapter = new PrismaLibSQL({ url: `file:${dbPath}` });
+  const adapter = new PrismaLibSql({ url: `file:${dbPath}` });
   const prisma = new PrismaClient({ adapter, log: [] });
 
   for (const stmt of SCHEMA_STATEMENTS) {

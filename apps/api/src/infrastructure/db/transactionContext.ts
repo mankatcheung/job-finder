@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import type { Prisma, PrismaClient } from '@prisma/client';
+import type { Prisma, PrismaClient } from '#src/generated/prisma/client.js';
 
 export const txStorage = new AsyncLocalStorage<Prisma.TransactionClient>();
 

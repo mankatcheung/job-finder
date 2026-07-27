@@ -14,3 +14,4 @@ uploads/
 .env.production
 .vercel
 apps/api/src/index.js
+apps/api/src/generated/

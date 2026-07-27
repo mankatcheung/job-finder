@@ -79,7 +79,13 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @job-finder/api db:generate
+      - name: Generate Prisma client
+        run: pnpm --filter @job-finder/api db:generate
+        # Prisma 7's prisma.config.ts reads DATABASE_URL at config-load time for
+        # every CLI invocation, including `generate` (which never touches the
+        # database) — a placeholder value satisfies that check.
+        env:
+          DATABASE_URL: file:./ci-placeholder.db
       - run: pnpm --filter @job-finder/api typecheck
       - run: pnpm --filter @job-finder/api test
 
@@ -104,6 +110,11 @@ jobs:
 
       - name: Generate Prisma client
         run: pnpm --filter @job-finder/api db:generate
+        # See the `test` job's identical step: `generate` doesn't touch the
+        # database, but Prisma 7's prisma.config.ts still requires DATABASE_URL
+        # to be resolvable at config-load time.
+        env:
+          DATABASE_URL: file:./ci-placeholder.db
 
       - name: Install Vercel CLI
         run: pnpm add --global vercel@latest

@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '#src/generated/prisma/client.js';
 import type { LoginEvent } from '#src/domain/loginEvent/LoginEvent.js';
 import type {
   ILoginEventRepository,
