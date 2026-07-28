@@ -69,12 +69,16 @@ export async function hydrateSession(): Promise<boolean> {
 
 export const gqlClient = new GraphQLClient(API_URL, {
   credentials: 'include',
-  requestMiddleware: (request) => ({
-    ...request,
-    headers: accessToken
-      ? { ...request.headers, Authorization: `${BEARER_PREFIX}${accessToken}` }
-      : request.headers,
-  }),
+  requestMiddleware: (request) => {
+    // graphql-request passes a real Headers instance here (with
+    // Content-Type/Accept already set) — spreading it with {...headers}
+    // silently drops every existing header, since Headers doesn't expose its
+    // entries as enumerable own properties. Route through the Headers API
+    // instead so nothing existing gets lost.
+    const headers = new Headers(request.headers);
+    if (accessToken) headers.set('Authorization', `${BEARER_PREFIX}${accessToken}`);
+    return { ...request, headers };
+  },
   responseMiddleware: async (response) => {
     // graphql-request v7 wraps GraphQL errors in a ClientError (extends Error).
     // The errors live on response.response.errors, not directly on response.
