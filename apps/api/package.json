@@ -14,7 +14,7 @@
   },
   "scripts": {
     "dev": "tsx watch -C development --env-file=.env src/index.ts",
-    "build": "tsc --project tsconfig.json",
+    "build": "tsc",
     "typecheck": "tsc --noEmit",
     "start": "node --env-file=.env dist/index.js",
     "test": "vitest run",
