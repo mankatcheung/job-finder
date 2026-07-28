@@ -3,8 +3,14 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "moduleResolution": "bundler",
-    "module": "ESNext",
+    // Overrides the `bundler` resolution inherited from tsconfig.base.json —
+    // that setting suits apps/web (Vite bundles it), but this app ships raw
+    // `tsc` output and runs it on plain Node ESM. Under `bundler`, tsc accepts
+    // extensionless relative imports and emits them verbatim, so they only
+    // fail at runtime (ERR_MODULE_NOT_FOUND). `nodenext` makes tsc enforce the
+    // explicit `.js` extension Node ESM actually requires.
+    "moduleResolution": "nodenext",
+    "module": "nodenext",
     "paths": {
       "#src/*": ["./src/*"]
     },
