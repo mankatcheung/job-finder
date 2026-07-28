@@ -66,7 +66,16 @@ http/
 
 **Dependency injection:** Awilix (`@fastify/awilix`) wires everything. Repositories and resolvers are `SINGLETON`; use cases are `TRANSIENT`. The `container.ts` file is the single place that connects all layers.
 
-**Auth:** JWT access token in `jf_access_token` HttpOnly cookie. Refresh token flow is handled by the `refreshToken` mutation. The GraphQL context extracts and verifies the access token on every request; resolvers enforce authorization.
+**Auth:** The API and web app are deployed on separate domains, so a cookie set by the API can never be read by the web app's own page or server (`document.cookie` and the web server both only ever see cookies scoped to their own domain). Two delivery mechanisms exist side by side:
+
+- **Cookie** (`jf_access_token`, HttpOnly) — works when a client shares the API's domain (e.g. the browser extension, which reads it directly via `chrome.cookies.get()`, unaffected by same-origin restrictions).
+- **`Authorization: Bearer <token>` header** — what the web app uses. `login`/`register`/`loginWithTotp`/`refreshToken` return the access token directly in the GraphQL response body; the web app holds it in memory only (`apps/web/src/graphql/client.ts`, never localStorage — bounds XSS exposure to the token's 15-minute lifetime) and attaches it via `requestMiddleware` on every request.
+
+The GraphQL context (`buildGraphQLContext.ts`) falls back from cookie to bearer header, so both paths hit the same verification code.
+
+The long-lived refresh token stays in its HttpOnly cookie (never exposed to JS either way) but is `SameSite=None; Secure` in production so the browser still attaches it cross-site on the `credentials:'include'` fetch the web app makes to `refreshToken` — this is what lets a page reload silently re-authenticate. **Deploy prerequisite:** the API's `CORS_ORIGIN` env var must contain the web app's exact deployed origin — `corsPlugin.ts` validates `credentials:true` requests against it, and a mismatch silently breaks the refresh cookie regardless of anything else being correct.
+
+Because there is no cookie the web server can ever see, protected/auth-gated routes (`/`, `/login`, `/_authenticated`) set `ssr: false` and resolve auth entirely client-side via `hydrateSession()` — TanStack Start does not re-run `beforeLoad` on initial hydration unless a route opts out of SSR this way.
 
 **Storage:** Toggled by `STORAGE_PROVIDER` env var (`local` | `vercel-blob`). `LocalStorageProvider` writes to disk for dev; `VercelBlobStorageProvider` uses Vercel Blob for prod. Document upload flow: `requestUploadUrl` → client uploads directly to storage (a Vercel Blob client token, used via `@vercel/blob/client`'s `put()`) → `confirmDocument`.
 

@@ -6,8 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { MonitorIcon, MoonIcon, SunIcon, UserIcon } from 'lucide-react';
 import { put as putBlob } from '@vercel/blob/client';
-import { gqlClient } from '#/graphql/client';
-import { clearAuthIndicator } from '#/lib/auth';
+import { gqlClient, setAccessToken } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { useTheme, type Theme } from '#/lib/theme';
 
@@ -551,7 +550,7 @@ export function AccountPage() {
   const onDeleteAccount = async (data: DeleteForm) => {
     try {
       await gqlClient.request(DELETE_ACCOUNT, data);
-      clearAuthIndicator();
+      setAccessToken(null);
       queryClient.clear();
       await navigate({ to: '/login' });
     } catch (err) {

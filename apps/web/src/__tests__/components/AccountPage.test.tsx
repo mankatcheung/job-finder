@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const { mockNavigate, mockGqlRequest, mockClearAuthIndicator, mockPutBlob } = vi.hoisted(() => ({
+const { mockNavigate, mockGqlRequest, mockSetAccessToken, mockPutBlob } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockGqlRequest: vi.fn(),
-  mockClearAuthIndicator: vi.fn(),
+  mockSetAccessToken: vi.fn(),
   mockPutBlob: vi.fn(),
 }));
 
@@ -25,12 +25,7 @@ vi.mock('@tanstack/react-start/server', () => ({
 
 vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
-}));
-
-vi.mock('#/lib/auth', () => ({
-  isAuthenticated: vi.fn().mockReturnValue(true),
-  getIsAuthenticated: vi.fn().mockResolvedValue(true),
-  clearAuthIndicator: mockClearAuthIndicator,
+  setAccessToken: mockSetAccessToken,
 }));
 
 vi.mock('#/lib/queryClient', () => ({
@@ -768,7 +763,7 @@ describe('AccountPage', () => {
         expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('DeleteAccount'), {
           password: 'myPassword123',
         });
-        expect(mockClearAuthIndicator).toHaveBeenCalled();
+        expect(mockSetAccessToken).toHaveBeenCalledWith(null);
         expect(mockNavigate).toHaveBeenCalledWith({ to: '/login' });
       });
     });

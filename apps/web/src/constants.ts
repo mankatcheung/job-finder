@@ -16,11 +16,3 @@ export const ERROR_CODES = {
 
 /** Fallback GraphQL endpoint when `VITE_API_URL` is unset (dev proxy path). */
 export const DEFAULT_API_URL = '/graphql';
-
-/** Cookie names shared with the API. */
-export const COOKIES = {
-  /** Non-HttpOnly hint cookie the API sets so the client knows a session exists. */
-  LOGGED_IN: 'jf_logged_in',
-} as const;
-
-export const COOKIE_PATH = '/';

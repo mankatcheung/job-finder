@@ -7,8 +7,7 @@ import {
   useRouterState,
 } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { isAuthenticated, getIsAuthenticated } from '#/lib/auth';
-import { gqlClient } from '#/graphql/client';
+import { gqlClient, hydrateSession, setAccessToken } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { useTheme, type Theme } from '#/lib/theme';
 import { useHotkeys, getKeyModifier } from '#/hooks/useHotkeys';
@@ -73,8 +72,10 @@ function AccountAvatarIcon({
 }
 
 export const Route = createFileRoute('/_authenticated')({
+  // See routes/index.tsx for why this must be ssr: false.
+  ssr: false,
   beforeLoad: async () => {
-    const authed = typeof window !== 'undefined' ? isAuthenticated() : await getIsAuthenticated();
+    const authed = await hydrateSession();
     if (!authed) throw redirect({ to: '/login' });
   },
   component: AuthenticatedLayout,
@@ -93,6 +94,7 @@ export function AuthenticatedLayout() {
 
   const handleLogout = async () => {
     await gqlClient.request(LOGOUT_MUTATION);
+    setAccessToken(null);
     queryClient.clear();
     await navigate({ to: '/login' });
   };
