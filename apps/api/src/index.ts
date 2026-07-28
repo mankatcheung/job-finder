@@ -40,10 +40,16 @@ registerRoutes(fastify, healthRoutes());
 
 const port = Number(process.env[ENV.PORT] ?? 3001);
 
-try {
-  await fastify.listen({ port, host: '0.0.0.0' });
+// Callback form, deliberately NOT `await`ed — this matches Vercel's documented
+// Fastify entrypoint, which calls `fastify.listen(...)` as a bare top-level
+// statement. Vercel's launcher imports this module and intercepts `listen()` to
+// capture the server rather than truly binding it, so Fastify's ready callback
+// may never fire under that runtime. Awaiting it at the top level would then
+// leave the module permanently unresolved and every invocation would hang.
+fastify.listen({ port, host: '0.0.0.0' }, (err) => {
+  if (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
   console.log(`API server listening on http://localhost:${port}`);
-} catch (err) {
-  fastify.log.error(err);
-  process.exit(1);
-}
+});
