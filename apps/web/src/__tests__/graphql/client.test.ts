@@ -9,7 +9,7 @@ vi.mock('@tanstack/react-start/server', () => ({
 }));
 
 type Middleware = (response: unknown) => Promise<void>;
-type RequestMiddleware = (request: { headers?: HeadersInit }) => { headers?: HeadersInit };
+type RequestMiddleware = (request: { headers: Headers }) => { headers: HeadersInit };
 
 // GraphQLClient must be a real constructor (not an arrow fn) to support `new`
 vi.mock('graphql-request', () => ({
@@ -117,14 +117,22 @@ describe('access token', () => {
     mockLocationHref.mockClear();
   });
 
+  // graphql-request passes a real Headers instance (with Content-Type/Accept
+  // already set) into requestMiddleware, not a plain object — spreading a
+  // Headers instance with {...headers} silently produces {} and drops every
+  // existing header, so these tests use a real Headers instance as input to
+  // catch that regression.
+
   it('attaches no Authorization header before any token is set', async () => {
     const { gqlClient } = await import('#/graphql/client');
     const requestMiddleware = (gqlClient as unknown as { requestMiddleware: RequestMiddleware })
       .requestMiddleware;
 
-    const result = requestMiddleware({ headers: { 'Content-Type': 'application/json' } });
+    const result = requestMiddleware({
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+    });
 
-    expect(result.headers).not.toHaveProperty('Authorization');
+    expect(new Headers(result.headers).get('Authorization')).toBeNull();
   });
 
   it('attaches Authorization: Bearer <token> once setAccessToken is called', async () => {
@@ -133,9 +141,24 @@ describe('access token', () => {
     const requestMiddleware = (gqlClient as unknown as { requestMiddleware: RequestMiddleware })
       .requestMiddleware;
 
-    const result = requestMiddleware({ headers: {} });
+    const result = requestMiddleware({
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+    });
 
-    expect(result.headers).toMatchObject({ Authorization: 'Bearer abc123' });
+    expect(new Headers(result.headers).get('Authorization')).toBe('Bearer abc123');
+  });
+
+  it('preserves existing headers (e.g. Content-Type) when attaching Authorization', async () => {
+    const { gqlClient, setAccessToken } = await import('#/graphql/client');
+    setAccessToken('abc123');
+    const requestMiddleware = (gqlClient as unknown as { requestMiddleware: RequestMiddleware })
+      .requestMiddleware;
+
+    const result = requestMiddleware({
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+    });
+
+    expect(new Headers(result.headers).get('Content-Type')).toBe('application/json');
   });
 
   it('stops attaching the header once setAccessToken(null) is called', async () => {
@@ -145,9 +168,11 @@ describe('access token', () => {
     const requestMiddleware = (gqlClient as unknown as { requestMiddleware: RequestMiddleware })
       .requestMiddleware;
 
-    const result = requestMiddleware({ headers: {} });
+    const result = requestMiddleware({
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+    });
 
-    expect(result.headers).not.toHaveProperty('Authorization');
+    expect(new Headers(result.headers).get('Authorization')).toBeNull();
   });
 });
 
