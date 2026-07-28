@@ -1,3 +1,0 @@
-ALTER TABLE "User" ADD COLUMN "name" TEXT;
-ALTER TABLE "User" ADD COLUMN "timezone" TEXT;
-ALTER TABLE "User" ADD COLUMN "targetRole" TEXT;

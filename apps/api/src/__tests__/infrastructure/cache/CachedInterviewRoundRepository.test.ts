@@ -7,7 +7,7 @@ function makeRepo() {
   const inner = makeInterviewRoundRepository();
   const cache = new MemoryCache(60_000);
   const repo = new CachedInterviewRoundRepository({
-    prismaInterviewRoundRepository: inner,
+    innerInterviewRoundRepository: inner,
     cache,
   });
   return { repo, inner, cache };

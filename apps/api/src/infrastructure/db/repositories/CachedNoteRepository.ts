@@ -4,7 +4,7 @@ import type { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
 import { CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
-  prismaNoteRepository: INoteRepository;
+  innerNoteRepository: INoteRepository;
   cache: MemoryCache;
 }
 
@@ -14,8 +14,8 @@ export class CachedNoteRepository implements INoteRepository {
   private readonly inner: INoteRepository;
   private readonly cache: MemoryCache;
 
-  constructor({ prismaNoteRepository, cache }: Deps) {
-    this.inner = prismaNoteRepository;
+  constructor({ innerNoteRepository, cache }: Deps) {
+    this.inner = innerNoteRepository;
     this.cache = cache;
   }
 

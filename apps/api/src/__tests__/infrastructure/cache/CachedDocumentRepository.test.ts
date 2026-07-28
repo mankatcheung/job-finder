@@ -6,7 +6,7 @@ import { makeDocumentRepository, makeDocument } from '#src/__tests__/helpers/moc
 function makeRepo() {
   const inner = makeDocumentRepository();
   const cache = new MemoryCache(60_000);
-  const repo = new CachedDocumentRepository({ prismaDocumentRepository: inner, cache });
+  const repo = new CachedDocumentRepository({ innerDocumentRepository: inner, cache });
   return { repo, inner, cache };
 }
 

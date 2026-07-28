@@ -1,6 +1,6 @@
 /**
  * Integration test: verifies that the Awilix container wires
- * CachedApplicationRepository (not PrismaApplicationRepository) as the
+ * CachedApplicationRepository (not the raw repository) as the
  * `applicationRepository` that use cases receive.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -23,7 +23,7 @@ function buildTestContainer() {
   const container = createContainer();
   container.register({
     cache: asValue(cache),
-    prismaApplicationRepository: asValue(inner),
+    innerApplicationRepository: asValue(inner),
     applicationRepository: asClass(CachedApplicationRepository, { lifetime: Lifetime.SINGLETON }),
     getApplicationsUseCase: asClass(GetApplicationsUseCase, { lifetime: Lifetime.TRANSIENT }),
   });
@@ -72,7 +72,7 @@ describe('container wiring: noteRepository and documentRepository', () => {
     const container = createContainer();
     container.register({
       cache: asValue(new MemoryCache()),
-      prismaNoteRepository: asValue({
+      innerNoteRepository: asValue({
         findAllByApplicationId: vi.fn(),
         findById: vi.fn(),
         create: vi.fn(),
@@ -88,7 +88,7 @@ describe('container wiring: noteRepository and documentRepository', () => {
     const container = createContainer();
     container.register({
       cache: asValue(new MemoryCache()),
-      prismaDocumentRepository: asValue({
+      innerDocumentRepository: asValue({
         findAllByApplicationId: vi.fn(),
         findById: vi.fn(),
         create: vi.fn(),

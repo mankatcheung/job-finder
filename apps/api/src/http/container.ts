@@ -1,30 +1,30 @@
 import { nanoid } from 'nanoid';
 import { asClass, asValue, createContainer, Lifetime, type AwilixContainer } from 'awilix';
 
-import { prisma } from '#src/infrastructure/db/client.js';
+import { db } from '#src/infrastructure/db/drizzle/client.js';
 
 import { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
-import { PrismaUserRepository } from '#src/infrastructure/db/repositories/PrismaUserRepository.js';
-import { PrismaApplicationRepository } from '#src/infrastructure/db/repositories/PrismaApplicationRepository.js';
-import { PrismaNoteRepository } from '#src/infrastructure/db/repositories/PrismaNoteRepository.js';
-import { PrismaDocumentRepository } from '#src/infrastructure/db/repositories/PrismaDocumentRepository.js';
+import { DrizzleUserRepository } from '#src/infrastructure/db/repositories/DrizzleUserRepository.js';
+import { DrizzleApplicationRepository } from '#src/infrastructure/db/repositories/DrizzleApplicationRepository.js';
+import { DrizzleNoteRepository } from '#src/infrastructure/db/repositories/DrizzleNoteRepository.js';
+import { DrizzleDocumentRepository } from '#src/infrastructure/db/repositories/DrizzleDocumentRepository.js';
 import { CachedApplicationRepository } from '#src/infrastructure/db/repositories/CachedApplicationRepository.js';
 import { CachedNoteRepository } from '#src/infrastructure/db/repositories/CachedNoteRepository.js';
 import { CachedDocumentRepository } from '#src/infrastructure/db/repositories/CachedDocumentRepository.js';
-import { PrismaInterviewRoundRepository } from '#src/infrastructure/db/repositories/PrismaInterviewRoundRepository.js';
+import { DrizzleInterviewRoundRepository } from '#src/infrastructure/db/repositories/DrizzleInterviewRoundRepository.js';
 import { CachedInterviewRoundRepository } from '#src/infrastructure/db/repositories/CachedInterviewRoundRepository.js';
-import { PrismaActivityLogRepository } from '#src/infrastructure/db/repositories/PrismaActivityLogRepository.js';
-import { PrismaContactRepository } from '#src/infrastructure/db/repositories/PrismaContactRepository.js';
-import { PrismaPasswordResetTokenRepository } from '#src/infrastructure/db/repositories/PrismaPasswordResetTokenRepository.js';
-import { PrismaLoginEventRepository } from '#src/infrastructure/db/repositories/PrismaLoginEventRepository.js';
-import { PrismaSessionRepository } from '#src/infrastructure/db/repositories/PrismaSessionRepository.js';
-import { PrismaEmailVerificationTokenRepository } from '#src/infrastructure/db/repositories/PrismaEmailVerificationTokenRepository.js';
-import { PrismaTotpBackupCodeRepository } from '#src/infrastructure/db/repositories/PrismaTotpBackupCodeRepository.js';
+import { DrizzleActivityLogRepository } from '#src/infrastructure/db/repositories/DrizzleActivityLogRepository.js';
+import { DrizzleContactRepository } from '#src/infrastructure/db/repositories/DrizzleContactRepository.js';
+import { DrizzlePasswordResetTokenRepository } from '#src/infrastructure/db/repositories/DrizzlePasswordResetTokenRepository.js';
+import { DrizzleLoginEventRepository } from '#src/infrastructure/db/repositories/DrizzleLoginEventRepository.js';
+import { DrizzleSessionRepository } from '#src/infrastructure/db/repositories/DrizzleSessionRepository.js';
+import { DrizzleEmailVerificationTokenRepository } from '#src/infrastructure/db/repositories/DrizzleEmailVerificationTokenRepository.js';
+import { DrizzleTotpBackupCodeRepository } from '#src/infrastructure/db/repositories/DrizzleTotpBackupCodeRepository.js';
 import { RateLimiter } from '#src/infrastructure/rateLimit/RateLimiter.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { TotpProvider } from '#src/infrastructure/auth/TotpProvider.js';
 import type { ITotpProvider } from '#src/use-cases/ports/ITotpProvider.js';
-import { PrismaOAuthAccountRepository } from '#src/infrastructure/db/repositories/PrismaOAuthAccountRepository.js';
+import { DrizzleOAuthAccountRepository } from '#src/infrastructure/db/repositories/DrizzleOAuthAccountRepository.js';
 import { GoogleOAuthProvider } from '#src/infrastructure/auth/GoogleOAuthProvider.js';
 import { GitHubOAuthProvider } from '#src/infrastructure/auth/GitHubOAuthProvider.js';
 import { OAuthProviderRegistry } from '#src/infrastructure/auth/OAuthProviderRegistry.js';
@@ -111,7 +111,7 @@ import { DeleteInterviewRoundUseCase } from '#src/use-cases/interviewRounds/Dele
 import { GetActivityLogsUseCase } from '#src/use-cases/activityLogs/GetActivityLogsUseCase.js';
 import { GetLoginHistoryUseCase } from '#src/use-cases/loginEvents/GetLoginHistoryUseCase.js';
 import { JwtTokenService } from '#src/infrastructure/auth/JwtTokenService.js';
-import { PrismaApiTokenRepository } from '#src/infrastructure/db/repositories/PrismaApiTokenRepository.js';
+import { DrizzleApiTokenRepository } from '#src/infrastructure/db/repositories/DrizzleApiTokenRepository.js';
 import { ApiTokenMapper } from '#src/interface-adapters/mappers/ApiTokenMapper.js';
 import { CreateApiTokenUseCase } from '#src/use-cases/apiTokens/CreateApiTokenUseCase.js';
 import { ListApiTokensUseCase } from '#src/use-cases/apiTokens/ListApiTokensUseCase.js';
@@ -123,7 +123,7 @@ import { UpdateContactUseCase } from '#src/use-cases/contacts/UpdateContactUseCa
 import { DeleteContactUseCase } from '#src/use-cases/contacts/DeleteContactUseCase.js';
 import { BrevoEmailService } from '#src/infrastructure/email/BrevoEmailService.js';
 import { SendFollowUpRemindersUseCase } from '#src/use-cases/reminders/SendFollowUpRemindersUseCase.js';
-import { PrismaTransactionManager } from '#src/infrastructure/db/PrismaTransactionManager.js';
+import { DrizzleTransactionManager } from '#src/infrastructure/db/DrizzleTransactionManager.js';
 import { OpenRouterLLMProvider } from '#src/infrastructure/llm/OpenRouterLLMProvider.js';
 import { GoogleAILLMProvider } from '#src/infrastructure/llm/GoogleAILLMProvider.js';
 import { ParseJobDescriptionUseCase } from '#src/use-cases/jobDescription/ParseJobDescriptionUseCase.js';
@@ -139,9 +139,10 @@ import { RevokeOtherSessionsUseCase } from '#src/use-cases/sessions/RevokeOtherS
 import { ENV, LLM_PROVIDER, RATE_LIMIT, STORAGE_PROVIDER } from '#src/constants.js';
 import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
+import type { DrizzleDb } from '#src/infrastructure/db/drizzle/client.js';
 
 export interface Cradle {
-  prisma: typeof prisma;
+  db: DrizzleDb;
   storageProvider: LocalStorageProvider | VercelBlobStorageProvider;
   generateId: () => string;
   webAppOrigin: string;
@@ -150,29 +151,29 @@ export interface Cradle {
   cache: MemoryCache;
   passwordResetRateLimiter: RateLimiter;
 
-  // Raw Prisma repositories (used internally by the cached decorators)
-  userRepository: PrismaUserRepository;
-  prismaApplicationRepository: PrismaApplicationRepository;
-  prismaNoteRepository: PrismaNoteRepository;
-  prismaDocumentRepository: PrismaDocumentRepository;
+  // Drizzle repositories (used internally by the cached decorators)
+  userRepository: DrizzleUserRepository;
+  innerApplicationRepository: DrizzleApplicationRepository;
+  innerNoteRepository: DrizzleNoteRepository;
+  innerDocumentRepository: DrizzleDocumentRepository;
 
   // Cached repository decorators (what use-cases consume)
   applicationRepository: CachedApplicationRepository;
   noteRepository: CachedNoteRepository;
   documentRepository: CachedDocumentRepository;
-  prismaInterviewRoundRepository: PrismaInterviewRoundRepository;
+  innerInterviewRoundRepository: DrizzleInterviewRoundRepository;
   interviewRoundRepository: CachedInterviewRoundRepository;
-  activityLogRepository: PrismaActivityLogRepository;
-  apiTokenRepository: PrismaApiTokenRepository;
-  contactRepository: PrismaContactRepository;
-  passwordResetTokenRepository: PrismaPasswordResetTokenRepository;
-  loginEventRepository: PrismaLoginEventRepository;
-  sessionRepository: PrismaSessionRepository;
-  emailVerificationTokenRepository: PrismaEmailVerificationTokenRepository;
-  totpBackupCodeRepository: PrismaTotpBackupCodeRepository;
+  activityLogRepository: DrizzleActivityLogRepository;
+  apiTokenRepository: DrizzleApiTokenRepository;
+  contactRepository: DrizzleContactRepository;
+  passwordResetTokenRepository: DrizzlePasswordResetTokenRepository;
+  loginEventRepository: DrizzleLoginEventRepository;
+  sessionRepository: DrizzleSessionRepository;
+  emailVerificationTokenRepository: DrizzleEmailVerificationTokenRepository;
+  totpBackupCodeRepository: DrizzleTotpBackupCodeRepository;
   totpRateLimiter: IRateLimiter;
   totpProvider: ITotpProvider;
-  oauthAccountRepository: PrismaOAuthAccountRepository;
+  oauthAccountRepository: DrizzleOAuthAccountRepository;
   googleOAuthProvider: IOAuthProvider;
   gitHubOAuthProvider: IOAuthProvider;
   oauthProviderRegistry: OAuthProviderRegistry;
@@ -266,7 +267,7 @@ export interface Cradle {
   deleteContactUseCase: DeleteContactUseCase;
   emailService: BrevoEmailService;
   sendFollowUpRemindersUseCase: SendFollowUpRemindersUseCase;
-  transactionManager: PrismaTransactionManager;
+  transactionManager: DrizzleTransactionManager;
   llmProvider: ILLMProvider;
   parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
   generateCoverLetterUseCase: GenerateCoverLetterUseCase;
@@ -295,7 +296,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
   const container = createContainer<Cradle>();
   container.register({
     // Infrastructure
-    prisma: asValue(prisma),
+    db: asValue(db),
     storageProvider: asClass(StorageProvider, { lifetime: Lifetime.SINGLETON }),
     generateId: asValue(() => nanoid()),
     webAppOrigin: asValue(
@@ -311,38 +312,38 @@ export function buildContainer(): AwilixContainer<Cradle> {
     ),
 
     // Transaction manager
-    transactionManager: asClass(PrismaTransactionManager, { lifetime: Lifetime.SINGLETON }),
+    transactionManager: asClass(DrizzleTransactionManager, { lifetime: Lifetime.SINGLETON }),
 
-    // Raw Prisma repositories
-    userRepository: asClass(PrismaUserRepository, { lifetime: Lifetime.SINGLETON }),
-    prismaApplicationRepository: asClass(PrismaApplicationRepository, {
+    // Raw Drizzle repositories
+    userRepository: asClass(DrizzleUserRepository, { lifetime: Lifetime.SINGLETON }),
+    innerApplicationRepository: asClass(DrizzleApplicationRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
-    prismaNoteRepository: asClass(PrismaNoteRepository, { lifetime: Lifetime.SINGLETON }),
-    prismaDocumentRepository: asClass(PrismaDocumentRepository, { lifetime: Lifetime.SINGLETON }),
+    innerNoteRepository: asClass(DrizzleNoteRepository, { lifetime: Lifetime.SINGLETON }),
+    innerDocumentRepository: asClass(DrizzleDocumentRepository, { lifetime: Lifetime.SINGLETON }),
 
     // Cached decorator repositories
     applicationRepository: asClass(CachedApplicationRepository, { lifetime: Lifetime.SINGLETON }),
     noteRepository: asClass(CachedNoteRepository, { lifetime: Lifetime.SINGLETON }),
     documentRepository: asClass(CachedDocumentRepository, { lifetime: Lifetime.SINGLETON }),
-    prismaInterviewRoundRepository: asClass(PrismaInterviewRoundRepository, {
+    innerInterviewRoundRepository: asClass(DrizzleInterviewRoundRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
     interviewRoundRepository: asClass(CachedInterviewRoundRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
-    activityLogRepository: asClass(PrismaActivityLogRepository, { lifetime: Lifetime.SINGLETON }),
-    apiTokenRepository: asClass(PrismaApiTokenRepository, { lifetime: Lifetime.SINGLETON }),
-    contactRepository: asClass(PrismaContactRepository, { lifetime: Lifetime.SINGLETON }),
-    passwordResetTokenRepository: asClass(PrismaPasswordResetTokenRepository, {
+    activityLogRepository: asClass(DrizzleActivityLogRepository, { lifetime: Lifetime.SINGLETON }),
+    apiTokenRepository: asClass(DrizzleApiTokenRepository, { lifetime: Lifetime.SINGLETON }),
+    contactRepository: asClass(DrizzleContactRepository, { lifetime: Lifetime.SINGLETON }),
+    passwordResetTokenRepository: asClass(DrizzlePasswordResetTokenRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
-    loginEventRepository: asClass(PrismaLoginEventRepository, { lifetime: Lifetime.SINGLETON }),
-    sessionRepository: asClass(PrismaSessionRepository, { lifetime: Lifetime.SINGLETON }),
-    emailVerificationTokenRepository: asClass(PrismaEmailVerificationTokenRepository, {
+    loginEventRepository: asClass(DrizzleLoginEventRepository, { lifetime: Lifetime.SINGLETON }),
+    sessionRepository: asClass(DrizzleSessionRepository, { lifetime: Lifetime.SINGLETON }),
+    emailVerificationTokenRepository: asClass(DrizzleEmailVerificationTokenRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
-    totpBackupCodeRepository: asClass(PrismaTotpBackupCodeRepository, {
+    totpBackupCodeRepository: asClass(DrizzleTotpBackupCodeRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
     totpRateLimiter: asValue(
@@ -352,7 +353,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
       ),
     ),
     totpProvider: asClass(TotpProvider, { lifetime: Lifetime.SINGLETON }),
-    oauthAccountRepository: asClass(PrismaOAuthAccountRepository, {
+    oauthAccountRepository: asClass(DrizzleOAuthAccountRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
     googleOAuthProvider: asClass(GoogleOAuthProvider, { lifetime: Lifetime.SINGLETON }),

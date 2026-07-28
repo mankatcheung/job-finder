@@ -31,9 +31,9 @@ pnpm lint
 pnpm format
 
 # Database (runs against apps/api)
-pnpm db:generate   # re-generate Prisma client after schema changes
+pnpm db:generate   # generate Drizzle migration after schema changes
 pnpm db:migrate    # run migrations (dev only)
-cd apps/api && pnpm db:studio  # open Prisma Studio
+cd apps/api && pnpm db:studio  # open Drizzle Studio
 
 # GraphQL codegen (requires API server running at localhost:3001)
 cd apps/web && pnpm codegen
@@ -53,9 +53,13 @@ use-cases/        Business logic + repository/storage port interfaces
   ports/          IApplicationRepository, IUserRepository, IStorageProvider, etc.
 interface-adapters/
   resolvers/      GraphQL resolvers — call use cases via DI container
-  mappers/        Convert Prisma models → domain entities
+  mappers/        Convert Drizzle models → domain entities
 infrastructure/
-  db/             PrismaClient setup; Prisma repository implementations
+  db/
+    drizzle/      Drizzle schema, client setup, migrations
+    repositories/ Drizzle repository implementations
+    transactionContext.ts  AsyncLocalStorage for transaction propagation
+    DrizzleTransactionManager.ts
   storage/        LocalStorageProvider (dev) / VercelBlobStorageProvider (prod)
 http/
   schema/         Pothos schema builder, types, queries, mutations
@@ -79,9 +83,9 @@ Because there is no cookie the web server can ever see, protected/auth-gated rou
 
 **Storage:** Toggled by `STORAGE_PROVIDER` env var (`local` | `vercel-blob`). `LocalStorageProvider` writes to disk for dev; `VercelBlobStorageProvider` uses Vercel Blob for prod. Document upload flow: `requestUploadUrl` → client uploads directly to storage (a Vercel Blob client token, used via `@vercel/blob/client`'s `put()`) → `confirmDocument`.
 
-**Database:** Prisma with libSQL adapter. Dev uses a local SQLite file (`local.db`). Prod targets Turso (`DATABASE_URL` + `DATABASE_AUTH_TOKEN`). Schema: `User → JobApplication → [Note, Document]` (all cascade-delete).
+**Database:** Drizzle ORM with `@libsql/client` (Turso/libSQL). Dev uses a local SQLite file (`local.db`). Prod targets Turso (`DATABASE_URL` + `DATABASE_AUTH_TOKEN`). Schema defined in `infrastructure/db/drizzle/schema.ts`. Migrations in `drizzle/` directory. Transaction propagation via `AsyncLocalStorage` — repositories use `getDb()` to transparently access the ambient transaction client.
 
-**Testing:** Vitest. Infrastructure tests use `createTestDb()` (creates a real in-memory SQLite DB per test, no mocks). Use-case tests use repository mocks from `__tests__/helpers/mocks.ts`. GraphQL resolver tests exist under `__tests__/interface-adapters/resolvers/`.
+**Testing:** Vitest. Infrastructure tests use `createTestDb()` (creates a real SQLite DB per test using Drizzle migrations, no mocks). Use-case tests use repository mocks from `__tests__/helpers/mocks.ts`. GraphQL resolver tests exist under `__tests__/interface-adapters/resolvers/`.
 
 ### Web (`apps/web`) — TanStack Start + React Query + GraphQL
 
@@ -119,6 +123,6 @@ Key API env vars: `DATABASE_URL` must be an absolute path for local SQLite (e.g.
 ## Key Conventions
 
 - **IDs** are `nanoid()` strings, not auto-increment integers.
-- **Domain entities** are plain TypeScript objects/classes with no Prisma or framework imports. Mappers bridge Prisma ↔ domain.
-- **Adding a new feature** follows the layer order: domain entity → port interface → use case → Prisma repository implementation → Pothos type/resolver → GraphQL mutation/query → register in `container.ts` → add `.graphql` file in web → run codegen → build UI.
+- **Domain entities** are plain TypeScript objects/classes with no Drizzle or framework imports. Mappers bridge Drizzle ↔ domain.
+- **Adding a new feature** follows the layer order: domain entity → port interface → use case → Drizzle repository implementation → Pothos type/resolver → GraphQL mutation/query → register in `container.ts` → add `.graphql` file in web → run codegen → build UI.
 - **Pothos schema:** Each resource has its type file (`http/schema/types/`), query file (`queries/`), and mutation file (`mutations/`). All are imported and composed in `http/schema/index.ts`.

@@ -1,8 +1,10 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import type { Prisma, PrismaClient } from '#src/generated/prisma/client.js';
+import type { BaseSQLiteDatabase } from 'drizzle-orm/sqlite-core';
 
-export const txStorage = new AsyncLocalStorage<Prisma.TransactionClient>();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const txStorage = new AsyncLocalStorage<BaseSQLiteDatabase<any, any>>();
 
-export function getClient(prisma: PrismaClient): PrismaClient {
-  return (txStorage.getStore() ?? prisma) as PrismaClient;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getDb(db: BaseSQLiteDatabase<any, any>): BaseSQLiteDatabase<any, any> {
+  return txStorage.getStore() ?? db;
 }

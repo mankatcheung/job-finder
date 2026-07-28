@@ -12,7 +12,7 @@ import type { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
 import { CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
-  prismaApplicationRepository: IApplicationRepository;
+  innerApplicationRepository: IApplicationRepository;
   cache: MemoryCache;
 }
 
@@ -22,8 +22,8 @@ export class CachedApplicationRepository implements IApplicationRepository {
   private readonly inner: IApplicationRepository;
   private readonly cache: MemoryCache;
 
-  constructor({ prismaApplicationRepository, cache }: Deps) {
-    this.inner = prismaApplicationRepository;
+  constructor({ innerApplicationRepository, cache }: Deps) {
+    this.inner = innerApplicationRepository;
     this.cache = cache;
   }
 
