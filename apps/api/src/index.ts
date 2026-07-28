@@ -33,9 +33,9 @@ const fastify = Fastify({
   },
 });
 
-if (isObservabilityEnabled) {
-  await fastify.register(fastifyOtelInstrumentation.plugin());
-}
+// if (isObservabilityEnabled) {
+//   await fastify.register(fastifyOtelInstrumentation.plugin());
+// }
 
 await fastify.register(corsPlugin);
 await fastify.register(cookie);
