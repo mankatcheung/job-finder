@@ -35,6 +35,10 @@ pnpm db:generate   # re-generate Prisma client after schema changes
 pnpm db:migrate    # run migrations (dev only)
 cd apps/api && pnpm db:studio  # open Prisma Studio
 
+# Provisioning a new (empty) production database — see "Production database" below
+cd apps/api && pnpm db:schema-sql    # regenerate prisma/init.sql from schema.prisma
+cd apps/api && pnpm db:apply-schema --env-file .env.production
+
 # GraphQL codegen (requires API server running at localhost:3001)
 cd apps/web && pnpm codegen
 ```
@@ -71,6 +75,23 @@ http/
 **Storage:** Toggled by `STORAGE_PROVIDER` env var (`local` | `vercel-blob`). `LocalStorageProvider` writes to disk for dev; `VercelBlobStorageProvider` uses Vercel Blob for prod. Document upload flow: `requestUploadUrl` → client uploads directly to storage (a Vercel Blob client token, used via `@vercel/blob/client`'s `put()`) → `confirmDocument`.
 
 **Database:** Prisma with libSQL adapter. Dev uses a local SQLite file (`local.db`). Prod targets Turso (`DATABASE_URL` + `DATABASE_AUTH_TOKEN`). Schema: `User → JobApplication → [Note, Document]` (all cascade-delete).
+
+**Production database (Turso):** The Prisma CLI cannot reach Turso — Prisma 7 removed the CLI-side driver-adapter hook, so `migrate deploy` / `db push` fail with `P1013` against a `libsql://` URL (see the note in `prisma.config.ts`). Schema changes therefore go out in two steps: generate SQL locally, then apply it over the libSQL driver.
+
+To stand up a **new, empty** database:
+
+1. `pnpm db:schema-sql` — regenerates `apps/api/prisma/init.sql` (a from-empty snapshot of `schema.prisma`, committed to the repo). This is also the only reliable way to create the full schema, because migration history can't rebuild a fresh database: no migration ever `CREATE TABLE`s `Document`, only `ALTER`s it.
+2. `pnpm db:apply-schema --env-file .env.production` — applies it via `@libsql/client`. Refuses to run if the target already has tables (`--force` overrides).
+3. Set `DATABASE_URL` / `DATABASE_AUTH_TOKEN` as Vercel project env vars — the deploy workflow ships code only, never runtime secrets.
+
+For a schema change to an **existing** production database, generate the delta instead and apply it the same way:
+
+```bash
+cd apps/api
+pnpm exec prisma migrate diff --from-url "file:$PWD/prisma/local.db" --to-schema prisma/schema.prisma --script
+```
+
+`_prisma_migrations` is unused in production — since the CLI can never connect, there is nothing to baseline.
 
 **Testing:** Vitest. Infrastructure tests use `createTestDb()` (creates a real in-memory SQLite DB per test, no mocks). Use-case tests use repository mocks from `__tests__/helpers/mocks.ts`. GraphQL resolver tests exist under `__tests__/interface-adapters/resolvers/`.
 
