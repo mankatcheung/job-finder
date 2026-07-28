@@ -28,6 +28,7 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:schema-sql": "printf '%s\\n' '-- Generated file — do not edit by hand.' '-- Regenerate with: pnpm --filter @job-finder/api db:schema-sql' '' > prisma/init.sql && DATABASE_URL=file:./unused-by-migrate-diff.db prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script >> prisma/init.sql",
+    "db:schema-diff": "DATABASE_URL=file:./prisma/local.db prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script",
     "db:apply-schema": "tsx src/scripts/apply-schema.ts",
     "db:studio": "prisma studio",
     "clean": "rm -rf dist"

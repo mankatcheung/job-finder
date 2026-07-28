@@ -87,11 +87,12 @@ To stand up a **new, empty** database:
 For a schema change to an **existing** production database, generate the delta instead and apply it the same way:
 
 ```bash
-cd apps/api
-pnpm exec prisma migrate diff --from-url "file:$PWD/prisma/local.db" --to-schema prisma/schema.prisma --script
+cd apps/api && pnpm db:schema-diff   # SQL to bring local.db up to schema.prisma
 ```
 
-`_prisma_migrations` is unused in production — since the CLI can never connect, there is nothing to baseline.
+Prisma 7 removed `--from-url`; the datasource now comes from `prisma.config.ts` via `--from-config-datasource`, which is why `db:schema-diff` pins `DATABASE_URL` to the local mirror. Review the SQL, save it under `prisma/migrations/`, then apply it to production with `db:apply-schema --file <that file> --force`.
+
+Because the CLI can never connect to Turso, nothing verifies that production matches `schema.prisma` automatically — keep `prisma/local.db` as a faithful mirror of production and diff against that. `_prisma_migrations` is unused in production; there is nothing to baseline.
 
 **Testing:** Vitest. Infrastructure tests use `createTestDb()` (creates a real in-memory SQLite DB per test, no mocks). Use-case tests use repository mocks from `__tests__/helpers/mocks.ts`. GraphQL resolver tests exist under `__tests__/interface-adapters/resolvers/`.
 
