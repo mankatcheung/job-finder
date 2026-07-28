@@ -9,15 +9,17 @@ vi.mock('@tanstack/react-start/server', () => ({
 }));
 
 type Middleware = (response: unknown) => Promise<void>;
+type RequestMiddleware = (request: { headers?: HeadersInit }) => { headers?: HeadersInit };
 
 // GraphQLClient must be a real constructor (not an arrow fn) to support `new`
 vi.mock('graphql-request', () => ({
   GraphQLClient: vi.fn(function (
-    this: { responseMiddleware: Middleware },
+    this: { responseMiddleware: Middleware; requestMiddleware: RequestMiddleware },
     _url: string,
-    opts: { responseMiddleware?: Middleware },
+    opts: { responseMiddleware?: Middleware; requestMiddleware?: RequestMiddleware },
   ) {
     this.responseMiddleware = opts?.responseMiddleware ?? (() => Promise.resolve());
+    this.requestMiddleware = opts?.requestMiddleware ?? ((r) => r);
   }),
 }));
 
@@ -46,7 +48,7 @@ describe('refresh token deduplication', () => {
 
   it('only makes one refresh request when called concurrently', async () => {
     fetchSpy.mockResolvedValue(
-      new Response(JSON.stringify({ data: { refreshToken: true } }), {
+      new Response(JSON.stringify({ data: { refreshToken: 'new-access-token' } }), {
         headers: { 'Content-Type': 'application/json' },
       }),
     );
@@ -67,7 +69,7 @@ describe('refresh token deduplication', () => {
 
   it('redirects to /login when refresh fails', async () => {
     fetchSpy.mockResolvedValue(
-      new Response(JSON.stringify({ data: { refreshToken: false } }), {
+      new Response(JSON.stringify({ data: { refreshToken: null } }), {
         headers: { 'Content-Type': 'application/json' },
       }),
     );
@@ -99,5 +101,121 @@ describe('refresh token deduplication', () => {
     await middleware(new Error('network error'));
 
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('access token', () => {
+  let fetchSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    fetchSpy = vi.spyOn(globalThis, 'fetch');
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+    mockLocationHref.mockClear();
+  });
+
+  it('attaches no Authorization header before any token is set', async () => {
+    const { gqlClient } = await import('#/graphql/client');
+    const requestMiddleware = (gqlClient as unknown as { requestMiddleware: RequestMiddleware })
+      .requestMiddleware;
+
+    const result = requestMiddleware({ headers: { 'Content-Type': 'application/json' } });
+
+    expect(result.headers).not.toHaveProperty('Authorization');
+  });
+
+  it('attaches Authorization: Bearer <token> once setAccessToken is called', async () => {
+    const { gqlClient, setAccessToken } = await import('#/graphql/client');
+    setAccessToken('abc123');
+    const requestMiddleware = (gqlClient as unknown as { requestMiddleware: RequestMiddleware })
+      .requestMiddleware;
+
+    const result = requestMiddleware({ headers: {} });
+
+    expect(result.headers).toMatchObject({ Authorization: 'Bearer abc123' });
+  });
+
+  it('stops attaching the header once setAccessToken(null) is called', async () => {
+    const { gqlClient, setAccessToken } = await import('#/graphql/client');
+    setAccessToken('abc123');
+    setAccessToken(null);
+    const requestMiddleware = (gqlClient as unknown as { requestMiddleware: RequestMiddleware })
+      .requestMiddleware;
+
+    const result = requestMiddleware({ headers: {} });
+
+    expect(result.headers).not.toHaveProperty('Authorization');
+  });
+});
+
+describe('hydrateSession', () => {
+  let fetchSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    fetchSpy = vi.spyOn(globalThis, 'fetch');
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+    mockLocationHref.mockClear();
+  });
+
+  it('makes no network call when a token is already in memory', async () => {
+    const { setAccessToken, hydrateSession } = await import('#/graphql/client');
+    setAccessToken('already-have-one');
+
+    const authed = await hydrateSession();
+
+    expect(authed).toBe(true);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('attempts a silent refresh and returns true when it succeeds', async () => {
+    fetchSpy.mockResolvedValue(
+      new Response(JSON.stringify({ data: { refreshToken: 'fresh-token' } }), {
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    const { hydrateSession } = await import('#/graphql/client');
+
+    const authed = await hydrateSession();
+
+    expect(authed).toBe(true);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns false when the silent refresh fails', async () => {
+    fetchSpy.mockResolvedValue(
+      new Response(JSON.stringify({ data: { refreshToken: null } }), {
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    const { hydrateSession } = await import('#/graphql/client');
+
+    const authed = await hydrateSession();
+
+    expect(authed).toBe(false);
+  });
+
+  it('dedupes with a concurrent 401-triggered refresh via the same underlying call', async () => {
+    fetchSpy.mockResolvedValue(
+      new Response(JSON.stringify({ data: { refreshToken: 'shared-token' } }), {
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    const { gqlClient, hydrateSession } = await import('#/graphql/client');
+    const middleware = (gqlClient as unknown as { responseMiddleware: Middleware })
+      .responseMiddleware;
+
+    await Promise.all([
+      hydrateSession(),
+      middleware({ errors: [{ extensions: { code: 'UNAUTHORIZED' } }] }),
+    ]);
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });

@@ -16,7 +16,7 @@ function deviceInfoFrom(request: IHttpRequest): DeviceInfo {
 }
 
 builder.mutationField('register', (t) =>
-  t.boolean({
+  t.string({
     args: {
       email: t.arg.string({ required: true }),
       password: t.arg.string({ required: true }),
@@ -29,7 +29,7 @@ builder.mutationField('register', (t) =>
         deviceInfoFrom(ctx.request),
       );
       setAuthCookies(ctx.reply, tokens.accessToken, tokens.refreshToken);
-      return true;
+      return tokens.accessToken;
     },
   }),
 );
@@ -51,13 +51,17 @@ builder.mutationField('login', (t) =>
       if (result.tokens) {
         setAuthCookies(ctx.reply, result.tokens.accessToken, result.tokens.refreshToken);
       }
-      return { success: !result.totpRequired, totpRequired: result.totpRequired };
+      return {
+        success: !result.totpRequired,
+        totpRequired: result.totpRequired,
+        accessToken: result.tokens?.accessToken ?? null,
+      };
     },
   }),
 );
 
 builder.mutationField('loginWithTotp', (t) =>
-  t.boolean({
+  t.string({
     args: {
       email: t.arg.string({ required: true }),
       password: t.arg.string({ required: true }),
@@ -72,13 +76,13 @@ builder.mutationField('loginWithTotp', (t) =>
         deviceInfoFrom(ctx.request),
       );
       setAuthCookies(ctx.reply, tokens.accessToken, tokens.refreshToken);
-      return true;
+      return tokens.accessToken;
     },
   }),
 );
 
 builder.mutationField('refreshToken', (t) =>
-  t.boolean({
+  t.string({
     resolve: async (_root, _args, ctx) => {
       const refreshTokenCookie = ctx.request.cookies[COOKIES.REFRESH_TOKEN];
       if (!refreshTokenCookie)
@@ -88,7 +92,7 @@ builder.mutationField('refreshToken', (t) =>
       const { authResolver } = ctx.diScope.cradle;
       const tokens = await authResolver.refreshToken(refreshTokenCookie);
       setAuthCookies(ctx.reply, tokens.accessToken, tokens.refreshToken);
-      return true;
+      return tokens.accessToken;
     },
   }),
 );

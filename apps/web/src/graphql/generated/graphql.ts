@@ -41,6 +41,25 @@ export type ApiToken = {
   id?: Maybe<Scalars['ID']['output']>;
   lastUsedAt?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
+  scope?: Maybe<Scalars['String']['output']>;
+};
+
+export type ApiTokenScope =
+  | 'full'
+  | 'read';
+
+export type ApplicationConnection = {
+  __typename?: 'ApplicationConnection';
+  hasNextPage?: Maybe<Scalars['Boolean']['output']>;
+  items?: Maybe<Array<JobApplication>>;
+  nextCursor?: Maybe<Scalars['String']['output']>;
+};
+
+export type ApplicationHealthScore = {
+  __typename?: 'ApplicationHealthScore';
+  criteria?: Maybe<Array<HealthScoreCriterion>>;
+  label?: Maybe<Scalars['String']['output']>;
+  score?: Maybe<Scalars['Int']['output']>;
 };
 
 export type ApplicationStatus =
@@ -62,6 +81,11 @@ export type ConfirmDocumentInput = {
   version?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type ConfirmTotpSetupResult = {
+  __typename?: 'ConfirmTotpSetupResult';
+  backupCodes?: Maybe<Array<Scalars['String']['output']>>;
+};
+
 export type Contact = {
   __typename?: 'Contact';
   applicationId?: Maybe<Scalars['ID']['output']>;
@@ -81,6 +105,7 @@ export type CreateApiTokenPayload = {
   createdAt?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   name?: Maybe<Scalars['String']['output']>;
+  scope?: Maybe<Scalars['String']['output']>;
   token?: Maybe<Scalars['String']['output']>;
 };
 
@@ -119,6 +144,23 @@ export type Document = {
   sizeBytes?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   version?: Maybe<Scalars['String']['output']>;
+};
+
+export type HealthScoreCriterion = {
+  __typename?: 'HealthScoreCriterion';
+  earned?: Maybe<Scalars['Int']['output']>;
+  key?: Maybe<Scalars['String']['output']>;
+  label?: Maybe<Scalars['String']['output']>;
+  met?: Maybe<Scalars['Boolean']['output']>;
+  points?: Maybe<Scalars['Int']['output']>;
+};
+
+export type ImportSummary = {
+  __typename?: 'ImportSummary';
+  applicationsImported?: Maybe<Scalars['Int']['output']>;
+  applicationsSkipped?: Maybe<Scalars['Int']['output']>;
+  documentsSkipped?: Maybe<Scalars['Int']['output']>;
+  notesImported?: Maybe<Scalars['Int']['output']>;
 };
 
 export type InterviewRound = {
@@ -168,9 +210,38 @@ export type JobApplication = {
   userId?: Maybe<Scalars['ID']['output']>;
 };
 
+export type LinkedOAuthAccount = {
+  __typename?: 'LinkedOAuthAccount';
+  createdAt?: Maybe<Scalars['String']['output']>;
+  email?: Maybe<Scalars['String']['output']>;
+  provider?: Maybe<OAuthProvider>;
+};
+
+export type LoginEvent = {
+  __typename?: 'LoginEvent';
+  createdAt?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['String']['output']>;
+  ipAddress?: Maybe<Scalars['String']['output']>;
+  userAgent?: Maybe<Scalars['String']['output']>;
+};
+
+export type LoginResult = {
+  __typename?: 'LoginResult';
+  accessToken?: Maybe<Scalars['String']['output']>;
+  success?: Maybe<Scalars['Boolean']['output']>;
+  totpRequired?: Maybe<Scalars['Boolean']['output']>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
+  beginTotpSetup?: Maybe<TotpSetup>;
+  bulkAddTagToApplications?: Maybe<Array<JobApplication>>;
+  bulkDeleteApplications?: Maybe<Scalars['Boolean']['output']>;
+  bulkUpdateApplications?: Maybe<Array<JobApplication>>;
+  confirmAvatar?: Maybe<Scalars['String']['output']>;
   confirmDocument?: Maybe<Document>;
+  confirmEmailChange?: Maybe<Scalars['Boolean']['output']>;
+  confirmTotpSetup?: Maybe<ConfirmTotpSetupResult>;
   createApiToken?: Maybe<CreateApiTokenPayload>;
   createApplication?: Maybe<JobApplication>;
   createContact?: Maybe<Contact>;
@@ -183,17 +254,62 @@ export type Mutation = {
   deleteDocument?: Maybe<Scalars['Boolean']['output']>;
   deleteInterviewRound?: Maybe<Scalars['Boolean']['output']>;
   deleteNote?: Maybe<Scalars['Boolean']['output']>;
-  login?: Maybe<Scalars['Boolean']['output']>;
+  disableTotp?: Maybe<Scalars['Boolean']['output']>;
+  generateCoverLetter?: Maybe<Scalars['String']['output']>;
+  importUserData?: Maybe<ImportSummary>;
+  login?: Maybe<LoginResult>;
+  loginWithTotp?: Maybe<Scalars['String']['output']>;
   logout?: Maybe<Scalars['Boolean']['output']>;
-  refreshToken?: Maybe<Scalars['Boolean']['output']>;
-  register?: Maybe<Scalars['Boolean']['output']>;
+  parseJobDescription?: Maybe<ParsedJobDescription>;
+  refreshToken?: Maybe<Scalars['String']['output']>;
+  register?: Maybe<Scalars['String']['output']>;
+  removeAvatar?: Maybe<Scalars['Boolean']['output']>;
+  requestAvatarUploadUrl?: Maybe<UploadUrlPayload>;
+  requestEmailChange?: Maybe<Scalars['Boolean']['output']>;
+  requestPasswordReset?: Maybe<Scalars['Boolean']['output']>;
   requestUploadUrl?: Maybe<UploadUrlPayload>;
+  resetPassword?: Maybe<Scalars['Boolean']['output']>;
+  revokeOtherSessions?: Maybe<Scalars['Boolean']['output']>;
+  revokeSession?: Maybe<Scalars['Boolean']['output']>;
+  unlinkOAuthAccount?: Maybe<Scalars['Boolean']['output']>;
   updateApplication?: Maybe<JobApplication>;
   updateContact?: Maybe<Contact>;
-  updateEmail?: Maybe<Scalars['Boolean']['output']>;
   updateInterviewRound?: Maybe<InterviewRound>;
   updateNote?: Maybe<Note>;
+  updateNotificationPreferences?: Maybe<Scalars['Boolean']['output']>;
   updatePassword?: Maybe<Scalars['Boolean']['output']>;
+  updateProfile?: Maybe<Scalars['Boolean']['output']>;
+  verifyEmail?: Maybe<Scalars['Boolean']['output']>;
+};
+
+
+export type MutationBeginTotpSetupArgs = {
+  password: Scalars['String']['input'];
+};
+
+
+export type MutationBulkAddTagToApplicationsArgs = {
+  ids: Array<Scalars['ID']['input']>;
+  tag: Scalars['String']['input'];
+};
+
+
+export type MutationBulkDeleteApplicationsArgs = {
+  ids: Array<Scalars['ID']['input']>;
+};
+
+
+export type MutationBulkUpdateApplicationsArgs = {
+  ids: Array<Scalars['ID']['input']>;
+  starred?: InputMaybe<Scalars['Boolean']['input']>;
+  status?: InputMaybe<ApplicationStatus>;
+};
+
+
+export type MutationConfirmAvatarArgs = {
+  mimeType: Scalars['String']['input'];
+  sizeBytes: Scalars['Int']['input'];
+  storageKey: Scalars['String']['input'];
 };
 
 
@@ -202,8 +318,19 @@ export type MutationConfirmDocumentArgs = {
 };
 
 
+export type MutationConfirmEmailChangeArgs = {
+  token: Scalars['String']['input'];
+};
+
+
+export type MutationConfirmTotpSetupArgs = {
+  code: Scalars['String']['input'];
+};
+
+
 export type MutationCreateApiTokenArgs = {
   name: Scalars['String']['input'];
+  scope?: InputMaybe<ApiTokenScope>;
 };
 
 
@@ -269,9 +396,38 @@ export type MutationDeleteNoteArgs = {
 };
 
 
+export type MutationDisableTotpArgs = {
+  password: Scalars['String']['input'];
+};
+
+
+export type MutationGenerateCoverLetterArgs = {
+  applicationId: Scalars['ID']['input'];
+  resumeText?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationImportUserDataArgs = {
+  data: Scalars['String']['input'];
+};
+
+
 export type MutationLoginArgs = {
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
+};
+
+
+export type MutationLoginWithTotpArgs = {
+  code: Scalars['String']['input'];
+  email: Scalars['String']['input'];
+  password: Scalars['String']['input'];
+};
+
+
+export type MutationParseJobDescriptionArgs = {
+  text?: InputMaybe<Scalars['String']['input']>;
+  url?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -281,8 +437,41 @@ export type MutationRegisterArgs = {
 };
 
 
+export type MutationRequestAvatarUploadUrlArgs = {
+  filename: Scalars['String']['input'];
+  mimeType: Scalars['String']['input'];
+};
+
+
+export type MutationRequestEmailChangeArgs = {
+  currentPassword: Scalars['String']['input'];
+  newEmail: Scalars['String']['input'];
+};
+
+
+export type MutationRequestPasswordResetArgs = {
+  email: Scalars['String']['input'];
+};
+
+
 export type MutationRequestUploadUrlArgs = {
   input: RequestUploadUrlInput;
+};
+
+
+export type MutationResetPasswordArgs = {
+  newPassword: Scalars['String']['input'];
+  token: Scalars['String']['input'];
+};
+
+
+export type MutationRevokeSessionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationUnlinkOAuthAccountArgs = {
+  provider: OAuthProvider;
 };
 
 
@@ -303,12 +492,6 @@ export type MutationUpdateContactArgs = {
 };
 
 
-export type MutationUpdateEmailArgs = {
-  currentPassword: Scalars['String']['input'];
-  newEmail: Scalars['String']['input'];
-};
-
-
 export type MutationUpdateInterviewRoundArgs = {
   id: Scalars['ID']['input'];
   input: UpdateInterviewRoundInput;
@@ -321,9 +504,27 @@ export type MutationUpdateNoteArgs = {
 };
 
 
+export type MutationUpdateNotificationPreferencesArgs = {
+  followUpRemindersEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  weeklyDigestEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
 export type MutationUpdatePasswordArgs = {
   currentPassword: Scalars['String']['input'];
   newPassword: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateProfileArgs = {
+  name?: InputMaybe<Scalars['String']['input']>;
+  targetRole?: InputMaybe<Scalars['String']['input']>;
+  timezone?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationVerifyEmailArgs = {
+  token: Scalars['String']['input'];
 };
 
 export type Note = {
@@ -335,17 +536,44 @@ export type Note = {
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
+export type NotificationPreferences = {
+  __typename?: 'NotificationPreferences';
+  followUpRemindersEnabled?: Maybe<Scalars['Boolean']['output']>;
+  weeklyDigestEnabled?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type OAuthProvider =
+  | 'github'
+  | 'google';
+
+export type ParsedJobDescription = {
+  __typename?: 'ParsedJobDescription';
+  company?: Maybe<Scalars['String']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  location?: Maybe<Scalars['String']['output']>;
+  role?: Maybe<Scalars['String']['output']>;
+  salary?: Maybe<Scalars['String']['output']>;
+};
+
 export type Query = {
   __typename?: 'Query';
   activityLogs?: Maybe<Array<ActivityLog>>;
   apiTokens?: Maybe<Array<ApiToken>>;
   application?: Maybe<JobApplication>;
+  applicationHealthScore?: Maybe<ApplicationHealthScore>;
   applications?: Maybe<Array<JobApplication>>;
+  applicationsPage?: Maybe<ApplicationConnection>;
   contacts?: Maybe<Array<Contact>>;
   documents?: Maybe<Array<Document>>;
   exportUserData?: Maybe<Scalars['String']['output']>;
   interviewRounds?: Maybe<Array<InterviewRound>>;
+  linkedOAuthAccounts?: Maybe<Array<LinkedOAuthAccount>>;
+  loginHistory?: Maybe<Array<LoginEvent>>;
+  me?: Maybe<User>;
   notes?: Maybe<Array<Note>>;
+  notificationPreferences?: Maybe<NotificationPreferences>;
+  sessions?: Maybe<Array<Session>>;
+  totpEnabled?: Maybe<Scalars['Boolean']['output']>;
 };
 
 
@@ -359,7 +587,21 @@ export type QueryApplicationArgs = {
 };
 
 
+export type QueryApplicationHealthScoreArgs = {
+  applicationId: Scalars['ID']['input'];
+};
+
+
 export type QueryApplicationsArgs = {
+  status?: InputMaybe<ApplicationStatus>;
+};
+
+
+export type QueryApplicationsPageArgs = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  starred?: InputMaybe<Scalars['Boolean']['input']>;
   status?: InputMaybe<ApplicationStatus>;
 };
 
@@ -387,6 +629,23 @@ export type RequestUploadUrlInput = {
   applicationId: Scalars['ID']['input'];
   filename: Scalars['String']['input'];
   mimeType: Scalars['String']['input'];
+};
+
+export type Session = {
+  __typename?: 'Session';
+  createdAt?: Maybe<Scalars['String']['output']>;
+  current?: Maybe<Scalars['Boolean']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  ipAddress?: Maybe<Scalars['String']['output']>;
+  lastUsedAt?: Maybe<Scalars['String']['output']>;
+  userAgent?: Maybe<Scalars['String']['output']>;
+};
+
+export type TotpSetup = {
+  __typename?: 'TotpSetup';
+  otpauthUrl?: Maybe<Scalars['String']['output']>;
+  qrCodeDataUrl?: Maybe<Scalars['String']['output']>;
+  secret?: Maybe<Scalars['String']['output']>;
 };
 
 export type UpdateApplicationInput = {
@@ -420,8 +679,12 @@ export type UploadUrlPayload = {
 
 export type User = {
   __typename?: 'User';
+  avatarUrl?: Maybe<Scalars['String']['output']>;
   email?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  targetRole?: Maybe<Scalars['String']['output']>;
+  timezone?: Maybe<Scalars['String']['output']>;
 };
 
 export type CreateApplicationMutationVariables = Exact<{
@@ -452,7 +715,7 @@ export type RegisterMutationVariables = Exact<{
 }>;
 
 
-export type RegisterMutation = { __typename?: 'Mutation', register?: boolean | null };
+export type RegisterMutation = { __typename?: 'Mutation', register?: string | null };
 
 export type LoginMutationVariables = Exact<{
   email: Scalars['String']['input'];
@@ -460,12 +723,21 @@ export type LoginMutationVariables = Exact<{
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', login?: boolean | null };
+export type LoginMutation = { __typename?: 'Mutation', login?: { __typename?: 'LoginResult', success?: boolean | null, totpRequired?: boolean | null, accessToken?: string | null } | null };
+
+export type LoginWithTotpMutationVariables = Exact<{
+  email: Scalars['String']['input'];
+  password: Scalars['String']['input'];
+  code: Scalars['String']['input'];
+}>;
+
+
+export type LoginWithTotpMutation = { __typename?: 'Mutation', loginWithTotp?: string | null };
 
 export type RefreshTokenMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken?: boolean | null };
+export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken?: string | null };
 
 export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -548,6 +820,14 @@ export type DeleteInterviewRoundMutationVariables = Exact<{
 
 export type DeleteInterviewRoundMutation = { __typename?: 'Mutation', deleteInterviewRound?: boolean | null };
 
+export type ParseJobDescriptionMutationVariables = Exact<{
+  text?: InputMaybe<Scalars['String']['input']>;
+  url?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ParseJobDescriptionMutation = { __typename?: 'Mutation', parseJobDescription?: { __typename?: 'ParsedJobDescription', company?: string | null, role?: string | null, location?: string | null, salary?: string | null, description?: string | null } | null };
+
 export type CreateNoteMutationVariables = Exact<{
   applicationId: Scalars['ID']['input'];
   content: Scalars['String']['input'];
@@ -625,7 +905,8 @@ export const CreateApplicationDocument = {"kind":"Document","definitions":[{"kin
 export const UpdateApplicationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateApplication"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateApplicationInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateApplication"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"company"}},{"kind":"Field","name":{"kind":"Name","value":"role"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"jobUrl"}},{"kind":"Field","name":{"kind":"Name","value":"location"}},{"kind":"Field","name":{"kind":"Name","value":"salaryRange"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"appliedAt"}},{"kind":"Field","name":{"kind":"Name","value":"starred"}},{"kind":"Field","name":{"kind":"Name","value":"source"}},{"kind":"Field","name":{"kind":"Name","value":"followUpAt"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<UpdateApplicationMutation, UpdateApplicationMutationVariables>;
 export const DeleteApplicationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteApplication"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteApplication"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}]}}]} as unknown as DocumentNode<DeleteApplicationMutation, DeleteApplicationMutationVariables>;
 export const RegisterDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"Register"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"register"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}]}]}}]} as unknown as DocumentNode<RegisterMutation, RegisterMutationVariables>;
-export const LoginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"Login"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"login"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}]}]}}]} as unknown as DocumentNode<LoginMutation, LoginMutationVariables>;
+export const LoginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"Login"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"login"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"totpRequired"}},{"kind":"Field","name":{"kind":"Name","value":"accessToken"}}]}}]}}]} as unknown as DocumentNode<LoginMutation, LoginMutationVariables>;
+export const LoginWithTotpDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"LoginWithTotp"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"code"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"loginWithTotp"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}},{"kind":"Argument","name":{"kind":"Name","value":"code"},"value":{"kind":"Variable","name":{"kind":"Name","value":"code"}}}]}]}}]} as unknown as DocumentNode<LoginWithTotpMutation, LoginWithTotpMutationVariables>;
 export const RefreshTokenDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RefreshToken"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"refreshToken"}}]}}]} as unknown as DocumentNode<RefreshTokenMutation, RefreshTokenMutationVariables>;
 export const LogoutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"Logout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logout"}}]}}]} as unknown as DocumentNode<LogoutMutation, LogoutMutationVariables>;
 export const CreateContactDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateContact"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"applicationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"role"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"phone"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"linkedinUrl"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"notes"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createContact"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"applicationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"applicationId"}}},{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"role"},"value":{"kind":"Variable","name":{"kind":"Name","value":"role"}}},{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"Argument","name":{"kind":"Name","value":"phone"},"value":{"kind":"Variable","name":{"kind":"Name","value":"phone"}}},{"kind":"Argument","name":{"kind":"Name","value":"linkedinUrl"},"value":{"kind":"Variable","name":{"kind":"Name","value":"linkedinUrl"}}},{"kind":"Argument","name":{"kind":"Name","value":"notes"},"value":{"kind":"Variable","name":{"kind":"Name","value":"notes"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"applicationId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"role"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"phone"}},{"kind":"Field","name":{"kind":"Name","value":"linkedinUrl"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<CreateContactMutation, CreateContactMutationVariables>;
@@ -637,6 +918,7 @@ export const DeleteDocumentDocument = {"kind":"Document","definitions":[{"kind":
 export const CreateInterviewRoundDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateInterviewRound"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateInterviewRoundInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createInterviewRound"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"applicationId"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"scheduledAt"}},{"kind":"Field","name":{"kind":"Name","value":"completedAt"}},{"kind":"Field","name":{"kind":"Name","value":"interviewerName"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"outcome"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<CreateInterviewRoundMutation, CreateInterviewRoundMutationVariables>;
 export const UpdateInterviewRoundDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateInterviewRound"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateInterviewRoundInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateInterviewRound"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"applicationId"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"scheduledAt"}},{"kind":"Field","name":{"kind":"Name","value":"completedAt"}},{"kind":"Field","name":{"kind":"Name","value":"interviewerName"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"outcome"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<UpdateInterviewRoundMutation, UpdateInterviewRoundMutationVariables>;
 export const DeleteInterviewRoundDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteInterviewRound"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteInterviewRound"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}]}}]} as unknown as DocumentNode<DeleteInterviewRoundMutation, DeleteInterviewRoundMutationVariables>;
+export const ParseJobDescriptionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ParseJobDescription"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"text"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"url"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"parseJobDescription"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"text"},"value":{"kind":"Variable","name":{"kind":"Name","value":"text"}}},{"kind":"Argument","name":{"kind":"Name","value":"url"},"value":{"kind":"Variable","name":{"kind":"Name","value":"url"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"company"}},{"kind":"Field","name":{"kind":"Name","value":"role"}},{"kind":"Field","name":{"kind":"Name","value":"location"}},{"kind":"Field","name":{"kind":"Name","value":"salary"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]} as unknown as DocumentNode<ParseJobDescriptionMutation, ParseJobDescriptionMutationVariables>;
 export const CreateNoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateNote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"applicationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"content"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createNote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"applicationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"applicationId"}}},{"kind":"Argument","name":{"kind":"Name","value":"content"},"value":{"kind":"Variable","name":{"kind":"Name","value":"content"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"applicationId"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<CreateNoteMutation, CreateNoteMutationVariables>;
 export const UpdateNoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateNote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"content"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateNote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"content"},"value":{"kind":"Variable","name":{"kind":"Name","value":"content"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"applicationId"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<UpdateNoteMutation, UpdateNoteMutationVariables>;
 export const DeleteNoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteNote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteNote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}]}}]} as unknown as DocumentNode<DeleteNoteMutation, DeleteNoteMutationVariables>;

@@ -23,10 +23,16 @@ UploadUrlPayloadRef.implement({
   }),
 });
 
+const isProduction = process.env[ENV.NODE_ENV] === NODE_ENV.PRODUCTION;
+
+// The web app and API are deployed on separate domains, so the refresh
+// cookie must be sent cross-site on the fetch to POST /graphql that retries
+// it — that requires SameSite=None, which browsers only honor alongside
+// Secure. Dev stays Lax since there's no HTTPS to satisfy that requirement.
 const COOKIE_BASE = {
-  sameSite: COOKIE_SAME_SITE,
+  sameSite: isProduction ? 'none' : COOKIE_SAME_SITE,
   path: COOKIE_PATH,
-  secure: process.env[ENV.NODE_ENV] === NODE_ENV.PRODUCTION,
+  secure: isProduction,
 } as const;
 
 export function setAuthCookies(

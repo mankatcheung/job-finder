@@ -2,8 +2,7 @@ import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { gqlClient } from '#/graphql/client';
-import { isAuthenticated, getIsAuthenticated } from '#/lib/auth';
+import { gqlClient, hydrateSession, setAccessToken } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 
@@ -26,8 +25,10 @@ const REGISTER_MUTATION = `
 `;
 
 export const Route = createFileRoute('/register')({
+  // See routes/index.tsx for why this must be ssr: false.
+  ssr: false,
   beforeLoad: async () => {
-    const authed = typeof window !== 'undefined' ? isAuthenticated() : await getIsAuthenticated();
+    const authed = await hydrateSession();
     if (authed) throw redirect({ to: '/dashboard' });
   },
   component: RegisterPage,
@@ -46,7 +47,11 @@ export function RegisterPage() {
 
   const onSubmit = async ({ email, password }: FormValues) => {
     try {
-      await gqlClient.request(REGISTER_MUTATION, { email, password });
+      const res = await gqlClient.request<{ register: string }>(REGISTER_MUTATION, {
+        email,
+        password,
+      });
+      setAccessToken(res.register);
       await queryClient.resetQueries();
       await navigate({ to: '/dashboard' });
     } catch (err: unknown) {

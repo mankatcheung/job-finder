@@ -3,8 +3,7 @@ import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { gqlClient } from '#/graphql/client';
-import { isAuthenticated, getIsAuthenticated } from '#/lib/auth';
+import { gqlClient, hydrateSession, setAccessToken } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 
@@ -27,6 +26,7 @@ const LOGIN_MUTATION = `
     login(email: $email, password: $password) {
       success
       totpRequired
+      accessToken
     }
   }
 `;
@@ -41,8 +41,10 @@ const searchSchema = z.object({ oauthError: z.string().optional() });
 
 export const Route = createFileRoute('/login')({
   validateSearch: searchSchema,
+  // See routes/index.tsx for why this must be ssr: false.
+  ssr: false,
   beforeLoad: async () => {
-    const authed = typeof window !== 'undefined' ? isAuthenticated() : await getIsAuthenticated();
+    const authed = await hydrateSession();
     if (authed) throw redirect({ to: '/dashboard' });
   },
   component: LoginPage,
@@ -65,12 +67,13 @@ export function LoginPage() {
   const onSubmit = async (data: FormValues) => {
     try {
       const res = await gqlClient.request<{
-        login: { success: boolean; totpRequired: boolean };
+        login: { success: boolean; totpRequired: boolean; accessToken: string | null };
       }>(LOGIN_MUTATION, data);
       if (res.login.totpRequired) {
         setPendingCredentials(data);
         return;
       }
+      setAccessToken(res.login.accessToken);
       await queryClient.resetQueries();
       await navigate({ to: '/dashboard' });
     } catch (err: unknown) {
@@ -170,7 +173,11 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
 
   const onSubmit = async (data: TotpFormValues) => {
     try {
-      await gqlClient.request(LOGIN_WITH_TOTP_MUTATION, { ...credentials, code: data.code });
+      const res = await gqlClient.request<{ loginWithTotp: string }>(LOGIN_WITH_TOTP_MUTATION, {
+        ...credentials,
+        code: data.code,
+      });
+      setAccessToken(res.loginWithTotp);
       await queryClient.resetQueries();
       await navigate({ to: '/dashboard' });
     } catch (err: unknown) {

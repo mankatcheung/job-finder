@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-const { mockNavigate, mockGqlRequest } = vi.hoisted(() => ({
+const { mockNavigate, mockGqlRequest, mockSetAccessToken } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockGqlRequest: vi.fn(),
+  mockSetAccessToken: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-router', () => ({
@@ -23,6 +24,8 @@ vi.mock('@tanstack/react-start/server', () => ({
 
 vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
+  setAccessToken: mockSetAccessToken,
+  hydrateSession: vi.fn().mockResolvedValue(false),
 }));
 
 vi.mock('#/lib/queryClient', () => ({
@@ -93,7 +96,7 @@ describe('RegisterPage', () => {
   });
 
   it('submits only email and password (not confirmPassword) when valid', async () => {
-    mockGqlRequest.mockResolvedValue({});
+    mockGqlRequest.mockResolvedValue({ register: 'access-token' });
     render(<RegisterPage />);
     fillForm('test@example.com', 'password123', 'password123');
     fireEvent.click(screen.getByRole('button', { name: /create account/i }));
@@ -111,13 +114,24 @@ describe('RegisterPage', () => {
   });
 
   it('navigates to /dashboard after successful registration', async () => {
-    mockGqlRequest.mockResolvedValue({});
+    mockGqlRequest.mockResolvedValue({ register: 'access-token' });
     render(<RegisterPage />);
     fillForm('test@example.com', 'password123', 'password123');
     fireEvent.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith({ to: '/dashboard' });
+    });
+  });
+
+  it('stores the returned access token before navigating', async () => {
+    mockGqlRequest.mockResolvedValue({ register: 'access-token' });
+    render(<RegisterPage />);
+    fillForm('test@example.com', 'password123', 'password123');
+    fireEvent.click(screen.getByRole('button', { name: /create account/i }));
+
+    await waitFor(() => {
+      expect(mockSetAccessToken).toHaveBeenCalledWith('access-token');
     });
   });
 

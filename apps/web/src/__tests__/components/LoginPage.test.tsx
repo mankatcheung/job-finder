@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-const { mockNavigate, mockGqlRequest, mockUseSearch } = vi.hoisted(() => ({
+const { mockNavigate, mockGqlRequest, mockSetAccessToken, mockUseSearch } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockGqlRequest: vi.fn(),
+  mockSetAccessToken: vi.fn(),
   mockUseSearch: vi.fn().mockReturnValue({}),
 }));
 
@@ -24,6 +25,8 @@ vi.mock('@tanstack/react-start/server', () => ({
 
 vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
+  setAccessToken: mockSetAccessToken,
+  hydrateSession: vi.fn().mockResolvedValue(false),
 }));
 
 vi.mock('#/lib/queryClient', () => ({
@@ -32,8 +35,12 @@ vi.mock('#/lib/queryClient', () => ({
 
 import { LoginPage } from '#/routes/login';
 
-const noTotpResponse = { login: { success: true, totpRequired: false } };
-const totpRequiredResponse = { login: { success: false, totpRequired: true } };
+const noTotpResponse = {
+  login: { success: true, totpRequired: false, accessToken: 'access-token' },
+};
+const totpRequiredResponse = {
+  login: { success: false, totpRequired: true, accessToken: null },
+};
 
 async function fillCredentials(email: string, password: string) {
   fireEvent.change(screen.getByPlaceholderText('you@example.com'), { target: { value: email } });
@@ -110,6 +117,16 @@ describe('LoginPage', () => {
     });
   });
 
+  it('stores the returned access token before navigating', async () => {
+    mockGqlRequest.mockResolvedValue(noTotpResponse);
+    render(<LoginPage />);
+    await fillCredentials('test@example.com', 'password123');
+
+    await waitFor(() => {
+      expect(mockSetAccessToken).toHaveBeenCalledWith('access-token');
+    });
+  });
+
   it('displays API error message on login failure', async () => {
     mockGqlRequest.mockRejectedValue({
       response: { errors: [{ message: 'Invalid credentials' }] },
@@ -151,7 +168,7 @@ describe('LoginPage', () => {
       await fillCredentials('test@example.com', 'password123');
       await waitFor(() => screen.getByPlaceholderText('123456'));
 
-      mockGqlRequest.mockResolvedValueOnce({ loginWithTotp: true });
+      mockGqlRequest.mockResolvedValueOnce({ loginWithTotp: 'totp-access-token' });
       fireEvent.change(screen.getByPlaceholderText('123456'), { target: { value: '654321' } });
       fireEvent.click(screen.getByRole('button', { name: /verify/i }));
 
@@ -165,6 +182,7 @@ describe('LoginPage', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith({ to: '/dashboard' });
       });
+      expect(mockSetAccessToken).toHaveBeenCalledWith('totp-access-token');
     });
 
     it('shows an error message when the code is invalid', async () => {
