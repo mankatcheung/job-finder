@@ -1,6 +1,18 @@
+// `importFileExtension` and `moduleFormat` are pinned deliberately rather than
+// left to the generator's defaults. The `prisma-client` generator infers both
+// by reading the nearest tsconfig.json above `output`, and under
+// `moduleResolution: "bundler"` that inference emits *extensionless* relative
+// imports (`./internal/class`). Those type-check fine and `tsc` copies them
+// into dist verbatim, but this app runs the compiled output on plain Node ESM,
+// which requires the extension — so the client fails only at runtime, on the
+// first request that loads it, with ERR_MODULE_NOT_FOUND for
+// dist/generated/prisma/internal/class.
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  runtime             = "nodejs"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
 }
 
 datasource db {
