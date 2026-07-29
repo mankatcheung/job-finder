@@ -413,7 +413,7 @@ export function AccountPage() {
       // `uploadUrl` is a Vercel Blob client token (not a fetchable URL) —
       // put() uploads directly to Blob storage, bypassing our API.
       await putBlob(requestAvatarUploadUrl.storageKey, file, {
-        access: 'private',
+        access: 'public',
         token: requestAvatarUploadUrl.uploadUrl,
         contentType: file.type,
       });

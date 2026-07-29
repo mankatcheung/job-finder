@@ -1379,13 +1379,13 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
       const { requestUploadUrl } = await gqlClient.request<{
         requestUploadUrl: { uploadUrl: string; storageKey: string };
       }>(REQUEST_UPLOAD_URL, {
-        input: { applicationId, filename: file.name, mimeType: file.type, sizeBytes: file.size },
+        input: { applicationId, filename: file.name, mimeType: file.type },
       });
 
       // `uploadUrl` is a Vercel Blob client token (not a fetchable URL) —
       // put() uploads directly to Blob storage, bypassing our API.
       await putBlob(requestUploadUrl.storageKey, file, {
-        access: 'private',
+        access: 'public',
         token: requestUploadUrl.uploadUrl,
         contentType: file.type,
       });
