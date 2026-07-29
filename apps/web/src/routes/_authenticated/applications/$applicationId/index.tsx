@@ -1385,7 +1385,7 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
       // `uploadUrl` is a Vercel Blob client token (not a fetchable URL) —
       // put() uploads directly to Blob storage, bypassing our API.
       await putBlob(requestUploadUrl.storageKey, file, {
-        access: 'public',
+        access: 'private',
         token: requestUploadUrl.uploadUrl,
         contentType: file.type,
       });
