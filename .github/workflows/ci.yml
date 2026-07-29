@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  lint:
-    name: Lint & format
+  quality:
+    name: Lint, format & typecheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,31 +19,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .turbo
-          key: turbo-lint-${{ runner.os }}-${{ github.sha }}
-          restore-keys: turbo-lint-${{ runner.os }}-
+          key: turbo-quality-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-quality-${{ runner.os }}-
 
       - run: pnpm lint
       - run: pnpm format:check
-
-  typecheck:
-    name: Typecheck
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: ./.github/actions/setup-project
-
-      - name: Restore Turbo cache
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: turbo-typecheck-${{ runner.os }}-${{ github.sha }}
-          restore-keys: turbo-typecheck-${{ runner.os }}-
-
       - run: pnpm typecheck
 
-  build:
-    name: Build
+  build-test:
+    name: Build & test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -54,24 +38,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .turbo
-          key: turbo-build-${{ runner.os }}-${{ github.sha }}
-          restore-keys: turbo-build-${{ runner.os }}-
+          key: turbo-build-test-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-build-test-${{ runner.os }}-
 
       - run: pnpm build
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: ./.github/actions/setup-project
-
-      - name: Restore Turbo cache
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: turbo-test-${{ runner.os }}-${{ github.sha }}
-          restore-keys: turbo-test-${{ runner.os }}-
-
       - run: pnpm test
