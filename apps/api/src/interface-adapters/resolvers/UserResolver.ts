@@ -137,8 +137,11 @@ export class UserResolver {
   async getMe(userId: string): Promise<UserDTO | null> {
     const user = await this.deps.getUserUseCase.execute(userId);
     if (!user) return null;
+    // Avatars are stored as public blobs on purpose so any embed/print
+    // surface can render them without a per-image auth round-trip; the
+    // public URL from the storage provider is the canonical fetch URL.
     const avatarUrl = user.avatarKey
-      ? await this.deps.storageProvider.getSignedUrl(user.avatarKey)
+      ? await this.deps.storageProvider.getPublicUrl(user.avatarKey)
       : null;
     return this.deps.userMapper.toDTO(user, avatarUrl);
   }
@@ -158,7 +161,8 @@ export class UserResolver {
     sizeBytes: number,
   ): Promise<string> {
     await this.deps.confirmAvatarUseCase.execute({ userId, storageKey, mimeType, sizeBytes });
-    return this.deps.storageProvider.getSignedUrl(storageKey);
+    // Avatar is public — return the public URL, not a signed one.
+    return this.deps.storageProvider.getPublicUrl(storageKey);
   }
 
   async removeAvatar(userId: string): Promise<void> {

@@ -38,15 +38,19 @@ builder.mutationField('confirmDocument', (t) =>
       if (!ctx.user)
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { documentResolver } = ctx.diScope.cradle;
-      return documentResolver.confirmDocument(ctx.user.sub, {
-        applicationId: args.input.applicationId,
-        storageKey: args.input.storageKey,
-        name: args.input.name,
-        mimeType: args.input.mimeType,
-        sizeBytes: args.input.sizeBytes,
-        documentType: args.input.documentType ?? undefined,
-        version: args.input.version ?? null,
-      });
+      return documentResolver.confirmDocument(
+        ctx.user.sub,
+        {
+          applicationId: args.input.applicationId,
+          storageKey: args.input.storageKey,
+          name: args.input.name,
+          mimeType: args.input.mimeType,
+          sizeBytes: args.input.sizeBytes,
+          documentType: args.input.documentType ?? undefined,
+          version: args.input.version ?? null,
+        },
+        ctx.request,
+      );
     },
   }),
 );

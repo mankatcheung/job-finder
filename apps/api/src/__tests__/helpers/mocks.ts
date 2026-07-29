@@ -107,7 +107,8 @@ export const makeLoginEventRepository = (
 
 export const makeStorageProvider = (overrides?: Partial<IStorageProvider>): IStorageProvider => ({
   getPresignedUploadUrl: vi.fn(),
-  getSignedUrl: vi.fn(),
+  getPublicUrl: vi.fn(),
+  getFileStream: vi.fn(),
   delete: vi.fn(),
   ...overrides,
 });

@@ -78,6 +78,7 @@ describe('RequestUploadUrlUseCase', () => {
     expect(storageProvider.getPresignedUploadUrl).toHaveBeenCalledWith(
       result.storageKey,
       'application/pdf',
+      'private',
     );
   });
 

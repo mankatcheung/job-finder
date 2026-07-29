@@ -34,6 +34,7 @@ describe('RequestAvatarUploadUrlUseCase', () => {
     expect(storageProvider.getPresignedUploadUrl).toHaveBeenCalledWith(
       result.storageKey,
       'image/png',
+      'public',
     );
   });
 

@@ -13,7 +13,7 @@ builder.queryField('documents', (t) =>
       if (!ctx.user)
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { documentResolver } = ctx.diScope.cradle;
-      return documentResolver.getDocuments(ctx.user.sub, args.applicationId);
+      return documentResolver.getDocuments(ctx.user.sub, args.applicationId, ctx.request);
     },
   }),
 );

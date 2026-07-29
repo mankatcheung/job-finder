@@ -9,7 +9,7 @@ export function registerRoutes(fastify: FastifyInstance, routes: RouteDefinition
       method: route.method,
       url: route.path,
       handler: async (request, reply) => {
-        await route.handler(toHttpRequest(request), toHttpResponse(reply));
+        await route.handler(toHttpRequest(request), toHttpResponse(reply), request);
       },
     });
   }

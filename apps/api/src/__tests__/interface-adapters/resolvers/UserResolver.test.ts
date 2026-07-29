@@ -61,7 +61,7 @@ const makeDeps = (overrides?: object) => ({
     execute: vi.fn().mockResolvedValue(undefined),
   }),
   storageProvider: makeStorageProvider({
-    getSignedUrl: vi.fn().mockResolvedValue('https://cdn.example.com/signed-url'),
+    getPublicUrl: vi.fn().mockResolvedValue('https://cdn.example.com/avatar.png'),
   }),
   userMapper: new UserMapper(),
   ...overrides,
@@ -369,10 +369,10 @@ describe('UserResolver', () => {
       expect(result).toEqual(
         expect.objectContaining({ id: 'user-1', email: user.email, avatarUrl: null }),
       );
-      expect(deps.storageProvider.getSignedUrl).not.toHaveBeenCalled();
+      expect(deps.storageProvider.getPublicUrl).not.toHaveBeenCalled();
     });
 
-    it('resolves avatarKey to a signed avatarUrl when set', async () => {
+    it('resolves avatarKey to a public avatar CDN URL when set', async () => {
       const user = makeUser({ id: 'user-1', avatarKey: 'users/user-1/avatar/key.png' });
       const deps = makeDeps({
         getUserUseCase: stub<IGetUserUseCase>({ execute: vi.fn().mockResolvedValue(user) }),
@@ -380,8 +380,8 @@ describe('UserResolver', () => {
 
       const result = await new UserResolver(deps).getMe('user-1');
 
-      expect(deps.storageProvider.getSignedUrl).toHaveBeenCalledWith('users/user-1/avatar/key.png');
-      expect(result?.avatarUrl).toBe('https://cdn.example.com/signed-url');
+      expect(deps.storageProvider.getPublicUrl).toHaveBeenCalledWith('users/user-1/avatar/key.png');
+      expect(result?.avatarUrl).toBe('https://cdn.example.com/avatar.png');
     });
 
     it('returns null when the use case returns null', async () => {
@@ -420,7 +420,7 @@ describe('UserResolver', () => {
   });
 
   describe('confirmAvatar', () => {
-    it('delegates to confirmAvatarUseCase and returns the resolved signed URL', async () => {
+    it('delegates to confirmAvatarUseCase and returns the resolved public URL', async () => {
       const deps = makeDeps();
 
       const result = await new UserResolver(deps).confirmAvatar(
@@ -436,8 +436,8 @@ describe('UserResolver', () => {
         mimeType: 'image/png',
         sizeBytes: 12345,
       });
-      expect(deps.storageProvider.getSignedUrl).toHaveBeenCalledWith('users/user-1/avatar/key.png');
-      expect(result).toBe('https://cdn.example.com/signed-url');
+      expect(deps.storageProvider.getPublicUrl).toHaveBeenCalledWith('users/user-1/avatar/key.png');
+      expect(result).toBe('https://cdn.example.com/avatar.png');
     });
   });
 

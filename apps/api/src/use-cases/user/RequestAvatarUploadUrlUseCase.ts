@@ -26,9 +26,13 @@ export class RequestAvatarUploadUrlUseCase implements IRequestAvatarUploadUrlUse
 
     const sanitized = sanitizeFilename(input.filename);
     const storageKey = `users/${input.userId}/avatar/${nanoid()}-${sanitized}`;
+    // Avatars are intentionally public so the web app and any future
+    // embed/print surfaces can render them via the CDN URL without an
+    // auth round-trip per image. Uploaded as public blobs in storage.
     const uploadUrl = await this.deps.storageProvider.getPresignedUploadUrl(
       storageKey,
       input.mimeType,
+      'public',
     );
 
     return { uploadUrl, storageKey };

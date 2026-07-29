@@ -12,6 +12,7 @@ function fakeReply(): { reply: IHttpResponse; cookies: Map<string, CookieOptions
       cookies.set(name, options ?? {});
     },
     clearCookie: () => {},
+    setHeader: () => {},
   };
   return { reply, cookies };
 }

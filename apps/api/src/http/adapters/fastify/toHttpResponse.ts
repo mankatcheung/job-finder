@@ -19,6 +19,9 @@ export function toHttpResponse(reply: FastifyReply): IHttpResponse {
     clearCookie(name, options) {
       reply.clearCookie(name, options);
     },
+    setHeader(name, value) {
+      reply.header(name, value);
+    },
   };
   return wrapper;
 }

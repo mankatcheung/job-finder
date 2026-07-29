@@ -190,6 +190,8 @@ export interface Cradle {
   sessionMapper: SessionMapper;
   oauthAccountMapper: OAuthAccountMapper;
 
+  apiOrigin: string;
+
   authResolver: AuthResolver;
   applicationResolver: ApplicationResolver;
   noteResolver: NoteResolver;
@@ -379,6 +381,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     noteResolver: asClass(NoteResolver, { lifetime: Lifetime.SINGLETON }),
     documentResolver: asClass(DocumentResolver, { lifetime: Lifetime.SINGLETON }),
     userResolver: asClass(UserResolver, { lifetime: Lifetime.SINGLETON }),
+    apiOrigin: asValue(
+      process.env[ENV.API_ORIGIN]?.split(',')[0]?.trim() ?? 'http://localhost:3001',
+    ),
     interviewRoundResolver: asClass(InterviewRoundResolver, { lifetime: Lifetime.SINGLETON }),
     activityLogResolver: asClass(ActivityLogResolver, { lifetime: Lifetime.SINGLETON }),
     contactResolver: asClass(ContactResolver, { lifetime: Lifetime.SINGLETON }),

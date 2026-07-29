@@ -26,6 +26,14 @@ export const ENV = {
   NODE_ENV: 'NODE_ENV',
   PORT: 'PORT',
   CORS_ORIGIN: 'CORS_ORIGIN',
+  /**
+   * Public origin the API is reachable at — used to construct per-document
+   * `/files/:key` URLs that the GraphQL client can fetch. Comma-separated
+   * values are accepted; the first one is the canonical origin. Required
+   * in production so private-document URLs don't accidentally point at
+   * localhost.
+   */
+  API_ORIGIN: 'API_ORIGIN',
   JWT_SECRET: 'JWT_SECRET',
   JWT_REFRESH_SECRET: 'JWT_REFRESH_SECRET',
   DATABASE_URL: 'DATABASE_URL',

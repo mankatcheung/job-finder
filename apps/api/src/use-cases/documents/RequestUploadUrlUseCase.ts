@@ -37,9 +37,14 @@ export class RequestUploadUrlUseCase implements IRequestUploadUrlUseCase {
 
     const sanitized = sanitizeFilename(input.filename);
     const storageKey = `users/${input.userId}/applications/${input.applicationId}/${nanoid()}-${sanitized}`;
+    // Documents may contain PII (resumes, cover letters) and are bundled per
+    // application — keep them out of the public CDN by storing them as
+    // private blobs. Reads go through the API's authenticated streaming
+    // route, which never exposes the URL to unauthenticated viewers.
     const uploadUrl = await this.deps.storageProvider.getPresignedUploadUrl(
       storageKey,
       input.mimeType,
+      'private',
     );
 
     return { uploadUrl, storageKey };
