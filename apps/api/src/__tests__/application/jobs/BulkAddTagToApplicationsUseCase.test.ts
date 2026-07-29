@@ -12,6 +12,7 @@ describe('BulkAddTagToApplicationsUseCase', () => {
     const useCase = new BulkAddTagToApplicationsUseCase({
       applicationRepository,
       updateApplicationUseCase,
+      generateId: () => 'tag-id',
     });
 
     const err = await useCase
@@ -29,6 +30,7 @@ describe('BulkAddTagToApplicationsUseCase', () => {
     const useCase = new BulkAddTagToApplicationsUseCase({
       applicationRepository,
       updateApplicationUseCase,
+      generateId: () => 'tag-id',
     });
 
     const err = await useCase
@@ -47,6 +49,7 @@ describe('BulkAddTagToApplicationsUseCase', () => {
     const useCase = new BulkAddTagToApplicationsUseCase({
       applicationRepository,
       updateApplicationUseCase,
+      generateId: () => 'tag-id',
     });
 
     const err = await useCase
@@ -71,6 +74,7 @@ describe('BulkAddTagToApplicationsUseCase', () => {
     const useCase = new BulkAddTagToApplicationsUseCase({
       applicationRepository,
       updateApplicationUseCase,
+      generateId: () => 'tag-id',
     });
 
     await useCase.execute({

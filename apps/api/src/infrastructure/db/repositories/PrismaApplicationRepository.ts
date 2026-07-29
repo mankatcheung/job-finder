@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid';
 import type { PrismaClient, Prisma } from '#src/generated/prisma/client.js';
 import type { Application } from '#src/domain/application/Application.js';
 import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
@@ -126,8 +125,10 @@ export class PrismaApplicationRepository implements IApplicationRepository {
           followUpAt: data.followUpAt ?? null,
         },
       });
-      for (const name of tags) {
-        await client.applicationTag.create({ data: { id: nanoid(), applicationId: app.id, name } });
+      for (const tag of tags) {
+        await client.applicationTag.create({
+          data: { id: tag.id, applicationId: app.id, name: tag.name },
+        });
       }
       return client.jobApplication.findUnique({ where: { id: app.id }, include: INCLUDE_TAGS });
     };
@@ -156,8 +157,10 @@ export class PrismaApplicationRepository implements IApplicationRepository {
       const exec = async (client: Prisma.TransactionClient) => {
         await client.jobApplication.update({ where: { id }, data: scalarData });
         await client.applicationTag.deleteMany({ where: { applicationId: id } });
-        for (const name of data.tags!) {
-          await client.applicationTag.create({ data: { id: nanoid(), applicationId: id, name } });
+        for (const tag of data.tags!) {
+          await client.applicationTag.create({
+            data: { id: tag.id, applicationId: id, name: tag.name },
+          });
         }
         return client.jobApplication.findUnique({ where: { id }, include: INCLUDE_TAGS });
       };
