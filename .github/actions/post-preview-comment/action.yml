@@ -1,0 +1,48 @@
+name: Post preview URLs to PR
+description: Post or update a PR comment with preview deployment URLs
+
+inputs:
+  api-url:
+    description: API preview URL
+    required: true
+  web-url:
+    description: Web preview URL
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Post preview URLs to PR
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const apiUrl = '${{ inputs.api-url }}';
+          const webUrl = '${{ inputs.web-url }}';
+          const marker = '<!-- job-finder-preview-deployments -->';
+          const body = `${marker}
+          Preview deployments for this PR:
+          - Web: ${webUrl}
+          - API: ${apiUrl}`;
+
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+
+          const existing = comments.find(c => c.user?.login === 'github-actions[bot]' && c.body.includes(marker));
+          if (existing) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existing.id,
+              body,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+          }

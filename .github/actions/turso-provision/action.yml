@@ -1,0 +1,50 @@
+name: Provision Turso database
+description: Create or reuse a Turso database and capture its libsql URL and auth token
+
+inputs:
+  db-name:
+    description: Name of the Turso database
+    required: true
+  turso-api-token:
+    description: Turso API token
+    required: true
+
+outputs:
+  database-url:
+    description: The libsql connection URL for the database
+    value: ${{ steps.capture-db.outputs.database-url }}
+  database-auth-token:
+    description: The auth token for the database
+    value: ${{ steps.capture-db.outputs.database-auth-token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install Turso CLI
+      shell: bash
+      run: |
+        curl -sSfL https://get.tur.so/install.sh | bash
+        echo "$HOME/.turso" >> "$GITHUB_PATH"
+
+    - name: Create or reuse preview database
+      shell: bash
+      env:
+        TURSO_API_TOKEN: ${{ inputs.turso-api-token }}
+      run: |
+        if ! turso db show "${{ inputs.db-name }}" >/dev/null 2>&1; then
+          echo "Creating Turso database ${{ inputs.db-name }}"
+          turso db create "${{ inputs.db-name }}"
+        else
+          echo "Reusing existing Turso database ${{ inputs.db-name }}"
+        fi
+
+    - name: Capture database credentials
+      id: capture-db
+      shell: bash
+      env:
+        TURSO_API_TOKEN: ${{ inputs.turso-api-token }}
+      run: |
+        DATABASE_URL=$(turso db show "${{ inputs.db-name }}" --url)
+        DATABASE_AUTH_TOKEN=$(turso db tokens create "${{ inputs.db-name }}")
+        echo "database-url=$DATABASE_URL" >> "$GITHUB_OUTPUT"
+        echo "database-auth-token=$DATABASE_AUTH_TOKEN" >> "$GITHUB_OUTPUT"
