@@ -12,6 +12,7 @@ import type {
 interface Deps {
   applicationRepository: IApplicationRepository;
   updateApplicationUseCase: IUpdateApplicationUseCase;
+  generateId: () => string;
   transactionManager?: ITransactionManager;
 }
 

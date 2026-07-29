@@ -15,6 +15,8 @@ export class CreateApplicationUseCase implements ICreateApplicationUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: CreateApplicationInput): Promise<CreateApplicationOutput> {
+    const tags = (input.tags ?? []).map((name) => ({ id: this.deps.generateId(), name }));
+
     return this.deps.applicationRepository.create({
       id: this.deps.generateId(),
       userId: input.userId,
@@ -28,7 +30,7 @@ export class CreateApplicationUseCase implements ICreateApplicationUseCase {
       starred: input.starred ?? false,
       source: input.source ?? null,
       followUpAt: input.followUpAt ?? null,
-      tags: input.tags ?? [],
+      tags,
     });
   }
 }

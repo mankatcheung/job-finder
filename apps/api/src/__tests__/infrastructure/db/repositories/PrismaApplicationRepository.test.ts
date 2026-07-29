@@ -216,13 +216,27 @@ describe('PrismaApplicationRepository', () => {
 
   describe('tags', () => {
     it('creates an application with tags', async () => {
-      const app = await repo.create({ ...BASE_APP, tags: ['frontend', 'remote'] });
+      const app = await repo.create({
+        ...BASE_APP,
+        tags: [
+          { id: 'tag-1', name: 'frontend' },
+          { id: 'tag-2', name: 'remote' },
+        ],
+      });
       expect(app.tags).toEqual(expect.arrayContaining(['frontend', 'remote']));
     });
 
     it('replaces tags on update', async () => {
-      await repo.create({ ...BASE_APP, tags: ['frontend'] });
-      const updated = await repo.update('app-1', { tags: ['backend', 'fulltime'] });
+      await repo.create({
+        ...BASE_APP,
+        tags: [{ id: 'tag-1', name: 'frontend' }],
+      });
+      const updated = await repo.update('app-1', {
+        tags: [
+          { id: 'tag-2', name: 'backend' },
+          { id: 'tag-3', name: 'fulltime' },
+        ],
+      });
       expect(updated.tags).toEqual(expect.arrayContaining(['backend', 'fulltime']));
       expect(updated.tags).not.toContain('frontend');
     });
