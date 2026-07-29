@@ -136,7 +136,7 @@ export function filesRoutes(getCradle: () => Cradle): RouteDefinition[] {
             rawRequest.raw.on('error', reject);
           });
           res.send({ ok: true });
-        } catch (err) {
+        } catch {
           res.status(500).send({ error: 'upload_failed' });
         }
       },
