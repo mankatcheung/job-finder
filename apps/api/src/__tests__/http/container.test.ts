@@ -3,7 +3,7 @@ import { ENV } from '#src/constants.js';
 
 describe('buildContainer', () => {
   beforeAll(() => {
-    // client.ts constructs the real Prisma/libSQL client at module-evaluation
+    // client.ts constructs the real libSQL client at module-evaluation
     // time, so these must be set before container.js is imported below.
     process.env[ENV.DATABASE_URL] ??= 'file:container-test.db';
     process.env[ENV.JWT_SECRET] ??= 'test-secret';

@@ -56,13 +56,6 @@ jobs:
           restore-keys: turbo-typecheck-${{ runner.os }}-
 
       - run: pnpm install --frozen-lockfile
-      - name: Generate Prisma client
-        run: pnpm db:generate
-        # Prisma 7's prisma.config.ts reads DATABASE_URL at config-load time for
-        # every CLI invocation, including `generate` (which never touches the
-        # database) — a placeholder value satisfies that check.
-        env:
-          DATABASE_URL: file:./ci-placeholder.db
       - run: pnpm typecheck
 
   build:
@@ -88,13 +81,6 @@ jobs:
           restore-keys: turbo-build-${{ runner.os }}-
 
       - run: pnpm install --frozen-lockfile
-      - name: Generate Prisma client
-        run: pnpm db:generate
-        # Prisma 7's prisma.config.ts reads DATABASE_URL at config-load time for
-        # every CLI invocation, including `generate` (which never touches the
-        # database) — a placeholder value satisfies that check.
-        env:
-          DATABASE_URL: file:./ci-placeholder.db
       - run: pnpm build
 
   test:
@@ -120,11 +106,4 @@ jobs:
           restore-keys: turbo-test-${{ runner.os }}-
 
       - run: pnpm install --frozen-lockfile
-      - name: Generate Prisma client
-        run: pnpm db:generate
-        # Prisma 7's prisma.config.ts reads DATABASE_URL at config-load time for
-        # every CLI invocation, including `generate` (which never touches the
-        # database) — a placeholder value satisfies that check.
-        env:
-          DATABASE_URL: file:./ci-placeholder.db
       - run: pnpm test

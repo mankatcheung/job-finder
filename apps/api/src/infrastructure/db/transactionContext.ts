@@ -1,8 +1,8 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import type { Prisma, PrismaClient } from '#src/generated/prisma/client.js';
+import type { DrizzleDb, DrizzleTransaction, DrizzleClient } from './client.js';
 
-export const txStorage = new AsyncLocalStorage<Prisma.TransactionClient>();
+export const txStorage = new AsyncLocalStorage<DrizzleTransaction>();
 
-export function getClient(prisma: PrismaClient): PrismaClient {
-  return (txStorage.getStore() ?? prisma) as PrismaClient;
+export function getClient(db: DrizzleDb): DrizzleClient {
+  return txStorage.getStore() ?? db;
 }
