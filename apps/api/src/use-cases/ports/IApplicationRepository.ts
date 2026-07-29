@@ -1,6 +1,11 @@
 import type { Application } from '#src/domain/application/Application.js';
 import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
 
+export interface ApplicationTagData {
+  id: string;
+  name: string;
+}
+
 export interface CreateApplicationData {
   id: string;
   userId: string;
@@ -14,7 +19,7 @@ export interface CreateApplicationData {
   starred?: boolean;
   source?: string | null;
   followUpAt?: Date | null;
-  tags?: string[];
+  tags?: ApplicationTagData[];
 }
 
 export interface UpdateApplicationData {
@@ -29,7 +34,7 @@ export interface UpdateApplicationData {
   starred?: boolean;
   source?: string | null;
   followUpAt?: Date | null;
-  tags?: string[];
+  tags?: ApplicationTagData[];
 }
 
 export interface FindApplicationsPageFilters {

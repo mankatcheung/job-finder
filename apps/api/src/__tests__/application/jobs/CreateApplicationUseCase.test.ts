@@ -36,6 +36,7 @@ describe('CreateApplicationUseCase', () => {
       followUpAt: null,
       tags: [],
     });
+    expect(generateId).toHaveBeenCalled();
   });
 
   it('defaults status to "draft" when not provided', async () => {
@@ -59,7 +60,7 @@ describe('CreateApplicationUseCase', () => {
 
     const useCase = new CreateApplicationUseCase({
       applicationRepository,
-      generateId: () => 'app-1',
+      generateId: vi.fn().mockReturnValue('app-1'),
     });
     await useCase.execute({ userId: 'user-1', company: 'Acme', role: 'Dev' });
 
@@ -73,18 +74,29 @@ describe('CreateApplicationUseCase', () => {
     );
   });
 
-  it('uses the generateId function for the application id', async () => {
+  it('uses the generateId function for the application id and tag ids', async () => {
     const applicationRepository = makeApplicationRepository({
       create: vi.fn().mockResolvedValue(makeApplication()),
     });
     const generateId = vi.fn().mockReturnValue('generated-id');
 
     const useCase = new CreateApplicationUseCase({ applicationRepository, generateId });
-    await useCase.execute({ userId: 'user-1', company: 'Acme', role: 'Dev' });
+    await useCase.execute({
+      userId: 'user-1',
+      company: 'Acme',
+      role: 'Dev',
+      tags: ['remote', 'senior'],
+    });
 
-    expect(generateId).toHaveBeenCalledOnce();
+    expect(generateId).toHaveBeenCalledTimes(3);
     expect(applicationRepository.create).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'generated-id' }),
+      expect.objectContaining({
+        id: 'generated-id',
+        tags: [
+          { id: 'generated-id', name: 'remote' },
+          { id: 'generated-id', name: 'senior' },
+        ],
+      }),
     );
   });
 });

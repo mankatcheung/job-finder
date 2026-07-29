@@ -11,7 +11,7 @@ import type {
 interface Deps {
   applicationRepository: IApplicationRepository;
   activityLogRepository?: IActivityLogRepository;
-  generateId?: () => string;
+  generateId: () => string;
   transactionManager?: ITransactionManager;
 }
 
@@ -29,6 +29,11 @@ export class UpdateApplicationUseCase implements IUpdateApplicationUseCase {
 
     const appliedAt = input.status === 'applied' && app.appliedAt === null ? new Date() : undefined;
 
+    const tags =
+      input.tags === undefined
+        ? undefined
+        : input.tags.map((name) => ({ id: this.deps.generateId(), name }));
+
     const doUpdate = async () => {
       const updated = await this.deps.applicationRepository.update(input.applicationId, {
         company: input.company,
@@ -41,7 +46,7 @@ export class UpdateApplicationUseCase implements IUpdateApplicationUseCase {
         starred: input.starred,
         source: input.source,
         followUpAt: input.followUpAt,
-        tags: input.tags,
+        tags,
         ...(appliedAt !== undefined ? { appliedAt } : {}),
       });
 

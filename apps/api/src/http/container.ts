@@ -127,6 +127,8 @@ import { DrizzleTransactionManager } from '#src/infrastructure/db/DrizzleTransac
 import { OpenRouterLLMProvider } from '#src/infrastructure/llm/OpenRouterLLMProvider.js';
 import { GoogleAILLMProvider } from '#src/infrastructure/llm/GoogleAILLMProvider.js';
 import { ParseJobDescriptionUseCase } from '#src/use-cases/jobDescription/ParseJobDescriptionUseCase.js';
+import { FetchJobPostingSourceResolver } from '#src/infrastructure/jobDescription/FetchJobPostingSourceResolver.js';
+import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
 import { GenerateCoverLetterUseCase } from '#src/use-cases/coverLetter/GenerateCoverLetterUseCase.js';
 import { ComputeHealthScoreUseCase } from '#src/use-cases/application/ComputeHealthScoreUseCase.js';
 import { SendWeeklyDigestUseCase } from '#src/use-cases/digest/SendWeeklyDigestUseCase.js';
@@ -268,6 +270,7 @@ export interface Cradle {
   sendFollowUpRemindersUseCase: SendFollowUpRemindersUseCase;
   transactionManager: DrizzleTransactionManager;
   llmProvider: ILLMProvider;
+  jobPostingSourceResolver: IJobPostingSourceResolver;
   parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
   generateCoverLetterUseCase: GenerateCoverLetterUseCase;
   computeHealthScoreUseCase: ComputeHealthScoreUseCase;
@@ -495,6 +498,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
       lifetime: Lifetime.TRANSIENT,
     }),
     llmProvider: asClass(LLMProvider, { lifetime: Lifetime.SINGLETON }),
+    jobPostingSourceResolver: asClass(FetchJobPostingSourceResolver, {
+      lifetime: Lifetime.SINGLETON,
+    }),
     parseJobDescriptionUseCase: asClass(ParseJobDescriptionUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

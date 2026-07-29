@@ -1,4 +1,5 @@
 import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
+import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
 
 export interface ParseJobDescriptionInput {
   text?: string | null;
@@ -15,6 +16,7 @@ export interface ParsedJobDescription {
 
 interface Deps {
   llmProvider: ILLMProvider;
+  jobPostingSourceResolver: IJobPostingSourceResolver;
 }
 
 const SYSTEM_PROMPT = `You are a job posting parser. Extract structured data from job postings and return ONLY valid JSON with no markdown, no explanation, and no code fences. If a field cannot be determined, use null.`;
@@ -37,7 +39,7 @@ export class ParseJobDescriptionUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: ParseJobDescriptionInput): Promise<ParsedJobDescription> {
-    const text = await this.resolveText(input);
+    const text = await this.deps.jobPostingSourceResolver.resolve(input);
     if (!text.trim()) throw new Error('No job description content provided');
 
     const raw = await this.deps.llmProvider.complete([
@@ -46,36 +48,6 @@ export class ParseJobDescriptionUseCase {
     ]);
 
     return this.parseResponse(raw);
-  }
-
-  private async resolveText(input: ParseJobDescriptionInput): Promise<string> {
-    if (input.text?.trim()) return input.text;
-
-    if (input.url?.trim()) {
-      const response = await fetch(input.url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; JobFinderBot/1.0)' },
-        signal: AbortSignal.timeout(10_000),
-      });
-      if (!response.ok) throw new Error(`Failed to fetch URL: ${response.status}`);
-      const html = await response.text();
-      return this.stripHtml(html);
-    }
-
-    throw new Error('Either text or url must be provided');
-  }
-
-  private stripHtml(html: string): string {
-    return html
-      .replace(/<script[\s\S]*?<\/script>/gi, '')
-      .replace(/<style[\s\S]*?<\/style>/gi, '')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/\s{2,}/g, ' ')
-      .trim();
   }
 
   private parseResponse(raw: string): ParsedJobDescription {

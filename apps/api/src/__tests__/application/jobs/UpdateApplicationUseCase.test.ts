@@ -13,7 +13,7 @@ describe('UpdateApplicationUseCase', () => {
       findById: vi.fn().mockResolvedValue(null),
     });
 
-    const useCase = new UpdateApplicationUseCase({ applicationRepository });
+    const useCase = new UpdateApplicationUseCase({ applicationRepository, generateId: () => 'id' });
     const err = await useCase
       .execute({ userId: 'user-1', applicationId: 'app-missing', company: 'Acme' })
       .catch((e) => e);
@@ -28,7 +28,7 @@ describe('UpdateApplicationUseCase', () => {
       findById: vi.fn().mockResolvedValue(makeApplication({ userId: 'other-user' })),
     });
 
-    const useCase = new UpdateApplicationUseCase({ applicationRepository });
+    const useCase = new UpdateApplicationUseCase({ applicationRepository, generateId: () => 'id' });
     const err = await useCase
       .execute({ userId: 'user-1', applicationId: 'app-1', company: 'Acme' })
       .catch((e) => e);
@@ -46,7 +46,7 @@ describe('UpdateApplicationUseCase', () => {
       update: vi.fn().mockResolvedValue(updated),
     });
 
-    const useCase = new UpdateApplicationUseCase({ applicationRepository });
+    const useCase = new UpdateApplicationUseCase({ applicationRepository, generateId: () => 'id' });
     const result = await useCase.execute({
       userId: 'user-1',
       applicationId: 'app-1',
@@ -68,7 +68,7 @@ describe('UpdateApplicationUseCase', () => {
       update: vi.fn().mockResolvedValue(makeApplication({ status: 'applied' })),
     });
 
-    const useCase = new UpdateApplicationUseCase({ applicationRepository });
+    const useCase = new UpdateApplicationUseCase({ applicationRepository, generateId: () => 'id' });
     await useCase.execute({ userId: 'user-1', applicationId: 'app-1', status: 'applied' });
 
     expect(applicationRepository.update).toHaveBeenCalledWith(
@@ -85,7 +85,7 @@ describe('UpdateApplicationUseCase', () => {
       update: vi.fn().mockResolvedValue(makeApplication()),
     });
 
-    const useCase = new UpdateApplicationUseCase({ applicationRepository });
+    const useCase = new UpdateApplicationUseCase({ applicationRepository, generateId: () => 'id' });
     await useCase.execute({ userId: 'user-1', applicationId: 'app-1', status: 'applied' });
 
     const updateCall = vi.mocked(applicationRepository.update).mock.calls[0][1];
@@ -99,7 +99,7 @@ describe('UpdateApplicationUseCase', () => {
       update: vi.fn().mockResolvedValue(makeApplication()),
     });
 
-    const useCase = new UpdateApplicationUseCase({ applicationRepository });
+    const useCase = new UpdateApplicationUseCase({ applicationRepository, generateId: () => 'id' });
     await useCase.execute({ userId: 'user-1', applicationId: 'app-1', status: 'interviewing' });
 
     const updateCall = vi.mocked(applicationRepository.update).mock.calls[0][1];
@@ -115,7 +115,11 @@ describe('UpdateApplicationUseCase', () => {
     });
     const transactionManager = makeTransactionManager();
 
-    const useCase = new UpdateApplicationUseCase({ applicationRepository, transactionManager });
+    const useCase = new UpdateApplicationUseCase({
+      applicationRepository,
+      transactionManager,
+      generateId: () => 'id',
+    });
     await useCase.execute({ userId: 'user-1', applicationId: 'app-1', status: 'applied' });
 
     expect(transactionManager.run).toHaveBeenCalledOnce();
@@ -129,7 +133,7 @@ describe('UpdateApplicationUseCase', () => {
       update: vi.fn().mockResolvedValue(makeApplication()),
     });
 
-    const useCase = new UpdateApplicationUseCase({ applicationRepository });
+    const useCase = new UpdateApplicationUseCase({ applicationRepository, generateId: () => 'id' });
     await expect(
       useCase.execute({ userId: 'user-1', applicationId: 'app-1', company: 'Acme' }),
     ).resolves.toBeDefined();

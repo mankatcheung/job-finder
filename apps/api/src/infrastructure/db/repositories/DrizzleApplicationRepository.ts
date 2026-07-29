@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid';
 import { eq, and, or, desc, gte, lte, lt, like, isNull, inArray } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
 import { jobApplication, applicationTag } from '../schema.js';
@@ -149,9 +148,9 @@ export class DrizzleApplicationRepository implements IApplicationRepository {
       if (tags.length > 0) {
         await client
           .insert(applicationTag)
-          .values(tags.map((name) => ({ id: nanoid(), applicationId: app.id, name })));
+          .values(tags.map((tag) => ({ id: tag.id, applicationId: app.id, name: tag.name })));
       }
-      return { ...app, tags };
+      return { ...app, tags: tags.map((t) => t.name) };
     };
 
     const ambient = txStorage.getStore();
@@ -189,9 +188,9 @@ export class DrizzleApplicationRepository implements IApplicationRepository {
         if (tags.length > 0) {
           await client
             .insert(applicationTag)
-            .values(tags.map((name) => ({ id: nanoid(), applicationId: id, name })));
+            .values(tags.map((tag) => ({ id: tag.id, applicationId: id, name: tag.name })));
         }
-        return { ...app, tags };
+        return { ...app, tags: tags.map((t) => t.name) };
       };
 
       const ambient = txStorage.getStore();
