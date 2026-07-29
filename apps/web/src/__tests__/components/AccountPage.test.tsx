@@ -296,7 +296,7 @@ describe('AccountPage', () => {
         );
       });
       expect(mockPutBlob).toHaveBeenCalledWith('users/user-1/avatar/key.png', expect.any(File), {
-        access: 'private',
+        access: 'public',
         token: 'https://storage.example.com/upload',
         contentType: 'image/png',
       });
