@@ -1,0 +1,303 @@
+name: Deploy preview (web + api)
+
+# Deploys non-production preview environments for every PR to main.
+#
+# Each PR gets its own isolated Turso database. The workflow creates the DB,
+# runs Drizzle migrations, deploys the API preview with the DB credentials,
+# builds and deploys the web preview against the API preview URL, and
+# destroys the database when the PR closes.
+#
+# How the preview chain works:
+#   1. Provision a Turso database named after the PR number.
+#   2. Run Drizzle migrations against that database.
+#   3. Deploy apps/api as a preview build with DATABASE_URL and
+#      DATABASE_AUTH_TOKEN pointing at the provisioned DB, then capture the
+#      generated preview URL.
+#   4. Build apps/web with VITE_API_URL set to that preview API URL.
+#   5. Deploy apps/web as a preview build.
+#   6. Post both preview URLs back to the PR as a comment.
+#   7. When the PR closes, destroy the Turso database.
+#
+# Required repository secrets:
+#   VERCEL_TOKEN
+#   VERCEL_ORG_ID
+#   VERCEL_API_PROJECT_ID
+#   VERCEL_WEB_PROJECT_ID
+#   TURSO_API_TOKEN
+#   TURSO_ORGANIZATION (optional, only if the DB is in a non-default org)
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  DB_NAME: job-finder-preview-pr-${{ github.event.pull_request.number }}
+
+jobs:
+  checks:
+    name: Typecheck & test
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.17.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+
+  provision-turso-db:
+    name: Provision Turso preview DB
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    outputs:
+      database-url: ${{ steps.capture-db.outputs.database-url }}
+      database-auth-token: ${{ steps.capture-db.outputs.database-auth-token }}
+    steps:
+      - name: Install Turso CLI
+        run: |
+          curl -sSfL https://get.tur.so/install.sh | bash
+          echo "$HOME/.turso" >> "$GITHUB_PATH"
+
+      - name: Create or reuse preview database
+        env:
+          TURSO_API_TOKEN: ${{ secrets.TURSO_API_TOKEN }}
+        run: |
+          if ! turso db show "$DB_NAME" >/dev/null 2>&1; then
+            echo "Creating Turso database $DB_NAME"
+            turso db create "$DB_NAME"
+          else
+            echo "Reusing existing Turso database $DB_NAME"
+          fi
+
+      - name: Capture database credentials
+        id: capture-db
+        env:
+          TURSO_API_TOKEN: ${{ secrets.TURSO_API_TOKEN }}
+        run: |
+          DATABASE_URL=$(turso db show "$DB_NAME" --url)
+          DATABASE_AUTH_TOKEN=$(turso db tokens create "$DB_NAME")
+          echo "database-url=$DATABASE_URL" >> "$GITHUB_OUTPUT"
+          echo "database-auth-token=$DATABASE_AUTH_TOKEN" >> "$GITHUB_OUTPUT"
+
+  migrate-turso-db:
+    name: Migrate Turso preview DB
+    needs: provision-turso-db
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ needs.provision-turso-db.outputs.database-url }}
+      DATABASE_AUTH_TOKEN: ${{ needs.provision-turso-db.outputs.database-auth-token }}
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.17.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @job-finder/api db:migrate
+
+  deploy-api-preview:
+    name: Deploy API preview
+    needs: [checks, provision-turso-db, migrate-turso-db]
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    outputs:
+      preview-url: ${{ steps.capture-api-url.outputs.preview-url }}
+    env:
+      DATABASE_URL: ${{ needs.provision-turso-db.outputs.database-url }}
+      DATABASE_AUTH_TOKEN: ${{ needs.provision-turso-db.outputs.database-auth-token }}
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.17.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel preview environment settings
+        run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_API_PROJECT_ID }}
+
+      - name: Build API preview
+        run: vercel build --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_API_PROJECT_ID }}
+
+      - name: Deploy API preview and capture URL
+        id: capture-api-url
+        run: |
+          PREVIEW_URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN" --env DATABASE_URL="$DATABASE_URL" --env DATABASE_AUTH_TOKEN="$DATABASE_AUTH_TOKEN")
+          if [[ ! "$PREVIEW_URL" =~ ^https:// ]]; then
+            echo "Failed to capture API preview URL: $PREVIEW_URL" >&2
+            exit 1
+          fi
+          echo "preview-url=$PREVIEW_URL" >> "$GITHUB_OUTPUT"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_API_PROJECT_ID }}
+
+  deploy-web-preview:
+    name: Build & deploy web preview
+    needs: [checks, deploy-api-preview]
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    outputs:
+      preview-url: ${{ steps.capture-web-url.outputs.preview-url }}
+    env:
+      VITE_API_URL: ${{ needs.deploy-api-preview.outputs.preview-url }}/graphql
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.17.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel preview environment settings
+        run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+
+      - name: Inject dynamic VITE_API_URL
+        run: echo "VITE_API_URL=$VITE_API_URL" >> .vercel/.env.preview.local
+
+      - name: Build web preview
+        run: vercel build --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+
+      - name: Deploy web preview
+        id: capture-web-url
+        run: |
+          PREVIEW_URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")
+          if [[ ! "$PREVIEW_URL" =~ ^https:// ]]; then
+            echo "Failed to capture web preview URL: $PREVIEW_URL" >&2
+            exit 1
+          fi
+          echo "preview-url=$PREVIEW_URL" >> "$GITHUB_OUTPUT"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+
+      - name: Post preview URLs to PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const apiUrl = '${{ needs.deploy-api-preview.outputs.preview-url }}';
+            const webUrl = '${{ steps.capture-web-url.outputs.preview-url }}';
+            const marker = '<!-- job-finder-preview-deployments -->';
+            const body = `${marker}
+            Preview deployments for this PR:
+            - Web: ${webUrl}
+            - API: ${apiUrl}`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c => c.user?.login === 'github-actions[bot]' && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  cleanup-turso-db:
+    name: Destroy Turso preview DB
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Turso CLI
+        run: |
+          curl -sSfL https://get.tur.so/install.sh | bash
+          echo "$HOME/.turso" >> "$GITHUB_PATH"
+
+      - name: Destroy preview database
+        env:
+          TURSO_API_TOKEN: ${{ secrets.TURSO_API_TOKEN }}
+        run: |
+          if turso db show "$DB_NAME" >/dev/null 2>&1; then
+            echo "Destroying Turso database $DB_NAME"
+            turso db destroy "$DB_NAME" --yes
+          else
+            echo "Turso database $DB_NAME does not exist; nothing to clean up"
+          fi
