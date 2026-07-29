@@ -1,2 +1,0 @@
-ALTER TABLE "User" ADD COLUMN "weeklyDigestEnabled" BOOLEAN NOT NULL DEFAULT true;
-ALTER TABLE "User" ADD COLUMN "followUpRemindersEnabled" BOOLEAN NOT NULL DEFAULT true;

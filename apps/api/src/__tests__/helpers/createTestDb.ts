@@ -1,8 +1,11 @@
-import { PrismaLibSql } from '@prisma/adapter-libsql';
-import { PrismaClient } from '#src/generated/prisma/client.js';
+import { createClient } from '@libsql/client';
+import { drizzle } from 'drizzle-orm/libsql';
 import { unlinkSync, existsSync } from 'fs';
 import { join } from 'path';
+import { tmpdir } from 'os';
 import { randomUUID } from 'crypto';
+import * as schema from '#src/infrastructure/db/schema.js';
+import type { DrizzleDb } from '#src/infrastructure/db/client.js';
 
 const SCHEMA_STATEMENTS = [
   `CREATE TABLE "User" (
@@ -12,15 +15,15 @@ const SCHEMA_STATEMENTS = [
     "name" TEXT,
     "timezone" TEXT,
     "targetRole" TEXT,
-    "emailVerifiedAt" DATETIME,
+    "emailVerifiedAt" INTEGER,
     "avatarKey" TEXT,
     "weeklyDigestEnabled" INTEGER NOT NULL DEFAULT 1,
-    "lastDigestSentAt" DATETIME,
+    "lastDigestSentAt" INTEGER,
     "followUpRemindersEnabled" INTEGER NOT NULL DEFAULT 1,
     "totpSecret" TEXT,
     "totpEnabled" INTEGER NOT NULL DEFAULT 0,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "createdAt" INTEGER NOT NULL,
+    "updatedAt" INTEGER NOT NULL
   )`,
   `CREATE TABLE "ApiToken" (
     "id" TEXT PRIMARY KEY,
@@ -28,8 +31,8 @@ const SCHEMA_STATEMENTS = [
     "name" TEXT NOT NULL,
     "tokenHash" TEXT NOT NULL UNIQUE,
     "scope" TEXT NOT NULL DEFAULT 'full',
-    "lastUsedAt" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastUsedAt" INTEGER,
+    "createdAt" INTEGER NOT NULL,
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "ApiToken_userId_idx" ON "ApiToken"("userId")`,
@@ -38,7 +41,7 @@ const SCHEMA_STATEMENTS = [
     "userId" TEXT NOT NULL,
     "ipAddress" TEXT,
     "userAgent" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" INTEGER NOT NULL,
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "LoginEvent_userId_idx" ON "LoginEvent"("userId")`,
@@ -52,13 +55,13 @@ const SCHEMA_STATEMENTS = [
     "location" TEXT,
     "salaryRange" TEXT,
     "description" TEXT,
-    "appliedAt" DATETIME,
+    "appliedAt" INTEGER,
     "starred" INTEGER NOT NULL DEFAULT 0,
     "source" TEXT,
-    "followUpAt" DATETIME,
-    "reminderSentAt" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "followUpAt" INTEGER,
+    "reminderSentAt" INTEGER,
+    "createdAt" INTEGER NOT NULL,
+    "updatedAt" INTEGER NOT NULL,
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "JobApplication_userId_idx" ON "JobApplication"("userId")`,
@@ -67,13 +70,13 @@ const SCHEMA_STATEMENTS = [
     "id" TEXT PRIMARY KEY,
     "applicationId" TEXT NOT NULL,
     "type" TEXT NOT NULL DEFAULT 'other',
-    "scheduledAt" DATETIME,
-    "completedAt" DATETIME,
+    "scheduledAt" INTEGER,
+    "completedAt" INTEGER,
     "interviewerName" TEXT,
     "notes" TEXT,
     "outcome" TEXT NOT NULL DEFAULT 'pending',
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" INTEGER NOT NULL,
+    "updatedAt" INTEGER NOT NULL,
     FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "InterviewRound_applicationId_idx" ON "InterviewRound"("applicationId")`,
@@ -83,7 +86,7 @@ const SCHEMA_STATEMENTS = [
     "actorId" TEXT NOT NULL,
     "eventType" TEXT NOT NULL,
     "payload" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" INTEGER NOT NULL,
     FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "ActivityLog_applicationId_idx" ON "ActivityLog"("applicationId")`,
@@ -91,8 +94,8 @@ const SCHEMA_STATEMENTS = [
     "id" TEXT PRIMARY KEY,
     "applicationId" TEXT NOT NULL,
     "content" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" INTEGER NOT NULL,
+    "updatedAt" INTEGER NOT NULL,
     FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "Note_applicationId_idx" ON "Note"("applicationId")`,
@@ -105,7 +108,7 @@ const SCHEMA_STATEMENTS = [
     "storageKey" TEXT NOT NULL UNIQUE,
     "documentType" TEXT NOT NULL DEFAULT 'other',
     "version" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" INTEGER NOT NULL,
     FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "Document_applicationId_idx" ON "Document"("applicationId")`,
@@ -126,8 +129,8 @@ const SCHEMA_STATEMENTS = [
     "phone" TEXT,
     "linkedinUrl" TEXT,
     "notes" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" INTEGER NOT NULL,
+    "updatedAt" INTEGER NOT NULL,
     FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "Contact_applicationId_idx" ON "Contact"("applicationId")`,
@@ -136,10 +139,10 @@ const SCHEMA_STATEMENTS = [
     "userId" TEXT NOT NULL,
     "userAgent" TEXT,
     "ipAddress" TEXT,
-    "lastUsedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "expiresAt" DATETIME NOT NULL,
-    "revokedAt" DATETIME,
+    "lastUsedAt" INTEGER NOT NULL,
+    "createdAt" INTEGER NOT NULL,
+    "expiresAt" INTEGER NOT NULL,
+    "revokedAt" INTEGER,
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "Session_userId_idx" ON "Session"("userId")`,
@@ -148,9 +151,9 @@ const SCHEMA_STATEMENTS = [
     "userId" TEXT NOT NULL,
     "tokenHash" TEXT NOT NULL UNIQUE,
     "newEmail" TEXT,
-    "expiresAt" DATETIME NOT NULL,
-    "usedAt" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expiresAt" INTEGER NOT NULL,
+    "usedAt" INTEGER,
+    "createdAt" INTEGER NOT NULL,
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "EmailVerificationToken_userId_idx" ON "EmailVerificationToken"("userId")`,
@@ -158,8 +161,8 @@ const SCHEMA_STATEMENTS = [
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,
     "codeHash" TEXT NOT NULL UNIQUE,
-    "usedAt" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "usedAt" INTEGER,
+    "createdAt" INTEGER NOT NULL,
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "TotpBackupCode_userId_idx" ON "TotpBackupCode"("userId")`,
@@ -167,9 +170,9 @@ const SCHEMA_STATEMENTS = [
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,
     "tokenHash" TEXT NOT NULL UNIQUE,
-    "expiresAt" DATETIME NOT NULL,
-    "usedAt" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expiresAt" INTEGER NOT NULL,
+    "usedAt" INTEGER,
+    "createdAt" INTEGER NOT NULL,
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "PasswordResetToken_userId_idx" ON "PasswordResetToken"("userId")`,
@@ -179,7 +182,7 @@ const SCHEMA_STATEMENTS = [
     "provider" TEXT NOT NULL,
     "providerAccountId" TEXT NOT NULL,
     "email" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" INTEGER NOT NULL,
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "OAuthAccount_userId_idx" ON "OAuthAccount"("userId")`,
@@ -187,23 +190,25 @@ const SCHEMA_STATEMENTS = [
 ];
 
 export interface TestDb {
-  prisma: PrismaClient;
+  db: DrizzleDb;
   cleanup: () => Promise<void>;
 }
 
 export async function createTestDb(): Promise<TestDb> {
-  const dbPath = join(process.cwd(), `prisma/test-${randomUUID()}.db`);
-  const adapter = new PrismaLibSql({ url: `file:${dbPath}` });
-  const prisma = new PrismaClient({ adapter, log: [] });
+  const dbPath = join(tmpdir(), `job-finder-test-${randomUUID()}.db`);
+  const client = createClient({ url: `file:${dbPath}` });
+  await client.execute('PRAGMA foreign_keys = ON');
 
   for (const stmt of SCHEMA_STATEMENTS) {
-    await prisma.$executeRawUnsafe(stmt);
+    await client.execute(stmt);
   }
 
+  const db = drizzle(client, { schema }) as DrizzleDb;
+
   return {
-    prisma,
+    db,
     cleanup: async () => {
-      await prisma.$disconnect();
+      client.close();
       if (existsSync(dbPath)) unlinkSync(dbPath);
     },
   };

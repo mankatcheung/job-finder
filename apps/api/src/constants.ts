@@ -272,7 +272,7 @@ export const DURATIONS_MS = {
   WEEK: 7 * 24 * 60 * 60 * 1000, // weekly-digest window — 7 days
 } as const;
 
-/** Reminder-eligibility windows, in milliseconds (used by the Prisma query). */
+/** Reminder-eligibility windows, in milliseconds (used by the application-repository query). */
 export const REMINDER_WINDOW_MS = {
   DUE_WITHIN: 24 * 60 * 60 * 1000, // send when followUpAt is within 24h
   RESEND_AFTER: 23 * 60 * 60 * 1000, // don't resend within 23h
