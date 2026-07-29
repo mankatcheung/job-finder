@@ -1,0 +1,20 @@
+name: Setup project
+# Run actions/checkout@v4 BEFORE this action — local composite actions cannot be
+# resolved without the repo checked out first.
+#
+description: Install pnpm, setup Node.js, install dependencies
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v4
+      with:
+        version: 11.17.0
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 24
+        cache: pnpm
+
+    - run: pnpm install --frozen-lockfile
+      shell: bash

@@ -13,14 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.17.0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
+      - uses: ./.github/actions/setup-project
 
       - name: Restore Turbo cache
         uses: actions/cache@v4
@@ -29,7 +22,6 @@ jobs:
           key: turbo-lint-${{ runner.os }}-${{ github.sha }}
           restore-keys: turbo-lint-${{ runner.os }}-
 
-      - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm format:check
 
@@ -39,14 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.17.0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
+      - uses: ./.github/actions/setup-project
 
       - name: Restore Turbo cache
         uses: actions/cache@v4
@@ -55,7 +40,6 @@ jobs:
           key: turbo-typecheck-${{ runner.os }}-${{ github.sha }}
           restore-keys: turbo-typecheck-${{ runner.os }}-
 
-      - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
 
   build:
@@ -64,14 +48,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.17.0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
+      - uses: ./.github/actions/setup-project
 
       - name: Restore Turbo cache
         uses: actions/cache@v4
@@ -80,7 +57,6 @@ jobs:
           key: turbo-build-${{ runner.os }}-${{ github.sha }}
           restore-keys: turbo-build-${{ runner.os }}-
 
-      - run: pnpm install --frozen-lockfile
       - run: pnpm build
 
   test:
@@ -89,14 +65,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.17.0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
+      - uses: ./.github/actions/setup-project
 
       - name: Restore Turbo cache
         uses: actions/cache@v4
@@ -105,5 +74,4 @@ jobs:
           key: turbo-test-${{ runner.os }}-${{ github.sha }}
           restore-keys: turbo-test-${{ runner.os }}-
 
-      - run: pnpm install --frozen-lockfile
       - run: pnpm test

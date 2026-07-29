@@ -1,9 +1,13 @@
 name: Deploy web (Vercel)
 
-# Same CLI-driven pattern as deploy-api.yml: `test` gates `deploy`, which
-# runs the actual build in this CI environment (`vercel build`) and uploads
-# the result (`vercel deploy --prebuilt`) rather than using Vercel's own
-# GitHub integration.
+# Deploys apps/web to Vercel via the Vercel CLI instead of Vercel's own
+# GitHub integration. Runs the exact build ourselves (`vercel build`) and
+# uploads the result (`vercel deploy --prebuilt`), rather than letting
+# Vercel's cloud build run un-reviewed.
+#
+# A lightweight `test` job gates the deploy. It runs only web-scoped tests
+# (not the full suite) and uses Turbo cache — CI.yml runs the full suite
+# independently on every push.
 #
 # IMPORTANT: every `vercel` command below runs from the repo root, NOT
 # `apps/web`. Per Vercel's own monorepo docs ("Vercel CLI should not be
@@ -57,25 +61,25 @@ on:
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - '.github/workflows/deploy-web.yml'
+      - '.github/actions/setup-project/**'
+      - '.github/actions/vercel-deploy-production/**'
 
 jobs:
   test:
-    name: Test web
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.17.0
+      - uses: ./.github/actions/setup-project
 
-      - uses: actions/setup-node@v4
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
         with:
-          node-version: 24
-          cache: pnpm
+          path: .turbo
+          key: turbo-test-web-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-test-web-${{ runner.os }}-
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @job-finder/web typecheck
       - run: pnpm --filter @job-finder/web test
 
   deploy:
@@ -85,38 +89,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/setup-project
+
+      - uses: ./.github/actions/vercel-deploy-production
         with:
-          version: 11.17.0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
-
-      - name: Pull Vercel project settings & env vars
-        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
-
-      - name: Build (runs in this CI environment, not Vercel's cloud build)
-        run: vercel build --prod --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
-
-      - name: Deploy prebuilt output to Vercel
-        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
