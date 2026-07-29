@@ -13,12 +13,21 @@ try {
   // no .env file present (e.g. CI) — env vars are expected to already be set
 }
 
+const databaseUrl = process.env.DATABASE_URL ?? 'file:./local.db';
+const isLocalFile = databaseUrl.startsWith('file:');
+
+// drizzle-kit's 'turso' dialect requires an authToken even though local file:
+// URLs don't actually use it. Provide a harmless local-only token so the same
+// config works for both local SQLite files and remote Turso databases.
+const localCredentials = { url: databaseUrl, authToken: 'local' };
+const remoteCredentials = {
+  url: databaseUrl,
+  authToken: process.env.DATABASE_AUTH_TOKEN,
+};
+
 export default defineConfig({
   dialect: 'turso',
   schema: path.join('src', 'infrastructure', 'db', 'schema.ts'),
   out: path.join('drizzle'),
-  dbCredentials: {
-    url: process.env.DATABASE_URL ?? 'file:./local.db',
-    authToken: process.env.DATABASE_AUTH_TOKEN,
-  },
+  dbCredentials: isLocalFile ? localCredentials : remoteCredentials,
 });

@@ -13,6 +13,7 @@ const client = createClient({
 // libsql does not enforce foreign keys by default; ON DELETE CASCADE in the
 // schema silently no-ops without this, leaving orphaned rows behind.
 await client.execute('PRAGMA foreign_keys = ON');
+console.log('Database connected');
 
 export const db = drizzle(client, { schema });
 
