@@ -2,7 +2,6 @@ import type { FastifyInstance } from 'fastify';
 import { createReadStream } from 'fs';
 import { stat } from 'fs/promises';
 import { join } from 'path';
-import { ENV } from '#src/constants.js';
 
 export async function registerUploadRoutes(fastify: FastifyInstance): Promise<void> {
   const uploadDir = join(process.cwd(), 'uploads');
