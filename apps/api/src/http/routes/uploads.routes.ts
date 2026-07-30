@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { createReadStream } from 'fs';
-import { stat } from 'fs/promises';
-import { join } from 'path';
+import { stat, writeFile, mkdir } from 'fs/promises';
+import { join, dirname } from 'path';
 
 export async function registerUploadRoutes(fastify: FastifyInstance): Promise<void> {
   const uploadDir = join(process.cwd(), 'uploads');
@@ -25,19 +25,12 @@ export async function registerUploadRoutes(fastify: FastifyInstance): Promise<vo
     const filePath = join(uploadDir, key);
 
     try {
-      const data = await request.file();
-      if (!data) {
-        return reply.code(400).send({ error: 'No file provided' });
-      }
-
-      const { writeFile, mkdir } = await import('fs/promises');
-      const { dirname } = await import('path');
-      await mkdir(dirname(filePath), { recursive: true });
-
       const chunks: Buffer[] = [];
-      for await (const chunk of data.file) {
-        chunks.push(chunk);
+      for await (const chunk of request.raw) {
+        chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
       }
+
+      await mkdir(dirname(filePath), { recursive: true });
       await writeFile(filePath, Buffer.concat(chunks));
 
       return reply.code(200).send({ success: true, key });
