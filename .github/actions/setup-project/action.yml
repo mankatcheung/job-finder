@@ -1,31 +1,19 @@
 name: Setup project
-description: Checkout, install pnpm, setup Node.js, install dependencies
-
-inputs:
-  ref:
-    description: Git ref to checkout (defaults to PR head for pull_request events)
-    default: ''
-  node-version:
-    description: Node.js version
-    default: '24'
-  pnpm-version:
-    description: pnpm version
-    default: '11.17.0'
+# Run actions/checkout@v4 BEFORE this action — local composite actions cannot be
+# resolved without the repo checked out first.
+#
+description: Install pnpm, setup Node.js, install dependencies
 
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.ref != '' && inputs.ref || github.event.pull_request.head.sha }}
-
     - uses: pnpm/action-setup@v4
       with:
-        version: ${{ inputs.pnpm-version }}
+        version: 11.17.0
 
     - uses: actions/setup-node@v4
       with:
-        node-version: ${{ inputs.node-version }}
+        node-version: 24
         cache: pnpm
 
     - run: pnpm install --frozen-lockfile
