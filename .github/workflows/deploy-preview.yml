@@ -31,8 +31,11 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened, closed]
   workflow_dispatch:
-  push:
-    branches: [feat/preview-workflow]
+    inputs:
+      pr-number:
+        description: 'PR number (for manual trigger)'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -43,7 +46,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DB_NAME: job-finder-preview-pr-${{ github.event.pull_request.number }}
+  DB_NAME: job-finder-preview-pr-${{ github.event.pull_request.number || inputs.pr-number || github.run_id }}
 
 jobs:
   checks:
