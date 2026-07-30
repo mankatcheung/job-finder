@@ -1,36 +1,41 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ParseJobDescriptionUseCase } from '#src/use-cases/jobDescription/ParseJobDescriptionUseCase.js';
-import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
+import { makeLLMProvider, makeLLMProviderFactory } from '#src/__tests__/helpers/mocks.js';
+import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
-
-function makeLLMProvider(response: string): ILLMProvider {
-  return { complete: vi.fn().mockResolvedValue(response) };
-}
 
 function makeSourceResolver(text: string): IJobPostingSourceResolver {
   return { resolve: vi.fn().mockResolvedValue(text) };
 }
 
 describe('ParseJobDescriptionUseCase', () => {
-  let llmProvider: ILLMProvider;
+  let llmProviderFactory: ILLMProviderFactory;
   let jobPostingSourceResolver: IJobPostingSourceResolver;
 
   beforeEach(() => {
-    llmProvider = makeLLMProvider(
-      JSON.stringify({
-        company: 'Acme Corp',
-        role: 'Senior Engineer',
-        location: 'Remote',
-        salary: '$140k–$180k',
-        description: 'Build distributed systems.',
-      }),
-    );
+    llmProviderFactory = makeLLMProviderFactory({
+      forUser: vi.fn().mockResolvedValue(
+        makeLLMProvider(
+          JSON.stringify({
+            company: 'Acme Corp',
+            role: 'Senior Engineer',
+            location: 'Remote',
+            salary: '$140k–$180k',
+            description: 'Build distributed systems.',
+          }),
+        ),
+      ),
+    });
     jobPostingSourceResolver = makeSourceResolver('We are Acme Corp looking for a Senior Engineer');
   });
 
   it('extracts fields from raw text', async () => {
-    const useCase = new ParseJobDescriptionUseCase({ llmProvider, jobPostingSourceResolver });
+    const useCase = new ParseJobDescriptionUseCase({
+      llmProviderFactory,
+      jobPostingSourceResolver,
+    });
     const result = await useCase.execute({
+      userId: 'user-1',
       text: 'We are Acme Corp looking for a Senior Engineer',
     });
 
@@ -41,23 +46,36 @@ describe('ParseJobDescriptionUseCase', () => {
       salary: '$140k–$180k',
       description: 'Build distributed systems.',
     });
-    expect(llmProvider.complete).toHaveBeenCalledOnce();
   });
 
   it('strips markdown code fences from LLM response', async () => {
-    llmProvider = makeLLMProvider(
-      '```json\n{"company":"Acme","role":"SWE","location":null,"salary":null,"description":null}\n```',
-    );
-    const useCase = new ParseJobDescriptionUseCase({ llmProvider, jobPostingSourceResolver });
-    const result = await useCase.execute({ text: 'job posting' });
+    llmProviderFactory = makeLLMProviderFactory({
+      forUser: vi
+        .fn()
+        .mockResolvedValue(
+          makeLLMProvider(
+            '```json\n{"company":"Acme","role":"SWE","location":null,"salary":null,"description":null}\n```',
+          ),
+        ),
+    });
+    const useCase = new ParseJobDescriptionUseCase({
+      llmProviderFactory,
+      jobPostingSourceResolver,
+    });
+    const result = await useCase.execute({ userId: 'user-1', text: 'job posting' });
     expect(result.company).toBe('Acme');
     expect(result.role).toBe('SWE');
   });
 
   it('returns all-null result when LLM returns invalid JSON', async () => {
-    llmProvider = makeLLMProvider('Sorry, I cannot parse this.');
-    const useCase = new ParseJobDescriptionUseCase({ llmProvider, jobPostingSourceResolver });
-    const result = await useCase.execute({ text: 'some text' });
+    llmProviderFactory = makeLLMProviderFactory({
+      forUser: vi.fn().mockResolvedValue(makeLLMProvider('Sorry, I cannot parse this.')),
+    });
+    const useCase = new ParseJobDescriptionUseCase({
+      llmProviderFactory,
+      jobPostingSourceResolver,
+    });
+    const result = await useCase.execute({ userId: 'user-1', text: 'some text' });
     expect(result).toEqual({
       company: null,
       role: null,
@@ -67,20 +85,41 @@ describe('ParseJobDescriptionUseCase', () => {
     });
   });
 
+  it('throws AI_NOT_CONFIGURED when the user has no LLM API key set up', async () => {
+    llmProviderFactory = makeLLMProviderFactory({ forUser: vi.fn().mockResolvedValue(null) });
+    const useCase = new ParseJobDescriptionUseCase({
+      llmProviderFactory,
+      jobPostingSourceResolver,
+    });
+
+    const err = await useCase.execute({ userId: 'user-1', text: 'some text' }).catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('AI_NOT_CONFIGURED');
+    expect(jobPostingSourceResolver.resolve).not.toHaveBeenCalled();
+  });
+
   it('throws when neither text nor url is provided', async () => {
     jobPostingSourceResolver = {
       resolve: vi.fn().mockRejectedValue(new Error('Either text or url must be provided')),
     };
-    const useCase = new ParseJobDescriptionUseCase({ llmProvider, jobPostingSourceResolver });
-    await expect(useCase.execute({})).rejects.toThrow('Either text or url must be provided');
+    const useCase = new ParseJobDescriptionUseCase({
+      llmProviderFactory,
+      jobPostingSourceResolver,
+    });
+    await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow(
+      'Either text or url must be provided',
+    );
   });
 
   it('throws when text is empty string', async () => {
     jobPostingSourceResolver = {
       resolve: vi.fn().mockRejectedValue(new Error('Either text or url must be provided')),
     };
-    const useCase = new ParseJobDescriptionUseCase({ llmProvider, jobPostingSourceResolver });
-    await expect(useCase.execute({ text: '   ' })).rejects.toThrow(
+    const useCase = new ParseJobDescriptionUseCase({
+      llmProviderFactory,
+      jobPostingSourceResolver,
+    });
+    await expect(useCase.execute({ userId: 'user-1', text: '   ' })).rejects.toThrow(
       'Either text or url must be provided',
     );
   });
@@ -89,9 +128,12 @@ describe('ParseJobDescriptionUseCase', () => {
     jobPostingSourceResolver = {
       resolve: vi.fn().mockResolvedValue('   '),
     };
-    const useCase = new ParseJobDescriptionUseCase({ llmProvider, jobPostingSourceResolver });
+    const useCase = new ParseJobDescriptionUseCase({
+      llmProviderFactory,
+      jobPostingSourceResolver,
+    });
 
-    const err = await useCase.execute({ text: '   ' }).catch((e) => e);
+    const err = await useCase.execute({ userId: 'user-1', text: '   ' }).catch((e) => e);
 
     expect(err).toBeInstanceOf(Error);
     expect((err as Error).message).toBe('No job description content provided');
@@ -99,14 +141,30 @@ describe('ParseJobDescriptionUseCase', () => {
   });
 
   it('fetches URL and passes text to LLM', async () => {
+    const llmProvider = makeLLMProvider(
+      JSON.stringify({
+        company: 'Acme Corp',
+        role: 'Senior Engineer',
+        location: 'Remote',
+        salary: '$140k–$180k',
+        description: 'Build distributed systems.',
+      }),
+    );
+    llmProviderFactory = makeLLMProviderFactory({
+      forUser: vi.fn().mockResolvedValue(llmProvider),
+    });
     jobPostingSourceResolver = {
       resolve: vi.fn().mockResolvedValue('Senior Engineer at Acme Corp'),
     };
 
-    const useCase = new ParseJobDescriptionUseCase({ llmProvider, jobPostingSourceResolver });
-    await useCase.execute({ url: 'https://example.com/job' });
+    const useCase = new ParseJobDescriptionUseCase({
+      llmProviderFactory,
+      jobPostingSourceResolver,
+    });
+    await useCase.execute({ userId: 'user-1', url: 'https://example.com/job' });
 
     expect(jobPostingSourceResolver.resolve).toHaveBeenCalledWith({
+      text: undefined,
       url: 'https://example.com/job',
     });
     const [messages] = (llmProvider.complete as ReturnType<typeof vi.fn>).mock.calls[0] as [
@@ -122,9 +180,12 @@ describe('ParseJobDescriptionUseCase', () => {
       resolve: vi.fn().mockRejectedValue(new Error('Failed to fetch URL: 404')),
     };
 
-    const useCase = new ParseJobDescriptionUseCase({ llmProvider, jobPostingSourceResolver });
-    await expect(useCase.execute({ url: 'https://example.com/missing' })).rejects.toThrow(
-      'Failed to fetch URL: 404',
-    );
+    const useCase = new ParseJobDescriptionUseCase({
+      llmProviderFactory,
+      jobPostingSourceResolver,
+    });
+    await expect(
+      useCase.execute({ userId: 'user-1', url: 'https://example.com/missing' }),
+    ).rejects.toThrow('Failed to fetch URL: 404');
   });
 });

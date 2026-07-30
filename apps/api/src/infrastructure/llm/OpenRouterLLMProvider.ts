@@ -1,17 +1,14 @@
 import type { ILLMProvider, LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
-import { AUTH_HEADER, ENV, LLM } from '#src/constants.js';
+import { AUTH_HEADER, LLM } from '#src/constants.js';
 
 export class OpenRouterLLMProvider implements ILLMProvider {
-  private readonly apiKey: string;
-  private readonly model: string;
-
-  constructor() {
-    this.apiKey = process.env[ENV.OPENROUTER_API_KEY] ?? '';
-    this.model = process.env[ENV.OPENROUTER_MODEL] ?? LLM.OPENROUTER_DEFAULT_MODEL;
-  }
+  constructor(
+    private readonly apiKey: string,
+    private readonly model: string = LLM.OPENROUTER_DEFAULT_MODEL,
+  ) {}
 
   async complete(messages: LLMMessage[], maxTokens = 512): Promise<string> {
-    if (!this.apiKey) throw new Error(`${ENV.OPENROUTER_API_KEY} is not set`);
+    if (!this.apiKey) throw new Error('OpenRouter API key is not set');
 
     const response = await fetch(LLM.OPENROUTER_API_URL, {
       method: 'POST',

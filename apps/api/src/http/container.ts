@@ -96,6 +96,9 @@ import { GenerateTotpSecretUseCase } from '#src/use-cases/user/GenerateTotpSecre
 import { ConfirmTotpSetupUseCase } from '#src/use-cases/user/ConfirmTotpSetupUseCase.js';
 import { DisableTotpUseCase } from '#src/use-cases/user/DisableTotpUseCase.js';
 import { GetTotpStatusUseCase } from '#src/use-cases/user/GetTotpStatusUseCase.js';
+import { SaveLlmApiKeyUseCase } from '#src/use-cases/user/SaveLlmApiKeyUseCase.js';
+import { ClearLlmApiKeyUseCase } from '#src/use-cases/user/ClearLlmApiKeyUseCase.js';
+import { GetLlmKeyStatusUseCase } from '#src/use-cases/user/GetLlmKeyStatusUseCase.js';
 import { ImportUserDataUseCase } from '#src/use-cases/user/ImportUserDataUseCase.js';
 import { GetNotificationPreferencesUseCase } from '#src/use-cases/user/GetNotificationPreferencesUseCase.js';
 import { UpdateNotificationPreferencesUseCase } from '#src/use-cases/user/UpdateNotificationPreferencesUseCase.js';
@@ -124,8 +127,8 @@ import { DeleteContactUseCase } from '#src/use-cases/contacts/DeleteContactUseCa
 import { BrevoEmailService } from '#src/infrastructure/email/BrevoEmailService.js';
 import { SendFollowUpRemindersUseCase } from '#src/use-cases/reminders/SendFollowUpRemindersUseCase.js';
 import { DrizzleTransactionManager } from '#src/infrastructure/db/DrizzleTransactionManager.js';
-import { OpenRouterLLMProvider } from '#src/infrastructure/llm/OpenRouterLLMProvider.js';
-import { GoogleAILLMProvider } from '#src/infrastructure/llm/GoogleAILLMProvider.js';
+import { LlmApiKeyCipher } from '#src/infrastructure/llm/LlmApiKeyCipher.js';
+import { UserLLMProviderFactory } from '#src/infrastructure/llm/UserLLMProviderFactory.js';
 import { ParseJobDescriptionUseCase } from '#src/use-cases/jobDescription/ParseJobDescriptionUseCase.js';
 import { FetchJobPostingSourceResolver } from '#src/infrastructure/jobDescription/FetchJobPostingSourceResolver.js';
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
@@ -138,8 +141,9 @@ import { ListSessionsUseCase } from '#src/use-cases/sessions/ListSessionsUseCase
 import { RevokeSessionUseCase } from '#src/use-cases/sessions/RevokeSessionUseCase.js';
 import { RevokeOtherSessionsUseCase } from '#src/use-cases/sessions/RevokeOtherSessionsUseCase.js';
 
-import { ENV, LLM_PROVIDER, RATE_LIMIT, STORAGE_PROVIDER } from '#src/constants.js';
-import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
+import { ENV, RATE_LIMIT, STORAGE_PROVIDER } from '#src/constants.js';
+import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
+import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 
 export interface Cradle {
@@ -244,6 +248,9 @@ export interface Cradle {
   confirmTotpSetupUseCase: ConfirmTotpSetupUseCase;
   disableTotpUseCase: DisableTotpUseCase;
   getTotpStatusUseCase: GetTotpStatusUseCase;
+  saveLlmApiKeyUseCase: SaveLlmApiKeyUseCase;
+  clearLlmApiKeyUseCase: ClearLlmApiKeyUseCase;
+  getLlmKeyStatusUseCase: GetLlmKeyStatusUseCase;
   importUserDataUseCase: ImportUserDataUseCase;
   getNotificationPreferencesUseCase: GetNotificationPreferencesUseCase;
   updateNotificationPreferencesUseCase: UpdateNotificationPreferencesUseCase;
@@ -269,7 +276,8 @@ export interface Cradle {
   emailService: BrevoEmailService;
   sendFollowUpRemindersUseCase: SendFollowUpRemindersUseCase;
   transactionManager: DrizzleTransactionManager;
-  llmProvider: ILLMProvider;
+  llmApiKeyCipher: ILlmApiKeyCipher;
+  llmProviderFactory: ILLMProviderFactory;
   jobPostingSourceResolver: IJobPostingSourceResolver;
   parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
   generateCoverLetterUseCase: GenerateCoverLetterUseCase;
@@ -287,12 +295,6 @@ const StorageProvider: StorageProviderConstructor =
   process.env[ENV.STORAGE_PROVIDER] === STORAGE_PROVIDER.VERCEL_BLOB
     ? VercelBlobStorageProvider
     : LocalStorageProvider;
-
-type LLMProviderConstructor = new () => ILLMProvider;
-const LLMProvider: LLMProviderConstructor =
-  process.env[ENV.LLM_PROVIDER] === LLM_PROVIDER.GOOGLEAI
-    ? GoogleAILLMProvider
-    : OpenRouterLLMProvider;
 
 export function buildContainer(): AwilixContainer<Cradle> {
   const container = createContainer<Cradle>();
@@ -459,6 +461,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     confirmTotpSetupUseCase: asClass(ConfirmTotpSetupUseCase, { lifetime: Lifetime.TRANSIENT }),
     disableTotpUseCase: asClass(DisableTotpUseCase, { lifetime: Lifetime.TRANSIENT }),
     getTotpStatusUseCase: asClass(GetTotpStatusUseCase, { lifetime: Lifetime.TRANSIENT }),
+    saveLlmApiKeyUseCase: asClass(SaveLlmApiKeyUseCase, { lifetime: Lifetime.TRANSIENT }),
+    clearLlmApiKeyUseCase: asClass(ClearLlmApiKeyUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getLlmKeyStatusUseCase: asClass(GetLlmKeyStatusUseCase, { lifetime: Lifetime.TRANSIENT }),
     importUserDataUseCase: asClass(ImportUserDataUseCase, { lifetime: Lifetime.TRANSIENT }),
     getNotificationPreferencesUseCase: asClass(GetNotificationPreferencesUseCase, {
       lifetime: Lifetime.TRANSIENT,
@@ -497,7 +502,8 @@ export function buildContainer(): AwilixContainer<Cradle> {
     sendFollowUpRemindersUseCase: asClass(SendFollowUpRemindersUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
-    llmProvider: asClass(LLMProvider, { lifetime: Lifetime.SINGLETON }),
+    llmApiKeyCipher: asClass(LlmApiKeyCipher, { lifetime: Lifetime.SINGLETON }),
+    llmProviderFactory: asClass(UserLLMProviderFactory, { lifetime: Lifetime.SINGLETON }),
     jobPostingSourceResolver: asClass(FetchJobPostingSourceResolver, {
       lifetime: Lifetime.SINGLETON,
     }),

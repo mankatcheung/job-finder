@@ -22,6 +22,8 @@ const SCHEMA_STATEMENTS = [
     "followUpRemindersEnabled" INTEGER NOT NULL DEFAULT 1,
     "totpSecret" TEXT,
     "totpEnabled" INTEGER NOT NULL DEFAULT 0,
+    "llmProvider" TEXT,
+    "llmApiKey" TEXT,
     "createdAt" INTEGER NOT NULL,
     "updatedAt" INTEGER NOT NULL
   )`,

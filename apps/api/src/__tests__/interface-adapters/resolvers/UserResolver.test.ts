@@ -9,6 +9,9 @@ import type { IGenerateTotpSecretUseCase } from '#src/use-cases/user/IGenerateTo
 import type { IConfirmTotpSetupUseCase } from '#src/use-cases/user/IConfirmTotpSetupUseCase.js';
 import type { IDisableTotpUseCase } from '#src/use-cases/user/IDisableTotpUseCase.js';
 import type { IGetTotpStatusUseCase } from '#src/use-cases/user/IGetTotpStatusUseCase.js';
+import type { ISaveLlmApiKeyUseCase } from '#src/use-cases/user/ISaveLlmApiKeyUseCase.js';
+import type { IClearLlmApiKeyUseCase } from '#src/use-cases/user/IClearLlmApiKeyUseCase.js';
+import type { IGetLlmKeyStatusUseCase } from '#src/use-cases/user/IGetLlmKeyStatusUseCase.js';
 import type { IImportUserDataUseCase } from '#src/use-cases/user/IImportUserDataUseCase.js';
 import type { IGetNotificationPreferencesUseCase } from '#src/use-cases/user/IGetNotificationPreferencesUseCase.js';
 import type { IUpdateNotificationPreferencesUseCase } from '#src/use-cases/user/IUpdateNotificationPreferencesUseCase.js';
@@ -42,6 +45,13 @@ const makeDeps = (overrides?: object) => ({
   }),
   disableTotpUseCase: stub<IDisableTotpUseCase>({ execute: vi.fn().mockResolvedValue(undefined) }),
   getTotpStatusUseCase: stub<IGetTotpStatusUseCase>({ execute: vi.fn() }),
+  saveLlmApiKeyUseCase: stub<ISaveLlmApiKeyUseCase>({
+    execute: vi.fn().mockResolvedValue(undefined),
+  }),
+  clearLlmApiKeyUseCase: stub<IClearLlmApiKeyUseCase>({
+    execute: vi.fn().mockResolvedValue(undefined),
+  }),
+  getLlmKeyStatusUseCase: stub<IGetLlmKeyStatusUseCase>({ execute: vi.fn() }),
   importUserDataUseCase: stub<IImportUserDataUseCase>({ execute: vi.fn() }),
   getNotificationPreferencesUseCase: stub<IGetNotificationPreferencesUseCase>({
     execute: vi.fn(),
@@ -255,6 +265,46 @@ describe('UserResolver', () => {
 
       expect(deps.getTotpStatusUseCase.execute).toHaveBeenCalledWith('user-1');
       expect(result).toBe(true);
+    });
+  });
+
+  describe('saveLlmApiKey', () => {
+    it('delegates to saveLlmApiKeyUseCase with the correct arguments', async () => {
+      const deps = makeDeps();
+
+      await new UserResolver(deps).saveLlmApiKey('user-1', 'openrouter', 'sk-123');
+
+      expect(deps.saveLlmApiKeyUseCase.execute).toHaveBeenCalledWith({
+        userId: 'user-1',
+        provider: 'openrouter',
+        apiKey: 'sk-123',
+      });
+    });
+  });
+
+  describe('clearLlmApiKey', () => {
+    it('delegates to clearLlmApiKeyUseCase', async () => {
+      const deps = makeDeps();
+
+      await new UserResolver(deps).clearLlmApiKey('user-1');
+
+      expect(deps.clearLlmApiKeyUseCase.execute).toHaveBeenCalledWith('user-1');
+    });
+  });
+
+  describe('getLlmKeyStatus', () => {
+    it('delegates to getLlmKeyStatusUseCase and returns the result', async () => {
+      const status = { configured: true, provider: 'openrouter' };
+      const deps = makeDeps({
+        getLlmKeyStatusUseCase: stub<IGetLlmKeyStatusUseCase>({
+          execute: vi.fn().mockResolvedValue(status),
+        }),
+      });
+
+      const result = await new UserResolver(deps).getLlmKeyStatus('user-1');
+
+      expect(deps.getLlmKeyStatusUseCase.execute).toHaveBeenCalledWith('user-1');
+      expect(result).toEqual(status);
     });
   });
 

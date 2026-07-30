@@ -13,6 +13,10 @@ export interface User {
   followUpRemindersEnabled: boolean;
   totpSecret: string | null;
   totpEnabled: boolean;
+  /** 'openrouter' | 'googleai' — which provider llmApiKey below is for. */
+  llmProvider: string | null;
+  /** User's own LLM API key, encrypted at rest. */
+  llmApiKey: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

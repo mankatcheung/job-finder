@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GoogleAILLMProvider } from '#src/infrastructure/llm/GoogleAILLMProvider.js';
-import { ENV, LLM } from '#src/constants.js';
+import { LLM } from '#src/constants.js';
 import type { LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
 
 const jsonResponse = (body: unknown, ok = true, status = 200) => ({
@@ -13,8 +13,6 @@ const jsonResponse = (body: unknown, ok = true, status = 200) => ({
 describe('GoogleAILLMProvider', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
-    delete process.env[ENV.GOOGLEAI_API_KEY];
-    delete process.env[ENV.GOOGLEAI_MODEL];
   });
 
   afterEach(() => {
@@ -22,27 +20,24 @@ describe('GoogleAILLMProvider', () => {
   });
 
   describe('constructor', () => {
-    it('falls back to the default model when GOOGLEAI_MODEL is not set', async () => {
-      process.env[ENV.GOOGLEAI_API_KEY] = 'test-key';
+    it('falls back to the default model when none is given', async () => {
       vi.mocked(fetch).mockResolvedValue(
         jsonResponse({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }) as never,
       );
 
-      const provider = new GoogleAILLMProvider();
+      const provider = new GoogleAILLMProvider('test-key');
       await provider.complete([{ role: 'user', content: 'hi' }]);
 
       const [url] = vi.mocked(fetch).mock.calls[0] as [string];
       expect(url).toContain(`/${LLM.GOOGLEAI_DEFAULT_MODEL}:generateContent`);
     });
 
-    it('uses GOOGLEAI_MODEL when set', async () => {
-      process.env[ENV.GOOGLEAI_API_KEY] = 'test-key';
-      process.env[ENV.GOOGLEAI_MODEL] = 'gemini-custom';
+    it('uses the given model when provided', async () => {
       vi.mocked(fetch).mockResolvedValue(
         jsonResponse({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }) as never,
       );
 
-      const provider = new GoogleAILLMProvider();
+      const provider = new GoogleAILLMProvider('test-key', 'gemini-custom');
       await provider.complete([{ role: 'user', content: 'hi' }]);
 
       const [url] = vi.mocked(fetch).mock.calls[0] as [string];
@@ -51,22 +46,21 @@ describe('GoogleAILLMProvider', () => {
   });
 
   describe('complete', () => {
-    it('throws when GOOGLEAI_API_KEY is not set', async () => {
-      const provider = new GoogleAILLMProvider();
+    it('throws when the API key is empty', async () => {
+      const provider = new GoogleAILLMProvider('');
 
       await expect(provider.complete([{ role: 'user', content: 'hi' }])).rejects.toThrow(
-        `${ENV.GOOGLEAI_API_KEY} is not set`,
+        'Google AI API key is not set',
       );
       expect(fetch).not.toHaveBeenCalled();
     });
 
     it('sends the API key as a query param and the messages as contents', async () => {
-      process.env[ENV.GOOGLEAI_API_KEY] = 'secret-key';
       vi.mocked(fetch).mockResolvedValue(
         jsonResponse({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }) as never,
       );
 
-      const provider = new GoogleAILLMProvider();
+      const provider = new GoogleAILLMProvider('secret-key');
       const messages: LLMMessage[] = [
         { role: 'system', content: 'be helpful' },
         { role: 'user', content: 'hello' },
@@ -88,12 +82,11 @@ describe('GoogleAILLMProvider', () => {
     });
 
     it('defaults maxTokens to 512 when not provided', async () => {
-      process.env[ENV.GOOGLEAI_API_KEY] = 'secret-key';
       vi.mocked(fetch).mockResolvedValue(
         jsonResponse({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }) as never,
       );
 
-      const provider = new GoogleAILLMProvider();
+      const provider = new GoogleAILLMProvider('secret-key');
       await provider.complete([{ role: 'user', content: 'hi' }]);
 
       const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
@@ -102,36 +95,33 @@ describe('GoogleAILLMProvider', () => {
     });
 
     it('returns the text from the first candidate', async () => {
-      process.env[ENV.GOOGLEAI_API_KEY] = 'secret-key';
       vi.mocked(fetch).mockResolvedValue(
         jsonResponse({
           candidates: [{ content: { parts: [{ text: 'generated response' }] } }],
         }) as never,
       );
 
-      const provider = new GoogleAILLMProvider();
+      const provider = new GoogleAILLMProvider('secret-key');
       const result = await provider.complete([{ role: 'user', content: 'hi' }]);
 
       expect(result).toBe('generated response');
     });
 
     it('returns an empty string when candidates are missing', async () => {
-      process.env[ENV.GOOGLEAI_API_KEY] = 'secret-key';
       vi.mocked(fetch).mockResolvedValue(jsonResponse({}) as never);
 
-      const provider = new GoogleAILLMProvider();
+      const provider = new GoogleAILLMProvider('secret-key');
       const result = await provider.complete([{ role: 'user', content: 'hi' }]);
 
       expect(result).toBe('');
     });
 
     it('throws with the status and body when the response is not ok', async () => {
-      process.env[ENV.GOOGLEAI_API_KEY] = 'secret-key';
       vi.mocked(fetch).mockResolvedValue(
         jsonResponse({ error: 'quota exceeded' }, false, 429) as never,
       );
 
-      const provider = new GoogleAILLMProvider();
+      const provider = new GoogleAILLMProvider('secret-key');
 
       await expect(provider.complete([{ role: 'user', content: 'hi' }])).rejects.toThrow(
         /Google AI error 429/,

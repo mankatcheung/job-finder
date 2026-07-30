@@ -1,4 +1,4 @@
-import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
+import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import { ERROR_CODES } from '#src/constants.js';
 
@@ -9,7 +9,7 @@ export interface GenerateCoverLetterInput {
 }
 
 interface Deps {
-  llmProvider: ILLMProvider;
+  llmProviderFactory: ILLMProviderFactory;
   applicationRepository: IApplicationRepository;
 }
 
@@ -27,9 +27,16 @@ export class GenerateCoverLetterUseCase {
       throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
     }
 
+    const llmProvider = await this.deps.llmProviderFactory.forUser(input.userId);
+    if (!llmProvider) {
+      throw Object.assign(new Error('Add your AI API key in Settings to use this feature'), {
+        code: ERROR_CODES.AI_NOT_CONFIGURED,
+      });
+    }
+
     const userPrompt = this.buildPrompt(app, input.resumeText);
 
-    return this.deps.llmProvider.complete(
+    return llmProvider.complete(
       [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: userPrompt },

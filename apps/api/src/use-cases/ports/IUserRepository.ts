@@ -25,6 +25,8 @@ export interface IUserRepository {
       followUpRemindersEnabled?: boolean;
       totpSecret?: string | null;
       totpEnabled?: boolean;
+      llmProvider?: string | null;
+      llmApiKey?: string | null;
     },
   ): Promise<User>;
   delete(id: string): Promise<void>;
