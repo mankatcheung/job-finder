@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { HeadContent, Link, Scripts, createRootRoute } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { TanStackDevtools } from '@tanstack/react-devtools';
@@ -13,8 +14,13 @@ export const Route = createRootRoute({
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: 'Job Finder' },
+      { name: 'theme-color', content: '#000000' },
     ],
-    links: [{ rel: 'stylesheet', href: appCss }],
+    links: [
+      { rel: 'stylesheet', href: appCss },
+      { rel: 'manifest', href: '/manifest.webmanifest' },
+      { rel: 'apple-touch-icon', href: '/logo192.png' },
+    ],
   }),
   notFoundComponent: NotFound,
   shellComponent: RootDocument,
@@ -35,6 +41,19 @@ function NotFound() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  // Registered manually with the plain browser API rather than the plugin's
+  // `virtual:pwa-register` helper or its index.html auto-injection: this
+  // file is isomorphic (rendered for both the client and server Vite
+  // environments), and vite-plugin-pwa's virtual module only resolves for
+  // the client build — importing it here breaks the server bundle. sw.js
+  // is a real static file (registerType: 'autoUpdate' means no update-prompt
+  // callbacks are needed, so the plain API loses nothing here).
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  }, []);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
