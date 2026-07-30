@@ -84,9 +84,24 @@ jobs:
 
       - run: pnpm --filter @job-finder/api db:migrate
 
+  seed-turso-db:
+    name: Seed Turso preview DB
+    needs: [provision-turso-db, migrate-turso-db]
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ needs.provision-turso-db.outputs.database-url }}
+      DATABASE_AUTH_TOKEN: ${{ needs.provision-turso-db.outputs.database-auth-token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-project
+
+      - run: pnpm --filter @job-finder/api db:seed
+
   deploy-api-preview:
     name: Deploy API preview
-    needs: [checks, provision-turso-db, migrate-turso-db]
+    needs: [checks, provision-turso-db, seed-turso-db]
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     outputs:
