@@ -171,6 +171,7 @@ jobs:
         with:
           api-url: ${{ needs.deploy-api-preview.outputs.preview-url }}
           web-url: ${{ steps.web-deploy.outputs.preview-url }}
+          pr-number: ${{ github.event.pull_request.number || inputs.pr-number }}
 
   cleanup-turso-db:
     name: Destroy Turso preview DB
