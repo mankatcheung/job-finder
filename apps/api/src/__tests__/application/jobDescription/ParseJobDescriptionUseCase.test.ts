@@ -124,6 +124,22 @@ describe('ParseJobDescriptionUseCase', () => {
     );
   });
 
+  it('throws a VALIDATION-coded error when the resolved text is blank', async () => {
+    jobPostingSourceResolver = {
+      resolve: vi.fn().mockResolvedValue('   '),
+    };
+    const useCase = new ParseJobDescriptionUseCase({
+      llmProviderFactory,
+      jobPostingSourceResolver,
+    });
+
+    const err = await useCase.execute({ userId: 'user-1', text: '   ' }).catch((e) => e);
+
+    expect(err).toBeInstanceOf(Error);
+    expect((err as Error).message).toBe('No job description content provided');
+    expect((err as { code: string }).code).toBe('VALIDATION');
+  });
+
   it('fetches URL and passes text to LLM', async () => {
     const llmProvider = makeLLMProvider(
       JSON.stringify({

@@ -93,6 +93,7 @@ describe('GenerateCoverLetterUseCase', () => {
       .execute({ applicationId: 'missing', userId: 'user-1' })
       .catch((e) => e);
 
+    expect(err).toBeInstanceOf(Error);
     expect((err as Error).message).toBe('Application not found');
     expect((err as { code: string }).code).toBe('NOT_FOUND');
   });
@@ -108,6 +109,7 @@ describe('GenerateCoverLetterUseCase', () => {
       .execute({ applicationId: 'app-1', userId: 'user-1' })
       .catch((e) => e);
 
+    expect(err).toBeInstanceOf(Error);
     expect((err as { code: string }).code).toBe('FORBIDDEN');
   });
 

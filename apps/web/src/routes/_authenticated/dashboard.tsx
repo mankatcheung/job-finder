@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
+import { ErrorState } from '#/components/ErrorState';
 import {
   AlertCircleIcon,
   BriefcaseIcon,
@@ -39,7 +40,7 @@ export const Route = createFileRoute('/_authenticated/dashboard')({
 });
 
 export function DashboardPage() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['applications'],
     queryFn: () => gqlClient.request<{ applications: Application[] }>(APPLICATIONS_QUERY),
   });
@@ -114,6 +115,8 @@ export function DashboardPage() {
               <div key={i} className="h-16 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
             ))}
           </div>
+        ) : isError ? (
+          <ErrorState error={error} onRetry={() => refetch()} />
         ) : apps.length === 0 ? (
           <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             <BriefcaseIcon size={40} className="mx-auto mb-3 opacity-40" />

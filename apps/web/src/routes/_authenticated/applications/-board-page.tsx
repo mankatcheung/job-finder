@@ -15,6 +15,7 @@ import {
 import { gqlClient } from '#/graphql/client';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { StatusBadge } from '../dashboard';
+import { ErrorState } from '#/components/ErrorState';
 import { ListIcon, StarIcon } from 'lucide-react';
 
 const APPLICATIONS_QUERY = `
@@ -66,7 +67,7 @@ export function KanbanBoard() {
   const qc = useQueryClient();
   const [activeApp, setActiveApp] = useState<Application | null>(null);
 
-  const { data } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['applications', null],
     queryFn: () => gqlClient.request<{ applications: Application[] }>(APPLICATIONS_QUERY),
   });
@@ -99,6 +100,29 @@ export function KanbanBoard() {
     if (!app || app.status === newStatus) return;
 
     updateStatus.mutate({ id: app.id, status: newStatus });
+  }
+
+  if (isLoading) {
+    return (
+      <div className="p-4 sm:p-6 min-h-screen">
+        <div className="flex gap-3 overflow-x-auto pb-4">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="flex-shrink-0 w-60 h-96 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse"
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-4 sm:p-6 min-h-screen">
+        <ErrorState error={error} onRetry={() => refetch()} />
+      </div>
+    );
   }
 
   return (

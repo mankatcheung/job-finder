@@ -20,10 +20,12 @@ export class GenerateCoverLetterUseCase {
 
   async execute(input: GenerateCoverLetterInput): Promise<string> {
     const app = await this.deps.applicationRepository.findById(input.applicationId);
-    if (!app)
+    if (!app) {
       throw Object.assign(new Error('Application not found'), { code: ERROR_CODES.NOT_FOUND });
-    if (app.userId !== input.userId)
-      throw Object.assign(new Error('Unauthorized'), { code: ERROR_CODES.FORBIDDEN });
+    }
+    if (app.userId !== input.userId) {
+      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+    }
 
     const llmProvider = await this.deps.llmProviderFactory.forUser(input.userId);
     if (!llmProvider) {

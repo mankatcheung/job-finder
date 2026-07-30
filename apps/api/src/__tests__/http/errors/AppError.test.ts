@@ -126,13 +126,12 @@ describe('fromCodedError', () => {
     expect(result.code).toBe(code);
   });
 
-  it('maps a NOT_FOUND-coded Error to a NotFoundError', () => {
-    // NotFoundError's constructor takes a *resource name*, not a full message
-    // (it appends " not found" itself) — but fromCodedError passes the raw
-    // error message straight into it, so the result reads oddly (a doubled
-    // suffix) rather than preserving the original message verbatim like the
-    // other three branches do. Documenting the actual behavior here rather
-    // than the behavior one might expect by analogy with Conflict/Unauthorized/Forbidden.
+  it('maps a NOT_FOUND-coded Error to a NotFoundError, appending " not found" when absent', () => {
+    // NotFoundError's constructor takes a *resource name* and appends
+    // " not found" itself — but only when the given message doesn't already
+    // end with it, since fromCodedError passes the raw error message straight
+    // through (use-cases across this codebase already throw messages like
+    // 'Application not found', which must not become doubled).
     const raw = Object.assign(new Error('Domain-specific message'), {
       code: ERROR_CODES.NOT_FOUND,
     });
@@ -142,6 +141,16 @@ describe('fromCodedError', () => {
     expect(result).toBeInstanceOf(NotFoundError);
     expect(result.message).toBe('Domain-specific message not found');
     expect(result.code).toBe(ERROR_CODES.NOT_FOUND);
+  });
+
+  it('does not double-append " not found" when the message already ends with it', () => {
+    const raw = Object.assign(new Error('Application not found'), {
+      code: ERROR_CODES.NOT_FOUND,
+    });
+
+    const result = fromCodedError(raw);
+
+    expect(result.message).toBe('Application not found');
   });
 
   it('falls back to a generic 500 INTERNAL_ERROR for an Error with no code', () => {

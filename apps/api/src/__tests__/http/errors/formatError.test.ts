@@ -37,10 +37,8 @@ describe('formatError', () => {
 
   it('maps a NOT_FOUND-coded error to a client-safe GraphQLError without logging', () => {
     // Use cases throughout this codebase throw `new Error('Application not
-    // found')` (message already ending in "not found") for this code. Since
-    // NotFoundError's constructor appends its own " not found" suffix,
-    // routing that message through fromCodedError doubles it — this is the
-    // actual current behavior, not something introduced by this test.
+    // found')` (message already ending in "not found") for this code.
+    // NotFoundError must not double-append its own " not found" suffix here.
     const original = Object.assign(new Error('Application not found'), {
       code: ERROR_CODES.NOT_FOUND,
     });
@@ -48,7 +46,21 @@ describe('formatError', () => {
 
     const result = formatError(wrapper);
 
-    expect(result.message).toBe('Application not found not found');
+    expect(result.message).toBe('Application not found');
+    expect(result.extensions.code).toBe(ERROR_CODES.NOT_FOUND);
+    expect(result.extensions.statusCode).toBe(404);
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+  });
+
+  it('appends " not found" for a NOT_FOUND-coded error whose message does not already end with it', () => {
+    const original = Object.assign(new Error('Application'), {
+      code: ERROR_CODES.NOT_FOUND,
+    });
+    const wrapper = new GraphQLError('wrapped', { originalError: original });
+
+    const result = formatError(wrapper);
+
+    expect(result.message).toBe('Application not found');
     expect(result.extensions.code).toBe(ERROR_CODES.NOT_FOUND);
     expect(result.extensions.statusCode).toBe(404);
     expect(consoleErrorSpy).not.toHaveBeenCalled();

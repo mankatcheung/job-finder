@@ -187,9 +187,7 @@ describe('EditApplicationPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Failed to update application. Please try again.'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
     });
     expect(mockNavigate).not.toHaveBeenCalled();
   });

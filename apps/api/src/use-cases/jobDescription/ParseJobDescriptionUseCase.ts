@@ -52,10 +52,11 @@ export class ParseJobDescriptionUseCase {
       text: input.text,
       url: input.url,
     });
-    if (!text.trim())
+    if (!text.trim()) {
       throw Object.assign(new Error('No job description content provided'), {
         code: ERROR_CODES.VALIDATION,
       });
+    }
 
     const raw = await llmProvider.complete([
       { role: 'system', content: SYSTEM_PROMPT },

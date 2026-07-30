@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { put as putBlob } from '@vercel/blob/client';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
+import { getErrorMessage } from '#/lib/errors';
+import { ErrorState } from '#/components/ErrorState';
 import { StatusBadge } from '../../dashboard';
 import {
   CalendarIcon,
@@ -101,12 +103,21 @@ export function ApplicationDetailPage() {
     'notes' | 'interviews' | 'contacts' | 'activity' | 'documents' | 'cover letter'
   >('notes');
 
-  const { data: appData } = useQuery({
+  const {
+    data: appData,
+    isError: isAppError,
+    error: appError,
+    refetch: refetchApp,
+  } = useQuery({
     queryKey: ['application', applicationId],
     queryFn: () =>
       gqlClient.request<{ application: Application }>(APPLICATION_QUERY, { id: applicationId }),
   });
-  const { data: notesData } = useQuery({
+  const {
+    data: notesData,
+    isError: isNotesError,
+    error: notesError,
+  } = useQuery({
     queryKey: ['notes', applicationId],
     queryFn: () => gqlClient.request<{ notes: Note[] }>(NOTES_QUERY, { applicationId }),
   });
@@ -156,6 +167,14 @@ export function ApplicationDetailPage() {
   const app = appData?.application;
   const notes = notesData?.notes ?? [];
   const healthScore = healthScoreData?.applicationHealthScore;
+
+  if (isAppError) {
+    return (
+      <div className="p-4 sm:p-8 max-w-3xl mx-auto">
+        <ErrorState error={appError} onRetry={() => refetchApp()} />
+      </div>
+    );
+  }
 
   if (!app)
     return (
@@ -312,6 +331,12 @@ export function ApplicationDetailPage() {
               </button>
             </div>
           </div>
+
+          {isNotesError && (
+            <p className="text-sm text-red-600 dark:text-red-400 py-2">
+              {getErrorMessage(notesError)}
+            </p>
+          )}
 
           {notes.map((note) => (
             <div

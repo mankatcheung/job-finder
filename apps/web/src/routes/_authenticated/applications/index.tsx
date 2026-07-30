@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useState, useEffect, useMemo } from 'react';
 import { gqlClient } from '#/graphql/client';
+import { ErrorState } from '#/components/ErrorState';
 import { StatusBadge } from '../dashboard';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { useBulkActions } from './-useBulkActions';
@@ -108,7 +109,16 @@ export function ApplicationsPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ['applications', 'page', status ?? null, starred ?? false, searchTerm],
     queryFn: ({ pageParam }) =>
       gqlClient.request<ApplicationsPageResult>(APPLICATIONS_PAGE_QUERY, {
@@ -219,6 +229,8 @@ export function ApplicationsPage() {
             <div key={i} className="h-20 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
           ))}
         </div>
+      ) : isError ? (
+        <ErrorState error={error} onRetry={() => refetch()} />
       ) : apps.length === 0 ? (
         <div className="text-center py-16 text-gray-500 dark:text-gray-400">
           <BriefcaseIcon size={40} className="mx-auto mb-3 opacity-40" />
