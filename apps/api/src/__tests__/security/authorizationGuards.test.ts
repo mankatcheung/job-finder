@@ -14,6 +14,7 @@ import {
   makeUserRepository,
   makeUser,
   makeEmailVerificationTokenRepository,
+  makeRateLimiter,
 } from '#src/__tests__/helpers/mocks.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 
@@ -42,8 +43,17 @@ const makeEmailChangeDeps = (overrides?: {
   userRepository: makeUserRepository(),
   emailVerificationTokenRepository,
   emailService,
+  requestEmailChangeRateLimiter: makeRateLimiter(),
   generateId: vi.fn().mockReturnValue('token-1'),
   webAppOrigin: 'https://app.example.com',
+  ...overrides,
+});
+
+const makeUpdatePasswordDeps = (overrides?: {
+  userRepository: ReturnType<typeof makeUserRepository>;
+}) => ({
+  userRepository: makeUserRepository(),
+  updatePasswordRateLimiter: makeRateLimiter(),
   ...overrides,
 });
 
@@ -65,7 +75,9 @@ describe('Authorization guards', () => {
     });
 
     it('UpdatePasswordUseCase', async () => {
-      const err = await new UpdatePasswordUseCase({ userRepository: notFound })
+      const err = await new UpdatePasswordUseCase(
+        makeUpdatePasswordDeps({ userRepository: notFound }),
+      )
         .execute({ userId: 'x', currentPassword: 'p', newPassword: 'newpassword1' })
         .catch((e) => e);
       expect((err as { code: string }).code).toBe('NOT_FOUND');
@@ -97,7 +109,7 @@ describe('Authorization guards', () => {
     });
 
     it('UpdatePasswordUseCase does not hash or update on wrong password', async () => {
-      const err = await new UpdatePasswordUseCase({ userRepository: repo })
+      const err = await new UpdatePasswordUseCase(makeUpdatePasswordDeps({ userRepository: repo }))
         .execute({ userId: 'user-1', currentPassword: 'wrong', newPassword: 'newpassword1' })
         .catch((e) => e);
 
