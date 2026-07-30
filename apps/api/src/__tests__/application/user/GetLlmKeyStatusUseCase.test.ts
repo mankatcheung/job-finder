@@ -19,7 +19,7 @@ describe('GetLlmKeyStatusUseCase', () => {
 
     const result = await new GetLlmKeyStatusUseCase({ userRepository }).execute('user-1');
 
-    expect(result).toEqual({ configured: false, provider: null });
+    expect(result).toEqual({ configured: false, provider: null, model: null, baseUrl: null });
   });
 
   it('reports configured with the provider when a key is set', async () => {
@@ -28,6 +28,30 @@ describe('GetLlmKeyStatusUseCase', () => {
 
     const result = await new GetLlmKeyStatusUseCase({ userRepository }).execute('user-1');
 
-    expect(result).toEqual({ configured: true, provider: 'openrouter' });
+    expect(result).toEqual({
+      configured: true,
+      provider: 'openrouter',
+      model: null,
+      baseUrl: null,
+    });
+  });
+
+  it('reports the stored model and base URL for a custom provider', async () => {
+    const user = makeUser({
+      llmProvider: 'custom',
+      llmApiKey: 'encrypted:key',
+      llmModel: 'my-model',
+      llmBaseUrl: 'https://my-llm.example.com/v1/chat/completions',
+    });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+
+    const result = await new GetLlmKeyStatusUseCase({ userRepository }).execute('user-1');
+
+    expect(result).toEqual({
+      configured: true,
+      provider: 'custom',
+      model: 'my-model',
+      baseUrl: 'https://my-llm.example.com/v1/chat/completions',
+    });
   });
 });

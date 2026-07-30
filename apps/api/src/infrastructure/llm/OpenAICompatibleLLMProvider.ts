@@ -1,16 +1,23 @@
 import type { ILLMProvider, LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
-import { AUTH_HEADER, LLM } from '#src/constants.js';
+import { AUTH_HEADER } from '#src/constants.js';
 
-export class OpenRouterLLMProvider implements ILLMProvider {
+/**
+ * Covers every provider that implements OpenAI's `/chat/completions` request
+ * and response shape — OpenAI itself, OpenRouter, Mistral, Groq, xAI,
+ * DeepSeek, and any user-supplied custom endpoint. Only the base URL and
+ * default model differ between them, which the caller supplies.
+ */
+export class OpenAICompatibleLLMProvider implements ILLMProvider {
   constructor(
     private readonly apiKey: string,
-    private readonly model: string = LLM.OPENROUTER_DEFAULT_MODEL,
+    private readonly baseUrl: string,
+    private readonly model: string,
   ) {}
 
   async complete(messages: LLMMessage[], maxTokens = 512): Promise<string> {
-    if (!this.apiKey) throw new Error('OpenRouter API key is not set');
+    if (!this.apiKey) throw new Error('API key is not set');
 
-    const response = await fetch(LLM.OPENROUTER_API_URL, {
+    const response = await fetch(this.baseUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -21,7 +28,7 @@ export class OpenRouterLLMProvider implements ILLMProvider {
 
     if (!response.ok) {
       const body = await response.text();
-      throw new Error(`OpenRouter error ${response.status}: ${body}`);
+      throw new Error(`LLM provider error ${response.status}: ${body}`);
     }
 
     const json = (await response.json()) as {

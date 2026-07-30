@@ -54,6 +54,120 @@ describe('SaveLlmApiKeyUseCase', () => {
     expect(userRepository.update).toHaveBeenCalledWith('user-1', {
       llmProvider: 'googleai',
       llmApiKey: 'encrypted:sk-123',
+      llmModel: null,
+      llmBaseUrl: null,
+    });
+  });
+
+  it('persists an optional model override for a named provider', async () => {
+    const user = makeUser();
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(user),
+      update: vi.fn().mockResolvedValue(user),
+    });
+    const llmApiKeyCipher = makeLlmApiKeyCipher();
+
+    await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher }).execute({
+      userId: 'user-1',
+      provider: 'openai',
+      apiKey: 'sk-123',
+      model: 'gpt-4o',
+    });
+
+    expect(userRepository.update).toHaveBeenCalledWith('user-1', {
+      llmProvider: 'openai',
+      llmApiKey: 'encrypted:sk-123',
+      llmModel: 'gpt-4o',
+      llmBaseUrl: null,
+    });
+  });
+
+  it('throws VALIDATION when a baseUrl is given for a named (non-custom) provider', async () => {
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(makeUser()),
+    });
+    const llmApiKeyCipher = makeLlmApiKeyCipher();
+
+    const err = await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher })
+      .execute({
+        userId: 'user-1',
+        provider: 'openai',
+        apiKey: 'sk-123',
+        baseUrl: 'https://example.com',
+      })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('VALIDATION');
+  });
+
+  it('throws VALIDATION when the custom provider is missing a base URL', async () => {
+    const userRepository = makeUserRepository();
+    const llmApiKeyCipher = makeLlmApiKeyCipher();
+
+    const err = await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher })
+      .execute({ userId: 'user-1', provider: 'custom', apiKey: 'sk-123', model: 'some-model' })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('VALIDATION');
+    expect((err as Error).message).toMatch(/base URL is required/);
+  });
+
+  it('throws VALIDATION when the custom provider base URL is malformed', async () => {
+    const userRepository = makeUserRepository();
+    const llmApiKeyCipher = makeLlmApiKeyCipher();
+
+    const err = await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher })
+      .execute({
+        userId: 'user-1',
+        provider: 'custom',
+        apiKey: 'sk-123',
+        model: 'some-model',
+        baseUrl: 'not-a-url',
+      })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('VALIDATION');
+    expect((err as Error).message).toMatch(/valid http/);
+  });
+
+  it('throws VALIDATION when the custom provider is missing a model', async () => {
+    const userRepository = makeUserRepository();
+    const llmApiKeyCipher = makeLlmApiKeyCipher();
+
+    const err = await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher })
+      .execute({
+        userId: 'user-1',
+        provider: 'custom',
+        apiKey: 'sk-123',
+        baseUrl: 'https://my-llm.example.com/v1/chat/completions',
+      })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('VALIDATION');
+    expect((err as Error).message).toMatch(/model is required/);
+  });
+
+  it('persists baseUrl and model for a valid custom provider', async () => {
+    const user = makeUser();
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(user),
+      update: vi.fn().mockResolvedValue(user),
+    });
+    const llmApiKeyCipher = makeLlmApiKeyCipher();
+
+    await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher }).execute({
+      userId: 'user-1',
+      provider: 'custom',
+      apiKey: 'sk-123',
+      model: 'my-model',
+      baseUrl: 'https://my-llm.example.com/v1/chat/completions',
+    });
+
+    expect(userRepository.update).toHaveBeenCalledWith('user-1', {
+      llmProvider: 'custom',
+      llmApiKey: 'encrypted:sk-123',
+      llmModel: 'my-model',
+      llmBaseUrl: 'https://my-llm.example.com/v1/chat/completions',
     });
   });
 });

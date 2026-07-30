@@ -168,13 +168,21 @@ builder.mutationField('saveLlmApiKey', (t) =>
     args: {
       provider: t.arg.string({ required: true }),
       apiKey: t.arg.string({ required: true }),
+      model: t.arg.string({ required: false }),
+      baseUrl: t.arg.string({ required: false }),
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { userResolver } = ctx.diScope.cradle;
       try {
-        await userResolver.saveLlmApiKey(ctx.user.sub, args.provider, args.apiKey);
+        await userResolver.saveLlmApiKey(
+          ctx.user.sub,
+          args.provider,
+          args.apiKey,
+          args.model,
+          args.baseUrl,
+        );
         return true;
       } catch (err) {
         throw fromCodedError(err);

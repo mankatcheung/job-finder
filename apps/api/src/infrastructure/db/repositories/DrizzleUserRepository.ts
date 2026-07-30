@@ -58,6 +58,8 @@ export class DrizzleUserRepository implements IUserRepository {
       totpEnabled?: boolean;
       llmProvider?: string | null;
       llmApiKey?: string | null;
+      llmModel?: string | null;
+      llmBaseUrl?: string | null;
     },
   ): Promise<User> {
     const [row] = await this.db
@@ -93,6 +95,8 @@ export class DrizzleUserRepository implements IUserRepository {
       totpEnabled: row.totpEnabled,
       llmProvider: row.llmProvider,
       llmApiKey: row.llmApiKey,
+      llmModel: row.llmModel,
+      llmBaseUrl: row.llmBaseUrl,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

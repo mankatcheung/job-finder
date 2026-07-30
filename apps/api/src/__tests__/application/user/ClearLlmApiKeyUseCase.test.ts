@@ -13,8 +13,13 @@ describe('ClearLlmApiKeyUseCase', () => {
     expect((err as { code: string }).code).toBe('NOT_FOUND');
   });
 
-  it('clears the provider and key', async () => {
-    const user = makeUser({ llmProvider: 'openrouter', llmApiKey: 'encrypted:key' });
+  it('clears the provider, key, model, and base URL', async () => {
+    const user = makeUser({
+      llmProvider: 'custom',
+      llmApiKey: 'encrypted:key',
+      llmModel: 'my-model',
+      llmBaseUrl: 'https://my-llm.example.com/v1/chat/completions',
+    });
     const userRepository = makeUserRepository({
       findById: vi.fn().mockResolvedValue(user),
       update: vi.fn().mockResolvedValue(user),
@@ -25,6 +30,8 @@ describe('ClearLlmApiKeyUseCase', () => {
     expect(userRepository.update).toHaveBeenCalledWith('user-1', {
       llmProvider: null,
       llmApiKey: null,
+      llmModel: null,
+      llmBaseUrl: null,
     });
   });
 });
