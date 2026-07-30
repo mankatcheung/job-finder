@@ -8,8 +8,12 @@ export default fp(async function corsPlugin(fastify: FastifyInstance) {
   await fastify.register(cors, {
     origin: (origin, cb) => {
       if (!origin) return cb(null, true);
+      // Allow browser extension requests
       if (origin.startsWith('chrome-extension://')) return cb(null, true);
+      // Allow explicit origins from CORS_ORIGIN env var (comma-separated)
       if (allowedOrigins.includes(origin)) return cb(null, true);
+      // Allow Vercel preview deployments (*.vercel.app)
+      if (origin.endsWith('.vercel.app')) return cb(null, true);
       cb(new Error('Not allowed by CORS'), false);
     },
     credentials: true,
