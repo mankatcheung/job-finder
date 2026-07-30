@@ -19,6 +19,7 @@ import {
   KeyboardIcon,
   LayoutDashboardIcon,
   LogOutIcon,
+  MessageCircleIcon,
   MonitorIcon,
   MoonIcon,
   SunIcon,
@@ -160,6 +161,12 @@ export function AuthenticatedLayout() {
             label="Analytics"
             active={pathname.startsWith('/analytics')}
           />
+          <NavItem
+            to="/assistant"
+            icon={<MessageCircleIcon size={18} />}
+            label="Assistant"
+            active={pathname.startsWith('/assistant')}
+          />
         </nav>
 
         <div className="px-3 pb-2 space-y-1">
@@ -216,6 +223,12 @@ export function AuthenticatedLayout() {
           icon={<BarChart2Icon size={20} />}
           label="Analytics"
           active={pathname.startsWith('/analytics')}
+        />
+        <BottomNavItem
+          to="/assistant"
+          icon={<MessageCircleIcon size={20} />}
+          label="Assistant"
+          active={pathname.startsWith('/assistant')}
         />
         <BottomNavItem
           to="/account"

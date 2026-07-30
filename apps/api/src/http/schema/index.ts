@@ -55,5 +55,6 @@ import './mutations/jobDescriptionMutations.js';
 import './mutations/coverLetterMutations.js';
 import './mutations/sessionMutations.js';
 import './mutations/oauthMutations.js';
+import './mutations/chatMutations.js';
 
 export const schema = builder.toSchema();

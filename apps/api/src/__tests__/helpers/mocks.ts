@@ -410,6 +410,7 @@ export const makeOAuthProviderRegistry = (
 
 export const makeLLMProvider = (response = 'llm response'): ILLMProvider => ({
   complete: vi.fn().mockResolvedValue(response),
+  completeWithTools: vi.fn().mockResolvedValue({ content: response, toolCalls: [] }),
 });
 
 export const makeLLMProviderFactory = (

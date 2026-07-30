@@ -140,6 +140,7 @@ import { TouchSessionUseCase } from '#src/use-cases/sessions/TouchSessionUseCase
 import { ListSessionsUseCase } from '#src/use-cases/sessions/ListSessionsUseCase.js';
 import { RevokeSessionUseCase } from '#src/use-cases/sessions/RevokeSessionUseCase.js';
 import { RevokeOtherSessionsUseCase } from '#src/use-cases/sessions/RevokeOtherSessionsUseCase.js';
+import { ChatWithAssistantUseCase } from '#src/use-cases/chat/ChatWithAssistantUseCase.js';
 
 import { ENV, RATE_LIMIT, STORAGE_PROVIDER } from '#src/constants.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
@@ -177,6 +178,7 @@ export interface Cradle {
   emailVerificationTokenRepository: DrizzleEmailVerificationTokenRepository;
   totpBackupCodeRepository: DrizzleTotpBackupCodeRepository;
   totpRateLimiter: IRateLimiter;
+  chatRateLimiter: IRateLimiter;
   totpProvider: ITotpProvider;
   oauthAccountRepository: DrizzleOAuthAccountRepository;
   googleOAuthProvider: IOAuthProvider;
@@ -282,6 +284,7 @@ export interface Cradle {
   parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
   generateCoverLetterUseCase: GenerateCoverLetterUseCase;
   computeHealthScoreUseCase: ComputeHealthScoreUseCase;
+  chatWithAssistantUseCase: ChatWithAssistantUseCase;
   sendWeeklyDigestUseCase: SendWeeklyDigestUseCase;
   createSessionUseCase: CreateSessionUseCase;
   touchSessionUseCase: TouchSessionUseCase;
@@ -355,6 +358,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
         RATE_LIMIT.TOTP_VERIFICATION.MAX_ATTEMPTS,
         RATE_LIMIT.TOTP_VERIFICATION.WINDOW_MS,
       ),
+    ),
+    chatRateLimiter: asValue(
+      new RateLimiter(RATE_LIMIT.CHAT_MESSAGE.MAX_ATTEMPTS, RATE_LIMIT.CHAT_MESSAGE.WINDOW_MS),
     ),
     totpProvider: asClass(TotpProvider, { lifetime: Lifetime.SINGLETON }),
     oauthAccountRepository: asClass(DrizzleOAuthAccountRepository, {
@@ -514,6 +520,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
       lifetime: Lifetime.TRANSIENT,
     }),
     computeHealthScoreUseCase: asClass(ComputeHealthScoreUseCase, { lifetime: Lifetime.TRANSIENT }),
+    chatWithAssistantUseCase: asClass(ChatWithAssistantUseCase, { lifetime: Lifetime.TRANSIENT }),
     sendWeeklyDigestUseCase: asClass(SendWeeklyDigestUseCase, { lifetime: Lifetime.TRANSIENT }),
     createSessionUseCase: asClass(CreateSessionUseCase, { lifetime: Lifetime.TRANSIENT }),
     touchSessionUseCase: asClass(TouchSessionUseCase, { lifetime: Lifetime.TRANSIENT }),

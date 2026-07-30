@@ -1,5 +1,21 @@
-import type { ILLMProvider, LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
+import type {
+  ILLMProvider,
+  LLMMessage,
+  LLMToolDefinition,
+  LLMCompletionResult,
+  LLMToolCall,
+} from '#src/use-cases/ports/ILLMProvider.js';
 import { LLM } from '#src/constants.js';
+
+interface GoogleAIPart {
+  text?: string;
+  functionCall?: { name: string; args?: Record<string, unknown> };
+  functionResponse?: { name: string; response: Record<string, unknown> };
+}
+
+interface GoogleAIWireResponse {
+  candidates?: Array<{ content?: { parts?: GoogleAIPart[] } }>;
+}
 
 export class GoogleAILLMProvider implements ILLMProvider {
   constructor(
@@ -15,26 +31,103 @@ export class GoogleAILLMProvider implements ILLMProvider {
       parts: [{ text: m.content }],
     }));
 
+    const json = await this.post({
+      contents,
+      generationConfig: { maxOutputTokens: maxTokens },
+    });
+
+    return json.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+  }
+
+  async completeWithTools(
+    messages: LLMMessage[],
+    tools: LLMToolDefinition[],
+    maxTokens = 512,
+  ): Promise<LLMCompletionResult> {
+    if (!this.apiKey) throw new Error('Google AI API key is not set');
+
+    const systemInstruction = messages
+      .filter((m) => m.role === 'system')
+      .map((m) => m.content)
+      .join('\n\n');
+
+    // Gemini's functionResponse is keyed by function name, not an opaque call
+    // id — recover the name from the assistant message that requested it.
+    const idToName = new Map<string, string>();
+    for (const m of messages) {
+      if (m.role === 'assistant' && m.toolCalls) {
+        for (const tc of m.toolCalls) idToName.set(tc.id, tc.name);
+      }
+    }
+
+    const contents = messages
+      .filter((m) => m.role !== 'system')
+      .map((m) => this.toWireContent(m, idToName));
+
+    const json = await this.post({
+      contents,
+      ...(systemInstruction ? { systemInstruction: { parts: [{ text: systemInstruction }] } } : {}),
+      tools: [
+        {
+          functionDeclarations: tools.map((t) => ({
+            name: t.name,
+            description: t.description,
+            parameters: t.parameters,
+          })),
+        },
+      ],
+      generationConfig: { maxOutputTokens: maxTokens },
+    });
+
+    const parts = json.candidates?.[0]?.content?.parts ?? [];
+    const text = parts.find((p) => p.text !== undefined)?.text ?? null;
+    const toolCalls: LLMToolCall[] = parts
+      .filter((p): p is { functionCall: { name: string; args?: Record<string, unknown> } } =>
+        Boolean(p.functionCall),
+      )
+      .map((p, i) => ({
+        id: `${p.functionCall.name}-${i}`,
+        name: p.functionCall.name,
+        arguments: p.functionCall.args ?? {},
+      }));
+
+    return { content: text, toolCalls };
+  }
+
+  private toWireContent(
+    m: LLMMessage,
+    idToName: Map<string, string>,
+  ): { role: string; parts: GoogleAIPart[] } {
+    if (m.role === 'tool') {
+      const name = idToName.get(m.toolCallId ?? '') ?? m.toolCallId ?? '';
+      return {
+        role: 'function',
+        parts: [{ functionResponse: { name, response: { content: m.content } } }],
+      };
+    }
+    if (m.role === 'assistant' && m.toolCalls?.length) {
+      return {
+        role: 'model',
+        parts: m.toolCalls.map((tc) => ({ functionCall: { name: tc.name, args: tc.arguments } })),
+      };
+    }
+    return { role: m.role === 'assistant' ? 'model' : m.role, parts: [{ text: m.content }] };
+  }
+
+  private async post(body: Record<string, unknown>): Promise<GoogleAIWireResponse> {
     const url = `${LLM.GOOGLEAI_API_URL}/${this.model}:generateContent?key=${this.apiKey}`;
 
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents,
-        generationConfig: { maxOutputTokens: maxTokens },
-      }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
-      const body = await response.text();
-      throw new Error(`Google AI error ${response.status}: ${body}`);
+      const text = await response.text();
+      throw new Error(`Google AI error ${response.status}: ${text}`);
     }
 
-    const json = (await response.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text: string }> } }>;
-    };
-
-    return json.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    return response.json() as Promise<GoogleAIWireResponse>;
   }
 }

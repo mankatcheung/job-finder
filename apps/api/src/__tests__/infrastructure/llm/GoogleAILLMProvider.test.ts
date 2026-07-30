@@ -128,4 +128,127 @@ describe('GoogleAILLMProvider', () => {
       );
     });
   });
+
+  describe('completeWithTools', () => {
+    const TOOLS = [
+      {
+        name: 'list_applications',
+        description: 'List applications',
+        parameters: { type: 'object' },
+      },
+    ];
+
+    it('sends tool definitions in the Gemini functionDeclarations shape', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }) as never,
+      );
+
+      const provider = new GoogleAILLMProvider('secret-key');
+      await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.tools).toEqual([
+        {
+          functionDeclarations: [
+            {
+              name: 'list_applications',
+              description: 'List applications',
+              parameters: { type: 'object' },
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('moves the system message to a top-level systemInstruction field', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }) as never,
+      );
+
+      const provider = new GoogleAILLMProvider('secret-key');
+      await provider.completeWithTools(
+        [
+          { role: 'system', content: 'be helpful' },
+          { role: 'user', content: 'hello' },
+        ],
+        TOOLS,
+      );
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.systemInstruction).toEqual({ parts: [{ text: 'be helpful' }] });
+      expect(body.contents).toEqual([{ role: 'user', parts: [{ text: 'hello' }] }]);
+    });
+
+    it('parses a functionCall part from the response', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  { functionCall: { name: 'list_applications', args: { status: 'applied' } } },
+                ],
+              },
+            },
+          ],
+        }) as never,
+      );
+
+      const provider = new GoogleAILLMProvider('secret-key');
+      const result = await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
+
+      expect(result.content).toBeNull();
+      expect(result.toolCalls).toEqual([
+        { id: 'list_applications-0', name: 'list_applications', arguments: { status: 'applied' } },
+      ]);
+    });
+
+    it('returns an empty toolCalls array when the response has only text', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ candidates: [{ content: { parts: [{ text: 'plain answer' }] } }] }) as never,
+      );
+
+      const provider = new GoogleAILLMProvider('secret-key');
+      const result = await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
+
+      expect(result).toEqual({ content: 'plain answer', toolCalls: [] });
+    });
+
+    it('serializes an assistant tool-call request as a model functionCall part and a tool result by function name', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ candidates: [{ content: { parts: [{ text: 'done' }] } }] }) as never,
+      );
+
+      const provider = new GoogleAILLMProvider('secret-key');
+      const messages: LLMMessage[] = [
+        { role: 'user', content: 'which apps need follow up?' },
+        {
+          role: 'assistant',
+          content: '',
+          toolCalls: [
+            {
+              id: 'list_applications-0',
+              name: 'list_applications',
+              arguments: { status: 'applied' },
+            },
+          ],
+        },
+        { role: 'tool', content: '[]', toolCallId: 'list_applications-0' },
+      ];
+      await provider.completeWithTools(messages, TOOLS);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.contents[1]).toEqual({
+        role: 'model',
+        parts: [{ functionCall: { name: 'list_applications', args: { status: 'applied' } } }],
+      });
+      expect(body.contents[2]).toEqual({
+        role: 'function',
+        parts: [{ functionResponse: { name: 'list_applications', response: { content: '[]' } } }],
+      });
+    });
+  });
 });
