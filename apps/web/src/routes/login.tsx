@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { gqlClient, hydrateSession, setAccessToken } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
+import { getErrorMessage } from '#/lib/errors';
 
 const schema = z.object({
   email: z.string().email('Invalid email'),
@@ -77,8 +78,7 @@ export function LoginPage() {
       await queryClient.resetQueries();
       await navigate({ to: '/dashboard' });
     } catch (err: unknown) {
-      const msg = extractGqlError(err) ?? 'Login failed. Please try again.';
-      setError('root', { message: msg });
+      setError('root', { message: getErrorMessage(err) });
     }
   };
 
@@ -181,8 +181,7 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
       await queryClient.resetQueries();
       await navigate({ to: '/dashboard' });
     } catch (err: unknown) {
-      const msg = extractGqlError(err) ?? 'Invalid code. Please try again.';
-      setError('root', { message: msg });
+      setError('root', { message: getErrorMessage(err) });
     }
   };
 
@@ -234,12 +233,4 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
       </div>
     </div>
   );
-}
-
-function extractGqlError(err: unknown): string | null {
-  if (typeof err === 'object' && err !== null && 'response' in err) {
-    const r = (err as { response?: { errors?: Array<{ message?: string }> } }).response;
-    return r?.errors?.[0]?.message ?? null;
-  }
-  return null;
 }

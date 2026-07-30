@@ -129,7 +129,9 @@ describe('LoginPage', () => {
 
   it('displays API error message on login failure', async () => {
     mockGqlRequest.mockRejectedValue({
-      response: { errors: [{ message: 'Invalid credentials' }] },
+      response: {
+        errors: [{ message: 'Invalid credentials', extensions: { code: 'UNAUTHORIZED' } }],
+      },
     });
     render(<LoginPage />);
     await fillCredentials('test@example.com', 'password123');
@@ -146,7 +148,7 @@ describe('LoginPage', () => {
     await fillCredentials('test@example.com', 'password123');
 
     await waitFor(() => {
-      expect(screen.getByText('Login failed. Please try again.')).toBeInTheDocument();
+      expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
     });
   });
 
@@ -192,7 +194,9 @@ describe('LoginPage', () => {
       await waitFor(() => screen.getByPlaceholderText('123456'));
 
       mockGqlRequest.mockRejectedValueOnce({
-        response: { errors: [{ message: 'Invalid verification code' }] },
+        response: {
+          errors: [{ message: 'Invalid verification code', extensions: { code: 'UNAUTHORIZED' } }],
+        },
       });
       fireEvent.change(screen.getByPlaceholderText('123456'), { target: { value: '000000' } });
       fireEvent.click(screen.getByRole('button', { name: /verify/i }));

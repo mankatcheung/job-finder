@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
+import { getErrorMessage } from '#/lib/errors';
 import { StarIcon, XIcon } from 'lucide-react';
 import { JdImportPanel } from '../-components/JdImportPanel';
 
@@ -127,8 +128,8 @@ export function EditApplicationPage() {
       await queryClient.invalidateQueries({ queryKey: ['applications'] });
       await queryClient.invalidateQueries({ queryKey: ['application', applicationId] });
       await navigate({ to: '/applications/$applicationId', params: { applicationId } });
-    } catch {
-      setError('root', { message: 'Failed to update application. Please try again.' });
+    } catch (err) {
+      setError('root', { message: getErrorMessage(err) });
     }
   };
 

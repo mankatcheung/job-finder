@@ -109,9 +109,7 @@ describe('NewApplicationPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Failed to create application. Please try again.'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
     });
     expect(mockNavigate).not.toHaveBeenCalled();
   });

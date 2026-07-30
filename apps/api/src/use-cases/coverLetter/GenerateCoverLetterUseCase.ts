@@ -1,5 +1,6 @@
 import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 export interface GenerateCoverLetterInput {
   applicationId: string;
@@ -19,8 +20,12 @@ export class GenerateCoverLetterUseCase {
 
   async execute(input: GenerateCoverLetterInput): Promise<string> {
     const app = await this.deps.applicationRepository.findById(input.applicationId);
-    if (!app) throw new Error('Application not found');
-    if (app.userId !== input.userId) throw new Error('Unauthorized');
+    if (!app) {
+      throw Object.assign(new Error('Application not found'), { code: ERROR_CODES.NOT_FOUND });
+    }
+    if (app.userId !== input.userId) {
+      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+    }
 
     const userPrompt = this.buildPrompt(app, input.resumeText);
 
