@@ -30,6 +30,9 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, closed]
+  workflow_dispatch:
+  push:
+    branches: [feat/preview-workflow]
 
 permissions:
   contents: read
