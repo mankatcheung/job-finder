@@ -53,7 +53,7 @@ runs:
           -H "Authorization: Bearer $TURSO_API_TOKEN" \
           -H "Content-Type: application/json" \
           -H "Accept: application/json")
-        DATABASE_AUTH_TOKEN=$(echo "$API_RESPONSE" | jq -r '.token // empty')
+        DATABASE_AUTH_TOKEN=$(echo "$API_RESPONSE" | jq -r '.jwt // empty')
         if [ -z "$DATABASE_AUTH_TOKEN" ]; then
           echo "Failed to create Turso auth token. Response: $API_RESPONSE"
           exit 1
