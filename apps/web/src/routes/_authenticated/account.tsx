@@ -180,6 +180,27 @@ const DISABLE_TOTP = `
   }
 `;
 
+const LLM_KEY_STATUS_QUERY = `
+  query LlmKeyStatus {
+    llmKeyStatus {
+      configured
+      provider
+    }
+  }
+`;
+
+const SAVE_LLM_API_KEY = `
+  mutation SaveLlmApiKey($provider: String!, $apiKey: String!) {
+    saveLlmApiKey(provider: $provider, apiKey: $apiKey)
+  }
+`;
+
+const CLEAR_LLM_API_KEY = `
+  mutation ClearLlmApiKey {
+    clearLlmApiKey
+  }
+`;
+
 const LINKED_OAUTH_ACCOUNTS_QUERY = `
   query LinkedOAuthAccounts {
     linkedOAuthAccounts {
@@ -236,6 +257,11 @@ const totpDisableSchema = z.object({
   password: z.string().min(1, 'Required'),
 });
 
+const llmApiKeySchema = z.object({
+  provider: z.enum(['openrouter', 'googleai']),
+  apiKey: z.string().min(1, 'Required'),
+});
+
 type ProfileForm = z.infer<typeof profileSchema>;
 type EmailForm = z.infer<typeof emailSchema>;
 type PasswordForm = z.infer<typeof passwordSchema>;
@@ -243,8 +269,16 @@ type DeleteForm = z.infer<typeof deleteSchema>;
 type TotpBeginForm = z.infer<typeof totpBeginSchema>;
 type TotpConfirmForm = z.infer<typeof totpConfirmSchema>;
 type TotpDisableForm = z.infer<typeof totpDisableSchema>;
+type LlmApiKeyForm = z.infer<typeof llmApiKeySchema>;
 
 type TotpSetup = { secret: string; otpauthUrl: string; qrCodeDataUrl: string };
+
+type LlmKeyStatus = { configured: boolean; provider: string | null };
+
+const LLM_PROVIDER_LABEL: Record<string, string> = {
+  openrouter: 'OpenRouter',
+  googleai: 'Google AI',
+};
 
 interface LoginEvent {
   id: string;
@@ -542,6 +576,45 @@ export function AccountPage() {
       totpDisableForm.setError('root', {
         message: extractGqlError(err) ?? 'Failed to disable two-factor authentication.',
       });
+    }
+  };
+
+  // AI API key (bring-your-own-key for cover letter / job description features)
+  const { data: llmKeyStatusData } = useQuery({
+    queryKey: ['llmKeyStatus'],
+    queryFn: () => gqlClient.request<{ llmKeyStatus: LlmKeyStatus }>(LLM_KEY_STATUS_QUERY),
+  });
+  const llmKeyStatus = llmKeyStatusData?.llmKeyStatus;
+
+  const llmApiKeyForm = useForm<LlmApiKeyForm>({
+    resolver: zodResolver(llmApiKeySchema),
+    defaultValues: { provider: 'openrouter', apiKey: '' },
+  });
+  const onSaveLlmApiKey = async (data: LlmApiKeyForm) => {
+    try {
+      await gqlClient.request(SAVE_LLM_API_KEY, data);
+      llmApiKeyForm.reset({ provider: data.provider, apiKey: '' });
+      await qc.invalidateQueries({ queryKey: ['llmKeyStatus'] });
+    } catch (err) {
+      llmApiKeyForm.setError('root', {
+        message: extractGqlError(err) ?? 'Failed to save API key.',
+      });
+    }
+  };
+
+  const [clearingLlmKey, setClearingLlmKey] = useState(false);
+  const [clearLlmKeyError, setClearLlmKeyError] = useState<string | null>(null);
+  const onClearLlmApiKey = async () => {
+    setClearingLlmKey(true);
+    setClearLlmKeyError(null);
+    try {
+      await gqlClient.request(CLEAR_LLM_API_KEY);
+      llmApiKeyForm.reset({ provider: 'openrouter', apiKey: '' });
+      await qc.invalidateQueries({ queryKey: ['llmKeyStatus'] });
+    } catch (err) {
+      setClearLlmKeyError(extractGqlError(err) ?? 'Failed to remove API key.');
+    } finally {
+      setClearingLlmKey(false);
     }
   };
 
@@ -1095,6 +1168,78 @@ export function AccountPage() {
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
             >
               {totpBeginForm.formState.isSubmitting ? 'Starting…' : 'Enable 2FA'}
+            </button>
+          </form>
+        )}
+      </section>
+
+      <hr className="border-gray-200 dark:border-gray-700" />
+
+      {/* ── AI features ── */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">AI features</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Add your own OpenRouter or Google AI API key to enable cover letter generation and job
+            description auto-fill. job-finder doesn&apos;t provide a shared key — these features
+            stay off until you add one.
+          </p>
+        </div>
+
+        {llmKeyStatus?.configured ? (
+          <div className="space-y-3">
+            <p className="text-sm text-green-600">
+              AI features are enabled using{' '}
+              {LLM_PROVIDER_LABEL[llmKeyStatus.provider ?? ''] ?? llmKeyStatus.provider}.
+            </p>
+            {clearLlmKeyError && (
+              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+                {clearLlmKeyError}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={onClearLlmApiKey}
+              disabled={clearingLlmKey}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              {clearingLlmKey ? 'Removing…' : 'Remove key'}
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={llmApiKeyForm.handleSubmit(onSaveLlmApiKey)} className="space-y-3">
+            <div>
+              <label className={labelCls}>Provider</label>
+              <select {...llmApiKeyForm.register('provider')} className={inputCls}>
+                <option value="openrouter">OpenRouter</option>
+                <option value="googleai">Google AI</option>
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>API key</label>
+              <input
+                type="password"
+                {...llmApiKeyForm.register('apiKey')}
+                className={inputCls}
+                placeholder="sk-…"
+              />
+              {llmApiKeyForm.formState.errors.apiKey && (
+                <p className="mt-1 text-xs text-red-600">
+                  {llmApiKeyForm.formState.errors.apiKey.message}
+                </p>
+              )}
+            </div>
+            {llmApiKeyForm.formState.errors.root && (
+              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+                {llmApiKeyForm.formState.errors.root.message}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={llmApiKeyForm.formState.isSubmitting}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              {llmApiKeyForm.formState.isSubmitting ? 'Saving…' : 'Save key'}
             </button>
           </form>
         )}

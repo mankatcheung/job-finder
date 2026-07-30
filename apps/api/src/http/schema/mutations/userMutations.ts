@@ -163,6 +163,42 @@ builder.mutationField('disableTotp', (t) =>
   }),
 );
 
+builder.mutationField('saveLlmApiKey', (t) =>
+  t.boolean({
+    args: {
+      provider: t.arg.string({ required: true }),
+      apiKey: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        await userResolver.saveLlmApiKey(ctx.user.sub, args.provider, args.apiKey);
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
+builder.mutationField('clearLlmApiKey', (t) =>
+  t.boolean({
+    resolve: async (_root, _args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        await userResolver.clearLlmApiKey(ctx.user.sub);
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
 builder.mutationField('importUserData', (t) =>
   t.field({
     type: ImportSummaryRef,

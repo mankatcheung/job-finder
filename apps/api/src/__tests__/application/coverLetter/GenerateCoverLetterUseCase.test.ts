@@ -1,13 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GenerateCoverLetterUseCase } from '#src/use-cases/coverLetter/GenerateCoverLetterUseCase.js';
-import { makeApplicationRepository, makeApplication } from '#src/__tests__/helpers/mocks.js';
-import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
+import {
+  makeApplicationRepository,
+  makeApplication,
+  makeLLMProvider,
+  makeLLMProviderFactory,
+} from '#src/__tests__/helpers/mocks.js';
 
 const COVER_LETTER = 'Dear Hiring Manager,\n\nI am excited to apply…\n\nSincerely,\nJane';
-
-function makeLLMProvider(response = COVER_LETTER): ILLMProvider {
-  return { complete: vi.fn().mockResolvedValue(response) };
-}
 
 describe('GenerateCoverLetterUseCase', () => {
   it('returns the LLM response as the cover letter', async () => {
@@ -15,11 +15,14 @@ describe('GenerateCoverLetterUseCase', () => {
     const applicationRepository = makeApplicationRepository({
       findById: vi.fn().mockResolvedValue(app),
     });
-    const llmProvider = makeLLMProvider();
+    const llmProvider = makeLLMProvider(COVER_LETTER);
+    const llmProviderFactory = makeLLMProviderFactory({
+      forUser: vi.fn().mockResolvedValue(llmProvider),
+    });
 
     const result = await new GenerateCoverLetterUseCase({
       applicationRepository,
-      llmProvider,
+      llmProviderFactory,
     }).execute({
       applicationId: 'app-1',
       userId: 'user-1',
@@ -35,8 +38,11 @@ describe('GenerateCoverLetterUseCase', () => {
       findById: vi.fn().mockResolvedValue(app),
     });
     const llmProvider = makeLLMProvider();
+    const llmProviderFactory = makeLLMProviderFactory({
+      forUser: vi.fn().mockResolvedValue(llmProvider),
+    });
 
-    await new GenerateCoverLetterUseCase({ applicationRepository, llmProvider }).execute({
+    await new GenerateCoverLetterUseCase({ applicationRepository, llmProviderFactory }).execute({
       applicationId: 'app-1',
       userId: 'user-1',
       resumeText: '5 years at BigCorp building APIs',
@@ -59,8 +65,11 @@ describe('GenerateCoverLetterUseCase', () => {
       findById: vi.fn().mockResolvedValue(app),
     });
     const llmProvider = makeLLMProvider();
+    const llmProviderFactory = makeLLMProviderFactory({
+      forUser: vi.fn().mockResolvedValue(llmProvider),
+    });
 
-    await new GenerateCoverLetterUseCase({ applicationRepository, llmProvider }).execute({
+    await new GenerateCoverLetterUseCase({ applicationRepository, llmProviderFactory }).execute({
       applicationId: 'app-1',
       userId: 'user-1',
     });
@@ -74,32 +83,45 @@ describe('GenerateCoverLetterUseCase', () => {
     expect(userMessage.content).toContain('Payments infra role');
   });
 
-  it('throws when application is not found', async () => {
+  it('throws NOT_FOUND when application is not found', async () => {
     const applicationRepository = makeApplicationRepository({
       findById: vi.fn().mockResolvedValue(null),
     });
-    const llmProvider = makeLLMProvider();
+    const llmProviderFactory = makeLLMProviderFactory();
 
-    await expect(
-      new GenerateCoverLetterUseCase({ applicationRepository, llmProvider }).execute({
-        applicationId: 'missing',
-        userId: 'user-1',
-      }),
-    ).rejects.toThrow('Application not found');
+    const err = await new GenerateCoverLetterUseCase({ applicationRepository, llmProviderFactory })
+      .execute({ applicationId: 'missing', userId: 'user-1' })
+      .catch((e) => e);
+
+    expect((err as Error).message).toBe('Application not found');
+    expect((err as { code: string }).code).toBe('NOT_FOUND');
   });
 
-  it('throws when application belongs to a different user', async () => {
+  it('throws FORBIDDEN when application belongs to a different user', async () => {
     const app = makeApplication({ userId: 'user-2' });
     const applicationRepository = makeApplicationRepository({
       findById: vi.fn().mockResolvedValue(app),
     });
-    const llmProvider = makeLLMProvider();
+    const llmProviderFactory = makeLLMProviderFactory();
 
-    await expect(
-      new GenerateCoverLetterUseCase({ applicationRepository, llmProvider }).execute({
-        applicationId: 'app-1',
-        userId: 'user-1',
-      }),
-    ).rejects.toThrow('Unauthorized');
+    const err = await new GenerateCoverLetterUseCase({ applicationRepository, llmProviderFactory })
+      .execute({ applicationId: 'app-1', userId: 'user-1' })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('FORBIDDEN');
+  });
+
+  it('throws AI_NOT_CONFIGURED when the user has no LLM API key set up', async () => {
+    const app = makeApplication();
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(app),
+    });
+    const llmProviderFactory = makeLLMProviderFactory({ forUser: vi.fn().mockResolvedValue(null) });
+
+    const err = await new GenerateCoverLetterUseCase({ applicationRepository, llmProviderFactory })
+      .execute({ applicationId: 'app-1', userId: 'user-1' })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('AI_NOT_CONFIGURED');
   });
 });

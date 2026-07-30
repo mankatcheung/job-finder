@@ -53,6 +53,12 @@ export class ServiceUnavailableError extends AppError {
   }
 }
 
+export class AiNotConfiguredError extends AppError {
+  constructor(message = 'Add your AI API key in Settings to use this feature') {
+    super(message, 400, ERROR_CODES.AI_NOT_CONFIGURED);
+  }
+}
+
 export function fromCodedError(err: unknown): AppError {
   if (err instanceof AppError) return err;
   if (err instanceof Error) {
@@ -72,6 +78,8 @@ export function fromCodedError(err: unknown): AppError {
         return new RateLimitedError(err.message);
       case ERROR_CODES.SERVICE_UNAVAILABLE:
         return new ServiceUnavailableError(err.message);
+      case ERROR_CODES.AI_NOT_CONFIGURED:
+        return new AiNotConfiguredError(err.message);
     }
   }
   return new AppError('Internal server error', 500, ERROR_CODES.INTERNAL_ERROR);

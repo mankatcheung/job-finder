@@ -16,6 +16,12 @@ import type {
 } from '#src/use-cases/user/IConfirmTotpSetupUseCase.js';
 import type { IDisableTotpUseCase } from '#src/use-cases/user/IDisableTotpUseCase.js';
 import type { IGetTotpStatusUseCase } from '#src/use-cases/user/IGetTotpStatusUseCase.js';
+import type { ISaveLlmApiKeyUseCase } from '#src/use-cases/user/ISaveLlmApiKeyUseCase.js';
+import type { IClearLlmApiKeyUseCase } from '#src/use-cases/user/IClearLlmApiKeyUseCase.js';
+import type {
+  IGetLlmKeyStatusUseCase,
+  LlmKeyStatus,
+} from '#src/use-cases/user/IGetLlmKeyStatusUseCase.js';
 import type {
   IImportUserDataUseCase,
   ImportSummary,
@@ -46,6 +52,9 @@ interface Deps {
   confirmTotpSetupUseCase: IConfirmTotpSetupUseCase;
   disableTotpUseCase: IDisableTotpUseCase;
   getTotpStatusUseCase: IGetTotpStatusUseCase;
+  saveLlmApiKeyUseCase: ISaveLlmApiKeyUseCase;
+  clearLlmApiKeyUseCase: IClearLlmApiKeyUseCase;
+  getLlmKeyStatusUseCase: IGetLlmKeyStatusUseCase;
   importUserDataUseCase: IImportUserDataUseCase;
   getNotificationPreferencesUseCase: IGetNotificationPreferencesUseCase;
   updateNotificationPreferencesUseCase: IUpdateNotificationPreferencesUseCase;
@@ -103,6 +112,18 @@ export class UserResolver {
 
   async getTotpStatus(userId: string): Promise<boolean> {
     return this.deps.getTotpStatusUseCase.execute(userId);
+  }
+
+  async saveLlmApiKey(userId: string, provider: string, apiKey: string): Promise<void> {
+    await this.deps.saveLlmApiKeyUseCase.execute({ userId, provider, apiKey });
+  }
+
+  async clearLlmApiKey(userId: string): Promise<void> {
+    await this.deps.clearLlmApiKeyUseCase.execute(userId);
+  }
+
+  async getLlmKeyStatus(userId: string): Promise<LlmKeyStatus> {
+    return this.deps.getLlmKeyStatusUseCase.execute(userId);
   }
 
   async importUserData(userId: string, rawData: string): Promise<ImportSummary> {

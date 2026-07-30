@@ -33,6 +33,9 @@ import type { IOAuthAccountRepository } from '#src/use-cases/ports/IOAuthAccount
 import type { IOAuthProvider } from '#src/use-cases/ports/IOAuthProvider.js';
 import type { IOAuthProviderRegistry } from '#src/use-cases/ports/IOAuthProviderRegistry.js';
 import type { OAuthAccount } from '#src/domain/oauthAccount/OAuthAccount.js';
+import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
+import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
+import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
 
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
@@ -269,6 +272,8 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   followUpRemindersEnabled: true,
   totpSecret: null,
   totpEnabled: false,
+  llmProvider: null,
+  llmApiKey: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,
@@ -398,5 +403,22 @@ export const makeOAuthProviderRegistry = (
   overrides?: Partial<IOAuthProviderRegistry>,
 ): IOAuthProviderRegistry => ({
   get: vi.fn().mockReturnValue(makeOAuthProvider()),
+  ...overrides,
+});
+
+export const makeLLMProvider = (response = 'llm response'): ILLMProvider => ({
+  complete: vi.fn().mockResolvedValue(response),
+});
+
+export const makeLLMProviderFactory = (
+  overrides?: Partial<ILLMProviderFactory>,
+): ILLMProviderFactory => ({
+  forUser: vi.fn().mockResolvedValue(makeLLMProvider()),
+  ...overrides,
+});
+
+export const makeLlmApiKeyCipher = (overrides?: Partial<ILlmApiKeyCipher>): ILlmApiKeyCipher => ({
+  encrypt: vi.fn((plaintext: string) => `encrypted:${plaintext}`),
+  decrypt: vi.fn((ciphertext: string) => ciphertext.replace(/^encrypted:/, '')),
   ...overrides,
 });

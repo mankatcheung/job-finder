@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
+import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { SparklesIcon } from 'lucide-react';
 
 const PARSE_JD_MUTATION = `
@@ -29,10 +31,12 @@ export function JdImportPanel({ onFill }: Props) {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiNotConfigured, setAiNotConfigured] = useState(false);
   const [filled, setFilled] = useState(false);
 
   const handleAutoFill = async () => {
     setError(null);
+    setAiNotConfigured(false);
     setFilled(false);
     setLoading(true);
     try {
@@ -45,7 +49,11 @@ export function JdImportPanel({ onFill }: Props) {
       setFilled(true);
       setTimeout(() => setOpen(false), 800);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to parse job description');
+      if (getGqlErrorCode(err) === AI_NOT_CONFIGURED_CODE) {
+        setAiNotConfigured(true);
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to parse job description');
+      }
     } finally {
       setLoading(false);
     }
@@ -111,6 +119,15 @@ export function JdImportPanel({ onFill }: Props) {
           )}
 
           {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+          {aiNotConfigured && (
+            <p className="text-xs text-red-600 dark:text-red-400">
+              Add your AI API key in{' '}
+              <Link to="/account" className="underline">
+                Account settings
+              </Link>{' '}
+              to use this feature.
+            </p>
+          )}
 
           <button
             type="button"

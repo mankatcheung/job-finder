@@ -16,6 +16,10 @@ export const user = sqliteTable('User', {
     .default(true),
   totpSecret: text('totpSecret'),
   totpEnabled: integer('totpEnabled', { mode: 'boolean' }).notNull().default(false),
+  /** 'openrouter' | 'googleai' — which provider the user's own key below is for. */
+  llmProvider: text('llmProvider'),
+  /** User's own LLM API key, encrypted at rest (never returned to the client). */
+  llmApiKey: text('llmApiKey'),
   createdAt: integer('createdAt', { mode: 'timestamp_ms' })
     .notNull()
     .$defaultFn(() => new Date()),

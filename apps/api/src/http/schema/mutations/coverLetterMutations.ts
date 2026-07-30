@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
+import { fromCodedError } from '#src/http/errors/AppError.js';
 import { ERROR_CODES } from '#src/constants.js';
 
 builder.mutationField('generateCoverLetter', (t) =>
@@ -20,7 +21,7 @@ builder.mutationField('generateCoverLetter', (t) =>
           resumeText: args.resumeText,
         });
       } catch (err) {
-        throw new GraphQLError((err as Error).message ?? 'Failed to generate cover letter');
+        throw fromCodedError(err);
       }
     },
   }),

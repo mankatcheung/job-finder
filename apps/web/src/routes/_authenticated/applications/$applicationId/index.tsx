@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { put as putBlob } from '@vercel/blob/client';
 import { gqlClient } from '#/graphql/client';
+import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { StatusBadge } from '../../dashboard';
 import {
   CalendarIcon,
@@ -1620,7 +1621,17 @@ function CoverLetterTab({ applicationId }: { applicationId: string }) {
         </button>
         {generate.isError && (
           <p className="text-sm text-red-600 dark:text-red-400">
-            {(generate.error as Error).message}
+            {getGqlErrorCode(generate.error) === AI_NOT_CONFIGURED_CODE ? (
+              <>
+                Add your AI API key in{' '}
+                <Link to="/account" className="underline">
+                  Account settings
+                </Link>{' '}
+                to use this feature.
+              </>
+            ) : (
+              (generate.error as Error).message
+            )}
           </p>
         )}
       </div>

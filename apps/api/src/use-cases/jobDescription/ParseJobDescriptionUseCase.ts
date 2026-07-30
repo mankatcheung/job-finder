@@ -1,7 +1,9 @@
-import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
+import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 export interface ParseJobDescriptionInput {
+  userId: string;
   text?: string | null;
   url?: string | null;
 }
@@ -15,7 +17,7 @@ export interface ParsedJobDescription {
 }
 
 interface Deps {
-  llmProvider: ILLMProvider;
+  llmProviderFactory: ILLMProviderFactory;
   jobPostingSourceResolver: IJobPostingSourceResolver;
 }
 
@@ -39,10 +41,23 @@ export class ParseJobDescriptionUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: ParseJobDescriptionInput): Promise<ParsedJobDescription> {
-    const text = await this.deps.jobPostingSourceResolver.resolve(input);
-    if (!text.trim()) throw new Error('No job description content provided');
+    const llmProvider = await this.deps.llmProviderFactory.forUser(input.userId);
+    if (!llmProvider) {
+      throw Object.assign(new Error('Add your AI API key in Settings to use this feature'), {
+        code: ERROR_CODES.AI_NOT_CONFIGURED,
+      });
+    }
 
-    const raw = await this.deps.llmProvider.complete([
+    const text = await this.deps.jobPostingSourceResolver.resolve({
+      text: input.text,
+      url: input.url,
+    });
+    if (!text.trim())
+      throw Object.assign(new Error('No job description content provided'), {
+        code: ERROR_CODES.VALIDATION,
+      });
+
+    const raw = await llmProvider.complete([
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: USER_PROMPT_TEMPLATE(text) },
     ]);
