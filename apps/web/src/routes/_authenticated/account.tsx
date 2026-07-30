@@ -219,6 +219,36 @@ const UNLINK_OAUTH_ACCOUNT = `
   }
 `;
 
+const API_TOKENS_QUERY = `
+  query ApiTokens {
+    apiTokens {
+      id
+      name
+      scope
+      lastUsedAt
+      createdAt
+    }
+  }
+`;
+
+const CREATE_API_TOKEN = `
+  mutation CreateApiToken($name: String!, $scope: ApiTokenScope) {
+    createApiToken(name: $name, scope: $scope) {
+      id
+      name
+      token
+      scope
+      createdAt
+    }
+  }
+`;
+
+const DELETE_API_TOKEN = `
+  mutation DeleteApiToken($id: ID!) {
+    deleteApiToken(id: $id)
+  }
+`;
+
 // ── Schemas ────────────────────────────────────────────────────────────────
 
 const profileSchema = z.object({
@@ -396,6 +426,22 @@ type LinkedOAuthAccount = {
   createdAt: string;
 };
 
+type ApiToken = {
+  id: string;
+  name: string;
+  scope: string;
+  lastUsedAt: string | null;
+  createdAt: string;
+};
+
+type CreateApiTokenPayload = {
+  id: string;
+  name: string;
+  token: string;
+  scope: string;
+  createdAt: string;
+};
+
 const OAUTH_PROVIDER_LABEL: Record<LinkedOAuthAccount['provider'], string> = {
   google: 'Google',
   github: 'GitHub',
@@ -454,6 +500,51 @@ export function AccountPage() {
       await qc.invalidateQueries({ queryKey: ['linkedOAuthAccounts'] });
     } catch (err) {
       setUnlinkError(extractGqlError(err) ?? 'Failed to unlink account.');
+    }
+  };
+
+  // API tokens
+  const { data: apiTokensData } = useQuery({
+    queryKey: ['apiTokens'],
+    queryFn: () => gqlClient.request<{ apiTokens: ApiToken[] }>(API_TOKENS_QUERY),
+  });
+  const apiTokens = apiTokensData?.apiTokens ?? [];
+  const [newApiToken, setNewApiToken] = useState<CreateApiTokenPayload | null>(null);
+  const [apiTokenName, setApiTokenName] = useState('');
+  const [creatingApiToken, setCreatingApiToken] = useState(false);
+  const [apiTokenError, setApiTokenError] = useState<string | null>(null);
+
+  const onCreateApiToken = async () => {
+    if (!apiTokenName.trim()) return;
+    setCreatingApiToken(true);
+    setApiTokenError(null);
+    try {
+      const res = await gqlClient.request<{ createApiToken: CreateApiTokenPayload }>(
+        CREATE_API_TOKEN,
+        {
+          name: apiTokenName.trim(),
+        },
+      );
+      setNewApiToken(res.createApiToken);
+      setApiTokenName('');
+      await qc.invalidateQueries({ queryKey: ['apiTokens'] });
+    } catch (err) {
+      setApiTokenError(extractGqlError(err) ?? 'Failed to create token.');
+    } finally {
+      setCreatingApiToken(false);
+    }
+  };
+
+  const [deletingApiTokenId, setDeletingApiTokenId] = useState<string | null>(null);
+  const onDeleteApiToken = async (id: string) => {
+    setDeletingApiTokenId(id);
+    try {
+      await gqlClient.request(DELETE_API_TOKEN, { id });
+      await qc.invalidateQueries({ queryKey: ['apiTokens'] });
+    } catch (err) {
+      setApiTokenError(extractGqlError(err) ?? 'Failed to delete token.');
+    } finally {
+      setDeletingApiTokenId(null);
     }
   };
 
@@ -1462,6 +1553,105 @@ export function AccountPage() {
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {new Date(event.createdAt).toLocaleString()}
                 </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <hr className="border-gray-200 dark:border-gray-700" />
+
+      {/* ── API tokens ── */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">API tokens</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Generate tokens to access the API programmatically. Keep your tokens secret — they grant
+            full access to your account.
+          </p>
+        </div>
+
+        {newApiToken && (
+          <div className="space-y-3">
+            <p className="text-sm text-green-600">
+              Token created successfully. Copy it now — it won&apos;t be shown again.
+            </p>
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+              <code className="flex-1 text-sm font-mono text-gray-900 dark:text-gray-100 break-all">
+                {newApiToken.token}
+              </code>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(newApiToken.token);
+                }}
+                className="shrink-0 px-3 py-1.5 text-sm text-blue-600 hover:underline"
+              >
+                Copy
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setNewApiToken(null)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        )}
+
+        {!newApiToken && (
+          <>
+            {apiTokenError && (
+              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+                {apiTokenError}
+              </p>
+            )}
+            <div className="flex items-end gap-3">
+              <div className="flex-1">
+                <label className={labelCls}>Token name</label>
+                <input
+                  type="text"
+                  value={apiTokenName}
+                  onChange={(e) => setApiTokenName(e.target.value)}
+                  className={inputCls}
+                  placeholder="e.g. CI pipeline"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={onCreateApiToken}
+                disabled={creatingApiToken || !apiTokenName.trim()}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                {creatingApiToken ? 'Creating…' : 'Create token'}
+              </button>
+            </div>
+          </>
+        )}
+
+        {apiTokens.length > 0 && (
+          <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
+            {apiTokens.map((token) => (
+              <li key={token.id} className="flex items-center justify-between gap-4 px-3 py-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {token.name}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Created {new Date(token.createdAt).toLocaleDateString()}
+                    {token.lastUsedAt &&
+                      ` · Last used ${new Date(token.lastUsedAt).toLocaleDateString()}`}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onDeleteApiToken(token.id)}
+                  disabled={deletingApiTokenId === token.id}
+                  className="shrink-0 text-xs text-red-600 hover:underline disabled:opacity-60"
+                >
+                  {deletingApiTokenId === token.id ? 'Deleting…' : 'Revoke'}
+                </button>
               </li>
             ))}
           </ul>
