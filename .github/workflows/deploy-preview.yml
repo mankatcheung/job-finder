@@ -61,13 +61,12 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
 
-  provision-turso-db:
-    name: Provision Turso preview DB
+  setup-turso-db:
+    name: Setup, migrate & seed Turso DB
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     outputs:
       database-url: ${{ steps.provision-db.outputs.database-url }}
-      database-auth-token: ${{ steps.provision-db.outputs.database-auth-token }}
     steps:
       - uses: actions/checkout@v4
 
@@ -77,39 +76,40 @@ jobs:
           db-name: ${{ env.DB_NAME }}
           turso-api-token: ${{ secrets.TURSO_API_TOKEN }}
 
-  migrate-turso-db:
-    name: Migrate Turso preview DB
-    needs: provision-turso-db
-    if: github.event.action != 'closed'
-    runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ needs.provision-turso-db.outputs.database-url }}
-      DATABASE_AUTH_TOKEN: ${{ needs.provision-turso-db.outputs.database-auth-token }}
-    steps:
-      - uses: actions/checkout@v4
+      - name: Generate database auth token
+        id: gen-token
+        env:
+          TURSO_API_TOKEN: ${{ secrets.TURSO_API_TOKEN }}
+        run: |
+          API_RESPONSE=$(curl -sS -X POST \
+            "https://api.turso.tech/v1/databases/${{ env.DB_NAME }}/auth/tokens" \
+            -H "Authorization: Bearer $TURSO_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json")
+          DATABASE_AUTH_TOKEN=$(echo "$API_RESPONSE" | jq -r '.jwt // empty')
+          if [ -z "$DATABASE_AUTH_TOKEN" ]; then
+            echo "Failed to create Turso auth token. Response: $API_RESPONSE"
+            exit 1
+          fi
+          echo "database-auth-token=$DATABASE_AUTH_TOKEN" >> "$GITHUB_OUTPUT"
 
       - uses: ./.github/actions/setup-project
 
-      - run: pnpm --filter @job-finder/api db:migrate
+      - name: Run migrations
+        env:
+          DATABASE_URL: ${{ steps.provision-db.outputs.database-url }}
+          DATABASE_AUTH_TOKEN: ${{ steps.gen-token.outputs.database-auth-token }}
+        run: pnpm --filter @job-finder/api db:migrate
 
-  seed-turso-db:
-    name: Seed Turso preview DB
-    needs: [provision-turso-db, migrate-turso-db]
-    if: github.event.action != 'closed'
-    runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ needs.provision-turso-db.outputs.database-url }}
-      DATABASE_AUTH_TOKEN: ${{ needs.provision-turso-db.outputs.database-auth-token }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: ./.github/actions/setup-project
-
-      - run: pnpm --filter @job-finder/api db:seed
+      - name: Seed database
+        env:
+          DATABASE_URL: ${{ steps.provision-db.outputs.database-url }}
+          DATABASE_AUTH_TOKEN: ${{ steps.gen-token.outputs.database-auth-token }}
+        run: pnpm --filter @job-finder/api db:seed
 
   deploy-api-preview:
     name: Deploy API preview
-    needs: [checks, provision-turso-db, seed-turso-db]
+    needs: [checks, setup-turso-db]
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     outputs:
@@ -119,6 +119,23 @@ jobs:
 
       - uses: ./.github/actions/setup-project
 
+      - name: Generate database auth token for deployment
+        id: gen-token
+        env:
+          TURSO_API_TOKEN: ${{ secrets.TURSO_API_TOKEN }}
+        run: |
+          API_RESPONSE=$(curl -sS -X POST \
+            "https://api.turso.tech/v1/databases/${{ env.DB_NAME }}/auth/tokens" \
+            -H "Authorization: Bearer $TURSO_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json")
+          DATABASE_AUTH_TOKEN=$(echo "$API_RESPONSE" | jq -r '.jwt // empty')
+          if [ -z "$DATABASE_AUTH_TOKEN" ]; then
+            echo "Failed to create Turso auth token. Response: $API_RESPONSE"
+            exit 1
+          fi
+          echo "database-auth-token=$DATABASE_AUTH_TOKEN" >> "$GITHUB_OUTPUT"
+
       - uses: ./.github/actions/vercel-deploy-preview
         id: api-deploy
         with:
@@ -126,8 +143,8 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_API_PROJECT_ID }}
           deploy-env-vars: |
-            DATABASE_URL=${{ needs.provision-turso-db.outputs.database-url }}
-            DATABASE_AUTH_TOKEN=${{ needs.provision-turso-db.outputs.database-auth-token }}
+            DATABASE_URL=${{ needs.setup-turso-db.outputs.database-url }}
+            DATABASE_AUTH_TOKEN=${{ steps.gen-token.outputs.database-auth-token }}
 
   deploy-web-preview:
     name: Build & deploy web preview
