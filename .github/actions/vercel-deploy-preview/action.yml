@@ -64,11 +64,11 @@ runs:
         VERCEL_PROJECT_ID: ${{ inputs.vercel-project-id }}
         DEPLOY_ENV_VARS: ${{ inputs.deploy-env-vars }}
       run: |
-        ENV_FLAGS=""
+        ENV_FLAGS=()
         while IFS= read -r line; do
-          [ -n "$line" ] && ENV_FLAGS="$ENV_FLAGS --env \"$line\""
+          [ -n "$line" ] && ENV_FLAGS+=("--env" "$line")
         done <<< "$DEPLOY_ENV_VARS"
-        PREVIEW_URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN" $ENV_FLAGS)
+        PREVIEW_URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN" "${ENV_FLAGS[@]}")
         if [[ ! "$PREVIEW_URL" =~ ^https:// ]]; then
           echo "Failed to capture preview URL: $PREVIEW_URL" >&2
           exit 1
