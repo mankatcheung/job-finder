@@ -13,6 +13,11 @@ export class ClearLlmApiKeyUseCase implements IClearLlmApiKeyUseCase {
     const user = await this.deps.userRepository.findById(userId);
     if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
 
-    await this.deps.userRepository.update(userId, { llmProvider: null, llmApiKey: null });
+    await this.deps.userRepository.update(userId, {
+      llmProvider: null,
+      llmApiKey: null,
+      llmModel: null,
+      llmBaseUrl: null,
+    });
   }
 }

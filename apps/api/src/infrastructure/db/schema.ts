@@ -16,10 +16,14 @@ export const user = sqliteTable('User', {
     .default(true),
   totpSecret: text('totpSecret'),
   totpEnabled: integer('totpEnabled', { mode: 'boolean' }).notNull().default(false),
-  /** 'openrouter' | 'googleai' — which provider the user's own key below is for. */
+  /** Which provider the user's own key below is for — see LLM_PROVIDER in constants.ts. */
   llmProvider: text('llmProvider'),
   /** User's own LLM API key, encrypted at rest (never returned to the client). */
   llmApiKey: text('llmApiKey'),
+  /** Model override; required when llmProvider is 'custom', optional elsewhere. */
+  llmModel: text('llmModel'),
+  /** Base URL; only used (and required) when llmProvider is 'custom'. */
+  llmBaseUrl: text('llmBaseUrl'),
   createdAt: integer('createdAt', { mode: 'timestamp_ms' })
     .notNull()
     .$defaultFn(() => new Date()),

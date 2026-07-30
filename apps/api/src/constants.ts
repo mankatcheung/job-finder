@@ -204,16 +204,36 @@ export const OAUTH = {
 
 /** `LLM_PROVIDER` values. */
 export const LLM_PROVIDER = {
-  OPENROUTER: 'openrouter',
+  OPENAI: 'openai',
+  ANTHROPIC: 'anthropic',
   GOOGLEAI: 'googleai',
+  OPENROUTER: 'openrouter',
+  MISTRAL: 'mistral',
+  GROQ: 'groq',
+  XAI: 'xai',
+  DEEPSEEK: 'deepseek',
+  CUSTOM: 'custom',
 } as const;
 
-/** LLM provider defaults. */
+/** LLM provider API URLs, default models, and other per-provider settings. */
 export const LLM = {
-  OPENROUTER_API_URL: 'https://openrouter.ai/api/v1/chat/completions',
-  OPENROUTER_DEFAULT_MODEL: 'openai/gpt-4o-mini',
+  OPENAI_API_URL: 'https://api.openai.com/v1/chat/completions',
+  OPENAI_DEFAULT_MODEL: 'gpt-4o-mini',
+  ANTHROPIC_API_URL: 'https://api.anthropic.com/v1/messages',
+  ANTHROPIC_DEFAULT_MODEL: 'claude-3-5-haiku-latest',
+  ANTHROPIC_VERSION: '2023-06-01',
   GOOGLEAI_API_URL: 'https://generativelanguage.googleapis.com/v1beta/models',
   GOOGLEAI_DEFAULT_MODEL: 'gemini-2.0-flash',
+  OPENROUTER_API_URL: 'https://openrouter.ai/api/v1/chat/completions',
+  OPENROUTER_DEFAULT_MODEL: 'openai/gpt-4o-mini',
+  MISTRAL_API_URL: 'https://api.mistral.ai/v1/chat/completions',
+  MISTRAL_DEFAULT_MODEL: 'mistral-small-latest',
+  GROQ_API_URL: 'https://api.groq.com/openai/v1/chat/completions',
+  GROQ_DEFAULT_MODEL: 'llama-3.3-70b-versatile',
+  XAI_API_URL: 'https://api.x.ai/v1/chat/completions',
+  XAI_DEFAULT_MODEL: 'grok-2-latest',
+  DEEPSEEK_API_URL: 'https://api.deepseek.com/chat/completions',
+  DEEPSEEK_DEFAULT_MODEL: 'deepseek-chat',
 } as const;
 
 /**

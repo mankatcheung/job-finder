@@ -19,6 +19,8 @@ export class GetLlmKeyStatusUseCase implements IGetLlmKeyStatusUseCase {
     return {
       configured: Boolean(user.llmProvider && user.llmApiKey),
       provider: user.llmProvider,
+      model: user.llmModel,
+      baseUrl: user.llmBaseUrl,
     };
   }
 }

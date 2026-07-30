@@ -13,10 +13,14 @@ export interface User {
   followUpRemindersEnabled: boolean;
   totpSecret: string | null;
   totpEnabled: boolean;
-  /** 'openrouter' | 'googleai' — which provider llmApiKey below is for. */
+  /** Which provider llmApiKey below is for — see LLM_PROVIDER in constants.ts. */
   llmProvider: string | null;
   /** User's own LLM API key, encrypted at rest. */
   llmApiKey: string | null;
+  /** Model override; required when llmProvider is 'custom', optional elsewhere. */
+  llmModel: string | null;
+  /** Base URL; only used (and required) when llmProvider is 'custom'. */
+  llmBaseUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

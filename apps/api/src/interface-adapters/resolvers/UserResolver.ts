@@ -114,8 +114,14 @@ export class UserResolver {
     return this.deps.getTotpStatusUseCase.execute(userId);
   }
 
-  async saveLlmApiKey(userId: string, provider: string, apiKey: string): Promise<void> {
-    await this.deps.saveLlmApiKeyUseCase.execute({ userId, provider, apiKey });
+  async saveLlmApiKey(
+    userId: string,
+    provider: string,
+    apiKey: string,
+    model?: string | null,
+    baseUrl?: string | null,
+  ): Promise<void> {
+    await this.deps.saveLlmApiKeyUseCase.execute({ userId, provider, apiKey, model, baseUrl });
   }
 
   async clearLlmApiKey(userId: string): Promise<void> {

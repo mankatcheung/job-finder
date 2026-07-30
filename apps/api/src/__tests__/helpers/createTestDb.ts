@@ -24,6 +24,8 @@ const SCHEMA_STATEMENTS = [
     "totpEnabled" INTEGER NOT NULL DEFAULT 0,
     "llmProvider" TEXT,
     "llmApiKey" TEXT,
+    "llmModel" TEXT,
+    "llmBaseUrl" TEXT,
     "createdAt" INTEGER NOT NULL,
     "updatedAt" INTEGER NOT NULL
   )`,

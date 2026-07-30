@@ -185,13 +185,15 @@ const LLM_KEY_STATUS_QUERY = `
     llmKeyStatus {
       configured
       provider
+      model
+      baseUrl
     }
   }
 `;
 
 const SAVE_LLM_API_KEY = `
-  mutation SaveLlmApiKey($provider: String!, $apiKey: String!) {
-    saveLlmApiKey(provider: $provider, apiKey: $apiKey)
+  mutation SaveLlmApiKey($provider: String!, $apiKey: String!, $model: String, $baseUrl: String) {
+    saveLlmApiKey(provider: $provider, apiKey: $apiKey, model: $model, baseUrl: $baseUrl)
   }
 `;
 
@@ -257,10 +259,56 @@ const totpDisableSchema = z.object({
   password: z.string().min(1, 'Required'),
 });
 
-const llmApiKeySchema = z.object({
-  provider: z.enum(['openrouter', 'googleai']),
-  apiKey: z.string().min(1, 'Required'),
-});
+const CUSTOM_LLM_PROVIDER = 'custom';
+
+const llmApiKeySchema = z
+  .object({
+    provider: z.enum([
+      'openai',
+      'anthropic',
+      'googleai',
+      'openrouter',
+      'mistral',
+      'groq',
+      'xai',
+      'deepseek',
+      'custom',
+    ]),
+    apiKey: z.string().min(1, 'Required'),
+    model: z.string().optional(),
+    baseUrl: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    const isCustom = data.provider === CUSTOM_LLM_PROVIDER;
+    if (isCustom && !data.model?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Required for a custom provider',
+        path: ['model'],
+      });
+    }
+    if (isCustom) {
+      if (!data.baseUrl?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Required for a custom provider',
+          path: ['baseUrl'],
+        });
+      } else if (!/^https?:\/\//.test(data.baseUrl.trim())) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Must start with http:// or https://',
+          path: ['baseUrl'],
+        });
+      }
+    } else if (data.baseUrl?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Only valid for a custom provider',
+        path: ['baseUrl'],
+      });
+    }
+  });
 
 type ProfileForm = z.infer<typeof profileSchema>;
 type EmailForm = z.infer<typeof emailSchema>;
@@ -273,12 +321,28 @@ type LlmApiKeyForm = z.infer<typeof llmApiKeySchema>;
 
 type TotpSetup = { secret: string; otpauthUrl: string; qrCodeDataUrl: string };
 
-type LlmKeyStatus = { configured: boolean; provider: string | null };
-
-const LLM_PROVIDER_LABEL: Record<string, string> = {
-  openrouter: 'OpenRouter',
-  googleai: 'Google AI',
+type LlmKeyStatus = {
+  configured: boolean;
+  provider: string | null;
+  model: string | null;
+  baseUrl: string | null;
 };
+
+const LLM_PROVIDER_OPTIONS: { value: string; label: string }[] = [
+  { value: 'openai', label: 'OpenAI' },
+  { value: 'anthropic', label: 'Anthropic (Claude)' },
+  { value: 'googleai', label: 'Google AI' },
+  { value: 'openrouter', label: 'OpenRouter' },
+  { value: 'mistral', label: 'Mistral' },
+  { value: 'groq', label: 'Groq' },
+  { value: 'xai', label: 'xAI (Grok)' },
+  { value: 'deepseek', label: 'DeepSeek' },
+  { value: CUSTOM_LLM_PROVIDER, label: 'Custom (OpenAI-compatible)' },
+];
+
+const LLM_PROVIDER_LABEL: Record<string, string> = Object.fromEntries(
+  LLM_PROVIDER_OPTIONS.map((o) => [o.value, o.label]),
+);
 
 interface LoginEvent {
   id: string;
@@ -588,12 +652,19 @@ export function AccountPage() {
 
   const llmApiKeyForm = useForm<LlmApiKeyForm>({
     resolver: zodResolver(llmApiKeySchema),
-    defaultValues: { provider: 'openrouter', apiKey: '' },
+    defaultValues: { provider: 'openrouter', apiKey: '', model: '', baseUrl: '' },
   });
+  const llmApiKeyProvider = llmApiKeyForm.watch('provider');
+  const isCustomLlmProvider = llmApiKeyProvider === CUSTOM_LLM_PROVIDER;
   const onSaveLlmApiKey = async (data: LlmApiKeyForm) => {
     try {
-      await gqlClient.request(SAVE_LLM_API_KEY, data);
-      llmApiKeyForm.reset({ provider: data.provider, apiKey: '' });
+      await gqlClient.request(SAVE_LLM_API_KEY, {
+        provider: data.provider,
+        apiKey: data.apiKey,
+        model: data.model?.trim() || undefined,
+        baseUrl: data.baseUrl?.trim() || undefined,
+      });
+      llmApiKeyForm.reset({ provider: data.provider, apiKey: '', model: '', baseUrl: '' });
       await qc.invalidateQueries({ queryKey: ['llmKeyStatus'] });
     } catch (err) {
       llmApiKeyForm.setError('root', {
@@ -609,7 +680,7 @@ export function AccountPage() {
     setClearLlmKeyError(null);
     try {
       await gqlClient.request(CLEAR_LLM_API_KEY);
-      llmApiKeyForm.reset({ provider: 'openrouter', apiKey: '' });
+      llmApiKeyForm.reset({ provider: 'openrouter', apiKey: '', model: '', baseUrl: '' });
       await qc.invalidateQueries({ queryKey: ['llmKeyStatus'] });
     } catch (err) {
       setClearLlmKeyError(extractGqlError(err) ?? 'Failed to remove API key.');
@@ -1180,8 +1251,9 @@ export function AccountPage() {
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">AI features</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Add your own OpenRouter or Google AI API key to enable cover letter generation and job
-            description auto-fill. job-finder doesn&apos;t provide a shared key — these features
+            Add your own API key from OpenAI, Anthropic, Google AI, OpenRouter, Mistral, Groq, xAI,
+            DeepSeek, or any other OpenAI-compatible endpoint to enable cover letter generation and
+            job description auto-fill. job-finder doesn&apos;t provide a shared key — these features
             stay off until you add one.
           </p>
         </div>
@@ -1190,8 +1262,14 @@ export function AccountPage() {
           <div className="space-y-3">
             <p className="text-sm text-green-600">
               AI features are enabled using{' '}
-              {LLM_PROVIDER_LABEL[llmKeyStatus.provider ?? ''] ?? llmKeyStatus.provider}.
+              {LLM_PROVIDER_LABEL[llmKeyStatus.provider ?? ''] ?? llmKeyStatus.provider}
+              {llmKeyStatus.model ? ` (${llmKeyStatus.model})` : ''}.
             </p>
+            {llmKeyStatus.provider === CUSTOM_LLM_PROVIDER && llmKeyStatus.baseUrl && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 break-all">
+                {llmKeyStatus.baseUrl}
+              </p>
+            )}
             {clearLlmKeyError && (
               <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
                 {clearLlmKeyError}
@@ -1211,8 +1289,11 @@ export function AccountPage() {
             <div>
               <label className={labelCls}>Provider</label>
               <select {...llmApiKeyForm.register('provider')} className={inputCls}>
-                <option value="openrouter">OpenRouter</option>
-                <option value="googleai">Google AI</option>
+                {LLM_PROVIDER_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -1229,6 +1310,53 @@ export function AccountPage() {
                 </p>
               )}
             </div>
+            {isCustomLlmProvider ? (
+              <>
+                <div>
+                  <label className={labelCls}>Base URL</label>
+                  <input
+                    type="url"
+                    {...llmApiKeyForm.register('baseUrl')}
+                    className={inputCls}
+                    placeholder="https://your-endpoint.example.com/v1/chat/completions"
+                  />
+                  {llmApiKeyForm.formState.errors.baseUrl && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {llmApiKeyForm.formState.errors.baseUrl.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className={labelCls}>Model</label>
+                  <input
+                    type="text"
+                    {...llmApiKeyForm.register('model')}
+                    className={inputCls}
+                    placeholder="e.g. gpt-4o-mini"
+                  />
+                  {llmApiKeyForm.formState.errors.model && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {llmApiKeyForm.formState.errors.model.message}
+                    </p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div>
+                <label className={labelCls}>
+                  Model{' '}
+                  <span className="font-normal text-gray-400">
+                    (optional — leave blank to use the provider default)
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  {...llmApiKeyForm.register('model')}
+                  className={inputCls}
+                  placeholder="Provider default"
+                />
+              </div>
+            )}
             {llmApiKeyForm.formState.errors.root && (
               <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
                 {llmApiKeyForm.formState.errors.root.message}

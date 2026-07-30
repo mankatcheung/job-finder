@@ -27,6 +27,8 @@ export interface IUserRepository {
       totpEnabled?: boolean;
       llmProvider?: string | null;
       llmApiKey?: string | null;
+      llmModel?: string | null;
+      llmBaseUrl?: string | null;
     },
   ): Promise<User>;
   delete(id: string): Promise<void>;

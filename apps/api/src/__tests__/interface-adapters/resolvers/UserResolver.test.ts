@@ -278,6 +278,28 @@ describe('UserResolver', () => {
         userId: 'user-1',
         provider: 'openrouter',
         apiKey: 'sk-123',
+        model: undefined,
+        baseUrl: undefined,
+      });
+    });
+
+    it('passes through model and baseUrl when provided', async () => {
+      const deps = makeDeps();
+
+      await new UserResolver(deps).saveLlmApiKey(
+        'user-1',
+        'custom',
+        'sk-123',
+        'my-model',
+        'https://my-llm.example.com/v1/chat/completions',
+      );
+
+      expect(deps.saveLlmApiKeyUseCase.execute).toHaveBeenCalledWith({
+        userId: 'user-1',
+        provider: 'custom',
+        apiKey: 'sk-123',
+        model: 'my-model',
+        baseUrl: 'https://my-llm.example.com/v1/chat/completions',
       });
     });
   });

@@ -6,5 +6,7 @@ LlmKeyStatusRef.implement({
   fields: (t) => ({
     configured: t.exposeBoolean('configured'),
     provider: t.exposeString('provider', { nullable: true }),
+    model: t.exposeString('model', { nullable: true }),
+    baseUrl: t.exposeString('baseUrl', { nullable: true }),
   }),
 });

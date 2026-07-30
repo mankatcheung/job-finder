@@ -1,6 +1,4 @@
-import { GoogleAILLMProvider } from '#src/infrastructure/llm/GoogleAILLMProvider.js';
-import { OpenRouterLLMProvider } from '#src/infrastructure/llm/OpenRouterLLMProvider.js';
-import { LLM_PROVIDER } from '#src/constants.js';
+import { PROVIDER_REGISTRY } from '#src/infrastructure/llm/providerRegistry.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
 import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
@@ -18,9 +16,10 @@ export class UserLLMProviderFactory implements ILLMProviderFactory {
     const user = await this.deps.userRepository.findById(userId);
     if (!user?.llmProvider || !user.llmApiKey) return null;
 
+    const entry = PROVIDER_REGISTRY[user.llmProvider];
+    if (!entry) return null;
+
     const apiKey = this.deps.llmApiKeyCipher.decrypt(user.llmApiKey);
-    return user.llmProvider === LLM_PROVIDER.GOOGLEAI
-      ? new GoogleAILLMProvider(apiKey)
-      : new OpenRouterLLMProvider(apiKey);
+    return entry.create({ apiKey, model: user.llmModel, baseUrl: user.llmBaseUrl });
   }
 }
