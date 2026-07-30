@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { gqlClient } from '#/graphql/client';
+import { ErrorState } from '#/components/ErrorState';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 
 const ANALYTICS_QUERY = `
@@ -52,7 +53,7 @@ function isoWeek(date: Date): string {
 }
 
 export function AnalyticsPage() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['analytics'],
     queryFn: () => gqlClient.request<{ applications: Application[] }>(ANALYTICS_QUERY),
   });
@@ -104,6 +105,14 @@ export function AnalyticsPage() {
         {[1, 2, 3].map((i) => (
           <div key={i} className="h-64 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
         ))}
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-4 sm:p-8 max-w-5xl mx-auto">
+        <ErrorState error={error} onRetry={() => refetch()} />
       </div>
     );
   }

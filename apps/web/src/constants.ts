@@ -12,6 +12,13 @@
 /** GraphQL error `extensions.code` values surfaced by the API. */
 export const ERROR_CODES = {
   UNAUTHORIZED: 'UNAUTHORIZED',
+  FORBIDDEN: 'FORBIDDEN',
+  NOT_FOUND: 'NOT_FOUND',
+  CONFLICT: 'CONFLICT',
+  VALIDATION: 'VALIDATION',
+  RATE_LIMITED: 'RATE_LIMITED',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+  SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
 } as const;
 
 /** Fallback GraphQL endpoint when `VITE_API_URL` is unset (dev proxy path). */

@@ -74,32 +74,33 @@ describe('GenerateCoverLetterUseCase', () => {
     expect(userMessage.content).toContain('Payments infra role');
   });
 
-  it('throws when application is not found', async () => {
+  it('throws NOT_FOUND when application is not found', async () => {
     const applicationRepository = makeApplicationRepository({
       findById: vi.fn().mockResolvedValue(null),
     });
     const llmProvider = makeLLMProvider();
 
-    await expect(
-      new GenerateCoverLetterUseCase({ applicationRepository, llmProvider }).execute({
-        applicationId: 'missing',
-        userId: 'user-1',
-      }),
-    ).rejects.toThrow('Application not found');
+    const err = await new GenerateCoverLetterUseCase({ applicationRepository, llmProvider })
+      .execute({ applicationId: 'missing', userId: 'user-1' })
+      .catch((e) => e);
+
+    expect(err).toBeInstanceOf(Error);
+    expect((err as Error).message).toBe('Application not found');
+    expect((err as { code: string }).code).toBe('NOT_FOUND');
   });
 
-  it('throws when application belongs to a different user', async () => {
+  it('throws FORBIDDEN when application belongs to a different user', async () => {
     const app = makeApplication({ userId: 'user-2' });
     const applicationRepository = makeApplicationRepository({
       findById: vi.fn().mockResolvedValue(app),
     });
     const llmProvider = makeLLMProvider();
 
-    await expect(
-      new GenerateCoverLetterUseCase({ applicationRepository, llmProvider }).execute({
-        applicationId: 'app-1',
-        userId: 'user-1',
-      }),
-    ).rejects.toThrow('Unauthorized');
+    const err = await new GenerateCoverLetterUseCase({ applicationRepository, llmProvider })
+      .execute({ applicationId: 'app-1', userId: 'user-1' })
+      .catch((e) => e);
+
+    expect(err).toBeInstanceOf(Error);
+    expect((err as { code: string }).code).toBe('FORBIDDEN');
   });
 });

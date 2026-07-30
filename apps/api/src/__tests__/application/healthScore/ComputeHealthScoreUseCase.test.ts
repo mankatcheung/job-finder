@@ -113,23 +113,30 @@ describe('ComputeHealthScoreUseCase', () => {
     expect(result.label).toBe('In progress');
   });
 
-  it('throws when application is not found', async () => {
+  it('throws NOT_FOUND when application is not found', async () => {
     const { deps } = makeDeps();
     deps.applicationRepository = makeApplicationRepository({
       findById: vi.fn().mockResolvedValue(null),
     });
 
-    await expect(new ComputeHealthScoreUseCase(deps).execute('missing', 'user-1')).rejects.toThrow(
-      'Application not found',
-    );
+    const err = await new ComputeHealthScoreUseCase(deps)
+      .execute('missing', 'user-1')
+      .catch((e) => e);
+
+    expect(err).toBeInstanceOf(Error);
+    expect((err as Error).message).toBe('Application not found');
+    expect((err as { code: string }).code).toBe('NOT_FOUND');
   });
 
-  it('throws when application belongs to a different user', async () => {
+  it('throws FORBIDDEN when application belongs to a different user', async () => {
     const { deps } = makeDeps({ userId: 'user-2' });
 
-    await expect(new ComputeHealthScoreUseCase(deps).execute('app-1', 'user-1')).rejects.toThrow(
-      'Unauthorized',
-    );
+    const err = await new ComputeHealthScoreUseCase(deps)
+      .execute('app-1', 'user-1')
+      .catch((e) => e);
+
+    expect(err).toBeInstanceOf(Error);
+    expect((err as { code: string }).code).toBe('FORBIDDEN');
   });
 
   it('returns correct criterion details in breakdown', async () => {

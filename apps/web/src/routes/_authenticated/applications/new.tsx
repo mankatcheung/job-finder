@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
+import { getErrorMessage } from '#/lib/errors';
 import { StarIcon, XIcon } from 'lucide-react';
 import { JdImportPanel } from './-components/JdImportPanel';
 
@@ -68,8 +69,8 @@ export function NewApplicationPage() {
         to: '/applications/$applicationId',
         params: { applicationId: result.createApplication.id },
       });
-    } catch {
-      setError('root', { message: 'Failed to create application. Please try again.' });
+    } catch (err) {
+      setError('root', { message: getErrorMessage(err) });
     }
   };
 

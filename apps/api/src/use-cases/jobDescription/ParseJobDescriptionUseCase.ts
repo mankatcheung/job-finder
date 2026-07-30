@@ -1,5 +1,6 @@
 import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 export interface ParseJobDescriptionInput {
   text?: string | null;
@@ -40,7 +41,11 @@ export class ParseJobDescriptionUseCase {
 
   async execute(input: ParseJobDescriptionInput): Promise<ParsedJobDescription> {
     const text = await this.deps.jobPostingSourceResolver.resolve(input);
-    if (!text.trim()) throw new Error('No job description content provided');
+    if (!text.trim()) {
+      throw Object.assign(new Error('No job description content provided'), {
+        code: ERROR_CODES.VALIDATION,
+      });
+    }
 
     const raw = await this.deps.llmProvider.complete([
       { role: 'system', content: SYSTEM_PROMPT },
