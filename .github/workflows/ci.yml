@@ -29,6 +29,9 @@ name: CI & Deploy
 #   6. Create a Vercel access token (https://vercel.com/account/tokens) and
 #      add repo secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_API_PROJECT_ID,
 #      VERCEL_WEB_PROJECT_ID.
+#   7. Add repository secrets (in GitHub Settings > Secrets > Actions):
+#      PRODUCTION_DATABASE_URL — the libsql:// URL for your production Turso DB
+#      PRODUCTION_DATABASE_AUTH_TOKEN — the auth token for the production Turso DB
 
 on:
   push:
@@ -85,9 +88,25 @@ jobs:
       - run: pnpm build
       - run: pnpm test
 
+  migrate-db:
+    name: Run database migrations
+    needs: [quality, build-test]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-project
+
+      - name: Run Drizzle migrations
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          DATABASE_AUTH_TOKEN: ${{ secrets.PRODUCTION_DATABASE_AUTH_TOKEN }}
+        run: pnpm --filter @job-finder/api db:migrate
+
   deploy-api:
     name: Deploy api to Vercel
-    needs: [quality, build-test]
+    needs: [quality, build-test, migrate-db]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
