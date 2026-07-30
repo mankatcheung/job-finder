@@ -1,0 +1,44 @@
+name: Deploy Vercel production
+description: Pull environment, build, and deploy to Vercel production
+
+inputs:
+  vercel-token:
+    description: Vercel API token
+    required: true
+  vercel-org-id:
+    description: Vercel organization ID
+    required: true
+  vercel-project-id:
+    description: Vercel project ID
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install Vercel CLI
+      shell: bash
+      run: npm install -g vercel@latest
+
+    - name: Pull Vercel environment settings
+      shell: bash
+      run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+      env:
+        VERCEL_TOKEN: ${{ inputs.vercel-token }}
+        VERCEL_ORG_ID: ${{ inputs.vercel-org-id }}
+        VERCEL_PROJECT_ID: ${{ inputs.vercel-project-id }}
+
+    - name: Build
+      shell: bash
+      run: vercel build --prod --token="$VERCEL_TOKEN"
+      env:
+        VERCEL_TOKEN: ${{ inputs.vercel-token }}
+        VERCEL_ORG_ID: ${{ inputs.vercel-org-id }}
+        VERCEL_PROJECT_ID: ${{ inputs.vercel-project-id }}
+
+    - name: Deploy
+      shell: bash
+      run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+      env:
+        VERCEL_TOKEN: ${{ inputs.vercel-token }}
+        VERCEL_ORG_ID: ${{ inputs.vercel-org-id }}
+        VERCEL_PROJECT_ID: ${{ inputs.vercel-project-id }}

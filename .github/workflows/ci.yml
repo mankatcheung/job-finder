@@ -1,109 +1,118 @@
-name: CI
+name: CI & Deploy
+
+# Consolidated workflow: CI runs for every PR and push to main. On push to
+# main, deploy-api and deploy-web run only after quality and build-test pass.
+#
+# Why three files became one:
+#   - Removed duplicate test gates (CI tests once, deploy reuses result)
+#   - Eliminated boilerplate (setup-project, vercel-deploy-production)
+#   - Hard guarantee: deploy never starts before tests pass (needs:)
+#
+# Path filtering on push keeps unrelated changes from triggering a full
+# workflow run (e.g. docs-only PRs skip CI). On push, both deploy jobs
+# fire when their relevant paths change. If only api files changed, the
+# web deploy still runs — that's a minor waste, but Vercel's cache makes
+# it fast, and the simplicity gain is worth it.
+#
+# One-time setup required before this workflow can deploy:
+#   1. Create a Vercel project for each app (from repo root, run `vercel link`
+#      for apps/api and apps/web separately). Do NOT connect either to this
+#      GitHub repo in the Vercel dashboard (Settings -> Git) — leaving it
+#      disconnected stops Vercel's own integration from also deploying.
+#   2. In each project's Settings -> Build & Deployment -> Root Directory,
+#      set it to the app's directory (apps/api or apps/web).
+#   3. `vercel link` writes .vercel/project.json (gitignored) containing
+#      orgId/projectId — copy those into the repo secrets below.
+#   4. Attach a Blob store to the api project (Storage tab) — this sets
+#      BLOB_READ_WRITE_TOKEN automatically.
+#   5. Set each project's production env vars in the Vercel dashboard.
+#   6. Create a Vercel access token (https://vercel.com/account/tokens) and
+#      add repo secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_API_PROJECT_ID,
+#      VERCEL_WEB_PROJECT_ID.
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/ci.yml'
+      - '.github/actions/**'
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
-  lint:
-    name: Lint & format
+  quality:
+    name: Lint, format & typecheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.17.0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
+      - uses: ./.github/actions/setup-project
 
       - name: Restore Turbo cache
         uses: actions/cache@v4
         with:
           path: .turbo
-          key: turbo-lint-${{ runner.os }}-${{ github.sha }}
-          restore-keys: turbo-lint-${{ runner.os }}-
+          key: turbo-quality-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-quality-${{ runner.os }}-
 
-      - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm format:check
-
-  typecheck:
-    name: Typecheck
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.17.0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Restore Turbo cache
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: turbo-typecheck-${{ runner.os }}-${{ github.sha }}
-          restore-keys: turbo-typecheck-${{ runner.os }}-
-
-      - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
 
-  build:
-    name: Build
+  build-test:
+    name: Build & test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.17.0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
+      - uses: ./.github/actions/setup-project
 
       - name: Restore Turbo cache
         uses: actions/cache@v4
         with:
           path: .turbo
-          key: turbo-build-${{ runner.os }}-${{ github.sha }}
-          restore-keys: turbo-build-${{ runner.os }}-
+          key: turbo-build-test-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-build-test-${{ runner.os }}-
 
-      - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      - run: pnpm test
 
-  test:
-    name: Test
+  deploy-api:
+    name: Deploy api to Vercel
+    needs: [quality, build-test]
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.17.0
+      - uses: ./.github/actions/setup-project
 
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/vercel-deploy-production
         with:
-          node-version: 24
-          cache: pnpm
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_API_PROJECT_ID }}
 
-      - name: Restore Turbo cache
-        uses: actions/cache@v4
+  deploy-web:
+    name: Deploy web to Vercel
+    needs: [quality, build-test]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-project
+
+      - uses: ./.github/actions/vercel-deploy-production
         with:
-          path: .turbo
-          key: turbo-test-${{ runner.os }}-${{ github.sha }}
-          restore-keys: turbo-test-${{ runner.os }}-
-
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm test
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
