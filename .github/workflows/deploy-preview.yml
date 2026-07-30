@@ -25,6 +25,8 @@ name: Deploy preview (web + api)
 #   VERCEL_WEB_PROJECT_ID
 #   TURSO_API_TOKEN
 #   TURSO_ORGANIZATION (optional, only if the DB is in a non-default org)
+#   NTFY_TOPIC (ntfy.sh topic — a push notification fires once the web
+#     preview URL is ready, with the PR number, branch, and URL)
 
 on:
   pull_request:
@@ -172,6 +174,20 @@ jobs:
           api-url: ${{ needs.deploy-api-preview.outputs.preview-url }}
           web-url: ${{ steps.web-deploy.outputs.preview-url }}
           pr-number: ${{ github.event.pull_request.number || inputs.pr-number }}
+
+      - name: Notify via ntfy
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr-number }}
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+          WEB_URL: ${{ steps.web-deploy.outputs.preview-url }}
+        run: |
+          BODY=$(printf 'Branch: %s\n%s' "$BRANCH_NAME" "$WEB_URL")
+          curl -sS \
+            -H "Title: Preview ready (PR #${PR_NUMBER})" \
+            -H "X-Click: ${WEB_URL}" \
+            -d "$BODY" \
+            "https://ntfy.sh/${NTFY_TOPIC}"
 
   cleanup-turso-db:
     name: Destroy Turso preview DB
