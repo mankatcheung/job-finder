@@ -177,6 +177,8 @@ export interface Cradle {
   emailVerificationTokenRepository: DrizzleEmailVerificationTokenRepository;
   totpBackupCodeRepository: DrizzleTotpBackupCodeRepository;
   totpRateLimiter: IRateLimiter;
+  updatePasswordRateLimiter: IRateLimiter;
+  requestEmailChangeRateLimiter: IRateLimiter;
   totpProvider: ITotpProvider;
   oauthAccountRepository: DrizzleOAuthAccountRepository;
   googleOAuthProvider: IOAuthProvider;
@@ -354,6 +356,18 @@ export function buildContainer(): AwilixContainer<Cradle> {
       new RateLimiter(
         RATE_LIMIT.TOTP_VERIFICATION.MAX_ATTEMPTS,
         RATE_LIMIT.TOTP_VERIFICATION.WINDOW_MS,
+      ),
+    ),
+    updatePasswordRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.UPDATE_PASSWORD.MAX_ATTEMPTS,
+        RATE_LIMIT.UPDATE_PASSWORD.WINDOW_MS,
+      ),
+    ),
+    requestEmailChangeRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.REQUEST_EMAIL_CHANGE.MAX_ATTEMPTS,
+        RATE_LIMIT.REQUEST_EMAIL_CHANGE.WINDOW_MS,
       ),
     ),
     totpProvider: asClass(TotpProvider, { lifetime: Lifetime.SINGLETON }),
