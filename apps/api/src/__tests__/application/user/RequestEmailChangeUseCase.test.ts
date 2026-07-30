@@ -208,6 +208,9 @@ describe('RequestEmailChangeUseCase', () => {
       .catch((e) => e);
 
     expect((err as { code: string }).code).toBe('RATE_LIMITED');
+    expect(requestEmailChangeRateLimiter.consume).toHaveBeenCalledWith(
+      'request-email-change:user:user-1',
+    );
     expect(userRepository.findById).not.toHaveBeenCalled();
   });
 });

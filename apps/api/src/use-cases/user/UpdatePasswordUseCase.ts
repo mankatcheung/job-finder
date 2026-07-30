@@ -18,6 +18,8 @@ export class UpdatePasswordUseCase implements IUpdatePasswordUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: UpdatePasswordInput): Promise<void> {
+    assertValidPassword(input.newPassword);
+
     // Rate-limit by user ID to prevent brute-force attacks on password changes
     const allowed = this.deps.updatePasswordRateLimiter.consume(
       `update-password:user:${input.userId}`,
@@ -27,8 +29,6 @@ export class UpdatePasswordUseCase implements IUpdatePasswordUseCase {
         code: ERROR_CODES.RATE_LIMITED,
       });
     }
-
-    assertValidPassword(input.newPassword);
 
     const user = await this.deps.userRepository.findById(input.userId);
     if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });

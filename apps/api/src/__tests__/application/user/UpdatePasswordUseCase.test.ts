@@ -27,14 +27,16 @@ describe('UpdatePasswordUseCase', () => {
       findById: vi.fn().mockResolvedValue(user),
       update: vi.fn().mockResolvedValue(user),
     });
+    const updatePasswordRateLimiter = makeRateLimiter();
     vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
     vi.mocked(bcrypt.hash).mockResolvedValue('new-hash' as never);
 
     await new UpdatePasswordUseCase({
       userRepository,
-      updatePasswordRateLimiter: makeRateLimiter(),
+      updatePasswordRateLimiter,
     }).execute(input);
 
+    expect(updatePasswordRateLimiter.consume).toHaveBeenCalledWith('update-password:user:user-1');
     expect(bcrypt.compare).toHaveBeenCalledWith(input.currentPassword, user.passwordHash);
     expect(bcrypt.hash).toHaveBeenCalledWith(input.newPassword, 12);
     expect(userRepository.update).toHaveBeenCalledWith('user-1', { passwordHash: 'new-hash' });
@@ -103,6 +105,7 @@ describe('UpdatePasswordUseCase', () => {
       .catch((e) => e);
 
     expect((err as { code: string }).code).toBe('RATE_LIMITED');
+    expect(updatePasswordRateLimiter.consume).toHaveBeenCalledWith('update-password:user:user-1');
     expect(userRepository.findById).not.toHaveBeenCalled();
     expect(userRepository.update).not.toHaveBeenCalled();
   });
