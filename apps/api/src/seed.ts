@@ -26,6 +26,7 @@ import {
   contact,
   interviewRound,
 } from './infrastructure/db/schema.js';
+import type { ApplicationStatus } from './domain/application/ApplicationStatus.js';
 
 // ---------------------------------------------------------------------------
 // Demo user
@@ -74,7 +75,7 @@ const dayMs = 86_400_000;
 interface SeedApplication {
   company: string;
   role: string;
-  status: string;
+  status: ApplicationStatus;
   jobUrl: string | null;
   location: string | null;
   salaryRange: string | null;
@@ -153,7 +154,7 @@ const applications: SeedApplication[] = [
   {
     company: 'StartupXYZ',
     role: 'Lead Developer',
-    status: 'offer',
+    status: 'offered',
     jobUrl: null,
     location: 'Austin, TX',
     salaryRange: '$170k – $220k + equity',
@@ -191,7 +192,7 @@ const applications: SeedApplication[] = [
   {
     company: 'Stripe',
     role: 'Backend Engineer',
-    status: 'saved',
+    status: 'draft',
     jobUrl: 'https://stripe.example.com/jobs/backend-engineer',
     location: 'Remote (US)',
     salaryRange: null,
