@@ -63,6 +63,8 @@ jobs:
       database-url: ${{ steps.provision-db.outputs.database-url }}
       database-auth-token: ${{ steps.provision-db.outputs.database-auth-token }}
     steps:
+      - uses: actions/checkout@v4
+
       - uses: ./.github/actions/turso-provision
         id: provision-db
         with:
@@ -152,6 +154,8 @@ jobs:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - uses: ./.github/actions/turso-destroy
         with:
           db-name: ${{ env.DB_NAME }}
