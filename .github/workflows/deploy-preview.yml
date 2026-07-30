@@ -50,7 +50,7 @@ env:
 
 jobs:
   checks:
-    name: Typecheck & test
+    name: Lint, typecheck & test
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
@@ -58,6 +58,15 @@ jobs:
 
       - uses: ./.github/actions/setup-project
 
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-checks-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-checks-${{ runner.os }}-
+
+      - run: pnpm lint
+      - run: pnpm format:check
       - run: pnpm typecheck
       - run: pnpm test
 
