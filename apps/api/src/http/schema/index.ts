@@ -53,6 +53,7 @@ import './mutations/apiTokenMutations.js';
 import './mutations/contactMutations.js';
 import './mutations/jobDescriptionMutations.js';
 import './mutations/coverLetterMutations.js';
+import './mutations/resumeMatchMutations.js';
 import './mutations/sessionMutations.js';
 import './mutations/oauthMutations.js';
 

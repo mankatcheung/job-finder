@@ -309,14 +309,24 @@ export const PAGINATION = {
   MAX_LIMIT: 100,
 } as const;
 
+/** Named MIME type constants, for referencing specific types instead of repeating string literals. */
+export const MIME_TYPE = {
+  PDF: 'application/pdf',
+  DOC: 'application/msword',
+  DOCX: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  TEXT_PLAIN: 'text/plain',
+  PNG: 'image/png',
+  JPEG: 'image/jpeg',
+} as const;
+
 /** MIME types accepted for document uploads (resumes, cover letters, portfolios). */
 export const ALLOWED_DOCUMENT_MIME_TYPES = [
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'text/plain',
-  'image/png',
-  'image/jpeg',
+  MIME_TYPE.PDF,
+  MIME_TYPE.DOC,
+  MIME_TYPE.DOCX,
+  MIME_TYPE.TEXT_PLAIN,
+  MIME_TYPE.PNG,
+  MIME_TYPE.JPEG,
 ] as const;
 
 /** Max accepted document upload size, in bytes. */
