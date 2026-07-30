@@ -1,10 +1,44 @@
-name: CI
+name: CI & Deploy
+
+# Consolidated workflow: CI runs for every PR and push to main. On push to
+# main, deploy-api and deploy-web run only after quality and build-test pass.
+#
+# Why three files became one:
+#   - Removed duplicate test gates (CI tests once, deploy reuses result)
+#   - Eliminated boilerplate (setup-project, vercel-deploy-production)
+#   - Hard guarantee: deploy never starts before tests pass (needs:)
+#
+# Path filtering on push keeps unrelated changes from triggering a full
+# workflow run (e.g. docs-only PRs skip CI). On push, both deploy jobs
+# fire when their relevant paths change. If only api files changed, the
+# web deploy still runs — that's a minor waste, but Vercel's cache makes
+# it fast, and the simplicity gain is worth it.
+#
+# One-time setup required for Vercel deployments:
+#   deploy-api.yml (now consolidated here) had detailed setup steps at:
+#   https://github.com/mankatcheung/job-finder/blob/main/.github/workflows/deploy-api.yml
+#   deploy-web.yml had similar steps at:
+#   https://github.com/mankatcheung/job-finder/blob/main/.github/workflows/deploy-web.yml
+#
+# Required repository secrets:
+#   VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_API_PROJECT_ID, VERCEL_WEB_PROJECT_ID
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/ci.yml'
+      - '.github/actions/**'
   pull_request:
     branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 jobs:
   quality:
@@ -43,3 +77,35 @@ jobs:
 
       - run: pnpm build
       - run: pnpm test
+
+  deploy-api:
+    name: Deploy api to Vercel
+    needs: [quality, build-test]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-project
+
+      - uses: ./.github/actions/vercel-deploy-production
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_API_PROJECT_ID }}
+
+  deploy-web:
+    name: Deploy web to Vercel
+    needs: [quality, build-test]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-project
+
+      - uses: ./.github/actions/vercel-deploy-production
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
