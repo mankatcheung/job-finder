@@ -96,4 +96,125 @@ describe('OpenAICompatibleLLMProvider', () => {
       /LLM provider error 429/,
     );
   });
+
+  describe('completeWithTools', () => {
+    const TOOLS = [
+      {
+        name: 'list_applications',
+        description: 'List applications',
+        parameters: { type: 'object' },
+      },
+    ];
+
+    it('sends tool definitions in the OpenAI function-calling shape', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ choices: [{ message: { content: 'ok' } }] }) as never,
+      );
+
+      const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+      await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.tools).toEqual([
+        {
+          type: 'function',
+          function: {
+            name: 'list_applications',
+            description: 'List applications',
+            parameters: { type: 'object' },
+          },
+        },
+      ]);
+    });
+
+    it('parses tool_calls from the response, including JSON-string arguments', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({
+          choices: [
+            {
+              message: {
+                content: null,
+                tool_calls: [
+                  {
+                    id: 'call_1',
+                    function: { name: 'list_applications', arguments: '{"status":"applied"}' },
+                  },
+                ],
+              },
+            },
+          ],
+        }) as never,
+      );
+
+      const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+      const result = await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
+
+      expect(result).toEqual({
+        content: null,
+        toolCalls: [{ id: 'call_1', name: 'list_applications', arguments: { status: 'applied' } }],
+      });
+    });
+
+    it('returns an empty toolCalls array and falls back to {} args when there are none / arguments are malformed', async () => {
+      vi.mocked(fetch).mockResolvedValueOnce(
+        jsonResponse({ choices: [{ message: { content: 'plain answer' } }] }) as never,
+      );
+      const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+      const result = await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
+      expect(result).toEqual({ content: 'plain answer', toolCalls: [] });
+
+      vi.mocked(fetch).mockResolvedValueOnce(
+        jsonResponse({
+          choices: [
+            {
+              message: {
+                content: null,
+                tool_calls: [
+                  { id: 'call_1', function: { name: 'list_applications', arguments: 'not json' } },
+                ],
+              },
+            },
+          ],
+        }) as never,
+      );
+      const malformed = await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
+      expect(malformed.toolCalls[0].arguments).toEqual({});
+    });
+
+    it('serializes an assistant tool-call request and a tool result message correctly', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ choices: [{ message: { content: 'final answer' } }] }) as never,
+      );
+
+      const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+      const messages: LLMMessage[] = [
+        { role: 'user', content: 'which apps need follow up?' },
+        {
+          role: 'assistant',
+          content: '',
+          toolCalls: [
+            { id: 'call_1', name: 'list_applications', arguments: { status: 'applied' } },
+          ],
+        },
+        { role: 'tool', content: '[]', toolCallId: 'call_1' },
+      ];
+      await provider.completeWithTools(messages, TOOLS);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.messages[1]).toEqual({
+        role: 'assistant',
+        content: null,
+        tool_calls: [
+          {
+            id: 'call_1',
+            type: 'function',
+            function: { name: 'list_applications', arguments: '{"status":"applied"}' },
+          },
+        ],
+      });
+      expect(body.messages[2]).toEqual({ role: 'tool', tool_call_id: 'call_1', content: '[]' });
+    });
+  });
 });

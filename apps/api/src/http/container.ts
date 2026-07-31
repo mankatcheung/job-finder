@@ -141,6 +141,7 @@ import { TouchSessionUseCase } from '#src/use-cases/sessions/TouchSessionUseCase
 import { ListSessionsUseCase } from '#src/use-cases/sessions/ListSessionsUseCase.js';
 import { RevokeSessionUseCase } from '#src/use-cases/sessions/RevokeSessionUseCase.js';
 import { RevokeOtherSessionsUseCase } from '#src/use-cases/sessions/RevokeOtherSessionsUseCase.js';
+import { ChatWithAssistantUseCase } from '#src/use-cases/chat/ChatWithAssistantUseCase.js';
 import { DocumentTextExtractor } from '#src/infrastructure/documents/DocumentTextExtractor.js';
 
 import { ENV, RATE_LIMIT, STORAGE_PROVIDER } from '#src/constants.js';
@@ -180,6 +181,7 @@ export interface Cradle {
   emailVerificationTokenRepository: DrizzleEmailVerificationTokenRepository;
   totpBackupCodeRepository: DrizzleTotpBackupCodeRepository;
   totpRateLimiter: IRateLimiter;
+  chatRateLimiter: IRateLimiter;
   updatePasswordRateLimiter: IRateLimiter;
   requestEmailChangeRateLimiter: IRateLimiter;
   totpProvider: ITotpProvider;
@@ -288,6 +290,7 @@ export interface Cradle {
   parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
   generateCoverLetterUseCase: GenerateCoverLetterUseCase;
   computeHealthScoreUseCase: ComputeHealthScoreUseCase;
+  chatWithAssistantUseCase: ChatWithAssistantUseCase;
   computeResumeMatchScoreUseCase: ComputeResumeMatchScoreUseCase;
   sendWeeklyDigestUseCase: SendWeeklyDigestUseCase;
   createSessionUseCase: CreateSessionUseCase;
@@ -362,6 +365,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
         RATE_LIMIT.TOTP_VERIFICATION.MAX_ATTEMPTS,
         RATE_LIMIT.TOTP_VERIFICATION.WINDOW_MS,
       ),
+    ),
+    chatRateLimiter: asValue(
+      new RateLimiter(RATE_LIMIT.CHAT_MESSAGE.MAX_ATTEMPTS, RATE_LIMIT.CHAT_MESSAGE.WINDOW_MS),
     ),
     updatePasswordRateLimiter: asValue(
       new RateLimiter(
@@ -534,6 +540,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
       lifetime: Lifetime.TRANSIENT,
     }),
     computeHealthScoreUseCase: asClass(ComputeHealthScoreUseCase, { lifetime: Lifetime.TRANSIENT }),
+    chatWithAssistantUseCase: asClass(ChatWithAssistantUseCase, { lifetime: Lifetime.TRANSIENT }),
     computeResumeMatchScoreUseCase: asClass(ComputeResumeMatchScoreUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

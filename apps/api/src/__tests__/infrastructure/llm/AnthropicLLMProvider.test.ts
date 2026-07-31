@@ -155,4 +155,106 @@ describe('AnthropicLLMProvider', () => {
       );
     });
   });
+
+  describe('completeWithTools', () => {
+    const TOOLS = [
+      {
+        name: 'list_applications',
+        description: 'List applications',
+        parameters: { type: 'object' },
+      },
+    ];
+
+    it('sends tool definitions in the Anthropic input_schema shape', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ content: [{ type: 'text', text: 'ok' }] }) as never,
+      );
+
+      const provider = new AnthropicLLMProvider('secret-key');
+      await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.tools).toEqual([
+        {
+          name: 'list_applications',
+          description: 'List applications',
+          input_schema: { type: 'object' },
+        },
+      ]);
+    });
+
+    it('parses tool_use blocks from the response alongside any text block', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({
+          content: [
+            { type: 'text', text: "I'll check that." },
+            {
+              type: 'tool_use',
+              id: 'toolu_1',
+              name: 'list_applications',
+              input: { status: 'applied' },
+            },
+          ],
+        }) as never,
+      );
+
+      const provider = new AnthropicLLMProvider('secret-key');
+      const result = await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
+
+      expect(result).toEqual({
+        content: "I'll check that.",
+        toolCalls: [{ id: 'toolu_1', name: 'list_applications', arguments: { status: 'applied' } }],
+      });
+    });
+
+    it('returns an empty toolCalls array when the response has only text', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ content: [{ type: 'text', text: 'plain answer' }] }) as never,
+      );
+
+      const provider = new AnthropicLLMProvider('secret-key');
+      const result = await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
+
+      expect(result).toEqual({ content: 'plain answer', toolCalls: [] });
+    });
+
+    it('serializes an assistant tool-call request as a tool_use block and a tool result as a user tool_result block', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ content: [{ type: 'text', text: 'done' }] }) as never,
+      );
+
+      const provider = new AnthropicLLMProvider('secret-key');
+      const messages: LLMMessage[] = [
+        { role: 'user', content: 'which apps need follow up?' },
+        {
+          role: 'assistant',
+          content: '',
+          toolCalls: [
+            { id: 'toolu_1', name: 'list_applications', arguments: { status: 'applied' } },
+          ],
+        },
+        { role: 'tool', content: '[]', toolCallId: 'toolu_1' },
+      ];
+      await provider.completeWithTools(messages, TOOLS);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.messages[1]).toEqual({
+        role: 'assistant',
+        content: [
+          {
+            type: 'tool_use',
+            id: 'toolu_1',
+            name: 'list_applications',
+            input: { status: 'applied' },
+          },
+        ],
+      });
+      expect(body.messages[2]).toEqual({
+        role: 'user',
+        content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: '[]' }],
+      });
+    });
+  });
 });

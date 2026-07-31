@@ -135,6 +135,10 @@ export const RATE_LIMIT = {
     MAX_ATTEMPTS: 5,
     WINDOW_MS: 15 * 60 * 1000, // 15 minutes
   },
+  CHAT_MESSAGE: {
+    MAX_ATTEMPTS: 20,
+    WINDOW_MS: 5 * 60 * 1000, // 5 minutes
+  },
   UPDATE_PASSWORD: {
     MAX_ATTEMPTS: 5,
     WINDOW_MS: 15 * 60 * 1000, // 15 minutes
@@ -329,6 +333,12 @@ export const LOGIN_HISTORY = {
 export const BULK_ACTIONS = {
   /** Max number of IDs accepted in a single bulk mutation call. */
   MAX_IDS: 200,
+} as const;
+
+/** In-app AI chat assistant settings. */
+export const CHAT = {
+  /** Hard cap on LLM<->tool round-trips within a single chat turn, to bound cost/latency. */
+  MAX_TOOL_ITERATIONS: 5,
 } as const;
 
 /** Defaults/limits for cursor-paginated list queries. */
