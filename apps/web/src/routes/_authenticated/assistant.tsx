@@ -24,6 +24,15 @@ const SUGGESTED_QUESTIONS = [
   'What are my active applications?',
 ];
 
+const LOADING_MESSAGES = [
+  'Thinking…',
+  'Looking into your applications…',
+  'Checking the details…',
+  'Almost there…',
+];
+
+const LOADING_MESSAGE_INTERVAL_MS = 3000;
+
 export const Route = createFileRoute('/_authenticated/assistant')({
   component: AssistantPage,
 });
@@ -31,6 +40,7 @@ export const Route = createFileRoute('/_authenticated/assistant')({
 export function AssistantPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const send = useMutation({
@@ -44,6 +54,17 @@ export function AssistantPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, send.isPending]);
+
+  useEffect(() => {
+    if (!send.isPending) {
+      setLoadingMessageIndex(0);
+      return;
+    }
+    const id = setInterval(() => {
+      setLoadingMessageIndex((i) => (i + 1) % LOADING_MESSAGES.length);
+    }, LOADING_MESSAGE_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [send.isPending]);
 
   const handleSend = async (text: string) => {
     const trimmed = text.trim();
@@ -108,7 +129,7 @@ export function AssistantPage() {
           <div className="flex justify-start">
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2 text-sm text-gray-400 flex items-center gap-2">
               <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-gray-300 border-t-transparent rounded-full" />
-              Thinking…
+              {LOADING_MESSAGES[loadingMessageIndex]}
             </div>
           </div>
         )}
