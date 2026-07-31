@@ -37,6 +37,7 @@ import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
 import type { IDocumentTextExtractor } from '#src/use-cases/ports/IDocumentTextExtractor.js';
+import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
@@ -157,6 +158,7 @@ export const makeSessionRepository = (
   findByIdAndUserId: vi.fn().mockResolvedValue(null),
   findActiveByUserId: vi.fn().mockResolvedValue([]),
   touch: vi.fn().mockResolvedValue(undefined),
+  rotateRefreshToken: vi.fn().mockResolvedValue(undefined),
   revoke: vi.fn().mockResolvedValue(undefined),
   revokeAllForUserExcept: vi.fn().mockResolvedValue(undefined),
   revokeAllForUser: vi.fn().mockResolvedValue(undefined),
@@ -172,6 +174,9 @@ export const makeSession = (overrides?: Partial<Session>): Session => ({
   createdAt: new Date('2024-01-01T00:00:00.000Z'),
   expiresAt: new Date('2024-01-08T00:00:00.000Z'),
   revokedAt: null,
+  currentRefreshTokenId: 'refresh-token-id-1',
+  previousRefreshTokenId: null,
+  previousRotatedAt: null,
   ...overrides,
 });
 
@@ -431,5 +436,10 @@ export const makeDocumentTextExtractor = (
   overrides?: Partial<IDocumentTextExtractor>,
 ): IDocumentTextExtractor => ({
   extract: vi.fn().mockResolvedValue('extracted resume text'),
+  ...overrides,
+});
+
+export const makeLogger = (overrides?: Partial<ILogger>): ILogger => ({
+  error: vi.fn(),
   ...overrides,
 });

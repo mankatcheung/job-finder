@@ -9,7 +9,7 @@ import type { IResetPasswordUseCase } from '#src/use-cases/auth/IResetPasswordUs
 import type { IVerifyEmailUseCase } from '#src/use-cases/auth/IVerifyEmailUseCase.js';
 import type { ITokenService } from '#src/use-cases/ports/ITokenService.js';
 import type { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
-import type { TouchSessionUseCase } from '#src/use-cases/sessions/TouchSessionUseCase.js';
+import type { RotateRefreshTokenUseCase } from '#src/use-cases/sessions/RotateRefreshTokenUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 
@@ -68,8 +68,10 @@ const baseDeps = () => ({
   createSessionUseCase: stub<CreateSessionUseCase>({
     execute: vi.fn().mockResolvedValue(makeSession()),
   }),
-  touchSessionUseCase: stub<TouchSessionUseCase>({
-    execute: vi.fn().mockResolvedValue(makeSession()),
+  rotateRefreshTokenUseCase: stub<RotateRefreshTokenUseCase>({
+    execute: vi
+      .fn()
+      .mockResolvedValue({ session: makeSession(), newTokenId: 'new-refresh-token-id' }),
   }),
   verifyEmailUseCase: makeVerifyEmailUseCase(),
 });
@@ -103,7 +105,12 @@ describe('AuthResolver', () => {
         password: 'password123',
       });
       expect(createSessionUseCase.execute).toHaveBeenCalledWith({ userId: 'user-1', ...device });
-      expect(tokenService.sign).toHaveBeenCalledWith('user-1', 'test@example.com', 'session-1');
+      expect(tokenService.sign).toHaveBeenCalledWith(
+        'user-1',
+        'test@example.com',
+        'session-1',
+        'refresh-token-id-1',
+      );
       expect(result).toEqual({ accessToken: 'access-token', refreshToken: 'refresh-token' });
     });
   });
@@ -133,7 +140,12 @@ describe('AuthResolver', () => {
         userAgent: 'test-agent',
       });
       expect(createSessionUseCase.execute).toHaveBeenCalledWith({ userId: user.id, ...device });
-      expect(tokenService.sign).toHaveBeenCalledWith(user.id, user.email, 'session-1');
+      expect(tokenService.sign).toHaveBeenCalledWith(
+        user.id,
+        user.email,
+        'session-1',
+        'refresh-token-id-1',
+      );
       expect(result).toEqual({
         totpRequired: false,
         tokens: { accessToken: 'access-token', refreshToken: 'refresh-token' },
@@ -193,7 +205,12 @@ describe('AuthResolver', () => {
         ipAddress: device.ipAddress,
       });
       expect(createSessionUseCase.execute).toHaveBeenCalledWith({ userId: user.id, ...device });
-      expect(tokenService.sign).toHaveBeenCalledWith(user.id, user.email, 'session-1');
+      expect(tokenService.sign).toHaveBeenCalledWith(
+        user.id,
+        user.email,
+        'session-1',
+        'refresh-token-id-1',
+      );
       expect(result).toEqual({ accessToken: 'access-token', refreshToken: 'refresh-token' });
     });
 
@@ -213,24 +230,65 @@ describe('AuthResolver', () => {
   });
 
   describe('refreshToken', () => {
-    it('verifies the refresh token, touches the session, and returns a new token pair', async () => {
+    it('verifies the refresh token, rotates the session, and returns a new token pair', async () => {
+      const tokenService = makeTokenService({
+        verifyRefresh: vi.fn().mockReturnValue({
+          sub: 'user-1',
+          email: 'test@example.com',
+          sid: 'session-1',
+          jti: 'old-refresh-token-id',
+        }),
+      });
+      const rotateRefreshTokenUseCase = stub<RotateRefreshTokenUseCase>({
+        execute: vi
+          .fn()
+          .mockResolvedValue({
+            session: makeSession({ id: 'session-1' }),
+            newTokenId: 'new-refresh-token-id',
+          }),
+      });
+
+      const resolver = new AuthResolver({ ...baseDeps(), tokenService, rotateRefreshTokenUseCase });
+
+      const result = await resolver.refreshToken('valid-refresh-token');
+
+      expect(tokenService.verifyRefresh).toHaveBeenCalledWith('valid-refresh-token');
+      expect(rotateRefreshTokenUseCase.execute).toHaveBeenCalledWith({
+        sessionId: 'session-1',
+        presentedTokenId: 'old-refresh-token-id',
+      });
+      expect(tokenService.sign).toHaveBeenCalledWith(
+        'user-1',
+        'test@example.com',
+        'session-1',
+        'new-refresh-token-id',
+      );
+      expect(result).toEqual({ accessToken: 'access-token', refreshToken: 'refresh-token' });
+    });
+
+    it('passes null as presentedTokenId for a legacy refresh token with no jti', async () => {
       const tokenService = makeTokenService({
         verifyRefresh: vi
           .fn()
           .mockReturnValue({ sub: 'user-1', email: 'test@example.com', sid: 'session-1' }),
       });
-      const touchSessionUseCase = stub<TouchSessionUseCase>({
-        execute: vi.fn().mockResolvedValue(makeSession({ id: 'session-1' })),
+      const rotateRefreshTokenUseCase = stub<RotateRefreshTokenUseCase>({
+        execute: vi
+          .fn()
+          .mockResolvedValue({
+            session: makeSession({ id: 'session-1' }),
+            newTokenId: 'new-refresh-token-id',
+          }),
       });
 
-      const resolver = new AuthResolver({ ...baseDeps(), tokenService, touchSessionUseCase });
+      const resolver = new AuthResolver({ ...baseDeps(), tokenService, rotateRefreshTokenUseCase });
 
-      const result = await resolver.refreshToken('valid-refresh-token');
+      await resolver.refreshToken('legacy-refresh-token');
 
-      expect(tokenService.verifyRefresh).toHaveBeenCalledWith('valid-refresh-token');
-      expect(touchSessionUseCase.execute).toHaveBeenCalledWith('session-1');
-      expect(tokenService.sign).toHaveBeenCalledWith('user-1', 'test@example.com', 'session-1');
-      expect(result).toEqual({ accessToken: 'access-token', refreshToken: 'refresh-token' });
+      expect(rotateRefreshTokenUseCase.execute).toHaveBeenCalledWith({
+        sessionId: 'session-1',
+        presentedTokenId: null,
+      });
     });
 
     it('throws UNAUTHORIZED when the refresh token is invalid', async () => {
@@ -248,13 +306,16 @@ describe('AuthResolver', () => {
       expect((err as { code: string }).code).toBe('UNAUTHORIZED');
     });
 
-    it('throws UNAUTHORIZED when the session has been revoked', async () => {
+    it('throws UNAUTHORIZED when the session has been revoked or the token reused', async () => {
       const tokenService = makeTokenService({
-        verifyRefresh: vi
-          .fn()
-          .mockReturnValue({ sub: 'user-1', email: 'test@example.com', sid: 'session-1' }),
+        verifyRefresh: vi.fn().mockReturnValue({
+          sub: 'user-1',
+          email: 'test@example.com',
+          sid: 'session-1',
+          jti: 'stale-refresh-token-id',
+        }),
       });
-      const touchSessionUseCase = stub<TouchSessionUseCase>({
+      const rotateRefreshTokenUseCase = stub<RotateRefreshTokenUseCase>({
         execute: vi
           .fn()
           .mockRejectedValue(
@@ -262,7 +323,7 @@ describe('AuthResolver', () => {
           ),
       });
 
-      const resolver = new AuthResolver({ ...baseDeps(), tokenService, touchSessionUseCase });
+      const resolver = new AuthResolver({ ...baseDeps(), tokenService, rotateRefreshTokenUseCase });
 
       const err = await resolver.refreshToken('valid-refresh-token').catch((e) => e);
 

@@ -23,6 +23,7 @@ export class CreateSessionUseCase {
       userAgent: input.userAgent,
       ipAddress: input.ipAddress,
       expiresAt: new Date(Date.now() + SESSION.TTL_MS),
+      currentRefreshTokenId: this.deps.generateId(),
     });
   }
 }

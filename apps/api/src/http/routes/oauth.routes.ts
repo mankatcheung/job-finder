@@ -138,7 +138,12 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
             userAgent,
             ipAddress: req.ip,
           });
-          const tokens = tokenService.sign(user.id, user.email, session.id);
+          const tokens = tokenService.sign(
+            user.id,
+            user.email,
+            session.id,
+            session.currentRefreshTokenId!,
+          );
           setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
           res.redirect(webAppOrigin);
         } catch (err) {

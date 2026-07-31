@@ -84,6 +84,8 @@ export const JWT_EXPIRY = {
 export const SESSION = {
   /** How long a session stays active without a refresh, in milliseconds — mirrors the refresh JWT's lifetime and slides forward on each refresh. */
   TTL_MS: COOKIE_MAX_AGE_S.REFRESH_TOKEN * 1000,
+  /** Window after a rotation in which the just-superseded refresh token is still accepted, to absorb benign concurrent-tab refresh races without flagging them as reuse. */
+  ROTATION_GRACE_MS: 10 * 1000,
 } as const;
 
 /** API-token (`jfat_...`) settings. */
