@@ -240,12 +240,10 @@ describe('AuthResolver', () => {
         }),
       });
       const rotateRefreshTokenUseCase = stub<RotateRefreshTokenUseCase>({
-        execute: vi
-          .fn()
-          .mockResolvedValue({
-            session: makeSession({ id: 'session-1' }),
-            newTokenId: 'new-refresh-token-id',
-          }),
+        execute: vi.fn().mockResolvedValue({
+          session: makeSession({ id: 'session-1' }),
+          newTokenId: 'new-refresh-token-id',
+        }),
       });
 
       const resolver = new AuthResolver({ ...baseDeps(), tokenService, rotateRefreshTokenUseCase });
@@ -273,12 +271,10 @@ describe('AuthResolver', () => {
           .mockReturnValue({ sub: 'user-1', email: 'test@example.com', sid: 'session-1' }),
       });
       const rotateRefreshTokenUseCase = stub<RotateRefreshTokenUseCase>({
-        execute: vi
-          .fn()
-          .mockResolvedValue({
-            session: makeSession({ id: 'session-1' }),
-            newTokenId: 'new-refresh-token-id',
-          }),
+        execute: vi.fn().mockResolvedValue({
+          session: makeSession({ id: 'session-1' }),
+          newTokenId: 'new-refresh-token-id',
+        }),
       });
 
       const resolver = new AuthResolver({ ...baseDeps(), tokenService, rotateRefreshTokenUseCase });
