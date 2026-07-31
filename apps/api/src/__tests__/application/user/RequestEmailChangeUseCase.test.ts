@@ -5,6 +5,7 @@ import {
   makeUserRepository,
   makeUser,
   makeEmailVerificationTokenRepository,
+  makeRateLimiter,
 } from '#src/__tests__/helpers/mocks.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 
@@ -41,6 +42,7 @@ describe('RequestEmailChangeUseCase', () => {
       userRepository,
       emailVerificationTokenRepository: makeEmailVerificationTokenRepository(),
       emailService: makeEmailService(),
+      requestEmailChangeRateLimiter: makeRateLimiter(),
       generateId: vi.fn(),
       webAppOrigin: 'https://app.example.com',
     })
@@ -60,6 +62,7 @@ describe('RequestEmailChangeUseCase', () => {
       userRepository,
       emailVerificationTokenRepository: makeEmailVerificationTokenRepository(),
       emailService: makeEmailService(),
+      requestEmailChangeRateLimiter: makeRateLimiter(),
       generateId: vi.fn(),
       webAppOrigin: 'https://app.example.com',
     })
@@ -80,6 +83,7 @@ describe('RequestEmailChangeUseCase', () => {
       userRepository,
       emailVerificationTokenRepository: makeEmailVerificationTokenRepository(),
       emailService: makeEmailService(),
+      requestEmailChangeRateLimiter: makeRateLimiter(),
       generateId: vi.fn(),
       webAppOrigin: 'https://app.example.com',
     })
@@ -101,6 +105,7 @@ describe('RequestEmailChangeUseCase', () => {
       userRepository,
       emailVerificationTokenRepository: makeEmailVerificationTokenRepository(),
       emailService: makeEmailService(),
+      requestEmailChangeRateLimiter: makeRateLimiter(),
       generateId: vi.fn().mockReturnValue('token-1'),
       webAppOrigin: 'https://app.example.com',
     }).execute(input);
@@ -121,6 +126,7 @@ describe('RequestEmailChangeUseCase', () => {
       userRepository,
       emailVerificationTokenRepository,
       emailService: makeEmailService(),
+      requestEmailChangeRateLimiter: makeRateLimiter(),
       generateId: vi.fn().mockReturnValue('token-1'),
       webAppOrigin: 'https://app.example.com',
     }).execute(input);
@@ -148,6 +154,7 @@ describe('RequestEmailChangeUseCase', () => {
       userRepository,
       emailVerificationTokenRepository: makeEmailVerificationTokenRepository(),
       emailService,
+      requestEmailChangeRateLimiter: makeRateLimiter(),
       generateId: vi.fn().mockReturnValue('token-1'),
       webAppOrigin: 'https://app.example.com',
     }).execute(input);
@@ -174,9 +181,36 @@ describe('RequestEmailChangeUseCase', () => {
         userRepository,
         emailVerificationTokenRepository: makeEmailVerificationTokenRepository(),
         emailService,
+        requestEmailChangeRateLimiter: makeRateLimiter(),
         generateId: vi.fn().mockReturnValue('token-1'),
         webAppOrigin: 'https://app.example.com',
       }).execute(input),
     ).rejects.toThrow('Brevo is down');
+  });
+
+  it('throws RATE_LIMITED when too many attempts have been made', async () => {
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(makeUser({ id: 'user-1' })),
+    });
+    const requestEmailChangeRateLimiter = makeRateLimiter({
+      consume: vi.fn().mockReturnValue(false),
+    });
+
+    const err = await new RequestEmailChangeUseCase({
+      userRepository,
+      emailVerificationTokenRepository: makeEmailVerificationTokenRepository(),
+      emailService: makeEmailService(),
+      requestEmailChangeRateLimiter,
+      generateId: vi.fn(),
+      webAppOrigin: 'https://app.example.com',
+    })
+      .execute(input)
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('RATE_LIMITED');
+    expect(requestEmailChangeRateLimiter.consume).toHaveBeenCalledWith(
+      'request-email-change:user:user-1',
+    );
+    expect(userRepository.findById).not.toHaveBeenCalled();
   });
 });

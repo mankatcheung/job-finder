@@ -134,6 +134,7 @@ import { FetchJobPostingSourceResolver } from '#src/infrastructure/jobDescriptio
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
 import { GenerateCoverLetterUseCase } from '#src/use-cases/coverLetter/GenerateCoverLetterUseCase.js';
 import { ComputeHealthScoreUseCase } from '#src/use-cases/application/ComputeHealthScoreUseCase.js';
+import { ComputeResumeMatchScoreUseCase } from '#src/use-cases/application/ComputeResumeMatchScoreUseCase.js';
 import { SendWeeklyDigestUseCase } from '#src/use-cases/digest/SendWeeklyDigestUseCase.js';
 import { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
 import { TouchSessionUseCase } from '#src/use-cases/sessions/TouchSessionUseCase.js';
@@ -141,10 +142,12 @@ import { ListSessionsUseCase } from '#src/use-cases/sessions/ListSessionsUseCase
 import { RevokeSessionUseCase } from '#src/use-cases/sessions/RevokeSessionUseCase.js';
 import { RevokeOtherSessionsUseCase } from '#src/use-cases/sessions/RevokeOtherSessionsUseCase.js';
 import { ChatWithAssistantUseCase } from '#src/use-cases/chat/ChatWithAssistantUseCase.js';
+import { DocumentTextExtractor } from '#src/infrastructure/documents/DocumentTextExtractor.js';
 
 import { ENV, RATE_LIMIT, STORAGE_PROVIDER } from '#src/constants.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
+import type { IDocumentTextExtractor } from '#src/use-cases/ports/IDocumentTextExtractor.js';
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 
 export interface Cradle {
@@ -179,6 +182,8 @@ export interface Cradle {
   totpBackupCodeRepository: DrizzleTotpBackupCodeRepository;
   totpRateLimiter: IRateLimiter;
   chatRateLimiter: IRateLimiter;
+  updatePasswordRateLimiter: IRateLimiter;
+  requestEmailChangeRateLimiter: IRateLimiter;
   totpProvider: ITotpProvider;
   oauthAccountRepository: DrizzleOAuthAccountRepository;
   googleOAuthProvider: IOAuthProvider;
@@ -280,11 +285,13 @@ export interface Cradle {
   transactionManager: DrizzleTransactionManager;
   llmApiKeyCipher: ILlmApiKeyCipher;
   llmProviderFactory: ILLMProviderFactory;
+  documentTextExtractor: IDocumentTextExtractor;
   jobPostingSourceResolver: IJobPostingSourceResolver;
   parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
   generateCoverLetterUseCase: GenerateCoverLetterUseCase;
   computeHealthScoreUseCase: ComputeHealthScoreUseCase;
   chatWithAssistantUseCase: ChatWithAssistantUseCase;
+  computeResumeMatchScoreUseCase: ComputeResumeMatchScoreUseCase;
   sendWeeklyDigestUseCase: SendWeeklyDigestUseCase;
   createSessionUseCase: CreateSessionUseCase;
   touchSessionUseCase: TouchSessionUseCase;
@@ -361,6 +368,18 @@ export function buildContainer(): AwilixContainer<Cradle> {
     ),
     chatRateLimiter: asValue(
       new RateLimiter(RATE_LIMIT.CHAT_MESSAGE.MAX_ATTEMPTS, RATE_LIMIT.CHAT_MESSAGE.WINDOW_MS),
+    ),
+    updatePasswordRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.UPDATE_PASSWORD.MAX_ATTEMPTS,
+        RATE_LIMIT.UPDATE_PASSWORD.WINDOW_MS,
+      ),
+    ),
+    requestEmailChangeRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.REQUEST_EMAIL_CHANGE.MAX_ATTEMPTS,
+        RATE_LIMIT.REQUEST_EMAIL_CHANGE.WINDOW_MS,
+      ),
     ),
     totpProvider: asClass(TotpProvider, { lifetime: Lifetime.SINGLETON }),
     oauthAccountRepository: asClass(DrizzleOAuthAccountRepository, {
@@ -510,6 +529,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     }),
     llmApiKeyCipher: asClass(LlmApiKeyCipher, { lifetime: Lifetime.SINGLETON }),
     llmProviderFactory: asClass(UserLLMProviderFactory, { lifetime: Lifetime.SINGLETON }),
+    documentTextExtractor: asClass(DocumentTextExtractor, { lifetime: Lifetime.SINGLETON }),
     jobPostingSourceResolver: asClass(FetchJobPostingSourceResolver, {
       lifetime: Lifetime.SINGLETON,
     }),
@@ -521,6 +541,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     }),
     computeHealthScoreUseCase: asClass(ComputeHealthScoreUseCase, { lifetime: Lifetime.TRANSIENT }),
     chatWithAssistantUseCase: asClass(ChatWithAssistantUseCase, { lifetime: Lifetime.TRANSIENT }),
+    computeResumeMatchScoreUseCase: asClass(ComputeResumeMatchScoreUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     sendWeeklyDigestUseCase: asClass(SendWeeklyDigestUseCase, { lifetime: Lifetime.TRANSIENT }),
     createSessionUseCase: asClass(CreateSessionUseCase, { lifetime: Lifetime.TRANSIENT }),
     touchSessionUseCase: asClass(TouchSessionUseCase, { lifetime: Lifetime.TRANSIENT }),

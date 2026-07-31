@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IEmailVerificationTokenRepository } from '#src/use-cases/ports/IEmailVerificationTokenRepository.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
+import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { ERROR_CODES, EMAIL_VERIFICATION_TOKEN } from '#src/constants.js';
 import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
 import type {
@@ -14,6 +15,7 @@ interface Deps {
   userRepository: IUserRepository;
   emailVerificationTokenRepository: IEmailVerificationTokenRepository;
   emailService: IEmailService;
+  requestEmailChangeRateLimiter: IRateLimiter;
   generateId: () => string;
   webAppOrigin: string;
 }
@@ -22,6 +24,16 @@ export class RequestEmailChangeUseCase implements IRequestEmailChangeUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: RequestEmailChangeInput): Promise<void> {
+    // Rate-limit by user ID to prevent abuse of email change requests
+    const allowed = this.deps.requestEmailChangeRateLimiter.consume(
+      `request-email-change:user:${input.userId}`,
+    );
+    if (!allowed) {
+      throw Object.assign(new Error('Too many email change requests. Try again later.'), {
+        code: ERROR_CODES.RATE_LIMITED,
+      });
+    }
+
     const user = await this.deps.userRepository.findById(input.userId);
     if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
     assertHasPassword(user.passwordHash);

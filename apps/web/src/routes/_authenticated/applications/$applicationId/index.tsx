@@ -100,7 +100,7 @@ export function ApplicationDetailPage() {
   const [noteContent, setNoteContent] = useState('');
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [activeTab, setActiveTab] = useState<
-    'notes' | 'interviews' | 'contacts' | 'activity' | 'documents' | 'cover letter'
+    'notes' | 'interviews' | 'contacts' | 'activity' | 'documents' | 'cover letter' | 'resume match'
   >('notes');
 
   const {
@@ -294,7 +294,15 @@ export function ApplicationDetailPage() {
 
       <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6 overflow-x-auto">
         {(
-          ['notes', 'interviews', 'contacts', 'activity', 'documents', 'cover letter'] as const
+          [
+            'notes',
+            'interviews',
+            'contacts',
+            'activity',
+            'documents',
+            'cover letter',
+            'resume match',
+          ] as const
         ).map((tab) => (
           <button
             key={tab}
@@ -407,6 +415,8 @@ export function ApplicationDetailPage() {
       {activeTab === 'documents' && <DocumentsTab applicationId={applicationId} />}
 
       {activeTab === 'cover letter' && <CoverLetterTab applicationId={applicationId} />}
+
+      {activeTab === 'resume match' && <ResumeMatchTab applicationId={applicationId} />}
     </div>
   );
 }
@@ -1677,6 +1687,223 @@ function CoverLetterTab({ applicationId }: { applicationId: string }) {
           <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-sans leading-relaxed">
             {coverLetter}
           </pre>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const COMPUTE_RESUME_MATCH_SCORE = `
+  mutation ComputeResumeMatchScore($applicationId: ID!, $resumeText: String) {
+    computeResumeMatchScore(applicationId: $applicationId, resumeText: $resumeText) {
+      score
+      label
+      matchedKeywords
+      missingKeywords
+      summary
+    }
+  }
+`;
+
+type ResumeMatchScoreResult = {
+  score: number;
+  label: string;
+  matchedKeywords: string[];
+  missingKeywords: string[];
+  summary: string;
+};
+
+function ResumeMatchTab({ applicationId }: { applicationId: string }) {
+  const [resumeText, setResumeText] = useState('');
+  const [overridePaste, setOverridePaste] = useState(false);
+
+  const { data: documentsData } = useQuery({
+    queryKey: ['documents', applicationId],
+    queryFn: () => gqlClient.request<{ documents: Document[] }>(DOCUMENTS_QUERY, { applicationId }),
+  });
+  const resumeDoc = (documentsData?.documents ?? [])
+    .filter((d) => d.documentType === 'resume')
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+  const usingUploadedResume = Boolean(resumeDoc) && !overridePaste;
+
+  const compute = useMutation({
+    mutationFn: () =>
+      gqlClient.request<{ computeResumeMatchScore: ResumeMatchScoreResult }>(
+        COMPUTE_RESUME_MATCH_SCORE,
+        { applicationId, resumeText: usingUploadedResume ? null : resumeText.trim() || null },
+      ),
+  });
+
+  const result = compute.data?.computeResumeMatchScore;
+  const color = result ? SCORE_COLORS[scoreColor(result.score)] : null;
+  const radius = 20;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = result ? circumference - (result.score / 100) * circumference : circumference;
+
+  const inputCls =
+    'w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none';
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+        {usingUploadedResume && resumeDoc ? (
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Using your uploaded resume — <span className="font-medium">{resumeDoc.name}</span>
+            </p>
+            <button
+              type="button"
+              onClick={() => setOverridePaste(true)}
+              className="text-xs text-blue-600 hover:underline shrink-0"
+            >
+              Paste different text instead
+            </button>
+          </div>
+        ) : (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Your resume
+            </label>
+            <textarea
+              value={resumeText}
+              onChange={(e) => setResumeText(e.target.value)}
+              rows={6}
+              placeholder="Paste your resume text here…"
+              className={inputCls}
+            />
+            {resumeDoc && (
+              <button
+                type="button"
+                onClick={() => setOverridePaste(false)}
+                className="mt-1 text-xs text-blue-600 hover:underline"
+              >
+                Use uploaded resume ({resumeDoc.name}) instead
+              </button>
+            )}
+          </div>
+        )}
+
+        <button
+          onClick={() => compute.mutate()}
+          disabled={compute.isPending || (!usingUploadedResume && !resumeText.trim())}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+        >
+          {compute.isPending ? (
+            <>
+              <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" />
+              Checking match…
+            </>
+          ) : (
+            <>🎯 {result ? 'Check again' : 'Check match'}</>
+          )}
+        </button>
+
+        {compute.isError && (
+          <p className="text-sm text-red-600 dark:text-red-400">
+            {getGqlErrorCode(compute.error) === AI_NOT_CONFIGURED_CODE ? (
+              <>
+                Add your AI API key in{' '}
+                <Link to="/account" className="underline">
+                  Account settings
+                </Link>{' '}
+                to use this feature.
+              </>
+            ) : (
+              getErrorMessage(compute.error)
+            )}
+          </p>
+        )}
+      </div>
+
+      {result && color && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+          <div
+            className={`rounded-xl border border-gray-100 dark:border-gray-700 ${color.bg} p-3 flex items-center gap-3`}
+          >
+            <svg width="52" height="52" viewBox="0 0 52 52" className="shrink-0">
+              <circle
+                cx="26"
+                cy="26"
+                r={radius}
+                fill="none"
+                strokeWidth="5"
+                className="text-gray-200 dark:text-gray-700"
+                stroke="currentColor"
+              />
+              <circle
+                cx="26"
+                cy="26"
+                r={radius}
+                fill="none"
+                strokeWidth="5"
+                stroke="currentColor"
+                className={color.ring}
+                strokeDasharray={circumference}
+                strokeDashoffset={dashOffset}
+                strokeLinecap="round"
+                transform="rotate(-90 26 26)"
+              />
+              <text
+                x="26"
+                y="30"
+                textAnchor="middle"
+                fontSize="13"
+                fontWeight="bold"
+                fill="currentColor"
+                className={color.ring}
+              >
+                {result.score}
+              </text>
+            </svg>
+            <div>
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Resume match</p>
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${color.badge}`}
+              >
+                {result.label}
+              </span>
+            </div>
+          </div>
+
+          {result.summary && (
+            <p className="text-sm text-gray-700 dark:text-gray-300">{result.summary}</p>
+          )}
+
+          {result.matchedKeywords.length > 0 && (
+            <div>
+              <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+                Matched keywords
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {result.matchedKeywords.map((kw) => (
+                  <span
+                    key={kw}
+                    className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  >
+                    {kw}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {result.missingKeywords.length > 0 && (
+            <div>
+              <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+                Missing keywords
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {result.missingKeywords.map((kw) => (
+                  <span
+                    key={kw}
+                    className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                  >
+                    {kw}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

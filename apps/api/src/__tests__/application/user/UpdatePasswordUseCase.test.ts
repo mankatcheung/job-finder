@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import bcrypt from 'bcryptjs';
 import { UpdatePasswordUseCase } from '#src/use-cases/user/UpdatePasswordUseCase.js';
-import { makeUserRepository, makeUser } from '#src/__tests__/helpers/mocks.js';
+import { makeUserRepository, makeUser, makeRateLimiter } from '#src/__tests__/helpers/mocks.js';
 
 vi.mock('bcryptjs', () => ({
   default: {
@@ -27,11 +27,16 @@ describe('UpdatePasswordUseCase', () => {
       findById: vi.fn().mockResolvedValue(user),
       update: vi.fn().mockResolvedValue(user),
     });
+    const updatePasswordRateLimiter = makeRateLimiter();
     vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
     vi.mocked(bcrypt.hash).mockResolvedValue('new-hash' as never);
 
-    await new UpdatePasswordUseCase({ userRepository }).execute(input);
+    await new UpdatePasswordUseCase({
+      userRepository,
+      updatePasswordRateLimiter,
+    }).execute(input);
 
+    expect(updatePasswordRateLimiter.consume).toHaveBeenCalledWith('update-password:user:user-1');
     expect(bcrypt.compare).toHaveBeenCalledWith(input.currentPassword, user.passwordHash);
     expect(bcrypt.hash).toHaveBeenCalledWith(input.newPassword, 12);
     expect(userRepository.update).toHaveBeenCalledWith('user-1', { passwordHash: 'new-hash' });
@@ -42,7 +47,12 @@ describe('UpdatePasswordUseCase', () => {
       findById: vi.fn().mockResolvedValue(null),
     });
 
-    const err = await new UpdatePasswordUseCase({ userRepository }).execute(input).catch((e) => e);
+    const err = await new UpdatePasswordUseCase({
+      userRepository,
+      updatePasswordRateLimiter: makeRateLimiter(),
+    })
+      .execute(input)
+      .catch((e) => e);
 
     expect((err as { code: string }).code).toBe('NOT_FOUND');
     expect(userRepository.update).not.toHaveBeenCalled();
@@ -55,7 +65,12 @@ describe('UpdatePasswordUseCase', () => {
     });
     vi.mocked(bcrypt.compare).mockResolvedValue(false as never);
 
-    const err = await new UpdatePasswordUseCase({ userRepository }).execute(input).catch((e) => e);
+    const err = await new UpdatePasswordUseCase({
+      userRepository,
+      updatePasswordRateLimiter: makeRateLimiter(),
+    })
+      .execute(input)
+      .catch((e) => e);
 
     expect((err as { code: string }).code).toBe('UNAUTHORIZED');
     expect(userRepository.update).not.toHaveBeenCalled();
@@ -65,11 +80,32 @@ describe('UpdatePasswordUseCase', () => {
   it('throws VALIDATION when the new password is too short', async () => {
     const userRepository = makeUserRepository();
 
-    const err = await new UpdatePasswordUseCase({ userRepository })
+    const err = await new UpdatePasswordUseCase({
+      userRepository,
+      updatePasswordRateLimiter: makeRateLimiter(),
+    })
       .execute({ ...input, newPassword: 'short1' })
       .catch((e) => e);
 
     expect((err as { code: string }).code).toBe('VALIDATION');
+    expect(userRepository.findById).not.toHaveBeenCalled();
+    expect(userRepository.update).not.toHaveBeenCalled();
+  });
+
+  it('throws RATE_LIMITED when too many attempts have been made', async () => {
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(makeUser({ id: 'user-1' })),
+    });
+    const updatePasswordRateLimiter = makeRateLimiter({
+      consume: vi.fn().mockReturnValue(false),
+    });
+
+    const err = await new UpdatePasswordUseCase({ userRepository, updatePasswordRateLimiter })
+      .execute(input)
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('RATE_LIMITED');
+    expect(updatePasswordRateLimiter.consume).toHaveBeenCalledWith('update-password:user:user-1');
     expect(userRepository.findById).not.toHaveBeenCalled();
     expect(userRepository.update).not.toHaveBeenCalled();
   });
