@@ -41,6 +41,7 @@ import './queries/healthScoreQueries.js';
 import './queries/loginEventQueries.js';
 import './queries/sessionQueries.js';
 import './queries/oauthQueries.js';
+import './queries/calendarQueries.js';
 
 // Mutations
 import './mutations/authMutations.js';

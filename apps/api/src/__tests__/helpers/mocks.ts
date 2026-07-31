@@ -86,6 +86,7 @@ export const makeInterviewRoundRepository = (
   overrides?: Partial<IInterviewRoundRepository>,
 ): IInterviewRoundRepository => ({
   findAllByApplicationId: vi.fn(),
+  findAllByUserId: vi.fn().mockResolvedValue([]),
   findById: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),

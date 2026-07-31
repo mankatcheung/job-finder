@@ -135,6 +135,7 @@ import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPosting
 import { GenerateCoverLetterUseCase } from '#src/use-cases/coverLetter/GenerateCoverLetterUseCase.js';
 import { ComputeHealthScoreUseCase } from '#src/use-cases/application/ComputeHealthScoreUseCase.js';
 import { ComputeResumeMatchScoreUseCase } from '#src/use-cases/application/ComputeResumeMatchScoreUseCase.js';
+import { GetCalendarEventsUseCase } from '#src/use-cases/calendar/GetCalendarEventsUseCase.js';
 import { SendWeeklyDigestUseCase } from '#src/use-cases/digest/SendWeeklyDigestUseCase.js';
 import { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
 import { TouchSessionUseCase } from '#src/use-cases/sessions/TouchSessionUseCase.js';
@@ -292,6 +293,7 @@ export interface Cradle {
   computeHealthScoreUseCase: ComputeHealthScoreUseCase;
   chatWithAssistantUseCase: ChatWithAssistantUseCase;
   computeResumeMatchScoreUseCase: ComputeResumeMatchScoreUseCase;
+  getCalendarEventsUseCase: GetCalendarEventsUseCase;
   sendWeeklyDigestUseCase: SendWeeklyDigestUseCase;
   createSessionUseCase: CreateSessionUseCase;
   touchSessionUseCase: TouchSessionUseCase;
@@ -541,6 +543,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     }),
     computeHealthScoreUseCase: asClass(ComputeHealthScoreUseCase, { lifetime: Lifetime.TRANSIENT }),
     chatWithAssistantUseCase: asClass(ChatWithAssistantUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getCalendarEventsUseCase: asClass(GetCalendarEventsUseCase, { lifetime: Lifetime.TRANSIENT }),
     computeResumeMatchScoreUseCase: asClass(ComputeResumeMatchScoreUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

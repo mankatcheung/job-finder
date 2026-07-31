@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { eq } from 'drizzle-orm';
 import { DrizzleInterviewRoundRepository } from '#src/infrastructure/db/repositories/DrizzleInterviewRoundRepository.js';
 import { createTestDb, type TestDb } from '#src/__tests__/helpers/createTestDb.js';
 import { user, jobApplication, interviewRound } from '#src/infrastructure/db/schema.js';
@@ -92,6 +93,34 @@ describe('DrizzleInterviewRoundRepository', () => {
 
     it('returns an empty array when there are no rounds', async () => {
       expect(await repo.findAllByApplicationId('app-1')).toHaveLength(0);
+    });
+  });
+
+  describe('findAllByUserId', () => {
+    beforeEach(async () => {
+      await db.db.delete(jobApplication).where(eq(jobApplication.id, 'app-2'));
+      await db.db.delete(user).where(eq(user.id, 'u2'));
+    });
+
+    it('returns rounds across every application owned by the user, not other users', async () => {
+      await db.db.insert(user).values({ id: 'u2', email: 'u2@t.com', passwordHash: 'h' });
+      await db.db.insert(jobApplication).values({
+        id: 'app-2',
+        userId: 'u2',
+        company: 'Globex',
+        role: 'Eng',
+        status: 'draft',
+      });
+      await repo.create({ id: 'r1', applicationId: 'app-1', type: 'phone' });
+      await repo.create({ id: 'r2', applicationId: 'app-2', type: 'onsite' });
+
+      const rounds = await repo.findAllByUserId('u1');
+
+      expect(rounds.map((r) => r.id)).toEqual(['r1']);
+    });
+
+    it('returns an empty array when the user has no interview rounds', async () => {
+      expect(await repo.findAllByUserId('u1')).toHaveLength(0);
     });
   });
 

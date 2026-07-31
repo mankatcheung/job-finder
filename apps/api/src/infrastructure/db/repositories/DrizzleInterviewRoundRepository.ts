@@ -1,6 +1,6 @@
 import { eq, asc } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
-import { interviewRound } from '../schema.js';
+import { interviewRound, jobApplication } from '../schema.js';
 import type {
   InterviewRound,
   InterviewRoundType,
@@ -32,6 +32,16 @@ export class DrizzleInterviewRoundRepository implements IInterviewRoundRepositor
       .where(eq(interviewRound.applicationId, applicationId))
       .orderBy(asc(interviewRound.createdAt));
     return rows.map((r) => this.toEntity(r));
+  }
+
+  async findAllByUserId(userId: string): Promise<InterviewRound[]> {
+    const rows = await this.db
+      .select({ interviewRound })
+      .from(interviewRound)
+      .innerJoin(jobApplication, eq(interviewRound.applicationId, jobApplication.id))
+      .where(eq(jobApplication.userId, userId))
+      .orderBy(asc(interviewRound.createdAt));
+    return rows.map((r) => this.toEntity(r.interviewRound));
   }
 
   async findById(id: string): Promise<InterviewRound | null> {
