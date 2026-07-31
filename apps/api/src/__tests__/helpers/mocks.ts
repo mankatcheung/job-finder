@@ -36,6 +36,7 @@ import type { OAuthAccount } from '#src/domain/oauthAccount/OAuthAccount.js';
 import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
+import type { IDocumentTextExtractor } from '#src/use-cases/ports/IDocumentTextExtractor.js';
 
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
@@ -422,5 +423,12 @@ export const makeLLMProviderFactory = (
 export const makeLlmApiKeyCipher = (overrides?: Partial<ILlmApiKeyCipher>): ILlmApiKeyCipher => ({
   encrypt: vi.fn((plaintext: string) => `encrypted:${plaintext}`),
   decrypt: vi.fn((ciphertext: string) => ciphertext.replace(/^encrypted:/, '')),
+  ...overrides,
+});
+
+export const makeDocumentTextExtractor = (
+  overrides?: Partial<IDocumentTextExtractor>,
+): IDocumentTextExtractor => ({
+  extract: vi.fn().mockResolvedValue('extracted resume text'),
   ...overrides,
 });
