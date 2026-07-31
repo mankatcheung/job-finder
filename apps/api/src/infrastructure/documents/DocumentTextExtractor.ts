@@ -1,4 +1,3 @@
-import { PDFParse } from 'pdf-parse';
 import mammoth from 'mammoth';
 import type { IDocumentTextExtractor } from '#src/use-cases/ports/IDocumentTextExtractor.js';
 import { ERROR_CODES, MIME_TYPE } from '#src/constants.js';
@@ -21,6 +20,13 @@ export class DocumentTextExtractor implements IDocumentTextExtractor {
   }
 
   private async extractPdf(buffer: Buffer): Promise<string> {
+    // Lazy: pdf-parse pulls in pdfjs-dist, which eagerly tries to load the
+    // native @napi-rs/canvas binary for PDF-rendering polyfills we never use
+    // (this class only extracts text). Importing it here instead of at
+    // module scope means that load only happens when a PDF is actually
+    // extracted, not on every cold start via container.ts's eager import of
+    // this whole class.
+    const { PDFParse } = await import('pdf-parse');
     const parser = new PDFParse({ data: buffer });
     try {
       const result = await parser.getText();
