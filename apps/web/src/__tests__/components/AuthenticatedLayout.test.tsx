@@ -63,8 +63,8 @@ describe('AuthenticatedLayout', () => {
     // "Dashboard" / "Account" appear in sidebar and bottom nav
     expect(screen.getAllByText('Dashboard').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Settings').length).toBeGreaterThanOrEqual(1);
-    // "Applications" appears only in the sidebar (bottom nav shows "Apps")
-    expect(screen.getByText('Applications')).toBeInTheDocument();
+    // "Applications" appears in mobile sidebar drawer and desktop sidebar (bottom nav shows "Apps")
+    expect(screen.getAllByText('Applications').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders the Outlet for page content', () => {
@@ -82,7 +82,7 @@ describe('AuthenticatedLayout', () => {
     mockGqlRequest.mockResolvedValue({ logout: true });
     render(<AuthenticatedLayout />, { wrapper: Wrapper });
 
-    // Click the first sign-out button (mobile header icon button)
+    // Click the first sign-out button (mobile sidebar drawer)
     fireEvent.click(screen.getAllByRole('button', { name: /sign out/i })[0]);
 
     await waitFor(() => {
