@@ -5,6 +5,11 @@ import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { getErrorMessage } from '#/lib/errors';
+import {
+  LLM_API_KEYS_QUERY,
+  LLM_PROVIDER_LABEL,
+  type LlmApiKey,
+} from '#/routes/_authenticated/settings/-components/shared';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 
 const CONVERSATIONS_QUERY = `
@@ -12,6 +17,8 @@ const CONVERSATIONS_QUERY = `
     conversations {
       id
       title
+      llmProvider
+      llmModel
       createdAt
       updatedAt
     }
@@ -28,10 +35,12 @@ const CHAT_HISTORY_QUERY = `
 `;
 
 const CREATE_CONVERSATION = `
-  mutation CreateConversation {
-    createConversation {
+  mutation CreateConversation($provider: String, $model: String) {
+    createConversation(provider: $provider, model: $model) {
       id
       title
+      llmProvider
+      llmModel
       createdAt
       updatedAt
     }
@@ -64,6 +73,8 @@ export interface ChatHistoryResult {
 interface Conversation {
   id: string;
   title: string | null;
+  llmProvider: string | null;
+  llmModel: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -123,6 +134,25 @@ export function AssistantPage() {
 
   const { data: conversationsData } = useQuery(conversationsQueryOptions);
   const conversations = conversationsData?.conversations ?? [];
+  const activeConversation = conversations.find((c) => c.id === activeId);
+
+  const { data: llmData } = useQuery({
+    queryKey: ['llmApiKeys'],
+    queryFn: () =>
+      gqlClient.request<{ llmApiKeys: LlmApiKey[]; me: { defaultLlmProvider: string | null } }>(
+        LLM_API_KEYS_QUERY,
+      ),
+  });
+  const llmApiKeys = llmData?.llmApiKeys ?? [];
+  const [pickedProvider, setPickedProvider] = useState<string | null>(null);
+  const [pickedModel, setPickedModel] = useState('');
+  useEffect(() => {
+    if (pickedProvider === null && llmData) {
+      setPickedProvider(
+        llmData.me?.defaultLlmProvider ?? llmData.llmApiKeys?.[0]?.provider ?? null,
+      );
+    }
+  }, [llmData, pickedProvider]);
 
   const { data: historyData, isLoading: isHistoryLoading } = useQuery({
     ...chatHistoryQueryOptions(activeId ?? ''),
@@ -139,7 +169,8 @@ export function AssistantPage() {
   });
 
   const createConversation = useMutation({
-    mutationFn: () => gqlClient.request<{ createConversation: Conversation }>(CREATE_CONVERSATION),
+    mutationFn: (vars: { provider?: string | null; model?: string | null }) =>
+      gqlClient.request<{ createConversation: Conversation }>(CREATE_CONVERSATION, vars),
   });
 
   const deleteConversation = useMutation({
@@ -175,7 +206,10 @@ export function AssistantPage() {
 
     let conversationId = activeId;
     if (!conversationId) {
-      const created = await createConversation.mutateAsync();
+      const created = await createConversation.mutateAsync({
+        provider: pickedProvider,
+        model: pickedModel.trim() || undefined,
+      });
       conversationId = created.createConversation.id;
       qc.setQueryData<ConversationsResult>(conversationsQueryOptions.queryKey, (prev) => ({
         conversations: [created.createConversation, ...(prev?.conversations ?? [])],
@@ -201,6 +235,10 @@ export function AssistantPage() {
   };
 
   const onNewConversation = () => {
+    setPickedProvider(
+      llmData?.me?.defaultLlmProvider ?? llmData?.llmApiKeys?.[0]?.provider ?? null,
+    );
+    setPickedModel('');
     void navigate({ search: {} });
   };
 
@@ -259,9 +297,49 @@ export function AssistantPage() {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 p-4 sm:p-8 max-w-3xl mx-auto w-full">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 shrink-0">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 shrink-0">
           Assistant
         </h1>
+
+        <div className="mb-4 shrink-0">
+          {activeId && activeConversation?.llmProvider ? (
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              Using{' '}
+              {LLM_PROVIDER_LABEL[activeConversation.llmProvider] ?? activeConversation.llmProvider}
+              {activeConversation.llmModel ? ` (${activeConversation.llmModel})` : ''}
+            </p>
+          ) : !activeId && llmApiKeys.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="text-xs text-gray-500 dark:text-gray-400">Provider</label>
+              <select
+                value={pickedProvider ?? ''}
+                onChange={(e) => setPickedProvider(e.target.value)}
+                className="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              >
+                {llmApiKeys.map((k) => (
+                  <option key={k.provider} value={k.provider}>
+                    {LLM_PROVIDER_LABEL[k.provider] ?? k.provider}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                value={pickedModel}
+                onChange={(e) => setPickedModel(e.target.value)}
+                placeholder="Model (optional)"
+                className="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 w-40"
+              />
+            </div>
+          ) : !activeId ? (
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              Add an AI API key in{' '}
+              <Link to="/settings/integrations" className="underline">
+                Settings
+              </Link>{' '}
+              to use the assistant.
+            </p>
+          ) : null}
+        </div>
 
         <div className="flex-1 overflow-y-auto space-y-4 mb-4">
           {activeId && isHistoryLoading ? (

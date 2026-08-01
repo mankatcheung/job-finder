@@ -1,20 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
 import {
-  LLM_KEY_STATUS_QUERY,
+  LLM_API_KEYS_QUERY,
   SAVE_LLM_API_KEY,
-  CLEAR_LLM_API_KEY,
+  DELETE_LLM_API_KEY,
+  SET_DEFAULT_LLM_PROVIDER,
   API_TOKENS_QUERY,
   CREATE_API_TOKEN,
   DELETE_API_TOKEN,
   llmApiKeySchema,
   CUSTOM_LLM_PROVIDER,
   type LlmApiKeyForm,
-  type LlmKeyStatus,
+  type LlmApiKey,
   type ApiToken,
   type CreateApiTokenPayload,
   LLM_PROVIDER_OPTIONS,
@@ -31,12 +32,21 @@ export const Route = createFileRoute('/_authenticated/settings/integrations')({
 export function SettingsIntegrationsPage() {
   const qc = useQueryClient();
 
-  // AI API key
-  const { data: llmKeyStatusData } = useQuery({
-    queryKey: ['llmKeyStatus'],
-    queryFn: () => gqlClient.request<{ llmKeyStatus: LlmKeyStatus }>(LLM_KEY_STATUS_QUERY),
+  // AI API keys
+  const { data: llmData } = useQuery({
+    queryKey: ['llmApiKeys'],
+    queryFn: () =>
+      gqlClient.request<{ llmApiKeys: LlmApiKey[]; me: { defaultLlmProvider: string | null } }>(
+        LLM_API_KEYS_QUERY,
+      ),
   });
-  const llmKeyStatus = llmKeyStatusData?.llmKeyStatus;
+  const llmApiKeys = llmData?.llmApiKeys ?? [];
+  const defaultLlmProvider = llmData?.me.defaultLlmProvider ?? null;
+  const configuredProviders = new Set(llmApiKeys.map((k) => k.provider));
+  const availableProviderOptions = LLM_PROVIDER_OPTIONS.filter(
+    (o) => !configuredProviders.has(o.value),
+  );
+  const availableProviderValues = availableProviderOptions.map((o) => o.value).join(',');
 
   const llmApiKeyForm = useForm<LlmApiKeyForm>({
     resolver: zodResolver(llmApiKeySchema),
@@ -44,6 +54,19 @@ export function SettingsIntegrationsPage() {
   });
   const llmApiKeyProvider = llmApiKeyForm.watch('provider');
   const isCustomLlmProvider = llmApiKeyProvider === CUSTOM_LLM_PROVIDER;
+
+  useEffect(() => {
+    if (
+      availableProviderOptions.length > 0 &&
+      !availableProviderOptions.some((o) => o.value === llmApiKeyProvider)
+    ) {
+      llmApiKeyForm.setValue(
+        'provider',
+        availableProviderOptions[0].value as LlmApiKeyForm['provider'],
+      );
+    }
+  }, [availableProviderValues, llmApiKeyForm, llmApiKeyProvider, availableProviderOptions]);
+
   const onSaveLlmApiKey = async (data: LlmApiKeyForm) => {
     try {
       await gqlClient.request(SAVE_LLM_API_KEY, {
@@ -53,7 +76,7 @@ export function SettingsIntegrationsPage() {
         baseUrl: data.baseUrl?.trim() || undefined,
       });
       llmApiKeyForm.reset({ provider: data.provider, apiKey: '', model: '', baseUrl: '' });
-      await qc.invalidateQueries({ queryKey: ['llmKeyStatus'] });
+      await qc.invalidateQueries({ queryKey: ['llmApiKeys'] });
     } catch (err) {
       llmApiKeyForm.setError('root', {
         message: extractGqlError(err) ?? 'Failed to save API key.',
@@ -61,19 +84,32 @@ export function SettingsIntegrationsPage() {
     }
   };
 
-  const [clearingLlmKey, setClearingLlmKey] = useState(false);
-  const [clearLlmKeyError, setClearLlmKeyError] = useState<string | null>(null);
-  const onClearLlmApiKey = async () => {
-    setClearingLlmKey(true);
-    setClearLlmKeyError(null);
+  const [removingProvider, setRemovingProvider] = useState<string | null>(null);
+  const [llmKeyListError, setLlmKeyListError] = useState<string | null>(null);
+  const onRemoveLlmApiKey = async (provider: string) => {
+    setRemovingProvider(provider);
+    setLlmKeyListError(null);
     try {
-      await gqlClient.request(CLEAR_LLM_API_KEY);
-      llmApiKeyForm.reset({ provider: 'openrouter', apiKey: '', model: '', baseUrl: '' });
-      await qc.invalidateQueries({ queryKey: ['llmKeyStatus'] });
+      await gqlClient.request(DELETE_LLM_API_KEY, { provider });
+      await qc.invalidateQueries({ queryKey: ['llmApiKeys'] });
     } catch (err) {
-      setClearLlmKeyError(extractGqlError(err) ?? 'Failed to remove API key.');
+      setLlmKeyListError(extractGqlError(err) ?? 'Failed to remove API key.');
     } finally {
-      setClearingLlmKey(false);
+      setRemovingProvider(null);
+    }
+  };
+
+  const [settingDefaultProvider, setSettingDefaultProvider] = useState<string | null>(null);
+  const onSetDefaultProvider = async (provider: string) => {
+    setSettingDefaultProvider(provider);
+    setLlmKeyListError(null);
+    try {
+      await gqlClient.request(SET_DEFAULT_LLM_PROVIDER, { provider });
+      await qc.invalidateQueries({ queryKey: ['llmApiKeys'] });
+    } catch (err) {
+      setLlmKeyListError(extractGqlError(err) ?? 'Failed to set default provider.');
+    } finally {
+      setSettingDefaultProvider(null);
     }
   };
 
@@ -129,45 +165,74 @@ export function SettingsIntegrationsPage() {
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">AI features</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Add your own API key from OpenAI, Anthropic, Google AI, OpenRouter, Mistral, Groq, xAI,
-            DeepSeek, or any other OpenAI-compatible endpoint to enable cover letter generation and
-            job description auto-fill. job-finder doesn&apos;t provide a shared key — these features
-            stay off until you add one.
+            Add your own API key from one or more providers to enable the assistant chatbot, cover
+            letter generation, and job description auto-fill. job-finder doesn&apos;t provide a
+            shared key — these features stay off until you add one. Automatic features (cover
+            letters, job description parsing, resume match) use your default provider below; the
+            assistant chatbot lets you choose the provider and model per conversation.
           </p>
         </div>
 
-        {llmKeyStatus?.configured ? (
-          <div className="space-y-3">
-            <p className="text-sm text-green-600">
-              AI features are enabled using{' '}
-              {LLM_PROVIDER_LABEL[llmKeyStatus.provider ?? ''] ?? llmKeyStatus.provider}
-              {llmKeyStatus.model ? ` (${llmKeyStatus.model})` : ''}.
-            </p>
-            {llmKeyStatus.provider === CUSTOM_LLM_PROVIDER && llmKeyStatus.baseUrl && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 break-all">
-                {llmKeyStatus.baseUrl}
-              </p>
-            )}
-            {clearLlmKeyError && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                {clearLlmKeyError}
-              </p>
-            )}
-            <button
-              type="button"
-              onClick={onClearLlmApiKey}
-              disabled={clearingLlmKey}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-            >
-              {clearingLlmKey ? 'Removing…' : 'Remove key'}
-            </button>
-          </div>
-        ) : (
+        {llmKeyListError && (
+          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+            {llmKeyListError}
+          </p>
+        )}
+
+        {llmApiKeys.length > 0 && (
+          <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
+            {llmApiKeys.map((key) => {
+              const isDefault = key.provider === defaultLlmProvider;
+              return (
+                <li
+                  key={key.provider}
+                  className="flex items-center justify-between gap-4 px-3 py-2"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {LLM_PROVIDER_LABEL[key.provider] ?? key.provider}
+                      {isDefault && (
+                        <span className="ml-2 text-xs font-normal text-green-600">Default</span>
+                      )}
+                    </p>
+                    {(key.model || key.baseUrl) && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 break-all">
+                        {[key.model, key.baseUrl].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    {!isDefault && (
+                      <button
+                        type="button"
+                        onClick={() => onSetDefaultProvider(key.provider)}
+                        disabled={settingDefaultProvider === key.provider}
+                        className="text-xs text-blue-600 hover:underline disabled:opacity-60"
+                      >
+                        {settingDefaultProvider === key.provider ? 'Setting…' : 'Make default'}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => onRemoveLlmApiKey(key.provider)}
+                      disabled={removingProvider === key.provider}
+                      className="text-xs text-red-600 hover:underline disabled:opacity-60"
+                    >
+                      {removingProvider === key.provider ? 'Removing…' : 'Remove'}
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        {availableProviderOptions.length > 0 ? (
           <form onSubmit={llmApiKeyForm.handleSubmit(onSaveLlmApiKey)} className="space-y-3">
             <div>
               <label className={labelCls}>Provider</label>
               <select {...llmApiKeyForm.register('provider')} className={inputCls}>
-                {LLM_PROVIDER_OPTIONS.map((option) => (
+                {availableProviderOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -245,9 +310,13 @@ export function SettingsIntegrationsPage() {
               disabled={llmApiKeyForm.formState.isSubmitting}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              {llmApiKeyForm.formState.isSubmitting ? 'Saving…' : 'Save key'}
+              {llmApiKeyForm.formState.isSubmitting ? 'Saving…' : 'Add key'}
             </button>
           </form>
+        ) : (
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            You&apos;ve configured every available provider.
+          </p>
         )}
       </section>
 

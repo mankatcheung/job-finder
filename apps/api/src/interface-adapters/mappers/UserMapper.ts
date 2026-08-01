@@ -7,6 +7,7 @@ export interface UserDTO {
   timezone: string | null;
   targetRole: string | null;
   avatarUrl: string | null;
+  defaultLlmProvider: string | null;
 }
 
 export class UserMapper {
@@ -18,6 +19,7 @@ export class UserMapper {
       timezone: user.timezone,
       targetRole: user.targetRole,
       avatarUrl,
+      defaultLlmProvider: user.defaultLlmProvider,
     };
   }
 }

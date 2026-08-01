@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
 import { NotificationPreferencesRef } from '#src/http/schema/types/NotificationPreferencesType.js';
-import { LlmKeyStatusRef } from '#src/http/schema/types/LlmKeyStatusType.js';
+import { LlmApiKeyRef } from '#src/http/schema/types/LlmApiKeyType.js';
 import { UserRef } from '#src/http/schema/types/UserType.js';
 import { ERROR_CODES } from '#src/constants.js';
 
@@ -28,14 +28,14 @@ builder.queryField('totpEnabled', (t) =>
   }),
 );
 
-builder.queryField('llmKeyStatus', (t) =>
+builder.queryField('llmApiKeys', (t) =>
   t.field({
-    type: LlmKeyStatusRef,
+    type: [LlmApiKeyRef],
     resolve: async (_root, _args, ctx) => {
       if (!ctx.user)
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { userResolver } = ctx.diScope.cradle;
-      return userResolver.getLlmKeyStatus(ctx.user.sub);
+      return userResolver.listLlmApiKeys(ctx.user.sub);
     },
   }),
 );

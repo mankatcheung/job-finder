@@ -10,8 +10,9 @@ import type { IConfirmTotpSetupUseCase } from '#src/use-cases/user/IConfirmTotpS
 import type { IDisableTotpUseCase } from '#src/use-cases/user/IDisableTotpUseCase.js';
 import type { IGetTotpStatusUseCase } from '#src/use-cases/user/IGetTotpStatusUseCase.js';
 import type { ISaveLlmApiKeyUseCase } from '#src/use-cases/user/ISaveLlmApiKeyUseCase.js';
-import type { IClearLlmApiKeyUseCase } from '#src/use-cases/user/IClearLlmApiKeyUseCase.js';
-import type { IGetLlmKeyStatusUseCase } from '#src/use-cases/user/IGetLlmKeyStatusUseCase.js';
+import type { IListLlmApiKeysUseCase } from '#src/use-cases/user/IListLlmApiKeysUseCase.js';
+import type { IDeleteLlmApiKeyUseCase } from '#src/use-cases/user/IDeleteLlmApiKeyUseCase.js';
+import type { ISetDefaultLlmProviderUseCase } from '#src/use-cases/user/ISetDefaultLlmProviderUseCase.js';
 import type { IImportUserDataUseCase } from '#src/use-cases/user/IImportUserDataUseCase.js';
 import type { IGetNotificationPreferencesUseCase } from '#src/use-cases/user/IGetNotificationPreferencesUseCase.js';
 import type { IUpdateNotificationPreferencesUseCase } from '#src/use-cases/user/IUpdateNotificationPreferencesUseCase.js';
@@ -21,7 +22,8 @@ import type { IRequestAvatarUploadUrlUseCase } from '#src/use-cases/user/IReques
 import type { IConfirmAvatarUseCase } from '#src/use-cases/user/IConfirmAvatarUseCase.js';
 import type { IRemoveAvatarUseCase } from '#src/use-cases/user/IRemoveAvatarUseCase.js';
 import { UserMapper } from '#src/interface-adapters/mappers/UserMapper.js';
-import { makeUser, makeStorageProvider } from '#src/__tests__/helpers/mocks.js';
+import { LlmApiKeyMapper } from '#src/interface-adapters/mappers/LlmApiKeyMapper.js';
+import { makeUser, makeStorageProvider, makeLlmApiKey } from '#src/__tests__/helpers/mocks.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 
@@ -48,10 +50,16 @@ const makeDeps = (overrides?: object) => ({
   saveLlmApiKeyUseCase: stub<ISaveLlmApiKeyUseCase>({
     execute: vi.fn().mockResolvedValue(undefined),
   }),
-  clearLlmApiKeyUseCase: stub<IClearLlmApiKeyUseCase>({
+  listLlmApiKeysUseCase: stub<IListLlmApiKeysUseCase>({
+    execute: vi.fn().mockResolvedValue([]),
+  }),
+  deleteLlmApiKeyUseCase: stub<IDeleteLlmApiKeyUseCase>({
     execute: vi.fn().mockResolvedValue(undefined),
   }),
-  getLlmKeyStatusUseCase: stub<IGetLlmKeyStatusUseCase>({ execute: vi.fn() }),
+  setDefaultLlmProviderUseCase: stub<ISetDefaultLlmProviderUseCase>({
+    execute: vi.fn().mockResolvedValue(undefined),
+  }),
+  llmApiKeyMapper: new LlmApiKeyMapper(),
   importUserDataUseCase: stub<IImportUserDataUseCase>({ execute: vi.fn() }),
   getNotificationPreferencesUseCase: stub<IGetNotificationPreferencesUseCase>({
     execute: vi.fn(),
@@ -304,29 +312,47 @@ describe('UserResolver', () => {
     });
   });
 
-  describe('clearLlmApiKey', () => {
-    it('delegates to clearLlmApiKeyUseCase', async () => {
-      const deps = makeDeps();
-
-      await new UserResolver(deps).clearLlmApiKey('user-1');
-
-      expect(deps.clearLlmApiKeyUseCase.execute).toHaveBeenCalledWith('user-1');
-    });
-  });
-
-  describe('getLlmKeyStatus', () => {
-    it('delegates to getLlmKeyStatusUseCase and returns the result', async () => {
-      const status = { configured: true, provider: 'openrouter' };
+  describe('listLlmApiKeys', () => {
+    it('delegates to listLlmApiKeysUseCase and maps the results, omitting the encrypted key', async () => {
+      const keys = [
+        makeLlmApiKey({ provider: 'openai', model: 'gpt-4o', apiKey: 'encrypted:sk-abc' }),
+      ];
       const deps = makeDeps({
-        getLlmKeyStatusUseCase: stub<IGetLlmKeyStatusUseCase>({
-          execute: vi.fn().mockResolvedValue(status),
+        listLlmApiKeysUseCase: stub<IListLlmApiKeysUseCase>({
+          execute: vi.fn().mockResolvedValue(keys),
         }),
       });
 
-      const result = await new UserResolver(deps).getLlmKeyStatus('user-1');
+      const result = await new UserResolver(deps).listLlmApiKeys('user-1');
 
-      expect(deps.getLlmKeyStatusUseCase.execute).toHaveBeenCalledWith('user-1');
-      expect(result).toEqual(status);
+      expect(deps.listLlmApiKeysUseCase.execute).toHaveBeenCalledWith('user-1');
+      expect(result).toEqual([{ provider: 'openai', model: 'gpt-4o', baseUrl: null }]);
+    });
+  });
+
+  describe('deleteLlmApiKey', () => {
+    it('delegates to deleteLlmApiKeyUseCase with the correct arguments', async () => {
+      const deps = makeDeps();
+
+      await new UserResolver(deps).deleteLlmApiKey('user-1', 'openai');
+
+      expect(deps.deleteLlmApiKeyUseCase.execute).toHaveBeenCalledWith({
+        userId: 'user-1',
+        provider: 'openai',
+      });
+    });
+  });
+
+  describe('setDefaultLlmProvider', () => {
+    it('delegates to setDefaultLlmProviderUseCase with the correct arguments', async () => {
+      const deps = makeDeps();
+
+      await new UserResolver(deps).setDefaultLlmProvider('user-1', 'openai');
+
+      expect(deps.setDefaultLlmProviderUseCase.execute).toHaveBeenCalledWith({
+        userId: 'user-1',
+        provider: 'openai',
+      });
     });
   });
 

@@ -221,6 +221,15 @@ describe('DrizzleUserRepository', () => {
       const cleared = await repo.update('u1', { avatarKey: null });
       expect(cleared.avatarKey).toBeNull();
     });
+
+    it('sets and clears defaultLlmProvider', async () => {
+      await repo.create({ id: 'u1', email: 'a@b.com', passwordHash: 'hashed' });
+      const withDefault = await repo.update('u1', { defaultLlmProvider: 'openai' });
+      expect(withDefault.defaultLlmProvider).toBe('openai');
+
+      const cleared = await repo.update('u1', { defaultLlmProvider: null });
+      expect(cleared.defaultLlmProvider).toBeNull();
+    });
   });
 
   describe('delete', () => {

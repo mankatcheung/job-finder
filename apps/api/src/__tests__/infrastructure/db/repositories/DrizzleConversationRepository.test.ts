@@ -79,6 +79,28 @@ describe('DrizzleConversationRepository', () => {
     });
   });
 
+  describe('updateLlmSettings', () => {
+    it('locks in the provider and model', async () => {
+      await db.db.insert(conversation).values({ id: 'conv-1', userId: 'u1' });
+
+      await repo.updateLlmSettings('conv-1', 'openai', 'gpt-4o');
+
+      const conv = await repo.findById('conv-1');
+      expect(conv?.llmProvider).toBe('openai');
+      expect(conv?.llmModel).toBe('gpt-4o');
+    });
+
+    it('allows a null model', async () => {
+      await db.db.insert(conversation).values({ id: 'conv-1', userId: 'u1' });
+
+      await repo.updateLlmSettings('conv-1', 'anthropic', null);
+
+      const conv = await repo.findById('conv-1');
+      expect(conv?.llmProvider).toBe('anthropic');
+      expect(conv?.llmModel).toBeNull();
+    });
+  });
+
   describe('delete', () => {
     it('deletes the conversation and cascades to its messages', async () => {
       await db.db.insert(conversation).values({ id: 'conv-1', userId: 'u1' });

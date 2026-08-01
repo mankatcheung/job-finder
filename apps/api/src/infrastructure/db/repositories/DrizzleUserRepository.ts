@@ -56,10 +56,7 @@ export class DrizzleUserRepository implements IUserRepository {
       followUpRemindersEnabled?: boolean;
       totpSecret?: string | null;
       totpEnabled?: boolean;
-      llmProvider?: string | null;
-      llmApiKey?: string | null;
-      llmModel?: string | null;
-      llmBaseUrl?: string | null;
+      defaultLlmProvider?: string | null;
     },
   ): Promise<User> {
     const [row] = await this.db
@@ -93,10 +90,7 @@ export class DrizzleUserRepository implements IUserRepository {
       followUpRemindersEnabled: row.followUpRemindersEnabled,
       totpSecret: row.totpSecret,
       totpEnabled: row.totpEnabled,
-      llmProvider: row.llmProvider,
-      llmApiKey: row.llmApiKey,
-      llmModel: row.llmModel,
-      llmBaseUrl: row.llmBaseUrl,
+      defaultLlmProvider: row.defaultLlmProvider,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

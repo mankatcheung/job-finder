@@ -162,13 +162,15 @@ export const DISABLE_TOTP = `
   }
 `;
 
-export const LLM_KEY_STATUS_QUERY = `
-  query LlmKeyStatus {
-    llmKeyStatus {
-      configured
+export const LLM_API_KEYS_QUERY = `
+  query LlmApiKeys {
+    llmApiKeys {
       provider
       model
       baseUrl
+    }
+    me {
+      defaultLlmProvider
     }
   }
 `;
@@ -179,9 +181,15 @@ export const SAVE_LLM_API_KEY = `
   }
 `;
 
-export const CLEAR_LLM_API_KEY = `
-  mutation ClearLlmApiKey {
-    clearLlmApiKey
+export const DELETE_LLM_API_KEY = `
+  mutation DeleteLlmApiKey($provider: String!) {
+    deleteLlmApiKey(provider: $provider)
+  }
+`;
+
+export const SET_DEFAULT_LLM_PROVIDER = `
+  mutation SetDefaultLlmProvider($provider: String!) {
+    setDefaultLlmProvider(provider: $provider)
   }
 `;
 
@@ -284,6 +292,7 @@ export const llmApiKeySchema = z
       'groq',
       'xai',
       'deepseek',
+      'nvidia',
       'custom',
     ]),
     apiKey: z.string().min(1, 'Required'),
@@ -335,9 +344,8 @@ export type LlmApiKeyForm = z.infer<typeof llmApiKeySchema>;
 
 export type TotpSetup = { secret: string; otpauthUrl: string; qrCodeDataUrl: string };
 
-export type LlmKeyStatus = {
-  configured: boolean;
-  provider: string | null;
+export type LlmApiKey = {
+  provider: string;
   model: string | null;
   baseUrl: string | null;
 };
@@ -351,6 +359,7 @@ export const LLM_PROVIDER_OPTIONS: { value: string; label: string }[] = [
   { value: 'groq', label: 'Groq' },
   { value: 'xai', label: 'xAI (Grok)' },
   { value: 'deepseek', label: 'DeepSeek' },
+  { value: 'nvidia', label: 'NVIDIA NIM' },
   { value: CUSTOM_LLM_PROVIDER, label: 'Custom (OpenAI-compatible)' },
 ];
 

@@ -7,6 +7,8 @@ import {
   makeMessage,
   makeConversationRepository,
   makeConversation,
+  makeUserRepository,
+  makeUser,
 } from '#src/__tests__/helpers/mocks.js';
 import type { ILLMProvider, LLMCompletionResult } from '#src/use-cases/ports/ILLMProvider.js';
 
@@ -26,6 +28,9 @@ function makeDeps(overrides?: Record<string, unknown>) {
     messageRepository: makeMessageRepository(),
     conversationRepository: makeConversationRepository({
       findById: vi.fn().mockResolvedValue(makeConversation({ id: 'conv-1', userId: 'user-1' })),
+    }),
+    userRepository: makeUserRepository({
+      findById: vi.fn().mockResolvedValue(makeUser({ defaultLlmProvider: null })),
     }),
     generateId: vi.fn().mockReturnValue('generated-id'),
     ...overrides,
@@ -446,5 +451,66 @@ describe('ChatWithAssistantUseCase', () => {
       'That took more steps than I could complete — try asking something more specific.',
     );
     expect(completeWithTools).toHaveBeenCalledTimes(5);
+  });
+
+  it('uses the conversation-locked provider/model without consulting the user default', async () => {
+    const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
+    const llmProviderFactory = makeLLMProviderFactory({
+      forUser: vi.fn().mockResolvedValue(llmProvider),
+    });
+    const userRepository = makeUserRepository();
+    const conversationRepository = makeConversationRepository({
+      findById: vi.fn().mockResolvedValue(
+        makeConversation({
+          id: 'conv-1',
+          userId: 'user-1',
+          llmProvider: 'anthropic',
+          llmModel: 'claude',
+        }),
+      ),
+    });
+    const deps = makeDeps({ llmProviderFactory, userRepository, conversationRepository });
+
+    await new ChatWithAssistantUseCase(deps as never).execute({ ...baseInput, message: 'hi' });
+
+    expect(userRepository.findById).not.toHaveBeenCalled();
+    expect(llmProviderFactory.forUser).toHaveBeenCalledWith('user-1', 'anthropic', 'claude');
+    expect(conversationRepository.updateLlmSettings).not.toHaveBeenCalled();
+  });
+
+  it("falls back to and locks in the user's default provider on the first message", async () => {
+    const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
+    const llmProviderFactory = makeLLMProviderFactory({
+      forUser: vi.fn().mockResolvedValue(llmProvider),
+    });
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(makeUser({ defaultLlmProvider: 'openai' })),
+    });
+    const conversationRepository = makeConversationRepository({
+      findById: vi
+        .fn()
+        .mockResolvedValue(
+          makeConversation({ id: 'conv-1', userId: 'user-1', llmProvider: null, llmModel: null }),
+        ),
+    });
+    const deps = makeDeps({ llmProviderFactory, userRepository, conversationRepository });
+
+    await new ChatWithAssistantUseCase(deps as never).execute({ ...baseInput, message: 'hi' });
+
+    expect(llmProviderFactory.forUser).toHaveBeenCalledWith('user-1', 'openai', null);
+    expect(conversationRepository.updateLlmSettings).toHaveBeenCalledWith('conv-1', 'openai', null);
+  });
+
+  it('does not lock anything when neither the conversation nor the user has a provider', async () => {
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({ forUser: vi.fn().mockResolvedValue(null) }),
+    });
+
+    const err = await new ChatWithAssistantUseCase(deps as never)
+      .execute({ ...baseInput, message: 'hi' })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('AI_NOT_CONFIGURED');
+    expect(deps.conversationRepository.updateLlmSettings).not.toHaveBeenCalled();
   });
 });

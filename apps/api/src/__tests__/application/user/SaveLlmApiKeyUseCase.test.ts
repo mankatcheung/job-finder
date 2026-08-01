@@ -1,13 +1,26 @@
 import { describe, it, expect, vi } from 'vitest';
 import { SaveLlmApiKeyUseCase } from '#src/use-cases/user/SaveLlmApiKeyUseCase.js';
-import { makeUserRepository, makeUser, makeLlmApiKeyCipher } from '#src/__tests__/helpers/mocks.js';
+import {
+  makeUserRepository,
+  makeUser,
+  makeLlmApiKeyCipher,
+  makeLlmApiKeyRepository,
+} from '#src/__tests__/helpers/mocks.js';
+
+const generateId = () => 'llm-key-1';
 
 describe('SaveLlmApiKeyUseCase', () => {
   it('throws VALIDATION for an unsupported provider', async () => {
     const userRepository = makeUserRepository();
+    const llmApiKeyRepository = makeLlmApiKeyRepository();
     const llmApiKeyCipher = makeLlmApiKeyCipher();
 
-    const err = await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher })
+    const err = await new SaveLlmApiKeyUseCase({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher,
+      generateId,
+    })
       .execute({ userId: 'user-1', provider: 'not-a-provider', apiKey: 'sk-123' })
       .catch((e) => e);
 
@@ -16,9 +29,15 @@ describe('SaveLlmApiKeyUseCase', () => {
 
   it('throws VALIDATION for a blank API key', async () => {
     const userRepository = makeUserRepository();
+    const llmApiKeyRepository = makeLlmApiKeyRepository();
     const llmApiKeyCipher = makeLlmApiKeyCipher();
 
-    const err = await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher })
+    const err = await new SaveLlmApiKeyUseCase({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher,
+      generateId,
+    })
       .execute({ userId: 'user-1', provider: 'openrouter', apiKey: '   ' })
       .catch((e) => e);
 
@@ -27,36 +46,98 @@ describe('SaveLlmApiKeyUseCase', () => {
 
   it('throws NOT_FOUND when the user does not exist', async () => {
     const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(null) });
+    const llmApiKeyRepository = makeLlmApiKeyRepository();
     const llmApiKeyCipher = makeLlmApiKeyCipher();
 
-    const err = await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher })
+    const err = await new SaveLlmApiKeyUseCase({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher,
+      generateId,
+    })
       .execute({ userId: 'missing', provider: 'openrouter', apiKey: 'sk-123' })
       .catch((e) => e);
 
     expect((err as { code: string }).code).toBe('NOT_FOUND');
   });
 
-  it('encrypts the key and persists it with the chosen provider', async () => {
+  it('encrypts the key and upserts it under the chosen provider', async () => {
     const user = makeUser();
     const userRepository = makeUserRepository({
       findById: vi.fn().mockResolvedValue(user),
       update: vi.fn().mockResolvedValue(user),
     });
+    const llmApiKeyRepository = makeLlmApiKeyRepository();
     const llmApiKeyCipher = makeLlmApiKeyCipher();
 
-    await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher }).execute({
+    await new SaveLlmApiKeyUseCase({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher,
+      generateId,
+    }).execute({
       userId: 'user-1',
       provider: 'googleai',
       apiKey: 'sk-123',
     });
 
     expect(llmApiKeyCipher.encrypt).toHaveBeenCalledWith('sk-123');
-    expect(userRepository.update).toHaveBeenCalledWith('user-1', {
-      llmProvider: 'googleai',
-      llmApiKey: 'encrypted:sk-123',
-      llmModel: null,
-      llmBaseUrl: null,
+    expect(llmApiKeyRepository.upsert).toHaveBeenCalledWith({
+      id: 'llm-key-1',
+      userId: 'user-1',
+      provider: 'googleai',
+      apiKey: 'encrypted:sk-123',
+      model: null,
+      baseUrl: null,
     });
+  });
+
+  it('makes the first-ever configured provider the default', async () => {
+    const user = makeUser({ defaultLlmProvider: null });
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(user),
+      update: vi.fn().mockResolvedValue(user),
+    });
+    const llmApiKeyRepository = makeLlmApiKeyRepository();
+    const llmApiKeyCipher = makeLlmApiKeyCipher();
+
+    await new SaveLlmApiKeyUseCase({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher,
+      generateId,
+    }).execute({
+      userId: 'user-1',
+      provider: 'googleai',
+      apiKey: 'sk-123',
+    });
+
+    expect(userRepository.update).toHaveBeenCalledWith('user-1', {
+      defaultLlmProvider: 'googleai',
+    });
+  });
+
+  it('does not change the default when the user already has one', async () => {
+    const user = makeUser({ defaultLlmProvider: 'openai' });
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(user),
+      update: vi.fn().mockResolvedValue(user),
+    });
+    const llmApiKeyRepository = makeLlmApiKeyRepository();
+    const llmApiKeyCipher = makeLlmApiKeyCipher();
+
+    await new SaveLlmApiKeyUseCase({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher,
+      generateId,
+    }).execute({
+      userId: 'user-1',
+      provider: 'googleai',
+      apiKey: 'sk-123',
+    });
+
+    expect(userRepository.update).not.toHaveBeenCalled();
   });
 
   it('persists an optional model override for a named provider', async () => {
@@ -65,20 +146,28 @@ describe('SaveLlmApiKeyUseCase', () => {
       findById: vi.fn().mockResolvedValue(user),
       update: vi.fn().mockResolvedValue(user),
     });
+    const llmApiKeyRepository = makeLlmApiKeyRepository();
     const llmApiKeyCipher = makeLlmApiKeyCipher();
 
-    await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher }).execute({
+    await new SaveLlmApiKeyUseCase({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher,
+      generateId,
+    }).execute({
       userId: 'user-1',
       provider: 'openai',
       apiKey: 'sk-123',
       model: 'gpt-4o',
     });
 
-    expect(userRepository.update).toHaveBeenCalledWith('user-1', {
-      llmProvider: 'openai',
-      llmApiKey: 'encrypted:sk-123',
-      llmModel: 'gpt-4o',
-      llmBaseUrl: null,
+    expect(llmApiKeyRepository.upsert).toHaveBeenCalledWith({
+      id: 'llm-key-1',
+      userId: 'user-1',
+      provider: 'openai',
+      apiKey: 'encrypted:sk-123',
+      model: 'gpt-4o',
+      baseUrl: null,
     });
   });
 
@@ -86,9 +175,15 @@ describe('SaveLlmApiKeyUseCase', () => {
     const userRepository = makeUserRepository({
       findById: vi.fn().mockResolvedValue(makeUser()),
     });
+    const llmApiKeyRepository = makeLlmApiKeyRepository();
     const llmApiKeyCipher = makeLlmApiKeyCipher();
 
-    const err = await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher })
+    const err = await new SaveLlmApiKeyUseCase({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher,
+      generateId,
+    })
       .execute({
         userId: 'user-1',
         provider: 'openai',
@@ -102,9 +197,15 @@ describe('SaveLlmApiKeyUseCase', () => {
 
   it('throws VALIDATION when the custom provider is missing a base URL', async () => {
     const userRepository = makeUserRepository();
+    const llmApiKeyRepository = makeLlmApiKeyRepository();
     const llmApiKeyCipher = makeLlmApiKeyCipher();
 
-    const err = await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher })
+    const err = await new SaveLlmApiKeyUseCase({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher,
+      generateId,
+    })
       .execute({ userId: 'user-1', provider: 'custom', apiKey: 'sk-123', model: 'some-model' })
       .catch((e) => e);
 
@@ -114,9 +215,15 @@ describe('SaveLlmApiKeyUseCase', () => {
 
   it('throws VALIDATION when the custom provider base URL is malformed', async () => {
     const userRepository = makeUserRepository();
+    const llmApiKeyRepository = makeLlmApiKeyRepository();
     const llmApiKeyCipher = makeLlmApiKeyCipher();
 
-    const err = await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher })
+    const err = await new SaveLlmApiKeyUseCase({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher,
+      generateId,
+    })
       .execute({
         userId: 'user-1',
         provider: 'custom',
@@ -132,9 +239,15 @@ describe('SaveLlmApiKeyUseCase', () => {
 
   it('throws VALIDATION when the custom provider is missing a model', async () => {
     const userRepository = makeUserRepository();
+    const llmApiKeyRepository = makeLlmApiKeyRepository();
     const llmApiKeyCipher = makeLlmApiKeyCipher();
 
-    const err = await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher })
+    const err = await new SaveLlmApiKeyUseCase({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher,
+      generateId,
+    })
       .execute({
         userId: 'user-1',
         provider: 'custom',
@@ -153,9 +266,15 @@ describe('SaveLlmApiKeyUseCase', () => {
       findById: vi.fn().mockResolvedValue(user),
       update: vi.fn().mockResolvedValue(user),
     });
+    const llmApiKeyRepository = makeLlmApiKeyRepository();
     const llmApiKeyCipher = makeLlmApiKeyCipher();
 
-    await new SaveLlmApiKeyUseCase({ userRepository, llmApiKeyCipher }).execute({
+    await new SaveLlmApiKeyUseCase({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher,
+      generateId,
+    }).execute({
       userId: 'user-1',
       provider: 'custom',
       apiKey: 'sk-123',
@@ -163,11 +282,13 @@ describe('SaveLlmApiKeyUseCase', () => {
       baseUrl: 'https://my-llm.example.com/v1/chat/completions',
     });
 
-    expect(userRepository.update).toHaveBeenCalledWith('user-1', {
-      llmProvider: 'custom',
-      llmApiKey: 'encrypted:sk-123',
-      llmModel: 'my-model',
-      llmBaseUrl: 'https://my-llm.example.com/v1/chat/completions',
+    expect(llmApiKeyRepository.upsert).toHaveBeenCalledWith({
+      id: 'llm-key-1',
+      userId: 'user-1',
+      provider: 'custom',
+      apiKey: 'encrypted:sk-123',
+      model: 'my-model',
+      baseUrl: 'https://my-llm.example.com/v1/chat/completions',
     });
   });
 });

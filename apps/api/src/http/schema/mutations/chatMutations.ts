@@ -7,12 +7,24 @@ import { ERROR_CODES } from '#src/constants.js';
 builder.mutationField('createConversation', (t) =>
   t.field({
     type: ConversationRef,
-    resolve: async (_root, _args, ctx) => {
+    args: {
+      provider: t.arg.string({ required: false }),
+      model: t.arg.string({ required: false }),
+    },
+    resolve: async (_root, args, ctx) => {
       if (!ctx.user)
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { createConversationUseCase, conversationMapper } = ctx.diScope.cradle;
-      const conversation = await createConversationUseCase.execute(ctx.user.sub);
-      return conversationMapper.toDTO(conversation);
+      try {
+        const conversation = await createConversationUseCase.execute({
+          userId: ctx.user.sub,
+          provider: args.provider,
+          model: args.model,
+        });
+        return conversationMapper.toDTO(conversation);
+      } catch (err) {
+        throw fromCodedError(err);
+      }
     },
   }),
 );

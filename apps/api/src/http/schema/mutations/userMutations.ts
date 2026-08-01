@@ -191,14 +191,36 @@ builder.mutationField('saveLlmApiKey', (t) =>
   }),
 );
 
-builder.mutationField('clearLlmApiKey', (t) =>
+builder.mutationField('deleteLlmApiKey', (t) =>
   t.boolean({
-    resolve: async (_root, _args, ctx) => {
+    args: {
+      provider: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
       if (!ctx.user)
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { userResolver } = ctx.diScope.cradle;
       try {
-        await userResolver.clearLlmApiKey(ctx.user.sub);
+        await userResolver.deleteLlmApiKey(ctx.user.sub, args.provider);
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
+builder.mutationField('setDefaultLlmProvider', (t) =>
+  t.boolean({
+    args: {
+      provider: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        await userResolver.setDefaultLlmProvider(ctx.user.sub, args.provider);
         return true;
       } catch (err) {
         throw fromCodedError(err);

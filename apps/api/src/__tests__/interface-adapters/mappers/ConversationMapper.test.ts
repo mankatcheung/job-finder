@@ -9,6 +9,8 @@ describe('ConversationMapper', () => {
     id: 'conv-1',
     userId: 'user-1',
     title: 'Which applications have I applied to?',
+    llmProvider: 'openai',
+    llmModel: 'gpt-4o',
     createdAt: new Date('2024-03-01T08:00:00.000Z'),
     updatedAt: new Date('2024-03-02T09:00:00.000Z'),
   };
@@ -24,6 +26,8 @@ describe('ConversationMapper', () => {
 
     expect(dto.id).toBe('conv-1');
     expect(dto.title).toBe('Which applications have I applied to?');
+    expect(dto.llmProvider).toBe('openai');
+    expect(dto.llmModel).toBe('gpt-4o');
   });
 
   it('preserves a null title', () => {
