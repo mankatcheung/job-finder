@@ -6,7 +6,7 @@ import type { IResetPasswordUseCase } from '#src/use-cases/auth/IResetPasswordUs
 import type { IVerifyEmailUseCase } from '#src/use-cases/auth/IVerifyEmailUseCase.js';
 import type { ITokenService, TokenPair } from '#src/use-cases/ports/ITokenService.js';
 import type { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
-import type { TouchSessionUseCase } from '#src/use-cases/sessions/TouchSessionUseCase.js';
+import type { RotateRefreshTokenUseCase } from '#src/use-cases/sessions/RotateRefreshTokenUseCase.js';
 
 interface Deps {
   registerUseCase: IRegisterUseCase;
@@ -16,7 +16,7 @@ interface Deps {
   requestPasswordResetUseCase: IRequestPasswordResetUseCase;
   resetPasswordUseCase: IResetPasswordUseCase;
   createSessionUseCase: CreateSessionUseCase;
-  touchSessionUseCase: TouchSessionUseCase;
+  rotateRefreshTokenUseCase: RotateRefreshTokenUseCase;
   verifyEmailUseCase: IVerifyEmailUseCase;
 }
 
@@ -36,7 +36,7 @@ export class AuthResolver {
   async register(email: string, password: string, device: DeviceInfo): Promise<TokenPair> {
     const { userId } = await this.deps.registerUseCase.execute({ email, password });
     const session = await this.deps.createSessionUseCase.execute({ userId, ...device });
-    return this.deps.tokenService.sign(userId, email, session.id);
+    return this.deps.tokenService.sign(userId, email, session.id, session.currentRefreshTokenId!);
   }
 
   async login(email: string, password: string, device: DeviceInfo): Promise<LoginResult> {
@@ -53,7 +53,12 @@ export class AuthResolver {
     const session = await this.deps.createSessionUseCase.execute({ userId: user.id, ...device });
     return {
       totpRequired: false,
-      tokens: this.deps.tokenService.sign(user.id, user.email, session.id),
+      tokens: this.deps.tokenService.sign(
+        user.id,
+        user.email,
+        session.id,
+        session.currentRefreshTokenId!,
+      ),
     };
   }
 
@@ -70,13 +75,21 @@ export class AuthResolver {
       ipAddress: device.ipAddress,
     });
     const session = await this.deps.createSessionUseCase.execute({ userId: user.id, ...device });
-    return this.deps.tokenService.sign(user.id, user.email, session.id);
+    return this.deps.tokenService.sign(
+      user.id,
+      user.email,
+      session.id,
+      session.currentRefreshTokenId!,
+    );
   }
 
   async refreshToken(refreshToken: string): Promise<TokenPair> {
     const payload = this.deps.tokenService.verifyRefresh(refreshToken);
-    await this.deps.touchSessionUseCase.execute(payload.sid);
-    return this.deps.tokenService.sign(payload.sub, payload.email, payload.sid);
+    const { newTokenId } = await this.deps.rotateRefreshTokenUseCase.execute({
+      sessionId: payload.sid,
+      presentedTokenId: payload.jti ?? null,
+    });
+    return this.deps.tokenService.sign(payload.sub, payload.email, payload.sid, newTokenId);
   }
 
   async verifyEmail(token: string): Promise<void> {

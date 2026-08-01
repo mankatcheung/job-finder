@@ -141,6 +141,9 @@ export const session = sqliteTable(
       .$defaultFn(() => new Date()),
     expiresAt: integer('expiresAt', { mode: 'timestamp_ms' }).notNull(),
     revokedAt: integer('revokedAt', { mode: 'timestamp_ms' }),
+    currentRefreshTokenId: text('currentRefreshTokenId'),
+    previousRefreshTokenId: text('previousRefreshTokenId'),
+    previousRotatedAt: integer('previousRotatedAt', { mode: 'timestamp_ms' }),
   },
   (table) => [index('Session_userId_idx').on(table.userId)],
 );

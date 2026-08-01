@@ -122,3 +122,8 @@ Key API env vars: `DATABASE_URL` must be an absolute path for local SQLite (e.g.
 - **Domain entities** are plain TypeScript objects/classes with no Drizzle or framework imports. Mappers bridge Drizzle rows ↔ domain.
 - **Adding a new feature** follows the layer order: domain entity → port interface → use case → Drizzle repository implementation → Pothos type/resolver → GraphQL mutation/query → register in `container.ts` → add `.graphql` file in web → run codegen → build UI.
 - **Pothos schema:** Each resource has its type file (`http/schema/types/`), query file (`queries/`), and mutation file (`mutations/`). All are imported and composed in `http/schema/index.ts`.
+
+## Workflow
+
+- **Worktrees:** Always create feature worktrees in `.claude/worktrees/` (e.g. `.claude/worktrees/feat-my-feature`). Use `git worktree add .claude/worktrees/<branch-name> -b <branch-name> main`.
+- **PRs:** After completing work, push the branch and create a PR. The user reviews PRs directly rather than merging from the CLI.

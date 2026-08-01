@@ -17,6 +17,9 @@ const makeSession = (overrides?: Partial<Session>): Session => ({
   revokedAt: null,
   lastUsedAt: new Date('2024-01-01T00:00:00.000Z'),
   createdAt: new Date('2024-01-01T00:00:00.000Z'),
+  currentRefreshTokenId: 'refresh-token-1',
+  previousRefreshTokenId: null,
+  previousRotatedAt: null,
   ...overrides,
 });
 

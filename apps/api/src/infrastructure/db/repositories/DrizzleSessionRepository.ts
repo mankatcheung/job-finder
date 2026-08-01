@@ -6,6 +6,7 @@ import { getClient } from '../transactionContext.js';
 import type {
   ISessionRepository,
   CreateSessionData,
+  RotateRefreshTokenData,
 } from '#src/use-cases/ports/ISessionRepository.js';
 
 export class DrizzleSessionRepository implements ISessionRepository {
@@ -60,6 +61,19 @@ export class DrizzleSessionRepository implements ISessionRepository {
       .where(eq(session.id, id));
   }
 
+  async rotateRefreshToken(id: string, data: RotateRefreshTokenData): Promise<void> {
+    await this.db
+      .update(session)
+      .set({
+        lastUsedAt: new Date(),
+        expiresAt: data.expiresAt,
+        currentRefreshTokenId: data.currentRefreshTokenId,
+        previousRefreshTokenId: data.previousRefreshTokenId,
+        previousRotatedAt: data.previousRotatedAt,
+      })
+      .where(eq(session.id, id));
+  }
+
   async revoke(id: string): Promise<void> {
     await this.db.update(session).set({ revokedAt: new Date() }).where(eq(session.id, id));
   }
@@ -88,6 +102,9 @@ export class DrizzleSessionRepository implements ISessionRepository {
       createdAt: row.createdAt,
       expiresAt: row.expiresAt,
       revokedAt: row.revokedAt,
+      currentRefreshTokenId: row.currentRefreshTokenId,
+      previousRefreshTokenId: row.previousRefreshTokenId,
+      previousRotatedAt: row.previousRotatedAt,
     };
   }
 }
