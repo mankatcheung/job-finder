@@ -13,6 +13,8 @@ import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js'
 import type { IPasswordResetTokenRepository } from '#src/use-cases/ports/IPasswordResetTokenRepository.js';
 import type { PasswordResetToken } from '#src/domain/passwordResetToken/PasswordResetToken.js';
 import type { ILoginEventRepository } from '#src/use-cases/ports/ILoginEventRepository.js';
+import type { IMessageRepository } from '#src/use-cases/ports/IMessageRepository.js';
+import type { IConversationRepository } from '#src/use-cases/ports/IConversationRepository.js';
 import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
 import type { Session } from '#src/domain/session/Session.js';
 import type { IEmailVerificationTokenRepository } from '#src/use-cases/ports/IEmailVerificationTokenRepository.js';
@@ -24,6 +26,8 @@ import type { Note } from '#src/domain/note/Note.js';
 import type { InterviewRound } from '#src/domain/interviewRound/InterviewRound.js';
 import type { Contact } from '#src/domain/contact/Contact.js';
 import type { LoginEvent } from '#src/domain/loginEvent/LoginEvent.js';
+import type { Message } from '#src/domain/message/Message.js';
+import type { Conversation } from '#src/domain/conversation/Conversation.js';
 import type { ITotpBackupCodeRepository } from '#src/use-cases/ports/ITotpBackupCodeRepository.js';
 import type { TotpBackupCode } from '#src/domain/totpBackupCode/TotpBackupCode.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
@@ -108,6 +112,25 @@ export const makeLoginEventRepository = (
 ): ILoginEventRepository => ({
   create: vi.fn(),
   findRecentByUserId: vi.fn().mockResolvedValue([]),
+  ...overrides,
+});
+
+export const makeMessageRepository = (
+  overrides?: Partial<IMessageRepository>,
+): IMessageRepository => ({
+  create: vi.fn(),
+  findAllByConversationId: vi.fn().mockResolvedValue([]),
+  ...overrides,
+});
+
+export const makeConversationRepository = (
+  overrides?: Partial<IConversationRepository>,
+): IConversationRepository => ({
+  create: vi.fn(),
+  findById: vi.fn().mockResolvedValue(null),
+  findAllByUserId: vi.fn().mockResolvedValue([]),
+  updateTitle: vi.fn(),
+  delete: vi.fn(),
   ...overrides,
 });
 
@@ -264,6 +287,24 @@ export const makeLoginEvent = (overrides?: Partial<LoginEvent>): LoginEvent => (
   ipAddress: '127.0.0.1',
   userAgent: 'Mozilla/5.0',
   createdAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+export const makeMessage = (overrides?: Partial<Message>): Message => ({
+  id: 'msg-1',
+  conversationId: 'conv-1',
+  role: 'user',
+  content: 'hi',
+  createdAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+export const makeConversation = (overrides?: Partial<Conversation>): Conversation => ({
+  id: 'conv-1',
+  userId: 'user-1',
+  title: null,
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
   ...overrides,
 });
 

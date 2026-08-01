@@ -6,6 +6,8 @@ import type { IGetNotesUseCase } from '#src/use-cases/notes/IGetNotesUseCase.js'
 import type { IGetContactsUseCase } from '#src/use-cases/contacts/IGetContactsUseCase.js';
 import type { IGetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
+import type { IMessageRepository } from '#src/use-cases/ports/IMessageRepository.js';
+import type { IConversationRepository } from '#src/use-cases/ports/IConversationRepository.js';
 import type {
   LLMMessage,
   LLMToolCall,
@@ -14,15 +16,9 @@ import type {
 import { MCP_TOOLS } from '#src/interface-adapters/mcp/McpController.js';
 import { CHAT, ERROR_CODES } from '#src/constants.js';
 
-export interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
 export interface ChatWithAssistantInput {
   userId: string;
-  /** Prior turns of the conversation, not including `message`. */
-  history: ChatMessage[];
+  conversationId: string;
   message: string;
 }
 
@@ -34,6 +30,9 @@ interface Deps {
   getContactsUseCase: IGetContactsUseCase;
   getInterviewRoundsUseCase: IGetInterviewRoundsUseCase;
   chatRateLimiter: IRateLimiter;
+  messageRepository: IMessageRepository;
+  conversationRepository: IConversationRepository;
+  generateId: () => string;
 }
 
 const SYSTEM_PROMPT = `You are a helpful assistant inside a job application tracker. Answer the user's questions about their job applications, contacts, and interview rounds using the available tools — never guess at data you haven't fetched. Be concise; summarize lists rather than dumping raw data. Questions about notes, contacts, or interview rounds are scoped to one application, so first find its id with list_applications if you don't already have it.`;
@@ -54,26 +53,64 @@ export class ChatWithAssistantUseCase {
       });
     }
 
-    // Only 'user'/'assistant' are accepted from the client — otherwise a
-    // crafted `role: "system"` entry could inject a fake system message.
-    if (input.history.some((m) => m.role !== 'user' && m.role !== 'assistant')) {
-      throw Object.assign(new Error('Invalid message role in conversation history'), {
-        code: ERROR_CODES.VALIDATION,
-      });
+    const conversation = await this.deps.conversationRepository.findById(input.conversationId);
+    if (!conversation) {
+      throw Object.assign(new Error('Conversation not found'), { code: ERROR_CODES.NOT_FOUND });
+    }
+    if (conversation.userId !== input.userId) {
+      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
     }
 
-    const llmProvider = await this.deps.llmProviderFactory.forUser(input.userId);
+    // Stored history only ever contains 'user'/'assistant' turns we wrote
+    // ourselves — the per-turn tool-call scratchpad below is rebuilt fresh
+    // each time and never persisted.
+    const history = await this.deps.messageRepository.findAllByConversationId(input.conversationId);
+
+    const messages: LLMMessage[] = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      ...history.map((m) => ({ role: m.role, content: m.content })),
+      { role: 'user', content: input.message },
+    ];
+
+    const reply = await this.complete(messages, input.userId);
+
+    await this.deps.messageRepository.create({
+      id: this.deps.generateId(),
+      conversationId: input.conversationId,
+      role: 'user',
+      content: input.message,
+    });
+    await this.deps.messageRepository.create({
+      id: this.deps.generateId(),
+      conversationId: input.conversationId,
+      role: 'assistant',
+      content: reply,
+    });
+
+    if (history.length === 0) {
+      await this.deps.conversationRepository.updateTitle(
+        input.conversationId,
+        this.deriveTitle(input.message),
+      );
+    }
+
+    return reply;
+  }
+
+  private deriveTitle(message: string): string {
+    const trimmed = message.trim();
+    return trimmed.length > CHAT.TITLE_MAX_LENGTH
+      ? `${trimmed.slice(0, CHAT.TITLE_MAX_LENGTH).trimEnd()}…`
+      : trimmed;
+  }
+
+  private async complete(messages: LLMMessage[], userId: string): Promise<string> {
+    const llmProvider = await this.deps.llmProviderFactory.forUser(userId);
     if (!llmProvider) {
       throw Object.assign(new Error('Add your AI API key in Settings to use this feature'), {
         code: ERROR_CODES.AI_NOT_CONFIGURED,
       });
     }
-
-    const messages: LLMMessage[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
-      ...input.history.map((m) => ({ role: m.role, content: m.content })),
-      { role: 'user', content: input.message },
-    ];
 
     for (let i = 0; i < CHAT.MAX_TOOL_ITERATIONS; i++) {
       const result = await llmProvider.completeWithTools(messages, TOOLS);
@@ -89,7 +126,7 @@ export class ChatWithAssistantUseCase {
       });
 
       for (const call of result.toolCalls) {
-        const toolResult = await this.executeTool(call, input.userId);
+        const toolResult = await this.executeTool(call, userId);
         messages.push({ role: 'tool', content: JSON.stringify(toolResult), toolCallId: call.id });
       }
     }

@@ -344,6 +344,8 @@ export const BULK_ACTIONS = {
 export const CHAT = {
   /** Hard cap on LLM<->tool round-trips within a single chat turn, to bound cost/latency. */
   MAX_TOOL_ITERATIONS: 5,
+  /** Auto-derived conversation title is truncated to this many characters of the first message. */
+  TITLE_MAX_LENGTH: 50,
 } as const;
 
 /** Defaults/limits for cursor-paginated list queries. */

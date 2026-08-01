@@ -49,6 +49,24 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "LoginEvent_userId_idx" ON "LoginEvent"("userId")`,
+  `CREATE TABLE "Conversation" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "title" TEXT,
+    "createdAt" INTEGER NOT NULL,
+    "updatedAt" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "Conversation_userId_idx" ON "Conversation"("userId")`,
+  `CREATE TABLE "Message" (
+    "id" TEXT PRIMARY KEY,
+    "conversationId" TEXT NOT NULL,
+    "role" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "createdAt" INTEGER NOT NULL,
+    FOREIGN KEY ("conversationId") REFERENCES "Conversation"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "Message_conversationId_idx" ON "Message"("conversationId")`,
   `CREATE TABLE "JobApplication" (
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,

@@ -42,6 +42,12 @@ if (typeof window.matchMedia !== 'function') {
   });
 }
 
+// jsdom doesn't implement scrolling — components like AssistantPage call
+// this directly on a ref in an effect to keep the latest message in view.
+if (typeof Element.prototype.scrollIntoView !== 'function') {
+  Element.prototype.scrollIntoView = () => {};
+}
+
 if (typeof window.IntersectionObserver !== 'function') {
   class NoopIntersectionObserver implements IntersectionObserver {
     readonly root = null;
