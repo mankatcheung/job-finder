@@ -101,7 +101,7 @@ jobs:
         env:
           DATABASE_URL: ${{ steps.provision-db.outputs.database-url }}
           DATABASE_AUTH_TOKEN: ${{ steps.gen-token.outputs.database-auth-token }}
-        run: pnpm --filter @job-finder/api db:migrate
+        run: pnpm --filter @job-finder/api db:migrate:apply
 
       - name: Seed database
         env:

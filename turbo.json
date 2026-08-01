@@ -40,6 +40,10 @@
       "cache": false,
       "dependsOn": ["db:generate"]
     },
+    "db:migrate:apply": {
+      "cache": false,
+      "dependsOn": ["db:generate"]
+    },
     "test": {
       "cache": true,
       "outputs": ["coverage/**"]
