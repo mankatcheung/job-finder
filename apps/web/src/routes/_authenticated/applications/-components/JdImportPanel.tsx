@@ -122,7 +122,7 @@ export function JdImportPanel({ onFill }: Props) {
           {aiNotConfigured && (
             <p className="text-xs text-red-600 dark:text-red-400">
               Add your AI API key in{' '}
-              <Link to="/account" className="underline">
+              <Link to="/settings/profile" className="underline">
                 Account settings
               </Link>{' '}
               to use this feature.

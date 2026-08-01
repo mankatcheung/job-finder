@@ -139,7 +139,7 @@ export function AssistantPage() {
             {getGqlErrorCode(send.error) === AI_NOT_CONFIGURED_CODE ? (
               <>
                 Add your AI API key in{' '}
-                <Link to="/account" className="underline">
+                <Link to="/settings/profile" className="underline">
                   Account settings
                 </Link>{' '}
                 to use this feature.

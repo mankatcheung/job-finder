@@ -1635,7 +1635,7 @@ function CoverLetterTab({ applicationId }: { applicationId: string }) {
             {getGqlErrorCode(generate.error) === AI_NOT_CONFIGURED_CODE ? (
               <>
                 Add your AI API key in{' '}
-                <Link to="/account" className="underline">
+                <Link to="/settings/profile" className="underline">
                   Account settings
                 </Link>{' '}
                 to use this feature.
@@ -1779,7 +1779,7 @@ function ResumeMatchTab({ applicationId }: { applicationId: string }) {
             {getGqlErrorCode(compute.error) === AI_NOT_CONFIGURED_CODE ? (
               <>
                 Add your AI API key in{' '}
-                <Link to="/account" className="underline">
+                <Link to="/settings/profile" className="underline">
                   Account settings
                 </Link>{' '}
                 to use this feature.

@@ -179,10 +179,10 @@ export function AuthenticatedLayout() {
 
         <div className="px-3 pb-2 space-y-1">
           <NavItem
-            to="/account"
+            to="/settings/profile"
             icon={<AccountAvatarIcon avatarUrl={avatarUrl} size={18} />}
-            label="Account"
-            active={pathname.startsWith('/account')}
+            label="Settings"
+            active={pathname.startsWith('/settings')}
           />
         </div>
 
@@ -245,10 +245,10 @@ export function AuthenticatedLayout() {
           active={pathname.startsWith('/assistant')}
         />
         <BottomNavItem
-          to="/account"
+          to="/settings/profile"
           icon={<AccountAvatarIcon avatarUrl={avatarUrl} size={20} />}
-          label="Account"
-          active={pathname.startsWith('/account')}
+          label="Settings"
+          active={pathname.startsWith('/settings')}
         />
       </nav>
     </div>

@@ -62,7 +62,7 @@ describe('AuthenticatedLayout', () => {
     expect(screen.getAllByText('Job Finder').length).toBeGreaterThanOrEqual(1);
     // "Dashboard" / "Account" appear in sidebar and bottom nav
     expect(screen.getAllByText('Dashboard').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Account').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Settings').length).toBeGreaterThanOrEqual(1);
     // "Applications" appears only in the sidebar (bottom nav shows "Apps")
     expect(screen.getByText('Applications')).toBeInTheDocument();
   });
