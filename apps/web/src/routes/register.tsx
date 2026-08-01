@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -67,9 +67,9 @@ export function RegisterPage() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Create account</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Already have an account?{' '}
-            <a href="/login" className="text-blue-600 hover:underline">
+            <Link to="/login" className="text-blue-600 hover:underline">
               Sign in
-            </a>
+            </Link>
           </p>
         </div>
 

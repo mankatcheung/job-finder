@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -93,9 +93,9 @@ export function LoginPage() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Sign in</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Don&apos;t have an account?{' '}
-            <a href="/register" className="text-blue-600 hover:underline">
+            <Link to="/register" className="text-blue-600 hover:underline">
               Register
-            </a>
+            </Link>
           </p>
         </div>
 
@@ -124,9 +124,9 @@ export function LoginPage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Password
               </label>
-              <a href="/forgot-password" className="text-xs text-blue-600 hover:underline">
+              <Link to="/forgot-password" className="text-xs text-blue-600 hover:underline">
                 Forgot password?
-              </a>
+              </Link>
             </div>
             <input
               type="password"
