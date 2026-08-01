@@ -147,6 +147,9 @@ const SCHEMA_STATEMENTS = [
     "createdAt" INTEGER NOT NULL,
     "expiresAt" INTEGER NOT NULL,
     "revokedAt" INTEGER,
+    "currentRefreshTokenId" TEXT,
+    "previousRefreshTokenId" TEXT,
+    "previousRotatedAt" INTEGER,
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "Session_userId_idx" ON "Session"("userId")`,

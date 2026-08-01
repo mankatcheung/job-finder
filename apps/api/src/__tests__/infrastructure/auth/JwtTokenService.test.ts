@@ -17,7 +17,7 @@ describe('JwtTokenService', () => {
 
   describe('sign', () => {
     it('returns an access and refresh token as a TokenPair', () => {
-      const result = service.sign('user-1', 'user@example.com', 'session-1');
+      const result = service.sign('user-1', 'user@example.com', 'session-1', 'refresh-token-id-1');
 
       expect(typeof result.accessToken).toBe('string');
       expect(typeof result.refreshToken).toBe('string');
@@ -25,7 +25,12 @@ describe('JwtTokenService', () => {
     });
 
     it('signs the access token with the access secret, verifiable via verifyAccess', () => {
-      const { accessToken } = service.sign('user-1', 'user@example.com', 'session-1');
+      const { accessToken } = service.sign(
+        'user-1',
+        'user@example.com',
+        'session-1',
+        'refresh-token-id-1',
+      );
 
       const payload = service.verifyAccess(accessToken);
 
@@ -37,7 +42,12 @@ describe('JwtTokenService', () => {
     });
 
     it('signs the refresh token with the refresh secret, verifiable via verifyRefresh', () => {
-      const { refreshToken } = service.sign('user-1', 'user@example.com', 'session-1');
+      const { refreshToken } = service.sign(
+        'user-1',
+        'user@example.com',
+        'session-1',
+        'refresh-token-id-1',
+      );
 
       const payload = service.verifyRefresh(refreshToken);
 
@@ -45,6 +55,7 @@ describe('JwtTokenService', () => {
         sub: 'user-1',
         email: 'user@example.com',
         sid: 'session-1',
+        jti: 'refresh-token-id-1',
       });
     });
   });
@@ -62,7 +73,12 @@ describe('JwtTokenService', () => {
     });
 
     it('rejects a token signed with the access secret', () => {
-      const { accessToken } = service.sign('user-1', 'user@example.com', 'session-1');
+      const { accessToken } = service.sign(
+        'user-1',
+        'user@example.com',
+        'session-1',
+        'refresh-token-id-1',
+      );
 
       expect(() => service.verifyRefresh(accessToken)).toThrow('Invalid refresh token');
     });
@@ -74,7 +90,12 @@ describe('JwtTokenService', () => {
     });
 
     it('rejects a token signed with the refresh secret', () => {
-      const { refreshToken } = service.sign('user-1', 'user@example.com', 'session-1');
+      const { refreshToken } = service.sign(
+        'user-1',
+        'user@example.com',
+        'session-1',
+        'refresh-token-id-1',
+      );
 
       expect(() => service.verifyAccess(refreshToken)).toThrow();
     });

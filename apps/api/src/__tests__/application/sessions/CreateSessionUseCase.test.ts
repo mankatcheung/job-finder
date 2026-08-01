@@ -50,6 +50,29 @@ describe('CreateSessionUseCase', () => {
     expect(expiresAtMs).toBeLessThanOrEqual(after + SESSION.TTL_MS + 1000);
   });
 
+  it('generates an initial currentRefreshTokenId for the new session', async () => {
+    const sessionRepository = makeSessionRepository({
+      create: vi.fn().mockResolvedValue(makeSession()),
+    });
+    const generateId = vi
+      .fn()
+      .mockReturnValueOnce('generated-session-id')
+      .mockReturnValueOnce('generated-refresh-token-id');
+
+    await new CreateSessionUseCase({ sessionRepository, generateId }).execute({
+      userId: 'user-1',
+      userAgent: null,
+      ipAddress: null,
+    });
+
+    expect(sessionRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'generated-session-id',
+        currentRefreshTokenId: 'generated-refresh-token-id',
+      }),
+    );
+  });
+
   it('returns the created session', async () => {
     const session = makeSession({ id: 'generated-id' });
     const sessionRepository = makeSessionRepository({ create: vi.fn().mockResolvedValue(session) });

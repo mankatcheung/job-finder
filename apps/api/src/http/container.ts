@@ -140,7 +140,7 @@ import { ComputeResumeMatchScoreUseCase } from '#src/use-cases/application/Compu
 import { GetCalendarEventsUseCase } from '#src/use-cases/calendar/GetCalendarEventsUseCase.js';
 import { SendWeeklyDigestUseCase } from '#src/use-cases/digest/SendWeeklyDigestUseCase.js';
 import { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
-import { TouchSessionUseCase } from '#src/use-cases/sessions/TouchSessionUseCase.js';
+import { RotateRefreshTokenUseCase } from '#src/use-cases/sessions/RotateRefreshTokenUseCase.js';
 import { ListSessionsUseCase } from '#src/use-cases/sessions/ListSessionsUseCase.js';
 import { RevokeSessionUseCase } from '#src/use-cases/sessions/RevokeSessionUseCase.js';
 import { RevokeOtherSessionsUseCase } from '#src/use-cases/sessions/RevokeOtherSessionsUseCase.js';
@@ -300,7 +300,7 @@ export interface Cradle {
   getCalendarEventsUseCase: GetCalendarEventsUseCase;
   sendWeeklyDigestUseCase: SendWeeklyDigestUseCase;
   createSessionUseCase: CreateSessionUseCase;
-  touchSessionUseCase: TouchSessionUseCase;
+  rotateRefreshTokenUseCase: RotateRefreshTokenUseCase;
   listSessionsUseCase: ListSessionsUseCase;
   revokeSessionUseCase: RevokeSessionUseCase;
   revokeOtherSessionsUseCase: RevokeOtherSessionsUseCase;
@@ -559,7 +559,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     }),
     sendWeeklyDigestUseCase: asClass(SendWeeklyDigestUseCase, { lifetime: Lifetime.TRANSIENT }),
     createSessionUseCase: asClass(CreateSessionUseCase, { lifetime: Lifetime.TRANSIENT }),
-    touchSessionUseCase: asClass(TouchSessionUseCase, { lifetime: Lifetime.TRANSIENT }),
+    rotateRefreshTokenUseCase: asClass(RotateRefreshTokenUseCase, { lifetime: Lifetime.TRANSIENT }),
     listSessionsUseCase: asClass(ListSessionsUseCase, { lifetime: Lifetime.TRANSIENT }),
     revokeSessionUseCase: asClass(RevokeSessionUseCase, { lifetime: Lifetime.TRANSIENT }),
     revokeOtherSessionsUseCase: asClass(RevokeOtherSessionsUseCase, {

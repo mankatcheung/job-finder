@@ -31,6 +31,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: 'Mozilla/5.0',
         ipAddress: '10.0.0.1',
         expiresAt,
+        currentRefreshTokenId: 'refresh-token-1',
       });
 
       expect(s.id).toBe('session-1');
@@ -52,6 +53,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
       });
 
       expect((await repo.findById('session-1'))?.id).toBe('session-1');
@@ -65,6 +67,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
       });
 
       expect(await repo.findByIdAndUserId('session-1', 'someone-else')).toBeNull();
@@ -83,6 +86,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
       });
       await repo.create({
         id: 'revoked',
@@ -90,6 +94,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
       });
       await repo.revoke('revoked');
 
@@ -105,6 +110,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: new Date(Date.now() - 1000),
+        currentRefreshTokenId: 'refresh-token-1',
       });
 
       const active = await repo.findActiveByUserId('user-1');
@@ -120,6 +126,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
       });
 
       expect(await repo.findActiveByUserId('user-1')).toHaveLength(0);
@@ -134,12 +141,41 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
       });
       const newExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
 
       await repo.touch('session-1', newExpiresAt);
 
       const updated = await repo.findById('session-1');
+      expect(updated?.expiresAt).toEqual(newExpiresAt);
+    });
+  });
+
+  describe('rotateRefreshToken', () => {
+    it('updates the current/previous token ids, rotation timestamp, and expiresAt', async () => {
+      await repo.create({
+        id: 'session-1',
+        userId: 'user-1',
+        userAgent: null,
+        ipAddress: null,
+        expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
+      });
+      const newExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+      const previousRotatedAt = new Date();
+
+      await repo.rotateRefreshToken('session-1', {
+        currentRefreshTokenId: 'refresh-token-2',
+        previousRefreshTokenId: 'refresh-token-1',
+        previousRotatedAt,
+        expiresAt: newExpiresAt,
+      });
+
+      const updated = await repo.findById('session-1');
+      expect(updated?.currentRefreshTokenId).toBe('refresh-token-2');
+      expect(updated?.previousRefreshTokenId).toBe('refresh-token-1');
+      expect(updated?.previousRotatedAt).toEqual(previousRotatedAt);
       expect(updated?.expiresAt).toEqual(newExpiresAt);
     });
   });
@@ -152,6 +188,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
       });
 
       await repo.revoke('session-1');
@@ -169,6 +206,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
       });
       await repo.create({
         id: 'revoke-me',
@@ -176,6 +214,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
       });
 
       await repo.revokeAllForUserExcept('user-1', 'keep');
@@ -192,6 +231,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
       });
       await repo.create({
         id: 'theirs',
@@ -199,6 +239,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
       });
 
       await repo.revokeAllForUserExcept('user-1', 'mine');
@@ -215,6 +256,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
       });
       await repo.create({
         id: 'session-b',
@@ -222,6 +264,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
       });
 
       await repo.revokeAllForUser('user-1');
@@ -237,6 +280,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
       });
       await repo.create({
         id: 'theirs',
@@ -244,6 +288,7 @@ describe('DrizzleSessionRepository', () => {
         userAgent: null,
         ipAddress: null,
         expiresAt: futureExpiry(),
+        currentRefreshTokenId: 'refresh-token-1',
       });
 
       await repo.revokeAllForUser('user-1');
