@@ -9,6 +9,7 @@ import { queryClient } from '#/lib/queryClient';
 import { getErrorMessage } from '#/lib/errors';
 import { StarIcon, XIcon } from 'lucide-react';
 import { JdImportPanel } from '../-components/JdImportPanel';
+import { applicationQueryOptions } from './-application-query';
 
 const APPLICATION_STATUSES = [
   'draft',
@@ -34,35 +35,15 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
-const APPLICATION_QUERY = `
-  query Application($id: ID!) {
-    application(id: $id) {
-      id company role status jobUrl location salaryRange description appliedAt starred source followUpAt tags createdAt updatedAt
-    }
-  }
-`;
 const UPDATE_MUTATION = `
   mutation UpdateApplication($id: ID!, $input: UpdateApplicationInput!) {
     updateApplication(id: $id, input: $input) { id }
   }
 `;
 
-type Application = {
-  id: string;
-  company: string;
-  role: string;
-  status: string;
-  jobUrl?: string | null;
-  location?: string | null;
-  salaryRange?: string | null;
-  description?: string | null;
-  starred: boolean;
-  source?: string | null;
-  followUpAt?: string | null;
-  tags: string[];
-};
-
 export const Route = createFileRoute('/_authenticated/applications/$applicationId/edit')({
+  loader: ({ context: { queryClient }, params: { applicationId } }) =>
+    queryClient.ensureQueryData(applicationQueryOptions(applicationId)),
   component: EditApplicationPage,
 });
 
@@ -72,11 +53,7 @@ export function EditApplicationPage() {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
 
-  const { data } = useQuery({
-    queryKey: ['application', applicationId],
-    queryFn: () =>
-      gqlClient.request<{ application: Application }>(APPLICATION_QUERY, { id: applicationId }),
-  });
+  const { data } = useQuery(applicationQueryOptions(applicationId));
 
   const app = data?.application;
 

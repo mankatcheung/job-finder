@@ -17,14 +17,8 @@ import {
   StarIcon,
   Trash2Icon,
 } from 'lucide-react';
+import { applicationQueryOptions } from './-application-query';
 
-const APPLICATION_QUERY = `
-  query Application($id: ID!) {
-    application(id: $id) {
-      id company role status jobUrl location salaryRange description appliedAt starred source followUpAt tags createdAt updatedAt
-    }
-  }
-`;
 const UPDATE_STARRED = `
   mutation UpdateApplication($id: ID!, $input: UpdateApplicationInput!) {
     updateApplication(id: $id, input: $input) { id starred }
@@ -65,22 +59,6 @@ type HealthScoreCriterion = {
 };
 type HealthScore = { score: number; label: string; criteria: HealthScoreCriterion[] };
 
-type Application = {
-  id: string;
-  company: string;
-  role: string;
-  status: string;
-  jobUrl?: string | null;
-  location?: string | null;
-  salaryRange?: string | null;
-  description?: string | null;
-  appliedAt?: string | null;
-  starred: boolean;
-  source?: string | null;
-  followUpAt?: string | null;
-  tags: string[];
-  createdAt: string;
-};
 type Note = {
   id: string;
   applicationId: string;
@@ -90,6 +68,8 @@ type Note = {
 };
 
 export const Route = createFileRoute('/_authenticated/applications/$applicationId/')({
+  loader: ({ context: { queryClient }, params: { applicationId } }) =>
+    queryClient.ensureQueryData(applicationQueryOptions(applicationId)),
   component: ApplicationDetailPage,
 });
 
@@ -108,11 +88,7 @@ export function ApplicationDetailPage() {
     isError: isAppError,
     error: appError,
     refetch: refetchApp,
-  } = useQuery({
-    queryKey: ['application', applicationId],
-    queryFn: () =>
-      gqlClient.request<{ application: Application }>(APPLICATION_QUERY, { id: applicationId }),
-  });
+  } = useQuery(applicationQueryOptions(applicationId));
   const {
     data: notesData,
     isError: isNotesError,

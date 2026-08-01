@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { infiniteQueryOptions, useInfiniteQuery } from '@tanstack/react-query';
 import { useState, useEffect, useMemo } from 'react';
 import { gqlClient } from '#/graphql/client';
 import { ErrorState } from '#/components/ErrorState';
@@ -92,8 +92,36 @@ type ApplicationsPageResult = {
   };
 };
 
+function applicationsPageQueryOptions(
+  status: string | undefined,
+  starred: boolean | undefined,
+  searchTerm: string,
+) {
+  return infiniteQueryOptions({
+    queryKey: ['applications', 'page', status ?? null, starred ?? false, searchTerm],
+    queryFn: ({ pageParam }) =>
+      gqlClient.request<ApplicationsPageResult>(APPLICATIONS_PAGE_QUERY, {
+        status: status ?? null,
+        starred: starred ?? null,
+        search: searchTerm || null,
+        cursor: pageParam,
+        limit: PAGE_SIZE,
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.applicationsPage.hasNextPage ? lastPage.applicationsPage.nextCursor : undefined,
+  });
+}
+
 export const Route = createFileRoute('/_authenticated/applications/')({
   validateSearch: searchSchema,
+  // searchTerm is local-only component state (always '' on a fresh navigation),
+  // so only status/starred — the URL-driven filters — need to be loader deps.
+  loaderDeps: ({ search }) => ({ status: search.status, starred: search.starred }),
+  loader: ({ context: { queryClient }, deps }) =>
+    queryClient.ensureInfiniteQueryData(
+      applicationsPageQueryOptions(deps.status, deps.starred, ''),
+    ),
   component: ApplicationsPage,
 });
 
@@ -118,20 +146,7 @@ export function ApplicationsPage() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteQuery({
-    queryKey: ['applications', 'page', status ?? null, starred ?? false, searchTerm],
-    queryFn: ({ pageParam }) =>
-      gqlClient.request<ApplicationsPageResult>(APPLICATIONS_PAGE_QUERY, {
-        status: status ?? null,
-        starred: starred ?? null,
-        search: searchTerm || null,
-        cursor: pageParam,
-        limit: PAGE_SIZE,
-      }),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) =>
-      lastPage.applicationsPage.hasNextPage ? lastPage.applicationsPage.nextCursor : undefined,
-  });
+  } = useInfiniteQuery(applicationsPageQueryOptions(status, starred, searchTerm));
 
   const apps = useMemo(
     () => data?.pages.flatMap((page) => page.applicationsPage.items) ?? [],

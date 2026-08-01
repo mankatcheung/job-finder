@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { gqlClient } from '#/graphql/client';
 import { ErrorState } from '#/components/ErrorState';
@@ -22,7 +22,7 @@ const CALENDAR_EVENTS_QUERY = `
 type CalendarEventKind = 'applied' | 'followUp' | 'interview';
 type ViewMode = 'month' | 'week' | 'day';
 
-interface CalendarEvent {
+export interface CalendarEvent {
   id: string;
   applicationId: string;
   company: string;
@@ -96,7 +96,13 @@ function formatWeekRange(start: Date, end: Date): string {
   return `${startStr} – ${endStr}`;
 }
 
+const calendarEventsQueryOptions = queryOptions({
+  queryKey: ['calendarEvents'],
+  queryFn: () => gqlClient.request<{ calendarEvents: CalendarEvent[] }>(CALENDAR_EVENTS_QUERY),
+});
+
 export const Route = createFileRoute('/_authenticated/calendar')({
+  loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(calendarEventsQueryOptions),
   component: CalendarPage,
 });
 
@@ -108,10 +114,7 @@ export function CalendarPage() {
   });
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
-  const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ['calendarEvents'],
-    queryFn: () => gqlClient.request<{ calendarEvents: CalendarEvent[] }>(CALENDAR_EVENTS_QUERY),
-  });
+  const { data, isLoading, isError, error, refetch } = useQuery(calendarEventsQueryOptions);
 
   const events = data?.calendarEvents;
 
