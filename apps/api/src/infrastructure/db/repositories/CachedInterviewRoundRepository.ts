@@ -33,6 +33,14 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
     return result;
   }
 
+  // Not cached: this reads across every application for the user, which
+  // doesn't fit the per-applicationId cache key scheme used above, and
+  // invalidating it correctly would require busting it on every round
+  // create/update/delete for any of the user's applications.
+  async findAllByUserId(userId: string): Promise<InterviewRound[]> {
+    return this.inner.findAllByUserId(userId);
+  }
+
   async findById(id: string): Promise<InterviewRound | null> {
     const key = CACHE_KEYS.roundById(id);
     const hit = this.cache.get<InterviewRound | null>(key);

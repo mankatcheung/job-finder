@@ -51,6 +51,20 @@ describe('CachedInterviewRoundRepository', () => {
     });
   });
 
+  describe('findAllByUserId', () => {
+    it('delegates straight to inner without caching', async () => {
+      const { repo, inner } = makeRepo();
+      vi.mocked(inner.findAllByUserId).mockResolvedValue([round]);
+
+      const r1 = await repo.findAllByUserId('user-1');
+      const r2 = await repo.findAllByUserId('user-1');
+
+      expect(r1).toEqual([round]);
+      expect(r2).toEqual([round]);
+      expect(inner.findAllByUserId).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('findById', () => {
     it('fetches from inner on first call', async () => {
       const { repo, inner } = makeRepo();

@@ -17,6 +17,7 @@ import { ShortcutCheatSheet } from '#/components/ShortcutCheatSheet';
 import {
   BarChart2Icon,
   BriefcaseIcon,
+  CalendarIcon,
   KeyboardIcon,
   LayoutDashboardIcon,
   LogOutIcon,
@@ -157,6 +158,12 @@ export function AuthenticatedLayout() {
             active={pathname.startsWith('/applications')}
           />
           <NavItem
+            to="/calendar"
+            icon={<CalendarIcon size={18} />}
+            label="Calendar"
+            active={pathname.startsWith('/calendar')}
+          />
+          <NavItem
             to="/analytics"
             icon={<BarChart2Icon size={18} />}
             label="Analytics"
@@ -218,6 +225,12 @@ export function AuthenticatedLayout() {
           icon={<BriefcaseIcon size={20} />}
           label="Apps"
           active={pathname.startsWith('/applications')}
+        />
+        <BottomNavItem
+          to="/calendar"
+          icon={<CalendarIcon size={20} />}
+          label="Calendar"
+          active={pathname.startsWith('/calendar')}
         />
         <BottomNavItem
           to="/analytics"
