@@ -460,16 +460,14 @@ describe('ChatWithAssistantUseCase', () => {
     });
     const userRepository = makeUserRepository();
     const conversationRepository = makeConversationRepository({
-      findById: vi
-        .fn()
-        .mockResolvedValue(
-          makeConversation({
-            id: 'conv-1',
-            userId: 'user-1',
-            llmProvider: 'anthropic',
-            llmModel: 'claude',
-          }),
-        ),
+      findById: vi.fn().mockResolvedValue(
+        makeConversation({
+          id: 'conv-1',
+          userId: 'user-1',
+          llmProvider: 'anthropic',
+          llmModel: 'claude',
+        }),
+      ),
     });
     const deps = makeDeps({ llmProviderFactory, userRepository, conversationRepository });
 
