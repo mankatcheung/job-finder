@@ -5,6 +5,8 @@ export interface CreateSessionData {
   userId: string;
   userAgent: string | null;
   ipAddress: string | null;
+  deviceLabel: string | null;
+  location: string | null;
   expiresAt: Date;
   currentRefreshTokenId: string;
 }
@@ -26,4 +28,6 @@ export interface ISessionRepository {
   revoke(id: string): Promise<void>;
   revokeAllForUserExcept(userId: string, exceptId: string): Promise<void>;
   revokeAllForUser(userId: string): Promise<void>;
+  /** Returns all distinct userAgent fingerprints previously used by this user. */
+  findDistinctUserAgentsByUserId(userId: string): Promise<string[]>;
 }

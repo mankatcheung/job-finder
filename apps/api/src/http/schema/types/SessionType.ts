@@ -7,6 +7,8 @@ SessionRef.implement({
     id: t.exposeID('id'),
     userAgent: t.exposeString('userAgent', { nullable: true }),
     ipAddress: t.exposeString('ipAddress', { nullable: true }),
+    deviceLabel: t.exposeString('deviceLabel', { nullable: true }),
+    location: t.exposeString('location', { nullable: true }),
     lastUsedAt: t.exposeString('lastUsedAt'),
     createdAt: t.exposeString('createdAt'),
     current: t.exposeBoolean('current'),

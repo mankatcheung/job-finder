@@ -143,6 +143,8 @@ const SCHEMA_STATEMENTS = [
     "userId" TEXT NOT NULL,
     "userAgent" TEXT,
     "ipAddress" TEXT,
+    "deviceLabel" TEXT,
+    "location" TEXT,
     "lastUsedAt" INTEGER NOT NULL,
     "createdAt" INTEGER NOT NULL,
     "expiresAt" INTEGER NOT NULL,

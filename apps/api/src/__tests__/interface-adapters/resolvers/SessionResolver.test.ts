@@ -13,6 +13,8 @@ const makeSession = (overrides?: Partial<Session>): Session => ({
   userId: 'user-1',
   userAgent: 'Mozilla/5.0',
   ipAddress: '127.0.0.1',
+  deviceLabel: null,
+  location: null,
   expiresAt: new Date('2024-02-01T00:00:00.000Z'),
   revokedAt: null,
   lastUsedAt: new Date('2024-01-01T00:00:00.000Z'),

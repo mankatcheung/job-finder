@@ -30,6 +30,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-1',
         userAgent: 'Mozilla/5.0',
         ipAddress: '10.0.0.1',
+        deviceLabel: null,
+        location: null,
         expiresAt,
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -52,6 +54,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-1',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -66,6 +70,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-1',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -85,6 +91,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-1',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -93,6 +101,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-1',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -109,6 +119,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-1',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: new Date(Date.now() - 1000),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -125,6 +137,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-2',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -140,6 +154,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-1',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -159,6 +175,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-1',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -187,6 +205,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-1',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -205,6 +225,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-1',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -213,6 +235,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-1',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -230,6 +254,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-1',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -238,6 +264,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-2',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -255,6 +283,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-1',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -263,6 +293,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-1',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -279,6 +311,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-1',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });
@@ -287,6 +321,8 @@ describe('DrizzleSessionRepository', () => {
         userId: 'user-2',
         userAgent: null,
         ipAddress: null,
+        deviceLabel: null,
+        location: null,
         expiresAt: futureExpiry(),
         currentRefreshTokenId: 'refresh-token-1',
       });

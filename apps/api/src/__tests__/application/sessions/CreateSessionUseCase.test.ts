@@ -1,7 +1,43 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
-import { makeSessionRepository, makeSession } from '#src/__tests__/helpers/mocks.js';
+import {
+  makeSessionRepository,
+  makeSession,
+  makeUserRepository,
+} from '#src/__tests__/helpers/mocks.js';
 import { SESSION } from '#src/constants.js';
+import type { IDeviceLabeler } from '#src/use-cases/ports/IDeviceLabeler.js';
+import type { IIpLocationResolver } from '#src/use-cases/ports/IIpLocationResolver.js';
+import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
+
+const makeDeviceLabeler = (overrides?: Partial<IDeviceLabeler>): IDeviceLabeler => ({
+  describe: vi.fn().mockReturnValue('Chrome on macOS'),
+  ...overrides,
+});
+
+const makeIpLocationResolver = (overrides?: Partial<IIpLocationResolver>): IIpLocationResolver => ({
+  lookup: vi.fn().mockResolvedValue('San Francisco, United States'),
+  ...overrides,
+});
+
+const makeEmailService = (overrides?: Partial<IEmailService>): IEmailService => ({
+  sendFollowUpReminder: vi.fn().mockResolvedValue(undefined),
+  sendWeeklyDigest: vi.fn().mockResolvedValue(undefined),
+  sendPasswordReset: vi.fn().mockResolvedValue(undefined),
+  sendEmailVerification: vi.fn().mockResolvedValue(undefined),
+  sendNewDeviceLoginAlert: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
+
+const makeDeps = (overrides?: object) => ({
+  sessionRepository: makeSessionRepository(),
+  userRepository: makeUserRepository(),
+  deviceLabeler: makeDeviceLabeler(),
+  ipLocationResolver: makeIpLocationResolver(),
+  emailService: makeEmailService(),
+  generateId: vi.fn().mockReturnValue('generated-id'),
+  ...overrides,
+});
 
 describe('CreateSessionUseCase', () => {
   beforeEach(() => {
@@ -14,7 +50,7 @@ describe('CreateSessionUseCase', () => {
     });
     const generateId = vi.fn().mockReturnValue('generated-id');
 
-    await new CreateSessionUseCase({ sessionRepository, generateId }).execute({
+    await new CreateSessionUseCase(makeDeps({ sessionRepository, generateId })).execute({
       userId: 'user-1',
       userAgent: 'Mozilla/5.0',
       ipAddress: '10.0.0.1',
@@ -37,7 +73,7 @@ describe('CreateSessionUseCase', () => {
     const generateId = vi.fn().mockReturnValue('generated-id');
 
     const before = Date.now();
-    await new CreateSessionUseCase({ sessionRepository, generateId }).execute({
+    await new CreateSessionUseCase(makeDeps({ sessionRepository, generateId })).execute({
       userId: 'user-1',
       userAgent: null,
       ipAddress: null,
@@ -59,7 +95,7 @@ describe('CreateSessionUseCase', () => {
       .mockReturnValueOnce('generated-session-id')
       .mockReturnValueOnce('generated-refresh-token-id');
 
-    await new CreateSessionUseCase({ sessionRepository, generateId }).execute({
+    await new CreateSessionUseCase(makeDeps({ sessionRepository, generateId })).execute({
       userId: 'user-1',
       userAgent: null,
       ipAddress: null,
@@ -77,10 +113,9 @@ describe('CreateSessionUseCase', () => {
     const session = makeSession({ id: 'generated-id' });
     const sessionRepository = makeSessionRepository({ create: vi.fn().mockResolvedValue(session) });
 
-    const result = await new CreateSessionUseCase({
-      sessionRepository,
-      generateId: vi.fn().mockReturnValue('generated-id'),
-    }).execute({ userId: 'user-1', userAgent: null, ipAddress: null });
+    const result = await new CreateSessionUseCase(
+      makeDeps({ sessionRepository, generateId: vi.fn().mockReturnValue('generated-id') }),
+    ).execute({ userId: 'user-1', userAgent: null, ipAddress: null });
 
     expect(result).toEqual(session);
   });

@@ -11,4 +11,11 @@ export interface IEmailService {
   sendWeeklyDigest(to: string, data: WeeklyDigestData): Promise<void>;
   sendPasswordReset(to: string, resetUrl: string): Promise<void>;
   sendEmailVerification(to: string, verifyUrl: string): Promise<void>;
+  sendNewDeviceLoginAlert(
+    to: string,
+    deviceLabel: string,
+    location: string | null,
+    ipAddress: string | null,
+    loginTime: Date,
+  ): Promise<void>;
 }
