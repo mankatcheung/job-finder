@@ -15,6 +15,9 @@ vi.mock('@tanstack/react-router', () => ({
     select({ location: { pathname: '/' } }),
   redirect: vi.fn(),
   Outlet: () => <div data-testid="outlet" />,
+  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
+    <a href={to}>{children}</a>
+  ),
 }));
 
 vi.mock('@tanstack/react-start', () => ({

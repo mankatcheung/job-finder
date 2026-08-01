@@ -11,6 +11,9 @@ vi.mock('@tanstack/react-router', () => ({
     ...opts,
     useSearch: mockUseSearch,
   }),
+  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
+    <a href={to}>{children}</a>
+  ),
 }));
 
 vi.mock('#/graphql/client', () => ({

@@ -1,5 +1,34 @@
 import '@testing-library/jest-dom/vitest';
 
+// jsdom exposes localStorage on the window object, but Vitest's jsdom
+// environment may not polyfill it onto the global scope — and components
+// like ThemeProvider access it directly (without window. prefix) in
+// useState initializers, which run during render before any effect.
+if (typeof localStorage === 'undefined') {
+  const store: Record<string, string> = {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).localStorage = {
+    getItem(key: string) {
+      return store[key] ?? null;
+    },
+    setItem(key: string, value: string) {
+      store[key] = value;
+    },
+    removeItem(key: string) {
+      delete store[key];
+    },
+    clear() {
+      Object.keys(store).forEach((k) => delete store[k]);
+    },
+    get length() {
+      return Object.keys(store).length;
+    },
+    key(index: number) {
+      return Object.keys(store)[index] ?? null;
+    },
+  };
+}
+
 if (typeof window.matchMedia !== 'function') {
   window.matchMedia = (query: string) => ({
     matches: false,
