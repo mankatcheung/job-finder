@@ -1,0 +1,27 @@
+import { describe, it, expect, vi } from 'vitest';
+import { ListConversationsUseCase } from '#src/use-cases/conversations/ListConversationsUseCase.js';
+import { makeConversationRepository, makeConversation } from '#src/__tests__/helpers/mocks.js';
+
+describe('ListConversationsUseCase', () => {
+  it('returns the conversations for the user', async () => {
+    const conversations = [makeConversation({ id: 'conv-1' }), makeConversation({ id: 'conv-2' })];
+    const conversationRepository = makeConversationRepository({
+      findAllByUserId: vi.fn().mockResolvedValue(conversations),
+    });
+
+    const useCase = new ListConversationsUseCase({ conversationRepository });
+    const result = await useCase.execute('user-1');
+
+    expect(result).toEqual(conversations);
+    expect(conversationRepository.findAllByUserId).toHaveBeenCalledWith('user-1');
+  });
+
+  it('returns an empty array when the user has no conversations', async () => {
+    const conversationRepository = makeConversationRepository({
+      findAllByUserId: vi.fn().mockResolvedValue([]),
+    });
+
+    const useCase = new ListConversationsUseCase({ conversationRepository });
+    expect(await useCase.execute('user-1')).toEqual([]);
+  });
+});

@@ -7,6 +7,7 @@ import type { IGetContactsUseCase } from '#src/use-cases/contacts/IGetContactsUs
 import type { IGetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import type { IMessageRepository } from '#src/use-cases/ports/IMessageRepository.js';
+import type { IConversationRepository } from '#src/use-cases/ports/IConversationRepository.js';
 import type {
   LLMMessage,
   LLMToolCall,
@@ -17,6 +18,7 @@ import { CHAT, ERROR_CODES } from '#src/constants.js';
 
 export interface ChatWithAssistantInput {
   userId: string;
+  conversationId: string;
   message: string;
 }
 
@@ -29,6 +31,7 @@ interface Deps {
   getInterviewRoundsUseCase: IGetInterviewRoundsUseCase;
   chatRateLimiter: IRateLimiter;
   messageRepository: IMessageRepository;
+  conversationRepository: IConversationRepository;
   generateId: () => string;
 }
 
@@ -50,10 +53,18 @@ export class ChatWithAssistantUseCase {
       });
     }
 
+    const conversation = await this.deps.conversationRepository.findById(input.conversationId);
+    if (!conversation) {
+      throw Object.assign(new Error('Conversation not found'), { code: ERROR_CODES.NOT_FOUND });
+    }
+    if (conversation.userId !== input.userId) {
+      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+    }
+
     // Stored history only ever contains 'user'/'assistant' turns we wrote
     // ourselves — the per-turn tool-call scratchpad below is rebuilt fresh
     // each time and never persisted.
-    const history = await this.deps.messageRepository.findAllByUserId(input.userId);
+    const history = await this.deps.messageRepository.findAllByConversationId(input.conversationId);
 
     const messages: LLMMessage[] = [
       { role: 'system', content: SYSTEM_PROMPT },
@@ -65,18 +76,32 @@ export class ChatWithAssistantUseCase {
 
     await this.deps.messageRepository.create({
       id: this.deps.generateId(),
-      userId: input.userId,
+      conversationId: input.conversationId,
       role: 'user',
       content: input.message,
     });
     await this.deps.messageRepository.create({
       id: this.deps.generateId(),
-      userId: input.userId,
+      conversationId: input.conversationId,
       role: 'assistant',
       content: reply,
     });
 
+    if (history.length === 0) {
+      await this.deps.conversationRepository.updateTitle(
+        input.conversationId,
+        this.deriveTitle(input.message),
+      );
+    }
+
     return reply;
+  }
+
+  private deriveTitle(message: string): string {
+    const trimmed = message.trim();
+    return trimmed.length > CHAT.TITLE_MAX_LENGTH
+      ? `${trimmed.slice(0, CHAT.TITLE_MAX_LENGTH).trimEnd()}…`
+      : trimmed;
   }
 
   private async complete(messages: LLMMessage[], userId: string): Promise<string> {

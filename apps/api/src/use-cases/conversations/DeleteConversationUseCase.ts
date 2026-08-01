@@ -1,21 +1,18 @@
-import type { IMessageRepository } from '#src/use-cases/ports/IMessageRepository.js';
 import type { IConversationRepository } from '#src/use-cases/ports/IConversationRepository.js';
-import type { Message } from '#src/domain/message/Message.js';
 import { ERROR_CODES } from '#src/constants.js';
 import type {
-  IGetChatHistoryUseCase,
-  GetChatHistoryInput,
-} from '#src/use-cases/chat/IGetChatHistoryUseCase.js';
+  IDeleteConversationUseCase,
+  DeleteConversationInput,
+} from '#src/use-cases/conversations/IDeleteConversationUseCase.js';
 
 interface Deps {
-  messageRepository: IMessageRepository;
   conversationRepository: IConversationRepository;
 }
 
-export class GetChatHistoryUseCase implements IGetChatHistoryUseCase {
+export class DeleteConversationUseCase implements IDeleteConversationUseCase {
   constructor(private readonly deps: Deps) {}
 
-  async execute(input: GetChatHistoryInput): Promise<Message[]> {
+  async execute(input: DeleteConversationInput): Promise<void> {
     const conversation = await this.deps.conversationRepository.findById(input.conversationId);
     if (!conversation) {
       throw Object.assign(new Error('Conversation not found'), { code: ERROR_CODES.NOT_FOUND });
@@ -24,6 +21,6 @@ export class GetChatHistoryUseCase implements IGetChatHistoryUseCase {
       throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
     }
 
-    return this.deps.messageRepository.findAllByConversationId(input.conversationId);
+    await this.deps.conversationRepository.delete(input.conversationId);
   }
 }

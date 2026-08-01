@@ -7,7 +7,7 @@ describe('MessageMapper', () => {
 
   const msg: Message = {
     id: 'msg-1',
-    userId: 'user-1',
+    conversationId: 'conv-1',
     role: 'assistant',
     content: 'You have 3 active applications.',
     createdAt: new Date('2024-03-01T08:00:00.000Z'),
@@ -26,8 +26,8 @@ describe('MessageMapper', () => {
     expect(dto.content).toBe('You have 3 active applications.');
   });
 
-  it('does not leak userId onto the DTO', () => {
+  it('does not leak conversationId onto the DTO', () => {
     const dto = mapper.toDTO(msg) as Record<string, unknown>;
-    expect(dto.userId).toBeUndefined();
+    expect(dto.conversationId).toBeUndefined();
   });
 });

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "688e833d-f081-499b-9997-ee51f3161697",
+  "id": "3b12b42c-46f5-482b-8af4-c11654edc109",
   "prevId": "cbace4ce-ba02-41fb-afcc-c86688d3524d",
   "tables": {
     "ActivityLog": {
@@ -292,6 +292,67 @@
           "tableFrom": "Contact",
           "tableTo": "JobApplication",
           "columnsFrom": ["applicationId"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "Conversation": {
+      "name": "Conversation",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "Conversation_userId_idx": {
+          "name": "Conversation_userId_idx",
+          "columns": ["userId"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "Conversation_userId_User_id_fk": {
+          "name": "Conversation_userId_User_id_fk",
+          "tableFrom": "Conversation",
+          "tableTo": "User",
+          "columnsFrom": ["userId"],
           "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
@@ -790,8 +851,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "userId": {
-          "name": "userId",
+        "conversationId": {
+          "name": "conversationId",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -820,18 +881,18 @@
         }
       },
       "indexes": {
-        "Message_userId_idx": {
-          "name": "Message_userId_idx",
-          "columns": ["userId"],
+        "Message_conversationId_idx": {
+          "name": "Message_conversationId_idx",
+          "columns": ["conversationId"],
           "isUnique": false
         }
       },
       "foreignKeys": {
-        "Message_userId_User_id_fk": {
-          "name": "Message_userId_User_id_fk",
+        "Message_conversationId_Conversation_id_fk": {
+          "name": "Message_conversationId_Conversation_id_fk",
           "tableFrom": "Message",
-          "tableTo": "User",
-          "columnsFrom": ["userId"],
+          "tableTo": "Conversation",
+          "columnsFrom": ["conversationId"],
           "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"

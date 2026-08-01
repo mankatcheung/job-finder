@@ -24,23 +24,19 @@ export class DrizzleMessageRepository implements IMessageRepository {
     return this.toEntity(row);
   }
 
-  async findAllByUserId(userId: string): Promise<Message[]> {
+  async findAllByConversationId(conversationId: string): Promise<Message[]> {
     const rows = await this.db
       .select()
       .from(message)
-      .where(eq(message.userId, userId))
+      .where(eq(message.conversationId, conversationId))
       .orderBy(asc(message.createdAt));
     return rows.map((r) => this.toEntity(r));
-  }
-
-  async deleteAllByUserId(userId: string): Promise<void> {
-    await this.db.delete(message).where(eq(message.userId, userId));
   }
 
   private toEntity(row: typeof message.$inferSelect): Message {
     return {
       id: row.id,
-      userId: row.userId,
+      conversationId: row.conversationId,
       role: row.role,
       content: row.content,
       createdAt: row.createdAt,
