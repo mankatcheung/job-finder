@@ -92,12 +92,22 @@ export class DrizzleSessionRepository implements ISessionRepository {
       .where(and(eq(session.userId, userId), isNull(session.revokedAt)));
   }
 
+  async findDistinctUserAgentsByUserId(userId: string): Promise<string[]> {
+    const rows = await this.db
+      .selectDistinct({ userAgent: session.userAgent })
+      .from(session)
+      .where(eq(session.userId, userId));
+    return rows.map((r) => r.userAgent).filter((ua): ua is string => ua !== null);
+  }
+
   private toEntity(row: typeof session.$inferSelect): Session {
     return {
       id: row.id,
       userId: row.userId,
       userAgent: row.userAgent,
       ipAddress: row.ipAddress,
+      deviceLabel: row.deviceLabel,
+      location: row.location,
       lastUsedAt: row.lastUsedAt,
       createdAt: row.createdAt,
       expiresAt: row.expiresAt,

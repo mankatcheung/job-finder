@@ -127,6 +127,10 @@ import { GetContactsUseCase } from '#src/use-cases/contacts/GetContactsUseCase.j
 import { UpdateContactUseCase } from '#src/use-cases/contacts/UpdateContactUseCase.js';
 import { DeleteContactUseCase } from '#src/use-cases/contacts/DeleteContactUseCase.js';
 import { BrevoEmailService } from '#src/infrastructure/email/BrevoEmailService.js';
+import { DeviceLabelService } from '#src/infrastructure/device/DeviceLabelService.js';
+import { IpLocationService } from '#src/infrastructure/device/IpLocationService.js';
+import type { IDeviceLabeler } from '#src/use-cases/ports/IDeviceLabeler.js';
+import type { IIpLocationResolver } from '#src/use-cases/ports/IIpLocationResolver.js';
 import { SendFollowUpRemindersUseCase } from '#src/use-cases/reminders/SendFollowUpRemindersUseCase.js';
 import { DrizzleTransactionManager } from '#src/infrastructure/db/DrizzleTransactionManager.js';
 import { LlmApiKeyCipher } from '#src/infrastructure/llm/LlmApiKeyCipher.js';
@@ -286,6 +290,8 @@ export interface Cradle {
   updateContactUseCase: UpdateContactUseCase;
   deleteContactUseCase: DeleteContactUseCase;
   emailService: BrevoEmailService;
+  deviceLabeler: IDeviceLabeler;
+  ipLocationResolver: IIpLocationResolver;
   sendFollowUpRemindersUseCase: SendFollowUpRemindersUseCase;
   transactionManager: DrizzleTransactionManager;
   llmApiKeyCipher: ILlmApiKeyCipher;
@@ -536,6 +542,8 @@ export function buildContainer(): AwilixContainer<Cradle> {
     updateContactUseCase: asClass(UpdateContactUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteContactUseCase: asClass(DeleteContactUseCase, { lifetime: Lifetime.TRANSIENT }),
     emailService: asClass(BrevoEmailService, { lifetime: Lifetime.SINGLETON }),
+    deviceLabeler: asClass(DeviceLabelService, { lifetime: Lifetime.SINGLETON }),
+    ipLocationResolver: asClass(IpLocationService, { lifetime: Lifetime.SINGLETON }),
     sendFollowUpRemindersUseCase: asClass(SendFollowUpRemindersUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

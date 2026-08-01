@@ -528,12 +528,13 @@ export function SettingsSecurityPage() {
             >
               <div className="min-w-0">
                 <p className="text-sm text-gray-900 dark:text-gray-100 truncate">
-                  {session.userAgent ?? 'Unknown device'}
+                  {session.deviceLabel ?? session.userAgent ?? 'Unknown device'}
                   {session.current && (
                     <span className="ml-2 text-xs text-green-600 font-medium">This device</span>
                   )}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {session.location ? `${session.location} · ` : ''}
                   {session.ipAddress ?? 'Unknown IP'} · Last active{' '}
                   {new Date(session.lastUsedAt).toLocaleString()}
                 </p>

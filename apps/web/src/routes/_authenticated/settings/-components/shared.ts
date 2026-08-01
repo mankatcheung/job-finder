@@ -94,6 +94,8 @@ export const SESSIONS_QUERY = `
       id
       userAgent
       ipAddress
+      deviceLabel
+      location
       lastUsedAt
       current
     }
@@ -384,6 +386,8 @@ export type Session = {
   id: string;
   userAgent: string | null;
   ipAddress: string | null;
+  deviceLabel: string | null;
+  location: string | null;
   lastUsedAt: string;
   current: boolean;
 };
