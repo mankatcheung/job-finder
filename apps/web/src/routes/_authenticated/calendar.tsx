@@ -20,6 +20,7 @@ const CALENDAR_EVENTS_QUERY = `
 `;
 
 type CalendarEventKind = 'applied' | 'followUp' | 'interview';
+type ViewMode = 'month' | 'week' | 'day';
 
 interface CalendarEvent {
   id: string;
@@ -44,6 +45,11 @@ const EVENT_LABEL: Record<CalendarEventKind, string> = {
 };
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const VIEW_MODES: { mode: ViewMode; label: string }[] = [
+  { mode: 'month', label: 'Month' },
+  { mode: 'week', label: 'Week' },
+  { mode: 'day', label: 'Day' },
+];
 
 // Local calendar day, deliberately not UTC — see JEF-54's timezone decision.
 function dayKey(date: Date): string {
@@ -58,9 +64,9 @@ function dateFromDayKey(key: string): Date {
   return new Date(y, m - 1, d);
 }
 
-function buildMonthGrid(monthCursor: Date): Date[] {
-  const year = monthCursor.getFullYear();
-  const month = monthCursor.getMonth();
+function buildMonthGrid(anchor: Date): Date[] {
+  const year = anchor.getFullYear();
+  const month = anchor.getMonth();
   const firstOfMonth = new Date(year, month, 1);
   const gridStart = new Date(year, month, 1 - firstOfMonth.getDay());
   return Array.from({ length: 42 }, (_, i) => {
@@ -70,14 +76,35 @@ function buildMonthGrid(monthCursor: Date): Date[] {
   });
 }
 
+function buildWeekGrid(anchor: Date): Date[] {
+  const weekStart = new Date(anchor);
+  weekStart.setDate(anchor.getDate() - anchor.getDay());
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
+    return d;
+  });
+}
+
+function formatWeekRange(start: Date, end: Date): string {
+  const startStr = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const endStr = end.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  return `${startStr} – ${endStr}`;
+}
+
 export const Route = createFileRoute('/_authenticated/calendar')({
   component: CalendarPage,
 });
 
 export function CalendarPage() {
-  const [monthCursor, setMonthCursor] = useState(() => {
+  const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [anchorDate, setAnchorDate] = useState(() => {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
   });
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
@@ -99,38 +126,86 @@ export function CalendarPage() {
     return map;
   }, [events]);
 
-  const grid = useMemo(() => buildMonthGrid(monthCursor), [monthCursor]);
-  const today = dayKey(new Date());
-  const selectedEvents = selectedDay ? (eventsByDay.get(selectedDay) ?? []) : [];
+  const grid = useMemo(() => {
+    if (viewMode === 'month') return buildMonthGrid(anchorDate);
+    if (viewMode === 'week') return buildWeekGrid(anchorDate);
+    return [anchorDate];
+  }, [viewMode, anchorDate]);
 
-  const goToMonth = (delta: number) => {
-    setMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
+  const today = dayKey(new Date());
+  const anchorDayKey = dayKey(anchorDate);
+  const dayInFocus = viewMode === 'day' ? anchorDayKey : selectedDay;
+  const focusedEvents = dayInFocus ? (eventsByDay.get(dayInFocus) ?? []) : [];
+
+  const goToPeriod = (delta: number) => {
+    setAnchorDate((prev) => {
+      if (viewMode === 'month') return new Date(prev.getFullYear(), prev.getMonth() + delta, 1);
+      const d = new Date(prev);
+      d.setDate(prev.getDate() + delta * (viewMode === 'week' ? 7 : 1));
+      return d;
+    });
     setSelectedDay(null);
   };
 
+  const changeViewMode = (mode: ViewMode) => {
+    if (mode === 'day' && selectedDay) {
+      setAnchorDate(dateFromDayKey(selectedDay));
+    }
+    setViewMode(mode);
+    setSelectedDay(null);
+  };
+
+  const periodLabel =
+    viewMode === 'month'
+      ? anchorDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+      : viewMode === 'week'
+        ? formatWeekRange(grid[0], grid[6])
+        : anchorDate.toLocaleDateString(undefined, {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+          });
+
   return (
     <div className="p-4 sm:p-8 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Calendar</h1>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => goToMonth(-1)}
-            aria-label="Previous month"
-            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
-          >
-            <ChevronLeftIcon size={18} />
-          </button>
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 w-32 text-center">
-            {monthCursor.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-          </span>
-          <button
-            onClick={() => goToMonth(1)}
-            aria-label="Next month"
-            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
-          >
-            <ChevronRightIcon size={18} />
-          </button>
+        <div className="flex gap-1 p-0.5 rounded-lg bg-gray-100 dark:bg-gray-800">
+          {VIEW_MODES.map(({ mode, label }) => (
+            <button
+              key={mode}
+              onClick={() => changeViewMode(mode)}
+              className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                viewMode === mode
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-2 mb-6">
+        <button
+          onClick={() => goToPeriod(-1)}
+          aria-label={`Previous ${viewMode}`}
+          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+        >
+          <ChevronLeftIcon size={18} />
+        </button>
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 w-48 text-center">
+          {periodLabel}
+        </span>
+        <button
+          onClick={() => goToPeriod(1)}
+          aria-label={`Next ${viewMode}`}
+          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+        >
+          <ChevronRightIcon size={18} />
+        </button>
       </div>
 
       {isLoading ? (
@@ -139,75 +214,81 @@ export function CalendarPage() {
         <ErrorState error={error} onRetry={() => refetch()} />
       ) : (
         <>
-          <div className="grid grid-cols-7 gap-1 mb-1">
-            {WEEKDAY_LABELS.map((d) => (
-              <div
-                key={d}
-                className="text-center text-xs font-medium text-gray-400 dark:text-gray-500 py-1"
-              >
-                {d}
+          {viewMode !== 'day' && (
+            <>
+              <div className="grid grid-cols-7 gap-1 mb-1">
+                {WEEKDAY_LABELS.map((d) => (
+                  <div
+                    key={d}
+                    className="text-center text-xs font-medium text-gray-400 dark:text-gray-500 py-1"
+                  >
+                    {d}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-1">
-            {grid.map((date) => {
-              const key = dayKey(date);
-              const inMonth = date.getMonth() === monthCursor.getMonth();
-              const dayEvents = eventsByDay.get(key) ?? [];
-              const eventTypes = [...new Set(dayEvents.map((e) => e.type))];
-              const isToday = key === today;
-              const isSelected = key === selectedDay;
-              return (
-                <button
-                  key={key}
-                  onClick={() => setSelectedDay(key === selectedDay ? null : key)}
-                  className={`aspect-square rounded-lg p-1.5 flex flex-col items-center gap-1 text-sm transition-colors ${
-                    !inMonth
-                      ? 'text-gray-300 dark:text-gray-600'
-                      : 'text-gray-700 dark:text-gray-300'
-                  } ${
-                    isSelected
-                      ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-400'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  } ${isToday ? 'font-bold' : ''}`}
-                >
-                  <span>{date.getDate()}</span>
-                  {eventTypes.length > 0 && (
-                    <span className="flex gap-0.5">
-                      {eventTypes.map((t) => (
-                        <span
-                          key={t}
-                          className={`w-1.5 h-1.5 rounded-full ${EVENT_DOT_STYLES[t]}`}
-                        />
-                      ))}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+              <div className="grid grid-cols-7 gap-1">
+                {grid.map((date) => {
+                  const key = dayKey(date);
+                  const inMonth = viewMode === 'week' || date.getMonth() === anchorDate.getMonth();
+                  const dayEvents = eventsByDay.get(key) ?? [];
+                  const eventTypes = [...new Set(dayEvents.map((e) => e.type))];
+                  const isToday = key === today;
+                  const isSelected = key === selectedDay;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setSelectedDay(key === selectedDay ? null : key)}
+                      className={`aspect-square rounded-lg p-1.5 flex flex-col items-center gap-1 text-sm transition-colors ${
+                        !inMonth
+                          ? 'text-gray-300 dark:text-gray-600'
+                          : 'text-gray-700 dark:text-gray-300'
+                      } ${
+                        isSelected
+                          ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-400'
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                      } ${isToday ? 'font-bold' : ''}`}
+                    >
+                      <span>{date.getDate()}</span>
+                      {eventTypes.length > 0 && (
+                        <span className="flex gap-0.5">
+                          {eventTypes.map((t) => (
+                            <span
+                              key={t}
+                              className={`w-1.5 h-1.5 rounded-full ${EVENT_DOT_STYLES[t]}`}
+                            />
+                          ))}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
           <div className="mt-6">
-            {!selectedDay && (
+            {!dayInFocus && (
               <p className="text-sm text-gray-400 dark:text-gray-500 py-4 text-center">
                 Select a day to see its events.
               </p>
             )}
-            {selectedDay && selectedEvents.length === 0 && (
+            {dayInFocus && focusedEvents.length === 0 && (
               <p className="text-sm text-gray-400 dark:text-gray-500 py-4 text-center">
                 No events on this day.
               </p>
             )}
-            {selectedDay && selectedEvents.length > 0 && (
+            {dayInFocus && focusedEvents.length > 0 && (
               <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  {dateFromDayKey(selectedDay).toLocaleDateString(undefined, {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </p>
-                {selectedEvents.map((e) => (
+                {viewMode !== 'day' && (
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {dateFromDayKey(dayInFocus).toLocaleDateString(undefined, {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </p>
+                )}
+                {focusedEvents.map((e) => (
                   <Link
                     key={e.id}
                     to="/applications/$applicationId"
