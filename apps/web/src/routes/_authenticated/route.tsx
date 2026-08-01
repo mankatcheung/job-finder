@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   createFileRoute,
+  Link,
   Outlet,
   redirect,
   useNavigate,
@@ -266,8 +267,8 @@ function NavItem({
   active: boolean;
 }) {
   return (
-    <a
-      href={to}
+    <Link
+      to={to}
       className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
         active
           ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
@@ -276,7 +277,7 @@ function NavItem({
     >
       {icon}
       {label}
-    </a>
+    </Link>
   );
 }
 
@@ -292,14 +293,14 @@ function BottomNavItem({
   active: boolean;
 }) {
   return (
-    <a
-      href={to}
+    <Link
+      to={to}
       className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-xs transition-colors ${
         active ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'
       }`}
     >
       {icon}
       <span>{label}</span>
-    </a>
+    </Link>
   );
 }

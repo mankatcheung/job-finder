@@ -14,6 +14,9 @@ vi.mock('@tanstack/react-router', () => ({
     useParams: () => ({ applicationId: 'app-test-id' }),
   }),
   useNavigate: () => mockNavigate,
+  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
+    <a href={to}>{children}</a>
+  ),
 }));
 
 vi.mock('#/graphql/client', () => ({
