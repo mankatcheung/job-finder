@@ -133,6 +133,8 @@ export const session = sqliteTable(
       .references(() => user.id, { onDelete: 'cascade' }),
     userAgent: text('userAgent'),
     ipAddress: text('ipAddress'),
+    deviceLabel: text('deviceLabel'),
+    location: text('location'),
     lastUsedAt: integer('lastUsedAt', { mode: 'timestamp_ms' })
       .notNull()
       .$defaultFn(() => new Date()),

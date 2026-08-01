@@ -1,9 +1,17 @@
 import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IDeviceLabeler } from '#src/use-cases/ports/IDeviceLabeler.js';
+import type { IIpLocationResolver } from '#src/use-cases/ports/IIpLocationResolver.js';
+import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 import type { Session } from '#src/domain/session/Session.js';
 import { SESSION } from '#src/constants.js';
 
 interface Deps {
   sessionRepository: ISessionRepository;
+  userRepository: IUserRepository;
+  deviceLabeler: IDeviceLabeler;
+  ipLocationResolver: IIpLocationResolver;
+  emailService: IEmailService;
   generateId: () => string;
 }
 
@@ -17,13 +25,64 @@ export class CreateSessionUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: CreateSessionInput): Promise<Session> {
-    return this.deps.sessionRepository.create({
+    const deviceLabel = this.deps.deviceLabeler.describe(input.userAgent);
+    const location = await this.deps.ipLocationResolver.lookup(input.ipAddress);
+
+    const session = await this.deps.sessionRepository.create({
       id: this.deps.generateId(),
       userId: input.userId,
       userAgent: input.userAgent,
       ipAddress: input.ipAddress,
+      deviceLabel,
+      location,
       expiresAt: new Date(Date.now() + SESSION.TTL_MS),
       currentRefreshTokenId: this.deps.generateId(),
     });
+
+    // Check if this is a new device (non-blocking, best-effort)
+    this.detectNewDeviceAndAlert(
+      input.userId,
+      input.userAgent,
+      deviceLabel,
+      location,
+      input.ipAddress,
+    ).catch(() => {});
+
+    return session;
+  }
+
+  /**
+   * Detects whether the current userAgent has been seen before for this user.
+   * If not, sends a new-device login alert email. Failures are silently ignored
+   * so session creation is never blocked by email delivery issues.
+   */
+  private async detectNewDeviceAndAlert(
+    userId: string,
+    userAgent: string | null,
+    deviceLabel: string,
+    location: string | null,
+    ipAddress: string | null,
+  ): Promise<void> {
+    if (!userAgent) return;
+
+    const knownUserAgents =
+      await this.deps.sessionRepository.findDistinctUserAgentsByUserId(userId);
+
+    // If this is the user's very first session, don't alert (registration or first login).
+    if (knownUserAgents.length === 0) return;
+
+    const isKnown = knownUserAgents.includes(userAgent);
+    if (isKnown) return;
+
+    const user = await this.deps.userRepository.findById(userId);
+    if (!user?.email) return;
+
+    await this.deps.emailService.sendNewDeviceLoginAlert(
+      user.email,
+      deviceLabel,
+      location,
+      ipAddress,
+      new Date(),
+    );
   }
 }

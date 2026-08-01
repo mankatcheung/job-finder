@@ -186,6 +186,7 @@ export const makeSessionRepository = (
   revoke: vi.fn().mockResolvedValue(undefined),
   revokeAllForUserExcept: vi.fn().mockResolvedValue(undefined),
   revokeAllForUser: vi.fn().mockResolvedValue(undefined),
+  findDistinctUserAgentsByUserId: vi.fn().mockResolvedValue([]),
   ...overrides,
 });
 
@@ -194,6 +195,8 @@ export const makeSession = (overrides?: Partial<Session>): Session => ({
   userId: 'user-1',
   userAgent: 'Mozilla/5.0 (test)',
   ipAddress: '127.0.0.1',
+  deviceLabel: null,
+  location: null,
   lastUsedAt: new Date('2024-01-01T00:00:00.000Z'),
   createdAt: new Date('2024-01-01T00:00:00.000Z'),
   expiresAt: new Date('2024-01-08T00:00:00.000Z'),
