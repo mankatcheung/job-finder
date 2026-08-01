@@ -125,5 +125,6 @@ Key API env vars: `DATABASE_URL` must be an absolute path for local SQLite (e.g.
 
 ## Workflow
 
+- Branch name: the format should be like: <feat/fix/chore/...>/<brief name to describe the task>
 - **Worktrees:** Always create feature worktrees in `.claude/worktrees/` (e.g. `.claude/worktrees/feat-my-feature`). Use `git worktree add .claude/worktrees/<branch-name> -b <branch-name> main`.
 - **PRs:** After completing work, push the branch and create a PR. The user reviews PRs directly rather than merging from the CLI.
