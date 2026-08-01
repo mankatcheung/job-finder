@@ -1,25 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { gqlClient } from '#/graphql/client';
 import { ErrorState } from '#/components/ErrorState';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
-
-const ANALYTICS_QUERY = `
-  query AnalyticsApplications {
-    applications {
-      id company role status appliedAt createdAt
-    }
-  }
-`;
-
-type Application = {
-  id: string;
-  company: string;
-  role: string;
-  status: ApplicationStatus;
-  appliedAt?: string | null;
-  createdAt: string;
-};
+import { analyticsQueryOptions } from './-analytics-queries';
 
 const STAGE_ORDER: ApplicationStatus[] = [
   'draft',
@@ -53,10 +36,7 @@ function isoWeek(date: Date): string {
 }
 
 export function AnalyticsPage() {
-  const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ['analytics'],
-    queryFn: () => gqlClient.request<{ applications: Application[] }>(ANALYTICS_QUERY),
-  });
+  const { data, isLoading, isError, error, refetch } = useQuery(analyticsQueryOptions);
 
   const apps = data?.applications ?? [];
 

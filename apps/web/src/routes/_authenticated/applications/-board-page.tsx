@@ -17,14 +17,7 @@ import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { StatusBadge } from '../dashboard';
 import { ErrorState } from '#/components/ErrorState';
 import { ListIcon, StarIcon } from 'lucide-react';
-
-const APPLICATIONS_QUERY = `
-  query BoardApplications {
-    applications {
-      id company role status location appliedAt starred createdAt
-    }
-  }
-`;
+import { boardApplicationsQueryOptions, type BoardApplication } from './-board-queries';
 
 const UPDATE_STATUS = `
   mutation UpdateApplicationStatus($id: ID!, $input: UpdateApplicationInput!) {
@@ -32,16 +25,7 @@ const UPDATE_STATUS = `
   }
 `;
 
-type Application = {
-  id: string;
-  company: string;
-  role: string;
-  status: ApplicationStatus;
-  location?: string | null;
-  appliedAt?: string | null;
-  starred: boolean;
-  createdAt: string;
-};
+type Application = BoardApplication;
 
 const STATUSES: ApplicationStatus[] = [
   'draft',
@@ -67,10 +51,7 @@ export function KanbanBoard() {
   const qc = useQueryClient();
   const [activeApp, setActiveApp] = useState<Application | null>(null);
 
-  const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ['applications', null],
-    queryFn: () => gqlClient.request<{ applications: Application[] }>(APPLICATIONS_QUERY),
-  });
+  const { data, isLoading, isError, error, refetch } = useQuery(boardApplicationsQueryOptions);
 
   const updateStatus = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>

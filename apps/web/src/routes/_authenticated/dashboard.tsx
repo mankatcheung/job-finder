@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
 import { ErrorState } from '#/components/ErrorState';
 import {
@@ -35,15 +35,18 @@ type Application = {
   createdAt: string;
 };
 
+const applicationsQueryOptions = queryOptions({
+  queryKey: ['applications'],
+  queryFn: () => gqlClient.request<{ applications: Application[] }>(APPLICATIONS_QUERY),
+});
+
 export const Route = createFileRoute('/_authenticated/dashboard')({
+  loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(applicationsQueryOptions),
   component: DashboardPage,
 });
 
 export function DashboardPage() {
-  const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ['applications'],
-    queryFn: () => gqlClient.request<{ applications: Application[] }>(APPLICATIONS_QUERY),
-  });
+  const { data, isLoading, isError, error, refetch } = useQuery(applicationsQueryOptions);
 
   const apps = data?.applications ?? [];
   const now = new Date();
