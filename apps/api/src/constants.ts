@@ -224,6 +224,7 @@ export const LLM_PROVIDER = {
   GROQ: 'groq',
   XAI: 'xai',
   DEEPSEEK: 'deepseek',
+  NVIDIA: 'nvidia',
   CUSTOM: 'custom',
 } as const;
 
@@ -246,6 +247,8 @@ export const LLM = {
   XAI_DEFAULT_MODEL: 'grok-2-latest',
   DEEPSEEK_API_URL: 'https://api.deepseek.com/chat/completions',
   DEEPSEEK_DEFAULT_MODEL: 'deepseek-chat',
+  NVIDIA_API_URL: 'https://integrate.api.nvidia.com/v1/chat/completions',
+  NVIDIA_DEFAULT_MODEL: 'meta/llama-3.1-8b-instruct',
 } as const;
 
 /**

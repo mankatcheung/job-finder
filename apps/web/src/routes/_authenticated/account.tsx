@@ -302,6 +302,7 @@ const llmApiKeySchema = z
       'groq',
       'xai',
       'deepseek',
+      'nvidia',
       'custom',
     ]),
     apiKey: z.string().min(1, 'Required'),
@@ -367,6 +368,7 @@ const LLM_PROVIDER_OPTIONS: { value: string; label: string }[] = [
   { value: 'groq', label: 'Groq' },
   { value: 'xai', label: 'xAI (Grok)' },
   { value: 'deepseek', label: 'DeepSeek' },
+  { value: 'nvidia', label: 'NVIDIA NIM' },
   { value: CUSTOM_LLM_PROVIDER, label: 'Custom (OpenAI-compatible)' },
 ];
 

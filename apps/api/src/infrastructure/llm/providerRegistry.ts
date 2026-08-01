@@ -72,6 +72,15 @@ export const PROVIDER_REGISTRY: Record<string, LLMProviderRegistryEntry> = {
         model ?? LLM.DEEPSEEK_DEFAULT_MODEL,
       ),
   },
+  [LLM_PROVIDER.NVIDIA]: {
+    label: 'NVIDIA NIM',
+    create: ({ apiKey, model }) =>
+      new OpenAICompatibleLLMProvider(
+        apiKey,
+        LLM.NVIDIA_API_URL,
+        model ?? LLM.NVIDIA_DEFAULT_MODEL,
+      ),
+  },
   [LLM_PROVIDER.CUSTOM]: {
     label: 'Custom (OpenAI-compatible)',
     create: ({ apiKey, model, baseUrl }) => {
