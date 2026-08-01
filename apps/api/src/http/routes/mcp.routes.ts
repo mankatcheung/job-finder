@@ -1,10 +1,11 @@
 import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
 import type { Cradle } from '#src/http/container.js';
-import { API_TOKEN, AUTH_HEADER, ROUTES } from '#src/constants.js';
+import { AUTH_HEADER, ROUTES } from '#src/constants.js';
 
 /**
- * MCP transport. Authenticates the Bearer API token, then hands the JSON-RPC
- * body to the McpController (interface adapter) which owns all protocol logic.
+ * MCP transport. Authenticates the Bearer API token via
+ * AuthenticateMcpRequestUseCase, then hands the JSON-RPC body to the
+ * McpController (interface adapter) which owns all protocol logic.
  */
 export function mcpRoutes(getCradle: () => Cradle): RouteDefinition[] {
   return [
@@ -18,13 +19,13 @@ export function mcpRoutes(getCradle: () => Cradle): RouteDefinition[] {
             ? authHeader.slice(AUTH_HEADER.BEARER_PREFIX.length)
             : null;
 
-        if (!rawToken?.startsWith(API_TOKEN.PREFIX)) {
-          res.status(401).send({ error: 'Missing or invalid Authorization header' });
+        if (!rawToken) {
+          res.status(401).send({ error: 'Missing Authorization header' });
           return;
         }
 
-        const { validateApiTokenUseCase, mcpController } = getCradle();
-        const authResult = await validateApiTokenUseCase.execute(rawToken).catch(() => null);
+        const { authenticateMcpRequestUseCase, mcpController } = getCradle();
+        const authResult = await authenticateMcpRequestUseCase.execute(rawToken);
         if (!authResult) {
           res.status(401).send({ error: 'Invalid or expired API token' });
           return;

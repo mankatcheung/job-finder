@@ -63,6 +63,8 @@ import { ApiTokenResolver } from '#src/interface-adapters/resolvers/ApiTokenReso
 import { SessionResolver } from '#src/interface-adapters/resolvers/SessionResolver.js';
 import { McpController } from '#src/interface-adapters/mcp/McpController.js';
 
+import { AuthenticateRequestUseCase } from '#src/use-cases/auth/AuthenticateRequestUseCase.js';
+import { AuthenticateMcpRequestUseCase } from '#src/use-cases/auth/AuthenticateMcpRequestUseCase.js';
 import { RegisterUseCase } from '#src/use-cases/auth/RegisterUseCase.js';
 import { LoginUseCase } from '#src/use-cases/auth/LoginUseCase.js';
 import { LoginWithTotpUseCase } from '#src/use-cases/auth/LoginWithTotpUseCase.js';
@@ -223,6 +225,8 @@ export interface Cradle {
   unlinkOAuthAccountUseCase: UnlinkOAuthAccountUseCase;
   listLinkedOAuthAccountsUseCase: ListLinkedOAuthAccountsUseCase;
 
+  authenticateRequestUseCase: AuthenticateRequestUseCase;
+  authenticateMcpRequestUseCase: AuthenticateMcpRequestUseCase;
   registerUseCase: RegisterUseCase;
   loginUseCase: LoginUseCase;
   loginWithTotpUseCase: LoginWithTotpUseCase;
@@ -429,6 +433,12 @@ export function buildContainer(): AwilixContainer<Cradle> {
       lifetime: Lifetime.TRANSIENT,
     }),
     listLinkedOAuthAccountsUseCase: asClass(ListLinkedOAuthAccountsUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    authenticateRequestUseCase: asClass(AuthenticateRequestUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    authenticateMcpRequestUseCase: asClass(AuthenticateMcpRequestUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
     registerUseCase: asClass(RegisterUseCase, { lifetime: Lifetime.TRANSIENT }),
