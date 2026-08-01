@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -115,9 +115,9 @@ export function ResetPasswordPage() {
         )}
 
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          <a href="/login" className="text-blue-600 hover:underline">
+          <Link to="/login" className="text-blue-600 hover:underline">
             Back to sign in
-          </a>
+          </Link>
         </p>
       </div>
     </div>
