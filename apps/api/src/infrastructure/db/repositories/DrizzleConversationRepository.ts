@@ -42,6 +42,13 @@ export class DrizzleConversationRepository implements IConversationRepository {
     await this.db.update(conversation).set({ title }).where(eq(conversation.id, id));
   }
 
+  async updateLlmSettings(id: string, llmProvider: string, llmModel: string | null): Promise<void> {
+    await this.db
+      .update(conversation)
+      .set({ llmProvider, llmModel })
+      .where(eq(conversation.id, id));
+  }
+
   async delete(id: string): Promise<void> {
     await this.db.delete(conversation).where(eq(conversation.id, id));
   }
@@ -51,6 +58,8 @@ export class DrizzleConversationRepository implements IConversationRepository {
       id: row.id,
       userId: row.userId,
       title: row.title,
+      llmProvider: row.llmProvider,
+      llmModel: row.llmModel,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

@@ -22,13 +22,23 @@ const SCHEMA_STATEMENTS = [
     "followUpRemindersEnabled" INTEGER NOT NULL DEFAULT 1,
     "totpSecret" TEXT,
     "totpEnabled" INTEGER NOT NULL DEFAULT 0,
-    "llmProvider" TEXT,
-    "llmApiKey" TEXT,
-    "llmModel" TEXT,
-    "llmBaseUrl" TEXT,
+    "defaultLlmProvider" TEXT,
     "createdAt" INTEGER NOT NULL,
     "updatedAt" INTEGER NOT NULL
   )`,
+  `CREATE TABLE "LlmApiKey" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "provider" TEXT NOT NULL,
+    "apiKey" TEXT NOT NULL,
+    "model" TEXT,
+    "baseUrl" TEXT,
+    "createdAt" INTEGER NOT NULL,
+    "updatedAt" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "LlmApiKey_userId_idx" ON "LlmApiKey"("userId")`,
+  `CREATE UNIQUE INDEX "LlmApiKey_userId_provider_key" ON "LlmApiKey"("userId", "provider")`,
   `CREATE TABLE "ApiToken" (
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,
@@ -53,6 +63,8 @@ const SCHEMA_STATEMENTS = [
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,
     "title" TEXT,
+    "llmProvider" TEXT,
+    "llmModel" TEXT,
     "createdAt" INTEGER NOT NULL,
     "updatedAt" INTEGER NOT NULL,
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE

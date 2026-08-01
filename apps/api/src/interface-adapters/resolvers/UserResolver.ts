@@ -17,11 +17,13 @@ import type {
 import type { IDisableTotpUseCase } from '#src/use-cases/user/IDisableTotpUseCase.js';
 import type { IGetTotpStatusUseCase } from '#src/use-cases/user/IGetTotpStatusUseCase.js';
 import type { ISaveLlmApiKeyUseCase } from '#src/use-cases/user/ISaveLlmApiKeyUseCase.js';
-import type { IClearLlmApiKeyUseCase } from '#src/use-cases/user/IClearLlmApiKeyUseCase.js';
-import type {
-  IGetLlmKeyStatusUseCase,
-  LlmKeyStatus,
-} from '#src/use-cases/user/IGetLlmKeyStatusUseCase.js';
+import type { IListLlmApiKeysUseCase } from '#src/use-cases/user/IListLlmApiKeysUseCase.js';
+import type { IDeleteLlmApiKeyUseCase } from '#src/use-cases/user/IDeleteLlmApiKeyUseCase.js';
+import type { ISetDefaultLlmProviderUseCase } from '#src/use-cases/user/ISetDefaultLlmProviderUseCase.js';
+import {
+  LlmApiKeyMapper,
+  type LlmApiKeyDTO,
+} from '#src/interface-adapters/mappers/LlmApiKeyMapper.js';
 import type {
   IImportUserDataUseCase,
   ImportSummary,
@@ -53,8 +55,10 @@ interface Deps {
   disableTotpUseCase: IDisableTotpUseCase;
   getTotpStatusUseCase: IGetTotpStatusUseCase;
   saveLlmApiKeyUseCase: ISaveLlmApiKeyUseCase;
-  clearLlmApiKeyUseCase: IClearLlmApiKeyUseCase;
-  getLlmKeyStatusUseCase: IGetLlmKeyStatusUseCase;
+  listLlmApiKeysUseCase: IListLlmApiKeysUseCase;
+  deleteLlmApiKeyUseCase: IDeleteLlmApiKeyUseCase;
+  setDefaultLlmProviderUseCase: ISetDefaultLlmProviderUseCase;
+  llmApiKeyMapper: LlmApiKeyMapper;
   importUserDataUseCase: IImportUserDataUseCase;
   getNotificationPreferencesUseCase: IGetNotificationPreferencesUseCase;
   updateNotificationPreferencesUseCase: IUpdateNotificationPreferencesUseCase;
@@ -124,12 +128,17 @@ export class UserResolver {
     await this.deps.saveLlmApiKeyUseCase.execute({ userId, provider, apiKey, model, baseUrl });
   }
 
-  async clearLlmApiKey(userId: string): Promise<void> {
-    await this.deps.clearLlmApiKeyUseCase.execute(userId);
+  async listLlmApiKeys(userId: string): Promise<LlmApiKeyDTO[]> {
+    const keys = await this.deps.listLlmApiKeysUseCase.execute(userId);
+    return keys.map((key) => this.deps.llmApiKeyMapper.toDTO(key));
   }
 
-  async getLlmKeyStatus(userId: string): Promise<LlmKeyStatus> {
-    return this.deps.getLlmKeyStatusUseCase.execute(userId);
+  async deleteLlmApiKey(userId: string, provider: string): Promise<void> {
+    await this.deps.deleteLlmApiKeyUseCase.execute({ userId, provider });
+  }
+
+  async setDefaultLlmProvider(userId: string, provider: string): Promise<void> {
+    await this.deps.setDefaultLlmProviderUseCase.execute({ userId, provider });
   }
 
   async importUserData(userId: string, rawData: string): Promise<ImportSummary> {

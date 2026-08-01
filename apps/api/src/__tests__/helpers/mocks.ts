@@ -40,6 +40,8 @@ import type { OAuthAccount } from '#src/domain/oauthAccount/OAuthAccount.js';
 import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
+import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
+import type { LlmApiKey } from '#src/domain/llmApiKey/LlmApiKey.js';
 import type { IDocumentTextExtractor } from '#src/use-cases/ports/IDocumentTextExtractor.js';
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 
@@ -130,6 +132,7 @@ export const makeConversationRepository = (
   findById: vi.fn().mockResolvedValue(null),
   findAllByUserId: vi.fn().mockResolvedValue([]),
   updateTitle: vi.fn(),
+  updateLlmSettings: vi.fn(),
   delete: vi.fn(),
   ...overrides,
 });
@@ -303,6 +306,8 @@ export const makeConversation = (overrides?: Partial<Conversation>): Conversatio
   id: 'conv-1',
   userId: 'user-1',
   title: null,
+  llmProvider: null,
+  llmModel: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,
@@ -323,10 +328,7 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   followUpRemindersEnabled: true,
   totpSecret: null,
   totpEnabled: false,
-  llmProvider: null,
-  llmApiKey: null,
-  llmModel: null,
-  llmBaseUrl: null,
+  defaultLlmProvider: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,
@@ -474,6 +476,28 @@ export const makeLLMProviderFactory = (
 export const makeLlmApiKeyCipher = (overrides?: Partial<ILlmApiKeyCipher>): ILlmApiKeyCipher => ({
   encrypt: vi.fn((plaintext: string) => `encrypted:${plaintext}`),
   decrypt: vi.fn((ciphertext: string) => ciphertext.replace(/^encrypted:/, '')),
+  ...overrides,
+});
+
+export const makeLlmApiKeyRepository = (
+  overrides?: Partial<ILlmApiKeyRepository>,
+): ILlmApiKeyRepository => ({
+  upsert: vi.fn(),
+  findByUserIdAndProvider: vi.fn().mockResolvedValue(null),
+  findAllByUserId: vi.fn().mockResolvedValue([]),
+  delete: vi.fn(),
+  ...overrides,
+});
+
+export const makeLlmApiKey = (overrides?: Partial<LlmApiKey>): LlmApiKey => ({
+  id: 'llm-key-1',
+  userId: 'user-1',
+  provider: 'openai',
+  apiKey: 'encrypted:sk-test',
+  model: null,
+  baseUrl: null,
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
   ...overrides,
 });
 

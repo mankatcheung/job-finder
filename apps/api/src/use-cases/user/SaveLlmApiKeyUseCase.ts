@@ -1,4 +1,5 @@
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
 import { ERROR_CODES, LLM_PROVIDER } from '#src/constants.js';
 import type {
@@ -8,7 +9,9 @@ import type {
 
 interface Deps {
   userRepository: IUserRepository;
+  llmApiKeyRepository: ILlmApiKeyRepository;
   llmApiKeyCipher: ILlmApiKeyCipher;
+  generateId: () => string;
 }
 
 const VALID_PROVIDERS: string[] = Object.values(LLM_PROVIDER);
@@ -62,11 +65,20 @@ export class SaveLlmApiKeyUseCase implements ISaveLlmApiKeyUseCase {
     const user = await this.deps.userRepository.findById(input.userId);
     if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
 
-    await this.deps.userRepository.update(input.userId, {
-      llmProvider: input.provider,
-      llmApiKey: this.deps.llmApiKeyCipher.encrypt(input.apiKey.trim()),
-      llmModel: model,
-      llmBaseUrl: isCustom ? baseUrl : null,
+    await this.deps.llmApiKeyRepository.upsert({
+      id: this.deps.generateId(),
+      userId: input.userId,
+      provider: input.provider,
+      apiKey: this.deps.llmApiKeyCipher.encrypt(input.apiKey.trim()),
+      model,
+      baseUrl: isCustom ? baseUrl : null,
     });
+
+    // First key ever configured becomes the default for automatic features —
+    // otherwise there'd be no default at all until the user visits settings
+    // to pick one, silently disabling cover letters/JD parsing/resume match.
+    if (!user.defaultLlmProvider) {
+      await this.deps.userRepository.update(input.userId, { defaultLlmProvider: input.provider });
+    }
   }
 }

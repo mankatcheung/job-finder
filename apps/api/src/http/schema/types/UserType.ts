@@ -10,5 +10,6 @@ UserRef.implement({
     timezone: t.exposeString('timezone', { nullable: true }),
     targetRole: t.exposeString('targetRole', { nullable: true }),
     avatarUrl: t.exposeString('avatarUrl', { nullable: true }),
+    defaultLlmProvider: t.exposeString('defaultLlmProvider', { nullable: true }),
   }),
 });

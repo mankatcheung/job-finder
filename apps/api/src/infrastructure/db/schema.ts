@@ -16,14 +16,12 @@ export const user = sqliteTable('User', {
     .default(true),
   totpSecret: text('totpSecret'),
   totpEnabled: integer('totpEnabled', { mode: 'boolean' }).notNull().default(false),
-  /** Which provider the user's own key below is for — see LLM_PROVIDER in constants.ts. */
-  llmProvider: text('llmProvider'),
-  /** User's own LLM API key, encrypted at rest (never returned to the client). */
-  llmApiKey: text('llmApiKey'),
-  /** Model override; required when llmProvider is 'custom', optional elsewhere. */
-  llmModel: text('llmModel'),
-  /** Base URL; only used (and required) when llmProvider is 'custom'. */
-  llmBaseUrl: text('llmBaseUrl'),
+  /**
+   * Which of the user's configured LlmApiKey rows (see below) is used for
+   * automatic AI features (cover letter, JD parsing, resume match) — the
+   * assistant chooses its own provider per-conversation instead.
+   */
+  defaultLlmProvider: text('defaultLlmProvider'),
   createdAt: integer('createdAt', { mode: 'timestamp_ms' })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -88,6 +86,35 @@ export const loginEvent = sqliteTable(
   (table) => [index('LoginEvent_userId_idx').on(table.userId)],
 );
 
+export const llmApiKey = sqliteTable(
+  'LlmApiKey',
+  {
+    id: text('id').primaryKey(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    /** See LLM_PROVIDER in constants.ts. One row per user per provider. */
+    provider: text('provider').notNull(),
+    /** Encrypted at rest (never returned to the client). */
+    apiKey: text('apiKey').notNull(),
+    /** Model override; required when provider is 'custom', optional elsewhere. */
+    model: text('model'),
+    /** Base URL; only used (and required) when provider is 'custom'. */
+    baseUrl: text('baseUrl'),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updatedAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index('LlmApiKey_userId_idx').on(table.userId),
+    uniqueIndex('LlmApiKey_userId_provider_key').on(table.userId, table.provider),
+  ],
+);
+
 export const conversation = sqliteTable(
   'Conversation',
   {
@@ -97,6 +124,13 @@ export const conversation = sqliteTable(
       .references(() => user.id, { onDelete: 'cascade' }),
     /** Auto-derived from the first message once sent; null for a brand-new empty conversation. */
     title: text('title'),
+    /**
+     * The provider/model this conversation uses — set once (at creation or
+     * on the first message) and then locked for the life of the
+     * conversation, so a single thread never mixes providers mid-way.
+     */
+    llmProvider: text('llmProvider'),
+    llmModel: text('llmModel'),
     createdAt: integer('createdAt', { mode: 'timestamp_ms' })
       .notNull()
       .$defaultFn(() => new Date()),

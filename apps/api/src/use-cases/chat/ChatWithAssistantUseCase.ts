@@ -1,4 +1,5 @@
 import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
+import type { Conversation } from '#src/domain/conversation/Conversation.js';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IGetApplicationsUseCase } from '#src/use-cases/jobs/IGetApplicationsUseCase.js';
 import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplicationUseCase.js';
@@ -8,6 +9,7 @@ import type { IGetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import type { IMessageRepository } from '#src/use-cases/ports/IMessageRepository.js';
 import type { IConversationRepository } from '#src/use-cases/ports/IConversationRepository.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type {
   LLMMessage,
   LLMToolCall,
@@ -32,6 +34,7 @@ interface Deps {
   chatRateLimiter: IRateLimiter;
   messageRepository: IMessageRepository;
   conversationRepository: IConversationRepository;
+  userRepository: IUserRepository;
   generateId: () => string;
 }
 
@@ -72,7 +75,7 @@ export class ChatWithAssistantUseCase {
       { role: 'user', content: input.message },
     ];
 
-    const reply = await this.complete(messages, input.userId);
+    const reply = await this.complete(messages, input.userId, conversation);
 
     await this.deps.messageRepository.create({
       id: this.deps.generateId(),
@@ -104,12 +107,34 @@ export class ChatWithAssistantUseCase {
       : trimmed;
   }
 
-  private async complete(messages: LLMMessage[], userId: string): Promise<string> {
-    const llmProvider = await this.deps.llmProviderFactory.forUser(userId);
+  private async complete(
+    messages: LLMMessage[],
+    userId: string,
+    conversation: Conversation,
+  ): Promise<string> {
+    let providerName = conversation.llmProvider;
+    if (!providerName) {
+      const user = await this.deps.userRepository.findById(userId);
+      providerName = user?.defaultLlmProvider ?? null;
+    }
+
+    const llmProvider = await this.deps.llmProviderFactory.forUser(
+      userId,
+      providerName ?? undefined,
+      conversation.llmModel,
+    );
     if (!llmProvider) {
       throw Object.assign(new Error('Add your AI API key in Settings to use this feature'), {
         code: ERROR_CODES.AI_NOT_CONFIGURED,
       });
+    }
+
+    if (!conversation.llmProvider && providerName) {
+      await this.deps.conversationRepository.updateLlmSettings(
+        conversation.id,
+        providerName,
+        conversation.llmModel,
+      );
     }
 
     for (let i = 0; i < CHAT.MAX_TOOL_ITERATIONS; i++) {

@@ -103,8 +103,9 @@ import { ConfirmTotpSetupUseCase } from '#src/use-cases/user/ConfirmTotpSetupUse
 import { DisableTotpUseCase } from '#src/use-cases/user/DisableTotpUseCase.js';
 import { GetTotpStatusUseCase } from '#src/use-cases/user/GetTotpStatusUseCase.js';
 import { SaveLlmApiKeyUseCase } from '#src/use-cases/user/SaveLlmApiKeyUseCase.js';
-import { ClearLlmApiKeyUseCase } from '#src/use-cases/user/ClearLlmApiKeyUseCase.js';
-import { GetLlmKeyStatusUseCase } from '#src/use-cases/user/GetLlmKeyStatusUseCase.js';
+import { ListLlmApiKeysUseCase } from '#src/use-cases/user/ListLlmApiKeysUseCase.js';
+import { DeleteLlmApiKeyUseCase } from '#src/use-cases/user/DeleteLlmApiKeyUseCase.js';
+import { SetDefaultLlmProviderUseCase } from '#src/use-cases/user/SetDefaultLlmProviderUseCase.js';
 import { ImportUserDataUseCase } from '#src/use-cases/user/ImportUserDataUseCase.js';
 import { GetNotificationPreferencesUseCase } from '#src/use-cases/user/GetNotificationPreferencesUseCase.js';
 import { UpdateNotificationPreferencesUseCase } from '#src/use-cases/user/UpdateNotificationPreferencesUseCase.js';
@@ -143,6 +144,9 @@ import { SendFollowUpRemindersUseCase } from '#src/use-cases/reminders/SendFollo
 import { DrizzleTransactionManager } from '#src/infrastructure/db/DrizzleTransactionManager.js';
 import { LlmApiKeyCipher } from '#src/infrastructure/llm/LlmApiKeyCipher.js';
 import { UserLLMProviderFactory } from '#src/infrastructure/llm/UserLLMProviderFactory.js';
+import { DrizzleLlmApiKeyRepository } from '#src/infrastructure/db/repositories/DrizzleLlmApiKeyRepository.js';
+import { LlmApiKeyMapper } from '#src/interface-adapters/mappers/LlmApiKeyMapper.js';
+import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
 import { ParseJobDescriptionUseCase } from '#src/use-cases/jobDescription/ParseJobDescriptionUseCase.js';
 import { FetchJobPostingSourceResolver } from '#src/infrastructure/jobDescription/FetchJobPostingSourceResolver.js';
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
@@ -194,6 +198,7 @@ export interface Cradle {
   loginEventRepository: DrizzleLoginEventRepository;
   messageRepository: DrizzleMessageRepository;
   conversationRepository: DrizzleConversationRepository;
+  llmApiKeyRepository: ILlmApiKeyRepository;
   sessionRepository: DrizzleSessionRepository;
   emailVerificationTokenRepository: DrizzleEmailVerificationTokenRepository;
   totpBackupCodeRepository: DrizzleTotpBackupCodeRepository;
@@ -219,6 +224,7 @@ export interface Cradle {
   loginEventMapper: LoginEventMapper;
   messageMapper: MessageMapper;
   conversationMapper: ConversationMapper;
+  llmApiKeyMapper: LlmApiKeyMapper;
   sessionMapper: SessionMapper;
   oauthAccountMapper: OAuthAccountMapper;
 
@@ -277,8 +283,9 @@ export interface Cradle {
   disableTotpUseCase: DisableTotpUseCase;
   getTotpStatusUseCase: GetTotpStatusUseCase;
   saveLlmApiKeyUseCase: SaveLlmApiKeyUseCase;
-  clearLlmApiKeyUseCase: ClearLlmApiKeyUseCase;
-  getLlmKeyStatusUseCase: GetLlmKeyStatusUseCase;
+  listLlmApiKeysUseCase: ListLlmApiKeysUseCase;
+  deleteLlmApiKeyUseCase: DeleteLlmApiKeyUseCase;
+  setDefaultLlmProviderUseCase: SetDefaultLlmProviderUseCase;
   importUserDataUseCase: ImportUserDataUseCase;
   getNotificationPreferencesUseCase: GetNotificationPreferencesUseCase;
   updateNotificationPreferencesUseCase: UpdateNotificationPreferencesUseCase;
@@ -385,6 +392,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     conversationRepository: asClass(DrizzleConversationRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
+    llmApiKeyRepository: asClass(DrizzleLlmApiKeyRepository, { lifetime: Lifetime.SINGLETON }),
     sessionRepository: asClass(DrizzleSessionRepository, { lifetime: Lifetime.SINGLETON }),
     emailVerificationTokenRepository: asClass(DrizzleEmailVerificationTokenRepository, {
       lifetime: Lifetime.SINGLETON,
@@ -434,6 +442,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     loginEventMapper: asClass(LoginEventMapper, { lifetime: Lifetime.SINGLETON }),
     messageMapper: asClass(MessageMapper, { lifetime: Lifetime.SINGLETON }),
     conversationMapper: asClass(ConversationMapper, { lifetime: Lifetime.SINGLETON }),
+    llmApiKeyMapper: asClass(LlmApiKeyMapper, { lifetime: Lifetime.SINGLETON }),
     sessionMapper: asClass(SessionMapper, { lifetime: Lifetime.SINGLETON }),
     oauthAccountMapper: asClass(OAuthAccountMapper, { lifetime: Lifetime.SINGLETON }),
 
@@ -527,8 +536,11 @@ export function buildContainer(): AwilixContainer<Cradle> {
     disableTotpUseCase: asClass(DisableTotpUseCase, { lifetime: Lifetime.TRANSIENT }),
     getTotpStatusUseCase: asClass(GetTotpStatusUseCase, { lifetime: Lifetime.TRANSIENT }),
     saveLlmApiKeyUseCase: asClass(SaveLlmApiKeyUseCase, { lifetime: Lifetime.TRANSIENT }),
-    clearLlmApiKeyUseCase: asClass(ClearLlmApiKeyUseCase, { lifetime: Lifetime.TRANSIENT }),
-    getLlmKeyStatusUseCase: asClass(GetLlmKeyStatusUseCase, { lifetime: Lifetime.TRANSIENT }),
+    listLlmApiKeysUseCase: asClass(ListLlmApiKeysUseCase, { lifetime: Lifetime.TRANSIENT }),
+    deleteLlmApiKeyUseCase: asClass(DeleteLlmApiKeyUseCase, { lifetime: Lifetime.TRANSIENT }),
+    setDefaultLlmProviderUseCase: asClass(SetDefaultLlmProviderUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     importUserDataUseCase: asClass(ImportUserDataUseCase, { lifetime: Lifetime.TRANSIENT }),
     getNotificationPreferencesUseCase: asClass(GetNotificationPreferencesUseCase, {
       lifetime: Lifetime.TRANSIENT,

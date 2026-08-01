@@ -7,6 +7,8 @@ builder.objectType(ConversationRef, {
   fields: (t) => ({
     id: t.exposeString('id'),
     title: t.exposeString('title', { nullable: true }),
+    llmProvider: t.exposeString('llmProvider', { nullable: true }),
+    llmModel: t.exposeString('llmModel', { nullable: true }),
     createdAt: t.exposeString('createdAt'),
     updatedAt: t.exposeString('updatedAt'),
   }),

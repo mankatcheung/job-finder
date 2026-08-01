@@ -4,128 +4,186 @@ import { OpenAICompatibleLLMProvider } from '#src/infrastructure/llm/OpenAICompa
 import { AnthropicLLMProvider } from '#src/infrastructure/llm/AnthropicLLMProvider.js';
 import { GoogleAILLMProvider } from '#src/infrastructure/llm/GoogleAILLMProvider.js';
 import { LLM_PROVIDER } from '#src/constants.js';
-import { makeUserRepository, makeUser, makeLlmApiKeyCipher } from '#src/__tests__/helpers/mocks.js';
+import {
+  makeUserRepository,
+  makeUser,
+  makeLlmApiKeyCipher,
+  makeLlmApiKeyRepository,
+  makeLlmApiKey,
+} from '#src/__tests__/helpers/mocks.js';
 
 describe('UserLLMProviderFactory', () => {
-  it('returns null when the user has no provider configured', async () => {
+  it('returns null when no provider is given and the user has no default configured', async () => {
     const userRepository = makeUserRepository({
-      findById: vi.fn().mockResolvedValue(makeUser({ llmProvider: null, llmApiKey: null })),
+      findById: vi.fn().mockResolvedValue(makeUser({ defaultLlmProvider: null })),
     });
     const factory = new UserLLMProviderFactory({
       userRepository,
+      llmApiKeyRepository: makeLlmApiKeyRepository(),
       llmApiKeyCipher: makeLlmApiKeyCipher(),
     });
 
     expect(await factory.forUser('user-1')).toBeNull();
   });
 
-  it('returns null when the user does not exist', async () => {
+  it('returns null when the user does not exist and no provider is given', async () => {
     const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(null) });
     const factory = new UserLLMProviderFactory({
       userRepository,
+      llmApiKeyRepository: makeLlmApiKeyRepository(),
       llmApiKeyCipher: makeLlmApiKeyCipher(),
     });
 
     expect(await factory.forUser('missing')).toBeNull();
   });
 
-  it('returns null when the stored provider is not in the registry', async () => {
+  it('returns null when no LlmApiKey row exists for the resolved provider', async () => {
     const userRepository = makeUserRepository({
-      findById: vi
-        .fn()
-        .mockResolvedValue(makeUser({ llmProvider: 'not-a-real-provider', llmApiKey: 'enc' })),
+      findById: vi.fn().mockResolvedValue(makeUser({ defaultLlmProvider: LLM_PROVIDER.OPENAI })),
+    });
+    const llmApiKeyRepository = makeLlmApiKeyRepository({
+      findByUserIdAndProvider: vi.fn().mockResolvedValue(null),
     });
     const factory = new UserLLMProviderFactory({
       userRepository,
+      llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
     });
 
     expect(await factory.forUser('user-1')).toBeNull();
   });
 
-  it('returns an OpenAICompatibleLLMProvider with the decrypted key for openai', async () => {
-    const userRepository = makeUserRepository({
-      findById: vi
+  it('returns null when the stored provider is not in the registry', async () => {
+    const llmApiKeyRepository = makeLlmApiKeyRepository({
+      findByUserIdAndProvider: vi
         .fn()
-        .mockResolvedValue(
-          makeUser({ llmProvider: LLM_PROVIDER.OPENAI, llmApiKey: 'encrypted:my-key' }),
-        ),
+        .mockResolvedValue(makeLlmApiKey({ provider: 'not-a-real-provider' })),
     });
-    const llmApiKeyCipher = makeLlmApiKeyCipher();
-    const factory = new UserLLMProviderFactory({ userRepository, llmApiKeyCipher });
+    const factory = new UserLLMProviderFactory({
+      userRepository: makeUserRepository(),
+      llmApiKeyRepository,
+      llmApiKeyCipher: makeLlmApiKeyCipher(),
+    });
+
+    expect(await factory.forUser('user-1', 'not-a-real-provider')).toBeNull();
+  });
+
+  it('resolves the default provider when none is passed explicitly', async () => {
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(makeUser({ defaultLlmProvider: LLM_PROVIDER.ANTHROPIC })),
+    });
+    const llmApiKeyRepository = makeLlmApiKeyRepository({
+      findByUserIdAndProvider: vi
+        .fn()
+        .mockResolvedValue(makeLlmApiKey({ provider: LLM_PROVIDER.ANTHROPIC })),
+    });
+    const factory = new UserLLMProviderFactory({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher: makeLlmApiKeyCipher(),
+    });
 
     const provider = await factory.forUser('user-1');
 
+    expect(llmApiKeyRepository.findByUserIdAndProvider).toHaveBeenCalledWith(
+      'user-1',
+      LLM_PROVIDER.ANTHROPIC,
+    );
+    expect(provider).toBeInstanceOf(AnthropicLLMProvider);
+  });
+
+  it('uses the explicitly passed provider without consulting the user default', async () => {
+    const userRepository = makeUserRepository();
+    const llmApiKeyRepository = makeLlmApiKeyRepository({
+      findByUserIdAndProvider: vi
+        .fn()
+        .mockResolvedValue(
+          makeLlmApiKey({ provider: LLM_PROVIDER.OPENAI, apiKey: 'encrypted:my-key' }),
+        ),
+    });
+    const llmApiKeyCipher = makeLlmApiKeyCipher();
+    const factory = new UserLLMProviderFactory({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher,
+    });
+
+    const provider = await factory.forUser('user-1', LLM_PROVIDER.OPENAI);
+
+    expect(userRepository.findById).not.toHaveBeenCalled();
     expect(provider).toBeInstanceOf(OpenAICompatibleLLMProvider);
     expect(llmApiKeyCipher.decrypt).toHaveBeenCalledWith('encrypted:my-key');
   });
 
   it('returns an OpenAICompatibleLLMProvider for openrouter', async () => {
-    const userRepository = makeUserRepository({
-      findById: vi
+    const llmApiKeyRepository = makeLlmApiKeyRepository({
+      findByUserIdAndProvider: vi
         .fn()
-        .mockResolvedValue(
-          makeUser({ llmProvider: LLM_PROVIDER.OPENROUTER, llmApiKey: 'encrypted:my-key' }),
-        ),
+        .mockResolvedValue(makeLlmApiKey({ provider: LLM_PROVIDER.OPENROUTER })),
     });
     const factory = new UserLLMProviderFactory({
-      userRepository,
+      userRepository: makeUserRepository(),
+      llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
     });
 
-    expect(await factory.forUser('user-1')).toBeInstanceOf(OpenAICompatibleLLMProvider);
+    expect(await factory.forUser('user-1', LLM_PROVIDER.OPENROUTER)).toBeInstanceOf(
+      OpenAICompatibleLLMProvider,
+    );
   });
 
-  it('returns an AnthropicLLMProvider for anthropic', async () => {
-    const userRepository = makeUserRepository({
-      findById: vi
+  it('returns a GoogleAILLMProvider for the googleai provider', async () => {
+    const llmApiKeyRepository = makeLlmApiKeyRepository({
+      findByUserIdAndProvider: vi
         .fn()
-        .mockResolvedValue(
-          makeUser({ llmProvider: LLM_PROVIDER.ANTHROPIC, llmApiKey: 'encrypted:my-key' }),
-        ),
+        .mockResolvedValue(makeLlmApiKey({ provider: LLM_PROVIDER.GOOGLEAI })),
     });
     const factory = new UserLLMProviderFactory({
-      userRepository,
+      userRepository: makeUserRepository(),
+      llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
     });
 
-    expect(await factory.forUser('user-1')).toBeInstanceOf(AnthropicLLMProvider);
-  });
-
-  it('returns a GoogleAILLMProvider with the decrypted key for the googleai provider', async () => {
-    const userRepository = makeUserRepository({
-      findById: vi
-        .fn()
-        .mockResolvedValue(
-          makeUser({ llmProvider: LLM_PROVIDER.GOOGLEAI, llmApiKey: 'encrypted:my-key' }),
-        ),
-    });
-    const factory = new UserLLMProviderFactory({
-      userRepository,
-      llmApiKeyCipher: makeLlmApiKeyCipher(),
-    });
-
-    const provider = await factory.forUser('user-1');
-
-    expect(provider).toBeInstanceOf(GoogleAILLMProvider);
+    expect(await factory.forUser('user-1', LLM_PROVIDER.GOOGLEAI)).toBeInstanceOf(
+      GoogleAILLMProvider,
+    );
   });
 
   it('builds an OpenAICompatibleLLMProvider from the stored baseUrl/model for the custom provider', async () => {
-    const userRepository = makeUserRepository({
-      findById: vi.fn().mockResolvedValue(
-        makeUser({
-          llmProvider: LLM_PROVIDER.CUSTOM,
-          llmApiKey: 'encrypted:my-key',
-          llmBaseUrl: 'https://my-llm.example.com/v1/chat/completions',
-          llmModel: 'my-custom-model',
+    const llmApiKeyRepository = makeLlmApiKeyRepository({
+      findByUserIdAndProvider: vi.fn().mockResolvedValue(
+        makeLlmApiKey({
+          provider: LLM_PROVIDER.CUSTOM,
+          baseUrl: 'https://my-llm.example.com/v1/chat/completions',
+          model: 'my-custom-model',
         }),
       ),
     });
     const factory = new UserLLMProviderFactory({
-      userRepository,
+      userRepository: makeUserRepository(),
+      llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
     });
 
-    expect(await factory.forUser('user-1')).toBeInstanceOf(OpenAICompatibleLLMProvider);
+    expect(await factory.forUser('user-1', LLM_PROVIDER.CUSTOM)).toBeInstanceOf(
+      OpenAICompatibleLLMProvider,
+    );
+  });
+
+  it('overrides the stored model when an explicit model is passed', async () => {
+    const llmApiKeyRepository = makeLlmApiKeyRepository({
+      findByUserIdAndProvider: vi
+        .fn()
+        .mockResolvedValue(makeLlmApiKey({ provider: LLM_PROVIDER.OPENAI, model: 'gpt-4o' })),
+    });
+    const factory = new UserLLMProviderFactory({
+      userRepository: makeUserRepository(),
+      llmApiKeyRepository,
+      llmApiKeyCipher: makeLlmApiKeyCipher(),
+    });
+
+    const provider = await factory.forUser('user-1', LLM_PROVIDER.OPENAI, 'gpt-4o-mini');
+
+    expect((provider as unknown as { model: string }).model).toBe('gpt-4o-mini');
   });
 });

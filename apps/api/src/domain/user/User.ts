@@ -13,14 +13,8 @@ export interface User {
   followUpRemindersEnabled: boolean;
   totpSecret: string | null;
   totpEnabled: boolean;
-  /** Which provider llmApiKey below is for — see LLM_PROVIDER in constants.ts. */
-  llmProvider: string | null;
-  /** User's own LLM API key, encrypted at rest. */
-  llmApiKey: string | null;
-  /** Model override; required when llmProvider is 'custom', optional elsewhere. */
-  llmModel: string | null;
-  /** Base URL; only used (and required) when llmProvider is 'custom'. */
-  llmBaseUrl: string | null;
+  /** Which of the user's configured LlmApiKey providers is used for automatic AI features. */
+  defaultLlmProvider: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
