@@ -42,6 +42,7 @@ import './queries/loginEventQueries.js';
 import './queries/sessionQueries.js';
 import './queries/oauthQueries.js';
 import './queries/calendarQueries.js';
+import './queries/chatQueries.js';
 
 // Mutations
 import './mutations/authMutations.js';

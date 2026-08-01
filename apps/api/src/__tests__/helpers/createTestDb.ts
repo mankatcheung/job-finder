@@ -49,6 +49,15 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "LoginEvent_userId_idx" ON "LoginEvent"("userId")`,
+  `CREATE TABLE "Message" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "role" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "createdAt" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "Message_userId_idx" ON "Message"("userId")`,
   `CREATE TABLE "JobApplication" (
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,

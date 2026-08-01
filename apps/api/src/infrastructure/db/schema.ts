@@ -88,6 +88,22 @@ export const loginEvent = sqliteTable(
   (table) => [index('LoginEvent_userId_idx').on(table.userId)],
 );
 
+export const message = sqliteTable(
+  'Message',
+  {
+    id: text('id').primaryKey(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    role: text('role', { enum: ['user', 'assistant'] }).notNull(),
+    content: text('content').notNull(),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [index('Message_userId_idx').on(table.userId)],
+);
+
 export const session = sqliteTable(
   'Session',
   {

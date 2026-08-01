@@ -6,6 +6,7 @@ import type { IGetNotesUseCase } from '#src/use-cases/notes/IGetNotesUseCase.js'
 import type { IGetContactsUseCase } from '#src/use-cases/contacts/IGetContactsUseCase.js';
 import type { IGetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
+import type { IMessageRepository } from '#src/use-cases/ports/IMessageRepository.js';
 import type {
   LLMMessage,
   LLMToolCall,
@@ -14,15 +15,8 @@ import type {
 import { MCP_TOOLS } from '#src/interface-adapters/mcp/McpController.js';
 import { CHAT, ERROR_CODES } from '#src/constants.js';
 
-export interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
 export interface ChatWithAssistantInput {
   userId: string;
-  /** Prior turns of the conversation, not including `message`. */
-  history: ChatMessage[];
   message: string;
 }
 
@@ -34,6 +28,8 @@ interface Deps {
   getContactsUseCase: IGetContactsUseCase;
   getInterviewRoundsUseCase: IGetInterviewRoundsUseCase;
   chatRateLimiter: IRateLimiter;
+  messageRepository: IMessageRepository;
+  generateId: () => string;
 }
 
 const SYSTEM_PROMPT = `You are a helpful assistant inside a job application tracker. Answer the user's questions about their job applications, contacts, and interview rounds using the available tools — never guess at data you haven't fetched. Be concise; summarize lists rather than dumping raw data. Questions about notes, contacts, or interview rounds are scoped to one application, so first find its id with list_applications if you don't already have it.`;
@@ -54,26 +50,42 @@ export class ChatWithAssistantUseCase {
       });
     }
 
-    // Only 'user'/'assistant' are accepted from the client — otherwise a
-    // crafted `role: "system"` entry could inject a fake system message.
-    if (input.history.some((m) => m.role !== 'user' && m.role !== 'assistant')) {
-      throw Object.assign(new Error('Invalid message role in conversation history'), {
-        code: ERROR_CODES.VALIDATION,
-      });
-    }
+    // Stored history only ever contains 'user'/'assistant' turns we wrote
+    // ourselves — the per-turn tool-call scratchpad below is rebuilt fresh
+    // each time and never persisted.
+    const history = await this.deps.messageRepository.findAllByUserId(input.userId);
 
-    const llmProvider = await this.deps.llmProviderFactory.forUser(input.userId);
+    const messages: LLMMessage[] = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      ...history.map((m) => ({ role: m.role, content: m.content })),
+      { role: 'user', content: input.message },
+    ];
+
+    const reply = await this.complete(messages, input.userId);
+
+    await this.deps.messageRepository.create({
+      id: this.deps.generateId(),
+      userId: input.userId,
+      role: 'user',
+      content: input.message,
+    });
+    await this.deps.messageRepository.create({
+      id: this.deps.generateId(),
+      userId: input.userId,
+      role: 'assistant',
+      content: reply,
+    });
+
+    return reply;
+  }
+
+  private async complete(messages: LLMMessage[], userId: string): Promise<string> {
+    const llmProvider = await this.deps.llmProviderFactory.forUser(userId);
     if (!llmProvider) {
       throw Object.assign(new Error('Add your AI API key in Settings to use this feature'), {
         code: ERROR_CODES.AI_NOT_CONFIGURED,
       });
     }
-
-    const messages: LLMMessage[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
-      ...input.history.map((m) => ({ role: m.role, content: m.content })),
-      { role: 'user', content: input.message },
-    ];
 
     for (let i = 0; i < CHAT.MAX_TOOL_ITERATIONS; i++) {
       const result = await llmProvider.completeWithTools(messages, TOOLS);
@@ -89,7 +101,7 @@ export class ChatWithAssistantUseCase {
       });
 
       for (const call of result.toolCalls) {
-        const toolResult = await this.executeTool(call, input.userId);
+        const toolResult = await this.executeTool(call, userId);
         messages.push({ role: 'tool', content: JSON.stringify(toolResult), toolCallId: call.id });
       }
     }

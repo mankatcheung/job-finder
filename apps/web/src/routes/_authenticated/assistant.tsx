@@ -1,13 +1,30 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useMutation } from '@tanstack/react-query';
+import { queryOptions, useMutation } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { gqlClient } from '#/graphql/client';
+import { queryClient } from '#/lib/queryClient';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { getErrorMessage } from '#/lib/errors';
+import { Trash2Icon } from 'lucide-react';
+
+const CHAT_HISTORY_QUERY = `
+  query ChatHistory {
+    chatHistory {
+      role
+      content
+    }
+  }
+`;
 
 const SEND_CHAT_MESSAGE = `
-  mutation SendChatMessage($history: [ChatMessageInput!]!, $message: String!) {
-    sendChatMessage(history: $history, message: $message)
+  mutation SendChatMessage($message: String!) {
+    sendChatMessage(message: $message)
+  }
+`;
+
+const CLEAR_CHAT_HISTORY = `
+  mutation ClearChatHistory {
+    clearChatHistory
   }
 `;
 
@@ -16,6 +33,10 @@ type ChatRole = 'user' | 'assistant';
 interface ChatMessage {
   role: ChatRole;
   content: string;
+}
+
+export interface ChatHistoryResult {
+  chatHistory: ChatMessage[];
 }
 
 const SUGGESTED_QUESTIONS = [
@@ -33,22 +54,41 @@ const LOADING_MESSAGES = [
 
 const LOADING_MESSAGE_INTERVAL_MS = 3000;
 
+const chatHistoryQueryOptions = queryOptions({
+  queryKey: ['chatHistory'],
+  queryFn: () => gqlClient.request<ChatHistoryResult>(CHAT_HISTORY_QUERY),
+});
+
 export const Route = createFileRoute('/_authenticated/assistant')({
+  loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(chatHistoryQueryOptions),
   component: AssistantPage,
 });
 
 export function AssistantPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // Seeded synchronously from the query cache the route's loader already
+  // populated — avoids a render where `messages` is briefly empty before an
+  // effect catches up. Sending/clearing manage `messages` locally from here
+  // on, same as before persistence existed.
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    () =>
+      queryClient.getQueryData<ChatHistoryResult>(chatHistoryQueryOptions.queryKey)?.chatHistory ??
+      [],
+  );
   const [input, setInput] = useState('');
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const send = useMutation({
     mutationFn: (message: string) =>
-      gqlClient.request<{ sendChatMessage: string }>(SEND_CHAT_MESSAGE, {
-        history: messages.map((m) => ({ role: m.role, content: m.content })),
-        message,
-      }),
+      gqlClient.request<{ sendChatMessage: string }>(SEND_CHAT_MESSAGE, { message }),
+  });
+
+  const clear = useMutation({
+    mutationFn: () => gqlClient.request(CLEAR_CHAT_HISTORY),
+    onSuccess: () => {
+      setMessages([]);
+      queryClient.setQueryData(chatHistoryQueryOptions.queryKey, { chatHistory: [] });
+    },
   });
 
   useEffect(() => {
@@ -84,11 +124,28 @@ export function AssistantPage() {
     void handleSend(input);
   };
 
+  const onClear = () => {
+    if (messages.length > 0 && confirm('Clear this conversation? This cannot be undone.')) {
+      clear.mutate();
+    }
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)] lg:h-screen max-w-3xl mx-auto p-4 sm:p-8">
-      <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 shrink-0">
-        Assistant
-      </h1>
+      <div className="flex items-center justify-between mb-4 shrink-0">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Assistant</h1>
+        {messages.length > 0 && (
+          <button
+            type="button"
+            onClick={onClear}
+            disabled={clear.isPending}
+            className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+          >
+            <Trash2Icon size={14} />
+            Clear
+          </button>
+        )}
+      </div>
 
       <div className="flex-1 overflow-y-auto space-y-4 mb-4">
         {messages.length === 0 && (
