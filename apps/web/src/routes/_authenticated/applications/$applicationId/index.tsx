@@ -14,12 +14,14 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   EditIcon,
+  ExternalLinkIcon,
   PlusIcon,
   StarIcon,
   Trash2Icon,
 } from 'lucide-react';
 import { applicationQueryOptions, type Application } from './-application-query';
 import type { BoardApplication } from '../-board-queries';
+import { DocumentPreviewModal, isPreviewableMimeType } from './-components/DocumentPreviewModal';
 
 const UPDATE_STARRED = `
   mutation UpdateApplication($id: ID!, $input: UpdateApplicationInput!) {
@@ -1605,6 +1607,7 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
   const [docType, setDocType] = useState('other');
   const [docVersion, setDocVersion] = useState('');
   const [confirming, setConfirming] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
 
   const { data } = useQuery({
     queryKey: ['documents', applicationId],
@@ -1777,14 +1780,24 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
         >
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <a
-                href={doc.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm font-medium text-blue-600 hover:underline truncate"
-              >
-                {doc.name}
-              </a>
+              {isPreviewableMimeType(doc.mimeType) ? (
+                <button
+                  type="button"
+                  onClick={() => setPreviewDoc(doc)}
+                  className="text-sm font-medium text-blue-600 hover:underline truncate text-left"
+                >
+                  {doc.name}
+                </button>
+              ) : (
+                <a
+                  href={doc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-blue-600 hover:underline truncate"
+                >
+                  {doc.name}
+                </a>
+              )}
               {doc.documentType !== 'other' && (
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full font-medium ${DOC_TYPE_BADGE[doc.documentType] ?? ''}`}
@@ -1798,24 +1811,36 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
               {doc.mimeType} · {(doc.sizeBytes / 1024).toFixed(1)} KB
             </p>
           </div>
-          <button
-            onClick={() => {
-              const snapshot = qc.getQueryData(['documents', applicationId]);
-              qc.setQueryData(['documents', applicationId], (prev: any) => ({
-                documents: (prev?.documents ?? []).filter((d: any) => d.id !== doc.id),
-              }));
-              showUndoToast({
-                message: 'Document deleted',
-                onExecute: () => deleteDoc.mutate(doc.id),
-                onUndo: () => qc.setQueryData(['documents', applicationId], snapshot),
-              });
-            }}
-            className="ml-4 p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded shrink-0"
-          >
-            <Trash2Icon size={14} />
-          </button>
+          <div className="ml-4 flex items-center gap-1 shrink-0">
+            <a
+              href={doc.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+              title="Open in new tab"
+            >
+              <ExternalLinkIcon size={14} />
+            </a>
+            <button
+              onClick={() => {
+                const snapshot = qc.getQueryData(['documents', applicationId]);
+                qc.setQueryData(['documents', applicationId], (prev: any) => ({
+                  documents: (prev?.documents ?? []).filter((d: any) => d.id !== doc.id),
+                }));
+                showUndoToast({
+                  message: 'Document deleted',
+                  onExecute: () => deleteDoc.mutate(doc.id),
+                  onUndo: () => qc.setQueryData(['documents', applicationId], snapshot),
+                });
+              }}
+              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+            >
+              <Trash2Icon size={14} />
+            </button>
+          </div>
         </div>
       ))}
+      <DocumentPreviewModal document={previewDoc} onClose={() => setPreviewDoc(null)} />
     </div>
   );
 }
@@ -1946,6 +1971,7 @@ type ResumeMatchScoreResult = {
 function ResumeMatchTab({ applicationId }: { applicationId: string }) {
   const [resumeText, setResumeText] = useState('');
   const [overridePaste, setOverridePaste] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const { data: documentsData } = useQuery({
     queryKey: ['documents', applicationId],
@@ -1981,13 +2007,24 @@ function ResumeMatchTab({ applicationId }: { applicationId: string }) {
             <p className="text-sm text-gray-600 dark:text-gray-300">
               Using your uploaded resume — <span className="font-medium">{resumeDoc.name}</span>
             </p>
-            <button
-              type="button"
-              onClick={() => setOverridePaste(true)}
-              className="text-xs text-blue-600 hover:underline shrink-0"
-            >
-              Paste different text instead
-            </button>
+            <div className="flex items-center gap-3 shrink-0">
+              {isPreviewableMimeType(resumeDoc.mimeType) && (
+                <button
+                  type="button"
+                  onClick={() => setPreviewOpen(true)}
+                  className="text-xs text-blue-600 hover:underline"
+                >
+                  Preview
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setOverridePaste(true)}
+                className="text-xs text-blue-600 hover:underline"
+              >
+                Paste different text instead
+              </button>
+            </div>
           </div>
         ) : (
           <div>
@@ -2136,6 +2173,10 @@ function ResumeMatchTab({ applicationId }: { applicationId: string }) {
           )}
         </div>
       )}
+      <DocumentPreviewModal
+        document={previewOpen && resumeDoc ? resumeDoc : null}
+        onClose={() => setPreviewOpen(false)}
+      />
     </div>
   );
 }
