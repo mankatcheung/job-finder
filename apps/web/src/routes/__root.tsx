@@ -7,6 +7,7 @@ import { Toaster } from 'sonner';
 import { AlertTriangleIcon } from 'lucide-react';
 import { queryClient } from '#/lib/queryClient';
 import { THEME_INIT_SCRIPT, ThemeProvider, useTheme } from '#/lib/theme';
+import { NavigationProgressBar } from '#/components/NavigationProgressBar';
 
 import appCss from '../styles.css?url';
 
@@ -106,6 +107,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <ThemeProvider>
+          <NavigationProgressBar />
           <AppToaster />
           <QueryClientProvider client={queryClient}>
             {children}
