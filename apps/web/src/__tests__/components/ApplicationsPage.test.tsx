@@ -27,6 +27,12 @@ vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
 }));
 
+vi.mock('#/lib/undoToast', () => ({
+  showUndoToast: vi.fn(({ onExecute }) => {
+    onExecute();
+  }),
+}));
+
 vi.mock('#/graphql/generated/graphql', () => ({}));
 
 import { ApplicationsPage } from '#/routes/_authenticated/applications/index';
@@ -431,8 +437,7 @@ describe('ApplicationsPage', () => {
       });
     });
 
-    it('confirms and bulk-deletes selected applications, then clears selection', async () => {
-      vi.spyOn(window, 'confirm').mockReturnValue(true);
+    it('bulk-deletes selected applications', async () => {
       render(<ApplicationsPage />, { wrapper: Wrapper });
       await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
 
@@ -441,7 +446,6 @@ describe('ApplicationsPage', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /delete/i }));
 
-      expect(window.confirm).toHaveBeenCalledWith('Delete 2 selected applications?');
       await waitFor(() => {
         expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('deleteApplication'), {
           id: '1',
@@ -452,9 +456,11 @@ describe('ApplicationsPage', () => {
       });
       expect(screen.queryByText('2 selected')).not.toBeInTheDocument();
     });
+    it('does not delete when undo is clicked', async () => {
+      // Override mock to NOT execute immediately
+      const { showUndoToast } = await import('#/lib/undoToast');
+      vi.mocked(showUndoToast).mockImplementation(() => {});
 
-    it('does not delete when the confirmation dialog is dismissed', async () => {
-      vi.spyOn(window, 'confirm').mockReturnValue(false);
       render(<ApplicationsPage />, { wrapper: Wrapper });
       await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
 
@@ -463,6 +469,8 @@ describe('ApplicationsPage', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /delete/i }));
 
+      // Without the mock calling onExecute, no delete mutation should fire
+      await new Promise((r) => setTimeout(r, 100));
       expect(mockGqlRequest).not.toHaveBeenCalledWith(
         expect.stringContaining('deleteApplication'),
         expect.anything(),

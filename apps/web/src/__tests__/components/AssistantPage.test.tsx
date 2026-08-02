@@ -34,6 +34,12 @@ vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
 }));
 
+vi.mock('#/lib/undoToast', () => ({
+  showUndoToast: vi.fn(({ onExecute }) => {
+    onExecute();
+  }),
+}));
+
 import { AssistantPage } from '#/routes/_authenticated/assistant';
 
 const makeClient = () =>
@@ -167,8 +173,7 @@ describe('AssistantPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith({ search: { conversation: 'new-conv' } });
   });
 
-  it('deletes a conversation after confirming', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('deletes a conversation', async () => {
     mockGqlRequest.mockImplementation((query: string) => {
       if (query.includes('Conversations'))
         return Promise.resolve({ conversations: [{ id: 'conv-1', title: 'Old chat' }] });
@@ -189,8 +194,10 @@ describe('AssistantPage', () => {
     );
   });
 
-  it('does not delete when the confirm dialog is dismissed', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
+  it('does not delete when undo is clicked', async () => {
+    const { showUndoToast } = await import('#/lib/undoToast');
+    vi.mocked(showUndoToast).mockImplementation(() => {});
+
     mockGqlRequest.mockImplementation((query: string) => {
       if (query.includes('Conversations'))
         return Promise.resolve({ conversations: [{ id: 'conv-1', title: 'Old chat' }] });
@@ -202,6 +209,7 @@ describe('AssistantPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete conversation' }));
 
+    await new Promise((r) => setTimeout(r, 100));
     expect(mockGqlRequest).not.toHaveBeenCalledWith(
       expect.stringContaining('DeleteConversation'),
       expect.anything(),
