@@ -9,15 +9,20 @@ import { getErrorMessage } from '#/lib/errors';
 import { ErrorState } from '#/components/ErrorState';
 import { StatusBadge } from '../../dashboard';
 import {
+  ActivityIcon,
   CalendarIcon,
   CheckIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   EditIcon,
   ExternalLinkIcon,
+  FileTextIcon,
+  PenLineIcon,
   PlusIcon,
   StarIcon,
   Trash2Icon,
+  UploadIcon,
+  UsersIcon,
 } from 'lucide-react';
 import { applicationQueryOptions, type Application } from './-application-query';
 import type { BoardApplication } from '../-board-queries';
@@ -86,6 +91,16 @@ export function ApplicationDetailPage() {
   const [activeTab, setActiveTab] = useState<
     'notes' | 'interviews' | 'contacts' | 'activity' | 'documents' | 'cover letter' | 'resume match'
   >('notes');
+
+  const TABS = [
+    { id: 'notes' as const, label: 'Notes', icon: FileTextIcon },
+    { id: 'interviews' as const, label: 'Interviews', icon: CalendarIcon },
+    { id: 'contacts' as const, label: 'Contacts', icon: UsersIcon },
+    { id: 'activity' as const, label: 'Activity', icon: ActivityIcon },
+    { id: 'documents' as const, label: 'Documents', icon: UploadIcon },
+    { id: 'cover letter' as const, label: 'Cover Letter', icon: PenLineIcon },
+    { id: 'resume match' as const, label: 'Resume Match', icon: FileTextIcon },
+  ];
 
   const {
     data: appData,
@@ -345,141 +360,164 @@ export function ApplicationDetailPage() {
         {healthScore && <HealthScorePanel healthScore={healthScore} />}
       </div>
 
-      <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6 overflow-x-auto">
-        {(
-          [
-            'notes',
-            'interviews',
-            'contacts',
-            'activity',
-            'documents',
-            'cover letter',
-            'resume match',
-          ] as const
-        ).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-shrink-0 px-4 py-2 text-sm font-medium capitalize border-b-2 -mb-px transition-colors ${
-              activeTab === tab
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {activeTab === 'notes' && (
-        <div className="space-y-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <textarea
-              value={noteContent}
-              onChange={(e) => setNoteContent(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none h-24"
-              placeholder="Add a note…"
-            />
-            <div className="mt-2 flex justify-end">
-              <button
-                onClick={() => {
-                  if (noteContent.trim()) createNote.mutate(noteContent.trim());
-                }}
-                disabled={!noteContent.trim() || createNote.isPending}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-medium rounded-lg"
-              >
-                <PlusIcon size={14} /> Add note
-              </button>
-            </div>
-          </div>
-
-          {isNotesError && (
-            <p className="text-sm text-red-600 dark:text-red-400 py-2">
-              {getErrorMessage(notesError)}
-            </p>
-          )}
-
-          {notes.map((note) => (
-            <div
-              key={note.id}
-              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Mobile: horizontal scrollable strip */}
+        <div
+          className="md:hidden flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto -mx-4 px-4"
+          aria-label="Section tabs"
+        >
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 flex-shrink-0 px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                activeTab === tab.id
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400'
+              }`}
             >
-              {editingNote?.id === note.id ? (
-                <>
-                  <textarea
-                    value={editingNote.content}
-                    onChange={(e) => setEditingNote({ ...editingNote, content: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none h-24"
-                  />
-                  <div className="mt-2 flex gap-2 justify-end">
-                    <button
-                      onClick={() =>
-                        updateNote.mutate({ id: note.id, content: editingNote.content })
-                      }
-                      className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => setEditingNote(null)}
-                      className="text-xs px-3 py-1.5 text-gray-500 hover:text-gray-700"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="flex justify-between gap-3">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap flex-1">
-                    {note.content}
-                  </p>
-                  <div className="flex gap-1 shrink-0">
-                    <button
-                      onClick={() => setEditingNote(note)}
-                      className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                    >
-                      <EditIcon size={14} />
-                    </button>
-                    <button
-                      onClick={() => {
-                        const snapshot = qc.getQueryData(['notes', applicationId]);
-                        qc.setQueryData(['notes', applicationId], (prev: any) => ({
-                          notes: (prev?.notes ?? []).filter((n: any) => n.id !== note.id),
-                        }));
-                        showUndoToast({
-                          message: 'Note deleted',
-                          onExecute: () => deleteNote.mutate(note.id),
-                          onUndo: () => qc.setQueryData(['notes', applicationId], snapshot),
-                        });
-                      }}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-                    >
-                      <Trash2Icon size={14} />
-                    </button>
-                  </div>
-                </div>
-              )}
-              <p className="text-xs text-gray-400 mt-2">
-                {new Date(note.createdAt).toLocaleString()}
-              </p>
-            </div>
+              <tab.icon size={14} />
+              {tab.label}
+            </button>
           ))}
         </div>
-      )}
 
-      {activeTab === 'interviews' && (
-        <InterviewsTab applicationId={applicationId} company={app.company} role={app.role} />
-      )}
+        {/* Desktop: vertical sidebar */}
+        <nav
+          className="hidden md:flex flex-col w-44 flex-shrink-0 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 p-2 h-fit sticky top-20"
+          aria-label="Section navigation"
+        >
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors text-left ${
+                activeTab === tab.id
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-gray-200'
+              }`}
+            >
+              <tab.icon size={16} />
+              {tab.label}
+            </button>
+          ))}
+        </nav>
 
-      {activeTab === 'contacts' && <ContactsTab applicationId={applicationId} />}
+        {/* Content area */}
+        <div className="flex-1 min-w-0">
+          {activeTab === 'notes' && (
+            <div className="space-y-4">
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                <textarea
+                  value={noteContent}
+                  onChange={(e) => setNoteContent(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none h-24"
+                  placeholder="Add a note…"
+                />
+                <div className="mt-2 flex justify-end">
+                  <button
+                    onClick={() => {
+                      if (noteContent.trim()) createNote.mutate(noteContent.trim());
+                    }}
+                    disabled={!noteContent.trim() || createNote.isPending}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-medium rounded-lg"
+                  >
+                    <PlusIcon size={14} /> Add note
+                  </button>
+                </div>
+              </div>
 
-      {activeTab === 'activity' && <ActivityTab applicationId={applicationId} />}
+              {isNotesError && (
+                <p className="text-sm text-red-600 dark:text-red-400 py-2">
+                  {getErrorMessage(notesError)}
+                </p>
+              )}
 
-      {activeTab === 'documents' && <DocumentsTab applicationId={applicationId} />}
+              {notes.map((note) => (
+                <div
+                  key={note.id}
+                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
+                >
+                  {editingNote?.id === note.id ? (
+                    <>
+                      <textarea
+                        value={editingNote.content}
+                        onChange={(e) =>
+                          setEditingNote({ ...editingNote, content: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none h-24"
+                      />
+                      <div className="mt-2 flex gap-2 justify-end">
+                        <button
+                          onClick={() =>
+                            updateNote.mutate({ id: note.id, content: editingNote.content })
+                          }
+                          className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingNote(null)}
+                          className="text-xs px-3 py-1.5 text-gray-500 hover:text-gray-700"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex justify-between gap-3">
+                      <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap flex-1">
+                        {note.content}
+                      </p>
+                      <div className="flex gap-1 shrink-0">
+                        <button
+                          onClick={() => setEditingNote(note)}
+                          className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                        >
+                          <EditIcon size={14} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            const snapshot = qc.getQueryData(['notes', applicationId]);
+                            qc.setQueryData(['notes', applicationId], (prev: any) => ({
+                              notes: (prev?.notes ?? []).filter((n: any) => n.id !== note.id),
+                            }));
+                            showUndoToast({
+                              message: 'Note deleted',
+                              onExecute: () => deleteNote.mutate(note.id),
+                              onUndo: () => qc.setQueryData(['notes', applicationId], snapshot),
+                            });
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                        >
+                          <Trash2Icon size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-400 mt-2">
+                    {new Date(note.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
 
-      {activeTab === 'cover letter' && <CoverLetterTab applicationId={applicationId} />}
+          {activeTab === 'interviews' && (
+            <InterviewsTab applicationId={applicationId} company={app.company} role={app.role} />
+          )}
 
-      {activeTab === 'resume match' && <ResumeMatchTab applicationId={applicationId} />}
+          {activeTab === 'contacts' && <ContactsTab applicationId={applicationId} />}
+
+          {activeTab === 'activity' && <ActivityTab applicationId={applicationId} />}
+
+          {activeTab === 'documents' && <DocumentsTab applicationId={applicationId} />}
+
+          {activeTab === 'cover letter' && <CoverLetterTab applicationId={applicationId} />}
+
+          {activeTab === 'resume match' && <ResumeMatchTab applicationId={applicationId} />}
+        </div>
+      </div>
     </div>
   );
 }
