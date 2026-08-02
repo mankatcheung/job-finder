@@ -81,6 +81,39 @@ builder.mutationField('loginWithTotp', (t) =>
   }),
 );
 
+builder.mutationField('reauthenticate', (t) =>
+  t.field({
+    type: LoginResultRef,
+    args: {
+      password: t.arg.string({ required: true }),
+      code: t.arg.string({ required: false }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user || !ctx.user.sid)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { authResolver } = ctx.diScope.cradle;
+      try {
+        const result = await authResolver.reauthenticate(
+          ctx.user.sub,
+          ctx.user.sid,
+          args.password,
+          args.code ?? undefined,
+        );
+        if (result.tokens) {
+          setAuthCookies(ctx.reply, result.tokens.accessToken, result.tokens.refreshToken);
+        }
+        return {
+          success: !result.totpRequired,
+          totpRequired: result.totpRequired,
+          accessToken: result.tokens?.accessToken ?? null,
+        };
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
 builder.mutationField('refreshToken', (t) =>
   t.string({
     resolve: async (_root, _args, ctx) => {

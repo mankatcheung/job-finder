@@ -4,6 +4,7 @@ import { ENV, ERROR_CODES } from '#src/constants.js';
 
 const ACCESS_SECRET = 'test-access-secret';
 const REFRESH_SECRET = 'test-refresh-secret';
+const AUTH_TIME = 1_700_000_000_000;
 
 describe('JwtTokenService', () => {
   let service: JwtTokenService;
@@ -17,7 +18,13 @@ describe('JwtTokenService', () => {
 
   describe('sign', () => {
     it('returns an access and refresh token as a TokenPair', () => {
-      const result = service.sign('user-1', 'user@example.com', 'session-1', 'refresh-token-id-1');
+      const result = service.sign(
+        'user-1',
+        'user@example.com',
+        'session-1',
+        'refresh-token-id-1',
+        AUTH_TIME,
+      );
 
       expect(typeof result.accessToken).toBe('string');
       expect(typeof result.refreshToken).toBe('string');
@@ -30,6 +37,7 @@ describe('JwtTokenService', () => {
         'user@example.com',
         'session-1',
         'refresh-token-id-1',
+        AUTH_TIME,
       );
 
       const payload = service.verifyAccess(accessToken);
@@ -38,6 +46,7 @@ describe('JwtTokenService', () => {
         sub: 'user-1',
         email: 'user@example.com',
         sid: 'session-1',
+        authTime: AUTH_TIME,
       });
     });
 
@@ -47,6 +56,7 @@ describe('JwtTokenService', () => {
         'user@example.com',
         'session-1',
         'refresh-token-id-1',
+        AUTH_TIME,
       );
 
       const payload = service.verifyRefresh(refreshToken);
@@ -56,6 +66,7 @@ describe('JwtTokenService', () => {
         email: 'user@example.com',
         sid: 'session-1',
         jti: 'refresh-token-id-1',
+        authTime: AUTH_TIME,
       });
     });
   });
@@ -78,6 +89,7 @@ describe('JwtTokenService', () => {
         'user@example.com',
         'session-1',
         'refresh-token-id-1',
+        AUTH_TIME,
       );
 
       expect(() => service.verifyRefresh(accessToken)).toThrow('Invalid refresh token');
@@ -95,6 +107,7 @@ describe('JwtTokenService', () => {
         'user@example.com',
         'session-1',
         'refresh-token-id-1',
+        AUTH_TIME,
       );
 
       expect(() => service.verifyAccess(refreshToken)).toThrow();

@@ -168,5 +168,50 @@ describe('SettingsDataPage', () => {
       });
       expect(mockNavigate).not.toHaveBeenCalled();
     });
+
+    it('prompts for reauth on STEP_UP_REQUIRED, then retries deletion on success (JEF-44)', async () => {
+      render(<SettingsDataPage />, { wrapper: Wrapper });
+      mockGqlRequest.mockRejectedValueOnce({
+        response: {
+          errors: [
+            {
+              message: 'Please verify your identity again to continue.',
+              extensions: { code: 'STEP_UP_REQUIRED' },
+            },
+          ],
+        },
+      });
+      mockGqlRequest.mockResolvedValueOnce({
+        reauthenticate: { success: true, totpRequired: false, accessToken: 'new-access-token' },
+      });
+      mockGqlRequest.mockResolvedValueOnce({ deleteAccount: true });
+
+      const deleteBtn = screen.getByRole('button', { name: /delete my account/i });
+      const form = deleteBtn.closest('form')!;
+      fireEvent.change(form.querySelector('input[type="password"]')!, {
+        target: { value: 'myPassword123' },
+      });
+      fireEvent.click(deleteBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText("Confirm it's you")).toBeInTheDocument();
+      });
+
+      const dialog = screen.getByText("Confirm it's you").closest('div')!.parentElement!;
+      fireEvent.change(dialog.querySelector('input[type="password"]')!, {
+        target: { value: 'myPassword123' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /^confirm$/i }));
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith({ to: '/login' });
+      });
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Reauthenticate'), {
+        password: 'myPassword123',
+        code: undefined,
+      });
+      expect(mockSetAccessToken).toHaveBeenCalledWith('new-access-token');
+      expect(mockSetAccessToken).toHaveBeenCalledWith(null);
+    });
   });
 });

@@ -54,4 +54,51 @@ describe('DeleteAccountUseCase', () => {
     expect((err as { code: string }).code).toBe('UNAUTHORIZED');
     expect(userRepository.delete).not.toHaveBeenCalled();
   });
+
+  describe('step-up freshness (JEF-44)', () => {
+    it('throws STEP_UP_REQUIRED for a 2FA-enabled user with a stale session', async () => {
+      const user = makeUser({ id: 'user-1', totpEnabled: true });
+      const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+
+      const err = await new DeleteAccountUseCase({ userRepository })
+        .execute({ ...input, authTime: Date.now() - 16 * 60 * 1000 })
+        .catch((e) => e);
+
+      expect((err as { code: string }).code).toBe('STEP_UP_REQUIRED');
+      expect(userRepository.delete).not.toHaveBeenCalled();
+    });
+
+    it('succeeds for a 2FA-enabled user with a fresh session', async () => {
+      const user = makeUser({ id: 'user-1', totpEnabled: true });
+      const userRepository = makeUserRepository({
+        findById: vi.fn().mockResolvedValue(user),
+        delete: vi.fn().mockResolvedValue(undefined),
+      });
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+
+      await new DeleteAccountUseCase({ userRepository }).execute({
+        ...input,
+        authTime: Date.now(),
+      });
+
+      expect(userRepository.delete).toHaveBeenCalledWith('user-1');
+    });
+
+    it('does not require freshness for a non-2FA user, even with a stale/missing authTime', async () => {
+      const user = makeUser({ id: 'user-1', totpEnabled: false });
+      const userRepository = makeUserRepository({
+        findById: vi.fn().mockResolvedValue(user),
+        delete: vi.fn().mockResolvedValue(undefined),
+      });
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+
+      await new DeleteAccountUseCase({ userRepository }).execute({
+        ...input,
+        authTime: undefined,
+      });
+
+      expect(userRepository.delete).toHaveBeenCalledWith('user-1');
+    });
+  });
 });

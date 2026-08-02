@@ -214,4 +214,46 @@ describe('RequestEmailChangeUseCase', () => {
     );
     expect(userRepository.findById).not.toHaveBeenCalled();
   });
+
+  describe('step-up freshness (JEF-44)', () => {
+    it('throws STEP_UP_REQUIRED for a 2FA-enabled user with a stale session', async () => {
+      const user = makeUser({ id: 'user-1', totpEnabled: true });
+      const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+
+      const err = await new RequestEmailChangeUseCase({
+        userRepository,
+        emailVerificationTokenRepository: makeEmailVerificationTokenRepository(),
+        emailService: makeEmailService(),
+        requestEmailChangeRateLimiter: makeRateLimiter(),
+        generateId: vi.fn(),
+        webAppOrigin: 'https://app.example.com',
+      })
+        .execute({ ...input, authTime: Date.now() - 16 * 60 * 1000 })
+        .catch((e) => e);
+
+      expect((err as { code: string }).code).toBe('STEP_UP_REQUIRED');
+    });
+
+    it('succeeds for a 2FA-enabled user with a fresh session', async () => {
+      const user = makeUser({ id: 'user-1', totpEnabled: true, email: 'old@example.com' });
+      const userRepository = makeUserRepository({
+        findById: vi.fn().mockResolvedValue(user),
+        findByEmail: vi.fn().mockResolvedValue(null),
+      });
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+      const emailService = makeEmailService();
+
+      await new RequestEmailChangeUseCase({
+        userRepository,
+        emailVerificationTokenRepository: makeEmailVerificationTokenRepository(),
+        emailService,
+        requestEmailChangeRateLimiter: makeRateLimiter(),
+        generateId: vi.fn().mockReturnValue('token-1'),
+        webAppOrigin: 'https://app.example.com',
+      }).execute({ ...input, authTime: Date.now() });
+
+      expect(emailService.sendEmailVerification).toHaveBeenCalled();
+    });
+  });
 });

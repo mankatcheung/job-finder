@@ -56,7 +56,29 @@ export function KanbanBoard() {
   const updateStatus = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       gqlClient.request(UPDATE_STATUS, { id, input: { status } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['applications'] }),
+    onMutate: async ({ id, status }) => {
+      await qc.cancelQueries({ queryKey: ['applications', null] });
+
+      const prevData = qc.getQueryData<{ applications: Application[] }>(['applications', null]);
+
+      qc.setQueryData<{ applications: Application[] }>(['applications', null], (old) => {
+        if (!old?.applications) return old;
+        return {
+          ...old,
+          applications: old.applications.map((a) =>
+            a.id === id ? { ...a, status: status as ApplicationStatus } : a,
+          ),
+        };
+      });
+
+      return { prevData };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prevData) {
+        qc.setQueryData(['applications', null], context.prevData);
+      }
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['applications'] }),
   });
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));

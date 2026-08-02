@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import { ERROR_CODES } from '#src/constants.js';
 import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
+import { isSessionFresh } from '#src/use-cases/auth/sessionFreshness.js';
 import type {
   IDeleteAccountUseCase,
   DeleteAccountInput,
@@ -22,6 +23,12 @@ export class DeleteAccountUseCase implements IDeleteAccountUseCase {
     const valid = await bcrypt.compare(input.password, user.passwordHash);
     if (!valid)
       throw Object.assign(new Error('Invalid password'), { code: ERROR_CODES.UNAUTHORIZED });
+
+    if (user.totpEnabled && !isSessionFresh(input.authTime)) {
+      throw Object.assign(new Error('Please verify your identity again to continue.'), {
+        code: ERROR_CODES.STEP_UP_REQUIRED,
+      });
+    }
 
     await this.deps.userRepository.delete(input.userId);
   }

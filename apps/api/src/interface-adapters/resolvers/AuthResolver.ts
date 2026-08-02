@@ -1,22 +1,27 @@
 import type { IRegisterUseCase } from '#src/use-cases/auth/IRegisterUseCase.js';
 import type { ILoginUseCase } from '#src/use-cases/auth/ILoginUseCase.js';
 import type { ILoginWithTotpUseCase } from '#src/use-cases/auth/ILoginWithTotpUseCase.js';
+import type { IReauthenticateUseCase } from '#src/use-cases/auth/IReauthenticateUseCase.js';
 import type { IRequestPasswordResetUseCase } from '#src/use-cases/auth/IRequestPasswordResetUseCase.js';
 import type { IResetPasswordUseCase } from '#src/use-cases/auth/IResetPasswordUseCase.js';
 import type { IVerifyEmailUseCase } from '#src/use-cases/auth/IVerifyEmailUseCase.js';
 import type { ITokenService, TokenPair } from '#src/use-cases/ports/ITokenService.js';
+import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
 import type { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
 import type { RotateRefreshTokenUseCase } from '#src/use-cases/sessions/RotateRefreshTokenUseCase.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 interface Deps {
   registerUseCase: IRegisterUseCase;
   loginUseCase: ILoginUseCase;
   loginWithTotpUseCase: ILoginWithTotpUseCase;
+  reauthenticateUseCase: IReauthenticateUseCase;
   tokenService: ITokenService;
   requestPasswordResetUseCase: IRequestPasswordResetUseCase;
   resetPasswordUseCase: IResetPasswordUseCase;
   createSessionUseCase: CreateSessionUseCase;
   rotateRefreshTokenUseCase: RotateRefreshTokenUseCase;
+  sessionRepository: ISessionRepository;
   verifyEmailUseCase: IVerifyEmailUseCase;
 }
 
@@ -36,7 +41,13 @@ export class AuthResolver {
   async register(email: string, password: string, device: DeviceInfo): Promise<TokenPair> {
     const { userId } = await this.deps.registerUseCase.execute({ email, password });
     const session = await this.deps.createSessionUseCase.execute({ userId, ...device });
-    return this.deps.tokenService.sign(userId, email, session.id, session.currentRefreshTokenId!);
+    return this.deps.tokenService.sign(
+      userId,
+      email,
+      session.id,
+      session.currentRefreshTokenId!,
+      Date.now(),
+    );
   }
 
   async login(email: string, password: string, device: DeviceInfo): Promise<LoginResult> {
@@ -58,6 +69,7 @@ export class AuthResolver {
         user.email,
         session.id,
         session.currentRefreshTokenId!,
+        Date.now(),
       ),
     };
   }
@@ -80,6 +92,7 @@ export class AuthResolver {
       user.email,
       session.id,
       session.currentRefreshTokenId!,
+      Date.now(),
     );
   }
 
@@ -89,7 +102,46 @@ export class AuthResolver {
       sessionId: payload.sid,
       presentedTokenId: payload.jti ?? null,
     });
-    return this.deps.tokenService.sign(payload.sub, payload.email, payload.sid, newTokenId);
+    // Refreshing must not reset freshness — carry the original authTime
+    // forward so a stale (or pre-JEF-44, `undefined`) session stays stale
+    // until the user actually reauthenticates via login or `reauthenticate`.
+    return this.deps.tokenService.sign(
+      payload.sub,
+      payload.email,
+      payload.sid,
+      newTokenId,
+      payload.authTime ?? 0,
+    );
+  }
+
+  async reauthenticate(
+    userId: string,
+    sessionId: string,
+    password: string,
+    code: string | undefined,
+  ): Promise<LoginResult> {
+    const result = await this.deps.reauthenticateUseCase.execute({ userId, password, code });
+    if (result.totpRequired) {
+      return { totpRequired: true, tokens: null };
+    }
+
+    const session = await this.deps.sessionRepository.findById(sessionId);
+    if (!session || session.revokedAt || session.expiresAt < new Date()) {
+      throw Object.assign(new Error('Session expired — please log in again'), {
+        code: ERROR_CODES.UNAUTHORIZED,
+      });
+    }
+
+    return {
+      totpRequired: false,
+      tokens: this.deps.tokenService.sign(
+        result.user.id,
+        result.user.email,
+        session.id,
+        session.currentRefreshTokenId!,
+        Date.now(),
+      ),
+    };
   }
 
   async verifyEmail(token: string): Promise<void> {
