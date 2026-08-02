@@ -105,7 +105,7 @@ function App() {
     return (
       <div className="container">
         <div className="header">
-          <div className="logo">💼</div>
+          <img src={chrome.runtime.getURL('icons/icon48.png')} alt="" className="logo" />
           <h1>Job Finder</h1>
           <p className="subtitle">Sign in to save job postings</p>
         </div>
@@ -185,7 +185,7 @@ function App() {
   return (
     <div className="container">
       <div className="header-row">
-        <span className="logo-sm">💼</span>
+        <img src={chrome.runtime.getURL('icons/icon16.png')} alt="" className="logo-sm" />
         <span className="app-name">Job Finder</span>
         <button onClick={handleLogout} className="btn-text logout">
           Sign out

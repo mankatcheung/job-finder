@@ -36,7 +36,9 @@ body {
   padding: 8px 0 4px;
 }
 .header .logo {
-  font-size: 32px;
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
   margin-bottom: 6px;
 }
 .header h1 {
@@ -58,7 +60,9 @@ body {
   border-bottom: 1px solid #e5e7eb;
 }
 .logo-sm {
-  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
 }
 .app-name {
   font-size: 14px;
