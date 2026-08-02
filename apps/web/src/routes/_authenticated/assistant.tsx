@@ -256,7 +256,7 @@ export function AssistantPage() {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row h-[calc(100vh-3.5rem)] lg:h-screen">
+    <div className="flex flex-col sm:flex-row h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
       <aside
         aria-label="Conversations"
         className="sm:w-56 shrink-0 max-h-40 sm:max-h-none overflow-y-auto border-b sm:border-b-0 sm:border-r border-gray-200 dark:border-gray-700 p-3 sm:p-4 space-y-1"
