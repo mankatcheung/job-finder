@@ -53,7 +53,9 @@ function ThemeToggleButton({ className = '' }: { className?: string }) {
       title={`Theme: ${THEME_LABEL[theme]}`}
       className={`p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 rounded-lg transition-colors ${className}`}
     >
-      {THEME_ICON[theme]}
+      <span key={theme} className="theme-toggle-icon">
+        {THEME_ICON[theme]}
+      </span>
     </button>
   );
 }
