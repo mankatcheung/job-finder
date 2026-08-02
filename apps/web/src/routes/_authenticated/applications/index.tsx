@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { infiniteQueryOptions, useInfiniteQuery } from '@tanstack/react-query';
+import { infiniteQueryOptions, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useMemo } from 'react';
 import { gqlClient } from '#/graphql/client';
+import { showUndoToast } from '#/lib/undoToast';
 import { ErrorState } from '#/components/ErrorState';
 import { StatusBadge } from '../dashboard';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
@@ -19,6 +20,7 @@ import {
   XIcon,
 } from 'lucide-react';
 import { z } from 'zod';
+import { toast } from 'sonner';
 
 const PAGE_SIZE = 20;
 
@@ -355,6 +357,7 @@ function BulkActionBar({
   onClear: () => void;
   bulk: ReturnType<typeof useBulkActions>;
 }) {
+  const qc = useQueryClient();
   const [tagInput, setTagInput] = useState('');
   const ids = [...selectedIds];
 
@@ -366,10 +369,33 @@ function BulkActionBar({
   };
 
   const onDelete = () => {
-    if (confirm(`Delete ${ids.length} selected application${ids.length === 1 ? '' : 's'}?`)) {
-      bulk.bulkDelete(ids);
-      onClear();
-    }
+    // Snapshot all pages of the infinite query
+    const snapshot = qc.getQueryData(['applications', 'page']);
+    // Optimistically remove selected apps from all pages
+    qc.setQueryData(['applications', 'page'], (prev: any) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        pages: prev.pages.map((page: any) => ({
+          ...page,
+          applicationsPage: {
+            ...page.applicationsPage,
+            items: page.applicationsPage.items.filter((a: any) => !ids.includes(a.id)),
+          },
+        })),
+      };
+    });
+    showUndoToast({
+      message: `${ids.length} application${ids.length === 1 ? '' : 's'} deleted`,
+      onExecute: () => {
+        bulk.bulkDelete(ids);
+        onClear();
+      },
+      onUndo: () => {
+        qc.setQueryData(['applications', 'page'], snapshot);
+        toast.dismiss();
+      },
+    });
   };
 
   return (

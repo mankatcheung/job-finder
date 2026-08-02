@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { put as putBlob } from '@vercel/blob/client';
 import { gqlClient } from '#/graphql/client';
+import { showUndoToast } from '#/lib/undoToast';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { getErrorMessage } from '#/lib/errors';
 import { ErrorState } from '#/components/ErrorState';
@@ -270,7 +271,11 @@ export function ApplicationDetailPage() {
             </Link>
             <button
               onClick={() => {
-                if (confirm('Delete this application?')) deleteApp.mutate();
+                showUndoToast({
+                  message: 'Application deleted',
+                  onExecute: () => deleteApp.mutate(),
+                  onUndo: () => {},
+                });
               }}
               className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
               title="Delete application"
@@ -436,7 +441,17 @@ export function ApplicationDetailPage() {
                       <EditIcon size={14} />
                     </button>
                     <button
-                      onClick={() => deleteNote.mutate(note.id)}
+                      onClick={() => {
+                        const snapshot = qc.getQueryData(['notes', applicationId]);
+                        qc.setQueryData(['notes', applicationId], (prev: any) => ({
+                          notes: (prev?.notes ?? []).filter((n: any) => n.id !== note.id),
+                        }));
+                        showUndoToast({
+                          message: 'Note deleted',
+                          onExecute: () => deleteNote.mutate(note.id),
+                          onUndo: () => qc.setQueryData(['notes', applicationId], snapshot),
+                        });
+                      }}
                       className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                     >
                       <Trash2Icon size={14} />
@@ -1134,7 +1149,19 @@ function InterviewsTab({
                     <EditIcon size={14} />
                   </button>
                   <button
-                    onClick={() => deleteRound.mutate(round.id)}
+                    onClick={() => {
+                      const snapshot = qc.getQueryData(['interviewRounds', applicationId]);
+                      qc.setQueryData(['interviewRounds', applicationId], (prev: any) => ({
+                        interviewRounds: (prev?.interviewRounds ?? []).filter(
+                          (r: any) => r.id !== round.id,
+                        ),
+                      }));
+                      showUndoToast({
+                        message: 'Interview round deleted',
+                        onExecute: () => deleteRound.mutate(round.id),
+                        onUndo: () => qc.setQueryData(['interviewRounds', applicationId], snapshot),
+                      });
+                    }}
                     className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                   >
                     <Trash2Icon size={14} />
@@ -1499,7 +1526,17 @@ function ContactsTab({ applicationId }: { applicationId: string }) {
                   <EditIcon size={14} />
                 </button>
                 <button
-                  onClick={() => deleteContact.mutate(contact.id)}
+                  onClick={() => {
+                    const snapshot = qc.getQueryData(['contacts', applicationId]);
+                    qc.setQueryData(['contacts', applicationId], (prev: any) => ({
+                      contacts: (prev?.contacts ?? []).filter((c: any) => c.id !== contact.id),
+                    }));
+                    showUndoToast({
+                      message: 'Contact deleted',
+                      onExecute: () => deleteContact.mutate(contact.id),
+                      onUndo: () => qc.setQueryData(['contacts', applicationId], snapshot),
+                    });
+                  }}
                   className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                 >
                   <Trash2Icon size={14} />
@@ -1785,7 +1822,17 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
               <ExternalLinkIcon size={14} />
             </a>
             <button
-              onClick={() => deleteDoc.mutate(doc.id)}
+              onClick={() => {
+                const snapshot = qc.getQueryData(['documents', applicationId]);
+                qc.setQueryData(['documents', applicationId], (prev: any) => ({
+                  documents: (prev?.documents ?? []).filter((d: any) => d.id !== doc.id),
+                }));
+                showUndoToast({
+                  message: 'Document deleted',
+                  onExecute: () => deleteDoc.mutate(doc.id),
+                  onUndo: () => qc.setQueryData(['documents', applicationId], snapshot),
+                });
+              }}
               className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
             >
               <Trash2Icon size={14} />
