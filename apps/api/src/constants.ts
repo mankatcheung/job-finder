@@ -21,6 +21,8 @@ export const ERROR_CODES = {
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
   /** User hasn't configured their own LLM API key — AI features are unavailable, not a fallback error. */
   AI_NOT_CONFIGURED: 'AI_NOT_CONFIGURED',
+  /** Session is stale for a 2FA-enabled account attempting a sensitive change — caller must reauthenticate (see `reauthenticate` mutation) and retry. */
+  STEP_UP_REQUIRED: 'STEP_UP_REQUIRED',
 } as const;
 
 /** Environment-variable key names. */
@@ -86,6 +88,20 @@ export const SESSION = {
   TTL_MS: COOKIE_MAX_AGE_S.REFRESH_TOKEN * 1000,
   /** Window after a rotation in which the just-superseded refresh token is still accepted, to absorb benign concurrent-tab refresh races without flagging them as reuse. */
   ROTATION_GRACE_MS: 10 * 1000,
+} as const;
+
+/**
+ * Step-up re-authentication settings (JEF-44). `authTime` — the epoch-ms of a
+ * session's last full authentication (login or step-up reauth) — is carried
+ * through the JWT and preserved across refreshes. For 2FA-enabled accounts,
+ * sensitive account changes (email/password change, account deletion)
+ * require `authTime` to be within this window, or a fresh TOTP step-up via
+ * the `reauthenticate` mutation. Non-2FA accounts already re-verify their
+ * password inline on every such mutation, so freshness adds no extra check
+ * for them.
+ */
+export const REAUTH = {
+  FRESHNESS_WINDOW_MS: 15 * 60 * 1000, // 15 minutes
 } as const;
 
 /** API-token (`jfat_...`) settings. */

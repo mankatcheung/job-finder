@@ -400,6 +400,131 @@ describe('SettingsSecurityPage', () => {
     });
   });
 
+  describe('step-up reauthentication (JEF-44)', () => {
+    const stepUpRequiredError = {
+      response: {
+        errors: [
+          {
+            message: 'Please verify your identity again to continue.',
+            extensions: { code: 'STEP_UP_REQUIRED' },
+          },
+        ],
+      },
+    };
+
+    it('prompts for reauth on STEP_UP_REQUIRED, then retries the original mutation on success', async () => {
+      render(<SettingsSecurityPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+
+      mockGqlRequest.mockRejectedValueOnce(stepUpRequiredError);
+      mockGqlRequest.mockResolvedValueOnce({
+        reauthenticate: { success: true, totpRequired: false, accessToken: 'new-access-token' },
+      });
+      mockGqlRequest.mockResolvedValueOnce({ requestEmailChange: true });
+
+      const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
+      const form = updateEmailBtn.closest('form')!;
+      fireEvent.change(form.querySelector('input[type="password"]')!, {
+        target: { value: 'mypassword' },
+      });
+      fireEvent.change(form.querySelector('input[type="email"]')!, {
+        target: { value: 'new@example.com' },
+      });
+      fireEvent.click(updateEmailBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText("Confirm it's you")).toBeInTheDocument();
+      });
+
+      const dialog = screen.getByText("Confirm it's you").closest('div')!.parentElement!;
+      fireEvent.change(dialog.querySelector('input[type="password"]')!, {
+        target: { value: 'mypassword' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /^confirm$/i }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Reauthenticate'), {
+          password: 'mypassword',
+          code: undefined,
+        });
+      });
+      await waitFor(() => {
+        expect(mockSetAccessToken).toHaveBeenCalledWith('new-access-token');
+      });
+      await waitFor(() => {
+        expect(screen.queryByText("Confirm it's you")).not.toBeInTheDocument();
+      });
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RequestEmailChange'), {
+        currentPassword: 'mypassword',
+        newEmail: 'new@example.com',
+      });
+    });
+
+    it('shows a two-factor code field when reauthenticate reports totpRequired', async () => {
+      render(<SettingsSecurityPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+
+      mockGqlRequest.mockRejectedValueOnce(stepUpRequiredError);
+
+      const updatePasswordBtn = screen.getByRole('button', { name: /update password/i });
+      const form = updatePasswordBtn.closest('form')!;
+      const inputs = form.querySelectorAll('input[type="password"]');
+      fireEvent.change(inputs[0], { target: { value: 'currentPass1' } });
+      fireEvent.change(inputs[1], { target: { value: 'newPass1234' } });
+      fireEvent.change(inputs[2], { target: { value: 'newPass1234' } });
+      fireEvent.click(updatePasswordBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText("Confirm it's you")).toBeInTheDocument();
+      });
+
+      mockGqlRequest.mockResolvedValueOnce({
+        reauthenticate: { success: false, totpRequired: true, accessToken: null },
+      });
+      const dialog = screen.getByText("Confirm it's you").closest('div')!.parentElement!;
+      fireEvent.change(dialog.querySelector('input[type="password"]')!, {
+        target: { value: 'currentPass1' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /^confirm$/i }));
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('123456')).toBeInTheDocument();
+      });
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('UpdatePassword'), {
+        currentPassword: 'currentPass1',
+        newPassword: 'newPass1234',
+      });
+    });
+
+    it('dismisses silently when the reauth dialog is cancelled', async () => {
+      render(<SettingsSecurityPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+
+      mockGqlRequest.mockRejectedValueOnce(stepUpRequiredError);
+
+      const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
+      const form = updateEmailBtn.closest('form')!;
+      fireEvent.change(form.querySelector('input[type="password"]')!, {
+        target: { value: 'mypassword' },
+      });
+      fireEvent.change(form.querySelector('input[type="email"]')!, {
+        target: { value: 'new@example.com' },
+      });
+      fireEvent.click(updateEmailBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText("Confirm it's you")).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /^cancel$/i }));
+
+      await waitFor(() => {
+        expect(screen.queryByText("Confirm it's you")).not.toBeInTheDocument();
+      });
+      expect(screen.queryByText('Failed to update email.')).not.toBeInTheDocument();
+    });
+  });
+
   describe('linked accounts', () => {
     it('shows both providers as not linked, with a Link link to the start route', async () => {
       render(<SettingsSecurityPage />, { wrapper: Wrapper });

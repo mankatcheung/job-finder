@@ -6,6 +6,8 @@ export interface AuthenticateRequestResult {
   sub: string;
   email: string;
   sid?: string;
+  /** Epoch-ms of the session's last full authentication — absent for API-token auth (no session/freshness concept). See `REAUTH` in constants.ts. */
+  authTime?: number;
 }
 
 interface Deps {

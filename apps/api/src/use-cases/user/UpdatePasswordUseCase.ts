@@ -4,6 +4,7 @@ import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { ERROR_CODES } from '#src/constants.js';
 import { assertValidPassword } from '#src/use-cases/auth/passwordValidation.js';
 import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
+import { isSessionFresh } from '#src/use-cases/auth/sessionFreshness.js';
 import type {
   IUpdatePasswordUseCase,
   UpdatePasswordInput,
@@ -37,6 +38,12 @@ export class UpdatePasswordUseCase implements IUpdatePasswordUseCase {
     const valid = await bcrypt.compare(input.currentPassword, user.passwordHash);
     if (!valid)
       throw Object.assign(new Error('Invalid password'), { code: ERROR_CODES.UNAUTHORIZED });
+
+    if (user.totpEnabled && !isSessionFresh(input.authTime)) {
+      throw Object.assign(new Error('Please verify your identity again to continue.'), {
+        code: ERROR_CODES.STEP_UP_REQUIRED,
+      });
+    }
 
     const passwordHash = await bcrypt.hash(input.newPassword, 12);
     await this.deps.userRepository.update(input.userId, { passwordHash });

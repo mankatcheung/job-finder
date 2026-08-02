@@ -15,6 +15,7 @@ import {
   inputCls,
   labelCls,
 } from './-components/shared';
+import { useStepUpReauth, STEP_UP_CANCELLED } from './-components/useStepUpReauth';
 
 export const Route = createFileRoute('/_authenticated/settings/data')({
   component: SettingsDataPage,
@@ -22,6 +23,7 @@ export const Route = createFileRoute('/_authenticated/settings/data')({
 
 export function SettingsDataPage() {
   const navigate = useNavigate();
+  const { withStepUp, dialog: stepUpDialog } = useStepUpReauth();
 
   // Export
   const onExport = async () => {
@@ -68,11 +70,12 @@ export function SettingsDataPage() {
   const deleteForm = useForm<DeleteForm>({ resolver: zodResolver(deleteSchema) });
   const onDeleteAccount = async (data: DeleteForm) => {
     try {
-      await gqlClient.request(DELETE_ACCOUNT, data);
+      await withStepUp(() => gqlClient.request(DELETE_ACCOUNT, data));
       setAccessToken(null);
       queryClient.clear();
       await navigate({ to: '/login' });
     } catch (err) {
+      if (err instanceof Error && err.message === STEP_UP_CANCELLED) return;
       deleteForm.setError('root', {
         message: extractGqlError(err) ?? 'Failed to delete account.',
       });
@@ -81,6 +84,7 @@ export function SettingsDataPage() {
 
   return (
     <div className="space-y-10">
+      {stepUpDialog}
       {/* ── Export ── */}
       <section className="space-y-4">
         <div>
