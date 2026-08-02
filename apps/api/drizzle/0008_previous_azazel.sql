@@ -1,1 +1,0 @@
-ALTER TABLE `InterviewRound` ADD `pushNotificationSentAt` integer;

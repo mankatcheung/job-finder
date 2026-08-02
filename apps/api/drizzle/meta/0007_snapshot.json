@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "c1973168-6b47-4877-ab3f-eed4685711f3",
+  "id": "38de6aac-01f8-4c1d-a049-3e807d8d661e",
   "prevId": "b25e7e26-5b92-4eb0-8680-da286f0726f5",
   "tables": {
     "ActivityLog": {
@@ -611,6 +611,13 @@
           "notNull": true,
           "autoincrement": false,
           "default": "'pending'"
+        },
+        "pushNotificationSentAt": {
+          "name": "pushNotificationSentAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "createdAt": {
           "name": "createdAt",

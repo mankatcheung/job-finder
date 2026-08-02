@@ -101,7 +101,7 @@ export function SettingsNotificationsPage() {
             Browser push notifications
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Get notified on your device about upcoming interviews and follow-ups, even when you're
+            Get notified on your device about upcoming interviews and follow-ups, even when you are
             not on this page.
           </p>
         </div>
