@@ -11,6 +11,7 @@ export interface User {
   weeklyDigestEnabled: boolean;
   lastDigestSentAt: Date | null;
   followUpRemindersEnabled: boolean;
+  pushNotificationsEnabled: boolean;
   totpSecret: string | null;
   totpEnabled: boolean;
   /** Which of the user's configured LlmApiKey providers is used for automatic AI features. */

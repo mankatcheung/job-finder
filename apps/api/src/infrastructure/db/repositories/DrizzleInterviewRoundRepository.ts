@@ -1,4 +1,4 @@
-import { eq, asc } from 'drizzle-orm';
+import { eq, asc, and, gt, lte, isNull } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
 import { interviewRound, jobApplication } from '../schema.js';
 import type {
@@ -53,6 +53,24 @@ export class DrizzleInterviewRoundRepository implements IInterviewRoundRepositor
     return row ? this.toEntity(row) : null;
   }
 
+  async findUpcomingWithinWindow(windowMs: number): Promise<InterviewRound[]> {
+    const now = new Date();
+    const cutoff = new Date(now.getTime() + windowMs);
+    const rows = await this.db
+      .select()
+      .from(interviewRound)
+      .where(
+        and(
+          gt(interviewRound.scheduledAt, now),
+          lte(interviewRound.scheduledAt, cutoff),
+          isNull(interviewRound.completedAt),
+          isNull(interviewRound.pushNotificationSentAt),
+        ),
+      )
+      .orderBy(asc(interviewRound.scheduledAt));
+    return rows.map((r) => this.toEntity(r));
+  }
+
   async create(data: CreateInterviewRoundData): Promise<InterviewRound> {
     const [row] = await this.db
       .insert(interviewRound)
@@ -87,6 +105,13 @@ export class DrizzleInterviewRoundRepository implements IInterviewRoundRepositor
     return this.toEntity(row);
   }
 
+  async updatePushNotificationSentAt(id: string, sentAt: Date): Promise<void> {
+    await this.db
+      .update(interviewRound)
+      .set({ pushNotificationSentAt: sentAt, updatedAt: new Date() })
+      .where(eq(interviewRound.id, id));
+  }
+
   async delete(id: string): Promise<void> {
     await this.db.delete(interviewRound).where(eq(interviewRound.id, id));
   }
@@ -101,6 +126,7 @@ export class DrizzleInterviewRoundRepository implements IInterviewRoundRepositor
       interviewerName: row.interviewerName,
       notes: row.notes,
       outcome: row.outcome as InterviewRoundOutcome,
+      pushNotificationSentAt: row.pushNotificationSentAt,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

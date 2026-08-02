@@ -41,3 +41,60 @@ self.addEventListener('fetch', (event) => {
     })(),
   );
 });
+
+// ── Push notification support ───────────────────────────────────────────────
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  try {
+    const payload = event.data.json();
+    const { title, body, data } = payload;
+
+    event.waitUntil(
+      self.registration.showNotification(title, {
+        body,
+        icon: '/logo192.png',
+        badge: '/favicon.ico',
+        data,
+        tag: data?.url ?? 'default',
+        requireInteraction: false,
+        vibrate: [200, 100, 200],
+      }),
+    );
+  } catch {
+    // If the payload isn't JSON, try plain text
+    const text = event.data.text();
+    event.waitUntil(
+      self.registration.showNotification('Job Finder', {
+        body: text,
+        icon: '/logo192.png',
+        badge: '/favicon.ico',
+      }),
+    );
+  }
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const urlToOpen = event.notification.data?.url ?? '/dashboard';
+
+  event.waitUntil(
+    (async () => {
+      const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      // Focus an existing window if one is already open
+      for (const client of clients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          await client.focus();
+          await client.postMessage({ type: 'push-notification-click', url: urlToOpen });
+          return;
+        }
+      }
+      // Otherwise open a new window
+      if (self.clients.openWindow) {
+        await self.clients.openWindow(urlToOpen);
+      }
+    })(),
+  );
+});

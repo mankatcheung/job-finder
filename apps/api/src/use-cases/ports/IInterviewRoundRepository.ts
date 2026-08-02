@@ -29,7 +29,10 @@ export interface IInterviewRoundRepository {
   /** Across every application owned by the user — for the calendar view. */
   findAllByUserId(userId: string): Promise<InterviewRound[]>;
   findById(id: string): Promise<InterviewRound | null>;
+  /** Rounds scheduled within `windowMs` from now, not completed/cancelled. */
+  findUpcomingWithinWindow(windowMs: number): Promise<InterviewRound[]>;
   create(data: CreateInterviewRoundData): Promise<InterviewRound>;
   update(id: string, data: UpdateInterviewRoundData): Promise<InterviewRound>;
+  updatePushNotificationSentAt(id: string, sentAt: Date): Promise<void>;
   delete(id: string): Promise<void>;
 }

@@ -10,6 +10,7 @@ import { toHttpResponse } from '#src/http/adapters/fastify/toHttpResponse.js';
 import { buildGraphQLContext } from '#src/http/adapters/fastify/buildGraphQLContext.js';
 import { diScopeOf } from '#src/http/adapters/fastify/diScope.js';
 import { remindersRoutes } from '#src/http/routes/reminders.routes.js';
+import { pushNotificationsRoutes } from '#src/http/routes/pushNotifications.routes.js';
 import { digestRoutes } from '#src/http/routes/digest.routes.js';
 import { healthRoutes } from '#src/http/routes/health.routes.js';
 import { mcpRoutes } from '#src/http/routes/mcp.routes.js';
@@ -52,6 +53,7 @@ await fastify.register(fastifyAwilixPlugin, {
 registerRoutes(fastify, [
   ...healthRoutes(),
   ...remindersRoutes(() => container.cradle),
+  ...pushNotificationsRoutes(() => container.cradle),
   ...digestRoutes(() => container.cradle),
 ]);
 

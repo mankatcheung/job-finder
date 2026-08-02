@@ -99,6 +99,27 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Listen for messages from the service worker (e.g. push notification clicks)
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (
+        event.data &&
+        typeof event.data === 'object' &&
+        event.data.type === 'push-notification-click' &&
+        typeof event.data.url === 'string'
+      ) {
+        // Navigate within the SPA — the service worker has already focused
+        // this window, so we can just change the URL
+        window.location.href = event.data.url;
+      }
+    };
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handler);
+      return () => navigator.serviceWorker.removeEventListener('message', handler);
+    }
+  }, []);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>

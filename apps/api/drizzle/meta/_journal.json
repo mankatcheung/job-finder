@@ -50,6 +50,13 @@
       "when": 1785700000000,
       "tag": "0006_multi_llm_provider",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1785681015117,
+      "tag": "0007_flowery_human_torch",
+      "breakpoints": true
     }
   ]
 }

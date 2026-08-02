@@ -10,6 +10,7 @@ export interface InterviewRound {
   interviewerName: string | null;
   notes: string | null;
   outcome: InterviewRoundOutcome;
+  pushNotificationSentAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
