@@ -166,8 +166,14 @@ describe('ApplicationDetailPage', () => {
       expect(screen.getByText('Stripe')).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('button', { name: /notes/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /documents/i })).toBeInTheDocument();
+    expect(
+      within(screen.getByLabelText('Section navigation')).getByRole('button', { name: /notes/i }),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByLabelText('Section navigation')).getByRole('button', {
+        name: /documents/i,
+      }),
+    ).toBeInTheDocument();
   });
 
   it('switches to documents tab and shows upload area', async () => {
@@ -182,7 +188,11 @@ describe('ApplicationDetailPage', () => {
       expect(screen.getByText('Stripe')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'documents' }));
+    fireEvent.click(
+      within(screen.getByLabelText('Section navigation')).getByRole('button', {
+        name: /documents/i,
+      }),
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/click to upload/i)).toBeInTheDocument();
@@ -210,7 +220,11 @@ describe('ApplicationDetailPage', () => {
       expect(screen.getByText('Stripe')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'documents' }));
+    fireEvent.click(
+      within(screen.getByLabelText('Section navigation')).getByRole('button', {
+        name: /documents/i,
+      }),
+    );
 
     await waitFor(() => {
       expect(screen.getByText('resume.pdf')).toBeInTheDocument();
@@ -258,7 +272,11 @@ describe('ApplicationDetailPage', () => {
       render(<ApplicationDetailPage />, { wrapper: Wrapper });
       await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
 
-      fireEvent.click(screen.getByRole('button', { name: 'documents' }));
+      fireEvent.click(
+        within(screen.getByLabelText('Section navigation')).getByRole('button', {
+          name: /documents/i,
+        }),
+      );
       await waitFor(() => expect(screen.getByText('resume.pdf')).toBeInTheDocument());
 
       fireEvent.click(screen.getByRole('button', { name: 'resume.pdf' }));
@@ -276,7 +294,11 @@ describe('ApplicationDetailPage', () => {
       render(<ApplicationDetailPage />, { wrapper: Wrapper });
       await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
 
-      fireEvent.click(screen.getByRole('button', { name: 'documents' }));
+      fireEvent.click(
+        within(screen.getByLabelText('Section navigation')).getByRole('button', {
+          name: /documents/i,
+        }),
+      );
       await waitFor(() => expect(screen.getByText('portfolio.png')).toBeInTheDocument());
 
       fireEvent.click(screen.getByRole('button', { name: 'portfolio.png' }));
@@ -293,7 +315,11 @@ describe('ApplicationDetailPage', () => {
       });
       render(<ApplicationDetailPage />, { wrapper: Wrapper });
       await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
-      fireEvent.click(screen.getByRole('button', { name: 'documents' }));
+      fireEvent.click(
+        within(screen.getByLabelText('Section navigation')).getByRole('button', {
+          name: /documents/i,
+        }),
+      );
       await waitFor(() => expect(screen.getByText('resume.pdf')).toBeInTheDocument());
       fireEvent.click(screen.getByRole('button', { name: 'resume.pdf' }));
       await screen.findByTitle('resume.pdf');
@@ -314,7 +340,11 @@ describe('ApplicationDetailPage', () => {
       render(<ApplicationDetailPage />, { wrapper: Wrapper });
       await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
 
-      fireEvent.click(screen.getByRole('button', { name: 'documents' }));
+      fireEvent.click(
+        within(screen.getByLabelText('Section navigation')).getByRole('button', {
+          name: /documents/i,
+        }),
+      );
       await waitFor(() => expect(screen.getByText('cover-letter.docx')).toBeInTheDocument());
 
       expect(screen.queryByRole('button', { name: 'cover-letter.docx' })).not.toBeInTheDocument();
@@ -350,7 +380,11 @@ describe('ApplicationDetailPage', () => {
       render(<ApplicationDetailPage />, { wrapper: Wrapper });
       await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
 
-      fireEvent.click(screen.getByRole('button', { name: 'resume match' }));
+      fireEvent.click(
+        within(screen.getByLabelText('Section navigation')).getByRole('button', {
+          name: /resume match/i,
+        }),
+      );
       await waitFor(() => {
         expect(screen.getByText(/using your uploaded resume/i)).toBeInTheDocument();
       });
@@ -370,7 +404,11 @@ describe('ApplicationDetailPage', () => {
       render(<ApplicationDetailPage />, { wrapper: Wrapper });
       await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
 
-      fireEvent.click(screen.getByRole('button', { name: 'resume match' }));
+      fireEvent.click(
+        within(screen.getByLabelText('Section navigation')).getByRole('button', {
+          name: /resume match/i,
+        }),
+      );
       await waitFor(() => {
         expect(screen.getByText(/using your uploaded resume/i)).toBeInTheDocument();
       });
