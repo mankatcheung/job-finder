@@ -6,6 +6,7 @@ import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { ERROR_CODES, EMAIL_VERIFICATION_TOKEN } from '#src/constants.js';
 import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
+import { isSessionFresh } from '#src/use-cases/auth/sessionFreshness.js';
 import type {
   IRequestEmailChangeUseCase,
   RequestEmailChangeInput,
@@ -41,6 +42,12 @@ export class RequestEmailChangeUseCase implements IRequestEmailChangeUseCase {
     const valid = await bcrypt.compare(input.currentPassword, user.passwordHash);
     if (!valid)
       throw Object.assign(new Error('Invalid password'), { code: ERROR_CODES.UNAUTHORIZED });
+
+    if (user.totpEnabled && !isSessionFresh(input.authTime)) {
+      throw Object.assign(new Error('Please verify your identity again to continue.'), {
+        code: ERROR_CODES.STEP_UP_REQUIRED,
+      });
+    }
 
     const existing = await this.deps.userRepository.findByEmail(input.newEmail);
     if (existing && existing.id !== input.userId) {

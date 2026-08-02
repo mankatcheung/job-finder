@@ -143,6 +143,7 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
             user.email,
             session.id,
             session.currentRefreshTokenId!,
+            Date.now(),
           );
           setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
           res.redirect(webAppOrigin);

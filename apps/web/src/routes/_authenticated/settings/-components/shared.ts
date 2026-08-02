@@ -60,6 +60,16 @@ export const DELETE_ACCOUNT = `
   }
 `;
 
+export const REAUTHENTICATE = `
+  mutation Reauthenticate($password: String!, $code: String) {
+    reauthenticate(password: $password, code: $code) {
+      success
+      totpRequired
+      accessToken
+    }
+  }
+`;
+
 export const EXPORT_USER_DATA = `
   query ExportUserData {
     exportUserData
@@ -267,6 +277,11 @@ export const deleteSchema = z.object({
   password: z.string().min(1, 'Required'),
 });
 
+export const reauthSchema = z.object({
+  password: z.string().min(1, 'Required'),
+  code: z.string().optional(),
+});
+
 export const totpBeginSchema = z.object({
   password: z.string().min(1, 'Required'),
 });
@@ -337,6 +352,7 @@ export type ProfileForm = z.infer<typeof profileSchema>;
 export type EmailForm = z.infer<typeof emailSchema>;
 export type PasswordForm = z.infer<typeof passwordSchema>;
 export type DeleteForm = z.infer<typeof deleteSchema>;
+export type ReauthForm = z.infer<typeof reauthSchema>;
 export type TotpBeginForm = z.infer<typeof totpBeginSchema>;
 export type TotpConfirmForm = z.infer<typeof totpConfirmSchema>;
 export type TotpDisableForm = z.infer<typeof totpDisableSchema>;
@@ -456,3 +472,19 @@ export function extractGqlError(err: unknown): string | null {
   }
   return null;
 }
+
+/** Extracts the GraphQL `extensions.code` from a graphql-request error, e.g. `STEP_UP_REQUIRED` (JEF-44). */
+export function extractGqlErrorCode(err: unknown): string | null {
+  if (typeof err === 'object' && err !== null && 'response' in err) {
+    const r = (err as { response?: { errors?: Array<{ extensions?: { code?: string } }> } })
+      .response;
+    return r?.errors?.[0]?.extensions?.code ?? null;
+  }
+  return null;
+}
+
+export type ReauthenticateResult = {
+  success: boolean;
+  totpRequired: boolean;
+  accessToken: string | null;
+};

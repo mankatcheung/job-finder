@@ -7,6 +7,16 @@ import { ImportSummaryRef } from '#src/http/schema/types/ImportSummaryType.js';
 import { UploadUrlPayloadRef } from '#src/http/schema/types/AuthPayloadType.js';
 import { fromCodedError } from '#src/http/errors/AppError.js';
 import { ERROR_CODES } from '#src/constants.js';
+import type { JwtUser } from '#src/http/context.js';
+
+/**
+ * `null` skips the step-up freshness check entirely (API-token auth has no
+ * session/freshness concept); a JWT session with no `authTime` claim (issued
+ * before JEF-44) falls through as `undefined`, which is treated as stale.
+ */
+function sessionAuthTime(user: JwtUser): number | null | undefined {
+  return user.sid ? user.authTime : null;
+}
 
 builder.mutationField('requestEmailChange', (t) =>
   t.boolean({
@@ -19,7 +29,12 @@ builder.mutationField('requestEmailChange', (t) =>
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { userResolver } = ctx.diScope.cradle;
       try {
-        await userResolver.requestEmailChange(ctx.user.sub, args.currentPassword, args.newEmail);
+        await userResolver.requestEmailChange(
+          ctx.user.sub,
+          args.currentPassword,
+          args.newEmail,
+          sessionAuthTime(ctx.user),
+        );
         return true;
       } catch (err) {
         throw fromCodedError(err);
@@ -56,7 +71,12 @@ builder.mutationField('updatePassword', (t) =>
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { userResolver } = ctx.diScope.cradle;
       try {
-        await userResolver.updatePassword(ctx.user.sub, args.currentPassword, args.newPassword);
+        await userResolver.updatePassword(
+          ctx.user.sub,
+          args.currentPassword,
+          args.newPassword,
+          sessionAuthTime(ctx.user),
+        );
         return true;
       } catch (err) {
         throw fromCodedError(err);
@@ -96,7 +116,7 @@ builder.mutationField('deleteAccount', (t) =>
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { userResolver } = ctx.diScope.cradle;
       try {
-        await userResolver.deleteAccount(ctx.user.sub, args.password);
+        await userResolver.deleteAccount(ctx.user.sub, args.password, sessionAuthTime(ctx.user));
         clearAuthCookies(ctx.reply);
         return true;
       } catch (err) {
