@@ -4,6 +4,7 @@ import {
   Link,
   Outlet,
   redirect,
+  useChildMatches,
   useNavigate,
   useRouterState,
 } from '@tanstack/react-router';
@@ -101,6 +102,10 @@ export const Route = createFileRoute('/_authenticated')({
 export function AuthenticatedLayout() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // Keyed by the immediate child route (dashboard/applications/settings/…)
+  // rather than the full pathname, so switching between nested settings tabs
+  // doesn't also remount the settings layout's own sub-nav.
+  const sectionKey = useChildMatches()[0]?.routeId ?? pathname;
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -323,7 +328,9 @@ export function AuthenticatedLayout() {
       </aside>
 
       <main className="flex-1 overflow-auto pt-14 lg:pt-0 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
-        <Outlet />
+        <div key={sectionKey} className="route-transition">
+          <Outlet />
+        </div>
       </main>
 
       {/* Mobile bottom nav */}

@@ -13,6 +13,7 @@ vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mockNavigate,
   useRouterState: ({ select }: { select: (s: { location: { pathname: string } }) => string }) =>
     select({ location: { pathname: '/' } }),
+  useChildMatches: () => [{ routeId: '/_authenticated/dashboard' }],
   redirect: vi.fn(),
   Outlet: () => <div data-testid="outlet" />,
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
