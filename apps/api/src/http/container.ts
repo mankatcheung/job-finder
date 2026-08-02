@@ -14,6 +14,7 @@ import { CachedDocumentRepository } from '#src/infrastructure/db/repositories/Ca
 import { DrizzleInterviewRoundRepository } from '#src/infrastructure/db/repositories/DrizzleInterviewRoundRepository.js';
 import { CachedInterviewRoundRepository } from '#src/infrastructure/db/repositories/CachedInterviewRoundRepository.js';
 import { DrizzleActivityLogRepository } from '#src/infrastructure/db/repositories/DrizzleActivityLogRepository.js';
+import { DrizzlePushSubscriptionRepository } from '#src/infrastructure/db/repositories/DrizzlePushSubscriptionRepository.js';
 import { DrizzleContactRepository } from '#src/infrastructure/db/repositories/DrizzleContactRepository.js';
 import { DrizzlePasswordResetTokenRepository } from '#src/infrastructure/db/repositories/DrizzlePasswordResetTokenRepository.js';
 import { DrizzleLoginEventRepository } from '#src/infrastructure/db/repositories/DrizzleLoginEventRepository.js';
@@ -141,6 +142,10 @@ import { IpLocationService } from '#src/infrastructure/device/IpLocationService.
 import type { IDeviceLabeler } from '#src/use-cases/ports/IDeviceLabeler.js';
 import type { IIpLocationResolver } from '#src/use-cases/ports/IIpLocationResolver.js';
 import { SendFollowUpRemindersUseCase } from '#src/use-cases/reminders/SendFollowUpRemindersUseCase.js';
+import { RegisterPushSubscriptionUseCase } from '#src/use-cases/push/RegisterPushSubscriptionUseCase.js';
+import { UnregisterPushSubscriptionUseCase } from '#src/use-cases/push/UnregisterPushSubscriptionUseCase.js';
+import { SendPushNotificationsUseCase } from '#src/use-cases/push/SendPushNotificationsUseCase.js';
+import { WebPushService } from '#src/infrastructure/push/WebPushService.js';
 import { DrizzleTransactionManager } from '#src/infrastructure/db/DrizzleTransactionManager.js';
 import { LlmApiKeyCipher } from '#src/infrastructure/llm/LlmApiKeyCipher.js';
 import { UserLLMProviderFactory } from '#src/infrastructure/llm/UserLLMProviderFactory.js';
@@ -315,6 +320,11 @@ export interface Cradle {
   emailService: BrevoEmailService;
   deviceLabeler: IDeviceLabeler;
   ipLocationResolver: IIpLocationResolver;
+  webPushService: WebPushService;
+  pushSubscriptionRepository: DrizzlePushSubscriptionRepository;
+  registerPushSubscriptionUseCase: RegisterPushSubscriptionUseCase;
+  unregisterPushSubscriptionUseCase: UnregisterPushSubscriptionUseCase;
+  sendPushNotificationsUseCase: SendPushNotificationsUseCase;
   sendFollowUpRemindersUseCase: SendFollowUpRemindersUseCase;
   transactionManager: DrizzleTransactionManager;
   llmApiKeyCipher: ILlmApiKeyCipher;
@@ -383,6 +393,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     }),
     activityLogRepository: asClass(DrizzleActivityLogRepository, { lifetime: Lifetime.SINGLETON }),
     apiTokenRepository: asClass(DrizzleApiTokenRepository, { lifetime: Lifetime.SINGLETON }),
+    pushSubscriptionRepository: asClass(DrizzlePushSubscriptionRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
     contactRepository: asClass(DrizzleContactRepository, { lifetime: Lifetime.SINGLETON }),
     passwordResetTokenRepository: asClass(DrizzlePasswordResetTokenRepository, {
       lifetime: Lifetime.SINGLETON,
@@ -438,6 +451,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     userMapper: asClass(UserMapper, { lifetime: Lifetime.SINGLETON }),
     interviewRoundMapper: asClass(InterviewRoundMapper, { lifetime: Lifetime.SINGLETON }),
     activityLogMapper: asClass(ActivityLogMapper, { lifetime: Lifetime.SINGLETON }),
+    webPushService: asClass(WebPushService, { lifetime: Lifetime.SINGLETON }),
     contactMapper: asClass(ContactMapper, { lifetime: Lifetime.SINGLETON }),
     loginEventMapper: asClass(LoginEventMapper, { lifetime: Lifetime.SINGLETON }),
     messageMapper: asClass(MessageMapper, { lifetime: Lifetime.SINGLETON }),
@@ -586,6 +600,15 @@ export function buildContainer(): AwilixContainer<Cradle> {
     emailService: asClass(BrevoEmailService, { lifetime: Lifetime.SINGLETON }),
     deviceLabeler: asClass(DeviceLabelService, { lifetime: Lifetime.SINGLETON }),
     ipLocationResolver: asClass(IpLocationService, { lifetime: Lifetime.SINGLETON }),
+    registerPushSubscriptionUseCase: asClass(RegisterPushSubscriptionUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    unregisterPushSubscriptionUseCase: asClass(UnregisterPushSubscriptionUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    sendPushNotificationsUseCase: asClass(SendPushNotificationsUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     sendFollowUpRemindersUseCase: asClass(SendFollowUpRemindersUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

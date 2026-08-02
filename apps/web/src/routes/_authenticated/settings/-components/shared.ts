@@ -119,15 +119,17 @@ export const NOTIFICATION_PREFERENCES_QUERY = `
     notificationPreferences {
       weeklyDigestEnabled
       followUpRemindersEnabled
+      pushNotificationsEnabled
     }
   }
 `;
 
 export const UPDATE_NOTIFICATION_PREFERENCES = `
-  mutation UpdateNotificationPreferences($weeklyDigestEnabled: Boolean, $followUpRemindersEnabled: Boolean) {
+  mutation UpdateNotificationPreferences($weeklyDigestEnabled: Boolean, $followUpRemindersEnabled: Boolean, $pushNotificationsEnabled: Boolean) {
     updateNotificationPreferences(
       weeklyDigestEnabled: $weeklyDigestEnabled
       followUpRemindersEnabled: $followUpRemindersEnabled
+      pushNotificationsEnabled: $pushNotificationsEnabled
     )
   }
 `;
@@ -413,6 +415,7 @@ export type Me = {
 export type NotificationPreferences = {
   weeklyDigestEnabled: boolean;
   followUpRemindersEnabled: boolean;
+  pushNotificationsEnabled: boolean;
 };
 
 export type LinkedOAuthAccount = {

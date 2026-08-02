@@ -20,6 +20,7 @@ const SCHEMA_STATEMENTS = [
     "weeklyDigestEnabled" INTEGER NOT NULL DEFAULT 1,
     "lastDigestSentAt" INTEGER,
     "followUpRemindersEnabled" INTEGER NOT NULL DEFAULT 1,
+    "pushNotificationsEnabled" INTEGER NOT NULL DEFAULT 0,
     "totpSecret" TEXT,
     "totpEnabled" INTEGER NOT NULL DEFAULT 0,
     "defaultLlmProvider" TEXT,
@@ -109,6 +110,7 @@ const SCHEMA_STATEMENTS = [
     "interviewerName" TEXT,
     "notes" TEXT,
     "outcome" TEXT NOT NULL DEFAULT 'pending',
+    "pushNotificationSentAt" INTEGER,
     "createdAt" INTEGER NOT NULL,
     "updatedAt" INTEGER NOT NULL,
     FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
@@ -226,6 +228,17 @@ const SCHEMA_STATEMENTS = [
   )`,
   `CREATE INDEX "OAuthAccount_userId_idx" ON "OAuthAccount"("userId")`,
   `CREATE UNIQUE INDEX "OAuthAccount_provider_providerAccountId_key" ON "OAuthAccount"("provider", "providerAccountId")`,
+  `CREATE TABLE "PushSubscription" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "endpoint" TEXT NOT NULL UNIQUE,
+    "p256dh" TEXT NOT NULL,
+    "auth" TEXT NOT NULL,
+    "createdAt" INTEGER NOT NULL,
+    "updatedAt" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "PushSubscription_userId_idx" ON "PushSubscription"("userId")`,
 ];
 
 export interface TestDb {

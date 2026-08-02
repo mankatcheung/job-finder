@@ -14,6 +14,9 @@ export const user = sqliteTable('User', {
   followUpRemindersEnabled: integer('followUpRemindersEnabled', { mode: 'boolean' })
     .notNull()
     .default(true),
+  pushNotificationsEnabled: integer('pushNotificationsEnabled', { mode: 'boolean' })
+    .notNull()
+    .default(false),
   totpSecret: text('totpSecret'),
   totpEnabled: integer('totpEnabled', { mode: 'boolean' }).notNull().default(false),
   /**
@@ -315,6 +318,7 @@ export const interviewRound = sqliteTable(
     interviewerName: text('interviewerName'),
     notes: text('notes'),
     outcome: text('outcome').notNull().default('pending'),
+    pushNotificationSentAt: integer('pushNotificationSentAt', { mode: 'timestamp_ms' }),
     createdAt: integer('createdAt', { mode: 'timestamp_ms' })
       .notNull()
       .$defaultFn(() => new Date()),
@@ -363,6 +367,27 @@ export const document = sqliteTable(
       .$defaultFn(() => new Date()),
   },
   (table) => [index('Document_applicationId_idx').on(table.applicationId)],
+);
+
+export const pushSubscription = sqliteTable(
+  'PushSubscription',
+  {
+    id: text('id').primaryKey(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    endpoint: text('endpoint').notNull().unique(),
+    p256dh: text('p256dh').notNull(),
+    auth: text('auth').notNull(),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updatedAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [index('PushSubscription_userId_idx').on(table.userId)],
 );
 
 export const contact = sqliteTable(

@@ -94,9 +94,11 @@ export const makeInterviewRoundRepository = (
 ): IInterviewRoundRepository => ({
   findAllByApplicationId: vi.fn(),
   findAllByUserId: vi.fn().mockResolvedValue([]),
+  findUpcomingWithinWindow: vi.fn().mockResolvedValue([]),
   findById: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
+  updatePushNotificationSentAt: vi.fn().mockResolvedValue(undefined),
   delete: vi.fn(),
   ...overrides,
 });
@@ -326,6 +328,7 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   weeklyDigestEnabled: true,
   lastDigestSentAt: null,
   followUpRemindersEnabled: true,
+  pushNotificationsEnabled: false,
   totpSecret: null,
   totpEnabled: false,
   defaultLlmProvider: null,
@@ -373,6 +376,7 @@ export const makeInterviewRound = (overrides?: Partial<InterviewRound>): Intervi
   interviewerName: null,
   notes: null,
   outcome: 'pending',
+  pushNotificationSentAt: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,

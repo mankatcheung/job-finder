@@ -59,5 +59,6 @@ import './mutations/resumeMatchMutations.js';
 import './mutations/sessionMutations.js';
 import './mutations/oauthMutations.js';
 import './mutations/chatMutations.js';
+import './mutations/pushMutations.js';
 
 export const schema = builder.toSchema();

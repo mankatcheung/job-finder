@@ -7,5 +7,6 @@ NotificationPreferencesRef.implement({
   fields: (t) => ({
     weeklyDigestEnabled: t.exposeBoolean('weeklyDigestEnabled'),
     followUpRemindersEnabled: t.exposeBoolean('followUpRemindersEnabled'),
+    pushNotificationsEnabled: t.exposeBoolean('pushNotificationsEnabled'),
   }),
 });

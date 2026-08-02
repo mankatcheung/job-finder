@@ -19,6 +19,7 @@ export class UpdateNotificationPreferencesUseCase implements IUpdateNotification
     await this.deps.userRepository.update(input.userId, {
       weeklyDigestEnabled: input.weeklyDigestEnabled,
       followUpRemindersEnabled: input.followUpRemindersEnabled,
+      pushNotificationsEnabled: input.pushNotificationsEnabled,
     });
   }
 }

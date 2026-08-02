@@ -23,6 +23,7 @@ export interface IUserRepository {
       avatarKey?: string | null;
       weeklyDigestEnabled?: boolean;
       followUpRemindersEnabled?: boolean;
+      pushNotificationsEnabled?: boolean;
       totpSecret?: string | null;
       totpEnabled?: boolean;
       defaultLlmProvider?: string | null;

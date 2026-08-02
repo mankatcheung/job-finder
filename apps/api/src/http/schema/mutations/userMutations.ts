@@ -318,6 +318,7 @@ builder.mutationField('updateNotificationPreferences', (t) =>
     args: {
       weeklyDigestEnabled: t.arg.boolean({ required: false }),
       followUpRemindersEnabled: t.arg.boolean({ required: false }),
+      pushNotificationsEnabled: t.arg.boolean({ required: false }),
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
@@ -328,6 +329,7 @@ builder.mutationField('updateNotificationPreferences', (t) =>
           ctx.user.sub,
           args.weeklyDigestEnabled ?? undefined,
           args.followUpRemindersEnabled ?? undefined,
+          args.pushNotificationsEnabled ?? undefined,
         );
         return true;
       } catch (err) {

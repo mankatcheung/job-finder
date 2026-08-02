@@ -50,6 +50,20 @@
       "when": 1785700000000,
       "tag": "0006_multi_llm_provider",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1785679500437,
+      "tag": "0007_parallel_groot",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1785680319300,
+      "tag": "0008_previous_azazel",
+      "breakpoints": true
     }
   ]
 }

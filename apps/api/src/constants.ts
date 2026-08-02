@@ -49,6 +49,9 @@ export const ENV = {
   GOOGLE_OAUTH_CLIENT_SECRET: 'GOOGLE_OAUTH_CLIENT_SECRET',
   GITHUB_OAUTH_CLIENT_ID: 'GITHUB_OAUTH_CLIENT_ID',
   GITHUB_OAUTH_CLIENT_SECRET: 'GITHUB_OAUTH_CLIENT_SECRET',
+  VAPID_PUBLIC_KEY: 'VAPID_PUBLIC_KEY',
+  VAPID_PRIVATE_KEY: 'VAPID_PRIVATE_KEY',
+  VAPID_SUBJECT: 'VAPID_SUBJECT',
 } as const;
 
 /** `NODE_ENV` values. */
@@ -190,6 +193,8 @@ export const ROUTES = {
   MCP: '/mcp',
   DIGEST_SEND: '/admin/digest/send',
   REMINDERS_SEND: '/admin/reminders/send',
+  PUSH_NOTIFICATIONS_SEND: '/admin/push-notifications/send',
+  VAPID_PUBLIC_KEY: '/vapid-public-key',
   OAUTH_START: '/auth/oauth/:provider/start',
   OAUTH_CALLBACK: '/auth/oauth/:provider/callback',
 } as const;

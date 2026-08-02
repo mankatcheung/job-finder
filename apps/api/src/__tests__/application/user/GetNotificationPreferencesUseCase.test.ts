@@ -25,6 +25,10 @@ describe('GetNotificationPreferencesUseCase', () => {
       'user-1',
     );
 
-    expect(result).toEqual({ weeklyDigestEnabled: false, followUpRemindersEnabled: true });
+    expect(result).toEqual({
+      weeklyDigestEnabled: false,
+      followUpRemindersEnabled: true,
+      pushNotificationsEnabled: false,
+    });
   });
 });
