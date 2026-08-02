@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   createFileRoute,
   Link,
@@ -92,6 +92,14 @@ const SETTINGS_NAV = [
   { to: '/settings/data', label: 'Data', icon: DatabaseIcon },
 ] as const;
 
+const MAIN_NAV = [
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboardIcon },
+  { to: '/applications', label: 'Applications', icon: BriefcaseIcon },
+  { to: '/calendar', label: 'Calendar', icon: CalendarIcon },
+  { to: '/analytics', label: 'Analytics', icon: BarChart2Icon },
+  { to: '/assistant', label: 'Assistant', icon: MessageCircleIcon },
+] as const;
+
 export const Route = createFileRoute('/_authenticated')({
   // See routes/index.tsx for why this must be ssr: false.
   ssr: false,
@@ -111,6 +119,26 @@ export function AuthenticatedLayout() {
   const sectionKey = useChildMatches()[0]?.routeId ?? pathname;
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
+  const sidebarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const openSidebar = useCallback(() => {
+    setSidebarVisible(true);
+    // Force a frame so the browser renders the element at opacity-0 before transitioning
+    requestAnimationFrame(() => {
+      setSidebarOpen(true);
+    });
+  }, []);
+
+  const closeSidebar = useCallback(() => {
+    setSidebarOpen(false);
+    // Wait for the transition to complete before removing from DOM
+    const prevTimer = sidebarTimerRef.current;
+    if (prevTimer !== null) clearTimeout(prevTimer);
+    sidebarTimerRef.current = setTimeout(() => {
+      setSidebarVisible(false);
+    }, 350);
+  }, []);
 
   const { data: avatarData } = useQuery({
     queryKey: ['me', 'avatarUrl'],
@@ -142,8 +170,16 @@ export function AuthenticatedLayout() {
 
   // Close sidebar on route change
   useEffect(() => {
-    setSidebarOpen(false);
-  }, [pathname]);
+    closeSidebar();
+  }, [pathname, closeSidebar]);
+
+  // Cleanup sidebar timer on unmount
+  useEffect(() => {
+    return () => {
+      const timer = sidebarTimerRef.current;
+      if (timer !== null) clearTimeout(timer);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
@@ -151,105 +187,90 @@ export function AuthenticatedLayout() {
       <ShortcutCheatSheet isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
 
       {/* Mobile sidebar drawer backdrop */}
-      {sidebarOpen && (
+      {sidebarVisible && (
         <div
-          className="lg:hidden fixed inset-0 z-50 bg-black/50 transition-opacity"
-          onClick={() => setSidebarOpen(false)}
+          className={`lg:hidden fixed inset-0 z-50 bg-black/50 transition-opacity duration-300 ease-out ${
+            sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+          onClick={closeSidebar}
         />
       )}
 
       {/* Mobile sidebar drawer */}
-      <aside
-        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-xl transform transition-transform duration-200 ease-in-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <span className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100">
-            <LogoMark size={22} />
-            Job Finder
-          </span>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Close menu"
-            className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 rounded-lg transition-colors"
-          >
-            <XIcon size={18} />
-          </button>
-        </div>
-
-        <nav className="px-3 py-4 space-y-1 overflow-y-auto">
-          <NavItem
-            to="/dashboard"
-            icon={<LayoutDashboardIcon size={18} />}
-            label="Dashboard"
-            active={pathname.startsWith('/dashboard')}
-          />
-          <NavItem
-            to="/applications"
-            icon={<BriefcaseIcon size={18} />}
-            label="Applications"
-            active={pathname.startsWith('/applications')}
-          />
-          <NavItem
-            to="/calendar"
-            icon={<CalendarIcon size={18} />}
-            label="Calendar"
-            active={pathname.startsWith('/calendar')}
-          />
-          <NavItem
-            to="/analytics"
-            icon={<BarChart2Icon size={18} />}
-            label="Analytics"
-            active={pathname.startsWith('/analytics')}
-          />
-          <NavItem
-            to="/assistant"
-            icon={<MessageCircleIcon size={18} />}
-            label="Assistant"
-            active={pathname.startsWith('/assistant')}
-          />
-
-          <div className="pt-3 mt-3 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
-              <AccountAvatarIcon avatarUrl={avatarUrl} size={18} />
-              Settings
-            </div>
-            <div className="ml-2 space-y-0.5">
-              {SETTINGS_NAV.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`flex items-center gap-2 pl-5 pr-3 py-1.5 text-sm rounded-lg transition-colors ${
-                    pathname.startsWith(item.to)
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-medium'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <item.icon size={14} />
-                  {item.label}
-                </Link>
-              ))}
-            </div>
+      {sidebarVisible && (
+        <aside
+          className={`lg:hidden fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-xl flex flex-col transform transition-transform duration-300 ease-out ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+            <span className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100">
+              <LogoMark size={22} />
+              Job Finder
+            </span>
+            <button
+              onClick={closeSidebar}
+              aria-label="Close menu"
+              className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 rounded-lg transition-colors"
+            >
+              <XIcon size={18} />
+            </button>
           </div>
-        </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 px-3 py-4 border-t border-gray-200 dark:border-gray-700 space-y-1 bg-white dark:bg-gray-800">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            <LogOutIcon size={18} />
-            Sign out
-          </button>
-        </div>
-      </aside>
+          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+            {MAIN_NAV.map((item, i) => (
+              <NavItem
+                key={item.to}
+                to={item.to}
+                icon={<item.icon size={18} />}
+                label={item.label}
+                active={pathname.startsWith(item.to)}
+                staggerIndex={i}
+              />
+            ))}
+
+            <div className="pt-3 mt-3 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+                <AccountAvatarIcon avatarUrl={avatarUrl} size={18} />
+                Settings
+              </div>
+              <div className="ml-2 space-y-0.5">
+                {SETTINGS_NAV.map((item, i) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={`flex items-center gap-2 pl-5 pr-3 py-1.5 text-sm rounded-lg transition-colors sidebar-nav-item ${
+                      pathname.startsWith(item.to)
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-medium'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                    style={{ animationDelay: `${(MAIN_NAV.length + i) * 50}ms` }}
+                  >
+                    <item.icon size={14} />
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </nav>
+
+          <div className="px-3 py-4 border-t border-gray-200 dark:border-gray-700 space-y-1 bg-white dark:bg-gray-800">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <LogOutIcon size={18} />
+              Sign out
+            </button>
+          </div>
+        </aside>
+      )}
 
       {/* Mobile top header */}
       <header className="lg:hidden fixed top-0 inset-x-0 z-40 h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setSidebarOpen(true)}
+            onClick={openSidebar}
             aria-label="Open menu"
             className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 rounded-lg transition-colors"
           >
@@ -266,8 +287,8 @@ export function AuthenticatedLayout() {
       </header>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-60 flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col">
-        <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+      <aside className="hidden lg:flex w-60 flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col sidebar-desktop-entrance">
+        <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between sidebar-entrance-item">
           <span className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100">
             <LogoMark size={22} />
             Job Finder
@@ -276,51 +297,38 @@ export function AuthenticatedLayout() {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
-          <NavItem
-            to="/dashboard"
-            icon={<LayoutDashboardIcon size={18} />}
-            label="Dashboard"
-            active={pathname.startsWith('/dashboard')}
-          />
-          <NavItem
-            to="/applications"
-            icon={<BriefcaseIcon size={18} />}
-            label="Applications"
-            active={pathname.startsWith('/applications')}
-          />
-          <NavItem
-            to="/calendar"
-            icon={<CalendarIcon size={18} />}
-            label="Calendar"
-            active={pathname.startsWith('/calendar')}
-          />
-          <NavItem
-            to="/analytics"
-            icon={<BarChart2Icon size={18} />}
-            label="Analytics"
-            active={pathname.startsWith('/analytics')}
-          />
-          <NavItem
-            to="/assistant"
-            icon={<MessageCircleIcon size={18} />}
-            label="Assistant"
-            active={pathname.startsWith('/assistant')}
-          />
+          {MAIN_NAV.map((item, i) => (
+            <NavItem
+              key={item.to}
+              to={item.to}
+              icon={<item.icon size={18} />}
+              label={item.label}
+              active={pathname.startsWith(item.to)}
+              staggerIndex={i}
+            />
+          ))}
         </nav>
 
         <div className="px-3 pb-2 space-y-1">
-          <NavItem
-            to="/settings/profile"
-            icon={<AccountAvatarIcon avatarUrl={avatarUrl} size={18} />}
-            label="Settings"
-            active={pathname.startsWith('/settings')}
-          />
+          <div
+            className="sidebar-entrance-item"
+            style={{ animationDelay: `${MAIN_NAV.length * 50}ms` }}
+          >
+            <NavItem
+              to="/settings/profile"
+              icon={<AccountAvatarIcon avatarUrl={avatarUrl} size={18} />}
+              label="Settings"
+              active={pathname.startsWith('/settings')}
+              staggerDelay={MAIN_NAV.length * 50}
+            />
+          </div>
         </div>
 
         <div className="px-3 py-4 border-t border-gray-200 dark:border-gray-700 space-y-1">
           <button
             onClick={() => setShortcutsOpen(true)}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors sidebar-entrance-item"
+            style={{ animationDelay: `${(MAIN_NAV.length + 1) * 50}ms` }}
             title="Show keyboard shortcuts"
           >
             <KeyboardIcon size={18} />
@@ -329,13 +337,18 @@ export function AuthenticatedLayout() {
               {getKeyModifier()}+/
             </kbd>
           </button>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          <div
+            className="sidebar-entrance-item"
+            style={{ animationDelay: `${(MAIN_NAV.length + 2) * 50}ms` }}
           >
-            <LogOutIcon size={18} />
-            Sign out
-          </button>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <LogOutIcon size={18} />
+              Sign out
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -381,20 +394,27 @@ function NavItem({
   icon,
   label,
   active,
+  staggerIndex,
+  staggerDelay,
 }: {
   to: string;
   icon: React.ReactNode;
   label: string;
   active: boolean;
+  staggerIndex?: number;
+  staggerDelay?: number;
 }) {
+  const delay = staggerDelay ?? (staggerIndex !== undefined ? staggerIndex * 50 : 0);
+
   return (
     <Link
       to={to}
-      className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
+      className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-all duration-200 sidebar-nav-item ${
         active
           ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
           : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
       }`}
+      style={{ animationDelay: `${delay}ms` }}
     >
       {icon}
       {label}
