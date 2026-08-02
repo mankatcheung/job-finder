@@ -272,7 +272,7 @@ export function ApplicationDetailPage() {
                 showUndoToast({
                   message: 'Application deleted',
                   onExecute: () => deleteApp.mutate(),
-                  onUndo: () => toast.dismiss(),
+                  onUndo: () => {},
                 });
               }}
               className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
