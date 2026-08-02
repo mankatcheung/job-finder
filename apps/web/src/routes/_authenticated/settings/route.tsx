@@ -40,7 +40,9 @@ function SettingsLayout() {
           })}
         </nav>
         <div className="flex-1 min-w-0">
-          <Outlet />
+          <div key={pathname} className="route-transition">
+            <Outlet />
+          </div>
         </div>
       </div>
     </div>

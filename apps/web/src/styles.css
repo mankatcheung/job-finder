@@ -36,3 +36,26 @@ body * {
 .overflow-x-auto {
   -webkit-overflow-scrolling: touch;
 }
+
+@keyframes route-transition-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Re-triggered on navigation by keying the wrapper element with whichever
+   route changed — see _authenticated/route.tsx and settings/route.tsx. */
+.route-transition {
+  animation: route-transition-in 220ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-transition {
+    animation: none;
+  }
+}
