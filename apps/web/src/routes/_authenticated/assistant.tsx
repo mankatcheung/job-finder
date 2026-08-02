@@ -3,6 +3,7 @@ import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/r
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
+import { showUndoToast } from '#/lib/undoToast';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { getErrorMessage } from '#/lib/errors';
 import {
@@ -11,6 +12,7 @@ import {
   type LlmApiKey,
 } from '#/routes/_authenticated/settings/-components/shared';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
+import { toast } from 'sonner';
 
 const CONVERSATIONS_QUERY = `
   query Conversations {
@@ -243,14 +245,23 @@ export function AssistantPage() {
   };
 
   const onDeleteConversation = (id: string) => {
-    if (!confirm('Delete this conversation? This cannot be undone.')) return;
-    deleteConversation.mutate(id, {
-      onSuccess: () => {
-        qc.setQueryData<ConversationsResult>(conversationsQueryOptions.queryKey, (prev) => ({
-          conversations: (prev?.conversations ?? []).filter((c) => c.id !== id),
-        }));
-        qc.removeQueries({ queryKey: chatHistoryQueryOptions(id).queryKey });
-        if (activeId === id) void navigate({ search: {} });
+    const snapshot = qc.getQueryData<ConversationsResult>(conversationsQueryOptions.queryKey);
+    qc.setQueryData<ConversationsResult>(conversationsQueryOptions.queryKey, (prev) => ({
+      conversations: (prev?.conversations ?? []).filter((c) => c.id !== id),
+    }));
+    if (activeId === id) void navigate({ search: {} });
+    showUndoToast({
+      message: 'Conversation deleted',
+      onExecute: () => {
+        deleteConversation.mutate(id, {
+          onSuccess: () => {
+            qc.removeQueries({ queryKey: chatHistoryQueryOptions(id).queryKey });
+          },
+        });
+      },
+      onUndo: () => {
+        qc.setQueryData<ConversationsResult>(conversationsQueryOptions.queryKey, snapshot);
+        toast.dismiss();
       },
     });
   };
