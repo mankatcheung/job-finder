@@ -28,6 +28,12 @@ vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
 }));
 
+vi.mock('#/lib/undoToast', () => ({
+  showUndoToast: vi.fn(({ onExecute }) => {
+    onExecute();
+  }),
+}));
+
 import { ApplicationDetailPage } from '#/routes/_authenticated/applications/$applicationId/index';
 
 const makeClient = () =>
@@ -299,8 +305,7 @@ describe('ApplicationDetailPage', () => {
     });
   });
 
-  it('deletes the application after confirm', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('deletes the application after undo window expires', async () => {
     mockGqlRequest.mockImplementation((query: string) => {
       if (query.includes('DeleteApplication')) return Promise.resolve({ deleteApplication: true });
       if (query.includes('Notes')) return Promise.resolve({ notes: [] });

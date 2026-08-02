@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { put as putBlob } from '@vercel/blob/client';
 import { gqlClient } from '#/graphql/client';
+import { showUndoToast } from '#/lib/undoToast';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { getErrorMessage } from '#/lib/errors';
 import { ErrorState } from '#/components/ErrorState';
@@ -17,7 +18,8 @@ import {
   StarIcon,
   Trash2Icon,
 } from 'lucide-react';
-import { applicationQueryOptions } from './-application-query';
+import { applicationQueryOptions, type Application } from './-application-query';
+import type { BoardApplication } from '../-board-queries';
 
 const UPDATE_STARRED = `
   mutation UpdateApplication($id: ID!, $input: UpdateApplicationInput!) {
@@ -107,27 +109,96 @@ export function ApplicationDetailPage() {
 
   const createNote = useMutation({
     mutationFn: (content: string) => gqlClient.request(CREATE_NOTE, { applicationId, content }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['notes', applicationId] });
-      setNoteContent('');
+    onMutate: async (content) => {
+      await qc.cancelQueries({ queryKey: ['notes', applicationId] });
+      const prevNotes = qc.getQueryData<{ notes: Note[] }>(['notes', applicationId]);
+      const optimistic: Note = {
+        id: `__tmp_${Date.now()}`,
+        applicationId,
+        content,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      qc.setQueryData<{ notes: Note[] }>(['notes', applicationId], (old) => ({
+        notes: [...(old?.notes ?? []), optimistic],
+      }));
+      return { prevNotes };
     },
+    onError: (_err, _content, context) => {
+      if (context?.prevNotes) qc.setQueryData(['notes', applicationId], context.prevNotes);
+    },
+    onSuccess: () => setNoteContent(''),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['notes', applicationId] }),
   });
   const updateNote = useMutation({
     mutationFn: ({ id, content }: { id: string; content: string }) =>
       gqlClient.request(UPDATE_NOTE, { id, content }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['notes', applicationId] });
-      setEditingNote(null);
+    onMutate: async ({ id, content }) => {
+      await qc.cancelQueries({ queryKey: ['notes', applicationId] });
+      const prevNotes = qc.getQueryData<{ notes: Note[] }>(['notes', applicationId]);
+      qc.setQueryData<{ notes: Note[] }>(['notes', applicationId], (old) => ({
+        notes: (old?.notes ?? []).map((n) =>
+          n.id === id ? { ...n, content, updatedAt: new Date().toISOString() } : n,
+        ),
+      }));
+      return { prevNotes };
     },
+    onError: (_err, _vars, context) => {
+      if (context?.prevNotes) qc.setQueryData(['notes', applicationId], context.prevNotes);
+    },
+    onSuccess: () => setEditingNote(null),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['notes', applicationId] }),
   });
   const deleteNote = useMutation({
     mutationFn: (id: string) => gqlClient.request(DELETE_NOTE, { id }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['notes', applicationId] }),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['notes', applicationId] });
+      const prevNotes = qc.getQueryData<{ notes: Note[] }>(['notes', applicationId]);
+      qc.setQueryData<{ notes: Note[] }>(['notes', applicationId], (old) => ({
+        notes: (old?.notes ?? []).filter((n) => n.id !== id),
+      }));
+      return { prevNotes };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.prevNotes) qc.setQueryData(['notes', applicationId], context.prevNotes);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['notes', applicationId] }),
   });
   const toggleStar = useMutation({
     mutationFn: (starred: boolean) =>
       gqlClient.request(UPDATE_STARRED, { id: applicationId, input: { starred } }),
-    onSuccess: () => {
+    onMutate: async (starred) => {
+      await qc.cancelQueries({ queryKey: ['application', applicationId] });
+
+      const prevApp = qc.getQueryData<{ application: Application }>(['application', applicationId]);
+
+      qc.setQueryData<{ application: Application }>(['application', applicationId], (old) =>
+        old ? { ...old, application: { ...old.application, starred } } : old,
+      );
+
+      // Optimistically update board cache
+      qc.setQueriesData<{ applications: BoardApplication[] }>(
+        { queryKey: ['applications'], exact: false },
+        (old) => {
+          if (!old?.applications) return old;
+          return {
+            ...old,
+            applications: old.applications.map((a) =>
+              a.id === applicationId ? { ...a, starred } : a,
+            ),
+          };
+        },
+      );
+
+      return { prevApp };
+    },
+    onError: (_err, _starred, context) => {
+      if (context?.prevApp) {
+        qc.setQueryData(['application', applicationId], context.prevApp);
+      }
+      qc.invalidateQueries({ queryKey: ['applications'] });
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ['application', applicationId] });
       qc.invalidateQueries({ queryKey: ['applications'] });
     },
@@ -198,7 +269,11 @@ export function ApplicationDetailPage() {
             </Link>
             <button
               onClick={() => {
-                if (confirm('Delete this application?')) deleteApp.mutate();
+                showUndoToast({
+                  message: 'Application deleted',
+                  onExecute: () => deleteApp.mutate(),
+                  onUndo: () => {},
+                });
               }}
               className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
               title="Delete application"
@@ -364,7 +439,17 @@ export function ApplicationDetailPage() {
                       <EditIcon size={14} />
                     </button>
                     <button
-                      onClick={() => deleteNote.mutate(note.id)}
+                      onClick={() => {
+                        const snapshot = qc.getQueryData(['notes', applicationId]);
+                        qc.setQueryData(['notes', applicationId], (prev: any) => ({
+                          notes: (prev?.notes ?? []).filter((n: any) => n.id !== note.id),
+                        }));
+                        showUndoToast({
+                          message: 'Note deleted',
+                          onExecute: () => deleteNote.mutate(note.id),
+                          onUndo: () => qc.setQueryData(['notes', applicationId], snapshot),
+                        });
+                      }}
                       className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                     >
                       <Trash2Icon size={14} />
@@ -777,11 +862,37 @@ function InterviewsTab({
           outcome: f.outcome,
         },
       }),
+    onMutate: async (f) => {
+      await qc.cancelQueries({ queryKey: ['interviewRounds', applicationId] });
+      const prev = qc.getQueryData<{ interviewRounds: InterviewRound[] }>([
+        'interviewRounds',
+        applicationId,
+      ]);
+      const optimistic: InterviewRound = {
+        id: `__tmp_${Date.now()}`,
+        applicationId,
+        type: f.type,
+        scheduledAt: f.scheduledAt || null,
+        interviewerName: f.interviewerName || null,
+        notes: f.notes || null,
+        outcome: f.outcome,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      qc.setQueryData<{ interviewRounds: InterviewRound[] }>(
+        ['interviewRounds', applicationId],
+        (old) => ({ interviewRounds: [...(old?.interviewRounds ?? []), optimistic] }),
+      );
+      return { prev };
+    },
+    onError: (_err, _f, context) => {
+      if (context?.prev) qc.setQueryData(['interviewRounds', applicationId], context.prev);
+    },
     onSuccess: () => {
-      invalidate();
       setShowForm(false);
       setForm(emptyForm());
     },
+    onSettled: () => invalidate(),
   });
 
   const updateRound = useMutation({
@@ -796,15 +907,59 @@ function InterviewsTab({
           outcome: f.outcome,
         },
       }),
-    onSuccess: () => {
-      invalidate();
-      setEditingRound(null);
+    onMutate: async ({ id, f }) => {
+      await qc.cancelQueries({ queryKey: ['interviewRounds', applicationId] });
+      const prev = qc.getQueryData<{ interviewRounds: InterviewRound[] }>([
+        'interviewRounds',
+        applicationId,
+      ]);
+      qc.setQueryData<{ interviewRounds: InterviewRound[] }>(
+        ['interviewRounds', applicationId],
+        (old) => ({
+          interviewRounds: (old?.interviewRounds ?? []).map((r) =>
+            r.id === id
+              ? {
+                  ...r,
+                  type: f.type,
+                  scheduledAt: f.scheduledAt || null,
+                  interviewerName: f.interviewerName || null,
+                  notes: f.notes || null,
+                  outcome: f.outcome,
+                  updatedAt: new Date().toISOString(),
+                }
+              : r,
+          ),
+        }),
+      );
+      return { prev };
     },
+    onError: (_err, _vars, context) => {
+      if (context?.prev) qc.setQueryData(['interviewRounds', applicationId], context.prev);
+    },
+    onSuccess: () => setEditingRound(null),
+    onSettled: () => invalidate(),
   });
 
   const deleteRound = useMutation({
     mutationFn: (id: string) => gqlClient.request(DELETE_ROUND, { id }),
-    onSuccess: invalidate,
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['interviewRounds', applicationId] });
+      const prev = qc.getQueryData<{ interviewRounds: InterviewRound[] }>([
+        'interviewRounds',
+        applicationId,
+      ]);
+      qc.setQueryData<{ interviewRounds: InterviewRound[] }>(
+        ['interviewRounds', applicationId],
+        (old) => ({
+          interviewRounds: (old?.interviewRounds ?? []).filter((r) => r.id !== id),
+        }),
+      );
+      return { prev };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.prev) qc.setQueryData(['interviewRounds', applicationId], context.prev);
+    },
+    onSettled: () => invalidate(),
   });
 
   const rounds = data?.interviewRounds ?? [];
@@ -992,7 +1147,19 @@ function InterviewsTab({
                     <EditIcon size={14} />
                   </button>
                   <button
-                    onClick={() => deleteRound.mutate(round.id)}
+                    onClick={() => {
+                      const snapshot = qc.getQueryData(['interviewRounds', applicationId]);
+                      qc.setQueryData(['interviewRounds', applicationId], (prev: any) => ({
+                        interviewRounds: (prev?.interviewRounds ?? []).filter(
+                          (r: any) => r.id !== round.id,
+                        ),
+                      }));
+                      showUndoToast({
+                        message: 'Interview round deleted',
+                        onExecute: () => deleteRound.mutate(round.id),
+                        onUndo: () => qc.setQueryData(['interviewRounds', applicationId], snapshot),
+                      });
+                    }}
                     className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                   >
                     <Trash2Icon size={14} />
@@ -1092,11 +1259,34 @@ function ContactsTab({ applicationId }: { applicationId: string }) {
         ...(f.linkedinUrl ? { linkedinUrl: f.linkedinUrl } : {}),
         ...(f.notes ? { notes: f.notes } : {}),
       }),
+    onMutate: async (f) => {
+      await qc.cancelQueries({ queryKey: ['contacts', applicationId] });
+      const prev = qc.getQueryData<{ contacts: Contact[] }>(['contacts', applicationId]);
+      const optimistic: Contact = {
+        id: `__tmp_${Date.now()}`,
+        applicationId,
+        name: f.name,
+        role: f.role || null,
+        email: f.email || null,
+        phone: f.phone || null,
+        linkedinUrl: f.linkedinUrl || null,
+        notes: f.notes || null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      qc.setQueryData<{ contacts: Contact[] }>(['contacts', applicationId], (old) => ({
+        contacts: [...(old?.contacts ?? []), optimistic],
+      }));
+      return { prev };
+    },
+    onError: (_err, _f, context) => {
+      if (context?.prev) qc.setQueryData(['contacts', applicationId], context.prev);
+    },
     onSuccess: () => {
-      invalidate();
       setShowForm(false);
       setForm(emptyContactForm());
     },
+    onSettled: () => invalidate(),
   });
 
   const updateContact = useMutation({
@@ -1110,15 +1300,48 @@ function ContactsTab({ applicationId }: { applicationId: string }) {
         linkedinUrl: f.linkedinUrl || null,
         notes: f.notes || null,
       }),
-    onSuccess: () => {
-      invalidate();
-      setEditingContact(null);
+    onMutate: async ({ id, f }) => {
+      await qc.cancelQueries({ queryKey: ['contacts', applicationId] });
+      const prev = qc.getQueryData<{ contacts: Contact[] }>(['contacts', applicationId]);
+      qc.setQueryData<{ contacts: Contact[] }>(['contacts', applicationId], (old) => ({
+        contacts: (old?.contacts ?? []).map((c) =>
+          c.id === id
+            ? {
+                ...c,
+                name: f.name || c.name,
+                role: f.role || null,
+                email: f.email || null,
+                phone: f.phone || null,
+                linkedinUrl: f.linkedinUrl || null,
+                notes: f.notes || null,
+                updatedAt: new Date().toISOString(),
+              }
+            : c,
+        ),
+      }));
+      return { prev };
     },
+    onError: (_err, _vars, context) => {
+      if (context?.prev) qc.setQueryData(['contacts', applicationId], context.prev);
+    },
+    onSuccess: () => setEditingContact(null),
+    onSettled: () => invalidate(),
   });
 
   const deleteContact = useMutation({
     mutationFn: (id: string) => gqlClient.request(DELETE_CONTACT, { id }),
-    onSuccess: invalidate,
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['contacts', applicationId] });
+      const prev = qc.getQueryData<{ contacts: Contact[] }>(['contacts', applicationId]);
+      qc.setQueryData<{ contacts: Contact[] }>(['contacts', applicationId], (old) => ({
+        contacts: (old?.contacts ?? []).filter((c) => c.id !== id),
+      }));
+      return { prev };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.prev) qc.setQueryData(['contacts', applicationId], context.prev);
+    },
+    onSettled: () => invalidate(),
   });
 
   const contacts = data?.contacts ?? [];
@@ -1301,7 +1524,17 @@ function ContactsTab({ applicationId }: { applicationId: string }) {
                   <EditIcon size={14} />
                 </button>
                 <button
-                  onClick={() => deleteContact.mutate(contact.id)}
+                  onClick={() => {
+                    const snapshot = qc.getQueryData(['contacts', applicationId]);
+                    qc.setQueryData(['contacts', applicationId], (prev: any) => ({
+                      contacts: (prev?.contacts ?? []).filter((c: any) => c.id !== contact.id),
+                    }));
+                    showUndoToast({
+                      message: 'Contact deleted',
+                      onExecute: () => deleteContact.mutate(contact.id),
+                      onUndo: () => qc.setQueryData(['contacts', applicationId], snapshot),
+                    });
+                  }}
                   className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                 >
                   <Trash2Icon size={14} />
@@ -1379,7 +1612,18 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
   });
   const deleteDoc = useMutation({
     mutationFn: (id: string) => gqlClient.request(DELETE_DOCUMENT, { id }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['documents', applicationId] }),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['documents', applicationId] });
+      const prev = qc.getQueryData<{ documents: Document[] }>(['documents', applicationId]);
+      qc.setQueryData<{ documents: Document[] }>(['documents', applicationId], (old) => ({
+        documents: (old?.documents ?? []).filter((d) => d.id !== id),
+      }));
+      return { prev };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.prev) qc.setQueryData(['documents', applicationId], context.prev);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['documents', applicationId] }),
   });
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1555,7 +1799,17 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
             </p>
           </div>
           <button
-            onClick={() => deleteDoc.mutate(doc.id)}
+            onClick={() => {
+              const snapshot = qc.getQueryData(['documents', applicationId]);
+              qc.setQueryData(['documents', applicationId], (prev: any) => ({
+                documents: (prev?.documents ?? []).filter((d: any) => d.id !== doc.id),
+              }));
+              showUndoToast({
+                message: 'Document deleted',
+                onExecute: () => deleteDoc.mutate(doc.id),
+                onUndo: () => qc.setQueryData(['documents', applicationId], snapshot),
+              });
+            }}
             className="ml-4 p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded shrink-0"
           >
             <Trash2Icon size={14} />

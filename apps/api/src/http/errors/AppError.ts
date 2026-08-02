@@ -60,6 +60,12 @@ export class AiNotConfiguredError extends AppError {
   }
 }
 
+export class StepUpRequiredError extends AppError {
+  constructor(message = 'Please verify your identity again to continue') {
+    super(message, 403, ERROR_CODES.STEP_UP_REQUIRED);
+  }
+}
+
 export function fromCodedError(err: unknown): AppError {
   if (err instanceof AppError) return err;
   if (err instanceof Error) {
@@ -81,6 +87,8 @@ export function fromCodedError(err: unknown): AppError {
         return new ServiceUnavailableError(err.message);
       case ERROR_CODES.AI_NOT_CONFIGURED:
         return new AiNotConfiguredError(err.message);
+      case ERROR_CODES.STEP_UP_REQUIRED:
+        return new StepUpRequiredError(err.message);
     }
   }
   return new AppError('Internal server error', 500, ERROR_CODES.INTERNAL_ERROR);
