@@ -8,6 +8,8 @@ export interface JwtUser {
   email: string;
   /** Session id — present for JWT-authenticated requests, absent for API-token auth (no session). */
   sid?: string;
+  /** Epoch-ms of the session's last full authentication — absent for API-token auth, or for a JWT issued before step-up auth (JEF-44) existed. See `REAUTH` in constants.ts. */
+  authTime?: number;
 }
 
 export interface GraphQLContext {

@@ -78,8 +78,14 @@ export class UserResolver {
     userId: string,
     currentPassword: string,
     newEmail: string,
+    authTime: number | null | undefined,
   ): Promise<void> {
-    await this.deps.requestEmailChangeUseCase.execute({ userId, currentPassword, newEmail });
+    await this.deps.requestEmailChangeUseCase.execute({
+      userId,
+      currentPassword,
+      newEmail,
+      authTime,
+    });
   }
 
   async confirmEmailChange(token: string): Promise<void> {
@@ -90,12 +96,22 @@ export class UserResolver {
     userId: string,
     currentPassword: string,
     newPassword: string,
+    authTime: number | null | undefined,
   ): Promise<void> {
-    await this.deps.updatePasswordUseCase.execute({ userId, currentPassword, newPassword });
+    await this.deps.updatePasswordUseCase.execute({
+      userId,
+      currentPassword,
+      newPassword,
+      authTime,
+    });
   }
 
-  async deleteAccount(userId: string, password: string): Promise<void> {
-    await this.deps.deleteAccountUseCase.execute({ userId, password });
+  async deleteAccount(
+    userId: string,
+    password: string,
+    authTime: number | null | undefined,
+  ): Promise<void> {
+    await this.deps.deleteAccountUseCase.execute({ userId, password, authTime });
   }
 
   async exportUserData(userId: string): Promise<ExportUserDataOutput> {

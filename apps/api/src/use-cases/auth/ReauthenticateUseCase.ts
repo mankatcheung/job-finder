@@ -1,5 +1,4 @@
 import bcrypt from 'bcryptjs';
-import type { User } from '#src/domain/user/User.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ITotpBackupCodeRepository } from '#src/use-cases/ports/ITotpBackupCodeRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
@@ -8,9 +7,10 @@ import { ERROR_CODES } from '#src/constants.js';
 import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
 import { verifyTotpOrBackupCode } from '#src/use-cases/auth/verifyTotpOrBackupCode.js';
 import type {
-  ILoginWithTotpUseCase,
-  LoginWithTotpInput,
-} from '#src/use-cases/auth/ILoginWithTotpUseCase.js';
+  IReauthenticateUseCase,
+  ReauthenticateInput,
+  ReauthenticateOutput,
+} from '#src/use-cases/auth/IReauthenticateUseCase.js';
 
 interface Deps {
   userRepository: IUserRepository;
@@ -19,32 +19,39 @@ interface Deps {
   totpProvider: ITotpProvider;
 }
 
-export class LoginWithTotpUseCase implements ILoginWithTotpUseCase {
+/**
+ * Re-proves an already-authenticated user's identity (password, plus a TOTP
+ * code if 2FA is enabled) for step-up auth (JEF-44) — distinct from
+ * LoginUseCase/LoginWithTotpUseCase, which authenticate by email for a brand
+ * new session. This looks the user up by id (the caller is already
+ * logged in) and doesn't touch sessions; AuthResolver re-signs tokens for
+ * the existing session once this succeeds.
+ */
+export class ReauthenticateUseCase implements IReauthenticateUseCase {
   constructor(private readonly deps: Deps) {}
 
-  async execute(input: LoginWithTotpInput): Promise<User> {
-    const user = await this.deps.userRepository.findByEmail(input.email);
+  async execute(input: ReauthenticateInput): Promise<ReauthenticateOutput> {
+    const user = await this.deps.userRepository.findById(input.userId);
     if (!user) {
       throw Object.assign(new Error('Invalid credentials'), { code: ERROR_CODES.UNAUTHORIZED });
     }
-
     assertHasPassword(user.passwordHash);
+
     const validPassword = await bcrypt.compare(input.password, user.passwordHash);
     if (!validPassword) {
       throw Object.assign(new Error('Invalid credentials'), { code: ERROR_CODES.UNAUTHORIZED });
     }
 
     if (!user.totpEnabled || !user.totpSecret) {
-      throw Object.assign(new Error('Invalid credentials'), { code: ERROR_CODES.UNAUTHORIZED });
+      return { user, totpRequired: false };
     }
 
-    const allowedByEmail = this.deps.totpRateLimiter.consume(
-      `totp:email:${input.email.toLowerCase()}`,
-    );
-    const allowedByIp = input.ipAddress
-      ? this.deps.totpRateLimiter.consume(`totp:ip:${input.ipAddress}`)
-      : true;
-    if (!allowedByEmail || !allowedByIp) {
+    if (!input.code) {
+      return { user, totpRequired: true };
+    }
+
+    const allowed = this.deps.totpRateLimiter.consume(`totp:stepup:user:${user.id}`);
+    if (!allowed) {
       throw Object.assign(new Error('Too many verification attempts. Please try again later.'), {
         code: ERROR_CODES.RATE_LIMITED,
       });
@@ -61,6 +68,6 @@ export class LoginWithTotpUseCase implements ILoginWithTotpUseCase {
       });
     }
 
-    return user;
+    return { user, totpRequired: false };
   }
 }

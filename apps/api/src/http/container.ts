@@ -72,6 +72,7 @@ import { AuthenticateMcpRequestUseCase } from '#src/use-cases/auth/AuthenticateM
 import { RegisterUseCase } from '#src/use-cases/auth/RegisterUseCase.js';
 import { LoginUseCase } from '#src/use-cases/auth/LoginUseCase.js';
 import { LoginWithTotpUseCase } from '#src/use-cases/auth/LoginWithTotpUseCase.js';
+import { ReauthenticateUseCase } from '#src/use-cases/auth/ReauthenticateUseCase.js';
 import { RequestPasswordResetUseCase } from '#src/use-cases/auth/RequestPasswordResetUseCase.js';
 import { ResetPasswordUseCase } from '#src/use-cases/auth/ResetPasswordUseCase.js';
 import { SendEmailVerificationUseCase } from '#src/use-cases/auth/SendEmailVerificationUseCase.js';
@@ -252,6 +253,7 @@ export interface Cradle {
   registerUseCase: RegisterUseCase;
   loginUseCase: LoginUseCase;
   loginWithTotpUseCase: LoginWithTotpUseCase;
+  reauthenticateUseCase: ReauthenticateUseCase;
   requestPasswordResetUseCase: RequestPasswordResetUseCase;
   resetPasswordUseCase: ResetPasswordUseCase;
   sendEmailVerificationUseCase: SendEmailVerificationUseCase;
@@ -481,6 +483,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     registerUseCase: asClass(RegisterUseCase, { lifetime: Lifetime.TRANSIENT }),
     loginUseCase: asClass(LoginUseCase, { lifetime: Lifetime.TRANSIENT }),
     loginWithTotpUseCase: asClass(LoginWithTotpUseCase, { lifetime: Lifetime.TRANSIENT }),
+    reauthenticateUseCase: asClass(ReauthenticateUseCase, { lifetime: Lifetime.TRANSIENT }),
     requestPasswordResetUseCase: asClass(RequestPasswordResetUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

@@ -95,12 +95,13 @@ describe('UserResolver', () => {
       const deps = makeDeps();
       const resolver = new UserResolver(deps);
 
-      await resolver.requestEmailChange('user-1', 'oldPass', 'new@example.com');
+      await resolver.requestEmailChange('user-1', 'oldPass', 'new@example.com', 1_700_000_000_000);
 
       expect(deps.requestEmailChangeUseCase.execute).toHaveBeenCalledWith({
         userId: 'user-1',
         currentPassword: 'oldPass',
         newEmail: 'new@example.com',
+        authTime: 1_700_000_000_000,
       });
     });
 
@@ -113,7 +114,7 @@ describe('UserResolver', () => {
       });
 
       await expect(
-        new UserResolver(deps).requestEmailChange('user-1', 'pass', 'taken@example.com'),
+        new UserResolver(deps).requestEmailChange('user-1', 'pass', 'taken@example.com', null),
       ).rejects.toMatchObject({ code: 'CONFLICT' });
     });
   });
@@ -149,12 +150,13 @@ describe('UserResolver', () => {
       const deps = makeDeps();
       const resolver = new UserResolver(deps);
 
-      await resolver.updatePassword('user-1', 'oldPass', 'newPass');
+      await resolver.updatePassword('user-1', 'oldPass', 'newPass', 1_700_000_000_000);
 
       expect(deps.updatePasswordUseCase.execute).toHaveBeenCalledWith({
         userId: 'user-1',
         currentPassword: 'oldPass',
         newPassword: 'newPass',
+        authTime: 1_700_000_000_000,
       });
     });
   });
@@ -164,11 +166,12 @@ describe('UserResolver', () => {
       const deps = makeDeps();
       const resolver = new UserResolver(deps);
 
-      await resolver.deleteAccount('user-1', 'secret');
+      await resolver.deleteAccount('user-1', 'secret', 1_700_000_000_000);
 
       expect(deps.deleteAccountUseCase.execute).toHaveBeenCalledWith({
         userId: 'user-1',
         password: 'secret',
+        authTime: 1_700_000_000_000,
       });
     });
   });

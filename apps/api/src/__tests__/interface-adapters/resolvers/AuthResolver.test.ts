@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthResolver } from '#src/interface-adapters/resolvers/AuthResolver.js';
-import { makeUser, makeSession } from '#src/__tests__/helpers/mocks.js';
+import { makeUser, makeSession, makeSessionRepository } from '#src/__tests__/helpers/mocks.js';
 import type { IRegisterUseCase } from '#src/use-cases/auth/IRegisterUseCase.js';
 import type { ILoginUseCase } from '#src/use-cases/auth/ILoginUseCase.js';
 import type { ILoginWithTotpUseCase } from '#src/use-cases/auth/ILoginWithTotpUseCase.js';
+import type { IReauthenticateUseCase } from '#src/use-cases/auth/IReauthenticateUseCase.js';
 import type { IRequestPasswordResetUseCase } from '#src/use-cases/auth/IRequestPasswordResetUseCase.js';
 import type { IResetPasswordUseCase } from '#src/use-cases/auth/IResetPasswordUseCase.js';
 import type { IVerifyEmailUseCase } from '#src/use-cases/auth/IVerifyEmailUseCase.js';
@@ -26,6 +27,13 @@ const makeLoginUseCase = (overrides?: Partial<ILoginUseCase>): ILoginUseCase => 
 const makeLoginWithTotpUseCase = (
   overrides?: Partial<ILoginWithTotpUseCase>,
 ): ILoginWithTotpUseCase => ({
+  execute: vi.fn(),
+  ...overrides,
+});
+
+const makeReauthenticateUseCase = (
+  overrides?: Partial<IReauthenticateUseCase>,
+): IReauthenticateUseCase => ({
   execute: vi.fn(),
   ...overrides,
 });
@@ -62,6 +70,7 @@ const baseDeps = () => ({
   registerUseCase: makeRegisterUseCase(),
   loginUseCase: makeLoginUseCase(),
   loginWithTotpUseCase: makeLoginWithTotpUseCase(),
+  reauthenticateUseCase: makeReauthenticateUseCase(),
   tokenService: makeTokenService(),
   requestPasswordResetUseCase: makeRequestPasswordResetUseCase(),
   resetPasswordUseCase: makeResetPasswordUseCase(),
@@ -73,6 +82,7 @@ const baseDeps = () => ({
       .fn()
       .mockResolvedValue({ session: makeSession(), newTokenId: 'new-refresh-token-id' }),
   }),
+  sessionRepository: makeSessionRepository(),
   verifyEmailUseCase: makeVerifyEmailUseCase(),
 });
 
@@ -110,6 +120,7 @@ describe('AuthResolver', () => {
         'test@example.com',
         'session-1',
         'refresh-token-id-1',
+        expect.any(Number),
       );
       expect(result).toEqual({ accessToken: 'access-token', refreshToken: 'refresh-token' });
     });
@@ -145,6 +156,7 @@ describe('AuthResolver', () => {
         user.email,
         'session-1',
         'refresh-token-id-1',
+        expect.any(Number),
       );
       expect(result).toEqual({
         totpRequired: false,
@@ -210,6 +222,7 @@ describe('AuthResolver', () => {
         user.email,
         'session-1',
         'refresh-token-id-1',
+        expect.any(Number),
       );
       expect(result).toEqual({ accessToken: 'access-token', refreshToken: 'refresh-token' });
     });
@@ -260,8 +273,39 @@ describe('AuthResolver', () => {
         'test@example.com',
         'session-1',
         'new-refresh-token-id',
+        0,
       );
       expect(result).toEqual({ accessToken: 'access-token', refreshToken: 'refresh-token' });
+    });
+
+    it('carries the original authTime forward instead of resetting freshness', async () => {
+      const tokenService = makeTokenService({
+        verifyRefresh: vi.fn().mockReturnValue({
+          sub: 'user-1',
+          email: 'test@example.com',
+          sid: 'session-1',
+          jti: 'old-refresh-token-id',
+          authTime: 1_700_000_000_000,
+        }),
+      });
+      const rotateRefreshTokenUseCase = stub<RotateRefreshTokenUseCase>({
+        execute: vi.fn().mockResolvedValue({
+          session: makeSession({ id: 'session-1' }),
+          newTokenId: 'new-refresh-token-id',
+        }),
+      });
+
+      const resolver = new AuthResolver({ ...baseDeps(), tokenService, rotateRefreshTokenUseCase });
+
+      await resolver.refreshToken('valid-refresh-token');
+
+      expect(tokenService.sign).toHaveBeenCalledWith(
+        'user-1',
+        'test@example.com',
+        'session-1',
+        'new-refresh-token-id',
+        1_700_000_000_000,
+      );
     });
 
     it('passes null as presentedTokenId for a legacy refresh token with no jti', async () => {
@@ -325,6 +369,128 @@ describe('AuthResolver', () => {
 
       expect((err as { code: string }).code).toBe('UNAUTHORIZED');
       expect(tokenService.sign).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('reauthenticate', () => {
+    it('re-signs tokens for the existing session once verified', async () => {
+      const user = makeUser({ id: 'user-1', email: 'test@example.com' });
+      const reauthenticateUseCase = makeReauthenticateUseCase({
+        execute: vi.fn().mockResolvedValue({ user, totpRequired: false }),
+      });
+      const tokenService = makeTokenService();
+      const sessionRepository = makeSessionRepository({
+        findById: vi
+          .fn()
+          .mockResolvedValue(
+            makeSession({ id: 'session-1', expiresAt: new Date(Date.now() + 60_000) }),
+          ),
+      });
+
+      const resolver = new AuthResolver({
+        ...baseDeps(),
+        reauthenticateUseCase,
+        tokenService,
+        sessionRepository,
+      });
+
+      const result = await resolver.reauthenticate('user-1', 'session-1', 'password123', undefined);
+
+      expect(reauthenticateUseCase.execute).toHaveBeenCalledWith({
+        userId: 'user-1',
+        password: 'password123',
+        code: undefined,
+      });
+      expect(sessionRepository.findById).toHaveBeenCalledWith('session-1');
+      expect(tokenService.sign).toHaveBeenCalledWith(
+        'user-1',
+        'test@example.com',
+        'session-1',
+        'refresh-token-id-1',
+        expect.any(Number),
+      );
+      expect(result).toEqual({
+        totpRequired: false,
+        tokens: { accessToken: 'access-token', refreshToken: 'refresh-token' },
+      });
+    });
+
+    it('returns totpRequired without touching the session when a code is still needed', async () => {
+      const user = makeUser({ id: 'user-1', totpEnabled: true });
+      const reauthenticateUseCase = makeReauthenticateUseCase({
+        execute: vi.fn().mockResolvedValue({ user, totpRequired: true }),
+      });
+      const tokenService = makeTokenService();
+      const sessionRepository = makeSessionRepository();
+
+      const resolver = new AuthResolver({
+        ...baseDeps(),
+        reauthenticateUseCase,
+        tokenService,
+        sessionRepository,
+      });
+
+      const result = await resolver.reauthenticate('user-1', 'session-1', 'password123', undefined);
+
+      expect(sessionRepository.findById).not.toHaveBeenCalled();
+      expect(tokenService.sign).not.toHaveBeenCalled();
+      expect(result).toEqual({ totpRequired: true, tokens: null });
+    });
+
+    it('propagates errors from the use case (e.g. wrong password)', async () => {
+      const err = Object.assign(new Error('Invalid credentials'), { code: 'UNAUTHORIZED' });
+      const reauthenticateUseCase = makeReauthenticateUseCase({
+        execute: vi.fn().mockRejectedValue(err),
+      });
+      const resolver = new AuthResolver({ ...baseDeps(), reauthenticateUseCase });
+
+      await expect(
+        resolver.reauthenticate('user-1', 'session-1', 'wrong-password', undefined),
+      ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    });
+
+    it('throws UNAUTHORIZED when the session no longer exists', async () => {
+      const user = makeUser({ id: 'user-1' });
+      const reauthenticateUseCase = makeReauthenticateUseCase({
+        execute: vi.fn().mockResolvedValue({ user, totpRequired: false }),
+      });
+      const sessionRepository = makeSessionRepository({
+        findById: vi.fn().mockResolvedValue(null),
+      });
+
+      const resolver = new AuthResolver({
+        ...baseDeps(),
+        reauthenticateUseCase,
+        sessionRepository,
+      });
+
+      const err = await resolver
+        .reauthenticate('user-1', 'session-1', 'password123', undefined)
+        .catch((e) => e);
+
+      expect((err as { code: string }).code).toBe('UNAUTHORIZED');
+    });
+
+    it('throws UNAUTHORIZED when the session has been revoked', async () => {
+      const user = makeUser({ id: 'user-1' });
+      const reauthenticateUseCase = makeReauthenticateUseCase({
+        execute: vi.fn().mockResolvedValue({ user, totpRequired: false }),
+      });
+      const sessionRepository = makeSessionRepository({
+        findById: vi.fn().mockResolvedValue(makeSession({ revokedAt: new Date('2024-01-01') })),
+      });
+
+      const resolver = new AuthResolver({
+        ...baseDeps(),
+        reauthenticateUseCase,
+        sessionRepository,
+      });
+
+      const err = await resolver
+        .reauthenticate('user-1', 'session-1', 'password123', undefined)
+        .catch((e) => e);
+
+      expect((err as { code: string }).code).toBe('UNAUTHORIZED');
     });
   });
 

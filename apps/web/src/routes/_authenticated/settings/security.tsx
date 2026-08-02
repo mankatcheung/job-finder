@@ -37,6 +37,7 @@ import {
   labelCls,
   extractGqlError,
 } from './-components/shared';
+import { useStepUpReauth, STEP_UP_CANCELLED } from './-components/useStepUpReauth';
 
 export const Route = createFileRoute('/_authenticated/settings/security')({
   component: SettingsSecurityPage,
@@ -44,15 +45,17 @@ export const Route = createFileRoute('/_authenticated/settings/security')({
 
 export function SettingsSecurityPage() {
   const qc = useQueryClient();
+  const { withStepUp, dialog: stepUpDialog } = useStepUpReauth();
 
   // Email form
   const emailForm = useForm<EmailForm>({ resolver: zodResolver(emailSchema) });
   const onUpdateEmail = async (data: EmailForm) => {
     try {
-      await gqlClient.request(REQUEST_EMAIL_CHANGE, data);
+      await withStepUp(() => gqlClient.request(REQUEST_EMAIL_CHANGE, data));
       emailForm.reset();
       emailForm.setError('root', { message: '' });
     } catch (err) {
+      if (err instanceof Error && err.message === STEP_UP_CANCELLED) return;
       emailForm.setError('root', { message: extractGqlError(err) ?? 'Failed to update email.' });
     }
   };
@@ -61,9 +64,10 @@ export function SettingsSecurityPage() {
   const passwordForm = useForm<PasswordForm>({ resolver: zodResolver(passwordSchema) });
   const onUpdatePassword = async ({ currentPassword, newPassword }: PasswordForm) => {
     try {
-      await gqlClient.request(UPDATE_PASSWORD, { currentPassword, newPassword });
+      await withStepUp(() => gqlClient.request(UPDATE_PASSWORD, { currentPassword, newPassword }));
       passwordForm.reset();
     } catch (err) {
+      if (err instanceof Error && err.message === STEP_UP_CANCELLED) return;
       passwordForm.setError('root', {
         message: extractGqlError(err) ?? 'Failed to update password.',
       });
@@ -173,6 +177,7 @@ export function SettingsSecurityPage() {
 
   return (
     <div className="space-y-10">
+      {stepUpDialog}
       {/* ── Email ── */}
       <section className="space-y-4">
         <div>

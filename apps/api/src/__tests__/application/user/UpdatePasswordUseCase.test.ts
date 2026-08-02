@@ -109,4 +109,73 @@ describe('UpdatePasswordUseCase', () => {
     expect(userRepository.findById).not.toHaveBeenCalled();
     expect(userRepository.update).not.toHaveBeenCalled();
   });
+
+  describe('step-up freshness (JEF-44)', () => {
+    it('throws STEP_UP_REQUIRED for a 2FA-enabled user with a stale session', async () => {
+      const user = makeUser({ id: 'user-1', totpEnabled: true });
+      const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+
+      const err = await new UpdatePasswordUseCase({
+        userRepository,
+        updatePasswordRateLimiter: makeRateLimiter(),
+      })
+        .execute({ ...input, authTime: Date.now() - 16 * 60 * 1000 })
+        .catch((e) => e);
+
+      expect((err as { code: string }).code).toBe('STEP_UP_REQUIRED');
+      expect(userRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('succeeds for a 2FA-enabled user with a fresh session', async () => {
+      const user = makeUser({ id: 'user-1', totpEnabled: true });
+      const userRepository = makeUserRepository({
+        findById: vi.fn().mockResolvedValue(user),
+        update: vi.fn().mockResolvedValue(user),
+      });
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+      vi.mocked(bcrypt.hash).mockResolvedValue('new-hash' as never);
+
+      await new UpdatePasswordUseCase({
+        userRepository,
+        updatePasswordRateLimiter: makeRateLimiter(),
+      }).execute({ ...input, authTime: Date.now() });
+
+      expect(userRepository.update).toHaveBeenCalledWith('user-1', { passwordHash: 'new-hash' });
+    });
+
+    it('does not require freshness for a non-2FA user, even with a stale/missing authTime', async () => {
+      const user = makeUser({ id: 'user-1', totpEnabled: false });
+      const userRepository = makeUserRepository({
+        findById: vi.fn().mockResolvedValue(user),
+        update: vi.fn().mockResolvedValue(user),
+      });
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+      vi.mocked(bcrypt.hash).mockResolvedValue('new-hash' as never);
+
+      await new UpdatePasswordUseCase({
+        userRepository,
+        updatePasswordRateLimiter: makeRateLimiter(),
+      }).execute({ ...input, authTime: undefined });
+
+      expect(userRepository.update).toHaveBeenCalledWith('user-1', { passwordHash: 'new-hash' });
+    });
+
+    it('does not require freshness for API-token auth (authTime: null)', async () => {
+      const user = makeUser({ id: 'user-1', totpEnabled: true });
+      const userRepository = makeUserRepository({
+        findById: vi.fn().mockResolvedValue(user),
+        update: vi.fn().mockResolvedValue(user),
+      });
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+      vi.mocked(bcrypt.hash).mockResolvedValue('new-hash' as never);
+
+      await new UpdatePasswordUseCase({
+        userRepository,
+        updatePasswordRateLimiter: makeRateLimiter(),
+      }).execute({ ...input, authTime: null });
+
+      expect(userRepository.update).toHaveBeenCalledWith('user-1', { passwordHash: 'new-hash' });
+    });
+  });
 });
