@@ -15,6 +15,7 @@ import { useTheme, type Theme } from '#/lib/theme';
 import { useHotkeys, getKeyModifier } from '#/hooks/useHotkeys';
 import { CommandPalette } from '#/components/CommandPalette';
 import { ShortcutCheatSheet } from '#/components/ShortcutCheatSheet';
+import { LogoMark } from '#/components/LogoMark';
 import {
   BarChart2Icon,
   BriefcaseIcon,
@@ -164,7 +165,10 @@ export function AuthenticatedLayout() {
         }`}
       >
         <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Job Finder</span>
+          <span className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100">
+            <LogoMark size={22} />
+            Job Finder
+          </span>
           <button
             onClick={() => setSidebarOpen(false)}
             aria-label="Close menu"
@@ -251,7 +255,10 @@ export function AuthenticatedLayout() {
           >
             <MenuIcon size={18} />
           </button>
-          <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Job Finder</span>
+          <span className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100">
+            <LogoMark size={22} />
+            Job Finder
+          </span>
         </div>
         <div className="flex items-center gap-1">
           <ThemeToggleButton />
@@ -261,7 +268,10 @@ export function AuthenticatedLayout() {
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex w-60 flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col">
         <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Job Finder</span>
+          <span className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100">
+            <LogoMark size={22} />
+            Job Finder
+          </span>
           <ThemeToggleButton />
         </div>
 
