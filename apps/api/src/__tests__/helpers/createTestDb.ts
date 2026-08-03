@@ -239,6 +239,19 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "PushSubscription_userId_idx" ON "PushSubscription"("userId")`,
+  `CREATE TABLE "Notification" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "body" TEXT NOT NULL,
+    "url" TEXT,
+    "readAt" INTEGER,
+    "createdAt" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "Notification_userId_idx" ON "Notification"("userId")`,
+  `CREATE INDEX "Notification_userId_readAt_idx" ON "Notification"("userId", "readAt")`,
 ];
 
 export interface TestDb {

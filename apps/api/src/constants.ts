@@ -361,6 +361,13 @@ export const BULK_ACTIONS = {
   MAX_IDS: 200,
 } as const;
 
+/** Notification types (mirrors the Notification.type Drizzle enum) — drives which icon the inbox shows. */
+export const NOTIFICATION_TYPE = {
+  INTERVIEW_REMINDER: 'interview_reminder',
+  FOLLOW_UP_REMINDER: 'follow_up_reminder',
+  SECURITY_ALERT: 'security_alert',
+} as const;
+
 /** In-app AI chat assistant settings. */
 export const CHAT = {
   /** Hard cap on LLM<->tool round-trips within a single chat turn, to bound cost/latency. */

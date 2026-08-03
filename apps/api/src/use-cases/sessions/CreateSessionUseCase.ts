@@ -3,8 +3,9 @@ import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IDeviceLabeler } from '#src/use-cases/ports/IDeviceLabeler.js';
 import type { IIpLocationResolver } from '#src/use-cases/ports/IIpLocationResolver.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
+import type { ICreateNotificationUseCase } from '#src/use-cases/notifications/ICreateNotificationUseCase.js';
 import type { Session } from '#src/domain/session/Session.js';
-import { SESSION } from '#src/constants.js';
+import { SESSION, NOTIFICATION_TYPE } from '#src/constants.js';
 
 interface Deps {
   sessionRepository: ISessionRepository;
@@ -12,6 +13,7 @@ interface Deps {
   deviceLabeler: IDeviceLabeler;
   ipLocationResolver: IIpLocationResolver;
   emailService: IEmailService;
+  createNotificationUseCase: ICreateNotificationUseCase;
   generateId: () => string;
 }
 
@@ -84,5 +86,13 @@ export class CreateSessionUseCase {
       ipAddress,
       new Date(),
     );
+
+    await this.deps.createNotificationUseCase.execute({
+      userId,
+      type: NOTIFICATION_TYPE.SECURITY_ALERT,
+      title: 'New sign-in detected',
+      body: location ? `${deviceLabel} signed in from ${location}` : `${deviceLabel} signed in`,
+      url: '/settings/security',
+    });
   }
 }

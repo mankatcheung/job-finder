@@ -4,7 +4,9 @@ import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IPushSubscriptionRepository } from '#src/use-cases/ports/IPushSubscriptionRepository.js';
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 import type { WebPushService } from '#src/infrastructure/push/WebPushService.js';
-import { REMINDER_WINDOW_MS } from '#src/constants.js';
+import type { ICreateNotificationUseCase } from '#src/use-cases/notifications/ICreateNotificationUseCase.js';
+import type { NotificationType } from '#src/domain/notification/Notification.js';
+import { REMINDER_WINDOW_MS, NOTIFICATION_TYPE } from '#src/constants.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;
@@ -13,10 +15,12 @@ interface Deps {
   pushSubscriptionRepository: IPushSubscriptionRepository;
   logger: ILogger;
   webPushService: WebPushService;
+  createNotificationUseCase: ICreateNotificationUseCase;
 }
 
 interface NotificationPayload {
   userId: string;
+  type: NotificationType;
   title: string;
   body: string;
   url: string;
@@ -50,6 +54,7 @@ export class SendPushNotificationsUseCase {
       const existing = notificationsByUser.get(app.userId) ?? [];
       existing.push({
         userId: app.userId,
+        type: NOTIFICATION_TYPE.INTERVIEW_REMINDER,
         title: `Upcoming interview: ${app.company}`,
         body: `${app.role} \u2014 ${round.type} interview tomorrow at ${timeStr}`,
         url: `/applications/${app.id}`,
@@ -65,11 +70,20 @@ export class SendPushNotificationsUseCase {
       const existing = notificationsByUser.get(app.userId) ?? [];
       existing.push({
         userId: app.userId,
+        type: NOTIFICATION_TYPE.FOLLOW_UP_REMINDER,
         title: `Follow up: ${app.company}`,
         body: `Time to follow up on your ${app.role} application`,
         url: `/applications/${app.id}`,
       });
       notificationsByUser.set(app.userId, existing);
+    }
+
+    // Persist every notification to the inbox regardless of push-delivery
+    // outcome \u2014 a disabled/unsubscribed user should still see it later.
+    for (const notifications of notificationsByUser.values()) {
+      for (const notification of notifications) {
+        await this.deps.createNotificationUseCase.execute(notification);
+      }
     }
 
     // Send notifications

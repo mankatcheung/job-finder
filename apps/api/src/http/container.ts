@@ -65,6 +65,7 @@ import { ActivityLogResolver } from '#src/interface-adapters/resolvers/ActivityL
 import { ContactResolver } from '#src/interface-adapters/resolvers/ContactResolver.js';
 import { LoginEventResolver } from '#src/interface-adapters/resolvers/LoginEventResolver.js';
 import { ApiTokenResolver } from '#src/interface-adapters/resolvers/ApiTokenResolver.js';
+import { NotificationResolver } from '#src/interface-adapters/resolvers/NotificationResolver.js';
 import { SessionResolver } from '#src/interface-adapters/resolvers/SessionResolver.js';
 import { McpController } from '#src/interface-adapters/mcp/McpController.js';
 
@@ -133,6 +134,12 @@ import { CreateApiTokenUseCase } from '#src/use-cases/apiTokens/CreateApiTokenUs
 import { ListApiTokensUseCase } from '#src/use-cases/apiTokens/ListApiTokensUseCase.js';
 import { DeleteApiTokenUseCase } from '#src/use-cases/apiTokens/DeleteApiTokenUseCase.js';
 import { ValidateApiTokenUseCase } from '#src/use-cases/apiTokens/ValidateApiTokenUseCase.js';
+import { DrizzleNotificationRepository } from '#src/infrastructure/db/repositories/DrizzleNotificationRepository.js';
+import { NotificationMapper } from '#src/interface-adapters/mappers/NotificationMapper.js';
+import { CreateNotificationUseCase } from '#src/use-cases/notifications/CreateNotificationUseCase.js';
+import { GetNotificationsPageUseCase } from '#src/use-cases/notifications/GetNotificationsPageUseCase.js';
+import { MarkNotificationsReadUseCase } from '#src/use-cases/notifications/MarkNotificationsReadUseCase.js';
+import { GetUnreadNotificationCountUseCase } from '#src/use-cases/notifications/GetUnreadNotificationCountUseCase.js';
 import { CreateContactUseCase } from '#src/use-cases/contacts/CreateContactUseCase.js';
 import { GetContactsUseCase } from '#src/use-cases/contacts/GetContactsUseCase.js';
 import { UpdateContactUseCase } from '#src/use-cases/contacts/UpdateContactUseCase.js';
@@ -199,6 +206,7 @@ export interface Cradle {
   interviewRoundRepository: CachedInterviewRoundRepository;
   activityLogRepository: DrizzleActivityLogRepository;
   apiTokenRepository: DrizzleApiTokenRepository;
+  notificationRepository: DrizzleNotificationRepository;
   contactRepository: DrizzleContactRepository;
   passwordResetTokenRepository: DrizzlePasswordResetTokenRepository;
   loginEventRepository: DrizzleLoginEventRepository;
@@ -221,6 +229,7 @@ export interface Cradle {
 
   applicationMapper: ApplicationMapper;
   apiTokenMapper: ApiTokenMapper;
+  notificationMapper: NotificationMapper;
   noteMapper: NoteMapper;
   documentMapper: DocumentMapper;
   userMapper: UserMapper;
@@ -244,6 +253,7 @@ export interface Cradle {
   contactResolver: ContactResolver;
   loginEventResolver: LoginEventResolver;
   apiTokenResolver: ApiTokenResolver;
+  notificationResolver: NotificationResolver;
   sessionResolver: SessionResolver;
   oauthResolver: OAuthResolver;
   mcpController: McpController;
@@ -315,6 +325,10 @@ export interface Cradle {
   listApiTokensUseCase: ListApiTokensUseCase;
   deleteApiTokenUseCase: DeleteApiTokenUseCase;
   validateApiTokenUseCase: ValidateApiTokenUseCase;
+  createNotificationUseCase: CreateNotificationUseCase;
+  getNotificationsPageUseCase: GetNotificationsPageUseCase;
+  markNotificationsReadUseCase: MarkNotificationsReadUseCase;
+  getUnreadNotificationCountUseCase: GetUnreadNotificationCountUseCase;
   createContactUseCase: CreateContactUseCase;
   getContactsUseCase: GetContactsUseCase;
   updateContactUseCase: UpdateContactUseCase;
@@ -395,6 +409,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     }),
     activityLogRepository: asClass(DrizzleActivityLogRepository, { lifetime: Lifetime.SINGLETON }),
     apiTokenRepository: asClass(DrizzleApiTokenRepository, { lifetime: Lifetime.SINGLETON }),
+    notificationRepository: asClass(DrizzleNotificationRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
     pushSubscriptionRepository: asClass(DrizzlePushSubscriptionRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
@@ -448,6 +465,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     // Mappers
     applicationMapper: asClass(ApplicationMapper, { lifetime: Lifetime.SINGLETON }),
     apiTokenMapper: asClass(ApiTokenMapper, { lifetime: Lifetime.SINGLETON }),
+    notificationMapper: asClass(NotificationMapper, { lifetime: Lifetime.SINGLETON }),
     noteMapper: asClass(NoteMapper, { lifetime: Lifetime.SINGLETON }),
     documentMapper: asClass(DocumentMapper, { lifetime: Lifetime.SINGLETON }),
     userMapper: asClass(UserMapper, { lifetime: Lifetime.SINGLETON }),
@@ -473,6 +491,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     contactResolver: asClass(ContactResolver, { lifetime: Lifetime.SINGLETON }),
     loginEventResolver: asClass(LoginEventResolver, { lifetime: Lifetime.SINGLETON }),
     apiTokenResolver: asClass(ApiTokenResolver, { lifetime: Lifetime.SINGLETON }),
+    notificationResolver: asClass(NotificationResolver, { lifetime: Lifetime.SINGLETON }),
     sessionResolver: asClass(SessionResolver, { lifetime: Lifetime.SINGLETON }),
     oauthResolver: asClass(OAuthResolver, { lifetime: Lifetime.SINGLETON }),
     mcpController: asClass(McpController, { lifetime: Lifetime.SINGLETON }),
@@ -596,6 +615,18 @@ export function buildContainer(): AwilixContainer<Cradle> {
     listApiTokensUseCase: asClass(ListApiTokensUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteApiTokenUseCase: asClass(DeleteApiTokenUseCase, { lifetime: Lifetime.TRANSIENT }),
     validateApiTokenUseCase: asClass(ValidateApiTokenUseCase, { lifetime: Lifetime.TRANSIENT }),
+    createNotificationUseCase: asClass(CreateNotificationUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    getNotificationsPageUseCase: asClass(GetNotificationsPageUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    markNotificationsReadUseCase: asClass(MarkNotificationsReadUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    getUnreadNotificationCountUseCase: asClass(GetUnreadNotificationCountUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     createContactUseCase: asClass(CreateContactUseCase, { lifetime: Lifetime.TRANSIENT }),
     getContactsUseCase: asClass(GetContactsUseCase, { lifetime: Lifetime.TRANSIENT }),
     updateContactUseCase: asClass(UpdateContactUseCase, { lifetime: Lifetime.TRANSIENT }),
