@@ -57,6 +57,13 @@
       "when": 1785681015117,
       "tag": "0007_flowery_human_torch",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1785789323352,
+      "tag": "0008_shiny_thanos",
+      "breakpoints": true
     }
   ]
 }

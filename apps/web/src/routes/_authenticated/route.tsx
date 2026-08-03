@@ -11,11 +11,11 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { gqlClient, hydrateSession, setAccessToken } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
-import { useTheme, type Theme } from '#/lib/theme';
 import { useHotkeys, getKeyModifier } from '#/hooks/useHotkeys';
 import { CommandPalette } from '#/components/CommandPalette';
 import { ShortcutCheatSheet } from '#/components/ShortcutCheatSheet';
 import { LogoMark } from '#/components/LogoMark';
+import { NotificationInboxButton } from './-notification-inbox';
 import {
   BarChart2Icon,
   BriefcaseIcon,
@@ -25,41 +25,13 @@ import {
   LogOutIcon,
   MenuIcon,
   MessageCircleIcon,
-  MonitorIcon,
-  MoonIcon,
   PlugIcon,
   BellIcon,
   DatabaseIcon,
   ShieldIcon,
-  SunIcon,
   UserIcon,
   XIcon,
 } from 'lucide-react';
-
-const THEME_CYCLE: Record<Theme, Theme> = { light: 'dark', dark: 'system', system: 'light' };
-const THEME_ICON: Record<Theme, React.ReactNode> = {
-  light: <SunIcon size={18} />,
-  dark: <MoonIcon size={18} />,
-  system: <MonitorIcon size={18} />,
-};
-const THEME_LABEL: Record<Theme, string> = { light: 'Light', dark: 'Dark', system: 'System' };
-
-function ThemeToggleButton({ className = '' }: { className?: string }) {
-  const { theme, setTheme } = useTheme();
-  return (
-    <button
-      type="button"
-      onClick={() => setTheme(THEME_CYCLE[theme])}
-      aria-label={`Theme: ${THEME_LABEL[theme]}. Click to switch theme.`}
-      title={`Theme: ${THEME_LABEL[theme]}`}
-      className={`p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 rounded-lg transition-colors ${className}`}
-    >
-      <span key={theme} className="theme-toggle-icon">
-        {THEME_ICON[theme]}
-      </span>
-    </button>
-  );
-}
 
 const LOGOUT_MUTATION = `mutation { logout }`;
 const AVATAR_QUERY = `query AccountAvatar { me { avatarUrl } }`;
@@ -282,7 +254,7 @@ export function AuthenticatedLayout() {
           </span>
         </div>
         <div className="flex items-center gap-1">
-          <ThemeToggleButton />
+          <NotificationInboxButton />
         </div>
       </header>
 
@@ -293,7 +265,7 @@ export function AuthenticatedLayout() {
             <LogoMark size={22} />
             Job Finder
           </span>
-          <ThemeToggleButton />
+          <NotificationInboxButton />
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">

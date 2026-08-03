@@ -2,6 +2,9 @@ import { vi } from 'vitest';
 import type { ITransactionManager } from '#src/use-cases/ports/ITransactionManager.js';
 import type { IApiTokenRepository } from '#src/use-cases/ports/IApiTokenRepository.js';
 import type { ApiToken } from '#src/domain/apiToken/ApiToken.js';
+import type { INotificationRepository } from '#src/use-cases/ports/INotificationRepository.js';
+import type { Notification } from '#src/domain/notification/Notification.js';
+import type { ICreateNotificationUseCase } from '#src/use-cases/notifications/ICreateNotificationUseCase.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentRepository.js';
@@ -44,6 +47,8 @@ import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyReposi
 import type { LlmApiKey } from '#src/domain/llmApiKey/LlmApiKey.js';
 import type { IDocumentTextExtractor } from '#src/use-cases/ports/IDocumentTextExtractor.js';
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
+import type { IPushSubscriptionRepository } from '#src/use-cases/ports/IPushSubscriptionRepository.js';
+import type { PushSubscription } from '#src/domain/pushSubscription/PushSubscription.js';
 
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
@@ -155,6 +160,35 @@ export const makeApiTokenRepository = (
   create: vi.fn(),
   updateLastUsed: vi.fn(),
   delete: vi.fn(),
+  ...overrides,
+});
+
+export const makeNotificationRepository = (
+  overrides?: Partial<INotificationRepository>,
+): INotificationRepository => ({
+  create: vi.fn(),
+  findPageByUserId: vi.fn().mockResolvedValue({ items: [], hasNextPage: false }),
+  markManyReadForUser: vi.fn().mockResolvedValue(0),
+  countUnreadForUser: vi.fn().mockResolvedValue(0),
+  ...overrides,
+});
+
+export const makeCreateNotificationUseCase = (
+  overrides?: Partial<ICreateNotificationUseCase>,
+): ICreateNotificationUseCase => ({
+  execute: vi.fn().mockImplementation((input) => Promise.resolve(makeNotification(input))),
+  ...overrides,
+});
+
+export const makeNotification = (overrides?: Partial<Notification>): Notification => ({
+  id: 'notification-1',
+  userId: 'user-1',
+  type: 'interview_reminder',
+  title: 'Upcoming interview: Acme Corp',
+  body: 'Software Engineer — phone interview tomorrow at 10:00 AM',
+  url: '/applications/app-1',
+  readAt: null,
+  createdAt: new Date('2024-01-01'),
   ...overrides,
 });
 
@@ -514,5 +548,27 @@ export const makeDocumentTextExtractor = (
 
 export const makeLogger = (overrides?: Partial<ILogger>): ILogger => ({
   error: vi.fn(),
+  ...overrides,
+});
+
+export const makePushSubscriptionRepository = (
+  overrides?: Partial<IPushSubscriptionRepository>,
+): IPushSubscriptionRepository => ({
+  findByUserId: vi.fn().mockResolvedValue([]),
+  findByEndpoint: vi.fn().mockResolvedValue(null),
+  upsert: vi.fn(),
+  deleteByEndpoint: vi.fn().mockResolvedValue(undefined),
+  deleteByUserId: vi.fn().mockResolvedValue(undefined),
+  ...overrides,
+});
+
+export const makePushSubscription = (overrides?: Partial<PushSubscription>): PushSubscription => ({
+  id: 'push-sub-1',
+  userId: 'user-1',
+  endpoint: 'https://push.example.com/sub-1',
+  p256dh: 'p256dh-key',
+  auth: 'auth-key',
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
   ...overrides,
 });
