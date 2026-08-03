@@ -8,6 +8,7 @@ import { AlertTriangleIcon } from 'lucide-react';
 import { queryClient } from '#/lib/queryClient';
 import { THEME_INIT_SCRIPT, ThemeProvider, useTheme } from '#/lib/theme';
 import { NavigationProgressBar } from '#/components/NavigationProgressBar';
+import { watchForServiceWorkerUpdate } from '#/lib/swUpdateToast';
 
 import appCss from '../styles.css?url';
 
@@ -88,18 +89,22 @@ function AppToaster() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  // Registered manually with the plain browser API rather than the plugin's
-  // `virtual:pwa-register` helper or its index.html auto-injection: this
-  // file is isomorphic (rendered for both the client and server Vite
-  // environments), and vite-plugin-pwa's virtual module only resolves for
-  // the client build — importing it here breaks the server bundle. sw.js
-  // is a real static file (registerType: 'autoUpdate' means no update-prompt
-  // callbacks are needed, so the plain API loses nothing here).
+  // Registered manually with the plain browser API rather than a build
+  // plugin's virtual-module helper: this file is isomorphic (rendered for
+  // both the client and server Vite environments), and any such virtual
+  // module only resolves for the client build — importing it here would
+  // break the server bundle. sw.js (apps/web/public/sw.js) is a real,
+  // hand-written static file — see its own comments for why.
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js');
     }
   }, []);
+
+  // Prompts for a refresh when a new SW version takes over this tab instead
+  // of leaving an already-open install running stale code — see
+  // swUpdateToast.ts for why this needs more than just skipWaiting().
+  useEffect(() => watchForServiceWorkerUpdate(), []);
 
   // Listen for messages from the service worker (e.g. push notification clicks)
   useEffect(() => {
