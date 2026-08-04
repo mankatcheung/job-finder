@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { UserIcon } from 'lucide-react';
+import { UserIcon, Trash2Icon } from 'lucide-react';
 import { put as putBlob } from '@vercel/blob/client';
 import { gqlClient } from '#/graphql/client';
 import { useTheme, type Theme } from '#/lib/theme';
@@ -136,6 +136,7 @@ export function SettingsProfilePage() {
               type="button"
               onClick={() => setTheme(option.value)}
               aria-pressed={theme === option.value}
+              aria-label={`Theme: ${option.label}`}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 theme === option.value
                   ? 'bg-blue-600 text-white'
@@ -143,7 +144,7 @@ export function SettingsProfilePage() {
               }`}
             >
               {option.icon}
-              {option.label}
+              <span className="hidden sm:inline">{option.label}</span>
             </button>
           ))}
         </div>
@@ -189,9 +190,10 @@ export function SettingsProfilePage() {
                   type="button"
                   onClick={onRemoveAvatar}
                   disabled={avatarUploading}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 disabled:opacity-60"
+                  aria-label="Remove photo"
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 disabled:opacity-60"
                 >
-                  Remove
+                  <Trash2Icon size={14} /> <span className="hidden sm:inline">Remove</span>
                 </button>
               )}
             </div>

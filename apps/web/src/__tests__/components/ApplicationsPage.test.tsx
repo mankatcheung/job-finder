@@ -420,7 +420,7 @@ describe('ApplicationsPage', () => {
       fireEvent.click(screen.getByLabelText('Select Stripe'));
       mockMutationResult({ updateApplication: { id: '1' } });
 
-      fireEvent.click(screen.getByRole('button', { name: /^star$/i }));
+      fireEvent.click(screen.getByRole('button', { name: 'Star selected' }));
       await waitFor(() => {
         expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('updateApplication'), {
           id: '1',
@@ -428,7 +428,7 @@ describe('ApplicationsPage', () => {
         });
       });
 
-      fireEvent.click(screen.getByRole('button', { name: /unstar/i }));
+      fireEvent.click(screen.getByRole('button', { name: 'Unstar selected' }));
       await waitFor(() => {
         expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('updateApplication'), {
           id: '1',
@@ -444,7 +444,7 @@ describe('ApplicationsPage', () => {
       fireEvent.click(screen.getByLabelText('Select all'));
       mockMutationResult({ deleteApplication: true });
 
-      fireEvent.click(screen.getByRole('button', { name: /delete/i }));
+      fireEvent.click(screen.getByRole('button', { name: 'Delete selected' }));
 
       await waitFor(() => {
         expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('deleteApplication'), {
@@ -467,7 +467,7 @@ describe('ApplicationsPage', () => {
       fireEvent.click(screen.getByLabelText('Select Stripe'));
       mockGqlRequest.mockClear();
 
-      fireEvent.click(screen.getByRole('button', { name: /delete/i }));
+      fireEvent.click(screen.getByRole('button', { name: 'Delete selected' }));
 
       // Without the mock calling onExecute, no delete mutation should fire
       await new Promise((r) => setTimeout(r, 100));

@@ -9,7 +9,16 @@ import {
 import { gqlClient } from '#/graphql/client';
 import { useInfiniteScrollSentinel } from '#/lib/useInfiniteScrollSentinel';
 import { useHotkeys } from '#/hooks/useHotkeys';
-import { BellIcon, XIcon, CalendarIcon, ClockIcon, ShieldIcon, Loader2Icon } from 'lucide-react';
+import {
+  BellIcon,
+  XIcon,
+  CalendarIcon,
+  ClockIcon,
+  ShieldIcon,
+  Loader2Icon,
+  CheckCheckIcon,
+  EyeOffIcon,
+} from 'lucide-react';
 
 const PAGE_SIZE = 20;
 
@@ -208,16 +217,18 @@ function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
                 <button
                   type="button"
                   onClick={() => markSelected(true)}
-                  className="text-xs text-blue-600 hover:underline"
+                  aria-label="Mark read"
+                  className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
                 >
-                  Mark read
+                  <CheckCheckIcon size={14} /> <span className="hidden sm:inline">Mark read</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => markSelected(false)}
-                  className="text-xs text-blue-600 hover:underline"
+                  aria-label="Mark unread"
+                  className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
                 >
-                  Mark unread
+                  <EyeOffIcon size={14} /> <span className="hidden sm:inline">Mark unread</span>
                 </button>
               </div>
             )}

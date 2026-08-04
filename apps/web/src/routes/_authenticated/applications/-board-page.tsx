@@ -16,7 +16,7 @@ import { gqlClient } from '#/graphql/client';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { StatusBadge } from '../dashboard';
 import { ErrorState } from '#/components/ErrorState';
-import { ListIcon, StarIcon } from 'lucide-react';
+import { ListIcon, PlusIcon, StarIcon } from 'lucide-react';
 import { boardApplicationsQueryOptions, type BoardApplication } from './-board-queries';
 
 const UPDATE_STATUS = `
@@ -135,15 +135,19 @@ export function KanbanBoard() {
         <div className="flex items-center gap-2">
           <Link
             to="/applications"
+            aria-label="Switch to list view"
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg"
           >
-            <ListIcon size={13} /> List
+            <ListIcon size={13} />
+            <span className="hidden sm:inline">List</span>
           </Link>
           <Link
             to="/applications/new"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+            aria-label="New application"
+            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + New
+            <PlusIcon size={15} />
+            <span className="hidden sm:inline">+ New</span>
           </Link>
         </div>
       </div>
