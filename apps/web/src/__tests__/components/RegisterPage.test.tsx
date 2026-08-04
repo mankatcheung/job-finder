@@ -116,15 +116,16 @@ describe('RegisterPage', () => {
     );
   });
 
-  it('navigates to /dashboard after successful registration', async () => {
+  it('shows check your email message after successful registration', async () => {
     mockGqlRequest.mockResolvedValue({ register: 'access-token' });
     render(<RegisterPage />);
     fillForm('test@example.com', 'password123', 'password123');
     fireEvent.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith({ to: '/dashboard' });
+      expect(screen.getByText('Check your email')).toBeInTheDocument();
     });
+    expect(screen.getByText(/test@example.com/)).toBeInTheDocument();
   });
 
   it('stores the returned access token before navigating', async () => {

@@ -1,4 +1,5 @@
-import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -36,7 +37,6 @@ export const Route = createFileRoute('/register')({
 });
 
 export function RegisterPage() {
-  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -46,6 +46,8 @@ export function RegisterPage() {
     resolver: zodResolver(schema),
   });
 
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+
   const onSubmit = async ({ email, password }: FormValues) => {
     try {
       const res = await gqlClient.request<{ register: string }>(REGISTER_MUTATION, {
@@ -54,12 +56,60 @@ export function RegisterPage() {
       });
       setAccessToken(res.register);
       await queryClient.resetQueries();
-      await navigate({ to: '/dashboard' });
+      setRegisteredEmail(email);
     } catch (err: unknown) {
       const msg = extractGqlError(err) ?? 'Registration failed. Please try again.';
       setError('root', { message: msg });
     }
   };
+
+  if (registeredEmail) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+        <div className="w-full max-w-sm space-y-6">
+          <Link to="/" className="flex items-center justify-center gap-2">
+            <LogoMark size={28} />
+            <span className="text-xl font-bold text-gray-900 dark:text-gray-100">Job Finder</span>
+          </Link>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6 text-center">
+            <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+              <svg
+                className="w-6 h-6 text-green-600 dark:text-green-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+                />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                Check your email
+              </h1>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                We sent a verification link to{' '}
+                <span className="font-medium text-gray-900 dark:text-gray-100">
+                  {registeredEmail}
+                </span>
+                . Click the link to verify your account.
+              </p>
+            </div>
+            <Link
+              to="/login"
+              className="inline-block w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors text-center"
+            >
+              Back to sign in
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
