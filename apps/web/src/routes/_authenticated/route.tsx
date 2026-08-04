@@ -325,7 +325,7 @@ export function AuthenticatedLayout() {
       </aside>
 
       <main className="flex-1 overflow-auto pt-14 lg:pt-0 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
-        <div key={sectionKey} className="route-transition">
+        <div key={sectionKey} className="route-transition h-full flex flex-col">
           <Outlet />
         </div>
       </main>

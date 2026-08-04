@@ -107,8 +107,8 @@ export function KanbanBoard() {
 
   if (isLoading) {
     return (
-      <div className="p-4 sm:p-6 min-h-screen">
-        <div className="flex gap-3 overflow-x-auto pb-4">
+      <div className="p-4 sm:p-6 h-full">
+        <div className="flex gap-3 overflow-x-auto pb-4 flex-1">
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
@@ -122,21 +122,21 @@ export function KanbanBoard() {
 
   if (isError) {
     return (
-      <div className="p-4 sm:p-6 min-h-screen">
+      <div className="p-4 sm:p-6 h-full">
         <ErrorState error={error} onRetry={() => refetch()} />
       </div>
     );
   }
 
   return (
-    <div className="p-4 sm:p-6 min-h-screen">
+    <div className="p-4 sm:p-6 h-full">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Board</h1>
         <div className="flex items-center gap-2">
           <Link
             to="/applications"
             aria-label="Switch to list view"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg"
           >
             <ListIcon size={13} />
             <span className="hidden sm:inline">List</span>
@@ -153,7 +153,7 @@ export function KanbanBoard() {
       </div>
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div className="flex gap-3 overflow-x-auto pb-4">
+        <div className="flex gap-3 overflow-x-auto pb-4 flex-1">
           {STATUSES.map((status) => (
             <Column key={status} status={status} apps={byStatus(status)} />
           ))}
@@ -182,7 +182,7 @@ function Column({ status, apps }: { status: string; apps: Application[] }) {
         </span>
       </div>
 
-      <div className="flex flex-col gap-2 p-2 min-h-[120px]">
+      <div className="flex flex-col gap-2 p-2 flex-1 overflow-y-auto">
         {apps.map((app) => (
           <DraggableCard key={app.id} app={app} />
         ))}
