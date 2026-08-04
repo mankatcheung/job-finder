@@ -108,15 +108,14 @@ describe('ApplicationsPage', () => {
     expect(screen.getByText('Engineer · Remote')).toBeInTheDocument();
   });
 
-  it('shows status filter chips', async () => {
+  it('shows status filter dropdown', async () => {
     mockGqlRequest.mockResolvedValue(page([]));
     render(<ApplicationsPage />, { wrapper: Wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText('All')).toBeInTheDocument();
+      expect(screen.getByText('All statuses')).toBeInTheDocument();
     });
-    expect(screen.getByText('applied')).toBeInTheDocument();
-    expect(screen.getByText('interviewing')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('All statuses')).toBeInTheDocument();
   });
 
   it('shows filtered empty state when status filter active', async () => {

@@ -226,11 +226,24 @@ export function ApplicationsPage() {
         )}
       </div>
 
-      <div className="flex gap-2 mb-6 flex-wrap">
-        <FilterChip label="All" value={undefined} current={status} />
-        {APPLICATION_STATUSES.map((s) => (
-          <FilterChip key={s} label={s} value={s} current={status} />
-        ))}
+      <div className="flex items-center gap-3 mb-6">
+        <select
+          value={status ?? ''}
+          onChange={(e) => {
+            const params = new URLSearchParams(window.location.search);
+            if (e.target.value) params.set('status', e.target.value);
+            else params.delete('status');
+            window.location.search = params.toString();
+          }}
+          className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 capitalize"
+        >
+          <option value="">All statuses</option>
+          {APPLICATION_STATUSES.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
         <Link
           to="/applications"
           search={starred ? {} : { starred: true }}
@@ -487,30 +500,5 @@ function BulkActionBar({
         </button>
       </div>
     </div>
-  );
-}
-
-function FilterChip({
-  label,
-  value,
-  current,
-}: {
-  label: string;
-  value: string | undefined;
-  current: string | undefined;
-}) {
-  const active = value === current;
-  return (
-    <Link
-      to="/applications"
-      search={value ? { status: value } : {}}
-      className={`text-xs px-3 py-1.5 rounded-full border capitalize transition-colors ${
-        active
-          ? 'bg-blue-600 text-white border-blue-600'
-          : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-blue-300'
-      }`}
-    >
-      {label}
-    </Link>
   );
 }
