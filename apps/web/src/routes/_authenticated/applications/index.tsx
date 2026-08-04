@@ -12,6 +12,7 @@ import {
   BriefcaseIcon,
   KanbanIcon,
   Loader2Icon,
+  PlusIcon,
   SearchIcon,
   StarIcon,
   StarOffIcon,
@@ -187,15 +188,19 @@ export function ApplicationsPage() {
         <div className="flex items-center gap-2">
           <Link
             to="/applications/board"
+            aria-label="Switch to board view"
             className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors"
           >
-            <KanbanIcon size={15} /> Board
+            <KanbanIcon size={15} />
+            <span className="hidden sm:inline">Board</span>
           </Link>
           <Link
             to="/applications/new"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+            aria-label="New application"
+            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + New
+            <PlusIcon size={15} />
+            <span className="hidden sm:inline">+ New</span>
           </Link>
         </div>
       </div>
