@@ -29,6 +29,9 @@ import './types/NotificationPreferencesType.js';
 import './types/NotificationType.js';
 import './types/NotificationConnectionType.js';
 import './types/SessionType.js';
+import './types/WorkExperienceType.js';
+import './types/EducationType.js';
+import './types/SkillType.js';
 
 // Queries
 import './queries/applicationQueries.js';
@@ -46,6 +49,9 @@ import './queries/oauthQueries.js';
 import './queries/calendarQueries.js';
 import './queries/chatQueries.js';
 import './queries/notificationQueries.js';
+import './queries/workExperienceQueries.js';
+import './queries/educationQueries.js';
+import './queries/skillQueries.js';
 
 // Mutations
 import './mutations/authMutations.js';
@@ -64,5 +70,8 @@ import './mutations/oauthMutations.js';
 import './mutations/chatMutations.js';
 import './mutations/pushMutations.js';
 import './mutations/notificationMutations.js';
+import './mutations/workExperienceMutations.js';
+import './mutations/educationMutations.js';
+import './mutations/skillMutations.js';
 
 export const schema = builder.toSchema();
