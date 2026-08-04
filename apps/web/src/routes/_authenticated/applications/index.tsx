@@ -189,7 +189,7 @@ export function ApplicationsPage() {
           <Link
             to="/applications/board"
             aria-label="Switch to board view"
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors"
           >
             <KanbanIcon size={15} />
             <span className="hidden sm:inline">Board</span>
