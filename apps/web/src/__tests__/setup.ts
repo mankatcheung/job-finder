@@ -1,4 +1,8 @@
+import { expect } from 'vitest';
 import '@testing-library/jest-dom/vitest';
+import { toHaveNoViolations } from 'jest-axe';
+
+expect.extend(toHaveNoViolations);
 
 // jsdom exposes localStorage on the window object, but Vitest's jsdom
 // environment may not polyfill it onto the global scope — and components

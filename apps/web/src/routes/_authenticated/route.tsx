@@ -189,7 +189,7 @@ export function AuthenticatedLayout() {
             </button>
           </div>
 
-          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          <nav aria-label="Main navigation" className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
             {MAIN_NAV.map((item, i) => (
               <NavItem
                 key={item.to}
@@ -268,7 +268,7 @@ export function AuthenticatedLayout() {
           <NotificationInboxButton />
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        <nav aria-label="Main navigation" className="flex-1 px-3 py-4 space-y-1">
           {MAIN_NAV.map((item, i) => (
             <NavItem
               key={item.to}
@@ -333,7 +333,10 @@ export function AuthenticatedLayout() {
       {/* Mobile bottom nav. Explicit h-16 so the 4rem constant other layout
           math (main's padding, the assistant composer's docking) relies on
           is guaranteed accurate rather than depending on intrinsic content height. */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 h-16 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex items-center pb-[env(safe-area-inset-bottom)]">
+      <nav
+        aria-label="Bottom navigation"
+        className="lg:hidden fixed bottom-0 inset-x-0 z-40 h-16 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex items-center pb-[env(safe-area-inset-bottom)]"
+      >
         <BottomNavItem
           to="/dashboard"
           icon={<LayoutDashboardIcon size={20} />}

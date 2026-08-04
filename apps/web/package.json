@@ -49,6 +49,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@graphql-codegen/cli": "^5.0.5",
     "@graphql-codegen/client-preset": "^4.6.2",
     "@playwright/test": "^1.61.1",
@@ -59,6 +60,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "@types/jest-axe": "^3.5.9",
     "@types/node": "^22.10.2",
     "@types/nprogress": "^0.2.3",
     "@types/react": "^19.2.0",
@@ -69,6 +71,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "jest-axe": "^11.0.0",
     "jsdom": "^28.1.0",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.64.0",
