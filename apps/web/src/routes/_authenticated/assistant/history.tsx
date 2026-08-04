@@ -31,16 +31,17 @@ export function ConversationHistoryPage() {
           >
             <ArrowLeftIcon size={18} />
           </Link>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 min-w-0 truncate">
             Conversation history
           </h1>
         </div>
         <Link
           to="/assistant"
+          aria-label="New conversation"
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
         >
           <PlusIcon size={14} />
-          New conversation
+          <span className="hidden sm:inline">New conversation</span>
         </Link>
       </div>
 
