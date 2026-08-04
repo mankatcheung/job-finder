@@ -200,7 +200,7 @@ export function ApplicationsPage() {
             className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
           >
             <PlusIcon size={15} />
-            <span className="hidden sm:inline">+ New</span>
+            <span className="hidden sm:inline">New</span>
           </Link>
         </div>
       </div>

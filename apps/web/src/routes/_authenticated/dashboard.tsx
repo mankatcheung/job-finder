@@ -8,6 +8,7 @@ import {
   CheckCircleIcon,
   ClockIcon,
   FileTextIcon,
+  PlusIcon,
   StarIcon,
 } from 'lucide-react';
 
@@ -64,9 +65,10 @@ export function DashboardPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
         <Link
           to="/applications/new"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
         >
-          + New application
+          <PlusIcon size={15} />
+          <span className="hidden sm:inline">New Application</span>
         </Link>
       </div>
 
