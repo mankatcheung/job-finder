@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { axe } from 'vitest-axe';
+import { axe } from 'jest-axe';
 
 /* ------------------------------------------------------------------ */
 /*  Shared mocks — reused across every component under test            */
