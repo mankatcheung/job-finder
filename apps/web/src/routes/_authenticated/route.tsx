@@ -330,10 +330,12 @@ export function AuthenticatedLayout() {
         </div>
       </main>
 
-      {/* Mobile bottom nav */}
+      {/* Mobile bottom nav. Explicit h-16 so the 4rem constant other layout
+          math (main's padding, the assistant composer's docking) relies on
+          is guaranteed accurate rather than depending on intrinsic content height. */}
       <nav
         aria-label="Bottom navigation"
-        className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex pb-[env(safe-area-inset-bottom)]"
+        className="lg:hidden fixed bottom-0 inset-x-0 z-40 h-16 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex items-center pb-[env(safe-area-inset-bottom)]"
       >
         <BottomNavItem
           to="/dashboard"

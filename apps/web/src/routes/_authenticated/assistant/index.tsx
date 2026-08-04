@@ -1,9 +1,8 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
-import { showUndoToast } from '#/lib/undoToast';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { getErrorMessage } from '#/lib/errors';
 import {
@@ -11,79 +10,18 @@ import {
   LLM_PROVIDER_LABEL,
   type LlmApiKey,
 } from '#/routes/_authenticated/settings/-components/shared';
-import { PlusIcon, Trash2Icon } from 'lucide-react';
-import { toast } from 'sonner';
-
-const CONVERSATIONS_QUERY = `
-  query Conversations {
-    conversations {
-      id
-      title
-      llmProvider
-      llmModel
-      createdAt
-      updatedAt
-    }
-  }
-`;
-
-const CHAT_HISTORY_QUERY = `
-  query ChatHistory($conversationId: ID!) {
-    chatHistory(conversationId: $conversationId) {
-      role
-      content
-    }
-  }
-`;
-
-const CREATE_CONVERSATION = `
-  mutation CreateConversation($provider: String, $model: String) {
-    createConversation(provider: $provider, model: $model) {
-      id
-      title
-      llmProvider
-      llmModel
-      createdAt
-      updatedAt
-    }
-  }
-`;
-
-const SEND_CHAT_MESSAGE = `
-  mutation SendChatMessage($conversationId: ID!, $message: String!) {
-    sendChatMessage(conversationId: $conversationId, message: $message)
-  }
-`;
-
-const DELETE_CONVERSATION = `
-  mutation DeleteConversation($id: ID!) {
-    deleteConversation(id: $id)
-  }
-`;
-
-type ChatRole = 'user' | 'assistant';
-
-interface ChatMessage {
-  role: ChatRole;
-  content: string;
-}
-
-export interface ChatHistoryResult {
-  chatHistory: ChatMessage[];
-}
-
-interface Conversation {
-  id: string;
-  title: string | null;
-  llmProvider: string | null;
-  llmModel: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ConversationsResult {
-  conversations: Conversation[];
-}
+import {
+  CREATE_CONVERSATION,
+  SEND_CHAT_MESSAGE,
+  chatHistoryQueryOptions,
+  conversationsQueryOptions,
+  deleteConversationWithUndo,
+  type ChatHistoryResult,
+  type ChatMessage,
+  type Conversation,
+  type ConversationsResult,
+} from '#/routes/_authenticated/assistant/-shared';
+import { HistoryIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 
 const SUGGESTED_QUESTIONS = [
   "Which applications haven't I followed up on?",
@@ -100,21 +38,9 @@ const LOADING_MESSAGES = [
 
 const LOADING_MESSAGE_INTERVAL_MS = 3000;
 
-const conversationsQueryOptions = queryOptions({
-  queryKey: ['conversations'],
-  queryFn: () => gqlClient.request<ConversationsResult>(CONVERSATIONS_QUERY),
-});
-
-function chatHistoryQueryOptions(conversationId: string) {
-  return queryOptions({
-    queryKey: ['chatHistory', conversationId],
-    queryFn: () => gqlClient.request<ChatHistoryResult>(CHAT_HISTORY_QUERY, { conversationId }),
-  });
-}
-
 const searchSchema = z.object({ conversation: z.string().optional() });
 
-export const Route = createFileRoute('/_authenticated/assistant')({
+export const Route = createFileRoute('/_authenticated/assistant/')({
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ conversation: search.conversation }),
   loader: async ({ context: { queryClient }, deps }) => {
@@ -175,10 +101,6 @@ export function AssistantPage() {
       gqlClient.request<{ createConversation: Conversation }>(CREATE_CONVERSATION, vars),
   });
 
-  const deleteConversation = useMutation({
-    mutationFn: (id: string) => gqlClient.request(DELETE_CONVERSATION, { id }),
-  });
-
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, send.isPending]);
@@ -223,8 +145,8 @@ export function AssistantPage() {
     try {
       const data = await send.mutateAsync({ conversationId, message: trimmed });
       appendOptimistic(conversationId, { role: 'assistant', content: data.sendChatMessage });
-      // Refreshes the sidebar's title (auto-derived server-side from the
-      // first message) and ordering (most-recently-updated first).
+      // Refreshes the conversation's title (auto-derived server-side from
+      // the first message) and ordering (most-recently-updated first).
       void qc.invalidateQueries({ queryKey: conversationsQueryOptions.queryKey });
     } catch {
       // Error surfaced below via send.isError — the user's message stays visible so they can retry.
@@ -244,73 +166,47 @@ export function AssistantPage() {
     void navigate({ search: {} });
   };
 
-  const onDeleteConversation = (id: string) => {
-    const snapshot = qc.getQueryData<ConversationsResult>(conversationsQueryOptions.queryKey);
-    qc.setQueryData<ConversationsResult>(conversationsQueryOptions.queryKey, (prev) => ({
-      conversations: (prev?.conversations ?? []).filter((c) => c.id !== id),
-    }));
-    if (activeId === id) void navigate({ search: {} });
-    showUndoToast({
-      message: 'Conversation deleted',
-      onExecute: () => {
-        deleteConversation.mutate(id, {
-          onSuccess: () => {
-            qc.removeQueries({ queryKey: chatHistoryQueryOptions(id).queryKey });
-          },
-        });
-      },
-      onUndo: () => {
-        qc.setQueryData<ConversationsResult>(conversationsQueryOptions.queryKey, snapshot);
-        toast.dismiss();
-      },
-    });
+  const onDeleteActiveConversation = () => {
+    if (!activeId) return;
+    deleteConversationWithUndo(qc, activeId, () => void navigate({ search: {} }));
   };
 
   return (
-    <div className="flex flex-col sm:flex-row h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
-      <aside
-        aria-label="Conversations"
-        className="sm:w-56 shrink-0 max-h-40 sm:max-h-none overflow-y-auto border-b sm:border-b-0 sm:border-r border-gray-200 dark:border-gray-700 p-3 sm:p-4 space-y-1"
-      >
-        <button
-          type="button"
-          onClick={onNewConversation}
-          className="w-full flex items-center gap-1.5 px-2 py-1.5 mb-2 rounded-lg text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-        >
-          <PlusIcon size={14} />
-          New conversation
-        </button>
-        {conversations.map((c) => (
-          <Link
-            key={c.id}
-            to="/assistant"
-            search={{ conversation: c.id }}
-            className={`group flex items-center justify-between gap-1 px-2 py-1.5 rounded-lg text-sm transition-colors ${
-              c.id === activeId
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            <span className="truncate">{c.title ?? 'New conversation'}</span>
+    <div className="flex flex-col h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
+      <div className="flex-1 flex flex-col min-w-0 px-4 pt-4 sm:px-8 sm:pt-8 max-w-3xl mx-auto w-full min-h-0">
+        <div className="flex items-center justify-between mb-2 shrink-0">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Assistant</h1>
+          <div className="flex items-center gap-1">
+            {activeId && (
+              <button
+                type="button"
+                onClick={onDeleteActiveConversation}
+                aria-label="Delete conversation"
+                title="Delete conversation"
+                className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors"
+              >
+                <Trash2Icon size={16} />
+              </button>
+            )}
             <button
               type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                onDeleteConversation(c.id);
-              }}
-              aria-label="Delete conversation"
-              className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600 dark:hover:text-red-400 shrink-0 transition-opacity"
+              onClick={onNewConversation}
+              aria-label="New conversation"
+              title="New conversation"
+              className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-lg transition-colors"
             >
-              <Trash2Icon size={12} />
+              <PlusIcon size={16} />
             </button>
-          </Link>
-        ))}
-      </aside>
-
-      <div className="flex-1 flex flex-col min-w-0 p-4 sm:p-8 max-w-3xl mx-auto w-full">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 shrink-0">
-          Assistant
-        </h1>
+            <Link
+              to="/assistant/history"
+              aria-label="Conversation history"
+              title="Conversation history"
+              className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-lg transition-colors"
+            >
+              <HistoryIcon size={16} />
+            </Link>
+          </div>
+        </div>
 
         <div className="mb-4 shrink-0">
           {activeId && activeConversation?.llmProvider ? (
@@ -352,7 +248,7 @@ export function AssistantPage() {
           ) : null}
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+        <div className="flex-1 overflow-y-auto space-y-4 mb-4 min-h-0">
           {activeId && isHistoryLoading ? (
             <div className="space-y-3">
               {[...Array(3)].map((_, i) => (
@@ -430,7 +326,10 @@ export function AssistantPage() {
           <div ref={bottomRef} />
         </div>
 
-        <form onSubmit={onSubmit} className="flex gap-2 shrink-0">
+        <form
+          onSubmit={onSubmit}
+          className="flex gap-2 shrink-0 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
+        >
           <input
             type="text"
             value={input}
