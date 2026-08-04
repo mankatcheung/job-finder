@@ -12,19 +12,20 @@ vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => (opts: Record<string, unknown>) => ({
     ...opts,
     useSearch: mockSearch,
-    fullPath: '/assistant',
+    fullPath: '/assistant/',
   }),
   useNavigate: () => mockNavigate,
   Link: ({
     children,
     to,
     search,
+    ...rest
   }: {
     children: React.ReactNode;
     to: string;
     search?: Record<string, unknown>;
   }) => (
-    <a href={to} onClick={() => mockNavigate({ search })}>
+    <a href={to} onClick={() => mockNavigate({ search })} {...rest}>
       {children}
     </a>
   ),
@@ -40,7 +41,7 @@ vi.mock('#/lib/undoToast', () => ({
   }),
 }));
 
-import { AssistantPage } from '#/routes/_authenticated/assistant';
+import { AssistantPage } from '#/routes/_authenticated/assistant/index';
 
 const makeClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
@@ -51,7 +52,7 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 
 const noConversations = () => Promise.resolve({ conversations: [] });
 
-describe('AssistantPage', () => {
+describe('AssistantPage (chat)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSearch.mockReturnValue({});
@@ -69,23 +70,57 @@ describe('AssistantPage', () => {
     expect(screen.getByText('Summarize my interviews this month')).toBeInTheDocument();
   });
 
-  it('lists conversations in the sidebar, falling back to "New conversation" for an untitled one', async () => {
+  it('does not render an embedded conversation list', async () => {
     mockGqlRequest.mockImplementation((query: string) => {
       if (query.includes('Conversations'))
         return Promise.resolve({
-          conversations: [
-            { id: 'conv-1', title: 'Which applications have I applied to?' },
-            { id: 'conv-2', title: null },
-          ],
+          conversations: [{ id: 'conv-1', title: 'Which applications have I applied to?' }],
         });
       return Promise.resolve({ chatHistory: [] });
     });
     render(<AssistantPage />, { wrapper: Wrapper });
 
     await waitFor(() =>
-      expect(screen.getByText('Which applications have I applied to?')).toBeInTheDocument(),
+      expect(
+        screen.getByText('Ask about your applications, contacts, or interview rounds.'),
+      ).toBeInTheDocument(),
     );
-    expect(screen.getByRole('link', { name: 'New conversation' })).toBeInTheDocument();
+    expect(screen.queryByText('Which applications have I applied to?')).not.toBeInTheDocument();
+  });
+
+  it('links to the conversation history page', async () => {
+    mockGqlRequest.mockImplementation(noConversations);
+    render(<AssistantPage />, { wrapper: Wrapper });
+
+    await waitFor(() => expect(screen.getByLabelText('Conversation history')).toBeInTheDocument());
+    expect(screen.getByLabelText('Conversation history')).toHaveAttribute(
+      'href',
+      '/assistant/history',
+    );
+  });
+
+  it('only shows the delete-conversation button when a conversation is active', async () => {
+    mockSearch.mockReturnValue({ conversation: 'conv-1' });
+    mockGqlRequest.mockImplementation((query: string) => {
+      if (query.includes('Conversations')) return noConversations();
+      if (query.includes('ChatHistory')) return Promise.resolve({ chatHistory: [] });
+      return Promise.resolve({});
+    });
+    render(<AssistantPage />, { wrapper: Wrapper });
+
+    await waitFor(() => expect(screen.getByLabelText('Delete conversation')).toBeInTheDocument());
+  });
+
+  it('does not show the delete-conversation button with no active conversation', async () => {
+    mockGqlRequest.mockImplementation(noConversations);
+    render(<AssistantPage />, { wrapper: Wrapper });
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Ask about your applications, contacts, or interview rounds.'),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.queryByLabelText('Delete conversation')).not.toBeInTheDocument();
   });
 
   it('renders the active conversation’s history from the loader-populated query', async () => {
@@ -173,7 +208,8 @@ describe('AssistantPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith({ search: { conversation: 'new-conv' } });
   });
 
-  it('deletes a conversation', async () => {
+  it('deletes the active conversation and navigates back to a blank chat', async () => {
+    mockSearch.mockReturnValue({ conversation: 'conv-1' });
     mockGqlRequest.mockImplementation((query: string) => {
       if (query.includes('Conversations'))
         return Promise.resolve({ conversations: [{ id: 'conv-1', title: 'Old chat' }] });
@@ -183,36 +219,15 @@ describe('AssistantPage', () => {
     });
 
     render(<AssistantPage />, { wrapper: Wrapper });
-    await waitFor(() => expect(screen.getByText('Old chat')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByLabelText('Delete conversation')).toBeInTheDocument());
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete conversation' }));
+    fireEvent.click(screen.getByLabelText('Delete conversation'));
 
     await waitFor(() =>
       expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('DeleteConversation'), {
         id: 'conv-1',
       }),
     );
-  });
-
-  it('does not delete when undo is clicked', async () => {
-    const { showUndoToast } = await import('#/lib/undoToast');
-    vi.mocked(showUndoToast).mockImplementation(() => {});
-
-    mockGqlRequest.mockImplementation((query: string) => {
-      if (query.includes('Conversations'))
-        return Promise.resolve({ conversations: [{ id: 'conv-1', title: 'Old chat' }] });
-      return Promise.resolve({ chatHistory: [] });
-    });
-
-    render(<AssistantPage />, { wrapper: Wrapper });
-    await waitFor(() => expect(screen.getByText('Old chat')).toBeInTheDocument());
-
-    fireEvent.click(screen.getByRole('button', { name: 'Delete conversation' }));
-
-    await new Promise((r) => setTimeout(r, 100));
-    expect(mockGqlRequest).not.toHaveBeenCalledWith(
-      expect.stringContaining('DeleteConversation'),
-      expect.anything(),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith({ search: {} });
   });
 });
