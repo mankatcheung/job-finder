@@ -1,6 +1,4 @@
-mutation CreateWorkExperience(
-  $input: CreateWorkExperienceInput!
-) {
+mutation CreateWorkExperience($input: CreateWorkExperienceInput!) {
   createWorkExperience(input: $input) {
     id
     company
@@ -14,10 +12,7 @@ mutation CreateWorkExperience(
   }
 }
 
-mutation UpdateWorkExperience(
-  $id: ID!
-  $input: UpdateWorkExperienceInput!
-) {
+mutation UpdateWorkExperience($id: ID!, $input: UpdateWorkExperienceInput!) {
   updateWorkExperience(id: $id, input: $input) {
     id
     company
@@ -35,9 +30,7 @@ mutation DeleteWorkExperience($id: ID!) {
   deleteWorkExperience(id: $id)
 }
 
-mutation CreateEducation(
-  $input: CreateEducationInput!
-) {
+mutation CreateEducation($input: CreateEducationInput!) {
   createEducation(input: $input) {
     id
     institution
@@ -51,10 +44,7 @@ mutation CreateEducation(
   }
 }
 
-mutation UpdateEducation(
-  $id: ID!
-  $input: UpdateEducationInput!
-) {
+mutation UpdateEducation($id: ID!, $input: UpdateEducationInput!) {
   updateEducation(id: $id, input: $input) {
     id
     institution
@@ -72,9 +62,7 @@ mutation DeleteEducation($id: ID!) {
   deleteEducation(id: $id)
 }
 
-mutation CreateSkill(
-  $input: CreateSkillInput!
-) {
+mutation CreateSkill($input: CreateSkillInput!) {
   createSkill(input: $input) {
     id
     name
@@ -84,10 +72,7 @@ mutation CreateSkill(
   }
 }
 
-mutation UpdateSkill(
-  $id: ID!
-  $input: UpdateSkillInput!
-) {
+mutation UpdateSkill($id: ID!, $input: UpdateSkillInput!) {
   updateSkill(id: $id, input: $input) {
     id
     name
