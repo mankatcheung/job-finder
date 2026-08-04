@@ -55,11 +55,16 @@ export function ConversationHistoryPage() {
       ) : (
         <ul className="space-y-1.5">
           {conversations.map((c) => (
-            <li key={c.id}>
+            <li key={c.id} className="relative">
+              {/* Delete lives as a sibling, not nested inside the Link — a
+                  button inside an anchor causes clicks to bubble into the
+                  anchor's own navigation handler, which fired before the
+                  delete when this was nested (clicking delete just opened
+                  the conversation instead of removing it). */}
               <Link
                 to="/assistant"
                 search={{ conversation: c.id }}
-                className="group flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+                className="flex items-center justify-between gap-3 pl-4 pr-12 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
@@ -72,18 +77,15 @@ export function ConversationHistoryPage() {
                       : ''}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    deleteConversationWithUndo(qc, c.id);
-                  }}
-                  aria-label={`Delete ${c.title ?? 'New conversation'}`}
-                  className="opacity-0 group-hover:opacity-100 shrink-0 p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-opacity"
-                >
-                  <Trash2Icon size={14} />
-                </button>
               </Link>
+              <button
+                type="button"
+                onClick={() => deleteConversationWithUndo(qc, c.id)}
+                aria-label={`Delete ${c.title ?? 'New conversation'}`}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+              >
+                <Trash2Icon size={14} />
+              </button>
             </li>
           ))}
         </ul>
