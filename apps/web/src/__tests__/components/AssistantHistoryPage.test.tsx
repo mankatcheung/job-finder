@@ -133,6 +133,10 @@ describe('ConversationHistoryPage', () => {
         id: 'conv-1',
       }),
     );
+    // Regression: the delete button must be a sibling of the row's Link, not
+    // nested inside it — nesting it caused the click to bubble into the
+    // Link's own navigation instead of (or as well as) deleting.
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('does not delete when undo is clicked', async () => {
