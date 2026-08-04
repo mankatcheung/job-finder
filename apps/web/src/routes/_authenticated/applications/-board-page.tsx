@@ -107,7 +107,7 @@ export function KanbanBoard() {
 
   if (isLoading) {
     return (
-      <div className="p-4 sm:p-6 h-full">
+      <div className="p-4 sm:p-6 flex flex-col h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
         <div className="flex gap-3 overflow-x-auto pb-4 flex-1">
           {[...Array(4)].map((_, i) => (
             <div
@@ -122,14 +122,14 @@ export function KanbanBoard() {
 
   if (isError) {
     return (
-      <div className="p-4 sm:p-6 h-full">
+      <div className="p-4 sm:p-6 flex flex-col h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
         <ErrorState error={error} onRetry={() => refetch()} />
       </div>
     );
   }
 
   return (
-    <div className="p-4 sm:p-6 h-full">
+    <div className="p-4 sm:p-6 flex flex-col h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Board</h1>
         <div className="flex items-center gap-2">
