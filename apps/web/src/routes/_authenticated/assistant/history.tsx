@@ -55,7 +55,7 @@ export function ConversationHistoryPage() {
       ) : (
         <ul className="space-y-1.5">
           {conversations.map((c) => (
-            <li key={c.id} className="group relative">
+            <li key={c.id} className="relative">
               {/* Delete lives as a sibling, not nested inside the Link — a
                   button inside an anchor causes clicks to bubble into the
                   anchor's own navigation handler, which fired before the
@@ -82,7 +82,7 @@ export function ConversationHistoryPage() {
                 type="button"
                 onClick={() => deleteConversationWithUndo(qc, c.id)}
                 aria-label={`Delete ${c.title ?? 'New conversation'}`}
-                className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-opacity"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
               >
                 <Trash2Icon size={14} />
               </button>
