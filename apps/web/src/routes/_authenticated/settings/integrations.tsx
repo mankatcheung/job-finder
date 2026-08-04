@@ -1,3 +1,4 @@
+import { StarIcon, Trash2Icon, CopyIcon, CheckIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
@@ -207,18 +208,26 @@ export function SettingsIntegrationsPage() {
                         type="button"
                         onClick={() => onSetDefaultProvider(key.provider)}
                         disabled={settingDefaultProvider === key.provider}
-                        className="text-xs text-blue-600 hover:underline disabled:opacity-60"
+                        aria-label="Make default"
+                        className="flex items-center gap-1 text-xs text-blue-600 hover:underline disabled:opacity-60"
                       >
-                        {settingDefaultProvider === key.provider ? 'Setting…' : 'Make default'}
+                        <StarIcon size={14} />{' '}
+                        <span className="hidden sm:inline">
+                          {settingDefaultProvider === key.provider ? 'Setting…' : 'Make default'}
+                        </span>
                       </button>
                     )}
                     <button
                       type="button"
                       onClick={() => onRemoveLlmApiKey(key.provider)}
                       disabled={removingProvider === key.provider}
-                      className="text-xs text-red-600 hover:underline disabled:opacity-60"
+                      aria-label="Remove"
+                      className="flex items-center gap-1 text-xs text-red-600 hover:underline disabled:opacity-60"
                     >
-                      {removingProvider === key.provider ? 'Removing…' : 'Remove'}
+                      <Trash2Icon size={14} />{' '}
+                      <span className="hidden sm:inline">
+                        {removingProvider === key.provider ? 'Removing…' : 'Remove'}
+                      </span>
                     </button>
                   </div>
                 </li>
@@ -346,17 +355,19 @@ export function SettingsIntegrationsPage() {
                 onClick={() => {
                   navigator.clipboard.writeText(newApiToken.token);
                 }}
-                className="shrink-0 px-3 py-1.5 text-sm text-blue-600 hover:underline"
+                aria-label="Copy token"
+                className="shrink-0 flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:underline"
               >
-                Copy
+                <CopyIcon size={14} /> <span className="hidden sm:inline">Copy</span>
               </button>
             </div>
             <button
               type="button"
               onClick={() => setNewApiToken(null)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+              aria-label="Done"
+              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              Done
+              <CheckIcon size={14} /> <span className="hidden sm:inline">Done</span>
             </button>
           </div>
         )}
@@ -409,9 +420,13 @@ export function SettingsIntegrationsPage() {
                   type="button"
                   onClick={() => onDeleteApiToken(token.id)}
                   disabled={deletingApiTokenId === token.id}
-                  className="shrink-0 text-xs text-red-600 hover:underline disabled:opacity-60"
+                  aria-label="Revoke token"
+                  className="shrink-0 flex items-center gap-1 text-xs text-red-600 hover:underline disabled:opacity-60"
                 >
-                  {deletingApiTokenId === token.id ? 'Deleting…' : 'Revoke'}
+                  <Trash2Icon size={14} />{' '}
+                  <span className="hidden sm:inline">
+                    {deletingApiTokenId === token.id ? 'Deleting…' : 'Revoke'}
+                  </span>
                 </button>
               </li>
             ))}

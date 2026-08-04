@@ -1,4 +1,4 @@
-import { AlertTriangleIcon } from 'lucide-react';
+import { AlertTriangleIcon, RefreshCwIcon } from 'lucide-react';
 import { getErrorMessage } from '#/lib/errors';
 
 interface ErrorStateProps {
@@ -18,8 +18,12 @@ export function ErrorState({ error, onRetry }: ErrorStateProps) {
       <AlertTriangleIcon size={40} className="mx-auto mb-3 text-red-500" />
       <p className="text-gray-700 dark:text-gray-300">{getErrorMessage(error)}</p>
       {onRetry && (
-        <button onClick={onRetry} className="mt-3 text-sm text-blue-600 hover:underline">
-          Try again
+        <button
+          onClick={onRetry}
+          aria-label="Try again"
+          className="mt-3 flex items-center gap-1.5 mx-auto text-sm text-blue-600 hover:underline"
+        >
+          <RefreshCwIcon size={14} /> <span className="hidden sm:inline">Try again</span>
         </button>
       )}
     </div>

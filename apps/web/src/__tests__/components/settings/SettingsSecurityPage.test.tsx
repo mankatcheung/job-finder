@@ -276,7 +276,7 @@ describe('SettingsSecurityPage', () => {
         expect(screen.getByText('Mozilla/5.0 (Macintosh)')).toBeInTheDocument();
       });
       expect(screen.getByText('This device')).toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /^revoke$/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /revoke session/i })).not.toBeInTheDocument();
       expect(
         screen.queryByRole('button', { name: /sign out other sessions/i }),
       ).not.toBeInTheDocument();
@@ -306,7 +306,7 @@ describe('SettingsSecurityPage', () => {
       await waitFor(() => expect(screen.getByText('Safari')).toBeInTheDocument());
 
       mockGqlRequest.mockResolvedValueOnce({ revokeSession: true });
-      fireEvent.click(screen.getByRole('button', { name: /^revoke$/i }));
+      fireEvent.click(screen.getByRole('button', { name: /revoke session/i }));
 
       await waitFor(() => {
         expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RevokeSession'), {

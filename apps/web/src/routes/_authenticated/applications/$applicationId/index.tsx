@@ -13,6 +13,8 @@ import {
   CalendarIcon,
   CheckIcon,
   ChevronDownIcon,
+  CopyIcon,
+  EyeIcon,
   ChevronUpIcon,
   EditIcon,
   ExternalLinkIcon,
@@ -20,6 +22,7 @@ import {
   PenLineIcon,
   PlusIcon,
   StarIcon,
+  XIcon,
   Trash2Icon,
   UploadIcon,
   UsersIcon,
@@ -420,9 +423,10 @@ export function ApplicationDetailPage() {
                       if (noteContent.trim()) createNote.mutate(noteContent.trim());
                     }}
                     disabled={!noteContent.trim() || createNote.isPending}
+                    aria-label="Add note"
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-medium rounded-lg"
                   >
-                    <PlusIcon size={14} /> Add note
+                    <PlusIcon size={14} /> <span className="hidden sm:inline">Add note</span>
                   </button>
                 </div>
               </div>
@@ -452,15 +456,17 @@ export function ApplicationDetailPage() {
                           onClick={() =>
                             updateNote.mutate({ id: note.id, content: editingNote.content })
                           }
-                          className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg"
+                          aria-label="Save"
+                          className="flex items-center gap-1 text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg"
                         >
-                          Save
+                          <CheckIcon size={14} /> <span className="hidden sm:inline">Save</span>
                         </button>
                         <button
                           onClick={() => setEditingNote(null)}
-                          className="text-xs px-3 py-1.5 text-gray-500 hover:text-gray-700"
+                          aria-label="Cancel"
+                          className="flex items-center gap-1 text-xs px-3 py-1.5 text-gray-500 hover:text-gray-700"
                         >
-                          Cancel
+                          <XIcon size={14} /> <span className="hidden sm:inline">Cancel</span>
                         </button>
                       </div>
                     </>
@@ -1460,15 +1466,18 @@ function ContactsTab({ applicationId }: { applicationId: string }) {
         <button
           onClick={onSubmit}
           disabled={!form.name.trim() || submitting}
-          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-medium rounded-lg"
+          aria-label="Save"
+          className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-medium rounded-lg"
         >
-          {submitting ? 'Saving…' : 'Save'}
+          <CheckIcon size={14} />{' '}
+          <span className="hidden sm:inline">{submitting ? 'Saving…' : 'Save'}</span>
         </button>
         <button
           onClick={onCancel}
-          className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
+          aria-label="Cancel"
+          className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
         >
-          Cancel
+          <XIcon size={14} /> <span className="hidden sm:inline">Cancel</span>
         </button>
       </div>
     </div>
@@ -1482,9 +1491,10 @@ function ContactsTab({ applicationId }: { applicationId: string }) {
             setShowForm(true);
             setForm(emptyContactForm());
           }}
+          aria-label="Add contact"
           className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg"
         >
-          <PlusIcon size={14} /> Add contact
+          <PlusIcon size={14} /> <span className="hidden sm:inline">Add contact</span>
         </button>
       )}
 
@@ -1796,15 +1806,18 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
             <button
               onClick={handleConfirm}
               disabled={confirming}
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-medium rounded-lg"
+              aria-label="Confirm upload"
+              className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-medium rounded-lg"
             >
-              {confirming ? 'Saving…' : 'Confirm upload'}
+              <CheckIcon size={14} />{' '}
+              <span className="hidden sm:inline">{confirming ? 'Saving…' : 'Confirm upload'}</span>
             </button>
             <button
               onClick={() => setPendingUpload(null)}
-              className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
+              aria-label="Cancel"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
             >
-              Cancel
+              <XIcon size={14} /> <span className="hidden sm:inline">Cancel</span>
             </button>
           </div>
           {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
@@ -1972,9 +1985,11 @@ function CoverLetterTab({ applicationId }: { applicationId: string }) {
             </h3>
             <button
               onClick={handleCopy}
-              className="px-3 py-1.5 text-xs font-medium border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Copy"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
-              {copied ? '✓ Copied' : 'Copy'}
+              <CopyIcon size={14} />{' '}
+              <span className="hidden sm:inline">{copied ? '✓ Copied' : 'Copy'}</span>
             </button>
           </div>
           <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-sans leading-relaxed">
@@ -2050,9 +2065,10 @@ function ResumeMatchTab({ applicationId }: { applicationId: string }) {
                 <button
                   type="button"
                   onClick={() => setPreviewOpen(true)}
-                  className="text-xs text-blue-600 hover:underline"
+                  aria-label="Preview"
+                  className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
                 >
-                  Preview
+                  <EyeIcon size={14} /> <span className="hidden sm:inline">Preview</span>
                 </button>
               )}
               <button

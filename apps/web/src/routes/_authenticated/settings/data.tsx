@@ -1,3 +1,4 @@
+import { DownloadIcon, UploadIcon } from 'lucide-react';
 import { useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
@@ -98,9 +99,10 @@ export function SettingsDataPage() {
         <button
           type="button"
           onClick={onExport}
-          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-sm font-medium rounded-lg transition-colors"
+          aria-label="Download export"
+          className="flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-sm font-medium rounded-lg transition-colors"
         >
-          Download export
+          <DownloadIcon size={14} /> <span className="hidden sm:inline">Download export</span>
         </button>
       </section>
 
@@ -117,8 +119,11 @@ export function SettingsDataPage() {
             be restored from an export and will be skipped.
           </p>
         </div>
-        <label className="inline-block px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-sm font-medium rounded-lg transition-colors cursor-pointer">
-          {importing ? 'Importing…' : 'Choose file to import'}
+        <label className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-sm font-medium rounded-lg transition-colors cursor-pointer">
+          <UploadIcon size={14} />{' '}
+          <span className="hidden sm:inline">
+            {importing ? 'Importing…' : 'Choose file to import'}
+          </span>
           <input
             type="file"
             accept="application/json"

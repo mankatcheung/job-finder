@@ -448,25 +448,28 @@ function BulkActionBar({
           type="button"
           onClick={() => bulk.bulkSetStarred(ids, true)}
           disabled={bulk.isPending}
+          aria-label="Star selected"
           className="flex items-center gap-1 px-2 py-1.5 text-sm hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-60"
         >
-          <StarIcon size={14} /> Star
+          <StarIcon size={14} /> <span className="hidden sm:inline">Star</span>
         </button>
         <button
           type="button"
           onClick={() => bulk.bulkSetStarred(ids, false)}
           disabled={bulk.isPending}
+          aria-label="Unstar selected"
           className="flex items-center gap-1 px-2 py-1.5 text-sm hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-60"
         >
-          <StarOffIcon size={14} /> Unstar
+          <StarOffIcon size={14} /> <span className="hidden sm:inline">Unstar</span>
         </button>
         <button
           type="button"
           onClick={onDelete}
           disabled={bulk.isPending}
+          aria-label="Delete selected"
           className="flex items-center gap-1 px-2 py-1.5 text-sm text-red-300 hover:bg-red-900/40 rounded-lg transition-colors disabled:opacity-60"
         >
-          <Trash2Icon size={14} /> Delete
+          <Trash2Icon size={14} /> <span className="hidden sm:inline">Delete</span>
         </button>
 
         <button

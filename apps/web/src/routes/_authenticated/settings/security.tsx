@@ -1,3 +1,4 @@
+import { UnlinkIcon, CheckIcon, LogOutIcon, BanIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
@@ -346,9 +347,10 @@ export function SettingsSecurityPage() {
                   <button
                     type="button"
                     onClick={() => onUnlink(provider)}
-                    className="text-sm text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
+                    aria-label={`Unlink ${OAUTH_PROVIDER_LABEL[provider]}`}
+                    className="flex items-center gap-1 text-sm text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
                   >
-                    Unlink
+                    <UnlinkIcon size={14} /> <span className="hidden sm:inline">Unlink</span>
                   </button>
                 ) : (
                   <a
@@ -392,9 +394,11 @@ export function SettingsSecurityPage() {
             <button
               type="button"
               onClick={() => setBackupCodes(null)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+              aria-label="I've saved these codes"
+              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              I&apos;ve saved these codes
+              <CheckIcon size={14} />{' '}
+              <span className="hidden sm:inline">I&apos;ve saved these codes</span>
             </button>
           </div>
         ) : totpEnabled ? (
@@ -519,9 +523,11 @@ export function SettingsSecurityPage() {
             <button
               type="button"
               onClick={onRevokeOtherSessions}
-              className="shrink-0 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-xs font-medium rounded-lg transition-colors"
+              aria-label="Sign out other sessions"
+              className="shrink-0 flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-xs font-medium rounded-lg transition-colors"
             >
-              Sign out other sessions
+              <LogOutIcon size={14} />{' '}
+              <span className="hidden sm:inline">Sign out other sessions</span>
             </button>
           )}
         </div>
@@ -548,9 +554,10 @@ export function SettingsSecurityPage() {
                 <button
                   type="button"
                   onClick={() => onRevokeSession(session.id)}
-                  className="shrink-0 text-xs text-red-600 hover:underline"
+                  aria-label="Revoke session"
+                  className="shrink-0 flex items-center gap-1 text-xs text-red-600 hover:underline"
                 >
-                  Revoke
+                  <BanIcon size={14} /> <span className="hidden sm:inline">Revoke</span>
                 </button>
               )}
             </li>
