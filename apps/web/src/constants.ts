@@ -12,6 +12,7 @@
 /** GraphQL error `extensions.code` values surfaced by the API. */
 export const ERROR_CODES = {
   UNAUTHORIZED: 'UNAUTHORIZED',
+  USER_NOT_FOUND: 'USER_NOT_FOUND',
   FORBIDDEN: 'FORBIDDEN',
   NOT_FOUND: 'NOT_FOUND',
   CONFLICT: 'CONFLICT',

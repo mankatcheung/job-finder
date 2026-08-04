@@ -23,6 +23,7 @@ function isGraphQLErrorLike(error: unknown): error is GraphQLErrorLike {
 // user-presentable prose from the use-case that threw it, so it's passed
 // through as-is instead of being overridden here.
 const CODE_MESSAGES: Record<string, string> = {
+  [ERROR_CODES.USER_NOT_FOUND]: 'No account found with this email. Please register first.',
   [ERROR_CODES.NOT_FOUND]: "That item couldn't be found — it may have been deleted.",
   [ERROR_CODES.FORBIDDEN]: "You don't have permission to do that.",
 };

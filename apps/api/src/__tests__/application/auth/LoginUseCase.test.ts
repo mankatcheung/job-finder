@@ -73,7 +73,7 @@ describe('LoginUseCase', () => {
     });
   });
 
-  it('throws UNAUTHORIZED when user is not found', async () => {
+  it('throws USER_NOT_FOUND when user is not found', async () => {
     const loginEventRepository = makeLoginEventRepository();
     const deps = makeDeps({
       userRepository: makeUserRepository({ findByEmail: vi.fn().mockResolvedValue(null) }),
@@ -86,7 +86,7 @@ describe('LoginUseCase', () => {
       .catch((e) => e);
 
     expect(err).toBeInstanceOf(Error);
-    expect((err as { code: string }).code).toBe('UNAUTHORIZED');
+    expect((err as { code: string }).code).toBe('USER_NOT_FOUND');
     expect(vi.mocked(bcrypt.compare)).not.toHaveBeenCalled();
     expect(loginEventRepository.create).not.toHaveBeenCalled();
   });

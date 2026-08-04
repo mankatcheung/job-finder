@@ -147,7 +147,17 @@ export function LoginPage() {
 
             {errors.root && (
               <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                {errors.root.message}
+                {errors.root.message?.includes('register') ? (
+                  <>
+                    No account found with this email.{' '}
+                    <Link to="/register" className="underline font-medium hover:text-red-700">
+                      Register
+                    </Link>{' '}
+                    to create one.
+                  </>
+                ) : (
+                  (errors.root.message ?? '')
+                )}
               </p>
             )}
 
@@ -226,7 +236,17 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
 
             {errors.root && (
               <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                {errors.root.message}
+                {errors.root.message?.includes('register') ? (
+                  <>
+                    No account found with this email.{' '}
+                    <Link to="/register" className="underline font-medium hover:text-red-700">
+                      Register
+                    </Link>{' '}
+                    to create one.
+                  </>
+                ) : (
+                  (errors.root.message ?? '')
+                )}
               </p>
             )}
 

@@ -17,7 +17,9 @@ export class LoginUseCase implements ILoginUseCase {
   async execute(input: LoginInput): Promise<LoginOutput> {
     const user = await this.deps.userRepository.findByEmail(input.email);
     if (!user) {
-      throw Object.assign(new Error('Invalid credentials'), { code: ERROR_CODES.UNAUTHORIZED });
+      throw Object.assign(new Error('No account found with this email. Please register first.'), {
+        code: ERROR_CODES.USER_NOT_FOUND,
+      });
     }
     assertHasPassword(user.passwordHash);
 

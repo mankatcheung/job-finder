@@ -11,6 +11,7 @@ const EXPECTED_ERROR_CODES: string[] = [
   ERROR_CODES.RATE_LIMITED,
   ERROR_CODES.AI_NOT_CONFIGURED,
   ERROR_CODES.STEP_UP_REQUIRED,
+  ERROR_CODES.USER_NOT_FOUND,
 ];
 
 export function formatError(err: GraphQLError): GraphQLError {
