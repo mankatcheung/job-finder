@@ -38,6 +38,8 @@ import { Route as AuthenticatedApplicationsApplicationIdIndexRouteImport } from 
 import { Route as AuthenticatedApplicationsApplicationIdEditRouteImport } from './routes/_authenticated/applications/$applicationId/edit'
 import { Route as AuthenticatedApplicationsApplicationIdOffersIndexRouteImport } from './routes/_authenticated/applications/$applicationId/offers/index'
 import { Route as AuthenticatedApplicationsApplicationIdOffersCompareRouteImport } from './routes/_authenticated/applications/$applicationId/offers/compare'
+import { Route as AuthenticatedApplicationsApplicationIdDocumentsNewRouteImport } from './routes/_authenticated/applications/$applicationId/documents/new'
+import { Route as AuthenticatedApplicationsApplicationIdDocumentsDraftIdRouteImport } from './routes/_authenticated/applications/$applicationId/documents/$draftId'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -200,6 +202,18 @@ const AuthenticatedApplicationsApplicationIdOffersCompareRoute =
     path: '/applications/$applicationId/offers/compare',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedApplicationsApplicationIdDocumentsNewRoute =
+  AuthenticatedApplicationsApplicationIdDocumentsNewRouteImport.update({
+    id: '/applications/$applicationId/documents/new',
+    path: '/applications/$applicationId/documents/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute =
+  AuthenticatedApplicationsApplicationIdDocumentsDraftIdRouteImport.update({
+    id: '/applications/$applicationId/documents/$draftId',
+    path: '/applications/$applicationId/documents/$draftId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -228,6 +242,8 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/applications/$applicationId/edit': typeof AuthenticatedApplicationsApplicationIdEditRoute
   '/applications/$applicationId/': typeof AuthenticatedApplicationsApplicationIdIndexRoute
+  '/applications/$applicationId/documents/$draftId': typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute
+  '/applications/$applicationId/documents/new': typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute
   '/applications/$applicationId/offers/compare': typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute
   '/applications/$applicationId/offers/': typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute
 }
@@ -257,6 +273,8 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/applications/$applicationId/edit': typeof AuthenticatedApplicationsApplicationIdEditRoute
   '/applications/$applicationId': typeof AuthenticatedApplicationsApplicationIdIndexRoute
+  '/applications/$applicationId/documents/$draftId': typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute
+  '/applications/$applicationId/documents/new': typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute
   '/applications/$applicationId/offers/compare': typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute
   '/applications/$applicationId/offers': typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute
 }
@@ -289,6 +307,8 @@ export interface FileRoutesById {
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/applications/$applicationId/edit': typeof AuthenticatedApplicationsApplicationIdEditRoute
   '/_authenticated/applications/$applicationId/': typeof AuthenticatedApplicationsApplicationIdIndexRoute
+  '/_authenticated/applications/$applicationId/documents/$draftId': typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute
+  '/_authenticated/applications/$applicationId/documents/new': typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute
   '/_authenticated/applications/$applicationId/offers/compare': typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute
   '/_authenticated/applications/$applicationId/offers/': typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute
 }
@@ -321,6 +341,8 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/applications/$applicationId/edit'
     | '/applications/$applicationId/'
+    | '/applications/$applicationId/documents/$draftId'
+    | '/applications/$applicationId/documents/new'
     | '/applications/$applicationId/offers/compare'
     | '/applications/$applicationId/offers/'
   fileRoutesByTo: FileRoutesByTo
@@ -350,6 +372,8 @@ export interface FileRouteTypes {
     | '/settings'
     | '/applications/$applicationId/edit'
     | '/applications/$applicationId'
+    | '/applications/$applicationId/documents/$draftId'
+    | '/applications/$applicationId/documents/new'
     | '/applications/$applicationId/offers/compare'
     | '/applications/$applicationId/offers'
   id:
@@ -381,6 +405,8 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/'
     | '/_authenticated/applications/$applicationId/edit'
     | '/_authenticated/applications/$applicationId/'
+    | '/_authenticated/applications/$applicationId/documents/$draftId'
+    | '/_authenticated/applications/$applicationId/documents/new'
     | '/_authenticated/applications/$applicationId/offers/compare'
     | '/_authenticated/applications/$applicationId/offers/'
   fileRoutesById: FileRoutesById
@@ -601,6 +627,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdOffersCompareRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/applications/$applicationId/documents/new': {
+      id: '/_authenticated/applications/$applicationId/documents/new'
+      path: '/applications/$applicationId/documents/new'
+      fullPath: '/applications/$applicationId/documents/new'
+      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/applications/$applicationId/documents/$draftId': {
+      id: '/_authenticated/applications/$applicationId/documents/$draftId'
+      path: '/applications/$applicationId/documents/$draftId'
+      fullPath: '/applications/$applicationId/documents/$draftId'
+      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -645,6 +685,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssistantIndexRoute: typeof AuthenticatedAssistantIndexRoute
   AuthenticatedApplicationsApplicationIdEditRoute: typeof AuthenticatedApplicationsApplicationIdEditRoute
   AuthenticatedApplicationsApplicationIdIndexRoute: typeof AuthenticatedApplicationsApplicationIdIndexRoute
+  AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute
+  AuthenticatedApplicationsApplicationIdDocumentsNewRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute
   AuthenticatedApplicationsApplicationIdOffersCompareRoute: typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute
   AuthenticatedApplicationsApplicationIdOffersIndexRoute: typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute
 }
@@ -664,6 +706,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedApplicationsApplicationIdEditRoute,
   AuthenticatedApplicationsApplicationIdIndexRoute:
     AuthenticatedApplicationsApplicationIdIndexRoute,
+  AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute:
+    AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute,
+  AuthenticatedApplicationsApplicationIdDocumentsNewRoute:
+    AuthenticatedApplicationsApplicationIdDocumentsNewRoute,
   AuthenticatedApplicationsApplicationIdOffersCompareRoute:
     AuthenticatedApplicationsApplicationIdOffersCompareRoute,
   AuthenticatedApplicationsApplicationIdOffersIndexRoute:

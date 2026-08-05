@@ -9,6 +9,7 @@ export interface CreateDocumentData {
   storageKey: string;
   documentType?: string;
   version?: string | null;
+  sourceDraftId?: string | null;
 }
 
 export interface IDocumentRepository {

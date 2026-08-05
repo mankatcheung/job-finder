@@ -8,6 +8,7 @@ import { DrizzleUserRepository } from '#src/infrastructure/db/repositories/Drizz
 import { DrizzleApplicationRepository } from '#src/infrastructure/db/repositories/DrizzleApplicationRepository.js';
 import { DrizzleNoteRepository } from '#src/infrastructure/db/repositories/DrizzleNoteRepository.js';
 import { DrizzleDocumentRepository } from '#src/infrastructure/db/repositories/DrizzleDocumentRepository.js';
+import { DrizzleDocumentDraftRepository } from '#src/infrastructure/db/repositories/DrizzleDocumentDraftRepository.js';
 import { CachedApplicationRepository } from '#src/infrastructure/db/repositories/CachedApplicationRepository.js';
 import { CachedNoteRepository } from '#src/infrastructure/db/repositories/CachedNoteRepository.js';
 import { CachedDocumentRepository } from '#src/infrastructure/db/repositories/CachedDocumentRepository.js';
@@ -52,6 +53,7 @@ import { VercelBlobStorageProvider } from '#src/infrastructure/storage/VercelBlo
 import { ApplicationMapper } from '#src/interface-adapters/mappers/ApplicationMapper.js';
 import { NoteMapper } from '#src/interface-adapters/mappers/NoteMapper.js';
 import { DocumentMapper } from '#src/interface-adapters/mappers/DocumentMapper.js';
+import { DocumentDraftMapper } from '#src/interface-adapters/mappers/DocumentDraftMapper.js';
 import { UserMapper } from '#src/interface-adapters/mappers/UserMapper.js';
 import { InterviewRoundMapper } from '#src/interface-adapters/mappers/InterviewRoundMapper.js';
 import { ActivityLogMapper } from '#src/interface-adapters/mappers/ActivityLogMapper.js';
@@ -68,6 +70,7 @@ import { AuthResolver } from '#src/interface-adapters/resolvers/AuthResolver.js'
 import { ApplicationResolver } from '#src/interface-adapters/resolvers/ApplicationResolver.js';
 import { NoteResolver } from '#src/interface-adapters/resolvers/NoteResolver.js';
 import { DocumentResolver } from '#src/interface-adapters/resolvers/DocumentResolver.js';
+import { DocumentDraftResolver } from '#src/interface-adapters/resolvers/DocumentDraftResolver.js';
 import { UserResolver } from '#src/interface-adapters/resolvers/UserResolver.js';
 import { InterviewRoundResolver } from '#src/interface-adapters/resolvers/InterviewRoundResolver.js';
 import { ActivityLogResolver } from '#src/interface-adapters/resolvers/ActivityLogResolver.js';
@@ -105,6 +108,13 @@ import { RequestUploadUrlUseCase } from '#src/use-cases/documents/RequestUploadU
 import { ConfirmDocumentUseCase } from '#src/use-cases/documents/ConfirmDocumentUseCase.js';
 import { GetDocumentsUseCase } from '#src/use-cases/documents/GetDocumentsUseCase.js';
 import { DeleteDocumentUseCase } from '#src/use-cases/documents/DeleteDocumentUseCase.js';
+import { CreateDocumentDraftUseCase } from '#src/use-cases/documents/CreateDocumentDraftUseCase.js';
+import { UpdateDocumentDraftContentUseCase } from '#src/use-cases/documents/UpdateDocumentDraftContentUseCase.js';
+import { GetDocumentDraftsUseCase } from '#src/use-cases/documents/GetDocumentDraftsUseCase.js';
+import { GetDocumentDraftUseCase } from '#src/use-cases/documents/GetDocumentDraftUseCase.js';
+import { DeleteDocumentDraftUseCase } from '#src/use-cases/documents/DeleteDocumentDraftUseCase.js';
+import { ExtractDocumentTextUseCase } from '#src/use-cases/documents/ExtractDocumentTextUseCase.js';
+import { ExportDocumentDraftToPdfUseCase } from '#src/use-cases/documents/ExportDocumentDraftToPdfUseCase.js';
 import { RequestEmailChangeUseCase } from '#src/use-cases/user/RequestEmailChangeUseCase.js';
 import { ConfirmEmailChangeUseCase } from '#src/use-cases/user/ConfirmEmailChangeUseCase.js';
 import { UpdatePasswordUseCase } from '#src/use-cases/user/UpdatePasswordUseCase.js';
@@ -201,11 +211,13 @@ import { UpdateOfferUseCase } from '#src/use-cases/offers/UpdateOfferUseCase.js'
 import { DeleteOfferUseCase } from '#src/use-cases/offers/DeleteOfferUseCase.js';
 import { GetOffersUseCase } from '#src/use-cases/offers/GetOffersUseCase.js';
 import { CompareOffersUseCase } from '#src/use-cases/offers/CompareOffersUseCase.js';
+import { ReactPdfDocumentRenderer } from '#src/infrastructure/pdf/ReactPdfDocumentRenderer.js';
 
 import { ENV, RATE_LIMIT, STORAGE_PROVIDER } from '#src/constants.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IDocumentTextExtractor } from '#src/use-cases/ports/IDocumentTextExtractor.js';
+import type { IPdfRenderer } from '#src/use-cases/ports/IPdfRenderer.js';
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 
 export interface Cradle {
@@ -223,6 +235,7 @@ export interface Cradle {
   prismaApplicationRepository: DrizzleApplicationRepository;
   prismaNoteRepository: DrizzleNoteRepository;
   prismaDocumentRepository: DrizzleDocumentRepository;
+  documentDraftRepository: DrizzleDocumentDraftRepository;
 
   // Cached repository decorators (what use-cases consume)
   applicationRepository: CachedApplicationRepository;
@@ -262,6 +275,7 @@ export interface Cradle {
   notificationMapper: NotificationMapper;
   noteMapper: NoteMapper;
   documentMapper: DocumentMapper;
+  documentDraftMapper: DocumentDraftMapper;
   userMapper: UserMapper;
   interviewRoundMapper: InterviewRoundMapper;
   activityLogMapper: ActivityLogMapper;
@@ -281,6 +295,7 @@ export interface Cradle {
   applicationResolver: ApplicationResolver;
   noteResolver: NoteResolver;
   documentResolver: DocumentResolver;
+  documentDraftResolver: DocumentDraftResolver;
   userResolver: UserResolver;
   interviewRoundResolver: InterviewRoundResolver;
   activityLogResolver: ActivityLogResolver;
@@ -328,6 +343,13 @@ export interface Cradle {
   confirmDocumentUseCase: ConfirmDocumentUseCase;
   getDocumentsUseCase: GetDocumentsUseCase;
   deleteDocumentUseCase: DeleteDocumentUseCase;
+  createDocumentDraftUseCase: CreateDocumentDraftUseCase;
+  updateDocumentDraftContentUseCase: UpdateDocumentDraftContentUseCase;
+  getDocumentDraftsUseCase: GetDocumentDraftsUseCase;
+  getDocumentDraftUseCase: GetDocumentDraftUseCase;
+  deleteDocumentDraftUseCase: DeleteDocumentDraftUseCase;
+  extractDocumentTextUseCase: ExtractDocumentTextUseCase;
+  exportDocumentDraftToPdfUseCase: ExportDocumentDraftToPdfUseCase;
   requestEmailChangeUseCase: RequestEmailChangeUseCase;
   confirmEmailChangeUseCase: ConfirmEmailChangeUseCase;
   updatePasswordUseCase: UpdatePasswordUseCase;
@@ -384,6 +406,7 @@ export interface Cradle {
   llmApiKeyCipher: ILlmApiKeyCipher;
   llmProviderFactory: ILLMProviderFactory;
   documentTextExtractor: IDocumentTextExtractor;
+  pdfRenderer: IPdfRenderer;
   jobPostingSourceResolver: IJobPostingSourceResolver;
   parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
   generateCoverLetterUseCase: GenerateCoverLetterUseCase;
@@ -448,6 +471,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     }),
     prismaNoteRepository: asClass(DrizzleNoteRepository, { lifetime: Lifetime.SINGLETON }),
     prismaDocumentRepository: asClass(DrizzleDocumentRepository, { lifetime: Lifetime.SINGLETON }),
+    documentDraftRepository: asClass(DrizzleDocumentDraftRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
 
     // Cached decorator repositories
     applicationRepository: asClass(CachedApplicationRepository, { lifetime: Lifetime.SINGLETON }),
@@ -525,6 +551,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     notificationMapper: asClass(NotificationMapper, { lifetime: Lifetime.SINGLETON }),
     noteMapper: asClass(NoteMapper, { lifetime: Lifetime.SINGLETON }),
     documentMapper: asClass(DocumentMapper, { lifetime: Lifetime.SINGLETON }),
+    documentDraftMapper: asClass(DocumentDraftMapper, { lifetime: Lifetime.SINGLETON }),
     userMapper: asClass(UserMapper, { lifetime: Lifetime.SINGLETON }),
     interviewRoundMapper: asClass(InterviewRoundMapper, { lifetime: Lifetime.SINGLETON }),
     activityLogMapper: asClass(ActivityLogMapper, { lifetime: Lifetime.SINGLETON }),
@@ -545,6 +572,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     applicationResolver: asClass(ApplicationResolver, { lifetime: Lifetime.SINGLETON }),
     noteResolver: asClass(NoteResolver, { lifetime: Lifetime.SINGLETON }),
     documentResolver: asClass(DocumentResolver, { lifetime: Lifetime.SINGLETON }),
+    documentDraftResolver: asClass(DocumentDraftResolver, { lifetime: Lifetime.SINGLETON }),
     userResolver: asClass(UserResolver, { lifetime: Lifetime.SINGLETON }),
     interviewRoundResolver: asClass(InterviewRoundResolver, { lifetime: Lifetime.SINGLETON }),
     activityLogResolver: asClass(ActivityLogResolver, { lifetime: Lifetime.SINGLETON }),
@@ -619,6 +647,23 @@ export function buildContainer(): AwilixContainer<Cradle> {
     confirmDocumentUseCase: asClass(ConfirmDocumentUseCase, { lifetime: Lifetime.TRANSIENT }),
     getDocumentsUseCase: asClass(GetDocumentsUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteDocumentUseCase: asClass(DeleteDocumentUseCase, { lifetime: Lifetime.TRANSIENT }),
+    createDocumentDraftUseCase: asClass(CreateDocumentDraftUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    updateDocumentDraftContentUseCase: asClass(UpdateDocumentDraftContentUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    getDocumentDraftsUseCase: asClass(GetDocumentDraftsUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getDocumentDraftUseCase: asClass(GetDocumentDraftUseCase, { lifetime: Lifetime.TRANSIENT }),
+    deleteDocumentDraftUseCase: asClass(DeleteDocumentDraftUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    extractDocumentTextUseCase: asClass(ExtractDocumentTextUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    exportDocumentDraftToPdfUseCase: asClass(ExportDocumentDraftToPdfUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     requestEmailChangeUseCase: asClass(RequestEmailChangeUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
@@ -712,6 +757,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     llmApiKeyCipher: asClass(LlmApiKeyCipher, { lifetime: Lifetime.SINGLETON }),
     llmProviderFactory: asClass(UserLLMProviderFactory, { lifetime: Lifetime.SINGLETON }),
     documentTextExtractor: asClass(DocumentTextExtractor, { lifetime: Lifetime.SINGLETON }),
+    pdfRenderer: asClass(ReactPdfDocumentRenderer, { lifetime: Lifetime.SINGLETON }),
     jobPostingSourceResolver: asClass(FetchJobPostingSourceResolver, {
       lifetime: Lifetime.SINGLETON,
     }),
