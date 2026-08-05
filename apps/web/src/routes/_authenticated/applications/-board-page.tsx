@@ -13,7 +13,6 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core';
 import { gqlClient } from '#/graphql/client';
-import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { StatusBadge } from '../dashboard';
 import { ErrorState } from '#/components/ErrorState';
 import { ListIcon, PlusIcon, StarIcon } from 'lucide-react';
@@ -26,16 +25,6 @@ const UPDATE_STATUS = `
 `;
 
 type Application = BoardApplication;
-
-const STATUSES: ApplicationStatus[] = [
-  'draft',
-  'applied',
-  'interviewing',
-  'offered',
-  'accepted',
-  'rejected',
-  'withdrawn',
-];
 
 const STATUS_COLORS: Record<string, string> = {
   draft: 'border-t-gray-400',
@@ -65,9 +54,7 @@ export function KanbanBoard() {
         if (!old?.applications) return old;
         return {
           ...old,
-          applications: old.applications.map((a) =>
-            a.id === id ? { ...a, status: status as ApplicationStatus } : a,
-          ),
+          applications: old.applications.map((a) => (a.id === id ? { ...a, status } : a)),
         };
       });
 
@@ -84,6 +71,7 @@ export function KanbanBoard() {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const apps = data?.applications ?? [];
+  const stages = data?.pipelineStages ?? [];
   const byStatus = (status: string) => apps.filter((a) => a.status === status);
 
   function handleDragStart(event: DragStartEvent) {
@@ -97,7 +85,7 @@ export function KanbanBoard() {
     if (!over || active.id === over.id) return;
 
     const newStatus = over.id as string;
-    if (!STATUSES.includes(newStatus as ApplicationStatus)) return;
+    if (!stages.some((stage) => stage.key === newStatus)) return;
 
     const app = apps.find((a) => a.id === active.id);
     if (!app || app.status === newStatus) return;
@@ -154,8 +142,8 @@ export function KanbanBoard() {
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex gap-3 overflow-x-auto pb-4 flex-1">
-          {STATUSES.map((status) => (
-            <Column key={status} status={status} apps={byStatus(status)} />
+          {stages.map((stage) => (
+            <Column key={stage.key} stage={stage} apps={byStatus(stage.key)} />
           ))}
         </div>
 
@@ -165,17 +153,23 @@ export function KanbanBoard() {
   );
 }
 
-function Column({ status, apps }: { status: string; apps: Application[] }) {
-  const { setNodeRef, isOver } = useDroppable({ id: status });
+function Column({
+  stage,
+  apps,
+}: {
+  stage: { key: string; name: string; color: string };
+  apps: Application[];
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: stage.key });
 
   return (
     <div
       ref={setNodeRef}
-      className={`flex-shrink-0 w-60 rounded-xl border-t-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 ${STATUS_COLORS[status] ?? 'border-t-gray-400'} transition-colors ${isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+      className={`flex-shrink-0 w-60 rounded-xl border-t-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 ${STATUS_COLORS[stage.color] ?? 'border-t-gray-400'} transition-colors ${isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
     >
       <div className="flex items-center justify-between px-3 py-2.5">
         <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 capitalize">
-          {status}
+          {stage.name}
         </span>
         <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded-full">
           {apps.length}
@@ -218,7 +212,7 @@ function AppCard({ app, isDragging }: { app: Application; isDragging?: boolean }
       {app.location && <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{app.location}</p>}
       <div className="flex items-center justify-between mt-2">
         {app.starred && <StarIcon size={11} className="text-yellow-400 fill-yellow-400" />}
-        <StatusBadge status={app.status as ApplicationStatus} />
+        <StatusBadge status={app.status} />
       </div>
     </Link>
   );

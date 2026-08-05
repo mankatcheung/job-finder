@@ -1,9 +1,8 @@
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
-import {
-  APPLICATION_STATUSES,
-  type ApplicationStatus,
-} from '#src/domain/application/ApplicationStatus.js';
+import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
+import { PIPELINE_STAGE_CATEGORIES } from '#src/domain/pipelineStage/PipelineStage.js';
+import type { IPipelineStageRepository } from '#src/use-cases/ports/IPipelineStageRepository.js';
 import { ERROR_CODES, DEFAULTS } from '#src/constants.js';
 import type {
   IImportUserDataUseCase,
@@ -14,6 +13,7 @@ interface Deps {
   applicationRepository: IApplicationRepository;
   noteRepository: INoteRepository;
   generateId: () => string;
+  pipelineStageRepository?: IPipelineStageRepository;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -25,8 +25,8 @@ function asNullableString(value: unknown): string | null {
 }
 
 function asStatus(value: unknown): ApplicationStatus {
-  return typeof value === 'string' && (APPLICATION_STATUSES as readonly string[]).includes(value)
-    ? (value as ApplicationStatus)
+  return typeof value === 'string' && value.trim().length > 0
+    ? value.trim()
     : DEFAULTS.APPLICATION_STATUS;
 }
 
@@ -62,6 +62,33 @@ export class ImportUserDataUseCase implements IImportUserDataUseCase {
       notesImported: 0,
       documentsSkipped: 0,
     };
+
+    if (this.deps.pipelineStageRepository && Array.isArray(parsed.pipelineStages)) {
+      const existing = await this.deps.pipelineStageRepository.findAllByUserId(userId);
+      const existingKeys = new Set(existing.map((stage) => stage.key));
+      for (const stage of parsed.pipelineStages) {
+        if (
+          !isRecord(stage) ||
+          typeof stage.key !== 'string' ||
+          typeof stage.name !== 'string' ||
+          existingKeys.has(stage.key)
+        )
+          continue;
+        const category = PIPELINE_STAGE_CATEGORIES.includes(stage.category as never)
+          ? (stage.category as (typeof PIPELINE_STAGE_CATEGORIES)[number])
+          : 'active';
+        await this.deps.pipelineStageRepository.create({
+          id: this.deps.generateId(),
+          userId,
+          key: stage.key,
+          name: stage.name,
+          color: typeof stage.color === 'string' ? stage.color : 'gray',
+          position: typeof stage.position === 'number' ? stage.position : existing.length,
+          category,
+        });
+        existingKeys.add(stage.key);
+      }
+    }
 
     for (const entry of parsed.applications) {
       if (!isRecord(entry) || typeof entry.company !== 'string' || typeof entry.role !== 'string') {

@@ -4,8 +4,9 @@ import { gqlClient } from '#/graphql/client';
 const APPLICATION_QUERY = `
   query Application($id: ID!) {
     application(id: $id) {
-      id company role status jobUrl location salaryRange description appliedAt starred source followUpAt tags createdAt updatedAt
+       id company role status jobUrl location salaryRange description appliedAt starred source followUpAt tags createdAt updatedAt
     }
+    pipelineStages { key name }
   }
 `;
 
@@ -25,6 +26,7 @@ export type Application = {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  pipelineStages?: Array<{ key: string; name: string }>;
 };
 
 // Shared between the detail page and edit page — both fetch the exact same
@@ -34,5 +36,8 @@ export const applicationQueryOptions = (applicationId: string) =>
   queryOptions({
     queryKey: ['application', applicationId],
     queryFn: () =>
-      gqlClient.request<{ application: Application }>(APPLICATION_QUERY, { id: applicationId }),
+      gqlClient.request<{
+        application: Application;
+        pipelineStages: Array<{ key: string; name: string }>;
+      }>(APPLICATION_QUERY, { id: applicationId }),
   });

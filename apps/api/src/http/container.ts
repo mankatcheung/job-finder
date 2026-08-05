@@ -203,6 +203,13 @@ import { CreateSkillUseCase } from '#src/use-cases/skill/CreateSkillUseCase.js';
 import { UpdateSkillUseCase } from '#src/use-cases/skill/UpdateSkillUseCase.js';
 import { DeleteSkillUseCase } from '#src/use-cases/skill/DeleteSkillUseCase.js';
 import { DocumentTextExtractor } from '#src/infrastructure/documents/DocumentTextExtractor.js';
+import { DrizzlePipelineStageRepository } from '#src/infrastructure/db/repositories/DrizzlePipelineStageRepository.js';
+import { PipelineStageMapper } from '#src/interface-adapters/mappers/PipelineStageMapper.js';
+import { PipelineStageResolver } from '#src/interface-adapters/resolvers/PipelineStageResolver.js';
+import { GetPipelineStagesUseCase } from '#src/use-cases/pipelineStages/GetPipelineStagesUseCase.js';
+import { CreatePipelineStageUseCase } from '#src/use-cases/pipelineStages/CreatePipelineStageUseCase.js';
+import { UpdatePipelineStageUseCase } from '#src/use-cases/pipelineStages/UpdatePipelineStageUseCase.js';
+import { DeletePipelineStageUseCase } from '#src/use-cases/pipelineStages/DeletePipelineStageUseCase.js';
 import { ReactPdfDocumentRenderer } from '#src/infrastructure/pdf/ReactPdfDocumentRenderer.js';
 
 import { ENV, RATE_LIMIT, STORAGE_PROVIDER } from '#src/constants.js';
@@ -248,6 +255,7 @@ export interface Cradle {
   workExperienceRepository: DrizzleWorkExperienceRepository;
   educationRepository: DrizzleEducationRepository;
   skillRepository: DrizzleSkillRepository;
+  pipelineStageRepository: DrizzlePipelineStageRepository;
   emailVerificationTokenRepository: DrizzleEmailVerificationTokenRepository;
   totpBackupCodeRepository: DrizzleTotpBackupCodeRepository;
   totpRateLimiter: IRateLimiter;
@@ -297,6 +305,8 @@ export interface Cradle {
   workExperienceResolver: WorkExperienceResolver;
   educationResolver: EducationResolver;
   skillResolver: SkillResolver;
+  pipelineStageMapper: PipelineStageMapper;
+  pipelineStageResolver: PipelineStageResolver;
   oauthResolver: OAuthResolver;
   mcpController: McpController;
 
@@ -418,6 +428,10 @@ export interface Cradle {
   createSkillUseCase: CreateSkillUseCase;
   updateSkillUseCase: UpdateSkillUseCase;
   deleteSkillUseCase: DeleteSkillUseCase;
+  getPipelineStagesUseCase: GetPipelineStagesUseCase;
+  createPipelineStageUseCase: CreatePipelineStageUseCase;
+  updatePipelineStageUseCase: UpdatePipelineStageUseCase;
+  deletePipelineStageUseCase: DeletePipelineStageUseCase;
 }
 
 type StorageProviderConstructor = new () => LocalStorageProvider | VercelBlobStorageProvider;
@@ -493,6 +507,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     }),
     educationRepository: asClass(DrizzleEducationRepository, { lifetime: Lifetime.SINGLETON }),
     skillRepository: asClass(DrizzleSkillRepository, { lifetime: Lifetime.SINGLETON }),
+    pipelineStageRepository: asClass(DrizzlePipelineStageRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
     emailVerificationTokenRepository: asClass(DrizzleEmailVerificationTokenRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
@@ -780,6 +797,18 @@ export function buildContainer(): AwilixContainer<Cradle> {
     createSkillUseCase: asClass(CreateSkillUseCase, { lifetime: Lifetime.TRANSIENT }),
     updateSkillUseCase: asClass(UpdateSkillUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteSkillUseCase: asClass(DeleteSkillUseCase, { lifetime: Lifetime.TRANSIENT }),
+    pipelineStageMapper: asClass(PipelineStageMapper, { lifetime: Lifetime.SINGLETON }),
+    pipelineStageResolver: asClass(PipelineStageResolver, { lifetime: Lifetime.SINGLETON }),
+    getPipelineStagesUseCase: asClass(GetPipelineStagesUseCase, { lifetime: Lifetime.TRANSIENT }),
+    createPipelineStageUseCase: asClass(CreatePipelineStageUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    updatePipelineStageUseCase: asClass(UpdatePipelineStageUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    deletePipelineStageUseCase: asClass(DeletePipelineStageUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
   });
   return container;
 }

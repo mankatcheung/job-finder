@@ -1,12 +1,10 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
 import { JobApplicationRef } from '#src/http/schema/types/ApplicationType.js';
-import { ApplicationStatusEnum } from '#src/http/schema/types/enums/ApplicationStatusEnum.js';
 import {
   CreateApplicationInput,
   UpdateApplicationInput,
 } from '#src/http/schema/types/inputs/ApplicationInputs.js';
-import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
 import { ERROR_CODES } from '#src/constants.js';
 
 builder.mutationField('createApplication', (t) =>
@@ -22,7 +20,7 @@ builder.mutationField('createApplication', (t) =>
       return applicationResolver.createApplication(ctx.user.sub, {
         company: args.input.company,
         role: args.input.role,
-        status: (args.input.status as ApplicationStatus) ?? undefined,
+        status: args.input.status ?? undefined,
         jobUrl: args.input.jobUrl ?? undefined,
         location: args.input.location ?? undefined,
         salaryRange: args.input.salaryRange ?? undefined,
@@ -50,7 +48,7 @@ builder.mutationField('updateApplication', (t) =>
       return applicationResolver.updateApplication(ctx.user.sub, args.id, {
         company: args.input.company ?? undefined,
         role: args.input.role ?? undefined,
-        status: (args.input.status as ApplicationStatus) ?? undefined,
+        status: args.input.status ?? undefined,
         jobUrl: args.input.jobUrl,
         location: args.input.location,
         salaryRange: args.input.salaryRange,
@@ -89,7 +87,7 @@ builder.mutationField('bulkUpdateApplications', (t) =>
     type: [JobApplicationRef],
     args: {
       ids: t.arg.idList({ required: true }),
-      status: t.arg({ type: ApplicationStatusEnum, required: false }),
+      status: t.arg.string({ required: false }),
       starred: t.arg.boolean({ required: false }),
     },
     resolve: async (_root, args, ctx) => {
@@ -97,7 +95,7 @@ builder.mutationField('bulkUpdateApplications', (t) =>
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { applicationResolver } = ctx.diScope.cradle;
       return applicationResolver.bulkUpdateApplications(ctx.user.sub, args.ids as string[], {
-        status: (args.status as ApplicationStatus) ?? undefined,
+        status: args.status ?? undefined,
         starred: args.starred ?? undefined,
       });
     },

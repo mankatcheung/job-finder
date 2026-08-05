@@ -11,20 +11,20 @@ import { StarIcon, XIcon } from 'lucide-react';
 import { JdImportPanel } from '../-components/JdImportPanel';
 import { applicationQueryOptions } from './-application-query';
 
-const APPLICATION_STATUSES = [
-  'draft',
-  'applied',
-  'interviewing',
-  'offered',
-  'rejected',
-  'accepted',
-  'withdrawn',
-] as const;
+const DEFAULT_PIPELINE_STAGES = [
+  ['draft', 'Draft'],
+  ['applied', 'Applied'],
+  ['interviewing', 'Interviewing'],
+  ['offered', 'Offered'],
+  ['accepted', 'Accepted'],
+  ['rejected', 'Rejected'],
+  ['withdrawn', 'Withdrawn'],
+].map(([key, name]) => ({ key, name }));
 
 const schema = z.object({
   company: z.string().min(1, 'Company is required'),
   role: z.string().min(1, 'Role is required'),
-  status: z.enum(APPLICATION_STATUSES),
+  status: z.string().min(1, 'Status is required'),
   jobUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   location: z.string().optional(),
   salaryRange: z.string().optional(),
@@ -74,7 +74,7 @@ export function EditApplicationPage() {
       ? {
           company: app.company,
           role: app.role,
-          status: app.status as (typeof APPLICATION_STATUSES)[number],
+          status: app.status ?? '',
           jobUrl: app.jobUrl ?? '',
           location: app.location ?? '',
           salaryRange: app.salaryRange ?? '',
@@ -156,9 +156,9 @@ export function EditApplicationPage() {
 
         <Field label="Status">
           <select {...register('status')} className={inputClass}>
-            {APPLICATION_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s.charAt(0).toUpperCase() + s.slice(1)}
+            {(data?.pipelineStages ?? DEFAULT_PIPELINE_STAGES).map((stage) => (
+              <option key={stage.key} value={stage.key}>
+                {stage.name}
               </option>
             ))}
           </select>

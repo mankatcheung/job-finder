@@ -273,6 +273,32 @@ export const jobApplication = sqliteTable(
   ],
 );
 
+export const pipelineStage = sqliteTable(
+  'PipelineStage',
+  {
+    id: text('id').primaryKey(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    key: text('key').notNull(),
+    name: text('name').notNull(),
+    color: text('color').notNull().default('gray'),
+    position: integer('position').notNull(),
+    category: text('category').notNull().default('active'),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updatedAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index('PipelineStage_userId_idx').on(table.userId),
+    uniqueIndex('PipelineStage_userId_key_key').on(table.userId, table.key),
+  ],
+);
+
 export const applicationTag = sqliteTable(
   'ApplicationTag',
   {

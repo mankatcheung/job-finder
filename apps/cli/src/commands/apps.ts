@@ -3,18 +3,6 @@ import chalk from 'chalk';
 import { gql, AuthError, ApiError } from '../lib/api.js';
 import { colorStatus, formatDate, makeTable, printDetail } from '../lib/format.js';
 
-const VALID_STATUSES = [
-  'wishlist',
-  'applied',
-  'phone_screen',
-  'interview',
-  'offer',
-  'accepted',
-  'rejected',
-] as const;
-
-type ApplicationStatus = (typeof VALID_STATUSES)[number];
-
 interface Application {
   id: string;
   company: string;
@@ -33,7 +21,7 @@ interface Application {
 }
 
 const LIST_QUERY = `
-  query Applications($status: ApplicationStatus) {
+  query Applications($status: String) {
     applications(status: $status) {
       id company role status location starred appliedAt createdAt
     }
@@ -72,18 +60,10 @@ export function registerAppsCommands(program: Command): void {
   apps
     .command('list')
     .description('List all applications')
-    .option('-s, --status <status>', `Filter by status (${VALID_STATUSES.join(', ')})`)
+    .option('-s, --status <status>', 'Filter by pipeline stage key')
     .option('--json', 'Output raw JSON')
     .action(async (opts: { status?: string; json?: boolean }) => {
       try {
-        if (opts.status && !VALID_STATUSES.includes(opts.status as ApplicationStatus)) {
-          console.error(
-            chalk.red('✗') +
-              ` Invalid status "${opts.status}". Valid: ${VALID_STATUSES.join(', ')}`,
-          );
-          process.exit(1);
-        }
-
         const data = await gql<{ applications: Application[] }>(LIST_QUERY, {
           status: opts.status ?? null,
         });
@@ -162,13 +142,11 @@ export function registerAppsCommands(program: Command): void {
 
   apps
     .command('status <id> <status>')
-    .description(`Update application status. Valid: ${VALID_STATUSES.join(', ')}`)
+    .description('Update application status using a pipeline stage key')
     .action(async (id: string, status: string) => {
       try {
-        if (!VALID_STATUSES.includes(status as ApplicationStatus)) {
-          console.error(
-            chalk.red('✗') + ` Invalid status "${status}". Valid: ${VALID_STATUSES.join(', ')}`,
-          );
+        if (!status.trim()) {
+          console.error(chalk.red('✗') + ' Status is required');
           process.exit(1);
         }
 

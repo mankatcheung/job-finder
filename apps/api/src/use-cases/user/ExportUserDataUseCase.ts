@@ -7,12 +7,14 @@ import type {
   IExportUserDataUseCase,
   ExportUserDataOutput,
 } from '#src/use-cases/user/IExportUserDataUseCase.js';
+import type { IPipelineStageRepository } from '#src/use-cases/ports/IPipelineStageRepository.js';
 
 interface Deps {
   userRepository: IUserRepository;
   applicationRepository: IApplicationRepository;
   noteRepository: INoteRepository;
   documentRepository: IDocumentRepository;
+  pipelineStageRepository?: IPipelineStageRepository;
 }
 
 export class ExportUserDataUseCase implements IExportUserDataUseCase {
@@ -23,6 +25,9 @@ export class ExportUserDataUseCase implements IExportUserDataUseCase {
     if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
 
     const applications = await this.deps.applicationRepository.findAllByUserId(userId);
+    const pipelineStages = this.deps.pipelineStageRepository
+      ? await this.deps.pipelineStageRepository.findAllByUserId(userId)
+      : undefined;
 
     const exportedApplications = await Promise.all(
       applications.map(async (app) => {
@@ -58,6 +63,13 @@ export class ExportUserDataUseCase implements IExportUserDataUseCase {
     return {
       exportedAt: new Date().toISOString(),
       user: { email: user.email, createdAt: user.createdAt.toISOString() },
+      pipelineStages: pipelineStages?.map((stage) => ({
+        key: stage.key,
+        name: stage.name,
+        color: stage.color,
+        position: stage.position,
+        category: stage.category,
+      })),
       applications: exportedApplications,
     };
   }

@@ -8,4 +8,6 @@ export const APPLICATION_STATUSES = [
   'withdrawn',
 ] as const;
 
-export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
+// Status values are user-scoped pipeline stage keys. The legacy constants are
+// retained as the default stage set and for semantic business rules.
+export type ApplicationStatus = string;

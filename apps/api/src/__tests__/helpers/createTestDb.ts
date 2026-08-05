@@ -27,6 +27,20 @@ const SCHEMA_STATEMENTS = [
     "createdAt" INTEGER NOT NULL,
     "updatedAt" INTEGER NOT NULL
   )`,
+  `CREATE TABLE "PipelineStage" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "key" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "color" TEXT NOT NULL DEFAULT 'gray',
+    "position" INTEGER NOT NULL,
+    "category" TEXT NOT NULL DEFAULT 'active',
+    "createdAt" INTEGER NOT NULL,
+    "updatedAt" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "PipelineStage_userId_idx" ON "PipelineStage"("userId")`,
+  `CREATE UNIQUE INDEX "PipelineStage_userId_key_key" ON "PipelineStage"("userId", "key")`,
   `CREATE TABLE "LlmApiKey" (
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,

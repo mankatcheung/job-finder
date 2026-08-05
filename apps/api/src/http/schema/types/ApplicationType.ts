@@ -1,5 +1,4 @@
 import { builder } from '#src/http/schema/builder.js';
-import { ApplicationStatusEnum } from '#src/http/schema/types/enums/ApplicationStatusEnum.js';
 import type { ApplicationDTO } from '#src/interface-adapters/mappers/ApplicationMapper.js';
 
 export const JobApplicationRef = builder.objectRef<ApplicationDTO>('JobApplication');
@@ -9,7 +8,7 @@ JobApplicationRef.implement({
     userId: t.exposeID('userId'),
     company: t.exposeString('company'),
     role: t.exposeString('role'),
-    status: t.expose('status', { type: ApplicationStatusEnum }),
+    status: t.exposeString('status'),
     jobUrl: t.exposeString('jobUrl', { nullable: true }),
     location: t.exposeString('location', { nullable: true }),
     salaryRange: t.exposeString('salaryRange', { nullable: true }),

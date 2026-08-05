@@ -10,6 +10,14 @@ export interface ExportedDocument {
   createdAt: string;
 }
 
+export interface ExportedPipelineStage {
+  key: string;
+  name: string;
+  color: string;
+  position: number;
+  category: string;
+}
+
 export interface ExportedApplication {
   company: string;
   role: string;
@@ -27,6 +35,7 @@ export interface ExportedApplication {
 export interface ExportUserDataOutput {
   exportedAt: string;
   user: { email: string; createdAt: string };
+  pipelineStages?: ExportedPipelineStage[];
   applications: ExportedApplication[];
 }
 

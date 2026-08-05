@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
-import type { ApplicationStatus } from '#/graphql/generated/graphql';
 
 const UPDATE_MUTATION = `
   mutation BulkUpdateApplication($id: ID!, $input: UpdateApplicationInput!) {
@@ -31,7 +30,7 @@ export function useBulkActions() {
 
   return {
     isPending,
-    bulkUpdateStatus: (ids: string[], status: ApplicationStatus) =>
+    bulkUpdateStatus: (ids: string[], status: string) =>
       run(ids, (id) => gqlClient.request(UPDATE_MUTATION, { id, input: { status } })),
     bulkSetStarred: (ids: string[], starred: boolean) =>
       run(ids, (id) => gqlClient.request(UPDATE_MUTATION, { id, input: { starred } })),

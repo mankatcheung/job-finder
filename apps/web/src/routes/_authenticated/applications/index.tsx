@@ -5,7 +5,6 @@ import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
 import { ErrorState } from '#/components/ErrorState';
 import { StatusBadge } from '../dashboard';
-import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { useBulkActions } from './-useBulkActions';
 import { useInfiniteScrollSentinel } from '#/lib/useInfiniteScrollSentinel';
 import {
@@ -24,22 +23,21 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 
 const PAGE_SIZE = 20;
-
-const APPLICATION_STATUSES: ApplicationStatus[] = [
-  'draft',
-  'applied',
-  'interviewing',
-  'offered',
-  'accepted',
-  'rejected',
-  'withdrawn',
-];
+const DEFAULT_PIPELINE_STAGES = [
+  ['draft', 'Draft'],
+  ['applied', 'Applied'],
+  ['interviewing', 'Interviewing'],
+  ['offered', 'Offered'],
+  ['accepted', 'Accepted'],
+  ['rejected', 'Rejected'],
+  ['withdrawn', 'Withdrawn'],
+].map(([key, name]) => ({ key, name }));
 
 const searchSchema = z.object({ status: z.string().optional(), starred: z.boolean().optional() });
 
 const APPLICATIONS_PAGE_QUERY = `
   query ApplicationsPage(
-    $status: ApplicationStatus
+    $status: String
     $starred: Boolean
     $search: String
     $cursor: String
@@ -69,6 +67,7 @@ const APPLICATIONS_PAGE_QUERY = `
         createdAt
       }
     }
+    pipelineStages { key name }
   }
 `;
 
@@ -76,7 +75,7 @@ type Application = {
   id: string;
   company: string;
   role: string;
-  status: ApplicationStatus;
+  status: string;
   location?: string | null;
   description?: string | null;
   appliedAt?: string | null;
@@ -93,6 +92,7 @@ type ApplicationsPageResult = {
     hasNextPage: boolean;
     nextCursor: string | null;
   };
+  pipelineStages: Array<{ key: string; name: string }>;
 };
 
 function applicationsPageQueryOptions(
@@ -155,6 +155,7 @@ export function ApplicationsPage() {
     () => data?.pages.flatMap((page) => page.applicationsPage.items) ?? [],
     [data],
   );
+  const pipelineStages = data?.pages[0]?.pipelineStages ?? DEFAULT_PIPELINE_STAGES;
 
   const sentinelRef = useInfiniteScrollSentinel(() => fetchNextPage(), Boolean(hasNextPage));
 
@@ -238,9 +239,9 @@ export function ApplicationsPage() {
           className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 capitalize"
         >
           <option value="">All statuses</option>
-          {APPLICATION_STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s}
+          {pipelineStages.map((stage) => (
+            <option key={stage.key} value={stage.key}>
+              {stage.name}
             </option>
           ))}
         </select>
@@ -358,7 +359,13 @@ export function ApplicationsPage() {
       )}
 
       {selectedCount > 0 && (
-        <BulkActionBar selectedIds={selectedIds} apps={apps} onClear={clearSelection} bulk={bulk} />
+        <BulkActionBar
+          selectedIds={selectedIds}
+          apps={apps}
+          stages={pipelineStages}
+          onClear={clearSelection}
+          bulk={bulk}
+        />
       )}
     </div>
   );
@@ -367,11 +374,13 @@ export function ApplicationsPage() {
 function BulkActionBar({
   selectedIds,
   apps,
+  stages,
   onClear,
   bulk,
 }: {
   selectedIds: Set<string>;
   apps: Application[];
+  stages: Array<{ key: string; name: string }>;
   onClear: () => void;
   bulk: ReturnType<typeof useBulkActions>;
 }) {
@@ -425,14 +434,14 @@ function BulkActionBar({
           value=""
           disabled={bulk.isPending}
           onChange={(e) => {
-            if (e.target.value) bulk.bulkUpdateStatus(ids, e.target.value as ApplicationStatus);
+            if (e.target.value) bulk.bulkUpdateStatus(ids, e.target.value);
           }}
           className="text-sm bg-gray-800 dark:bg-gray-600 border border-gray-700 dark:border-gray-500 rounded-lg px-2 py-1.5 disabled:opacity-60"
         >
           <option value="">Change status…</option>
-          {APPLICATION_STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
+          {stages.map((stage) => (
+            <option key={stage.key} value={stage.key}>
+              {stage.name}
             </option>
           ))}
         </select>

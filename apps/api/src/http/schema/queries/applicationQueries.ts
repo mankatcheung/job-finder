@@ -2,24 +2,19 @@ import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
 import { JobApplicationRef } from '#src/http/schema/types/ApplicationType.js';
 import { ApplicationConnectionRef } from '#src/http/schema/types/ApplicationConnectionType.js';
-import { ApplicationStatusEnum } from '#src/http/schema/types/enums/ApplicationStatusEnum.js';
-import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
 import { ERROR_CODES } from '#src/constants.js';
 
 builder.queryField('applications', (t) =>
   t.field({
     type: [JobApplicationRef],
     args: {
-      status: t.arg({ type: ApplicationStatusEnum, required: false }),
+      status: t.arg.string({ required: false }),
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { applicationResolver } = ctx.diScope.cradle;
-      return applicationResolver.getApplications(
-        ctx.user.sub,
-        args.status as ApplicationStatus | undefined,
-      );
+      return applicationResolver.getApplications(ctx.user.sub, args.status ?? undefined);
     },
   }),
 );
@@ -28,7 +23,7 @@ builder.queryField('applicationsPage', (t) =>
   t.field({
     type: ApplicationConnectionRef,
     args: {
-      status: t.arg({ type: ApplicationStatusEnum, required: false }),
+      status: t.arg.string({ required: false }),
       starred: t.arg.boolean({ required: false }),
       search: t.arg.string({ required: false }),
       cursor: t.arg.string({ required: false }),
@@ -39,7 +34,7 @@ builder.queryField('applicationsPage', (t) =>
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { applicationResolver } = ctx.diScope.cradle;
       return applicationResolver.getApplicationsPage(ctx.user.sub, {
-        status: (args.status as ApplicationStatus) ?? undefined,
+        status: args.status ?? undefined,
         starred: args.starred ?? undefined,
         search: args.search ?? undefined,
         cursor: args.cursor ?? undefined,

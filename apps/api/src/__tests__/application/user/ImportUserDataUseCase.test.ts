@@ -103,7 +103,7 @@ describe('ImportUserDataUseCase', () => {
     expect(summary.applicationsSkipped).toBe(0);
   });
 
-  it('falls back to the default status when status is missing or unrecognized', async () => {
+  it('preserves custom status keys during import', async () => {
     const app = makeApplication({ id: 'app-1' });
     const deps = makeDeps({
       applicationRepository: makeApplicationRepository({
@@ -117,7 +117,7 @@ describe('ImportUserDataUseCase', () => {
     await new ImportUserDataUseCase(deps).execute('user-1', payload);
 
     expect(deps.applicationRepository.create).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'draft' }),
+      expect.objectContaining({ status: 'not-a-real-status' }),
     );
   });
 

@@ -1,4 +1,4 @@
-query Applications($status: ApplicationStatus) {
+query Applications($status: String) {
   applications(status: $status) {
     id
     company

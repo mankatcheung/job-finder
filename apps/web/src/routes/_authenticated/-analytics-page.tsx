@@ -1,27 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { ErrorState } from '#/components/ErrorState';
-import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { analyticsQueryOptions } from './-analytics-queries';
 
-const STAGE_ORDER: ApplicationStatus[] = [
-  'draft',
-  'applied',
-  'interviewing',
-  'offered',
-  'accepted',
-  'rejected',
-  'withdrawn',
-];
+const DEFAULT_STAGES = [
+  ['draft', 'Draft', 'gray', 'backlog'],
+  ['applied', 'Applied', 'blue', 'active'],
+  ['interviewing', 'Interviewing', 'purple', 'interviewing'],
+  ['offered', 'Offered', 'orange', 'offered'],
+  ['accepted', 'Accepted', 'green', 'accepted'],
+  ['rejected', 'Rejected', 'red', 'rejected'],
+  ['withdrawn', 'Withdrawn', 'gray', 'withdrawn'],
+].map(([key, name, color, category], position) => ({ key, name, color, category, position }));
 
 const STATUS_COLORS: Record<string, string> = {
-  draft: '#9ca3af',
-  applied: '#3b82f6',
-  interviewing: '#a855f7',
-  offered: '#f97316',
-  accepted: '#22c55e',
-  rejected: '#ef4444',
-  withdrawn: '#6b7280',
+  gray: '#9ca3af',
+  blue: '#3b82f6',
+  purple: '#a855f7',
+  orange: '#f97316',
+  green: '#22c55e',
+  red: '#ef4444',
 };
 
 function isoWeek(date: Date): string {
@@ -39,6 +37,9 @@ export function AnalyticsPage() {
   const { data, isLoading, isError, error, refetch } = useQuery(analyticsQueryOptions);
 
   const apps = data?.applications ?? [];
+  const stages = (data?.pipelineStages?.length ? data.pipelineStages : DEFAULT_STAGES).sort(
+    (a, b) => a.position - b.position,
+  );
 
   const weekCounts: Record<string, number> = {};
   apps.forEach((a) => {
@@ -50,13 +51,19 @@ export function AnalyticsPage() {
     .slice(-12)
     .map(([week, count]) => ({ week: week.replace(/^\d{4}-/, ''), count }));
 
-  const funnelData = STAGE_ORDER.map((status) => ({
-    status,
-    count: apps.filter((a) => a.status === status).length,
+  const funnelData = stages.map((stage) => ({
+    status: stage.name,
+    count: apps.filter((a) => a.status === stage.key).length,
+    color: STATUS_COLORS[stage.color] ?? '#3b82f6',
   }));
 
-  const appliedOrBeyond = apps.filter((a) => a.status !== 'draft');
-  const gotResponse = appliedOrBeyond.filter((a) => !['applied', 'draft'].includes(a.status));
+  const appliedOrBeyond = apps.filter(
+    (a) => stages.find((stage) => stage.key === a.status)?.category !== 'backlog',
+  );
+  const gotResponse = appliedOrBeyond.filter((a) => {
+    const category = stages.find((stage) => stage.key === a.status)?.category;
+    return category !== 'active';
+  });
   const responseRate =
     appliedOrBeyond.length > 0
       ? Math.round((gotResponse.length / appliedOrBeyond.length) * 100)
@@ -64,11 +71,19 @@ export function AnalyticsPage() {
 
   const totalApps = apps.length;
   const activeApps = apps.filter((a) =>
-    ['applied', 'interviewing', 'offered'].includes(a.status),
+    ['active', 'interviewing', 'offered'].includes(
+      stages.find((stage) => stage.key === a.status)?.category ?? '',
+    ),
   ).length;
   const successRate =
     totalApps > 0
-      ? Math.round((apps.filter((a) => a.status === 'accepted').length / totalApps) * 100)
+      ? Math.round(
+          (apps.filter(
+            (a) => stages.find((stage) => stage.key === a.status)?.category === 'accepted',
+          ).length /
+            totalApps) *
+            100,
+        )
       : 0;
 
   const tooltipStyle = {
@@ -156,7 +171,7 @@ export function AnalyticsPage() {
               <Tooltip contentStyle={tooltipStyle} />
               <Bar dataKey="count" radius={[0, 4, 4, 0]} name="Applications">
                 {funnelData.map((entry) => (
-                  <Cell key={entry.status} fill={STATUS_COLORS[entry.status] ?? '#3b82f6'} />
+                  <Cell key={entry.status} fill={entry.color} />
                 ))}
               </Bar>
             </BarChart>
