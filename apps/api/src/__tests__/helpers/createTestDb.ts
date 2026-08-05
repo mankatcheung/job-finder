@@ -144,10 +144,27 @@ const SCHEMA_STATEMENTS = [
     "storageKey" TEXT NOT NULL UNIQUE,
     "documentType" TEXT NOT NULL DEFAULT 'other',
     "version" TEXT,
+    "sourceDraftId" TEXT,
     "createdAt" INTEGER NOT NULL,
-    FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
+    FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE,
+    FOREIGN KEY ("sourceDraftId") REFERENCES "DocumentDraft"("id") ON DELETE SET NULL
   )`,
   `CREATE INDEX "Document_applicationId_idx" ON "Document"("applicationId")`,
+  `CREATE TABLE "DocumentDraft" (
+    "id" TEXT PRIMARY KEY,
+    "applicationId" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "contentJson" TEXT DEFAULT '{}' NOT NULL,
+    "plainText" TEXT DEFAULT '' NOT NULL,
+    "sourceDocumentId" TEXT,
+    "createdAt" INTEGER NOT NULL,
+    "updatedAt" INTEGER NOT NULL,
+    FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE,
+    FOREIGN KEY ("sourceDocumentId") REFERENCES "Document"("id") ON DELETE SET NULL
+  )`,
+  `CREATE INDEX "DocumentDraft_applicationId_idx" ON "DocumentDraft"("applicationId")`,
+  `CREATE INDEX "DocumentDraft_sourceDocumentId_idx" ON "DocumentDraft"("sourceDocumentId")`,
   `CREATE TABLE "ApplicationTag" (
     "id" TEXT PRIMARY KEY,
     "applicationId" TEXT NOT NULL,

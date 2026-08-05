@@ -49,6 +49,9 @@ import type { IDocumentTextExtractor } from '#src/use-cases/ports/IDocumentTextE
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 import type { IPushSubscriptionRepository } from '#src/use-cases/ports/IPushSubscriptionRepository.js';
 import type { PushSubscription } from '#src/domain/pushSubscription/PushSubscription.js';
+import type { IDocumentDraftRepository } from '#src/use-cases/ports/IDocumentDraftRepository.js';
+import type { DocumentDraft } from '#src/domain/documentDraft/DocumentDraft.js';
+import type { IPdfRenderer } from '#src/use-cases/ports/IPdfRenderer.js';
 
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
@@ -460,6 +463,35 @@ export const makeDocument = (overrides?: Partial<Document>): Document => ({
   version: null,
   sourceDraftId: null,
   createdAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+export const makeDocumentDraftRepository = (
+  overrides?: Partial<IDocumentDraftRepository>,
+): IDocumentDraftRepository => ({
+  findAllByApplicationId: vi.fn().mockResolvedValue([]),
+  findById: vi.fn(),
+  create: vi.fn(),
+  updateContent: vi.fn(),
+  delete: vi.fn(),
+  ...overrides,
+});
+
+export const makeDocumentDraft = (overrides?: Partial<DocumentDraft>): DocumentDraft => ({
+  id: 'draft-1',
+  applicationId: 'app-1',
+  type: 'cover_letter',
+  title: 'Cover Letter',
+  contentJson: '{"type":"doc","content":[]}',
+  plainText: '',
+  sourceDocumentId: null,
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+export const makePdfRenderer = (overrides?: Partial<IPdfRenderer>): IPdfRenderer => ({
+  render: vi.fn().mockResolvedValue(Buffer.from('pdf-content')),
   ...overrides,
 });
 
