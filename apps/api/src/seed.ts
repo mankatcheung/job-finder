@@ -25,6 +25,9 @@ import {
   activityLog,
   contact,
   interviewRound,
+  workExperience,
+  education,
+  skill,
 } from './infrastructure/db/schema.js';
 import type { ApplicationStatus } from './domain/application/ApplicationStatus.js';
 
@@ -598,6 +601,144 @@ for (const app of applications) {
   });
 
   console.log(`  Created application: ${app.company} — ${app.role} (${app.status})`);
+}
+
+// ---------------------------------------------------------------------------
+// Work experience
+// ---------------------------------------------------------------------------
+const workExperiences = [
+  {
+    company: 'Acme Corp',
+    title: 'Software Engineer',
+    location: 'San Francisco, CA',
+    startDate: new Date('2022-03-01'),
+    endDate: new Date('2024-06-30'),
+    description:
+      'Built and maintained the main SaaS dashboard. Led the migration from class components to React hooks. Mentored 2 junior engineers.',
+  },
+  {
+    company: 'TechStartup Inc.',
+    title: 'Frontend Developer',
+    location: 'Remote',
+    startDate: new Date('2020-06-01'),
+    endDate: new Date('2022-02-28'),
+    description:
+      'Developed the customer-facing web app from 0 to 1. Implemented real-time collaboration features using WebSockets.',
+  },
+  {
+    company: 'Digital Agency Co.',
+    title: 'Junior Developer',
+    location: 'New York, NY',
+    startDate: new Date('2018-09-01'),
+    endDate: new Date('2020-05-31'),
+    description:
+      'Built responsive websites and e-commerce storefronts for clients. Worked with React, Node.js, and PostgreSQL.',
+  },
+];
+
+for (const we of workExperiences) {
+  await db.insert(workExperience).values({
+    id: nanoid(),
+    userId,
+    company: we.company,
+    title: we.title,
+    location: we.location,
+    startDate: we.startDate,
+    endDate: we.endDate,
+    description: we.description,
+    createdAt: now,
+    updatedAt: now,
+  });
+  console.log(`  Created work experience: ${we.title} at ${we.company}`);
+}
+
+// ---------------------------------------------------------------------------
+// Education
+// ---------------------------------------------------------------------------
+const educations = [
+  {
+    institution: 'University of California, Berkeley',
+    degree: 'B.S.',
+    field: 'Computer Science',
+    startDate: new Date('2014-09-01'),
+    endDate: new Date('2018-05-15'),
+    description:
+      'Graduated with honors. Coursework: Data Structures, Algorithms, Distributed Systems, Machine Learning.',
+  },
+  {
+    institution: 'Coursera',
+    degree: 'Certificate',
+    field: 'Machine Learning',
+    startDate: new Date('2021-01-15'),
+    endDate: new Date('2021-04-20'),
+    description: "Stanford Online — Andrew Ng's Machine Learning course.",
+  },
+];
+
+for (const edu of educations) {
+  await db.insert(education).values({
+    id: nanoid(),
+    userId,
+    institution: edu.institution,
+    degree: edu.degree,
+    field: edu.field,
+    startDate: edu.startDate,
+    endDate: edu.endDate,
+    description: edu.description,
+    createdAt: now,
+    updatedAt: now,
+  });
+  console.log(`  Created education: ${edu.degree} in ${edu.field} at ${edu.institution}`);
+}
+
+// ---------------------------------------------------------------------------
+// Skills
+// ---------------------------------------------------------------------------
+const skills = [
+  // Languages
+  { name: 'TypeScript', category: 'Language', proficiency: 'expert' },
+  { name: 'JavaScript', category: 'Language', proficiency: 'expert' },
+  { name: 'Python', category: 'Language', proficiency: 'advanced' },
+  { name: 'SQL', category: 'Language', proficiency: 'advanced' },
+  { name: 'Go', category: 'Language', proficiency: 'intermediate' },
+
+  // Frontend
+  { name: 'React', category: 'Framework', proficiency: 'expert' },
+  { name: 'Next.js', category: 'Framework', proficiency: 'advanced' },
+  { name: 'Tailwind CSS', category: 'Library', proficiency: 'expert' },
+  { name: 'TanStack Query', category: 'Library', proficiency: 'advanced' },
+  { name: 'GraphQL', category: 'Technology', proficiency: 'advanced' },
+
+  // Backend
+  { name: 'Node.js', category: 'Runtime', proficiency: 'expert' },
+  { name: 'Fastify', category: 'Framework', proficiency: 'advanced' },
+  { name: 'PostgreSQL', category: 'Database', proficiency: 'advanced' },
+  { name: 'Redis', category: 'Database', proficiency: 'intermediate' },
+  { name: 'SQLite', category: 'Database', proficiency: 'advanced' },
+
+  // DevOps & Tools
+  { name: 'Git', category: 'Tool', proficiency: 'expert' },
+  { name: 'Docker', category: 'Tool', proficiency: 'intermediate' },
+  { name: 'CI/CD', category: 'Practice', proficiency: 'advanced' },
+  { name: 'AWS', category: 'Platform', proficiency: 'intermediate' },
+  { name: 'Vercel', category: 'Platform', proficiency: 'advanced' },
+
+  // Soft skills
+  { name: 'Technical Writing', category: 'Soft Skill', proficiency: 'advanced' },
+  { name: 'Code Review', category: 'Practice', proficiency: 'expert' },
+  { name: 'Mentoring', category: 'Soft Skill', proficiency: 'advanced' },
+];
+
+for (const s of skills) {
+  await db.insert(skill).values({
+    id: nanoid(),
+    userId,
+    name: s.name,
+    category: s.category,
+    proficiency: s.proficiency,
+    createdAt: now,
+  });
+  console.log(`  Created skill: ${s.name} (${s.proficiency})`);
 }
 
 console.log('\nSeed complete!');
