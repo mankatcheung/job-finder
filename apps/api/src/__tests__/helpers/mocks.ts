@@ -147,6 +147,7 @@ export const makeConversationRepository = (
 export const makeStorageProvider = (overrides?: Partial<IStorageProvider>): IStorageProvider => ({
   getPresignedUploadUrl: vi.fn(),
   getSignedUrl: vi.fn(),
+  putObject: vi.fn(),
   delete: vi.fn(),
   ...overrides,
 });
@@ -457,6 +458,7 @@ export const makeDocument = (overrides?: Partial<Document>): Document => ({
   storageKey: 'users/user-1/applications/app-1/resume.pdf',
   documentType: 'other',
   version: null,
+  sourceDraftId: null,
   createdAt: new Date('2024-01-01'),
   ...overrides,
 });

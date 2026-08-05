@@ -12,6 +12,7 @@ DocumentRef.implement({
     url: t.exposeString('url'),
     documentType: t.exposeString('documentType'),
     version: t.exposeString('version', { nullable: true }),
+    sourceDraftId: t.exposeString('sourceDraftId', { nullable: true }),
     createdAt: t.exposeString('createdAt'),
   }),
 });

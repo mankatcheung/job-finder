@@ -9,6 +9,7 @@ export interface DocumentDTO {
   url: string;
   documentType: string;
   version: string | null;
+  sourceDraftId: string | null;
   createdAt: string;
 }
 
@@ -23,6 +24,7 @@ export class DocumentMapper {
       url: signedUrl,
       documentType: doc.documentType,
       version: doc.version,
+      sourceDraftId: doc.sourceDraftId,
       createdAt: doc.createdAt.toISOString(),
     };
   }

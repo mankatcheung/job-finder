@@ -23,6 +23,12 @@ export class LocalStorageProvider implements IStorageProvider {
     return `${this.baseUrl}/${key}`;
   }
 
+  async putObject(key: string, data: Buffer, _mimeType: string): Promise<void> {
+    const filePath = join(this.uploadDir, key);
+    await fs.mkdir(dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, data);
+  }
+
   async delete(key: string): Promise<void> {
     const filePath = join(this.uploadDir, key);
     try {
