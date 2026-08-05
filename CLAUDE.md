@@ -125,6 +125,7 @@ Key API env vars: `DATABASE_URL` must be an absolute path for local SQLite (e.g.
 
 ## Workflow
 
+- **Linear issue lifecycle:** Before an agent starts implementation for a Linear issue, set its status to **In Progress**. Do not begin coding while it remains in Backlog, Planned, Todo, or another status. After implementation is complete, the branch is pushed, and a PR is created, set the issue status to **In Review**. Only move it to **Done** after the PR is merged or the user explicitly asks for completion.
 - **Branch name:** `<feat/fix/chore/...>/<linear-id>-<brief name>` — the Linear ID segment (lowercase, e.g. `jef-67`) is included only when the work maps to a Linear ticket; omit it otherwise.
   - With a ticket: `feat/jef-67-multi-provider-llm`
   - Without a ticket: `feat/animated-page-transitions`
