@@ -24,6 +24,7 @@ const SCHEMA_STATEMENTS = [
     "totpSecret" TEXT,
     "totpEnabled" INTEGER NOT NULL DEFAULT 0,
     "defaultLlmProvider" TEXT,
+    "customAiPrompt" TEXT,
     "createdAt" INTEGER NOT NULL,
     "updatedAt" INTEGER NOT NULL
   )`,

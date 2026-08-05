@@ -11,6 +11,7 @@ interface Deps {
 
 const MAX_NAME_LENGTH = 100;
 const MAX_TARGET_ROLE_LENGTH = 100;
+const MAX_AI_PROMPT_LENGTH = 500;
 
 function isValidTimezone(timezone: string): boolean {
   try {
@@ -39,6 +40,7 @@ export class UpdateProfileUseCase implements IUpdateProfileUseCase {
     const name = normalize(input.name);
     const timezone = normalize(input.timezone);
     const targetRole = normalize(input.targetRole);
+    const customAiPrompt = normalize(input.customAiPrompt);
 
     if (name && name.length > MAX_NAME_LENGTH) {
       throw Object.assign(new Error('Name is too long'), { code: ERROR_CODES.VALIDATION });
@@ -48,10 +50,18 @@ export class UpdateProfileUseCase implements IUpdateProfileUseCase {
         code: ERROR_CODES.VALIDATION,
       });
     }
+    if (customAiPrompt && customAiPrompt.length > MAX_AI_PROMPT_LENGTH) {
+      throw Object.assign(new Error('AI prompt is too long'), { code: ERROR_CODES.VALIDATION });
+    }
     if (timezone && !isValidTimezone(timezone)) {
       throw Object.assign(new Error('Invalid timezone'), { code: ERROR_CODES.VALIDATION });
     }
 
-    await this.deps.userRepository.update(input.userId, { name, timezone, targetRole });
+    await this.deps.userRepository.update(input.userId, {
+      name,
+      timezone,
+      targetRole,
+      customAiPrompt,
+    });
   }
 }

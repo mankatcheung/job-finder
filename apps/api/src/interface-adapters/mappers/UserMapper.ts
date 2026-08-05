@@ -8,6 +8,7 @@ export interface UserDTO {
   targetRole: string | null;
   avatarUrl: string | null;
   defaultLlmProvider: string | null;
+  customAiPrompt: string | null;
 }
 
 export class UserMapper {
@@ -20,6 +21,7 @@ export class UserMapper {
       targetRole: user.targetRole,
       avatarUrl,
       defaultLlmProvider: user.defaultLlmProvider,
+      customAiPrompt: user.customAiPrompt,
     };
   }
 }

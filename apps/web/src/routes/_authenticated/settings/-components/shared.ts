@@ -37,8 +37,18 @@ export const REMOVE_AVATAR = `
 `;
 
 export const UPDATE_PROFILE = `
-  mutation UpdateProfile($name: String, $timezone: String, $targetRole: String) {
-    updateProfile(name: $name, timezone: $timezone, targetRole: $targetRole)
+  mutation UpdateProfile(
+    $name: String
+    $timezone: String
+    $targetRole: String
+    $customAiPrompt: String
+  ) {
+    updateProfile(
+      name: $name
+      timezone: $timezone
+      targetRole: $targetRole
+      customAiPrompt: $customAiPrompt
+    )
   }
 `;
 
@@ -183,6 +193,7 @@ export const LLM_API_KEYS_QUERY = `
     }
     me {
       defaultLlmProvider
+      customAiPrompt
     }
   }
 `;
@@ -257,6 +268,16 @@ export const profileSchema = z.object({
   name: z.string().max(100, 'Name is too long'),
   timezone: z.string(),
   targetRole: z.string().max(100, 'Target role is too long'),
+});
+
+// Mirrors MAX_AI_PROMPT_LENGTH in apps/api's UpdateProfileUseCase — this repo
+// doesn't share validation constants across the API/web boundary.
+export const MAX_AI_PROMPT_LENGTH = 500;
+
+export const customAiPromptSchema = z.object({
+  customAiPrompt: z
+    .string()
+    .max(MAX_AI_PROMPT_LENGTH, `Must be ${MAX_AI_PROMPT_LENGTH} characters or fewer`),
 });
 
 export const emailSchema = z.object({
@@ -351,6 +372,7 @@ export const llmApiKeySchema = z
 // ── Types ──────────────────────────────────────────────────────────────────
 
 export type ProfileForm = z.infer<typeof profileSchema>;
+export type CustomAiPromptForm = z.infer<typeof customAiPromptSchema>;
 export type EmailForm = z.infer<typeof emailSchema>;
 export type PasswordForm = z.infer<typeof passwordSchema>;
 export type DeleteForm = z.infer<typeof deleteSchema>;

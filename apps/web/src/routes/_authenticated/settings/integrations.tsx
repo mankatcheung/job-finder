@@ -10,12 +10,15 @@ import {
   SAVE_LLM_API_KEY,
   DELETE_LLM_API_KEY,
   SET_DEFAULT_LLM_PROVIDER,
+  UPDATE_PROFILE,
   API_TOKENS_QUERY,
   CREATE_API_TOKEN,
   DELETE_API_TOKEN,
   llmApiKeySchema,
+  customAiPromptSchema,
   CUSTOM_LLM_PROVIDER,
   type LlmApiKeyForm,
+  type CustomAiPromptForm,
   type LlmApiKey,
   type ApiToken,
   type CreateApiTokenPayload,
@@ -37,9 +40,10 @@ export function SettingsIntegrationsPage() {
   const { data: llmData } = useQuery({
     queryKey: ['llmApiKeys'],
     queryFn: () =>
-      gqlClient.request<{ llmApiKeys: LlmApiKey[]; me: { defaultLlmProvider: string | null } }>(
-        LLM_API_KEYS_QUERY,
-      ),
+      gqlClient.request<{
+        llmApiKeys: LlmApiKey[];
+        me: { defaultLlmProvider: string | null; customAiPrompt: string | null };
+      }>(LLM_API_KEYS_QUERY),
   });
   const llmApiKeys = llmData?.llmApiKeys ?? [];
   const defaultLlmProvider = llmData?.me.defaultLlmProvider ?? null;
@@ -111,6 +115,24 @@ export function SettingsIntegrationsPage() {
       setLlmKeyListError(extractGqlError(err) ?? 'Failed to set default provider.');
     } finally {
       setSettingDefaultProvider(null);
+    }
+  };
+
+  // Custom AI prompt
+  const customAiPromptForm = useForm<CustomAiPromptForm>({
+    resolver: zodResolver(customAiPromptSchema),
+    values: { customAiPrompt: llmData?.me.customAiPrompt ?? '' },
+  });
+  const onUpdateCustomAiPrompt = async (data: CustomAiPromptForm) => {
+    try {
+      await gqlClient.request(UPDATE_PROFILE, {
+        customAiPrompt: data.customAiPrompt.trim() || null,
+      });
+      await qc.invalidateQueries({ queryKey: ['llmApiKeys'] });
+    } catch (err) {
+      customAiPromptForm.setError('root', {
+        message: extractGqlError(err) ?? 'Failed to update custom instructions.',
+      });
     }
   };
 
@@ -327,6 +349,45 @@ export function SettingsIntegrationsPage() {
             You&apos;ve configured every available provider.
           </p>
         )}
+
+        <form
+          onSubmit={customAiPromptForm.handleSubmit(onUpdateCustomAiPrompt)}
+          className="space-y-3"
+        >
+          <div>
+            <label className={labelCls}>Custom instructions</label>
+            <textarea
+              {...customAiPromptForm.register('customAiPrompt')}
+              className={inputCls}
+              rows={3}
+              placeholder="e.g. Keep cover letters under 200 words and write in a casual tone."
+            />
+            <p className="mt-1 text-xs text-gray-400">
+              Added to the prompt for AI-generated text (cover letters, the assistant chatbot).
+            </p>
+            {customAiPromptForm.formState.errors.customAiPrompt && (
+              <p className="mt-1 text-xs text-red-600">
+                {customAiPromptForm.formState.errors.customAiPrompt.message}
+              </p>
+            )}
+          </div>
+          {customAiPromptForm.formState.errors.root?.message && (
+            <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+              {customAiPromptForm.formState.errors.root.message}
+            </p>
+          )}
+          {customAiPromptForm.formState.isSubmitSuccessful &&
+            !customAiPromptForm.formState.errors.root?.message && (
+              <p className="text-sm text-green-600">Custom instructions updated successfully.</p>
+            )}
+          <button
+            type="submit"
+            disabled={customAiPromptForm.formState.isSubmitting}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            {customAiPromptForm.formState.isSubmitting ? 'Saving…' : 'Save instructions'}
+          </button>
+        </form>
       </section>
 
       <hr className="border-gray-200 dark:border-gray-700" />

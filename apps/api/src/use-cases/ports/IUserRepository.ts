@@ -27,6 +27,7 @@ export interface IUserRepository {
       totpSecret?: string | null;
       totpEnabled?: boolean;
       defaultLlmProvider?: string | null;
+      customAiPrompt?: string | null;
     },
   ): Promise<User>;
   delete(id: string): Promise<void>;

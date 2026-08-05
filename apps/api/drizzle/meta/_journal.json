@@ -71,6 +71,13 @@
       "when": 1785880038472,
       "tag": "0009_brave_famine",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1785965639943,
+      "tag": "0010_red_steel_serpent",
+      "breakpoints": true
     }
   ]
 }

@@ -366,6 +366,7 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   totpSecret: null,
   totpEnabled: false,
   defaultLlmProvider: null,
+  customAiPrompt: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,
