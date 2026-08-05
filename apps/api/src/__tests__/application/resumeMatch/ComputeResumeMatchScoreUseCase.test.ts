@@ -115,18 +115,16 @@ describe('ComputeResumeMatchScoreUseCase', () => {
 
   it('falls back to user profile when there is no resumeText and no uploaded resume document', async () => {
     const workExperienceRepository = makeWorkExperienceRepository({
-      findAllByUserId: vi
-        .fn()
-        .mockResolvedValue([
-          {
-            id: 'we-1',
-            company: 'Acme',
-            title: 'Engineer',
-            startDate: new Date('2020-01-01'),
-            endDate: null,
-            description: 'Built things',
-          },
-        ]),
+      findAllByUserId: vi.fn().mockResolvedValue([
+        {
+          id: 'we-1',
+          company: 'Acme',
+          title: 'Engineer',
+          startDate: new Date('2020-01-01'),
+          endDate: null,
+          description: 'Built things',
+        },
+      ]),
     });
     const skillRepository = makeSkillRepository({
       findAllByUserId: vi
