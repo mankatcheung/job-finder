@@ -14,6 +14,7 @@ import {
   CheckIcon,
   ChevronDownIcon,
   CopyIcon,
+  DollarSignIcon,
   EyeIcon,
   ChevronUpIcon,
   EditIcon,
@@ -92,7 +93,14 @@ export function ApplicationDetailPage() {
   const [noteContent, setNoteContent] = useState('');
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [activeTab, setActiveTab] = useState<
-    'notes' | 'interviews' | 'contacts' | 'activity' | 'documents' | 'cover letter' | 'resume match'
+    | 'notes'
+    | 'interviews'
+    | 'contacts'
+    | 'activity'
+    | 'documents'
+    | 'cover letter'
+    | 'resume match'
+    | 'offers'
   >('notes');
 
   const TABS = [
@@ -103,6 +111,7 @@ export function ApplicationDetailPage() {
     { id: 'documents' as const, label: 'Documents', icon: UploadIcon },
     { id: 'cover letter' as const, label: 'Cover Letter', icon: PenLineIcon },
     { id: 'resume match' as const, label: 'Resume Match', icon: FileTextIcon },
+    { id: 'offers' as const, label: 'Offers', icon: DollarSignIcon },
   ];
 
   const {
@@ -522,6 +531,34 @@ export function ApplicationDetailPage() {
           {activeTab === 'cover letter' && <CoverLetterTab applicationId={applicationId} />}
 
           {activeTab === 'resume match' && <ResumeMatchTab applicationId={applicationId} />}
+
+          {activeTab === 'offers' && (
+            <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Offer comparison
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Record compensation details and compare this application with offers from other
+                applications.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  to="/applications/$applicationId/offers"
+                  params={{ applicationId }}
+                  className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                >
+                  Manage offers
+                </Link>
+                <Link
+                  to="/applications/$applicationId/offers/compare"
+                  params={{ applicationId }}
+                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  Compare offers
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

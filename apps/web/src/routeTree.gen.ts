@@ -36,6 +36,8 @@ import { Route as AuthenticatedApplicationsNewRouteImport } from './routes/_auth
 import { Route as AuthenticatedApplicationsBoardRouteImport } from './routes/_authenticated/applications/board'
 import { Route as AuthenticatedApplicationsApplicationIdIndexRouteImport } from './routes/_authenticated/applications/$applicationId/index'
 import { Route as AuthenticatedApplicationsApplicationIdEditRouteImport } from './routes/_authenticated/applications/$applicationId/edit'
+import { Route as AuthenticatedApplicationsApplicationIdOffersIndexRouteImport } from './routes/_authenticated/applications/$applicationId/offers/index'
+import { Route as AuthenticatedApplicationsApplicationIdOffersCompareRouteImport } from './routes/_authenticated/applications/$applicationId/offers/compare'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -186,6 +188,18 @@ const AuthenticatedApplicationsApplicationIdEditRoute =
     path: '/applications/$applicationId/edit',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedApplicationsApplicationIdOffersIndexRoute =
+  AuthenticatedApplicationsApplicationIdOffersIndexRouteImport.update({
+    id: '/applications/$applicationId/offers/',
+    path: '/applications/$applicationId/offers/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedApplicationsApplicationIdOffersCompareRoute =
+  AuthenticatedApplicationsApplicationIdOffersCompareRouteImport.update({
+    id: '/applications/$applicationId/offers/compare',
+    path: '/applications/$applicationId/offers/compare',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -214,6 +228,8 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/applications/$applicationId/edit': typeof AuthenticatedApplicationsApplicationIdEditRoute
   '/applications/$applicationId/': typeof AuthenticatedApplicationsApplicationIdIndexRoute
+  '/applications/$applicationId/offers/compare': typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute
+  '/applications/$applicationId/offers/': typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -241,6 +257,8 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/applications/$applicationId/edit': typeof AuthenticatedApplicationsApplicationIdEditRoute
   '/applications/$applicationId': typeof AuthenticatedApplicationsApplicationIdIndexRoute
+  '/applications/$applicationId/offers/compare': typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute
+  '/applications/$applicationId/offers': typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -271,6 +289,8 @@ export interface FileRoutesById {
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/applications/$applicationId/edit': typeof AuthenticatedApplicationsApplicationIdEditRoute
   '/_authenticated/applications/$applicationId/': typeof AuthenticatedApplicationsApplicationIdIndexRoute
+  '/_authenticated/applications/$applicationId/offers/compare': typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute
+  '/_authenticated/applications/$applicationId/offers/': typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -301,6 +321,8 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/applications/$applicationId/edit'
     | '/applications/$applicationId/'
+    | '/applications/$applicationId/offers/compare'
+    | '/applications/$applicationId/offers/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -328,6 +350,8 @@ export interface FileRouteTypes {
     | '/settings'
     | '/applications/$applicationId/edit'
     | '/applications/$applicationId'
+    | '/applications/$applicationId/offers/compare'
+    | '/applications/$applicationId/offers'
   id:
     | '__root__'
     | '/'
@@ -357,6 +381,8 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/'
     | '/_authenticated/applications/$applicationId/edit'
     | '/_authenticated/applications/$applicationId/'
+    | '/_authenticated/applications/$applicationId/offers/compare'
+    | '/_authenticated/applications/$applicationId/offers/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -561,6 +587,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdEditRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/applications/$applicationId/offers/': {
+      id: '/_authenticated/applications/$applicationId/offers/'
+      path: '/applications/$applicationId/offers'
+      fullPath: '/applications/$applicationId/offers/'
+      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdOffersIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/applications/$applicationId/offers/compare': {
+      id: '/_authenticated/applications/$applicationId/offers/compare'
+      path: '/applications/$applicationId/offers/compare'
+      fullPath: '/applications/$applicationId/offers/compare'
+      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdOffersCompareRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -605,6 +645,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssistantIndexRoute: typeof AuthenticatedAssistantIndexRoute
   AuthenticatedApplicationsApplicationIdEditRoute: typeof AuthenticatedApplicationsApplicationIdEditRoute
   AuthenticatedApplicationsApplicationIdIndexRoute: typeof AuthenticatedApplicationsApplicationIdIndexRoute
+  AuthenticatedApplicationsApplicationIdOffersCompareRoute: typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute
+  AuthenticatedApplicationsApplicationIdOffersIndexRoute: typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -622,6 +664,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedApplicationsApplicationIdEditRoute,
   AuthenticatedApplicationsApplicationIdIndexRoute:
     AuthenticatedApplicationsApplicationIdIndexRoute,
+  AuthenticatedApplicationsApplicationIdOffersCompareRoute:
+    AuthenticatedApplicationsApplicationIdOffersCompareRoute,
+  AuthenticatedApplicationsApplicationIdOffersIndexRoute:
+    AuthenticatedApplicationsApplicationIdOffersIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

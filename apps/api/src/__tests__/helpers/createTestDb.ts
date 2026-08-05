@@ -148,6 +148,22 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "Document_applicationId_idx" ON "Document"("applicationId")`,
+  `CREATE TABLE "Offer" (
+    "id" TEXT PRIMARY KEY,
+    "applicationId" TEXT NOT NULL,
+    "baseSalary" INTEGER NOT NULL,
+    "bonus" INTEGER,
+    "equity" TEXT,
+    "benefits" TEXT,
+    "costOfLivingAdjustment" INTEGER,
+    "currency" TEXT NOT NULL DEFAULT 'USD',
+    "period" TEXT NOT NULL DEFAULT 'yearly',
+    "notes" TEXT,
+    "createdAt" INTEGER NOT NULL,
+    "updatedAt" INTEGER NOT NULL,
+    FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "Offer_applicationId_idx" ON "Offer"("applicationId")`,
   `CREATE TABLE "ApplicationTag" (
     "id" TEXT PRIMARY KEY,
     "applicationId" TEXT NOT NULL,
