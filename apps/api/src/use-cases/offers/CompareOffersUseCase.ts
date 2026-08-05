@@ -8,6 +8,11 @@ import type {
   OfferComparison,
 } from './ICompareOffersUseCase.js';
 
+interface Deps {
+  offerRepository: IOfferRepository;
+  applicationRepository: IApplicationRepository;
+}
+
 function normalizeToYearly(amount: number, period: OfferPeriod): number {
   switch (period) {
     case 'yearly':
@@ -24,10 +29,7 @@ function normalizeToYearly(amount: number, period: OfferPeriod): number {
 }
 
 export class CompareOffersUseCase implements ICompareOffersUseCase {
-  constructor(
-    private readonly offerRepository: IOfferRepository,
-    private readonly applicationRepository: IApplicationRepository,
-  ) {}
+  constructor(private readonly deps: Deps) {}
 
   async execute(input: CompareOffersInput): Promise<OfferComparison[]> {
     if (input.offerIds.length === 0) {
@@ -37,12 +39,12 @@ export class CompareOffersUseCase implements ICompareOffersUseCase {
     const comparisons: OfferComparison[] = [];
 
     for (const offerId of input.offerIds) {
-      const offer = await this.offerRepository.findById(offerId);
+      const offer = await this.deps.offerRepository.findById(offerId);
       if (!offer) {
         throw new NotFoundError(`Offer ${offerId} not found`);
       }
 
-      const app = await this.applicationRepository.findById(offer.applicationId);
+      const app = await this.deps.applicationRepository.findById(offer.applicationId);
       if (!app || app.userId !== input.userId) {
         throw new ForbiddenError(`Not authorized for offer ${offerId}`);
       }

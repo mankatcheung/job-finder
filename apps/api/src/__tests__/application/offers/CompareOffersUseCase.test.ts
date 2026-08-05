@@ -51,10 +51,10 @@ describe('CompareOffersUseCase', () => {
       makeOffer({ id: 'offer-yearly', baseSalary: 130_000, bonus: 5_000, period: 'yearly' }),
       makeOffer({ id: 'offer-hourly', baseSalary: 60, bonus: null, period: 'hourly' }),
     ];
-    const useCase = new CompareOffersUseCase(
-      makeOfferRepository(offers),
-      makeApplicationRepository(),
-    );
+    const useCase = new CompareOffersUseCase({
+      offerRepository: makeOfferRepository(offers),
+      applicationRepository: makeApplicationRepository(),
+    });
 
     const result = await useCase.execute({
       userId: 'user-1',
@@ -72,7 +72,10 @@ describe('CompareOffersUseCase', () => {
   });
 
   it('returns an empty comparison for no selected offers', async () => {
-    const useCase = new CompareOffersUseCase(makeOfferRepository([]), makeApplicationRepository());
+    const useCase = new CompareOffersUseCase({
+      offerRepository: makeOfferRepository([]),
+      applicationRepository: makeApplicationRepository(),
+    });
 
     await expect(useCase.execute({ userId: 'user-1', offerIds: [] })).resolves.toEqual([]);
   });

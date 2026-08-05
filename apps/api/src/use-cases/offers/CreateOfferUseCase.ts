@@ -4,20 +4,22 @@ import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRe
 import { NotFoundError } from '#src/http/errors/AppError.js';
 import type { ICreateOfferUseCase, CreateOfferInput } from './ICreateOfferUseCase.js';
 
+interface Deps {
+  offerRepository: IOfferRepository;
+  applicationRepository: IApplicationRepository;
+}
+
 export class CreateOfferUseCase implements ICreateOfferUseCase {
-  constructor(
-    private readonly offerRepository: IOfferRepository,
-    private readonly applicationRepository: IApplicationRepository,
-  ) {}
+  constructor(private readonly deps: Deps) {}
 
   async execute(input: CreateOfferInput): Promise<Offer> {
-    const app = await this.applicationRepository.findById(input.applicationId);
+    const app = await this.deps.applicationRepository.findById(input.applicationId);
     if (!app || app.userId !== input.userId) {
       throw new NotFoundError('Application not found');
     }
 
     const id = crypto.randomUUID();
-    return this.offerRepository.create({
+    return this.deps.offerRepository.create({
       id,
       applicationId: input.applicationId,
       baseSalary: input.baseSalary,

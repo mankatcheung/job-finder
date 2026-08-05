@@ -4,24 +4,26 @@ import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRe
 import { NotFoundError, ForbiddenError } from '#src/http/errors/AppError.js';
 import type { IUpdateOfferUseCase, UpdateOfferInput } from './IUpdateOfferUseCase.js';
 
+interface Deps {
+  offerRepository: IOfferRepository;
+  applicationRepository: IApplicationRepository;
+}
+
 export class UpdateOfferUseCase implements IUpdateOfferUseCase {
-  constructor(
-    private readonly offerRepository: IOfferRepository,
-    private readonly applicationRepository: IApplicationRepository,
-  ) {}
+  constructor(private readonly deps: Deps) {}
 
   async execute(input: UpdateOfferInput): Promise<Offer> {
-    const offer = await this.offerRepository.findById(input.offerId);
+    const offer = await this.deps.offerRepository.findById(input.offerId);
     if (!offer) {
       throw new NotFoundError('Offer not found');
     }
 
-    const app = await this.applicationRepository.findById(offer.applicationId);
+    const app = await this.deps.applicationRepository.findById(offer.applicationId);
     if (!app || app.userId !== input.userId) {
       throw new ForbiddenError('Not authorized');
     }
 
-    return this.offerRepository.update(input.offerId, {
+    return this.deps.offerRepository.update(input.offerId, {
       baseSalary: input.baseSalary,
       bonus: input.bonus,
       equity: input.equity,
