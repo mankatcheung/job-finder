@@ -19,6 +19,9 @@ import { DrizzleContactRepository } from '#src/infrastructure/db/repositories/Dr
 import { DrizzlePasswordResetTokenRepository } from '#src/infrastructure/db/repositories/DrizzlePasswordResetTokenRepository.js';
 import { DrizzleLoginEventRepository } from '#src/infrastructure/db/repositories/DrizzleLoginEventRepository.js';
 import { DrizzleSessionRepository } from '#src/infrastructure/db/repositories/DrizzleSessionRepository.js';
+import { DrizzleWorkExperienceRepository } from '#src/infrastructure/db/repositories/DrizzleWorkExperienceRepository.js';
+import { DrizzleEducationRepository } from '#src/infrastructure/db/repositories/DrizzleEducationRepository.js';
+import { DrizzleSkillRepository } from '#src/infrastructure/db/repositories/DrizzleSkillRepository.js';
 import { DrizzleMessageRepository } from '#src/infrastructure/db/repositories/DrizzleMessageRepository.js';
 import { DrizzleConversationRepository } from '#src/infrastructure/db/repositories/DrizzleConversationRepository.js';
 import { DrizzleEmailVerificationTokenRepository } from '#src/infrastructure/db/repositories/DrizzleEmailVerificationTokenRepository.js';
@@ -39,6 +42,9 @@ import { UnlinkOAuthAccountUseCase } from '#src/use-cases/oauth/UnlinkOAuthAccou
 import { ListLinkedOAuthAccountsUseCase } from '#src/use-cases/oauth/ListLinkedOAuthAccountsUseCase.js';
 import { OAuthAccountMapper } from '#src/interface-adapters/mappers/OAuthAccountMapper.js';
 import { OAuthResolver } from '#src/interface-adapters/resolvers/OAuthResolver.js';
+import { WorkExperienceResolver } from '#src/interface-adapters/resolvers/WorkExperienceResolver.js';
+import { EducationResolver } from '#src/interface-adapters/resolvers/EducationResolver.js';
+import { SkillResolver } from '#src/interface-adapters/resolvers/SkillResolver.js';
 
 import { LocalStorageProvider } from '#src/infrastructure/storage/LocalStorageProvider.js';
 import { VercelBlobStorageProvider } from '#src/infrastructure/storage/VercelBlobStorageProvider.js';
@@ -54,6 +60,9 @@ import { LoginEventMapper } from '#src/interface-adapters/mappers/LoginEventMapp
 import { MessageMapper } from '#src/interface-adapters/mappers/MessageMapper.js';
 import { ConversationMapper } from '#src/interface-adapters/mappers/ConversationMapper.js';
 import { SessionMapper } from '#src/interface-adapters/mappers/SessionMapper.js';
+import { WorkExperienceMapper } from '#src/interface-adapters/mappers/WorkExperienceMapper.js';
+import { EducationMapper } from '#src/interface-adapters/mappers/EducationMapper.js';
+import { SkillMapper } from '#src/interface-adapters/mappers/SkillMapper.js';
 
 import { AuthResolver } from '#src/interface-adapters/resolvers/AuthResolver.js';
 import { ApplicationResolver } from '#src/interface-adapters/resolvers/ApplicationResolver.js';
@@ -174,6 +183,15 @@ import { ListSessionsUseCase } from '#src/use-cases/sessions/ListSessionsUseCase
 import { RevokeSessionUseCase } from '#src/use-cases/sessions/RevokeSessionUseCase.js';
 import { RevokeOtherSessionsUseCase } from '#src/use-cases/sessions/RevokeOtherSessionsUseCase.js';
 import { ChatWithAssistantUseCase } from '#src/use-cases/chat/ChatWithAssistantUseCase.js';
+import { CreateWorkExperienceUseCase } from '#src/use-cases/workExperience/CreateWorkExperienceUseCase.js';
+import { UpdateWorkExperienceUseCase } from '#src/use-cases/workExperience/UpdateWorkExperienceUseCase.js';
+import { DeleteWorkExperienceUseCase } from '#src/use-cases/workExperience/DeleteWorkExperienceUseCase.js';
+import { CreateEducationUseCase } from '#src/use-cases/education/CreateEducationUseCase.js';
+import { UpdateEducationUseCase } from '#src/use-cases/education/UpdateEducationUseCase.js';
+import { DeleteEducationUseCase } from '#src/use-cases/education/DeleteEducationUseCase.js';
+import { CreateSkillUseCase } from '#src/use-cases/skill/CreateSkillUseCase.js';
+import { UpdateSkillUseCase } from '#src/use-cases/skill/UpdateSkillUseCase.js';
+import { DeleteSkillUseCase } from '#src/use-cases/skill/DeleteSkillUseCase.js';
 import { DocumentTextExtractor } from '#src/infrastructure/documents/DocumentTextExtractor.js';
 
 import { ENV, RATE_LIMIT, STORAGE_PROVIDER } from '#src/constants.js';
@@ -214,6 +232,9 @@ export interface Cradle {
   conversationRepository: DrizzleConversationRepository;
   llmApiKeyRepository: ILlmApiKeyRepository;
   sessionRepository: DrizzleSessionRepository;
+  workExperienceRepository: DrizzleWorkExperienceRepository;
+  educationRepository: DrizzleEducationRepository;
+  skillRepository: DrizzleSkillRepository;
   emailVerificationTokenRepository: DrizzleEmailVerificationTokenRepository;
   totpBackupCodeRepository: DrizzleTotpBackupCodeRepository;
   totpRateLimiter: IRateLimiter;
@@ -241,6 +262,9 @@ export interface Cradle {
   conversationMapper: ConversationMapper;
   llmApiKeyMapper: LlmApiKeyMapper;
   sessionMapper: SessionMapper;
+  workExperienceMapper: WorkExperienceMapper;
+  educationMapper: EducationMapper;
+  skillMapper: SkillMapper;
   oauthAccountMapper: OAuthAccountMapper;
 
   authResolver: AuthResolver;
@@ -255,6 +279,9 @@ export interface Cradle {
   apiTokenResolver: ApiTokenResolver;
   notificationResolver: NotificationResolver;
   sessionResolver: SessionResolver;
+  workExperienceResolver: WorkExperienceResolver;
+  educationResolver: EducationResolver;
+  skillResolver: SkillResolver;
   oauthResolver: OAuthResolver;
   mcpController: McpController;
 
@@ -359,6 +386,15 @@ export interface Cradle {
   listSessionsUseCase: ListSessionsUseCase;
   revokeSessionUseCase: RevokeSessionUseCase;
   revokeOtherSessionsUseCase: RevokeOtherSessionsUseCase;
+  createWorkExperienceUseCase: CreateWorkExperienceUseCase;
+  updateWorkExperienceUseCase: UpdateWorkExperienceUseCase;
+  deleteWorkExperienceUseCase: DeleteWorkExperienceUseCase;
+  createEducationUseCase: CreateEducationUseCase;
+  updateEducationUseCase: UpdateEducationUseCase;
+  deleteEducationUseCase: DeleteEducationUseCase;
+  createSkillUseCase: CreateSkillUseCase;
+  updateSkillUseCase: UpdateSkillUseCase;
+  deleteSkillUseCase: DeleteSkillUseCase;
 }
 
 type StorageProviderConstructor = new () => LocalStorageProvider | VercelBlobStorageProvider;
@@ -426,6 +462,11 @@ export function buildContainer(): AwilixContainer<Cradle> {
     }),
     llmApiKeyRepository: asClass(DrizzleLlmApiKeyRepository, { lifetime: Lifetime.SINGLETON }),
     sessionRepository: asClass(DrizzleSessionRepository, { lifetime: Lifetime.SINGLETON }),
+    workExperienceRepository: asClass(DrizzleWorkExperienceRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
+    educationRepository: asClass(DrizzleEducationRepository, { lifetime: Lifetime.SINGLETON }),
+    skillRepository: asClass(DrizzleSkillRepository, { lifetime: Lifetime.SINGLETON }),
     emailVerificationTokenRepository: asClass(DrizzleEmailVerificationTokenRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
@@ -478,6 +519,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     conversationMapper: asClass(ConversationMapper, { lifetime: Lifetime.SINGLETON }),
     llmApiKeyMapper: asClass(LlmApiKeyMapper, { lifetime: Lifetime.SINGLETON }),
     sessionMapper: asClass(SessionMapper, { lifetime: Lifetime.SINGLETON }),
+    workExperienceMapper: asClass(WorkExperienceMapper, { lifetime: Lifetime.SINGLETON }),
+    educationMapper: asClass(EducationMapper, { lifetime: Lifetime.SINGLETON }),
+    skillMapper: asClass(SkillMapper, { lifetime: Lifetime.SINGLETON }),
     oauthAccountMapper: asClass(OAuthAccountMapper, { lifetime: Lifetime.SINGLETON }),
 
     // Resolvers
@@ -494,6 +538,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     notificationResolver: asClass(NotificationResolver, { lifetime: Lifetime.SINGLETON }),
     sessionResolver: asClass(SessionResolver, { lifetime: Lifetime.SINGLETON }),
     oauthResolver: asClass(OAuthResolver, { lifetime: Lifetime.SINGLETON }),
+    workExperienceResolver: asClass(WorkExperienceResolver, { lifetime: Lifetime.SINGLETON }),
+    educationResolver: asClass(EducationResolver, { lifetime: Lifetime.SINGLETON }),
+    skillResolver: asClass(SkillResolver, { lifetime: Lifetime.SINGLETON }),
     mcpController: asClass(McpController, { lifetime: Lifetime.SINGLETON }),
 
     // Use Cases
@@ -672,6 +719,21 @@ export function buildContainer(): AwilixContainer<Cradle> {
     revokeOtherSessionsUseCase: asClass(RevokeOtherSessionsUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
+    createWorkExperienceUseCase: asClass(CreateWorkExperienceUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    updateWorkExperienceUseCase: asClass(UpdateWorkExperienceUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    deleteWorkExperienceUseCase: asClass(DeleteWorkExperienceUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    createEducationUseCase: asClass(CreateEducationUseCase, { lifetime: Lifetime.TRANSIENT }),
+    updateEducationUseCase: asClass(UpdateEducationUseCase, { lifetime: Lifetime.TRANSIENT }),
+    deleteEducationUseCase: asClass(DeleteEducationUseCase, { lifetime: Lifetime.TRANSIENT }),
+    createSkillUseCase: asClass(CreateSkillUseCase, { lifetime: Lifetime.TRANSIENT }),
+    updateSkillUseCase: asClass(UpdateSkillUseCase, { lifetime: Lifetime.TRANSIENT }),
+    deleteSkillUseCase: asClass(DeleteSkillUseCase, { lifetime: Lifetime.TRANSIENT }),
   });
   return container;
 }
