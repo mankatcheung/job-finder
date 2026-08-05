@@ -6,6 +6,9 @@ import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplication
 import type { IGetNotesUseCase } from '#src/use-cases/notes/IGetNotesUseCase.js';
 import type { IGetContactsUseCase } from '#src/use-cases/contacts/IGetContactsUseCase.js';
 import type { IGetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
+import type { IWorkExperienceRepository } from '#src/use-cases/ports/IWorkExperienceRepository.js';
+import type { IEducationRepository } from '#src/use-cases/ports/IEducationRepository.js';
+import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import type { IMessageRepository } from '#src/use-cases/ports/IMessageRepository.js';
 import type { IConversationRepository } from '#src/use-cases/ports/IConversationRepository.js';
@@ -31,6 +34,9 @@ interface Deps {
   getNotesUseCase: IGetNotesUseCase;
   getContactsUseCase: IGetContactsUseCase;
   getInterviewRoundsUseCase: IGetInterviewRoundsUseCase;
+  workExperienceRepository: IWorkExperienceRepository;
+  educationRepository: IEducationRepository;
+  skillRepository: ISkillRepository;
   chatRateLimiter: IRateLimiter;
   messageRepository: IMessageRepository;
   conversationRepository: IConversationRepository;
@@ -38,7 +44,7 @@ interface Deps {
   generateId: () => string;
 }
 
-const SYSTEM_PROMPT = `You are a helpful assistant inside a job application tracker. Answer the user's questions about their job applications, contacts, and interview rounds using the available tools — never guess at data you haven't fetched. Be concise; summarize lists rather than dumping raw data. Questions about notes, contacts, or interview rounds are scoped to one application, so first find its id with list_applications if you don't already have it.`;
+const SYSTEM_PROMPT = `You are a helpful assistant inside a job application tracker. Answer the user's questions about their job applications, contacts, interview rounds, and professional background using the available tools — never guess at data you haven't fetched. Be concise; summarize lists rather than dumping raw data. Questions about notes, contacts, or interview rounds are scoped to one application, so first find its id with list_applications if you don't already have it. You can also look up the user's work experience, education, and skills to help with cover letters, interview prep, or career advice.`;
 
 const TOOLS: LLMToolDefinition[] = MCP_TOOLS.map((t) => ({
   name: t.name,
@@ -178,6 +184,12 @@ export class ChatWithAssistantUseCase {
           return await this.deps.getContactsUseCase.execute({ userId, applicationId });
         case 'list_interview_rounds':
           return await this.deps.getInterviewRoundsUseCase.execute({ userId, applicationId });
+        case 'list_work_experiences':
+          return await this.deps.workExperienceRepository.findAllByUserId(userId);
+        case 'list_educations':
+          return await this.deps.educationRepository.findAllByUserId(userId);
+        case 'list_skills':
+          return await this.deps.skillRepository.findAllByUserId(userId);
         default:
           return { error: `Unknown tool: ${call.name}` };
       }

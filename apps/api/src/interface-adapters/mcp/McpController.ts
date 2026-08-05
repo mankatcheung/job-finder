@@ -4,6 +4,9 @@ import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplication
 import type { IGetNotesUseCase } from '#src/use-cases/notes/IGetNotesUseCase.js';
 import type { IGetContactsUseCase } from '#src/use-cases/contacts/IGetContactsUseCase.js';
 import type { IGetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
+import type { IWorkExperienceRepository } from '#src/use-cases/ports/IWorkExperienceRepository.js';
+import type { IEducationRepository } from '#src/use-cases/ports/IEducationRepository.js';
+import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
 import { ERROR_CODES, JSON_RPC_ERROR, MCP } from '#src/constants.js';
 
 /** HTTP status for a malformed JSON-RPC envelope (matches Fastify `reply.code`). */
@@ -34,6 +37,9 @@ interface Deps {
   getNotesUseCase: IGetNotesUseCase;
   getContactsUseCase: IGetContactsUseCase;
   getInterviewRoundsUseCase: IGetInterviewRoundsUseCase;
+  workExperienceRepository: IWorkExperienceRepository;
+  educationRepository: IEducationRepository;
+  skillRepository: ISkillRepository;
 }
 
 /** Advertised tool catalogue (returned verbatim by `tools/list`). */
@@ -93,6 +99,30 @@ export const MCP_TOOLS = [
         applicationId: { type: 'string', description: 'The application ID' },
       },
       required: ['applicationId'],
+    },
+  },
+  {
+    name: 'list_work_experiences',
+    description: 'List all work experiences for the authenticated user',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
+  {
+    name: 'list_educations',
+    description: 'List all education entries for the authenticated user',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
+  {
+    name: 'list_skills',
+    description: 'List all skills for the authenticated user',
+    inputSchema: {
+      type: 'object',
+      properties: {},
     },
   },
 ] as const;
@@ -195,6 +225,15 @@ export class McpController {
             applicationId: args.applicationId,
             userId,
           });
+          break;
+        case 'list_work_experiences':
+          result = await this.deps.workExperienceRepository.findAllByUserId(userId);
+          break;
+        case 'list_educations':
+          result = await this.deps.educationRepository.findAllByUserId(userId);
+          break;
+        case 'list_skills':
+          result = await this.deps.skillRepository.findAllByUserId(userId);
           break;
         default:
           return this.error(id, JSON_RPC_ERROR.METHOD_NOT_FOUND, `Unknown tool: ${toolName}`);
