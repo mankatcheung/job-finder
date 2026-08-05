@@ -193,6 +193,14 @@ import { CreateSkillUseCase } from '#src/use-cases/skill/CreateSkillUseCase.js';
 import { UpdateSkillUseCase } from '#src/use-cases/skill/UpdateSkillUseCase.js';
 import { DeleteSkillUseCase } from '#src/use-cases/skill/DeleteSkillUseCase.js';
 import { DocumentTextExtractor } from '#src/infrastructure/documents/DocumentTextExtractor.js';
+import { DrizzleOfferRepository } from '#src/infrastructure/db/repositories/DrizzleOfferRepository.js';
+import { OfferMapper } from '#src/interface-adapters/mappers/OfferMapper.js';
+import { OfferResolver } from '#src/interface-adapters/resolvers/OfferResolver.js';
+import { CreateOfferUseCase } from '#src/use-cases/offers/CreateOfferUseCase.js';
+import { UpdateOfferUseCase } from '#src/use-cases/offers/UpdateOfferUseCase.js';
+import { DeleteOfferUseCase } from '#src/use-cases/offers/DeleteOfferUseCase.js';
+import { GetOffersUseCase } from '#src/use-cases/offers/GetOffersUseCase.js';
+import { CompareOffersUseCase } from '#src/use-cases/offers/CompareOffersUseCase.js';
 
 import { ENV, RATE_LIMIT, STORAGE_PROVIDER } from '#src/constants.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
@@ -235,6 +243,7 @@ export interface Cradle {
   workExperienceRepository: DrizzleWorkExperienceRepository;
   educationRepository: DrizzleEducationRepository;
   skillRepository: DrizzleSkillRepository;
+  offerRepository: DrizzleOfferRepository;
   emailVerificationTokenRepository: DrizzleEmailVerificationTokenRepository;
   totpBackupCodeRepository: DrizzleTotpBackupCodeRepository;
   totpRateLimiter: IRateLimiter;
@@ -265,6 +274,7 @@ export interface Cradle {
   workExperienceMapper: WorkExperienceMapper;
   educationMapper: EducationMapper;
   skillMapper: SkillMapper;
+  offerMapper: OfferMapper;
   oauthAccountMapper: OAuthAccountMapper;
 
   authResolver: AuthResolver;
@@ -282,6 +292,7 @@ export interface Cradle {
   workExperienceResolver: WorkExperienceResolver;
   educationResolver: EducationResolver;
   skillResolver: SkillResolver;
+  offerResolver: OfferResolver;
   oauthResolver: OAuthResolver;
   mcpController: McpController;
 
@@ -395,6 +406,11 @@ export interface Cradle {
   createSkillUseCase: CreateSkillUseCase;
   updateSkillUseCase: UpdateSkillUseCase;
   deleteSkillUseCase: DeleteSkillUseCase;
+  createOfferUseCase: CreateOfferUseCase;
+  updateOfferUseCase: UpdateOfferUseCase;
+  deleteOfferUseCase: DeleteOfferUseCase;
+  getOffersUseCase: GetOffersUseCase;
+  compareOffersUseCase: CompareOffersUseCase;
 }
 
 type StorageProviderConstructor = new () => LocalStorageProvider | VercelBlobStorageProvider;
@@ -734,6 +750,14 @@ export function buildContainer(): AwilixContainer<Cradle> {
     createSkillUseCase: asClass(CreateSkillUseCase, { lifetime: Lifetime.TRANSIENT }),
     updateSkillUseCase: asClass(UpdateSkillUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteSkillUseCase: asClass(DeleteSkillUseCase, { lifetime: Lifetime.TRANSIENT }),
+    offerRepository: asClass(DrizzleOfferRepository, { lifetime: Lifetime.SINGLETON }),
+    offerMapper: asClass(OfferMapper, { lifetime: Lifetime.SINGLETON }),
+    offerResolver: asClass(OfferResolver, { lifetime: Lifetime.SINGLETON }),
+    createOfferUseCase: asClass(CreateOfferUseCase, { lifetime: Lifetime.TRANSIENT }),
+    updateOfferUseCase: asClass(UpdateOfferUseCase, { lifetime: Lifetime.TRANSIENT }),
+    deleteOfferUseCase: asClass(DeleteOfferUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getOffersUseCase: asClass(GetOffersUseCase, { lifetime: Lifetime.TRANSIENT }),
+    compareOffersUseCase: asClass(CompareOffersUseCase, { lifetime: Lifetime.TRANSIENT }),
   });
   return container;
 }
