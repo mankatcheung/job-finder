@@ -388,14 +388,14 @@ const applications: SeedApplication[] = [
         outcome: 'passed',
       },
       {
-        type: 'system-design',
+        type: 'onsite',
         scheduledAt: new Date(Date.now() - 20 * dayMs),
         completedAt: new Date(Date.now() - 20 * dayMs),
         interviewerName: 'Architecture team',
         outcome: 'passed',
       },
       {
-        type: 'culture',
+        type: 'hr',
         scheduledAt: new Date(Date.now() - 15 * dayMs),
         completedAt: new Date(Date.now() - 15 * dayMs),
         interviewerName: 'VP Engineering',
