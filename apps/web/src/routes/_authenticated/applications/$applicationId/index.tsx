@@ -1744,6 +1744,15 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
 
   return (
     <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        <Link
+          to="/applications/$applicationId/documents/new"
+          params={{ applicationId }}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
+        >
+          <PlusIcon size={14} /> <span className="hidden sm:inline">New Draft</span>
+        </Link>
+      </div>
       {!pendingUpload && (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-6 text-center">
           <label className="cursor-pointer">
