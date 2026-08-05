@@ -15,8 +15,7 @@ name: Deploy preview (web + api)
 #      generated preview URL.
 #   4. Build apps/web with VITE_API_URL set to that preview API URL.
 #   5. Deploy apps/web as a preview build.
-#   6. Post both preview URLs back to the PR as a comment.
-#   7. When the PR closes, destroy the Turso database.
+#   6. When the PR closes, destroy the Turso database.
 #
 # Required repository secrets:
 #   VERCEL_TOKEN
@@ -168,12 +167,6 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
           env-preview-local-content: |
             VITE_API_URL=${{ needs.deploy-api-preview.outputs.preview-url }}/graphql
-
-      - uses: ./.github/actions/post-preview-comment
-        with:
-          api-url: ${{ needs.deploy-api-preview.outputs.preview-url }}
-          web-url: ${{ steps.web-deploy.outputs.preview-url }}
-          pr-number: ${{ github.event.pull_request.number || inputs.pr-number }}
 
       - name: Notify via ntfy
         env:
