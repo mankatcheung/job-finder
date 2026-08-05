@@ -448,6 +448,56 @@ describe('ChatWithAssistantUseCase', () => {
     expect(JSON.parse(toolResultMessage!.content)).toEqual({ error: 'Application not found' });
   });
 
+  it('dispatches multiple tool calls from the same turn concurrently and matches results to the right call id', async () => {
+    const applications = [{ id: 'app-1', company: 'Acme' }];
+    const application = { id: 'app-1', company: 'Acme', role: 'Engineer' };
+    const llmProvider = makeToolCallingProvider(
+      {
+        content: null,
+        toolCalls: [
+          { id: 'call_1', name: 'list_applications', arguments: {} },
+          { id: 'call_2', name: 'get_application', arguments: { applicationId: 'app-1' } },
+        ],
+      },
+      { content: 'Summary.', toolCalls: [] },
+    );
+    // Resolve the second tool call before the first to prove the results are
+    // matched back up by call id/order, not by completion order.
+    const getApplicationsUseCase = {
+      execute: vi.fn(() => new Promise((resolve) => setTimeout(() => resolve(applications), 10))),
+    };
+    const getApplicationUseCase = { execute: vi.fn().mockResolvedValue(application) };
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+      getApplicationsUseCase,
+      getApplicationUseCase,
+    });
+
+    const result = await new ChatWithAssistantUseCase(deps as never).execute({
+      ...baseInput,
+      message: 'summarize my applications',
+    });
+
+    expect(result).toBe('Summary.');
+    expect(getApplicationsUseCase.execute).toHaveBeenCalledWith({
+      userId: 'user-1',
+      status: undefined,
+    });
+    expect(getApplicationUseCase.execute).toHaveBeenCalledWith({
+      userId: 'user-1',
+      applicationId: 'app-1',
+    });
+
+    const [secondCallMessages] = vi.mocked(llmProvider.completeWithTools).mock.calls[1];
+    const toolResultMessages = secondCallMessages.filter((m) => m.role === 'tool');
+    expect(toolResultMessages).toEqual([
+      { role: 'tool', content: JSON.stringify(applications), toolCallId: 'call_1' },
+      { role: 'tool', content: JSON.stringify(application), toolCallId: 'call_2' },
+    ]);
+  });
+
   it('supports multiple tool-call round trips before a final answer', async () => {
     const llmProvider = makeToolCallingProvider(
       { content: null, toolCalls: [{ id: 'call_1', name: 'list_applications', arguments: {} }] },

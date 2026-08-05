@@ -161,10 +161,16 @@ export class ChatWithAssistantUseCase {
         toolCalls: result.toolCalls,
       });
 
-      for (const call of result.toolCalls) {
-        const toolResult = await this.executeTool(call, userId);
-        messages.push({ role: 'tool', content: JSON.stringify(toolResult), toolCallId: call.id });
-      }
+      const toolResults = await Promise.all(
+        result.toolCalls.map((call) => this.executeTool(call, userId)),
+      );
+      result.toolCalls.forEach((call, i) => {
+        messages.push({
+          role: 'tool',
+          content: JSON.stringify(toolResults[i]),
+          toolCallId: call.id,
+        });
+      });
     }
 
     return 'That took more steps than I could complete — try asking something more specific.';

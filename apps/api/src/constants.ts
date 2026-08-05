@@ -369,6 +369,13 @@ export const NOTIFICATION_TYPE = {
   SECURITY_ALERT: 'security_alert',
 } as const;
 
+export const DOCUMENT_TYPE = {
+  RESUME: 'resume',
+  COVER_LETTER: 'cover_letter',
+  PORTFOLIO: 'portfolio',
+  OTHER: 'other',
+} as const;
+
 /** In-app AI chat assistant settings. */
 export const CHAT = {
   /** Hard cap on LLM<->tool round-trips within a single chat turn, to bound cost/latency. */

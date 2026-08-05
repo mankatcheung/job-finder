@@ -46,6 +46,7 @@ export class DrizzleDocumentRepository implements IDocumentRepository {
         storageKey: data.storageKey,
         documentType: data.documentType ?? DEFAULTS.DOCUMENT_TYPE,
         version: data.version ?? null,
+        sourceDraftId: data.sourceDraftId ?? null,
       })
       .returning();
     return this.toEntity(row);
@@ -65,6 +66,7 @@ export class DrizzleDocumentRepository implements IDocumentRepository {
       storageKey: row.storageKey,
       documentType: row.documentType,
       version: row.version,
+      sourceDraftId: row.sourceDraftId ?? null,
       createdAt: row.createdAt,
     };
   }

@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "c1e18916-6b35-4cf8-9d69-5cfaa3106b86",
-  "prevId": "27c3f699-bfd4-40a9-a143-fb89007c6179",
+  "id": "e730146c-c77a-44dc-8a38-4e4010195386",
+  "prevId": "c1e18916-6b35-4cf8-9d69-5cfaa3106b86",
   "tables": {
     "ActivityLog": {
       "name": "ActivityLog",
@@ -1959,6 +1959,13 @@
         },
         "defaultLlmProvider": {
           "name": "defaultLlmProvider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "customAiPrompt": {
+          "name": "customAiPrompt",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
