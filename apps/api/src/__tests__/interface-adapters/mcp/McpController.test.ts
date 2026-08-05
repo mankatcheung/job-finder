@@ -6,6 +6,11 @@ import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplication
 import type { IGetNotesUseCase } from '#src/use-cases/notes/IGetNotesUseCase.js';
 import type { IGetContactsUseCase } from '#src/use-cases/contacts/IGetContactsUseCase.js';
 import type { IGetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
+import {
+  makeWorkExperienceRepository,
+  makeEducationRepository,
+  makeSkillRepository,
+} from '#src/__tests__/helpers/mocks.js';
 
 const USER_ID = 'user-1';
 
@@ -15,6 +20,9 @@ const makeDeps = () => ({
   getNotesUseCase: { execute: vi.fn() } as IGetNotesUseCase,
   getContactsUseCase: { execute: vi.fn() } as IGetContactsUseCase,
   getInterviewRoundsUseCase: { execute: vi.fn() } as IGetInterviewRoundsUseCase,
+  workExperienceRepository: makeWorkExperienceRepository(),
+  educationRepository: makeEducationRepository(),
+  skillRepository: makeSkillRepository(),
 });
 
 const rpc = (method: string, params?: Record<string, unknown>, id: string | number = 1) => ({
@@ -168,6 +176,53 @@ describe('McpController', () => {
 
       expect(body).toMatchObject({
         error: { code: JSON_RPC_ERROR.INTERNAL_ERROR, message: 'boom' },
+      });
+    });
+
+    it('calls list_work_experiences and returns the result', async () => {
+      const experiences = [{ id: 'we-1', company: 'Acme' }];
+      vi.mocked(deps.workExperienceRepository.findAllByUserId).mockResolvedValue(
+        experiences as never,
+      );
+
+      const { body } = await controller.handle(
+        rpc('tools/call', { name: 'list_work_experiences', arguments: {} }),
+        USER_ID,
+      );
+
+      expect(deps.workExperienceRepository.findAllByUserId).toHaveBeenCalledWith(USER_ID);
+      expect(body).toMatchObject({
+        result: { content: [{ type: 'text', text: JSON.stringify(experiences, null, 2) }] },
+      });
+    });
+
+    it('calls list_educations and returns the result', async () => {
+      const educations = [{ id: 'edu-1', institution: 'UC Berkeley' }];
+      vi.mocked(deps.educationRepository.findAllByUserId).mockResolvedValue(educations as never);
+
+      const { body } = await controller.handle(
+        rpc('tools/call', { name: 'list_educations', arguments: {} }),
+        USER_ID,
+      );
+
+      expect(deps.educationRepository.findAllByUserId).toHaveBeenCalledWith(USER_ID);
+      expect(body).toMatchObject({
+        result: { content: [{ type: 'text', text: JSON.stringify(educations, null, 2) }] },
+      });
+    });
+
+    it('calls list_skills and returns the result', async () => {
+      const skills = [{ id: 'skill-1', name: 'TypeScript' }];
+      vi.mocked(deps.skillRepository.findAllByUserId).mockResolvedValue(skills as never);
+
+      const { body } = await controller.handle(
+        rpc('tools/call', { name: 'list_skills', arguments: {} }),
+        USER_ID,
+      );
+
+      expect(deps.skillRepository.findAllByUserId).toHaveBeenCalledWith(USER_ID);
+      expect(body).toMatchObject({
+        result: { content: [{ type: 'text', text: JSON.stringify(skills, null, 2) }] },
       });
     });
   });

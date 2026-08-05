@@ -1,5 +1,8 @@
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
+import type { IWorkExperienceRepository } from '#src/use-cases/ports/IWorkExperienceRepository.js';
+import type { IEducationRepository } from '#src/use-cases/ports/IEducationRepository.js';
+import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
 import { ERROR_CODES } from '#src/constants.js';
 
 export interface GenerateCoverLetterInput {
@@ -11,6 +14,9 @@ export interface GenerateCoverLetterInput {
 interface Deps {
   llmProviderFactory: ILLMProviderFactory;
   applicationRepository: IApplicationRepository;
+  workExperienceRepository: IWorkExperienceRepository;
+  educationRepository: IEducationRepository;
+  skillRepository: ISkillRepository;
 }
 
 const SYSTEM_PROMPT = `You are a professional cover letter writer. Write compelling, personalized cover letters that are concise (3-4 paragraphs), specific to the role, and written in first person. Return ONLY the cover letter body — no subject line, no date, no address block, no explanation.`;
@@ -34,7 +40,8 @@ export class GenerateCoverLetterUseCase {
       });
     }
 
-    const userPrompt = this.buildPrompt(app, input.resumeText);
+    const profile = await this.buildProfile(input.userId);
+    const userPrompt = this.buildPrompt(app, profile, input.resumeText);
 
     return llmProvider.complete(
       [
@@ -45,8 +52,59 @@ export class GenerateCoverLetterUseCase {
     );
   }
 
+  private async buildProfile(userId: string): Promise<string> {
+    const [workExperiences, educations, skills] = await Promise.all([
+      this.deps.workExperienceRepository.findAllByUserId(userId),
+      this.deps.educationRepository.findAllByUserId(userId),
+      this.deps.skillRepository.findAllByUserId(userId),
+    ]);
+
+    const lines: string[] = [];
+
+    if (workExperiences.length > 0) {
+      lines.push('Work Experience:');
+      for (const we of workExperiences) {
+        const end = we.endDate ? new Date(we.endDate).toLocaleDateString() : 'Present';
+        lines.push(
+          `- ${we.title} at ${we.company} (${new Date(we.startDate).toLocaleDateString()} – ${end})`,
+        );
+        if (we.description) lines.push(`  ${we.description.slice(0, 200)}`);
+      }
+    }
+
+    if (educations.length > 0) {
+      lines.push('\nEducation:');
+      for (const edu of educations) {
+        const end = edu.endDate ? new Date(edu.endDate).toLocaleDateString() : 'Present';
+        lines.push(
+          `- ${edu.degree ?? ''} ${edu.field ?? ''} at ${edu.institution} (${new Date(edu.startDate).toLocaleDateString()} – ${end})`,
+        );
+        if (edu.description) lines.push(`  ${edu.description.slice(0, 200)}`);
+      }
+    }
+
+    if (skills.length > 0) {
+      lines.push('\nSkills:');
+      const grouped = skills.reduce(
+        (acc, s) => {
+          const cat = s.category ?? 'General';
+          acc[cat] = acc[cat] || [];
+          acc[cat].push(s.proficiency ? `${s.name} (${s.proficiency})` : s.name);
+          return acc;
+        },
+        {} as Record<string, string[]>,
+      );
+      for (const [cat, names] of Object.entries(grouped)) {
+        lines.push(`- ${cat}: ${names.join(', ')}`);
+      }
+    }
+
+    return lines.join('\n');
+  }
+
   private buildPrompt(
     app: { company: string; role: string; location?: string | null; description?: string | null },
+    profile: string,
     resumeText?: string | null,
   ): string {
     const lines = [
@@ -55,10 +113,16 @@ export class GenerateCoverLetterUseCase {
       `Role: ${app.role}`,
       ...(app.location ? [`Location: ${app.location}`] : []),
       ...(app.description ? [`\nJob description:\n${app.description.slice(0, 3000)}`] : []),
-      ...(resumeText?.trim()
-        ? [`\nMy background / resume:\n${resumeText.trim().slice(0, 4000)}`]
-        : ['\nWrite a strong general cover letter for someone applying to this role.']),
     ];
+
+    if (resumeText?.trim()) {
+      lines.push(`\nMy background / resume:\n${resumeText.trim().slice(0, 4000)}`);
+    } else if (profile) {
+      lines.push(`\nMy background:\n${profile.slice(0, 4000)}`);
+    } else {
+      lines.push('\nWrite a strong general cover letter for someone applying to this role.');
+    }
+
     return lines.join('\n');
   }
 }
