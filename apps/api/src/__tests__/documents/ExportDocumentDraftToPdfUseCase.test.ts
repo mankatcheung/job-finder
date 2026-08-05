@@ -12,18 +12,21 @@ import {
 } from '#src/__tests__/helpers/mocks.js';
 
 describe('ExportDocumentDraftToPdfUseCase', () => {
+  const generateId = () => 'test-doc-id';
+
   it('throws NOT_FOUND when the draft does not exist', async () => {
     const documentDraftRepository = makeDocumentDraftRepository({
       findById: vi.fn().mockResolvedValue(null),
     });
 
-    const useCase = new ExportDocumentDraftToPdfUseCase(
+    const useCase = new ExportDocumentDraftToPdfUseCase({
       documentDraftRepository,
-      makeDocumentRepository(),
-      makeApplicationRepository(),
-      makeStorageProvider(),
-      makePdfRenderer(),
-    );
+      documentRepository: makeDocumentRepository(),
+      applicationRepository: makeApplicationRepository(),
+      storageProvider: makeStorageProvider(),
+      pdfRenderer: makePdfRenderer(),
+      generateId,
+    });
     const err = await useCase
       .execute({ userId: 'user-1', draftId: 'draft-missing' })
       .catch((e) => e);
@@ -40,13 +43,14 @@ describe('ExportDocumentDraftToPdfUseCase', () => {
       findById: vi.fn().mockResolvedValue(makeApplication({ userId: 'other-user' })),
     });
 
-    const useCase = new ExportDocumentDraftToPdfUseCase(
+    const useCase = new ExportDocumentDraftToPdfUseCase({
       documentDraftRepository,
-      makeDocumentRepository(),
+      documentRepository: makeDocumentRepository(),
       applicationRepository,
-      makeStorageProvider(),
-      makePdfRenderer(),
-    );
+      storageProvider: makeStorageProvider(),
+      pdfRenderer: makePdfRenderer(),
+      generateId,
+    });
     const err = await useCase.execute({ userId: 'user-1', draftId: 'draft-1' }).catch((e) => e);
 
     expect(err).toBeInstanceOf(Error);
@@ -72,13 +76,14 @@ describe('ExportDocumentDraftToPdfUseCase', () => {
       render: vi.fn().mockResolvedValue(pdfBuffer),
     });
 
-    const useCase = new ExportDocumentDraftToPdfUseCase(
+    const useCase = new ExportDocumentDraftToPdfUseCase({
       documentDraftRepository,
       documentRepository,
       applicationRepository,
       storageProvider,
       pdfRenderer,
-    );
+      generateId,
+    });
     const result = await useCase.execute({ userId: 'user-1', draftId: 'draft-1' });
 
     expect(result).toEqual(expectedDoc);
@@ -92,7 +97,7 @@ describe('ExportDocumentDraftToPdfUseCase', () => {
       'application/pdf',
     );
     expect(documentRepository.create).toHaveBeenCalledWith({
-      id: expect.any(String),
+      id: 'test-doc-id',
       applicationId: 'app-1',
       name: 'My_Cover_Letter.pdf',
       mimeType: 'application/pdf',

@@ -11,23 +11,25 @@ export interface IDeleteDocumentDraftUseCase {
   execute(command: DeleteDocumentDraftCommand): Promise<void>;
 }
 
+interface Deps {
+  documentDraftRepository: IDocumentDraftRepository;
+  applicationRepository: IApplicationRepository;
+}
+
 export class DeleteDocumentDraftUseCase implements IDeleteDocumentDraftUseCase {
-  constructor(
-    private readonly documentDraftRepository: IDocumentDraftRepository,
-    private readonly applicationRepository: IApplicationRepository,
-  ) {}
+  constructor(private readonly deps: Deps) {}
 
   async execute(command: DeleteDocumentDraftCommand): Promise<void> {
-    const draft = await this.documentDraftRepository.findById(command.draftId);
+    const draft = await this.deps.documentDraftRepository.findById(command.draftId);
     if (!draft) {
       throw new NotFoundError('Document draft not found');
     }
 
-    const app = await this.applicationRepository.findById(draft.applicationId);
+    const app = await this.deps.applicationRepository.findById(draft.applicationId);
     if (!app || app.userId !== command.userId) {
       throw new ForbiddenError('Not authorized');
     }
 
-    await this.documentDraftRepository.delete(command.draftId);
+    await this.deps.documentDraftRepository.delete(command.draftId);
   }
 }

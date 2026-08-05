@@ -8,15 +8,18 @@ import {
 } from '#src/__tests__/helpers/mocks.js';
 
 describe('CreateDocumentDraftUseCase', () => {
+  const generateId = () => 'test-id';
+
   it('throws NOT_FOUND when the application does not exist', async () => {
     const applicationRepository = makeApplicationRepository({
       findById: vi.fn().mockResolvedValue(null),
     });
 
-    const useCase = new CreateDocumentDraftUseCase(
-      makeDocumentDraftRepository(),
+    const useCase = new CreateDocumentDraftUseCase({
+      documentDraftRepository: makeDocumentDraftRepository(),
       applicationRepository,
-    );
+      generateId,
+    });
     const err = await useCase
       .execute({
         userId: 'user-1',
@@ -35,10 +38,11 @@ describe('CreateDocumentDraftUseCase', () => {
       findById: vi.fn().mockResolvedValue(makeApplication({ userId: 'other-user' })),
     });
 
-    const useCase = new CreateDocumentDraftUseCase(
-      makeDocumentDraftRepository(),
+    const useCase = new CreateDocumentDraftUseCase({
+      documentDraftRepository: makeDocumentDraftRepository(),
       applicationRepository,
-    );
+      generateId,
+    });
     const err = await useCase
       .execute({ userId: 'user-1', applicationId: 'app-1', type: 'cover_letter', title: 'Test' })
       .catch((e) => e);
@@ -56,7 +60,11 @@ describe('CreateDocumentDraftUseCase', () => {
       create: vi.fn().mockResolvedValue(draft),
     });
 
-    const useCase = new CreateDocumentDraftUseCase(documentDraftRepository, applicationRepository);
+    const useCase = new CreateDocumentDraftUseCase({
+      documentDraftRepository,
+      applicationRepository,
+      generateId,
+    });
     const result = await useCase.execute({
       userId: 'user-1',
       applicationId: 'app-1',
@@ -68,7 +76,7 @@ describe('CreateDocumentDraftUseCase', () => {
 
     expect(result).toEqual(draft);
     expect(documentDraftRepository.create).toHaveBeenCalledWith({
-      id: expect.any(String),
+      id: 'test-id',
       applicationId: 'app-1',
       type: 'cover_letter',
       title: 'My Cover Letter',

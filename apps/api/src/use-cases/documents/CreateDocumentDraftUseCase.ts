@@ -20,19 +20,22 @@ export interface ICreateDocumentDraftUseCase {
   execute(command: CreateDocumentDraftCommand): Promise<DocumentDraft>;
 }
 
+interface Deps {
+  documentDraftRepository: IDocumentDraftRepository;
+  applicationRepository: IApplicationRepository;
+  generateId: () => string;
+}
+
 export class CreateDocumentDraftUseCase implements ICreateDocumentDraftUseCase {
-  constructor(
-    private readonly documentDraftRepository: IDocumentDraftRepository,
-    private readonly applicationRepository: IApplicationRepository,
-  ) {}
+  constructor(private readonly deps: Deps) {}
 
   async execute(command: CreateDocumentDraftCommand): Promise<DocumentDraft> {
-    const app = await this.applicationRepository.findById(command.applicationId);
+    const app = await this.deps.applicationRepository.findById(command.applicationId);
     if (!app || app.userId !== command.userId) {
       throw new NotFoundError('Application not found');
     }
 
-    const id = crypto.randomUUID();
+    const id = this.deps.generateId();
     const data: CreateDocumentDraftData = {
       id,
       applicationId: command.applicationId,
@@ -43,6 +46,6 @@ export class CreateDocumentDraftUseCase implements ICreateDocumentDraftUseCase {
       sourceDocumentId: command.sourceDocumentId,
     };
 
-    return this.documentDraftRepository.create(data);
+    return this.deps.documentDraftRepository.create(data);
   }
 }

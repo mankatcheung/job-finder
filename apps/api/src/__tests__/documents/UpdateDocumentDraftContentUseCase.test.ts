@@ -13,10 +13,10 @@ describe('UpdateDocumentDraftContentUseCase', () => {
       findById: vi.fn().mockResolvedValue(null),
     });
 
-    const useCase = new UpdateDocumentDraftContentUseCase(
+    const useCase = new UpdateDocumentDraftContentUseCase({
       documentDraftRepository,
-      makeApplicationRepository(),
-    );
+      applicationRepository: makeApplicationRepository(),
+    });
     const err = await useCase
       .execute({ userId: 'user-1', draftId: 'draft-missing', contentJson: '{}', plainText: '' })
       .catch((e) => e);
@@ -33,10 +33,10 @@ describe('UpdateDocumentDraftContentUseCase', () => {
       findById: vi.fn().mockResolvedValue(makeApplication({ userId: 'other-user' })),
     });
 
-    const useCase = new UpdateDocumentDraftContentUseCase(
+    const useCase = new UpdateDocumentDraftContentUseCase({
       documentDraftRepository,
       applicationRepository,
-    );
+    });
     const err = await useCase
       .execute({ userId: 'user-1', draftId: 'draft-1', contentJson: '{}', plainText: '' })
       .catch((e) => e);
@@ -60,10 +60,10 @@ describe('UpdateDocumentDraftContentUseCase', () => {
       findById: vi.fn().mockResolvedValue(makeApplication()),
     });
 
-    const useCase = new UpdateDocumentDraftContentUseCase(
+    const useCase = new UpdateDocumentDraftContentUseCase({
       documentDraftRepository,
       applicationRepository,
-    );
+    });
     const result = await useCase.execute({
       userId: 'user-1',
       draftId: 'draft-1',

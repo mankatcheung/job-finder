@@ -12,18 +12,20 @@ export interface IGetDocumentDraftsUseCase {
   execute(query: GetDocumentDraftsQuery): Promise<DocumentDraft[]>;
 }
 
+interface Deps {
+  documentDraftRepository: IDocumentDraftRepository;
+  applicationRepository: IApplicationRepository;
+}
+
 export class GetDocumentDraftsUseCase implements IGetDocumentDraftsUseCase {
-  constructor(
-    private readonly documentDraftRepository: IDocumentDraftRepository,
-    private readonly applicationRepository: IApplicationRepository,
-  ) {}
+  constructor(private readonly deps: Deps) {}
 
   async execute(query: GetDocumentDraftsQuery): Promise<DocumentDraft[]> {
-    const app = await this.applicationRepository.findById(query.applicationId);
+    const app = await this.deps.applicationRepository.findById(query.applicationId);
     if (!app || app.userId !== query.userId) {
       throw new NotFoundError('Application not found');
     }
 
-    return this.documentDraftRepository.findAllByApplicationId(query.applicationId);
+    return this.deps.documentDraftRepository.findAllByApplicationId(query.applicationId);
   }
 }

@@ -12,19 +12,21 @@ export interface IGetDocumentDraftUseCase {
   execute(query: GetDocumentDraftQuery): Promise<DocumentDraft>;
 }
 
+interface Deps {
+  documentDraftRepository: IDocumentDraftRepository;
+  applicationRepository: IApplicationRepository;
+}
+
 export class GetDocumentDraftUseCase implements IGetDocumentDraftUseCase {
-  constructor(
-    private readonly documentDraftRepository: IDocumentDraftRepository,
-    private readonly applicationRepository: IApplicationRepository,
-  ) {}
+  constructor(private readonly deps: Deps) {}
 
   async execute(query: GetDocumentDraftQuery): Promise<DocumentDraft> {
-    const draft = await this.documentDraftRepository.findById(query.draftId);
+    const draft = await this.deps.documentDraftRepository.findById(query.draftId);
     if (!draft) {
       throw new NotFoundError('Document draft not found');
     }
 
-    const app = await this.applicationRepository.findById(draft.applicationId);
+    const app = await this.deps.applicationRepository.findById(draft.applicationId);
     if (!app || app.userId !== query.userId) {
       throw new ForbiddenError('Not authorized');
     }

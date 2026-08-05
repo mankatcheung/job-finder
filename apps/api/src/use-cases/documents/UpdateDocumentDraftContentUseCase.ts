@@ -17,19 +17,21 @@ export interface IUpdateDocumentDraftContentUseCase {
   execute(command: UpdateDocumentDraftContentCommand): Promise<DocumentDraft>;
 }
 
+interface Deps {
+  documentDraftRepository: IDocumentDraftRepository;
+  applicationRepository: IApplicationRepository;
+}
+
 export class UpdateDocumentDraftContentUseCase implements IUpdateDocumentDraftContentUseCase {
-  constructor(
-    private readonly documentDraftRepository: IDocumentDraftRepository,
-    private readonly applicationRepository: IApplicationRepository,
-  ) {}
+  constructor(private readonly deps: Deps) {}
 
   async execute(command: UpdateDocumentDraftContentCommand): Promise<DocumentDraft> {
-    const draft = await this.documentDraftRepository.findById(command.draftId);
+    const draft = await this.deps.documentDraftRepository.findById(command.draftId);
     if (!draft) {
       throw new NotFoundError('Document draft not found');
     }
 
-    const app = await this.applicationRepository.findById(draft.applicationId);
+    const app = await this.deps.applicationRepository.findById(draft.applicationId);
     if (!app || app.userId !== command.userId) {
       throw new ForbiddenError('Not authorized');
     }
@@ -39,6 +41,6 @@ export class UpdateDocumentDraftContentUseCase implements IUpdateDocumentDraftCo
       plainText: command.plainText,
     };
 
-    return this.documentDraftRepository.updateContent(command.draftId, data);
+    return this.deps.documentDraftRepository.updateContent(command.draftId, data);
   }
 }
