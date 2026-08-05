@@ -1,4 +1,4 @@
-import { head, del } from '@vercel/blob';
+import { head, del, put } from '@vercel/blob';
 import { generateClientTokenFromReadWriteToken } from '@vercel/blob/client';
 import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
 import { ENV } from '#src/constants.js';
@@ -51,5 +51,14 @@ export class VercelBlobStorageProvider implements IStorageProvider {
     } catch {
       // Best-effort cleanup — matches LocalStorageProvider.
     }
+  }
+
+  async putObject(key: string, data: Buffer, mimeType: string): Promise<void> {
+    this.assertConfigured();
+    await put(key, data, {
+      access: 'public',
+      contentType: mimeType,
+      token: this.token,
+    });
   }
 }

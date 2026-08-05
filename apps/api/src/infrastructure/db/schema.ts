@@ -362,11 +362,42 @@ export const document = sqliteTable(
     storageKey: text('storageKey').notNull().unique(),
     documentType: text('documentType').notNull().default('other'),
     version: text('version'),
+    sourceDraftId: text('sourceDraftId').references((): any => documentDraft.id, {
+      onDelete: 'set null',
+    }),
     createdAt: integer('createdAt', { mode: 'timestamp_ms' })
       .notNull()
       .$defaultFn(() => new Date()),
   },
   (table) => [index('Document_applicationId_idx').on(table.applicationId)],
+);
+
+export const documentDraft = sqliteTable(
+  'DocumentDraft',
+  {
+    id: text('id').primaryKey(),
+    applicationId: text('applicationId')
+      .notNull()
+      .references(() => jobApplication.id, { onDelete: 'cascade' }),
+    type: text('type', { enum: ['cover_letter', 'resume'] }).notNull(),
+    title: text('title').notNull(),
+    contentJson: text('contentJson').notNull().default('{}'),
+    plainText: text('plainText').notNull().default(''),
+    sourceDocumentId: text('sourceDocumentId').references(() => document.id, {
+      onDelete: 'set null',
+    }),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updatedAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index('DocumentDraft_applicationId_idx').on(table.applicationId),
+    index('DocumentDraft_sourceDocumentId_idx').on(table.sourceDocumentId),
+  ],
 );
 
 export const pushSubscription = sqliteTable(

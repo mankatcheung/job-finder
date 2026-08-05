@@ -1615,6 +1615,29 @@ const CONFIRM_DOCUMENT = `
 `;
 const DELETE_DOCUMENT = `mutation DeleteDocument($id: ID!) { deleteDocument(id: $id) }`;
 
+const DOCUMENT_DRAFTS_QUERY = `
+  query DocumentDrafts($applicationId: ID!) {
+    documentDrafts(applicationId: $applicationId) {
+      id
+      applicationId
+      type
+      title
+      createdAt
+      updatedAt
+    }
+  }
+`;
+const DELETE_DRAFT = `mutation DeleteDocumentDraft($id: ID!) { deleteDocumentDraft(id: $id) }`;
+
+type DocumentDraft = {
+  id: string;
+  applicationId: string;
+  type: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 type Document = {
   id: string;
   applicationId: string;
@@ -1656,6 +1679,35 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
   const [docVersion, setDocVersion] = useState('');
   const [confirming, setConfirming] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
+
+  const { data: draftsData } = useQuery({
+    queryKey: ['documentDrafts', applicationId],
+    queryFn: () =>
+      gqlClient.request<{ documentDrafts: DocumentDraft[] }>(DOCUMENT_DRAFTS_QUERY, {
+        applicationId,
+      }),
+  });
+  const deleteDraft = useMutation({
+    mutationFn: (id: string) => gqlClient.request(DELETE_DRAFT, { id }),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['documentDrafts', applicationId] });
+      const prev = qc.getQueryData<{ documentDrafts: DocumentDraft[] }>([
+        'documentDrafts',
+        applicationId,
+      ]);
+      qc.setQueryData<{ documentDrafts: DocumentDraft[] }>(
+        ['documentDrafts', applicationId],
+        (old) => ({
+          documentDrafts: (old?.documentDrafts ?? []).filter((d) => d.id !== id),
+        }),
+      );
+      return { prev };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.prev) qc.setQueryData(['documentDrafts', applicationId], context.prev);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['documentDrafts', applicationId] }),
+  });
 
   const { data } = useQuery({
     queryKey: ['documents', applicationId],
@@ -1741,9 +1793,69 @@ function DocumentsTab({ applicationId }: { applicationId: string }) {
     'w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500';
 
   const docs = data?.documents ?? [];
+  const drafts = draftsData?.documentDrafts ?? [];
 
   return (
     <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        <Link
+          to="/applications/$applicationId/documents/new"
+          params={{ applicationId }}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
+        >
+          <PlusIcon size={14} /> <span className="hidden sm:inline">New Draft</span>
+        </Link>
+      </div>
+
+      {drafts.length > 0 && (
+        <div className="space-y-3">
+          {drafts.map((draft) => (
+            <div
+              key={draft.id}
+              className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
+            >
+              <div className="min-w-0">
+                <Link
+                  to="/applications/$applicationId/documents/$draftId"
+                  params={{ applicationId, draftId: draft.id }}
+                  className="text-sm font-medium text-blue-600 hover:underline truncate block"
+                >
+                  {draft.title}
+                </Link>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${draft.type === 'cover_letter' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}`}
+                  >
+                    {draft.type === 'cover_letter' ? 'Cover Letter' : 'Resume'}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {new Date(draft.updatedAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  const snapshot = qc.getQueryData(['documentDrafts', applicationId]);
+                  qc.setQueryData(['documentDrafts', applicationId], (prev: any) => ({
+                    documentDrafts: (prev?.documentDrafts ?? []).filter(
+                      (d: any) => d.id !== draft.id,
+                    ),
+                  }));
+                  showUndoToast({
+                    message: 'Draft deleted',
+                    onExecute: () => deleteDraft.mutate(draft.id),
+                    onUndo: () => qc.setQueryData(['documentDrafts', applicationId], snapshot),
+                  });
+                }}
+                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded shrink-0"
+              >
+                <Trash2Icon size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {!pendingUpload && (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-6 text-center">
           <label className="cursor-pointer">

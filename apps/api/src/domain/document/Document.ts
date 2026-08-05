@@ -7,5 +7,6 @@ export interface Document {
   storageKey: string;
   documentType: string;
   version: string | null;
+  sourceDraftId: string | null;
   createdAt: Date;
 }
