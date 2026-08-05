@@ -58,6 +58,7 @@ function AccountAvatarIcon({
 
 const SETTINGS_NAV = [
   { to: '/settings/profile', label: 'Profile', icon: UserIcon },
+  { to: '/settings/experience', label: 'Experience', icon: BriefcaseIcon },
   { to: '/settings/security', label: 'Security', icon: ShieldIcon },
   { to: '/settings/integrations', label: 'Integrations', icon: PlugIcon },
   { to: '/settings/notifications', label: 'Notifications', icon: BellIcon },
