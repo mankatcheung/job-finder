@@ -117,7 +117,7 @@ export function DocumentDraftEditor({ contentJson, onUpdate }: DocumentDraftEdit
       </div>
       <EditorContent
         editor={editor}
-        className="prose dark:prose-invert max-w-none p-4 min-h-[400px] focus:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[360px]"
+        className="prose dark:prose-invert max-w-none p-4 min-h-[400px] focus:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[360px] [&_.ProseMirror]:text-gray-900 [&_.ProseMirror]:dark:text-gray-100"
       />
     </div>
   );
