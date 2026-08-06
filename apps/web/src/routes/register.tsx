@@ -7,6 +7,7 @@ import { gqlClient, hydrateSession, setAccessToken } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 import { LogoMark } from '#/components/LogoMark';
+import { useLocale } from '#/lib/i18n';
 
 const schema = z
   .object({
@@ -37,6 +38,7 @@ export const Route = createFileRoute('/register')({
 });
 
 export function RegisterPage() {
+  const { t } = useLocale();
   const {
     register,
     handleSubmit,
@@ -103,7 +105,7 @@ export function RegisterPage() {
               to="/login"
               className="inline-block w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors text-center"
             >
-              Back to sign in
+              {t('auth.signIn')}
             </Link>
           </div>
         </div>
@@ -120,11 +122,13 @@ export function RegisterPage() {
         </Link>
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Create account</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {t('auth.signUp')}
+            </h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Already have an account?{' '}
               <Link to="/login" className="text-blue-600 hover:underline">
-                Sign in
+                {t('auth.signIn')}
               </Link>
             </p>
           </div>
@@ -132,7 +136,7 @@ export function RegisterPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Email
+                {t('auth.email')}
               </label>
               <input
                 type="email"
@@ -145,7 +149,7 @@ export function RegisterPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Password
+                {t('auth.password')}
               </label>
               <input
                 type="password"

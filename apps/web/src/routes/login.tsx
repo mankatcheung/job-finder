@@ -8,6 +8,7 @@ import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 import { getErrorMessage } from '#/lib/errors';
 import { LogoMark } from '#/components/LogoMark';
+import { useLocale } from '#/lib/i18n';
 
 const schema = z.object({
   email: z.string().email('Invalid email'),
@@ -53,6 +54,7 @@ export const Route = createFileRoute('/login')({
 });
 
 export function LoginPage() {
+  const { t } = useLocale();
   const navigate = useNavigate();
   const { oauthError } = Route.useSearch();
   const [pendingCredentials, setPendingCredentials] = useState<FormValues | null>(null);
@@ -96,11 +98,13 @@ export function LoginPage() {
         </Link>
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Sign in</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {t('auth.signIn')}
+            </h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Don&apos;t have an account?{' '}
+              {t('auth.noAccount')}{' '}
               <Link to="/register" className="text-blue-600 hover:underline">
-                Register
+                {t('auth.register')}
               </Link>
             </p>
           </div>
@@ -114,7 +118,7 @@ export function LoginPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Email
+                {t('auth.email')}
               </label>
               <input
                 type="email"
@@ -128,10 +132,10 @@ export function LoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Password
+                  {t('auth.password')}
                 </label>
                 <Link to="/forgot-password" className="text-xs text-blue-600 hover:underline">
-                  Forgot password?
+                  {t('auth.forgotPassword')}
                 </Link>
               </div>
               <input
@@ -149,11 +153,11 @@ export function LoginPage() {
               <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
                 {errors.root.message?.includes('register') ? (
                   <>
-                    No account found with this email.{' '}
+                    {t('auth.noAccountFound')}{' '}
                     <Link to="/register" className="underline font-medium hover:text-red-700">
-                      Register
+                      {t('auth.register')}
                     </Link>{' '}
-                    to create one.
+                    {t('auth.createOne')}
                   </>
                 ) : (
                   (errors.root.message ?? '')
@@ -166,7 +170,7 @@ export function LoginPage() {
               disabled={isSubmitting}
               className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              {isSubmitting ? 'Signing in…' : 'Sign in'}
+              {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
             </button>
           </form>
 
@@ -179,6 +183,7 @@ export function LoginPage() {
 
 function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: () => void }) {
   const navigate = useNavigate();
+  const { t } = useLocale();
   const {
     register,
     handleSubmit,
@@ -212,17 +217,17 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              Two-factor authentication
+              {t('auth.twoFactor')}
             </h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Enter the 6-digit code from your authenticator app, or one of your backup codes.
+              {t('auth.twoFactorHelp')}
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Code
+                {t('auth.code')}
               </label>
               <input
                 type="text"

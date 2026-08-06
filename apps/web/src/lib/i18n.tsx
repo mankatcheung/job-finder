@@ -1,4 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import en from '#/i18n/en.json';
+import enGB from '#/i18n/en-GB.json';
+import zhHK from '#/i18n/zh-HK.json';
+import zhTW from '#/i18n/zh-TW.json';
+import zhCN from '#/i18n/zh-CN.json';
 
 export const SUPPORTED_LOCALES = ['en', 'en-GB', 'zh-HK', 'zh-TW', 'zh-CN'] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
@@ -13,100 +18,6 @@ export const LOCALE_OPTIONS: Array<{ value: Locale; label: string }> = [
 ];
 
 type Messages = Record<string, string>;
-
-const en: Messages = {
-  'nav.dashboard': 'Dashboard',
-  'nav.applications': 'Applications',
-  'nav.calendar': 'Calendar',
-  'nav.analytics': 'Analytics',
-  'nav.assistant': 'Assistant',
-  'nav.settings': 'Settings',
-  'nav.signOut': 'Sign out',
-  'settings.language': 'Language',
-  'settings.languageDescription': 'Choose the language used across the web app.',
-  'settings.profile': 'Profile',
-  'settings.experience': 'Experience',
-  'settings.security': 'Security',
-  'settings.integrations': 'Integrations',
-  'settings.notifications': 'Notifications',
-  'settings.data': 'Data',
-  'errors.notFound': 'Page not found',
-  'errors.goDashboard': 'Go to dashboard',
-  'errors.somethingWrong': 'Something went wrong',
-  'errors.reloadHelp': 'Try reloading the page. If this keeps happening, let us know.',
-  'errors.reload': 'Reload',
-};
-
-const enGB: Messages = { ...en };
-
-const zhHK: Messages = {
-  'nav.dashboard': '主頁',
-  'nav.applications': '求職申請',
-  'nav.calendar': '日曆',
-  'nav.analytics': '分析',
-  'nav.assistant': '助理',
-  'nav.settings': '設定',
-  'nav.signOut': '登出',
-  'settings.language': '語言',
-  'settings.languageDescription': '選擇網頁應用程式使用的語言。',
-  'settings.profile': '個人資料',
-  'settings.experience': '經歷',
-  'settings.security': '安全性',
-  'settings.integrations': '整合',
-  'settings.notifications': '通知',
-  'settings.data': '資料',
-  'errors.notFound': '找不到頁面',
-  'errors.goDashboard': '前往主頁',
-  'errors.somethingWrong': '發生錯誤',
-  'errors.reloadHelp': '請重新載入頁面。如問題持續，請通知我們。',
-  'errors.reload': '重新載入',
-};
-
-const zhTW: Messages = {
-  'nav.dashboard': '儀表板',
-  'nav.applications': '求職申請',
-  'nav.calendar': '行事曆',
-  'nav.analytics': '分析',
-  'nav.assistant': '助理',
-  'nav.settings': '設定',
-  'nav.signOut': '登出',
-  'settings.language': '語言',
-  'settings.languageDescription': '選擇網頁應用程式使用的語言。',
-  'settings.profile': '個人資料',
-  'settings.experience': '經歷',
-  'settings.security': '安全性',
-  'settings.integrations': '整合',
-  'settings.notifications': '通知',
-  'settings.data': '資料',
-  'errors.notFound': '找不到頁面',
-  'errors.goDashboard': '前往儀表板',
-  'errors.somethingWrong': '發生錯誤',
-  'errors.reloadHelp': '請重新載入頁面。如果問題持續，請通知我們。',
-  'errors.reload': '重新載入',
-};
-
-const zhCN: Messages = {
-  'nav.dashboard': '仪表盘',
-  'nav.applications': '求职申请',
-  'nav.calendar': '日历',
-  'nav.analytics': '分析',
-  'nav.assistant': '助手',
-  'nav.settings': '设置',
-  'nav.signOut': '退出登录',
-  'settings.language': '语言',
-  'settings.languageDescription': '选择网页应用使用的语言。',
-  'settings.profile': '个人资料',
-  'settings.experience': '经历',
-  'settings.security': '安全',
-  'settings.integrations': '集成',
-  'settings.notifications': '通知',
-  'settings.data': '数据',
-  'errors.notFound': '页面未找到',
-  'errors.goDashboard': '前往仪表盘',
-  'errors.somethingWrong': '发生错误',
-  'errors.reloadHelp': '请重新加载页面。如果问题持续，请通知我们。',
-  'errors.reload': '重新加载',
-};
 
 const messages: Record<Locale, Messages> = {
   en,
