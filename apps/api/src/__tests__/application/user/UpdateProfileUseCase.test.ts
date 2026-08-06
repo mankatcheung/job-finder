@@ -18,7 +18,7 @@ describe('UpdateProfileUseCase', () => {
     expect(userRepository.update).not.toHaveBeenCalled();
   });
 
-  it('updates name, timezone, and targetRole together', async () => {
+  it('updates name, timezone, targetRole, and customAiPrompt together', async () => {
     const user = makeUser({ id: 'user-1' });
     const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
 
@@ -27,12 +27,14 @@ describe('UpdateProfileUseCase', () => {
       name: '  Jeff Man  ',
       timezone: 'America/Los_Angeles',
       targetRole: '  Staff Engineer  ',
+      customAiPrompt: '  Keep it casual and under 200 words.  ',
     });
 
     expect(userRepository.update).toHaveBeenCalledWith('user-1', {
       name: 'Jeff Man',
       timezone: 'America/Los_Angeles',
       targetRole: 'Staff Engineer',
+      customAiPrompt: 'Keep it casual and under 200 words.',
     });
   });
 
@@ -46,6 +48,7 @@ describe('UpdateProfileUseCase', () => {
       name: 'Jeff',
       timezone: undefined,
       targetRole: undefined,
+      customAiPrompt: undefined,
     });
   });
 
@@ -124,6 +127,33 @@ describe('UpdateProfileUseCase', () => {
 
     const err = await new UpdateProfileUseCase({ userRepository })
       .execute({ userId: 'user-1', targetRole: 'a'.repeat(101) })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('VALIDATION');
+    expect(userRepository.update).not.toHaveBeenCalled();
+  });
+
+  it('clears customAiPrompt when given an empty or whitespace-only string', async () => {
+    const user = makeUser({ id: 'user-1', customAiPrompt: 'Old instructions' });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+
+    await new UpdateProfileUseCase({ userRepository }).execute({
+      userId: 'user-1',
+      customAiPrompt: '   ',
+    });
+
+    expect(userRepository.update).toHaveBeenCalledWith(
+      'user-1',
+      expect.objectContaining({ customAiPrompt: null }),
+    );
+  });
+
+  it('throws VALIDATION when customAiPrompt exceeds the max length', async () => {
+    const user = makeUser({ id: 'user-1' });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+
+    const err = await new UpdateProfileUseCase({ userRepository })
+      .execute({ userId: 'user-1', customAiPrompt: 'a'.repeat(501) })
       .catch((e) => e);
 
     expect((err as { code: string }).code).toBe('VALIDATION');

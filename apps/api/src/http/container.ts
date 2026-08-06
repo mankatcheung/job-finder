@@ -210,6 +210,14 @@ import { GetPipelineStagesUseCase } from '#src/use-cases/pipelineStages/GetPipel
 import { CreatePipelineStageUseCase } from '#src/use-cases/pipelineStages/CreatePipelineStageUseCase.js';
 import { UpdatePipelineStageUseCase } from '#src/use-cases/pipelineStages/UpdatePipelineStageUseCase.js';
 import { DeletePipelineStageUseCase } from '#src/use-cases/pipelineStages/DeletePipelineStageUseCase.js';
+import { DrizzleOfferRepository } from '#src/infrastructure/db/repositories/DrizzleOfferRepository.js';
+import { OfferMapper } from '#src/interface-adapters/mappers/OfferMapper.js';
+import { OfferResolver } from '#src/interface-adapters/resolvers/OfferResolver.js';
+import { CreateOfferUseCase } from '#src/use-cases/offers/CreateOfferUseCase.js';
+import { UpdateOfferUseCase } from '#src/use-cases/offers/UpdateOfferUseCase.js';
+import { DeleteOfferUseCase } from '#src/use-cases/offers/DeleteOfferUseCase.js';
+import { GetOffersUseCase } from '#src/use-cases/offers/GetOffersUseCase.js';
+import { CompareOffersUseCase } from '#src/use-cases/offers/CompareOffersUseCase.js';
 import { ReactPdfDocumentRenderer } from '#src/infrastructure/pdf/ReactPdfDocumentRenderer.js';
 
 import { ENV, RATE_LIMIT, STORAGE_PROVIDER } from '#src/constants.js';
@@ -256,6 +264,7 @@ export interface Cradle {
   educationRepository: DrizzleEducationRepository;
   skillRepository: DrizzleSkillRepository;
   pipelineStageRepository: DrizzlePipelineStageRepository;
+  offerRepository: DrizzleOfferRepository;
   emailVerificationTokenRepository: DrizzleEmailVerificationTokenRepository;
   totpBackupCodeRepository: DrizzleTotpBackupCodeRepository;
   totpRateLimiter: IRateLimiter;
@@ -307,6 +316,8 @@ export interface Cradle {
   skillResolver: SkillResolver;
   pipelineStageMapper: PipelineStageMapper;
   pipelineStageResolver: PipelineStageResolver;
+  offerMapper: OfferMapper;
+  offerResolver: OfferResolver;
   oauthResolver: OAuthResolver;
   mcpController: McpController;
 
@@ -432,6 +443,11 @@ export interface Cradle {
   createPipelineStageUseCase: CreatePipelineStageUseCase;
   updatePipelineStageUseCase: UpdatePipelineStageUseCase;
   deletePipelineStageUseCase: DeletePipelineStageUseCase;
+  createOfferUseCase: CreateOfferUseCase;
+  updateOfferUseCase: UpdateOfferUseCase;
+  deleteOfferUseCase: DeleteOfferUseCase;
+  getOffersUseCase: GetOffersUseCase;
+  compareOffersUseCase: CompareOffersUseCase;
 }
 
 type StorageProviderConstructor = new () => LocalStorageProvider | VercelBlobStorageProvider;
@@ -510,6 +526,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     pipelineStageRepository: asClass(DrizzlePipelineStageRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
+    offerRepository: asClass(DrizzleOfferRepository, { lifetime: Lifetime.SINGLETON }),
     emailVerificationTokenRepository: asClass(DrizzleEmailVerificationTokenRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
@@ -809,6 +826,13 @@ export function buildContainer(): AwilixContainer<Cradle> {
     deletePipelineStageUseCase: asClass(DeletePipelineStageUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
+    offerMapper: asClass(OfferMapper, { lifetime: Lifetime.SINGLETON }),
+    offerResolver: asClass(OfferResolver, { lifetime: Lifetime.SINGLETON }),
+    createOfferUseCase: asClass(CreateOfferUseCase, { lifetime: Lifetime.TRANSIENT }),
+    updateOfferUseCase: asClass(UpdateOfferUseCase, { lifetime: Lifetime.TRANSIENT }),
+    deleteOfferUseCase: asClass(DeleteOfferUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getOffersUseCase: asClass(GetOffersUseCase, { lifetime: Lifetime.TRANSIENT }),
+    compareOffersUseCase: asClass(CompareOffersUseCase, { lifetime: Lifetime.TRANSIENT }),
   });
   return container;
 }

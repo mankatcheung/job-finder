@@ -184,8 +184,15 @@ export class UserResolver {
     name?: string | null,
     timezone?: string | null,
     targetRole?: string | null,
+    customAiPrompt?: string | null,
   ): Promise<void> {
-    await this.deps.updateProfileUseCase.execute({ userId, name, timezone, targetRole });
+    await this.deps.updateProfileUseCase.execute({
+      userId,
+      name,
+      timezone,
+      targetRole,
+      customAiPrompt,
+    });
   }
 
   async getMe(userId: string): Promise<UserDTO | null> {

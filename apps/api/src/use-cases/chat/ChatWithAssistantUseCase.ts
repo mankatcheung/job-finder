@@ -1,5 +1,6 @@
 import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
 import type { Conversation } from '#src/domain/conversation/Conversation.js';
+import type { User } from '#src/domain/user/User.js';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IGetApplicationsUseCase } from '#src/use-cases/jobs/IGetApplicationsUseCase.js';
 import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplicationUseCase.js';
@@ -70,6 +71,10 @@ export class ChatWithAssistantUseCase {
       throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
     }
 
+    // Fetched once up front: needed both for the custom-AI-prompt system
+    // message below and as the defaultLlmProvider fallback inside complete().
+    const user = await this.deps.userRepository.findById(input.userId);
+
     // Stored history only ever contains 'user'/'assistant' turns we wrote
     // ourselves — the per-turn tool-call scratchpad below is rebuilt fresh
     // each time and never persisted.
@@ -77,11 +82,14 @@ export class ChatWithAssistantUseCase {
 
     const messages: LLMMessage[] = [
       { role: 'system', content: SYSTEM_PROMPT },
+      ...(user?.customAiPrompt
+        ? [{ role: 'system', content: user.customAiPrompt } as LLMMessage]
+        : []),
       ...history.map((m) => ({ role: m.role, content: m.content })),
       { role: 'user', content: input.message },
     ];
 
-    const reply = await this.complete(messages, input.userId, conversation);
+    const reply = await this.complete(messages, input.userId, conversation, user);
 
     await this.deps.messageRepository.create({
       id: this.deps.generateId(),
@@ -117,12 +125,9 @@ export class ChatWithAssistantUseCase {
     messages: LLMMessage[],
     userId: string,
     conversation: Conversation,
+    user: User | null,
   ): Promise<string> {
-    let providerName = conversation.llmProvider;
-    if (!providerName) {
-      const user = await this.deps.userRepository.findById(userId);
-      providerName = user?.defaultLlmProvider ?? null;
-    }
+    const providerName = conversation.llmProvider ?? user?.defaultLlmProvider ?? null;
 
     const llmProvider = await this.deps.llmProviderFactory.forUser(
       userId,
@@ -156,10 +161,16 @@ export class ChatWithAssistantUseCase {
         toolCalls: result.toolCalls,
       });
 
-      for (const call of result.toolCalls) {
-        const toolResult = await this.executeTool(call, userId);
-        messages.push({ role: 'tool', content: JSON.stringify(toolResult), toolCallId: call.id });
-      }
+      const toolResults = await Promise.all(
+        result.toolCalls.map((call) => this.executeTool(call, userId)),
+      );
+      result.toolCalls.forEach((call, i) => {
+        messages.push({
+          role: 'tool',
+          content: JSON.stringify(toolResults[i]),
+          toolCallId: call.id,
+        });
+      });
     }
 
     return 'That took more steps than I could complete — try asking something more specific.';

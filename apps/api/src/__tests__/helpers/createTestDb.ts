@@ -24,6 +24,7 @@ const SCHEMA_STATEMENTS = [
     "totpSecret" TEXT,
     "totpEnabled" INTEGER NOT NULL DEFAULT 0,
     "defaultLlmProvider" TEXT,
+    "customAiPrompt" TEXT,
     "createdAt" INTEGER NOT NULL,
     "updatedAt" INTEGER NOT NULL
   )`,
@@ -164,6 +165,22 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("sourceDraftId") REFERENCES "DocumentDraft"("id") ON DELETE SET NULL
   )`,
   `CREATE INDEX "Document_applicationId_idx" ON "Document"("applicationId")`,
+  `CREATE TABLE "Offer" (
+    "id" TEXT PRIMARY KEY,
+    "applicationId" TEXT NOT NULL,
+    "baseSalary" INTEGER NOT NULL,
+    "bonus" INTEGER,
+    "equity" TEXT,
+    "benefits" TEXT,
+    "costOfLivingAdjustment" INTEGER,
+    "currency" TEXT NOT NULL DEFAULT 'USD',
+    "period" TEXT NOT NULL DEFAULT 'yearly',
+    "notes" TEXT,
+    "createdAt" INTEGER NOT NULL,
+    "updatedAt" INTEGER NOT NULL,
+    FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "Offer_applicationId_idx" ON "Offer"("applicationId")`,
   `CREATE TABLE "DocumentDraft" (
     "id" TEXT PRIMARY KEY,
     "applicationId" TEXT NOT NULL,

@@ -25,6 +25,8 @@ export const user = sqliteTable('User', {
    * assistant chooses its own provider per-conversation instead.
    */
   defaultLlmProvider: text('defaultLlmProvider'),
+  /** User-authored instruction spliced into the system prompt for AI-generated text (cover letters, chat assistant). */
+  customAiPrompt: text('customAiPrompt'),
   createdAt: integer('createdAt', { mode: 'timestamp_ms' })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -396,6 +398,32 @@ export const document = sqliteTable(
       .$defaultFn(() => new Date()),
   },
   (table) => [index('Document_applicationId_idx').on(table.applicationId)],
+);
+
+export const offer = sqliteTable(
+  'Offer',
+  {
+    id: text('id').primaryKey(),
+    applicationId: text('applicationId')
+      .notNull()
+      .references(() => jobApplication.id, { onDelete: 'cascade' }),
+    baseSalary: integer('baseSalary').notNull(),
+    bonus: integer('bonus'),
+    equity: text('equity'),
+    benefits: text('benefits'),
+    costOfLivingAdjustment: integer('costOfLivingAdjustment'),
+    currency: text('currency').notNull().default('USD'),
+    period: text('period').notNull().default('yearly'),
+    notes: text('notes'),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updatedAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [index('Offer_applicationId_idx').on(table.applicationId)],
 );
 
 export const documentDraft = sqliteTable(
