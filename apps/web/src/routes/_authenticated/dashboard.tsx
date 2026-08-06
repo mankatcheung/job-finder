@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
+import i18next from 'i18next';
 import { ErrorState } from '#/components/ErrorState';
 import {
   AlertCircleIcon,
@@ -218,7 +219,9 @@ export function StatusBadge({ status }: { status: string }) {
     <span
       className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${styles[status] ?? styles.draft}`}
     >
-      {status}
+      {i18next.t(`status.${status}`, {
+        defaultValue: status.replace(/[-_]/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase()),
+      })}
     </span>
   );
 }

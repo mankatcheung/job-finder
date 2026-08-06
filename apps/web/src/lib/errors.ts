@@ -1,4 +1,6 @@
 import { ERROR_CODES } from '#/constants';
+import i18next from 'i18next';
+import en from '#/i18n/en.json';
 
 interface GraphQLErrorLike {
   response: {
@@ -23,13 +25,20 @@ function isGraphQLErrorLike(error: unknown): error is GraphQLErrorLike {
 // user-presentable prose from the use-case that threw it, so it's passed
 // through as-is instead of being overridden here.
 const CODE_MESSAGES: Record<string, string> = {
-  [ERROR_CODES.USER_NOT_FOUND]: 'No account found with this email. Please register first.',
-  [ERROR_CODES.NOT_FOUND]: "That item couldn't be found — it may have been deleted.",
-  [ERROR_CODES.FORBIDDEN]: "You don't have permission to do that.",
+  [ERROR_CODES.USER_NOT_FOUND]: 'errors.userNotFound',
+  [ERROR_CODES.NOT_FOUND]: 'errors.itemNotFound',
+  [ERROR_CODES.FORBIDDEN]: 'errors.forbidden',
 };
 
-const GENERIC_MESSAGE = 'Something went wrong. Please try again.';
-const NETWORK_MESSAGE = "Can't reach the server. Check your connection and try again.";
+const GENERIC_MESSAGE = 'errors.generic';
+const NETWORK_MESSAGE = 'errors.network';
+const translate = (key: string) => {
+  const fallback = en[key as keyof typeof en] ?? key;
+  const translated = i18next.t(key, { defaultValue: fallback });
+  return typeof translated !== 'string' || translated === key || translated.length === 0
+    ? fallback
+    : translated;
+};
 
 /**
  * Turns any thrown error (GraphQL, network, or otherwise) into a single
@@ -42,14 +51,14 @@ export function getErrorMessage(error: unknown): string {
   if (isGraphQLErrorLike(error)) {
     const gqlError = error.response.errors?.[0];
     const code = gqlError?.extensions?.code as string | undefined;
-    if (code && code in CODE_MESSAGES) return CODE_MESSAGES[code];
+    if (code && code in CODE_MESSAGES) return translate(CODE_MESSAGES[code]);
     if (code === ERROR_CODES.INTERNAL_ERROR || code === ERROR_CODES.SERVICE_UNAVAILABLE || !code) {
-      return GENERIC_MESSAGE;
+      return translate(GENERIC_MESSAGE);
     }
-    return gqlError?.message ?? GENERIC_MESSAGE;
+    return gqlError?.message ?? translate(GENERIC_MESSAGE);
   }
 
-  if (error instanceof TypeError) return NETWORK_MESSAGE;
+  if (error instanceof TypeError) return translate(NETWORK_MESSAGE);
 
-  return GENERIC_MESSAGE;
+  return translate(GENERIC_MESSAGE);
 }
