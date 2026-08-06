@@ -28,6 +28,7 @@ import {
   PlugIcon,
   BellIcon,
   DatabaseIcon,
+  Columns3Icon,
   ShieldIcon,
   UserIcon,
   XIcon,
@@ -63,6 +64,7 @@ const SETTINGS_NAV = [
   { to: '/settings/integrations', label: 'Integrations', icon: PlugIcon },
   { to: '/settings/notifications', label: 'Notifications', icon: BellIcon },
   { to: '/settings/data', label: 'Data', icon: DatabaseIcon },
+  { to: '/settings/pipeline', label: 'Pipeline', icon: Columns3Icon },
 ] as const;
 
 const MAIN_NAV = [
