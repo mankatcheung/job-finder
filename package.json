@@ -12,6 +12,7 @@
     "clean": "turbo run clean",
     "db:generate": "turbo run db:generate --filter=@job-finder/api",
     "db:migrate": "turbo run db:migrate --filter=@job-finder/api",
+    "setup:worktree": "bash scripts/setup-worktree.sh",
     "prepare": "husky"
   },
   "devDependencies": {
