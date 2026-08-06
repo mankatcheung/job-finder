@@ -8,9 +8,21 @@ import {
   makeWorkExperienceRepository,
   makeEducationRepository,
   makeSkillRepository,
+  makeUserRepository,
+  makeUser,
 } from '#src/__tests__/helpers/mocks.js';
 
 const COVER_LETTER = 'Dear Hiring Manager,\n\nI am excited to apply…\n\nSincerely,\nJane';
+
+function baseDeps(overrides?: Record<string, unknown>) {
+  return {
+    workExperienceRepository: makeWorkExperienceRepository(),
+    educationRepository: makeEducationRepository(),
+    skillRepository: makeSkillRepository(),
+    userRepository: makeUserRepository({ findById: vi.fn().mockResolvedValue(makeUser()) }),
+    ...overrides,
+  };
+}
 
 describe('GenerateCoverLetterUseCase', () => {
   it('returns the LLM response as the cover letter', async () => {
@@ -26,16 +38,70 @@ describe('GenerateCoverLetterUseCase', () => {
     const result = await new GenerateCoverLetterUseCase({
       applicationRepository,
       llmProviderFactory,
-      workExperienceRepository: makeWorkExperienceRepository(),
-      educationRepository: makeEducationRepository(),
-      skillRepository: makeSkillRepository(),
-    }).execute({
+      ...baseDeps(),
+    } as never).execute({
       applicationId: 'app-1',
       userId: 'user-1',
     });
 
     expect(result).toBe(COVER_LETTER);
     expect(llmProvider.complete).toHaveBeenCalledOnce();
+  });
+
+  it("includes the user's custom AI prompt as a second system message when set", async () => {
+    const app = makeApplication();
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(app),
+    });
+    const llmProvider = makeLLMProvider();
+    const llmProviderFactory = makeLLMProviderFactory({
+      forUser: vi.fn().mockResolvedValue(llmProvider),
+    });
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(makeUser({ customAiPrompt: 'Keep it under 150 words.' })),
+    });
+
+    await new GenerateCoverLetterUseCase({
+      applicationRepository,
+      llmProviderFactory,
+      ...baseDeps({ userRepository }),
+    } as never).execute({
+      applicationId: 'app-1',
+      userId: 'user-1',
+    });
+
+    const [messages] = (llmProvider.complete as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      Array<{ role: string; content: string }>,
+    ];
+    const systemMessages = messages.filter((m) => m.role === 'system');
+    expect(systemMessages).toHaveLength(2);
+    expect(systemMessages[1].content).toBe('Keep it under 150 words.');
+  });
+
+  it('omits the custom AI prompt system message when the user has none set', async () => {
+    const app = makeApplication();
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(app),
+    });
+    const llmProvider = makeLLMProvider();
+    const llmProviderFactory = makeLLMProviderFactory({
+      forUser: vi.fn().mockResolvedValue(llmProvider),
+    });
+
+    await new GenerateCoverLetterUseCase({
+      applicationRepository,
+      llmProviderFactory,
+      ...baseDeps(),
+    } as never).execute({
+      applicationId: 'app-1',
+      userId: 'user-1',
+    });
+
+    const [messages] = (llmProvider.complete as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      Array<{ role: string; content: string }>,
+    ];
+    const systemMessages = messages.filter((m) => m.role === 'system');
+    expect(systemMessages).toHaveLength(1);
   });
 
   it('includes resume text in the prompt when provided', async () => {
@@ -51,10 +117,8 @@ describe('GenerateCoverLetterUseCase', () => {
     await new GenerateCoverLetterUseCase({
       applicationRepository,
       llmProviderFactory,
-      workExperienceRepository: makeWorkExperienceRepository(),
-      educationRepository: makeEducationRepository(),
-      skillRepository: makeSkillRepository(),
-    }).execute({
+      ...baseDeps(),
+    } as never).execute({
       applicationId: 'app-1',
       userId: 'user-1',
       resumeText: '5 years at BigCorp building APIs',
@@ -84,10 +148,8 @@ describe('GenerateCoverLetterUseCase', () => {
     await new GenerateCoverLetterUseCase({
       applicationRepository,
       llmProviderFactory,
-      workExperienceRepository: makeWorkExperienceRepository(),
-      educationRepository: makeEducationRepository(),
-      skillRepository: makeSkillRepository(),
-    }).execute({
+      ...baseDeps(),
+    } as never).execute({
       applicationId: 'app-1',
       userId: 'user-1',
     });
@@ -110,10 +172,8 @@ describe('GenerateCoverLetterUseCase', () => {
     const err = await new GenerateCoverLetterUseCase({
       applicationRepository,
       llmProviderFactory,
-      workExperienceRepository: makeWorkExperienceRepository(),
-      educationRepository: makeEducationRepository(),
-      skillRepository: makeSkillRepository(),
-    })
+      ...baseDeps(),
+    } as never)
       .execute({ applicationId: 'missing', userId: 'user-1' })
       .catch((e) => e);
 
@@ -132,10 +192,8 @@ describe('GenerateCoverLetterUseCase', () => {
     const err = await new GenerateCoverLetterUseCase({
       applicationRepository,
       llmProviderFactory,
-      workExperienceRepository: makeWorkExperienceRepository(),
-      educationRepository: makeEducationRepository(),
-      skillRepository: makeSkillRepository(),
-    })
+      ...baseDeps(),
+    } as never)
       .execute({ applicationId: 'app-1', userId: 'user-1' })
       .catch((e) => e);
 
@@ -153,10 +211,8 @@ describe('GenerateCoverLetterUseCase', () => {
     const err = await new GenerateCoverLetterUseCase({
       applicationRepository,
       llmProviderFactory,
-      workExperienceRepository: makeWorkExperienceRepository(),
-      educationRepository: makeEducationRepository(),
-      skillRepository: makeSkillRepository(),
-    })
+      ...baseDeps(),
+    } as never)
       .execute({ applicationId: 'app-1', userId: 'user-1' })
       .catch((e) => e);
 

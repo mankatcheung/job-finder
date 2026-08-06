@@ -160,6 +160,50 @@ describe('ChatWithAssistantUseCase', () => {
     expect(messages[3]).toEqual({ role: 'user', content: 'new question' });
   });
 
+  it("splices the user's custom AI prompt in as a second system message when set", async () => {
+    const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+      userRepository: makeUserRepository({
+        findById: vi
+          .fn()
+          .mockResolvedValue(makeUser({ customAiPrompt: 'Always sign off with "Best, Jeff".' })),
+      }),
+    });
+
+    await new ChatWithAssistantUseCase(deps as never).execute({
+      ...baseInput,
+      message: 'hi',
+    });
+
+    const [messages] = vi.mocked(llmProvider.completeWithTools).mock.calls[0];
+    expect(messages[0].role).toBe('system');
+    expect(messages[1]).toEqual({
+      role: 'system',
+      content: 'Always sign off with "Best, Jeff".',
+    });
+    expect(messages[2]).toEqual({ role: 'user', content: 'hi' });
+  });
+
+  it('omits the custom AI prompt system message when the user has none set', async () => {
+    const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+    });
+
+    await new ChatWithAssistantUseCase(deps as never).execute({
+      ...baseInput,
+      message: 'hi',
+    });
+
+    const [messages] = vi.mocked(llmProvider.completeWithTools).mock.calls[0];
+    expect(messages.filter((m) => m.role === 'system')).toHaveLength(1);
+  });
+
   it("persists the user's message and the assistant's reply after a successful response", async () => {
     const llmProvider = makeToolCallingProvider({ content: 'Hello there!', toolCalls: [] });
     const messageRepository = makeMessageRepository();
@@ -404,6 +448,56 @@ describe('ChatWithAssistantUseCase', () => {
     expect(JSON.parse(toolResultMessage!.content)).toEqual({ error: 'Application not found' });
   });
 
+  it('dispatches multiple tool calls from the same turn concurrently and matches results to the right call id', async () => {
+    const applications = [{ id: 'app-1', company: 'Acme' }];
+    const application = { id: 'app-1', company: 'Acme', role: 'Engineer' };
+    const llmProvider = makeToolCallingProvider(
+      {
+        content: null,
+        toolCalls: [
+          { id: 'call_1', name: 'list_applications', arguments: {} },
+          { id: 'call_2', name: 'get_application', arguments: { applicationId: 'app-1' } },
+        ],
+      },
+      { content: 'Summary.', toolCalls: [] },
+    );
+    // Resolve the second tool call before the first to prove the results are
+    // matched back up by call id/order, not by completion order.
+    const getApplicationsUseCase = {
+      execute: vi.fn(() => new Promise((resolve) => setTimeout(() => resolve(applications), 10))),
+    };
+    const getApplicationUseCase = { execute: vi.fn().mockResolvedValue(application) };
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+      getApplicationsUseCase,
+      getApplicationUseCase,
+    });
+
+    const result = await new ChatWithAssistantUseCase(deps as never).execute({
+      ...baseInput,
+      message: 'summarize my applications',
+    });
+
+    expect(result).toBe('Summary.');
+    expect(getApplicationsUseCase.execute).toHaveBeenCalledWith({
+      userId: 'user-1',
+      status: undefined,
+    });
+    expect(getApplicationUseCase.execute).toHaveBeenCalledWith({
+      userId: 'user-1',
+      applicationId: 'app-1',
+    });
+
+    const [secondCallMessages] = vi.mocked(llmProvider.completeWithTools).mock.calls[1];
+    const toolResultMessages = secondCallMessages.filter((m) => m.role === 'tool');
+    expect(toolResultMessages).toEqual([
+      { role: 'tool', content: JSON.stringify(applications), toolCallId: 'call_1' },
+      { role: 'tool', content: JSON.stringify(application), toolCallId: 'call_2' },
+    ]);
+  });
+
   it('supports multiple tool-call round trips before a final answer', async () => {
     const llmProvider = makeToolCallingProvider(
       { content: null, toolCalls: [{ id: 'call_1', name: 'list_applications', arguments: {} }] },
@@ -458,7 +552,9 @@ describe('ChatWithAssistantUseCase', () => {
     const llmProviderFactory = makeLLMProviderFactory({
       forUser: vi.fn().mockResolvedValue(llmProvider),
     });
-    const userRepository = makeUserRepository();
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(makeUser({ defaultLlmProvider: 'openai' })),
+    });
     const conversationRepository = makeConversationRepository({
       findById: vi.fn().mockResolvedValue(
         makeConversation({
@@ -473,7 +569,8 @@ describe('ChatWithAssistantUseCase', () => {
 
     await new ChatWithAssistantUseCase(deps as never).execute({ ...baseInput, message: 'hi' });
 
-    expect(userRepository.findById).not.toHaveBeenCalled();
+    // The user is still fetched (needed for customAiPrompt), but the conversation's
+    // locked provider wins over the user's defaultLlmProvider ('openai').
     expect(llmProviderFactory.forUser).toHaveBeenCalledWith('user-1', 'anthropic', 'claude');
     expect(conversationRepository.updateLlmSettings).not.toHaveBeenCalled();
   });

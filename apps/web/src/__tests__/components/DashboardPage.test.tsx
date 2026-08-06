@@ -92,4 +92,63 @@ describe('DashboardPage', () => {
       expect(screen.getByText('Offered')).toBeInTheDocument();
     });
   });
+
+  it('renders an Upcoming section for future interviews and follow-ups only', async () => {
+    const future = new Date(Date.now() + 86_400_000).toISOString();
+    const past = new Date(Date.now() - 86_400_000).toISOString();
+    mockGqlRequest.mockImplementation((query: string) => {
+      if (query.includes('calendarEvents')) {
+        return Promise.resolve({
+          calendarEvents: [
+            {
+              id: 'e1',
+              applicationId: '1',
+              company: 'FutureCo',
+              role: 'SWE',
+              type: 'interview',
+              date: future,
+              interviewRoundType: 'technical',
+            },
+            {
+              id: 'e2',
+              applicationId: '2',
+              company: 'PastCo',
+              role: 'Eng',
+              type: 'followUp',
+              date: past,
+              interviewRoundType: null,
+            },
+            {
+              id: 'e3',
+              applicationId: '3',
+              company: 'AppliedCo',
+              role: 'Eng',
+              type: 'applied',
+              date: future,
+              interviewRoundType: null,
+            },
+          ],
+        });
+      }
+      return Promise.resolve({ applications: [] });
+    });
+    render(<DashboardPage />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('Upcoming')).toBeInTheDocument();
+      expect(screen.getByText('FutureCo')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('PastCo')).not.toBeInTheDocument();
+    expect(screen.queryByText('AppliedCo')).not.toBeInTheDocument();
+  });
+
+  it('omits the Upcoming section when there are no future events', async () => {
+    mockGqlRequest.mockResolvedValue({ applications: [], calendarEvents: [] });
+    render(<DashboardPage />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('No applications yet.')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Upcoming')).not.toBeInTheDocument();
+  });
 });
