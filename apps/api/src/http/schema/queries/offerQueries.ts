@@ -7,7 +7,7 @@ builder.queryField('offers', (t) =>
   t.field({
     type: [OfferRef],
     args: {
-      applicationId: t.arg.string({ required: true }),
+      applicationId: t.arg.id({ required: true }),
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
