@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
 import { ErrorState } from '#/components/ErrorState';
-import { StatusBadge } from '../dashboard';
+import { StatusBadge } from '../-components/StatusBadge';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { useBulkActions } from './-useBulkActions';
 import { useInfiniteScrollSentinel } from '#/lib/useInfiniteScrollSentinel';

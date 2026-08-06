@@ -40,7 +40,7 @@ vi.mock('#/lib/queryClient', () => ({
 }));
 
 import { ThemeProvider } from '#/lib/theme';
-import { AuthenticatedLayout } from '#/routes/_authenticated/route';
+import { AuthenticatedLayout } from '#/routes/_authenticated/-components/AuthenticatedLayout';
 
 const makeClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
 

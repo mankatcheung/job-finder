@@ -14,7 +14,7 @@ import {
 } from '@dnd-kit/core';
 import { gqlClient } from '#/graphql/client';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
-import { StatusBadge } from '../dashboard';
+import { StatusBadge } from '../-components/StatusBadge';
 import { ErrorState } from '#/components/ErrorState';
 import { ListIcon, PlusIcon, StarIcon } from 'lucide-react';
 import { boardApplicationsQueryOptions, type BoardApplication } from './-board-queries';

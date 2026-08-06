@@ -5,7 +5,7 @@ import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
 import { getErrorMessage } from '#/lib/errors';
 import { ErrorState } from '#/components/ErrorState';
-import { StatusBadge } from '../../dashboard';
+import { StatusBadge } from '../../-components/StatusBadge';
 import {
   ActivityIcon,
   CalendarIcon,
