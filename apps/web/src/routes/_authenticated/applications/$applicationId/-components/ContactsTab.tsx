@@ -1,0 +1,380 @@
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { CheckIcon, EditIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
+import { gqlClient } from '#/graphql/client';
+import { showUndoToast } from '#/lib/undoToast';
+
+const CONTACTS_QUERY = `
+  query Contacts($applicationId: ID!) {
+    contacts(applicationId: $applicationId) { id applicationId name role email phone linkedinUrl notes createdAt updatedAt }
+  }
+`;
+const CREATE_CONTACT = `
+  mutation CreateContact($applicationId: ID!, $name: String!, $role: String, $email: String, $phone: String, $linkedinUrl: String, $notes: String) {
+    createContact(applicationId: $applicationId, name: $name, role: $role, email: $email, phone: $phone, linkedinUrl: $linkedinUrl, notes: $notes) {
+      id applicationId name role email phone linkedinUrl notes createdAt updatedAt
+    }
+  }
+`;
+const UPDATE_CONTACT = `
+  mutation UpdateContact($id: ID!, $name: String, $role: String, $email: String, $phone: String, $linkedinUrl: String, $notes: String) {
+    updateContact(id: $id, name: $name, role: $role, email: $email, phone: $phone, linkedinUrl: $linkedinUrl, notes: $notes) {
+      id applicationId name role email phone linkedinUrl notes createdAt updatedAt
+    }
+  }
+`;
+const DELETE_CONTACT = `mutation DeleteContact($id: ID!) { deleteContact(id: $id) }`;
+
+type Contact = {
+  id: string;
+  applicationId: string;
+  name: string;
+  role?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  linkedinUrl?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type ContactFormState = {
+  name: string;
+  role: string;
+  email: string;
+  phone: string;
+  linkedinUrl: string;
+  notes: string;
+};
+
+function emptyContactForm(): ContactFormState {
+  return { name: '', role: '', email: '', phone: '', linkedinUrl: '', notes: '' };
+}
+
+function contactToForm(c: Contact): ContactFormState {
+  return {
+    name: c.name,
+    role: c.role ?? '',
+    email: c.email ?? '',
+    phone: c.phone ?? '',
+    linkedinUrl: c.linkedinUrl ?? '',
+    notes: c.notes ?? '',
+  };
+}
+
+export function ContactsTab({ applicationId }: { applicationId: string }) {
+  const qc = useQueryClient();
+  const [showForm, setShowForm] = useState(false);
+  const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [form, setForm] = useState<ContactFormState>(emptyContactForm());
+
+  const { data } = useQuery({
+    queryKey: ['contacts', applicationId],
+    queryFn: () => gqlClient.request<{ contacts: Contact[] }>(CONTACTS_QUERY, { applicationId }),
+  });
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['contacts', applicationId] });
+
+  const createContact = useMutation({
+    mutationFn: (f: ContactFormState) =>
+      gqlClient.request(CREATE_CONTACT, {
+        applicationId,
+        name: f.name,
+        ...(f.role ? { role: f.role } : {}),
+        ...(f.email ? { email: f.email } : {}),
+        ...(f.phone ? { phone: f.phone } : {}),
+        ...(f.linkedinUrl ? { linkedinUrl: f.linkedinUrl } : {}),
+        ...(f.notes ? { notes: f.notes } : {}),
+      }),
+    onMutate: async (f) => {
+      await qc.cancelQueries({ queryKey: ['contacts', applicationId] });
+      const prev = qc.getQueryData<{ contacts: Contact[] }>(['contacts', applicationId]);
+      const optimistic: Contact = {
+        id: `__tmp_${Date.now()}`,
+        applicationId,
+        name: f.name,
+        role: f.role || null,
+        email: f.email || null,
+        phone: f.phone || null,
+        linkedinUrl: f.linkedinUrl || null,
+        notes: f.notes || null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      qc.setQueryData<{ contacts: Contact[] }>(['contacts', applicationId], (old) => ({
+        contacts: [...(old?.contacts ?? []), optimistic],
+      }));
+      return { prev };
+    },
+    onError: (_err, _f, context) => {
+      if (context?.prev) qc.setQueryData(['contacts', applicationId], context.prev);
+    },
+    onSuccess: () => {
+      setShowForm(false);
+      setForm(emptyContactForm());
+    },
+    onSettled: () => invalidate(),
+  });
+
+  const updateContact = useMutation({
+    mutationFn: ({ id, f }: { id: string; f: ContactFormState }) =>
+      gqlClient.request(UPDATE_CONTACT, {
+        id,
+        name: f.name || undefined,
+        role: f.role || null,
+        email: f.email || null,
+        phone: f.phone || null,
+        linkedinUrl: f.linkedinUrl || null,
+        notes: f.notes || null,
+      }),
+    onMutate: async ({ id, f }) => {
+      await qc.cancelQueries({ queryKey: ['contacts', applicationId] });
+      const prev = qc.getQueryData<{ contacts: Contact[] }>(['contacts', applicationId]);
+      qc.setQueryData<{ contacts: Contact[] }>(['contacts', applicationId], (old) => ({
+        contacts: (old?.contacts ?? []).map((c) =>
+          c.id === id
+            ? {
+                ...c,
+                name: f.name || c.name,
+                role: f.role || null,
+                email: f.email || null,
+                phone: f.phone || null,
+                linkedinUrl: f.linkedinUrl || null,
+                notes: f.notes || null,
+                updatedAt: new Date().toISOString(),
+              }
+            : c,
+        ),
+      }));
+      return { prev };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prev) qc.setQueryData(['contacts', applicationId], context.prev);
+    },
+    onSuccess: () => setEditingContact(null),
+    onSettled: () => invalidate(),
+  });
+
+  const deleteContact = useMutation({
+    mutationFn: (id: string) => gqlClient.request(DELETE_CONTACT, { id }),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['contacts', applicationId] });
+      const prev = qc.getQueryData<{ contacts: Contact[] }>(['contacts', applicationId]);
+      qc.setQueryData<{ contacts: Contact[] }>(['contacts', applicationId], (old) => ({
+        contacts: (old?.contacts ?? []).filter((c) => c.id !== id),
+      }));
+      return { prev };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.prev) qc.setQueryData(['contacts', applicationId], context.prev);
+    },
+    onSettled: () => invalidate(),
+  });
+
+  const contacts = data?.contacts ?? [];
+
+  const inputCls =
+    'w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500';
+
+  const ContactForm = ({
+    onSubmit,
+    onCancel,
+    submitting,
+  }: {
+    onSubmit: () => void;
+    onCancel: () => void;
+    submitting: boolean;
+  }) => (
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Name *</label>
+          <input
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className={inputCls}
+            placeholder="Jane Smith"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Role</label>
+          <input
+            value={form.role}
+            onChange={(e) => setForm({ ...form, role: e.target.value })}
+            className={inputCls}
+            placeholder="Technical Recruiter"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Email</label>
+          <input
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            className={inputCls}
+            placeholder="jane@company.com"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Phone</label>
+          <input
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            className={inputCls}
+            placeholder="+1 555 000 0000"
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">LinkedIn URL</label>
+        <input
+          value={form.linkedinUrl}
+          onChange={(e) => setForm({ ...form, linkedinUrl: e.target.value })}
+          className={inputCls}
+          placeholder="https://linkedin.com/in/..."
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Notes</label>
+        <textarea
+          value={form.notes}
+          onChange={(e) => setForm({ ...form, notes: e.target.value })}
+          className={`${inputCls} h-20 resize-none`}
+          placeholder="How did you meet? Any details…"
+        />
+      </div>
+      <div className="flex gap-2 justify-end">
+        <button
+          onClick={onSubmit}
+          disabled={!form.name.trim() || submitting}
+          aria-label="Save"
+          className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-medium rounded-lg"
+        >
+          <CheckIcon size={14} />{' '}
+          <span className="hidden sm:inline">{submitting ? 'Saving…' : 'Save'}</span>
+        </button>
+        <button
+          onClick={onCancel}
+          aria-label="Cancel"
+          className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
+        >
+          <XIcon size={14} /> <span className="hidden sm:inline">Cancel</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      {!showForm && !editingContact && (
+        <button
+          onClick={() => {
+            setShowForm(true);
+            setForm(emptyContactForm());
+          }}
+          aria-label="Add contact"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg"
+        >
+          <PlusIcon size={14} /> <span className="hidden sm:inline">Add contact</span>
+        </button>
+      )}
+
+      {showForm && (
+        <ContactForm
+          onSubmit={() => {
+            if (form.name.trim()) createContact.mutate(form);
+          }}
+          onCancel={() => setShowForm(false)}
+          submitting={createContact.isPending}
+        />
+      )}
+
+      {contacts.length === 0 && !showForm && (
+        <p className="text-sm text-gray-400 py-4 text-center">No contacts yet.</p>
+      )}
+
+      {contacts.map((contact) => (
+        <div
+          key={contact.id}
+          className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
+        >
+          {editingContact?.id === contact.id ? (
+            <ContactForm
+              onSubmit={() => updateContact.mutate({ id: contact.id, f: form })}
+              onCancel={() => setEditingContact(null)}
+              submitting={updateContact.isPending}
+            />
+          ) : (
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {contact.name}
+                  </span>
+                  {contact.role && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                      {contact.role}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-gray-500">
+                  {contact.email && (
+                    <a
+                      href={`mailto:${contact.email}`}
+                      className="hover:text-blue-600 hover:underline"
+                    >
+                      {contact.email}
+                    </a>
+                  )}
+                  {contact.phone && <span>{contact.phone}</span>}
+                  {contact.linkedinUrl && (
+                    <a
+                      href={contact.linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-blue-600 hover:underline"
+                    >
+                      LinkedIn
+                    </a>
+                  )}
+                </div>
+                {contact.notes && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap mt-1">
+                    {contact.notes}
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-1 shrink-0">
+                <button
+                  onClick={() => {
+                    setEditingContact(contact);
+                    setForm(contactToForm(contact));
+                  }}
+                  className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                >
+                  <EditIcon size={14} />
+                </button>
+                <button
+                  onClick={() => {
+                    const snapshot = qc.getQueryData(['contacts', applicationId]);
+                    qc.setQueryData(['contacts', applicationId], (prev: any) => ({
+                      contacts: (prev?.contacts ?? []).filter((c: any) => c.id !== contact.id),
+                    }));
+                    showUndoToast({
+                      message: 'Contact deleted',
+                      onExecute: () => deleteContact.mutate(contact.id),
+                      onUndo: () => qc.setQueryData(['contacts', applicationId], snapshot),
+                    });
+                  }}
+                  className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                >
+                  <Trash2Icon size={14} />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}

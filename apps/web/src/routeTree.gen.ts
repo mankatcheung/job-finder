@@ -8,322 +8,322 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as ConfirmEmailChangeRouteImport } from './routes/confirm-email-change'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as RegisterRouteImport } from './routes/register'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as VerifyEmailRouteImport } from './routes/verify-email'
-import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
-import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
-import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
-import { Route as AuthenticatedApplicationsIndexRouteImport } from './routes/_authenticated/applications/index'
-import { Route as AuthenticatedApplicationsBoardRouteImport } from './routes/_authenticated/applications/board'
-import { Route as AuthenticatedApplicationsNewRouteImport } from './routes/_authenticated/applications/new'
-import { Route as AuthenticatedAssistantIndexRouteImport } from './routes/_authenticated/assistant/index'
-import { Route as AuthenticatedAssistantHistoryRouteImport } from './routes/_authenticated/assistant/history'
-import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
-import { Route as AuthenticatedSettingsDataRouteImport } from './routes/_authenticated/settings/data'
-import { Route as AuthenticatedSettingsExperienceRouteImport } from './routes/_authenticated/settings/experience'
-import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings/integrations'
-import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
-import { Route as AuthenticatedSettingsPipelineRouteImport } from './routes/_authenticated/settings/pipeline'
-import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/_authenticated/settings/profile'
-import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings/security'
-import { Route as AuthenticatedApplicationsApplicationIdIndexRouteImport } from './routes/_authenticated/applications/$applicationId/index'
-import { Route as AuthenticatedApplicationsApplicationIdEditRouteImport } from './routes/_authenticated/applications/$applicationId/edit'
-import { Route as AuthenticatedApplicationsApplicationIdDocumentsDraftIdRouteImport } from './routes/_authenticated/applications/$applicationId/documents/$draftId'
-import { Route as AuthenticatedApplicationsApplicationIdDocumentsNewRouteImport } from './routes/_authenticated/applications/$applicationId/documents/new'
-import { Route as AuthenticatedApplicationsApplicationIdOffersIndexRouteImport } from './routes/_authenticated/applications/$applicationId/offers/index'
-import { Route as AuthenticatedApplicationsApplicationIdOffersCompareRouteImport } from './routes/_authenticated/applications/$applicationId/offers/compare'
+import { Route as rootRouteImport } from './routes/__root';
+import { Route as IndexRouteImport } from './routes/index';
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route';
+import { Route as ConfirmEmailChangeRouteImport } from './routes/confirm-email-change';
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password';
+import { Route as LoginRouteImport } from './routes/login';
+import { Route as RegisterRouteImport } from './routes/register';
+import { Route as ResetPasswordRouteImport } from './routes/reset-password';
+import { Route as VerifyEmailRouteImport } from './routes/verify-email';
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account';
+import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics';
+import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar';
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard';
+import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route';
+import { Route as AuthenticatedApplicationsIndexRouteImport } from './routes/_authenticated/applications/index';
+import { Route as AuthenticatedApplicationsBoardRouteImport } from './routes/_authenticated/applications/board';
+import { Route as AuthenticatedApplicationsNewRouteImport } from './routes/_authenticated/applications/new';
+import { Route as AuthenticatedAssistantIndexRouteImport } from './routes/_authenticated/assistant/index';
+import { Route as AuthenticatedAssistantHistoryRouteImport } from './routes/_authenticated/assistant/history';
+import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index';
+import { Route as AuthenticatedSettingsDataRouteImport } from './routes/_authenticated/settings/data';
+import { Route as AuthenticatedSettingsExperienceRouteImport } from './routes/_authenticated/settings/experience';
+import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings/integrations';
+import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications';
+import { Route as AuthenticatedSettingsPipelineRouteImport } from './routes/_authenticated/settings/pipeline';
+import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/_authenticated/settings/profile';
+import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings/security';
+import { Route as AuthenticatedApplicationsApplicationIdIndexRouteImport } from './routes/_authenticated/applications/$applicationId/index';
+import { Route as AuthenticatedApplicationsApplicationIdEditRouteImport } from './routes/_authenticated/applications/$applicationId/edit';
+import { Route as AuthenticatedApplicationsApplicationIdDocumentsDraftIdRouteImport } from './routes/_authenticated/applications/$applicationId/documents/$draftId';
+import { Route as AuthenticatedApplicationsApplicationIdDocumentsNewRouteImport } from './routes/_authenticated/applications/$applicationId/documents/new';
+import { Route as AuthenticatedApplicationsApplicationIdOffersIndexRouteImport } from './routes/_authenticated/applications/$applicationId/offers/index';
+import { Route as AuthenticatedApplicationsApplicationIdOffersCompareRouteImport } from './routes/_authenticated/applications/$applicationId/offers/compare';
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ConfirmEmailChangeRoute = ConfirmEmailChangeRouteImport.update({
   id: '/confirm-email-change',
   path: '/confirm-email-change',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
   path: '/verify-email',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   id: '/account',
   path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+} as any);
 const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
   getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+} as any);
 const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
   getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+} as any);
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+} as any);
 const AuthenticatedSettingsRouteRoute =
   AuthenticatedSettingsRouteRouteImport.update({
     id: '/settings',
     path: '/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedApplicationsIndexRoute =
   AuthenticatedApplicationsIndexRouteImport.update({
     id: '/applications/',
     path: '/applications/',
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedApplicationsBoardRoute =
   AuthenticatedApplicationsBoardRouteImport.update({
     id: '/applications/board',
     path: '/applications/board',
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedApplicationsNewRoute =
   AuthenticatedApplicationsNewRouteImport.update({
     id: '/applications/new',
     path: '/applications/new',
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedAssistantIndexRoute =
   AuthenticatedAssistantIndexRouteImport.update({
     id: '/assistant/',
     path: '/assistant/',
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedAssistantHistoryRoute =
   AuthenticatedAssistantHistoryRouteImport.update({
     id: '/assistant/history',
     path: '/assistant/history',
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedSettingsIndexRoute =
   AuthenticatedSettingsIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedSettingsDataRoute =
   AuthenticatedSettingsDataRouteImport.update({
     id: '/data',
     path: '/data',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedSettingsExperienceRoute =
   AuthenticatedSettingsExperienceRouteImport.update({
     id: '/experience',
     path: '/experience',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedSettingsIntegrationsRoute =
   AuthenticatedSettingsIntegrationsRouteImport.update({
     id: '/integrations',
     path: '/integrations',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedSettingsNotificationsRoute =
   AuthenticatedSettingsNotificationsRouteImport.update({
     id: '/notifications',
     path: '/notifications',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedSettingsPipelineRoute =
   AuthenticatedSettingsPipelineRouteImport.update({
     id: '/pipeline',
     path: '/pipeline',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedSettingsProfileRoute =
   AuthenticatedSettingsProfileRouteImport.update({
     id: '/profile',
     path: '/profile',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedSettingsSecurityRoute =
   AuthenticatedSettingsSecurityRouteImport.update({
     id: '/security',
     path: '/security',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedApplicationsApplicationIdIndexRoute =
   AuthenticatedApplicationsApplicationIdIndexRouteImport.update({
     id: '/applications/$applicationId/',
     path: '/applications/$applicationId/',
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedApplicationsApplicationIdEditRoute =
   AuthenticatedApplicationsApplicationIdEditRouteImport.update({
     id: '/applications/$applicationId/edit',
     path: '/applications/$applicationId/edit',
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute =
   AuthenticatedApplicationsApplicationIdDocumentsDraftIdRouteImport.update({
     id: '/applications/$applicationId/documents/$draftId',
     path: '/applications/$applicationId/documents/$draftId',
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedApplicationsApplicationIdDocumentsNewRoute =
   AuthenticatedApplicationsApplicationIdDocumentsNewRouteImport.update({
     id: '/applications/$applicationId/documents/new',
     path: '/applications/$applicationId/documents/new',
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedApplicationsApplicationIdOffersIndexRoute =
   AuthenticatedApplicationsApplicationIdOffersIndexRouteImport.update({
     id: '/applications/$applicationId/offers/',
     path: '/applications/$applicationId/offers/',
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 const AuthenticatedApplicationsApplicationIdOffersCompareRoute =
   AuthenticatedApplicationsApplicationIdOffersCompareRouteImport.update({
     id: '/applications/$applicationId/offers/compare',
     path: '/applications/$applicationId/offers/compare',
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+  } as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/confirm-email-change': typeof ConfirmEmailChangeRoute
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/verify-email': typeof VerifyEmailRoute
-  '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
-  '/account': typeof AuthenticatedAccountRoute
-  '/analytics': typeof AuthenticatedAnalyticsRoute
-  '/calendar': typeof AuthenticatedCalendarRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
-  '/applications/board': typeof AuthenticatedApplicationsBoardRoute
-  '/applications/new': typeof AuthenticatedApplicationsNewRoute
-  '/assistant/history': typeof AuthenticatedAssistantHistoryRoute
-  '/settings/data': typeof AuthenticatedSettingsDataRoute
-  '/settings/experience': typeof AuthenticatedSettingsExperienceRoute
-  '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
-  '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
-  '/settings/pipeline': typeof AuthenticatedSettingsPipelineRoute
-  '/settings/profile': typeof AuthenticatedSettingsProfileRoute
-  '/settings/security': typeof AuthenticatedSettingsSecurityRoute
-  '/applications/': typeof AuthenticatedApplicationsIndexRoute
-  '/assistant/': typeof AuthenticatedAssistantIndexRoute
-  '/settings/': typeof AuthenticatedSettingsIndexRoute
-  '/applications/$applicationId/edit': typeof AuthenticatedApplicationsApplicationIdEditRoute
-  '/applications/$applicationId/': typeof AuthenticatedApplicationsApplicationIdIndexRoute
-  '/applications/$applicationId/documents/$draftId': typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute
-  '/applications/$applicationId/documents/new': typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute
-  '/applications/$applicationId/offers/compare': typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute
-  '/applications/$applicationId/offers/': typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute
+  '/': typeof IndexRoute;
+  '/confirm-email-change': typeof ConfirmEmailChangeRoute;
+  '/forgot-password': typeof ForgotPasswordRoute;
+  '/login': typeof LoginRoute;
+  '/register': typeof RegisterRoute;
+  '/reset-password': typeof ResetPasswordRoute;
+  '/verify-email': typeof VerifyEmailRoute;
+  '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren;
+  '/account': typeof AuthenticatedAccountRoute;
+  '/analytics': typeof AuthenticatedAnalyticsRoute;
+  '/calendar': typeof AuthenticatedCalendarRoute;
+  '/dashboard': typeof AuthenticatedDashboardRoute;
+  '/applications/board': typeof AuthenticatedApplicationsBoardRoute;
+  '/applications/new': typeof AuthenticatedApplicationsNewRoute;
+  '/assistant/history': typeof AuthenticatedAssistantHistoryRoute;
+  '/settings/data': typeof AuthenticatedSettingsDataRoute;
+  '/settings/experience': typeof AuthenticatedSettingsExperienceRoute;
+  '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute;
+  '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute;
+  '/settings/pipeline': typeof AuthenticatedSettingsPipelineRoute;
+  '/settings/profile': typeof AuthenticatedSettingsProfileRoute;
+  '/settings/security': typeof AuthenticatedSettingsSecurityRoute;
+  '/applications/': typeof AuthenticatedApplicationsIndexRoute;
+  '/assistant/': typeof AuthenticatedAssistantIndexRoute;
+  '/settings/': typeof AuthenticatedSettingsIndexRoute;
+  '/applications/$applicationId/edit': typeof AuthenticatedApplicationsApplicationIdEditRoute;
+  '/applications/$applicationId/': typeof AuthenticatedApplicationsApplicationIdIndexRoute;
+  '/applications/$applicationId/documents/$draftId': typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute;
+  '/applications/$applicationId/documents/new': typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute;
+  '/applications/$applicationId/offers/compare': typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute;
+  '/applications/$applicationId/offers/': typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/confirm-email-change': typeof ConfirmEmailChangeRoute
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/verify-email': typeof VerifyEmailRoute
-  '/account': typeof AuthenticatedAccountRoute
-  '/analytics': typeof AuthenticatedAnalyticsRoute
-  '/calendar': typeof AuthenticatedCalendarRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
-  '/applications/board': typeof AuthenticatedApplicationsBoardRoute
-  '/applications/new': typeof AuthenticatedApplicationsNewRoute
-  '/assistant/history': typeof AuthenticatedAssistantHistoryRoute
-  '/settings/data': typeof AuthenticatedSettingsDataRoute
-  '/settings/experience': typeof AuthenticatedSettingsExperienceRoute
-  '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
-  '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
-  '/settings/pipeline': typeof AuthenticatedSettingsPipelineRoute
-  '/settings/profile': typeof AuthenticatedSettingsProfileRoute
-  '/settings/security': typeof AuthenticatedSettingsSecurityRoute
-  '/applications': typeof AuthenticatedApplicationsIndexRoute
-  '/assistant': typeof AuthenticatedAssistantIndexRoute
-  '/settings': typeof AuthenticatedSettingsIndexRoute
-  '/applications/$applicationId/edit': typeof AuthenticatedApplicationsApplicationIdEditRoute
-  '/applications/$applicationId': typeof AuthenticatedApplicationsApplicationIdIndexRoute
-  '/applications/$applicationId/documents/$draftId': typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute
-  '/applications/$applicationId/documents/new': typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute
-  '/applications/$applicationId/offers/compare': typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute
-  '/applications/$applicationId/offers': typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute
+  '/': typeof IndexRoute;
+  '/confirm-email-change': typeof ConfirmEmailChangeRoute;
+  '/forgot-password': typeof ForgotPasswordRoute;
+  '/login': typeof LoginRoute;
+  '/register': typeof RegisterRoute;
+  '/reset-password': typeof ResetPasswordRoute;
+  '/verify-email': typeof VerifyEmailRoute;
+  '/account': typeof AuthenticatedAccountRoute;
+  '/analytics': typeof AuthenticatedAnalyticsRoute;
+  '/calendar': typeof AuthenticatedCalendarRoute;
+  '/dashboard': typeof AuthenticatedDashboardRoute;
+  '/applications/board': typeof AuthenticatedApplicationsBoardRoute;
+  '/applications/new': typeof AuthenticatedApplicationsNewRoute;
+  '/assistant/history': typeof AuthenticatedAssistantHistoryRoute;
+  '/settings/data': typeof AuthenticatedSettingsDataRoute;
+  '/settings/experience': typeof AuthenticatedSettingsExperienceRoute;
+  '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute;
+  '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute;
+  '/settings/pipeline': typeof AuthenticatedSettingsPipelineRoute;
+  '/settings/profile': typeof AuthenticatedSettingsProfileRoute;
+  '/settings/security': typeof AuthenticatedSettingsSecurityRoute;
+  '/applications': typeof AuthenticatedApplicationsIndexRoute;
+  '/assistant': typeof AuthenticatedAssistantIndexRoute;
+  '/settings': typeof AuthenticatedSettingsIndexRoute;
+  '/applications/$applicationId/edit': typeof AuthenticatedApplicationsApplicationIdEditRoute;
+  '/applications/$applicationId': typeof AuthenticatedApplicationsApplicationIdIndexRoute;
+  '/applications/$applicationId/documents/$draftId': typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute;
+  '/applications/$applicationId/documents/new': typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute;
+  '/applications/$applicationId/offers/compare': typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute;
+  '/applications/$applicationId/offers': typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/confirm-email-change': typeof ConfirmEmailChangeRoute
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/verify-email': typeof VerifyEmailRoute
-  '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
-  '/_authenticated/account': typeof AuthenticatedAccountRoute
-  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
-  '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
-  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/applications/board': typeof AuthenticatedApplicationsBoardRoute
-  '/_authenticated/applications/new': typeof AuthenticatedApplicationsNewRoute
-  '/_authenticated/assistant/history': typeof AuthenticatedAssistantHistoryRoute
-  '/_authenticated/settings/data': typeof AuthenticatedSettingsDataRoute
-  '/_authenticated/settings/experience': typeof AuthenticatedSettingsExperienceRoute
-  '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
-  '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
-  '/_authenticated/settings/pipeline': typeof AuthenticatedSettingsPipelineRoute
-  '/_authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
-  '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute
-  '/_authenticated/applications/': typeof AuthenticatedApplicationsIndexRoute
-  '/_authenticated/assistant/': typeof AuthenticatedAssistantIndexRoute
-  '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
-  '/_authenticated/applications/$applicationId/edit': typeof AuthenticatedApplicationsApplicationIdEditRoute
-  '/_authenticated/applications/$applicationId/': typeof AuthenticatedApplicationsApplicationIdIndexRoute
-  '/_authenticated/applications/$applicationId/documents/$draftId': typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute
-  '/_authenticated/applications/$applicationId/documents/new': typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute
-  '/_authenticated/applications/$applicationId/offers/compare': typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute
-  '/_authenticated/applications/$applicationId/offers/': typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute
+  __root__: typeof rootRouteImport;
+  '/': typeof IndexRoute;
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren;
+  '/confirm-email-change': typeof ConfirmEmailChangeRoute;
+  '/forgot-password': typeof ForgotPasswordRoute;
+  '/login': typeof LoginRoute;
+  '/register': typeof RegisterRoute;
+  '/reset-password': typeof ResetPasswordRoute;
+  '/verify-email': typeof VerifyEmailRoute;
+  '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren;
+  '/_authenticated/account': typeof AuthenticatedAccountRoute;
+  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute;
+  '/_authenticated/calendar': typeof AuthenticatedCalendarRoute;
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute;
+  '/_authenticated/applications/board': typeof AuthenticatedApplicationsBoardRoute;
+  '/_authenticated/applications/new': typeof AuthenticatedApplicationsNewRoute;
+  '/_authenticated/assistant/history': typeof AuthenticatedAssistantHistoryRoute;
+  '/_authenticated/settings/data': typeof AuthenticatedSettingsDataRoute;
+  '/_authenticated/settings/experience': typeof AuthenticatedSettingsExperienceRoute;
+  '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute;
+  '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute;
+  '/_authenticated/settings/pipeline': typeof AuthenticatedSettingsPipelineRoute;
+  '/_authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute;
+  '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute;
+  '/_authenticated/applications/': typeof AuthenticatedApplicationsIndexRoute;
+  '/_authenticated/assistant/': typeof AuthenticatedAssistantIndexRoute;
+  '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute;
+  '/_authenticated/applications/$applicationId/edit': typeof AuthenticatedApplicationsApplicationIdEditRoute;
+  '/_authenticated/applications/$applicationId/': typeof AuthenticatedApplicationsApplicationIdIndexRoute;
+  '/_authenticated/applications/$applicationId/documents/$draftId': typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute;
+  '/_authenticated/applications/$applicationId/documents/new': typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute;
+  '/_authenticated/applications/$applicationId/offers/compare': typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute;
+  '/_authenticated/applications/$applicationId/offers/': typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
     | '/'
     | '/confirm-email-change'
@@ -355,8 +355,8 @@ export interface FileRouteTypes {
     | '/applications/$applicationId/documents/$draftId'
     | '/applications/$applicationId/documents/new'
     | '/applications/$applicationId/offers/compare'
-    | '/applications/$applicationId/offers/'
-  fileRoutesByTo: FileRoutesByTo
+    | '/applications/$applicationId/offers/';
+  fileRoutesByTo: FileRoutesByTo;
   to:
     | '/'
     | '/confirm-email-change'
@@ -387,7 +387,7 @@ export interface FileRouteTypes {
     | '/applications/$applicationId/documents/$draftId'
     | '/applications/$applicationId/documents/new'
     | '/applications/$applicationId/offers/compare'
-    | '/applications/$applicationId/offers'
+    | '/applications/$applicationId/offers';
   id:
     | '__root__'
     | '/'
@@ -421,258 +421,258 @@ export interface FileRouteTypes {
     | '/_authenticated/applications/$applicationId/documents/$draftId'
     | '/_authenticated/applications/$applicationId/documents/new'
     | '/_authenticated/applications/$applicationId/offers/compare'
-    | '/_authenticated/applications/$applicationId/offers/'
-  fileRoutesById: FileRoutesById
+    | '/_authenticated/applications/$applicationId/offers/';
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  ConfirmEmailChangeRoute: typeof ConfirmEmailChangeRoute
-  ForgotPasswordRoute: typeof ForgotPasswordRoute
-  LoginRoute: typeof LoginRoute
-  RegisterRoute: typeof RegisterRoute
-  ResetPasswordRoute: typeof ResetPasswordRoute
-  VerifyEmailRoute: typeof VerifyEmailRoute
+  IndexRoute: typeof IndexRoute;
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren;
+  ConfirmEmailChangeRoute: typeof ConfirmEmailChangeRoute;
+  ForgotPasswordRoute: typeof ForgotPasswordRoute;
+  LoginRoute: typeof LoginRoute;
+  RegisterRoute: typeof RegisterRoute;
+  ResetPasswordRoute: typeof ResetPasswordRoute;
+  VerifyEmailRoute: typeof VerifyEmailRoute;
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/';
+      path: '/';
+      fullPath: '/';
+      preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/_authenticated';
+      path: '';
+      fullPath: '/';
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/confirm-email-change': {
-      id: '/confirm-email-change'
-      path: '/confirm-email-change'
-      fullPath: '/confirm-email-change'
-      preLoaderRoute: typeof ConfirmEmailChangeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/confirm-email-change';
+      path: '/confirm-email-change';
+      fullPath: '/confirm-email-change';
+      preLoaderRoute: typeof ConfirmEmailChangeRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/forgot-password';
+      path: '/forgot-password';
+      fullPath: '/forgot-password';
+      preLoaderRoute: typeof ForgotPasswordRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/login';
+      path: '/login';
+      fullPath: '/login';
+      preLoaderRoute: typeof LoginRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/register';
+      path: '/register';
+      fullPath: '/register';
+      preLoaderRoute: typeof RegisterRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/reset-password';
+      path: '/reset-password';
+      fullPath: '/reset-password';
+      preLoaderRoute: typeof ResetPasswordRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/verify-email': {
-      id: '/verify-email'
-      path: '/verify-email'
-      fullPath: '/verify-email'
-      preLoaderRoute: typeof VerifyEmailRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/verify-email';
+      path: '/verify-email';
+      fullPath: '/verify-email';
+      preLoaderRoute: typeof VerifyEmailRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/_authenticated/account': {
-      id: '/_authenticated/account'
-      path: '/account'
-      fullPath: '/account'
-      preLoaderRoute: typeof AuthenticatedAccountRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/account';
+      path: '/account';
+      fullPath: '/account';
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/analytics': {
-      id: '/_authenticated/analytics'
-      path: '/analytics'
-      fullPath: '/analytics'
-      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/analytics';
+      path: '/analytics';
+      fullPath: '/analytics';
+      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/calendar': {
-      id: '/_authenticated/calendar'
-      path: '/calendar'
-      fullPath: '/calendar'
-      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/calendar';
+      path: '/calendar';
+      fullPath: '/calendar';
+      preLoaderRoute: typeof AuthenticatedCalendarRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/dashboard';
+      path: '/dashboard';
+      fullPath: '/dashboard';
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/settings': {
-      id: '/_authenticated/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/settings';
+      path: '/settings';
+      fullPath: '/settings';
+      preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/applications/': {
-      id: '/_authenticated/applications/'
-      path: '/applications'
-      fullPath: '/applications/'
-      preLoaderRoute: typeof AuthenticatedApplicationsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/applications/';
+      path: '/applications';
+      fullPath: '/applications/';
+      preLoaderRoute: typeof AuthenticatedApplicationsIndexRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/applications/board': {
-      id: '/_authenticated/applications/board'
-      path: '/applications/board'
-      fullPath: '/applications/board'
-      preLoaderRoute: typeof AuthenticatedApplicationsBoardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/applications/board';
+      path: '/applications/board';
+      fullPath: '/applications/board';
+      preLoaderRoute: typeof AuthenticatedApplicationsBoardRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/applications/new': {
-      id: '/_authenticated/applications/new'
-      path: '/applications/new'
-      fullPath: '/applications/new'
-      preLoaderRoute: typeof AuthenticatedApplicationsNewRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/applications/new';
+      path: '/applications/new';
+      fullPath: '/applications/new';
+      preLoaderRoute: typeof AuthenticatedApplicationsNewRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/assistant/': {
-      id: '/_authenticated/assistant/'
-      path: '/assistant'
-      fullPath: '/assistant/'
-      preLoaderRoute: typeof AuthenticatedAssistantIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/assistant/';
+      path: '/assistant';
+      fullPath: '/assistant/';
+      preLoaderRoute: typeof AuthenticatedAssistantIndexRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/assistant/history': {
-      id: '/_authenticated/assistant/history'
-      path: '/assistant/history'
-      fullPath: '/assistant/history'
-      preLoaderRoute: typeof AuthenticatedAssistantHistoryRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/assistant/history';
+      path: '/assistant/history';
+      fullPath: '/assistant/history';
+      preLoaderRoute: typeof AuthenticatedAssistantHistoryRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/settings/': {
-      id: '/_authenticated/settings/'
-      path: '/'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
+      id: '/_authenticated/settings/';
+      path: '/';
+      fullPath: '/settings/';
+      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
     '/_authenticated/settings/data': {
-      id: '/_authenticated/settings/data'
-      path: '/data'
-      fullPath: '/settings/data'
-      preLoaderRoute: typeof AuthenticatedSettingsDataRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
+      id: '/_authenticated/settings/data';
+      path: '/data';
+      fullPath: '/settings/data';
+      preLoaderRoute: typeof AuthenticatedSettingsDataRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
     '/_authenticated/settings/experience': {
-      id: '/_authenticated/settings/experience'
-      path: '/experience'
-      fullPath: '/settings/experience'
-      preLoaderRoute: typeof AuthenticatedSettingsExperienceRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
+      id: '/_authenticated/settings/experience';
+      path: '/experience';
+      fullPath: '/settings/experience';
+      preLoaderRoute: typeof AuthenticatedSettingsExperienceRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
     '/_authenticated/settings/integrations': {
-      id: '/_authenticated/settings/integrations'
-      path: '/integrations'
-      fullPath: '/settings/integrations'
-      preLoaderRoute: typeof AuthenticatedSettingsIntegrationsRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
+      id: '/_authenticated/settings/integrations';
+      path: '/integrations';
+      fullPath: '/settings/integrations';
+      preLoaderRoute: typeof AuthenticatedSettingsIntegrationsRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
     '/_authenticated/settings/notifications': {
-      id: '/_authenticated/settings/notifications'
-      path: '/notifications'
-      fullPath: '/settings/notifications'
-      preLoaderRoute: typeof AuthenticatedSettingsNotificationsRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
+      id: '/_authenticated/settings/notifications';
+      path: '/notifications';
+      fullPath: '/settings/notifications';
+      preLoaderRoute: typeof AuthenticatedSettingsNotificationsRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
     '/_authenticated/settings/pipeline': {
-      id: '/_authenticated/settings/pipeline'
-      path: '/pipeline'
-      fullPath: '/settings/pipeline'
-      preLoaderRoute: typeof AuthenticatedSettingsPipelineRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
+      id: '/_authenticated/settings/pipeline';
+      path: '/pipeline';
+      fullPath: '/settings/pipeline';
+      preLoaderRoute: typeof AuthenticatedSettingsPipelineRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
     '/_authenticated/settings/profile': {
-      id: '/_authenticated/settings/profile'
-      path: '/profile'
-      fullPath: '/settings/profile'
-      preLoaderRoute: typeof AuthenticatedSettingsProfileRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
+      id: '/_authenticated/settings/profile';
+      path: '/profile';
+      fullPath: '/settings/profile';
+      preLoaderRoute: typeof AuthenticatedSettingsProfileRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
     '/_authenticated/settings/security': {
-      id: '/_authenticated/settings/security'
-      path: '/security'
-      fullPath: '/settings/security'
-      preLoaderRoute: typeof AuthenticatedSettingsSecurityRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
+      id: '/_authenticated/settings/security';
+      path: '/security';
+      fullPath: '/settings/security';
+      preLoaderRoute: typeof AuthenticatedSettingsSecurityRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
     '/_authenticated/applications/$applicationId/': {
-      id: '/_authenticated/applications/$applicationId/'
-      path: '/applications/$applicationId'
-      fullPath: '/applications/$applicationId/'
-      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/applications/$applicationId/';
+      path: '/applications/$applicationId';
+      fullPath: '/applications/$applicationId/';
+      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdIndexRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/applications/$applicationId/edit': {
-      id: '/_authenticated/applications/$applicationId/edit'
-      path: '/applications/$applicationId/edit'
-      fullPath: '/applications/$applicationId/edit'
-      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdEditRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/applications/$applicationId/edit';
+      path: '/applications/$applicationId/edit';
+      fullPath: '/applications/$applicationId/edit';
+      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdEditRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/applications/$applicationId/documents/$draftId': {
-      id: '/_authenticated/applications/$applicationId/documents/$draftId'
-      path: '/applications/$applicationId/documents/$draftId'
-      fullPath: '/applications/$applicationId/documents/$draftId'
-      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/applications/$applicationId/documents/$draftId';
+      path: '/applications/$applicationId/documents/$draftId';
+      fullPath: '/applications/$applicationId/documents/$draftId';
+      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/applications/$applicationId/documents/new': {
-      id: '/_authenticated/applications/$applicationId/documents/new'
-      path: '/applications/$applicationId/documents/new'
-      fullPath: '/applications/$applicationId/documents/new'
-      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsNewRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/applications/$applicationId/documents/new';
+      path: '/applications/$applicationId/documents/new';
+      fullPath: '/applications/$applicationId/documents/new';
+      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsNewRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/applications/$applicationId/offers/': {
-      id: '/_authenticated/applications/$applicationId/offers/'
-      path: '/applications/$applicationId/offers'
-      fullPath: '/applications/$applicationId/offers/'
-      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdOffersIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/applications/$applicationId/offers/';
+      path: '/applications/$applicationId/offers';
+      fullPath: '/applications/$applicationId/offers/';
+      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdOffersIndexRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/applications/$applicationId/offers/compare': {
-      id: '/_authenticated/applications/$applicationId/offers/compare'
-      path: '/applications/$applicationId/offers/compare'
-      fullPath: '/applications/$applicationId/offers/compare'
-      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdOffersCompareRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
+      id: '/_authenticated/applications/$applicationId/offers/compare';
+      path: '/applications/$applicationId/offers/compare';
+      fullPath: '/applications/$applicationId/offers/compare';
+      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdOffersCompareRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
   }
 }
 
 interface AuthenticatedSettingsRouteRouteChildren {
-  AuthenticatedSettingsDataRoute: typeof AuthenticatedSettingsDataRoute
-  AuthenticatedSettingsExperienceRoute: typeof AuthenticatedSettingsExperienceRoute
-  AuthenticatedSettingsIntegrationsRoute: typeof AuthenticatedSettingsIntegrationsRoute
-  AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
-  AuthenticatedSettingsPipelineRoute: typeof AuthenticatedSettingsPipelineRoute
-  AuthenticatedSettingsProfileRoute: typeof AuthenticatedSettingsProfileRoute
-  AuthenticatedSettingsSecurityRoute: typeof AuthenticatedSettingsSecurityRoute
-  AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
+  AuthenticatedSettingsDataRoute: typeof AuthenticatedSettingsDataRoute;
+  AuthenticatedSettingsExperienceRoute: typeof AuthenticatedSettingsExperienceRoute;
+  AuthenticatedSettingsIntegrationsRoute: typeof AuthenticatedSettingsIntegrationsRoute;
+  AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute;
+  AuthenticatedSettingsPipelineRoute: typeof AuthenticatedSettingsPipelineRoute;
+  AuthenticatedSettingsProfileRoute: typeof AuthenticatedSettingsProfileRoute;
+  AuthenticatedSettingsSecurityRoute: typeof AuthenticatedSettingsSecurityRoute;
+  AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute;
 }
 
 const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteChildren =
@@ -687,30 +687,30 @@ const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteCh
     AuthenticatedSettingsProfileRoute: AuthenticatedSettingsProfileRoute,
     AuthenticatedSettingsSecurityRoute: AuthenticatedSettingsSecurityRoute,
     AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
-  }
+  };
 
 const AuthenticatedSettingsRouteRouteWithChildren =
   AuthenticatedSettingsRouteRoute._addFileChildren(
     AuthenticatedSettingsRouteRouteChildren,
-  )
+  );
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
-  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
-  AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
-  AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedApplicationsBoardRoute: typeof AuthenticatedApplicationsBoardRoute
-  AuthenticatedApplicationsNewRoute: typeof AuthenticatedApplicationsNewRoute
-  AuthenticatedAssistantHistoryRoute: typeof AuthenticatedAssistantHistoryRoute
-  AuthenticatedApplicationsIndexRoute: typeof AuthenticatedApplicationsIndexRoute
-  AuthenticatedAssistantIndexRoute: typeof AuthenticatedAssistantIndexRoute
-  AuthenticatedApplicationsApplicationIdEditRoute: typeof AuthenticatedApplicationsApplicationIdEditRoute
-  AuthenticatedApplicationsApplicationIdIndexRoute: typeof AuthenticatedApplicationsApplicationIdIndexRoute
-  AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute
-  AuthenticatedApplicationsApplicationIdDocumentsNewRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute
-  AuthenticatedApplicationsApplicationIdOffersCompareRoute: typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute
-  AuthenticatedApplicationsApplicationIdOffersIndexRoute: typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute
+  AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren;
+  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute;
+  AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute;
+  AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute;
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute;
+  AuthenticatedApplicationsBoardRoute: typeof AuthenticatedApplicationsBoardRoute;
+  AuthenticatedApplicationsNewRoute: typeof AuthenticatedApplicationsNewRoute;
+  AuthenticatedAssistantHistoryRoute: typeof AuthenticatedAssistantHistoryRoute;
+  AuthenticatedApplicationsIndexRoute: typeof AuthenticatedApplicationsIndexRoute;
+  AuthenticatedAssistantIndexRoute: typeof AuthenticatedAssistantIndexRoute;
+  AuthenticatedApplicationsApplicationIdEditRoute: typeof AuthenticatedApplicationsApplicationIdEditRoute;
+  AuthenticatedApplicationsApplicationIdIndexRoute: typeof AuthenticatedApplicationsApplicationIdIndexRoute;
+  AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute;
+  AuthenticatedApplicationsApplicationIdDocumentsNewRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute;
+  AuthenticatedApplicationsApplicationIdOffersCompareRoute: typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute;
+  AuthenticatedApplicationsApplicationIdOffersIndexRoute: typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute;
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -736,10 +736,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedApplicationsApplicationIdOffersCompareRoute,
   AuthenticatedApplicationsApplicationIdOffersIndexRoute:
     AuthenticatedApplicationsApplicationIdOffersIndexRoute,
-}
+};
 
 const AuthenticatedRouteRouteWithChildren =
-  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren);
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -750,16 +750,16 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   VerifyEmailRoute: VerifyEmailRoute,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
+import type { getRouter } from './router.tsx';
+import type { createStart } from '@tanstack/react-start';
 declare module '@tanstack/react-start' {
   interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
+    ssr: true;
+    router: Awaited<ReturnType<typeof getRouter>>;
   }
 }
