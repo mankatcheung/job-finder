@@ -7,6 +7,7 @@ import {
   DatabaseIcon,
   BriefcaseIcon,
 } from 'lucide-react';
+import { useLocale } from '#/lib/i18n';
 
 export const Route = createFileRoute('/_authenticated/settings')({
   component: SettingsLayout,
@@ -23,13 +24,18 @@ const SETTINGS_NAV = [
 
 function SettingsLayout() {
   const { pathname } = useLocation();
+  const { t } = useLocale();
+  const localizedNav = SETTINGS_NAV.map((item) => ({
+    ...item,
+    label: t(`settings.${item.label.toLowerCase()}`),
+  }));
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Settings</h1>
       <div className="flex flex-col lg:flex-row gap-8">
         <nav className="hidden lg:block lg:w-48 shrink-0 space-y-1">
-          {SETTINGS_NAV.map((item) => {
+          {localizedNav.map((item) => {
             const active = pathname.startsWith(item.to);
             return (
               <Link

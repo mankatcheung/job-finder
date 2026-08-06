@@ -7,6 +7,7 @@ import { Toaster } from 'sonner';
 import { AlertTriangleIcon } from 'lucide-react';
 import { queryClient } from '#/lib/queryClient';
 import { THEME_INIT_SCRIPT, ThemeProvider, useTheme } from '#/lib/theme';
+import { LOCALE_INIT_SCRIPT, LocaleProvider, useLocale } from '#/lib/i18n';
 import { NavigationProgressBar } from '#/components/NavigationProgressBar';
 import { watchForServiceWorkerUpdate } from '#/lib/swUpdateToast';
 
@@ -41,13 +42,14 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function NotFound() {
+  const { t } = useLocale();
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">404</h1>
-        <p className="text-gray-500 dark:text-gray-400">Page not found</p>
+        <p className="text-gray-500 dark:text-gray-400">{t('errors.notFound')}</p>
         <Link to="/dashboard" className="inline-block text-blue-600 hover:underline text-sm">
-          Go to dashboard
+          {t('errors.goDashboard')}
         </Link>
       </div>
     </div>
@@ -57,25 +59,24 @@ function NotFound() {
 // TanStack Router's catch-all for a render-time exception anywhere in the
 // route tree — without this, an uncaught error just blanks the page.
 function RouteError() {
+  const { t } = useLocale();
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div className="text-center space-y-4">
         <AlertTriangleIcon size={40} className="mx-auto text-red-500" />
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Something went wrong
+          {t('errors.somethingWrong')}
         </h1>
-        <p className="text-gray-500 dark:text-gray-400">
-          Try reloading the page. If this keeps happening, let us know.
-        </p>
+        <p className="text-gray-500 dark:text-gray-400">{t('errors.reloadHelp')}</p>
         <div className="flex items-center justify-center gap-4">
           <button
             onClick={() => window.location.reload()}
             className="text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2 transition-colors"
           >
-            Reload
+            {t('errors.reload')}
           </button>
           <Link to="/dashboard" className="text-sm text-blue-600 hover:underline">
-            Go to dashboard
+            {t('errors.goDashboard')}
           </Link>
         </div>
       </div>
@@ -89,6 +90,15 @@ function AppToaster() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  return (
+    <LocaleProvider>
+      <LocalizedDocument>{children}</LocalizedDocument>
+    </LocaleProvider>
+  );
+}
+
+function LocalizedDocument({ children }: { children: React.ReactNode }) {
+  const { locale } = useLocale();
   // Registered manually with the plain browser API rather than a build
   // plugin's virtual-module helper: this file is isomorphic (rendered for
   // both the client and server Vite environments), and any such virtual
@@ -128,10 +138,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <HeadContent />
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: LOCALE_INIT_SCRIPT }} />
       </head>
       <body>
         <ThemeProvider>

@@ -16,6 +16,7 @@ import { CommandPalette } from '#/components/CommandPalette';
 import { ShortcutCheatSheet } from '#/components/ShortcutCheatSheet';
 import { LogoMark } from '#/components/LogoMark';
 import { NotificationInboxButton } from './-notification-inbox';
+import { useLocale } from '#/lib/i18n';
 import {
   BarChart2Icon,
   BriefcaseIcon,
@@ -84,6 +85,7 @@ export const Route = createFileRoute('/_authenticated')({
 });
 
 export function AuthenticatedLayout() {
+  const { t } = useLocale();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   // Keyed by the immediate child route (dashboard/applications/settings/…)
@@ -118,6 +120,14 @@ export function AuthenticatedLayout() {
     queryFn: () => gqlClient.request<{ me: { avatarUrl: string | null } | null }>(AVATAR_QUERY),
   });
   const avatarUrl = avatarData?.me?.avatarUrl;
+  const localizedMainNav = MAIN_NAV.map((item) => ({
+    ...item,
+    label: t(`nav.${item.label.toLowerCase()}`),
+  }));
+  const localizedSettingsNav = SETTINGS_NAV.map((item) => ({
+    ...item,
+    label: t(`settings.${item.label.toLowerCase()}`),
+  }));
 
   const handleLogout = async () => {
     await gqlClient.request(LOGOUT_MUTATION);
@@ -191,7 +201,7 @@ export function AuthenticatedLayout() {
           </div>
 
           <nav aria-label="Main navigation" className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            {MAIN_NAV.map((item, i) => (
+            {localizedMainNav.map((item, i) => (
               <NavItem
                 key={item.to}
                 to={item.to}
@@ -208,7 +218,7 @@ export function AuthenticatedLayout() {
                 Settings
               </div>
               <div className="ml-2 space-y-0.5">
-                {SETTINGS_NAV.map((item, i) => (
+                {localizedSettingsNav.map((item, i) => (
                   <Link
                     key={item.to}
                     to={item.to}
@@ -270,7 +280,7 @@ export function AuthenticatedLayout() {
         </div>
 
         <nav aria-label="Main navigation" className="flex-1 px-3 py-4 space-y-1">
-          {MAIN_NAV.map((item, i) => (
+          {localizedMainNav.map((item, i) => (
             <NavItem
               key={item.to}
               to={item.to}
