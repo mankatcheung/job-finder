@@ -9,59 +9,45 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root';
-import { Route as VerifyEmailRouteImport } from './routes/verify-email';
-import { Route as ResetPasswordRouteImport } from './routes/reset-password';
-import { Route as RegisterRouteImport } from './routes/register';
-import { Route as LoginRouteImport } from './routes/login';
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password';
-import { Route as ConfirmEmailChangeRouteImport } from './routes/confirm-email-change';
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route';
 import { Route as IndexRouteImport } from './routes/index';
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard';
-import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar';
-import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics';
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route';
+import { Route as ConfirmEmailChangeRouteImport } from './routes/confirm-email-change';
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password';
+import { Route as LoginRouteImport } from './routes/login';
+import { Route as RegisterRouteImport } from './routes/register';
+import { Route as ResetPasswordRouteImport } from './routes/reset-password';
+import { Route as VerifyEmailRouteImport } from './routes/verify-email';
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account';
+import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics';
+import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar';
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard';
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route';
-import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index';
-import { Route as AuthenticatedAssistantIndexRouteImport } from './routes/_authenticated/assistant/index';
 import { Route as AuthenticatedApplicationsIndexRouteImport } from './routes/_authenticated/applications/index';
-import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings/security';
-import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/_authenticated/settings/profile';
-import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications';
-import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings/integrations';
-import { Route as AuthenticatedSettingsExperienceRouteImport } from './routes/_authenticated/settings/experience';
-import { Route as AuthenticatedSettingsDataRouteImport } from './routes/_authenticated/settings/data';
-import { Route as AuthenticatedAssistantHistoryRouteImport } from './routes/_authenticated/assistant/history';
-import { Route as AuthenticatedApplicationsNewRouteImport } from './routes/_authenticated/applications/new';
 import { Route as AuthenticatedApplicationsBoardRouteImport } from './routes/_authenticated/applications/board';
+import { Route as AuthenticatedApplicationsNewRouteImport } from './routes/_authenticated/applications/new';
+import { Route as AuthenticatedAssistantIndexRouteImport } from './routes/_authenticated/assistant/index';
+import { Route as AuthenticatedAssistantHistoryRouteImport } from './routes/_authenticated/assistant/history';
+import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index';
+import { Route as AuthenticatedSettingsDataRouteImport } from './routes/_authenticated/settings/data';
+import { Route as AuthenticatedSettingsExperienceRouteImport } from './routes/_authenticated/settings/experience';
+import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings/integrations';
+import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications';
+import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/_authenticated/settings/profile';
+import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings/security';
 import { Route as AuthenticatedApplicationsApplicationIdIndexRouteImport } from './routes/_authenticated/applications/$applicationId/index';
 import { Route as AuthenticatedApplicationsApplicationIdEditRouteImport } from './routes/_authenticated/applications/$applicationId/edit';
-import { Route as AuthenticatedApplicationsApplicationIdDocumentsNewRouteImport } from './routes/_authenticated/applications/$applicationId/documents/new';
 import { Route as AuthenticatedApplicationsApplicationIdDocumentsDraftIdRouteImport } from './routes/_authenticated/applications/$applicationId/documents/$draftId';
+import { Route as AuthenticatedApplicationsApplicationIdDocumentsNewRouteImport } from './routes/_authenticated/applications/$applicationId/documents/new';
+import { Route as AuthenticatedApplicationsApplicationIdOffersIndexRouteImport } from './routes/_authenticated/applications/$applicationId/offers/index';
+import { Route as AuthenticatedApplicationsApplicationIdOffersCompareRouteImport } from './routes/_authenticated/applications/$applicationId/offers/compare';
 
-const VerifyEmailRoute = VerifyEmailRouteImport.update({
-  id: '/verify-email',
-  path: '/verify-email',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any);
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any);
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => rootRouteImport,
-} as any);
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any);
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any);
 const ConfirmEmailChangeRoute = ConfirmEmailChangeRouteImport.update({
@@ -69,23 +55,34 @@ const ConfirmEmailChangeRoute = ConfirmEmailChangeRouteImport.update({
   path: '/confirm-email-change',
   getParentRoute: () => rootRouteImport,
 } as any);
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any);
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any);
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
 } as any);
-const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any);
 const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
@@ -93,9 +90,14 @@ const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any);
-const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
-  id: '/account',
-  path: '/account',
+const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any);
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any);
 const AuthenticatedSettingsRouteRoute =
@@ -104,64 +106,16 @@ const AuthenticatedSettingsRouteRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any);
-const AuthenticatedSettingsIndexRoute =
-  AuthenticatedSettingsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any);
-const AuthenticatedAssistantIndexRoute =
-  AuthenticatedAssistantIndexRouteImport.update({
-    id: '/assistant/',
-    path: '/assistant/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any);
 const AuthenticatedApplicationsIndexRoute =
   AuthenticatedApplicationsIndexRouteImport.update({
     id: '/applications/',
     path: '/applications/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any);
-const AuthenticatedSettingsSecurityRoute =
-  AuthenticatedSettingsSecurityRouteImport.update({
-    id: '/security',
-    path: '/security',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any);
-const AuthenticatedSettingsProfileRoute =
-  AuthenticatedSettingsProfileRouteImport.update({
-    id: '/profile',
-    path: '/profile',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any);
-const AuthenticatedSettingsNotificationsRoute =
-  AuthenticatedSettingsNotificationsRouteImport.update({
-    id: '/notifications',
-    path: '/notifications',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any);
-const AuthenticatedSettingsIntegrationsRoute =
-  AuthenticatedSettingsIntegrationsRouteImport.update({
-    id: '/integrations',
-    path: '/integrations',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any);
-const AuthenticatedSettingsExperienceRoute =
-  AuthenticatedSettingsExperienceRouteImport.update({
-    id: '/experience',
-    path: '/experience',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any);
-const AuthenticatedSettingsDataRoute =
-  AuthenticatedSettingsDataRouteImport.update({
-    id: '/data',
-    path: '/data',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any);
-const AuthenticatedAssistantHistoryRoute =
-  AuthenticatedAssistantHistoryRouteImport.update({
-    id: '/assistant/history',
-    path: '/assistant/history',
+const AuthenticatedApplicationsBoardRoute =
+  AuthenticatedApplicationsBoardRouteImport.update({
+    id: '/applications/board',
+    path: '/applications/board',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any);
 const AuthenticatedApplicationsNewRoute =
@@ -170,11 +124,59 @@ const AuthenticatedApplicationsNewRoute =
     path: '/applications/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any);
-const AuthenticatedApplicationsBoardRoute =
-  AuthenticatedApplicationsBoardRouteImport.update({
-    id: '/applications/board',
-    path: '/applications/board',
+const AuthenticatedAssistantIndexRoute =
+  AuthenticatedAssistantIndexRouteImport.update({
+    id: '/assistant/',
+    path: '/assistant/',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any);
+const AuthenticatedAssistantHistoryRoute =
+  AuthenticatedAssistantHistoryRouteImport.update({
+    id: '/assistant/history',
+    path: '/assistant/history',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any);
+const AuthenticatedSettingsIndexRoute =
+  AuthenticatedSettingsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any);
+const AuthenticatedSettingsDataRoute =
+  AuthenticatedSettingsDataRouteImport.update({
+    id: '/data',
+    path: '/data',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any);
+const AuthenticatedSettingsExperienceRoute =
+  AuthenticatedSettingsExperienceRouteImport.update({
+    id: '/experience',
+    path: '/experience',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any);
+const AuthenticatedSettingsIntegrationsRoute =
+  AuthenticatedSettingsIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any);
+const AuthenticatedSettingsNotificationsRoute =
+  AuthenticatedSettingsNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any);
+const AuthenticatedSettingsProfileRoute =
+  AuthenticatedSettingsProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any);
+const AuthenticatedSettingsSecurityRoute =
+  AuthenticatedSettingsSecurityRouteImport.update({
+    id: '/security',
+    path: '/security',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any);
 const AuthenticatedApplicationsApplicationIdIndexRoute =
   AuthenticatedApplicationsApplicationIdIndexRouteImport.update({
@@ -188,16 +190,28 @@ const AuthenticatedApplicationsApplicationIdEditRoute =
     path: '/applications/$applicationId/edit',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any);
+const AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute =
+  AuthenticatedApplicationsApplicationIdDocumentsDraftIdRouteImport.update({
+    id: '/applications/$applicationId/documents/$draftId',
+    path: '/applications/$applicationId/documents/$draftId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any);
 const AuthenticatedApplicationsApplicationIdDocumentsNewRoute =
   AuthenticatedApplicationsApplicationIdDocumentsNewRouteImport.update({
     id: '/applications/$applicationId/documents/new',
     path: '/applications/$applicationId/documents/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any);
-const AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute =
-  AuthenticatedApplicationsApplicationIdDocumentsDraftIdRouteImport.update({
-    id: '/applications/$applicationId/documents/$draftId',
-    path: '/applications/$applicationId/documents/$draftId',
+const AuthenticatedApplicationsApplicationIdOffersIndexRoute =
+  AuthenticatedApplicationsApplicationIdOffersIndexRouteImport.update({
+    id: '/applications/$applicationId/offers/',
+    path: '/applications/$applicationId/offers/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any);
+const AuthenticatedApplicationsApplicationIdOffersCompareRoute =
+  AuthenticatedApplicationsApplicationIdOffersCompareRouteImport.update({
+    id: '/applications/$applicationId/offers/compare',
+    path: '/applications/$applicationId/offers/compare',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any);
 
@@ -230,6 +244,8 @@ export interface FileRoutesByFullPath {
   '/applications/$applicationId/': typeof AuthenticatedApplicationsApplicationIdIndexRoute;
   '/applications/$applicationId/documents/$draftId': typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute;
   '/applications/$applicationId/documents/new': typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute;
+  '/applications/$applicationId/offers/compare': typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute;
+  '/applications/$applicationId/offers/': typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute;
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute;
@@ -259,6 +275,8 @@ export interface FileRoutesByTo {
   '/applications/$applicationId': typeof AuthenticatedApplicationsApplicationIdIndexRoute;
   '/applications/$applicationId/documents/$draftId': typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute;
   '/applications/$applicationId/documents/new': typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute;
+  '/applications/$applicationId/offers/compare': typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute;
+  '/applications/$applicationId/offers': typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute;
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport;
@@ -291,6 +309,8 @@ export interface FileRoutesById {
   '/_authenticated/applications/$applicationId/': typeof AuthenticatedApplicationsApplicationIdIndexRoute;
   '/_authenticated/applications/$applicationId/documents/$draftId': typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute;
   '/_authenticated/applications/$applicationId/documents/new': typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute;
+  '/_authenticated/applications/$applicationId/offers/compare': typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute;
+  '/_authenticated/applications/$applicationId/offers/': typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute;
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
@@ -322,7 +342,9 @@ export interface FileRouteTypes {
     | '/applications/$applicationId/edit'
     | '/applications/$applicationId/'
     | '/applications/$applicationId/documents/$draftId'
-    | '/applications/$applicationId/documents/new';
+    | '/applications/$applicationId/documents/new'
+    | '/applications/$applicationId/offers/compare'
+    | '/applications/$applicationId/offers/';
   fileRoutesByTo: FileRoutesByTo;
   to:
     | '/'
@@ -351,7 +373,9 @@ export interface FileRouteTypes {
     | '/applications/$applicationId/edit'
     | '/applications/$applicationId'
     | '/applications/$applicationId/documents/$draftId'
-    | '/applications/$applicationId/documents/new';
+    | '/applications/$applicationId/documents/new'
+    | '/applications/$applicationId/offers/compare'
+    | '/applications/$applicationId/offers';
   id:
     | '__root__'
     | '/'
@@ -382,7 +406,9 @@ export interface FileRouteTypes {
     | '/_authenticated/applications/$applicationId/edit'
     | '/_authenticated/applications/$applicationId/'
     | '/_authenticated/applications/$applicationId/documents/$draftId'
-    | '/_authenticated/applications/$applicationId/documents/new';
+    | '/_authenticated/applications/$applicationId/documents/new'
+    | '/_authenticated/applications/$applicationId/offers/compare'
+    | '/_authenticated/applications/$applicationId/offers/';
   fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
@@ -398,46 +424,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/verify-email': {
-      id: '/verify-email';
-      path: '/verify-email';
-      fullPath: '/verify-email';
-      preLoaderRoute: typeof VerifyEmailRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    '/reset-password': {
-      id: '/reset-password';
-      path: '/reset-password';
-      fullPath: '/reset-password';
-      preLoaderRoute: typeof ResetPasswordRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    '/register': {
-      id: '/register';
-      path: '/register';
-      fullPath: '/register';
-      preLoaderRoute: typeof RegisterRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    '/login': {
-      id: '/login';
-      path: '/login';
-      fullPath: '/login';
-      preLoaderRoute: typeof LoginRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    '/forgot-password': {
-      id: '/forgot-password';
-      path: '/forgot-password';
-      fullPath: '/forgot-password';
-      preLoaderRoute: typeof ForgotPasswordRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    '/confirm-email-change': {
-      id: '/confirm-email-change';
-      path: '/confirm-email-change';
-      fullPath: '/confirm-email-change';
-      preLoaderRoute: typeof ConfirmEmailChangeRouteImport;
+    '/': {
+      id: '/';
+      path: '/';
+      fullPath: '/';
+      preLoaderRoute: typeof IndexRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     '/_authenticated': {
@@ -447,25 +438,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport;
       parentRoute: typeof rootRouteImport;
     };
-    '/': {
-      id: '/';
-      path: '/';
-      fullPath: '/';
-      preLoaderRoute: typeof IndexRouteImport;
+    '/confirm-email-change': {
+      id: '/confirm-email-change';
+      path: '/confirm-email-change';
+      fullPath: '/confirm-email-change';
+      preLoaderRoute: typeof ConfirmEmailChangeRouteImport;
       parentRoute: typeof rootRouteImport;
     };
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard';
-      path: '/dashboard';
-      fullPath: '/dashboard';
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport;
-      parentRoute: typeof AuthenticatedRouteRoute;
+    '/forgot-password': {
+      id: '/forgot-password';
+      path: '/forgot-password';
+      fullPath: '/forgot-password';
+      preLoaderRoute: typeof ForgotPasswordRouteImport;
+      parentRoute: typeof rootRouteImport;
     };
-    '/_authenticated/calendar': {
-      id: '/_authenticated/calendar';
-      path: '/calendar';
-      fullPath: '/calendar';
-      preLoaderRoute: typeof AuthenticatedCalendarRouteImport;
+    '/login': {
+      id: '/login';
+      path: '/login';
+      fullPath: '/login';
+      preLoaderRoute: typeof LoginRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/register': {
+      id: '/register';
+      path: '/register';
+      fullPath: '/register';
+      preLoaderRoute: typeof RegisterRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/reset-password': {
+      id: '/reset-password';
+      path: '/reset-password';
+      fullPath: '/reset-password';
+      preLoaderRoute: typeof ResetPasswordRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/verify-email': {
+      id: '/verify-email';
+      path: '/verify-email';
+      fullPath: '/verify-email';
+      preLoaderRoute: typeof VerifyEmailRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/_authenticated/account': {
+      id: '/_authenticated/account';
+      path: '/account';
+      fullPath: '/account';
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport;
       parentRoute: typeof AuthenticatedRouteRoute;
     };
     '/_authenticated/analytics': {
@@ -475,11 +494,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport;
       parentRoute: typeof AuthenticatedRouteRoute;
     };
-    '/_authenticated/account': {
-      id: '/_authenticated/account';
-      path: '/account';
-      fullPath: '/account';
-      preLoaderRoute: typeof AuthenticatedAccountRouteImport;
+    '/_authenticated/calendar': {
+      id: '/_authenticated/calendar';
+      path: '/calendar';
+      fullPath: '/calendar';
+      preLoaderRoute: typeof AuthenticatedCalendarRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard';
+      path: '/dashboard';
+      fullPath: '/dashboard';
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport;
       parentRoute: typeof AuthenticatedRouteRoute;
     };
     '/_authenticated/settings': {
@@ -489,20 +515,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport;
       parentRoute: typeof AuthenticatedRouteRoute;
     };
-    '/_authenticated/settings/': {
-      id: '/_authenticated/settings/';
-      path: '/';
-      fullPath: '/settings/';
-      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport;
-      parentRoute: typeof AuthenticatedSettingsRouteRoute;
-    };
-    '/_authenticated/assistant/': {
-      id: '/_authenticated/assistant/';
-      path: '/assistant';
-      fullPath: '/assistant/';
-      preLoaderRoute: typeof AuthenticatedAssistantIndexRouteImport;
-      parentRoute: typeof AuthenticatedRouteRoute;
-    };
     '/_authenticated/applications/': {
       id: '/_authenticated/applications/';
       path: '/applications';
@@ -510,53 +522,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApplicationsIndexRouteImport;
       parentRoute: typeof AuthenticatedRouteRoute;
     };
-    '/_authenticated/settings/security': {
-      id: '/_authenticated/settings/security';
-      path: '/security';
-      fullPath: '/settings/security';
-      preLoaderRoute: typeof AuthenticatedSettingsSecurityRouteImport;
-      parentRoute: typeof AuthenticatedSettingsRouteRoute;
-    };
-    '/_authenticated/settings/profile': {
-      id: '/_authenticated/settings/profile';
-      path: '/profile';
-      fullPath: '/settings/profile';
-      preLoaderRoute: typeof AuthenticatedSettingsProfileRouteImport;
-      parentRoute: typeof AuthenticatedSettingsRouteRoute;
-    };
-    '/_authenticated/settings/notifications': {
-      id: '/_authenticated/settings/notifications';
-      path: '/notifications';
-      fullPath: '/settings/notifications';
-      preLoaderRoute: typeof AuthenticatedSettingsNotificationsRouteImport;
-      parentRoute: typeof AuthenticatedSettingsRouteRoute;
-    };
-    '/_authenticated/settings/integrations': {
-      id: '/_authenticated/settings/integrations';
-      path: '/integrations';
-      fullPath: '/settings/integrations';
-      preLoaderRoute: typeof AuthenticatedSettingsIntegrationsRouteImport;
-      parentRoute: typeof AuthenticatedSettingsRouteRoute;
-    };
-    '/_authenticated/settings/experience': {
-      id: '/_authenticated/settings/experience';
-      path: '/experience';
-      fullPath: '/settings/experience';
-      preLoaderRoute: typeof AuthenticatedSettingsExperienceRouteImport;
-      parentRoute: typeof AuthenticatedSettingsRouteRoute;
-    };
-    '/_authenticated/settings/data': {
-      id: '/_authenticated/settings/data';
-      path: '/data';
-      fullPath: '/settings/data';
-      preLoaderRoute: typeof AuthenticatedSettingsDataRouteImport;
-      parentRoute: typeof AuthenticatedSettingsRouteRoute;
-    };
-    '/_authenticated/assistant/history': {
-      id: '/_authenticated/assistant/history';
-      path: '/assistant/history';
-      fullPath: '/assistant/history';
-      preLoaderRoute: typeof AuthenticatedAssistantHistoryRouteImport;
+    '/_authenticated/applications/board': {
+      id: '/_authenticated/applications/board';
+      path: '/applications/board';
+      fullPath: '/applications/board';
+      preLoaderRoute: typeof AuthenticatedApplicationsBoardRouteImport;
       parentRoute: typeof AuthenticatedRouteRoute;
     };
     '/_authenticated/applications/new': {
@@ -566,12 +536,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApplicationsNewRouteImport;
       parentRoute: typeof AuthenticatedRouteRoute;
     };
-    '/_authenticated/applications/board': {
-      id: '/_authenticated/applications/board';
-      path: '/applications/board';
-      fullPath: '/applications/board';
-      preLoaderRoute: typeof AuthenticatedApplicationsBoardRouteImport;
+    '/_authenticated/assistant/': {
+      id: '/_authenticated/assistant/';
+      path: '/assistant';
+      fullPath: '/assistant/';
+      preLoaderRoute: typeof AuthenticatedAssistantIndexRouteImport;
       parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    '/_authenticated/assistant/history': {
+      id: '/_authenticated/assistant/history';
+      path: '/assistant/history';
+      fullPath: '/assistant/history';
+      preLoaderRoute: typeof AuthenticatedAssistantHistoryRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    '/_authenticated/settings/': {
+      id: '/_authenticated/settings/';
+      path: '/';
+      fullPath: '/settings/';
+      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
+    '/_authenticated/settings/data': {
+      id: '/_authenticated/settings/data';
+      path: '/data';
+      fullPath: '/settings/data';
+      preLoaderRoute: typeof AuthenticatedSettingsDataRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
+    '/_authenticated/settings/experience': {
+      id: '/_authenticated/settings/experience';
+      path: '/experience';
+      fullPath: '/settings/experience';
+      preLoaderRoute: typeof AuthenticatedSettingsExperienceRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
+    '/_authenticated/settings/integrations': {
+      id: '/_authenticated/settings/integrations';
+      path: '/integrations';
+      fullPath: '/settings/integrations';
+      preLoaderRoute: typeof AuthenticatedSettingsIntegrationsRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
+    '/_authenticated/settings/notifications': {
+      id: '/_authenticated/settings/notifications';
+      path: '/notifications';
+      fullPath: '/settings/notifications';
+      preLoaderRoute: typeof AuthenticatedSettingsNotificationsRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
+    '/_authenticated/settings/profile': {
+      id: '/_authenticated/settings/profile';
+      path: '/profile';
+      fullPath: '/settings/profile';
+      preLoaderRoute: typeof AuthenticatedSettingsProfileRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
+    '/_authenticated/settings/security': {
+      id: '/_authenticated/settings/security';
+      path: '/security';
+      fullPath: '/settings/security';
+      preLoaderRoute: typeof AuthenticatedSettingsSecurityRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
     };
     '/_authenticated/applications/$applicationId/': {
       id: '/_authenticated/applications/$applicationId/';
@@ -587,6 +613,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdEditRouteImport;
       parentRoute: typeof AuthenticatedRouteRoute;
     };
+    '/_authenticated/applications/$applicationId/documents/$draftId': {
+      id: '/_authenticated/applications/$applicationId/documents/$draftId';
+      path: '/applications/$applicationId/documents/$draftId';
+      fullPath: '/applications/$applicationId/documents/$draftId';
+      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/applications/$applicationId/documents/new': {
       id: '/_authenticated/applications/$applicationId/documents/new';
       path: '/applications/$applicationId/documents/new';
@@ -594,11 +627,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsNewRouteImport;
       parentRoute: typeof AuthenticatedRouteRoute;
     };
-    '/_authenticated/applications/$applicationId/documents/$draftId': {
-      id: '/_authenticated/applications/$applicationId/documents/$draftId';
-      path: '/applications/$applicationId/documents/$draftId';
-      fullPath: '/applications/$applicationId/documents/$draftId';
-      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRouteImport;
+    '/_authenticated/applications/$applicationId/offers/': {
+      id: '/_authenticated/applications/$applicationId/offers/';
+      path: '/applications/$applicationId/offers';
+      fullPath: '/applications/$applicationId/offers/';
+      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdOffersIndexRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    '/_authenticated/applications/$applicationId/offers/compare': {
+      id: '/_authenticated/applications/$applicationId/offers/compare';
+      path: '/applications/$applicationId/offers/compare';
+      fullPath: '/applications/$applicationId/offers/compare';
+      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdOffersCompareRouteImport;
       parentRoute: typeof AuthenticatedRouteRoute;
     };
   }
@@ -647,6 +687,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedApplicationsApplicationIdIndexRoute: typeof AuthenticatedApplicationsApplicationIdIndexRoute;
   AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute;
   AuthenticatedApplicationsApplicationIdDocumentsNewRoute: typeof AuthenticatedApplicationsApplicationIdDocumentsNewRoute;
+  AuthenticatedApplicationsApplicationIdOffersCompareRoute: typeof AuthenticatedApplicationsApplicationIdOffersCompareRoute;
+  AuthenticatedApplicationsApplicationIdOffersIndexRoute: typeof AuthenticatedApplicationsApplicationIdOffersIndexRoute;
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -668,6 +710,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedApplicationsApplicationIdDocumentsDraftIdRoute,
   AuthenticatedApplicationsApplicationIdDocumentsNewRoute:
     AuthenticatedApplicationsApplicationIdDocumentsNewRoute,
+  AuthenticatedApplicationsApplicationIdOffersCompareRoute:
+    AuthenticatedApplicationsApplicationIdOffersCompareRoute,
+  AuthenticatedApplicationsApplicationIdOffersIndexRoute:
+    AuthenticatedApplicationsApplicationIdOffersIndexRoute,
 };
 
 const AuthenticatedRouteRouteWithChildren =
@@ -686,3 +732,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>();
+
+import type { getRouter } from './router.tsx';
+import type { createStart } from '@tanstack/react-start';
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true;
+    router: Awaited<ReturnType<typeof getRouter>>;
+  }
+}

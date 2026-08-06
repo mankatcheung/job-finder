@@ -12,7 +12,13 @@ const config = defineConfig(({ command }) => ({
   plugins: [
     devtools(),
     tailwindcss(),
-    tanstackStart(),
+    // `router.semicolons` matches this repo's Prettier style (`semi: true`)
+    // — without it, the generator's own default (no semicolons) means the
+    // committed routeTree.gen.ts perpetually diffs against what `pnpm dev`/
+    // `pnpm build` regenerate. tsr.config.json alone does NOT cover this:
+    // this plugin resolves its own router config independently and does not
+    // read that file for the dev/build code path.
+    tanstackStart({ router: { semicolons: true } }),
     // nitro() enables platform-targeted build output (Vercel, Netlify, etc.) —
     // without it, `vite build` only emits a generic dist/server/server.js
     // fetch handler with no adapter for any specific hosting platform.
