@@ -1,8 +1,10 @@
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
+import type { LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IWorkExperienceRepository } from '#src/use-cases/ports/IWorkExperienceRepository.js';
 import type { IEducationRepository } from '#src/use-cases/ports/IEducationRepository.js';
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import { ERROR_CODES } from '#src/constants.js';
 
 export interface GenerateCoverLetterInput {
@@ -17,6 +19,7 @@ interface Deps {
   workExperienceRepository: IWorkExperienceRepository;
   educationRepository: IEducationRepository;
   skillRepository: ISkillRepository;
+  userRepository: IUserRepository;
 }
 
 const SYSTEM_PROMPT = `You are a professional cover letter writer. Write compelling, personalized cover letters that are concise (3-4 paragraphs), specific to the role, and written in first person. Return ONLY the cover letter body — no subject line, no date, no address block, no explanation.`;
@@ -40,16 +43,19 @@ export class GenerateCoverLetterUseCase {
       });
     }
 
-    const profile = await this.buildProfile(input.userId);
+    const [profile, user] = await Promise.all([
+      this.buildProfile(input.userId),
+      this.deps.userRepository.findById(input.userId),
+    ]);
     const userPrompt = this.buildPrompt(app, profile, input.resumeText);
 
-    return llmProvider.complete(
-      [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userPrompt },
-      ],
-      1024,
-    );
+    const messages: LLMMessage[] = [{ role: 'system', content: SYSTEM_PROMPT }];
+    if (user?.customAiPrompt) {
+      messages.push({ role: 'system', content: user.customAiPrompt });
+    }
+    messages.push({ role: 'user', content: userPrompt });
+
+    return llmProvider.complete(messages, 1024);
   }
 
   private async buildProfile(userId: string): Promise<string> {

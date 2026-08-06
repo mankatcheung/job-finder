@@ -11,5 +11,6 @@ UserRef.implement({
     targetRole: t.exposeString('targetRole', { nullable: true }),
     avatarUrl: t.exposeString('avatarUrl', { nullable: true }),
     defaultLlmProvider: t.exposeString('defaultLlmProvider', { nullable: true }),
+    customAiPrompt: t.exposeString('customAiPrompt', { nullable: true }),
   }),
 });

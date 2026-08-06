@@ -6,6 +6,7 @@ import { ErrorState } from '#/components/ErrorState';
 import {
   AlertCircleIcon,
   BriefcaseIcon,
+  CalendarIcon,
   CheckCircleIcon,
   ClockIcon,
   FileTextIcon,
@@ -27,6 +28,20 @@ const APPLICATIONS_QUERY = `
   }
 `;
 
+const CALENDAR_EVENTS_QUERY = `
+  query DashboardCalendarEvents {
+    calendarEvents {
+      id
+      applicationId
+      company
+      role
+      type
+      date
+      interviewRoundType
+    }
+  }
+`;
+
 type Application = {
   id: string;
   company: string;
@@ -37,18 +52,52 @@ type Application = {
   createdAt: string;
 };
 
+type CalendarEventKind = 'applied' | 'followUp' | 'interview';
+
+type CalendarEvent = {
+  id: string;
+  applicationId: string;
+  company: string;
+  role: string;
+  type: CalendarEventKind;
+  date: string;
+  interviewRoundType: string | null;
+};
+
 const applicationsQueryOptions = queryOptions({
   queryKey: ['applications'],
   queryFn: () => gqlClient.request<{ applications: Application[] }>(APPLICATIONS_QUERY),
 });
 
+const calendarEventsQueryOptions = queryOptions({
+  queryKey: ['calendarEvents'],
+  queryFn: () => gqlClient.request<{ calendarEvents: CalendarEvent[] }>(CALENDAR_EVENTS_QUERY),
+});
+
 export const Route = createFileRoute('/_authenticated/dashboard')({
-  loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(applicationsQueryOptions),
+  loader: ({ context: { queryClient } }) =>
+    Promise.all([
+      queryClient.ensureQueryData(applicationsQueryOptions),
+      queryClient.ensureQueryData(calendarEventsQueryOptions),
+    ]),
   component: DashboardPage,
 });
 
+const UPCOMING_EVENT_ICON: Record<CalendarEventKind, React.ReactNode> = {
+  interview: <CalendarIcon size={13} className="text-purple-500 shrink-0" />,
+  followUp: <AlertCircleIcon size={13} className="text-amber-500 shrink-0" />,
+  applied: <FileTextIcon size={13} className="text-blue-500 shrink-0" />,
+};
+
+const UPCOMING_EVENT_LABEL: Record<CalendarEventKind, string> = {
+  interview: 'Interview',
+  followUp: 'Follow up',
+  applied: 'Applied',
+};
+
 export function DashboardPage() {
   const { data, isLoading, isError, error, refetch } = useQuery(applicationsQueryOptions);
+  const { data: calendarData } = useQuery(calendarEventsQueryOptions);
 
   const apps = data?.applications ?? [];
   const now = new Date();
@@ -60,9 +109,36 @@ export function DashboardPage() {
     overdue: apps.filter((a) => a.followUpAt && new Date(a.followUpAt) <= now).length,
   };
 
+  const upcomingEvents = (calendarData?.calendarEvents ?? [])
+    .filter((e) => e.type !== 'applied' && new Date(e.date) >= now)
+    .slice(0, 5);
+
+  const statItems = [
+    { label: 'Total', value: counts.total, icon: <BriefcaseIcon size={20} />, color: 'blue' },
+    { label: 'Applied', value: counts.applied, icon: <FileTextIcon size={20} />, color: 'indigo' },
+    {
+      label: 'Interviewing',
+      value: counts.interviewing,
+      icon: <ClockIcon size={20} />,
+      color: 'yellow',
+    },
+    {
+      label: 'Offered',
+      value: counts.offered,
+      icon: <CheckCircleIcon size={20} />,
+      color: 'green',
+    },
+    {
+      label: 'Follow-up due',
+      value: counts.overdue,
+      icon: <AlertCircleIcon size={20} />,
+      color: 'orange',
+    },
+  ];
+
   return (
     <div className="p-4 sm:p-8 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6 sm:mb-8">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
         <Link
           to="/applications/new"
@@ -73,43 +149,53 @@ export function DashboardPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
-        <StatCard
-          label="Total"
-          value={counts.total}
-          icon={<BriefcaseIcon size={20} />}
-          color="blue"
-          loading={isLoading}
-        />
-        <StatCard
-          label="Applied"
-          value={counts.applied}
-          icon={<FileTextIcon size={20} />}
-          color="indigo"
-          loading={isLoading}
-        />
-        <StatCard
-          label="Interviewing"
-          value={counts.interviewing}
-          icon={<ClockIcon size={20} />}
-          color="yellow"
-          loading={isLoading}
-        />
-        <StatCard
-          label="Offered"
-          value={counts.offered}
-          icon={<CheckCircleIcon size={20} />}
-          color="green"
-          loading={isLoading}
-        />
-        <StatCard
-          label="Follow-up due"
-          value={counts.overdue}
-          icon={<AlertCircleIcon size={20} />}
-          color="orange"
-          loading={isLoading}
-        />
+      {/* Mobile: horizontal scrollable strip so 5 stats don't leave an orphaned card; sm+: grid */}
+      <div className="flex sm:grid sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 overflow-x-auto sm:overflow-visible -mx-4 sm:mx-0 px-4 sm:px-0 pb-1 sm:pb-0 mb-8 sm:mb-10 snap-x snap-mandatory sm:snap-none">
+        {statItems.map((item) => (
+          <StatCard
+            key={item.label}
+            {...item}
+            loading={isLoading}
+            className="w-32 shrink-0 snap-start sm:w-auto sm:shrink sm:snap-align-none"
+          />
+        ))}
       </div>
+
+      {upcomingEvents.length > 0 && (
+        <div className="mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Upcoming</h2>
+            <Link to="/calendar" className="text-sm text-blue-600 hover:underline shrink-0">
+              View calendar
+            </Link>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:overflow-x-auto sm:pb-1">
+            {upcomingEvents.map((event) => (
+              <Link
+                key={event.id}
+                to="/applications/$applicationId"
+                params={{ applicationId: event.applicationId }}
+                className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors sm:min-w-[220px] sm:flex-1"
+              >
+                {UPCOMING_EVENT_ICON[event.type]}
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    {UPCOMING_EVENT_LABEL[event.type]} ·{' '}
+                    {new Date(event.date).toLocaleDateString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                    {event.company}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{event.role}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div>
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
@@ -176,12 +262,14 @@ function StatCard({
   icon,
   color,
   loading,
+  className = '',
 }: {
   label: string;
   value: number;
   icon: React.ReactNode;
   color: string;
   loading: boolean;
+  className?: string;
 }) {
   const colors: Record<string, string> = {
     blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
@@ -191,7 +279,9 @@ function StatCard({
     orange: 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
   };
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+    <div
+      className={`bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 ${className}`}
+    >
       <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${colors[color]}`}>
         {icon}
       </div>

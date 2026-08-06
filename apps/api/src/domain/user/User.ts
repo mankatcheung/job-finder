@@ -16,6 +16,8 @@ export interface User {
   totpEnabled: boolean;
   /** Which of the user's configured LlmApiKey providers is used for automatic AI features. */
   defaultLlmProvider: string | null;
+  /** User-authored instruction spliced into the system prompt for AI-generated text (cover letters, chat assistant). */
+  customAiPrompt: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -25,6 +25,8 @@ export const user = sqliteTable('User', {
    * assistant chooses its own provider per-conversation instead.
    */
   defaultLlmProvider: text('defaultLlmProvider'),
+  /** User-authored instruction spliced into the system prompt for AI-generated text (cover letters, chat assistant). */
+  customAiPrompt: text('customAiPrompt'),
   createdAt: integer('createdAt', { mode: 'timestamp_ms' })
     .notNull()
     .$defaultFn(() => new Date()),
