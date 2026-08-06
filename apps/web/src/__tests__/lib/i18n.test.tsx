@@ -22,8 +22,8 @@ describe('i18n', () => {
     expect(screen.getByText(/\|Dashboard\|/)).toBeInTheDocument();
   });
 
-  it('uses a stored supported locale and updates document language', () => {
-    localStorage.setItem('locale', 'zh-CN');
+  it('uses a URL locale and updates document language', () => {
+    window.history.replaceState({}, '', '/?locale=zh-CN');
     render(
       <LocaleProvider>
         <Probe />
