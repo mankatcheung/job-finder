@@ -160,6 +160,50 @@ describe('ChatWithAssistantUseCase', () => {
     expect(messages[3]).toEqual({ role: 'user', content: 'new question' });
   });
 
+  it("splices the user's custom AI prompt in as a second system message when set", async () => {
+    const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+      userRepository: makeUserRepository({
+        findById: vi
+          .fn()
+          .mockResolvedValue(makeUser({ customAiPrompt: 'Always sign off with "Best, Jeff".' })),
+      }),
+    });
+
+    await new ChatWithAssistantUseCase(deps as never).execute({
+      ...baseInput,
+      message: 'hi',
+    });
+
+    const [messages] = vi.mocked(llmProvider.completeWithTools).mock.calls[0];
+    expect(messages[0].role).toBe('system');
+    expect(messages[1]).toEqual({
+      role: 'system',
+      content: 'Always sign off with "Best, Jeff".',
+    });
+    expect(messages[2]).toEqual({ role: 'user', content: 'hi' });
+  });
+
+  it('omits the custom AI prompt system message when the user has none set', async () => {
+    const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+    });
+
+    await new ChatWithAssistantUseCase(deps as never).execute({
+      ...baseInput,
+      message: 'hi',
+    });
+
+    const [messages] = vi.mocked(llmProvider.completeWithTools).mock.calls[0];
+    expect(messages.filter((m) => m.role === 'system')).toHaveLength(1);
+  });
+
   it("persists the user's message and the assistant's reply after a successful response", async () => {
     const llmProvider = makeToolCallingProvider({ content: 'Hello there!', toolCalls: [] });
     const messageRepository = makeMessageRepository();
@@ -508,7 +552,9 @@ describe('ChatWithAssistantUseCase', () => {
     const llmProviderFactory = makeLLMProviderFactory({
       forUser: vi.fn().mockResolvedValue(llmProvider),
     });
-    const userRepository = makeUserRepository();
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(makeUser({ defaultLlmProvider: 'openai' })),
+    });
     const conversationRepository = makeConversationRepository({
       findById: vi.fn().mockResolvedValue(
         makeConversation({
@@ -523,7 +569,8 @@ describe('ChatWithAssistantUseCase', () => {
 
     await new ChatWithAssistantUseCase(deps as never).execute({ ...baseInput, message: 'hi' });
 
-    expect(userRepository.findById).not.toHaveBeenCalled();
+    // The user is still fetched (needed for customAiPrompt), but the conversation's
+    // locked provider wins over the user's defaultLlmProvider ('openai').
     expect(llmProviderFactory.forUser).toHaveBeenCalledWith('user-1', 'anthropic', 'claude');
     expect(conversationRepository.updateLlmSettings).not.toHaveBeenCalled();
   });

@@ -3,6 +3,7 @@ export interface UpdateProfileInput {
   name?: string | null;
   timezone?: string | null;
   targetRole?: string | null;
+  customAiPrompt?: string | null;
 }
 
 export interface IUpdateProfileUseCase {
