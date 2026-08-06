@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { hydrateSession } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import {
   LayoutDashboard,
   BarChart3,
@@ -27,51 +28,41 @@ export const Route = createFileRoute('/')({
 const features = [
   {
     icon: LayoutDashboard,
-    title: 'Application tracking',
-    description:
-      'Track every application from first apply to offer. Use a kanban board or list view, add notes, attach documents, and never lose sight of where you stand.',
+    titleKey: 'landing.tracking',
+    descriptionKey: 'landing.trackingDescription',
   },
   {
     icon: Sparkles,
-    title: 'AI assistant',
-    description:
-      'Get personalized cover letters, resume match scores, and real-time answers about your applications — powered by the data you already have in Job Finder.',
+    titleKey: 'landing.assistant',
+    descriptionKey: 'landing.assistantDescription',
   },
   {
     icon: BarChart3,
-    title: 'Analytics & insights',
-    description:
-      'Visualize your pipeline with charts and stats. See conversion rates, time-to-response, and which sources deliver the best results.',
+    titleKey: 'landing.analytics',
+    descriptionKey: 'landing.analyticsDescription',
   },
   {
     icon: CalendarDays,
-    title: 'Calendar',
-    description:
-      'Keep interviews and deadlines in one place. View your schedule by month, week, or day and never double-book again.',
+    titleKey: 'landing.calendar',
+    descriptionKey: 'landing.calendarDescription',
   },
   {
     icon: FileText,
-    title: 'Document management',
-    description:
-      'Upload and organize resumes, cover letters, and offer letters. Attach documents directly to applications for easy access.',
+    titleKey: 'landing.documents',
+    descriptionKey: 'landing.documentsDescription',
   },
   {
     icon: Bell,
-    title: 'Smart notifications',
-    description:
-      'Stay on top of follow-ups and deadlines. Browser push notifications keep you informed even when the app is closed.',
+    titleKey: 'landing.notifications',
+    descriptionKey: 'landing.notificationsDescription',
   },
 ];
 
-const steps = [
-  'Sign up for free in seconds',
-  'Add your applications and documents',
-  'Get AI-powered insights and recommendations',
-  'Track progress from first apply to offer',
-];
+const steps = ['landing.step1', 'landing.step2', 'landing.step3', 'landing.step4'];
 
 function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { t } = useLocale();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -107,13 +98,13 @@ function LandingPage() {
                 to="/login"
                 className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
               >
-                Sign in
+                {t('landing.signIn')}
               </Link>
               <Link
                 to="/register"
                 className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
               >
-                Get started
+                {t('landing.getStarted')}
               </Link>
             </div>
             <button
@@ -155,14 +146,14 @@ function LandingPage() {
                 className="block rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Sign in
+                {t('landing.signIn')}
               </Link>
               <Link
                 to="/register"
                 className="block rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white text-center"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Get started
+                {t('landing.getStarted')}
               </Link>
             </div>
           )}
@@ -175,26 +166,23 @@ function LandingPage() {
           <div className="absolute inset-0 -z-10 bg-gradient-to-b from-blue-50 to-gray-50 dark:from-gray-900 dark:to-gray-900" />
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-6xl">
-              Your job search,
-              <br />
-              <span className="text-blue-600">organized and powered by AI</span>
+              {t('landing.heroTitle')}
             </h1>
             <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Track applications, get AI-generated cover letters and resume feedback, visualize your
-              pipeline, and never miss an interview. Everything you need to land your next role.
+              {t('landing.heroDescription')}
             </p>
             <div className="mt-10 flex items-center justify-center gap-4">
               <Link
                 to="/register"
                 className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
               >
-                Start for free
+                {t('landing.startFree')}
               </Link>
               <Link
                 to="/login"
                 className="rounded-lg border border-gray-300 dark:border-gray-600 px-6 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
-                Sign in
+                {t('landing.signIn')}
               </Link>
             </div>
           </div>
@@ -205,27 +193,26 @@ function LandingPage() {
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl">
-                Everything you need to land your next job
+                {t('landing.everything')}
               </h2>
               <p className="mt-4 text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                Job Finder combines application tracking, AI-powered tools, and analytics into one
-                seamless experience.
+                {t('landing.everythingDescription')}
               </p>
             </div>
             <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {features.map((feature) => (
                 <div
-                  key={feature.title}
+                  key={feature.titleKey}
                   className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 p-6 shadow-sm"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
                     <feature.icon className="h-5 w-5 text-blue-600" />
                   </div>
                   <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    {feature.title}
+                    {t(feature.titleKey)}
                   </h3>
                   <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">
-                    {feature.description}
+                    {t(feature.descriptionKey)}
                   </p>
                 </div>
               ))}
@@ -238,7 +225,7 @@ function LandingPage() {
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl">
-                Get started in minutes
+                {t('landing.howItWorks')}
               </h2>
             </div>
             <div className="mt-12 space-y-6">
@@ -247,7 +234,7 @@ function LandingPage() {
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
                     {i + 1}
                   </div>
-                  <p className="text-lg text-gray-700 dark:text-gray-300 pt-0.5">{step}</p>
+                  <p className="text-lg text-gray-700 dark:text-gray-300 pt-0.5">{t(step)}</p>
                 </div>
               ))}
             </div>
@@ -256,7 +243,7 @@ function LandingPage() {
                 to="/register"
                 className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
               >
-                Get started for free
+                {t('landing.getStarted')}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -298,13 +285,13 @@ function LandingPage() {
                 to="/login"
                 className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
               >
-                Sign in
+                {t('landing.signIn')}
               </Link>
               <Link
                 to="/register"
                 className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
               >
-                Register
+                {t('auth.register')}
               </Link>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { AlertTriangleIcon, RefreshCwIcon } from 'lucide-react';
 import { getErrorMessage } from '#/lib/errors';
+import { useLocale } from '#/lib/i18n';
 
 interface ErrorStateProps {
   error: unknown;
@@ -13,6 +14,7 @@ interface ErrorStateProps {
  * distinctly different from a genuinely empty result.
  */
 export function ErrorState({ error, onRetry }: ErrorStateProps) {
+  const { t } = useLocale();
   return (
     <div className="text-center py-12">
       <AlertTriangleIcon size={40} className="mx-auto mb-3 text-red-500" />
@@ -20,10 +22,11 @@ export function ErrorState({ error, onRetry }: ErrorStateProps) {
       {onRetry && (
         <button
           onClick={onRetry}
-          aria-label="Try again"
+          aria-label={t('common.tryAgain')}
           className="mt-3 flex items-center gap-1.5 mx-auto text-sm text-blue-600 hover:underline"
         >
-          <RefreshCwIcon size={14} /> <span className="hidden sm:inline">Try again</span>
+          <RefreshCwIcon size={14} />{' '}
+          <span className="hidden sm:inline">{t('common.tryAgain')}</span>
         </button>
       )}
     </div>
