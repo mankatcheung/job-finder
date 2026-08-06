@@ -31,6 +31,7 @@ import {
   conversation,
   message,
   notification,
+  offer,
 } from './infrastructure/db/schema.js';
 import type { ApplicationStatus } from './domain/application/ApplicationStatus.js';
 
@@ -98,6 +99,16 @@ interface SeedApplication {
     completedAt: Date | null;
     interviewerName: string | null;
     outcome: string;
+  }[];
+  offers?: {
+    baseSalary: number;
+    bonus: number | null;
+    equity: string | null;
+    benefits: string | null;
+    costOfLivingAdjustment: number | null;
+    currency: string;
+    period: string;
+    notes: string | null;
   }[];
 }
 
@@ -353,6 +364,18 @@ const applications: SeedApplication[] = [
         outcome: 'passed',
       },
     ],
+    offers: [
+      {
+        baseSalary: 185000,
+        bonus: 20000,
+        equity: '0.15% equity, 4-year vest',
+        benefits: 'Health, dental, 401(k) match, unlimited PTO',
+        costOfLivingAdjustment: 0,
+        currency: 'USD',
+        period: 'yearly',
+        notes: 'Negotiating an improved equity grant.',
+      },
+    ],
   },
   {
     company: 'Datadog',
@@ -403,6 +426,18 @@ const applications: SeedApplication[] = [
         completedAt: new Date(Date.now() - 15 * dayMs),
         interviewerName: 'VP Engineering',
         outcome: 'passed',
+      },
+    ],
+    offers: [
+      {
+        baseSalary: 210000,
+        bonus: 25000,
+        equity: 'RSUs valued at $80,000 over 4 years',
+        benefits: 'Health, dental, vision, 20% learning budget',
+        costOfLivingAdjustment: 0,
+        currency: 'USD',
+        period: 'yearly',
+        notes: 'Hybrid schedule, three days per week in New York.',
       },
     ],
   },
@@ -526,6 +561,23 @@ for (const app of applications) {
     createdAt: now,
     updatedAt: now,
   });
+
+  for (const offerEntry of app.offers ?? []) {
+    await db.insert(offer).values({
+      id: nanoid(),
+      applicationId: appId,
+      baseSalary: offerEntry.baseSalary,
+      bonus: offerEntry.bonus,
+      equity: offerEntry.equity,
+      benefits: offerEntry.benefits,
+      costOfLivingAdjustment: offerEntry.costOfLivingAdjustment,
+      currency: offerEntry.currency,
+      period: offerEntry.period,
+      notes: offerEntry.notes,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
 
   // Tags
   for (const tagName of app.tags) {
