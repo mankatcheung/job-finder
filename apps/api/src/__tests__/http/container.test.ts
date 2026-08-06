@@ -18,4 +18,17 @@ describe('buildContainer', () => {
 
     expect(container.resolve('tokenService')).toBeInstanceOf(JwtTokenService);
   });
+
+  it('resolves the offer use cases and resolver through proxy injection', async () => {
+    const { buildContainer } = await import('#src/http/container.js');
+
+    const container = buildContainer();
+
+    expect(container.resolve('createOfferUseCase')).toBeDefined();
+    expect(container.resolve('updateOfferUseCase')).toBeDefined();
+    expect(container.resolve('deleteOfferUseCase')).toBeDefined();
+    expect(container.resolve('getOffersUseCase')).toBeDefined();
+    expect(container.resolve('compareOffersUseCase')).toBeDefined();
+    expect(container.resolve('offerResolver')).toBeDefined();
+  });
 });
