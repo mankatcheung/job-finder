@@ -183,6 +183,7 @@ import { ParseJobDescriptionUseCase } from '#src/use-cases/jobDescription/ParseJ
 import { FetchJobPostingSourceResolver } from '#src/infrastructure/jobDescription/FetchJobPostingSourceResolver.js';
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
 import { GenerateCoverLetterUseCase } from '#src/use-cases/coverLetter/GenerateCoverLetterUseCase.js';
+import { GenerateCompanyBriefingUseCase } from '#src/use-cases/companyBriefing/GenerateCompanyBriefingUseCase.js';
 import { ComputeHealthScoreUseCase } from '#src/use-cases/application/ComputeHealthScoreUseCase.js';
 import { ComputeResumeMatchScoreUseCase } from '#src/use-cases/application/ComputeResumeMatchScoreUseCase.js';
 import { GetCalendarEventsUseCase } from '#src/use-cases/calendar/GetCalendarEventsUseCase.js';
@@ -264,6 +265,7 @@ export interface Cradle {
   generateCoverLetterRateLimiter: IRateLimiter;
   parseJobDescriptionRateLimiter: IRateLimiter;
   computeResumeMatchScoreRateLimiter: IRateLimiter;
+  generateCompanyBriefingRateLimiter: IRateLimiter;
   updatePasswordRateLimiter: IRateLimiter;
   requestEmailChangeRateLimiter: IRateLimiter;
   totpProvider: ITotpProvider;
@@ -413,6 +415,7 @@ export interface Cradle {
   jobPostingSourceResolver: IJobPostingSourceResolver;
   parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
   generateCoverLetterUseCase: GenerateCoverLetterUseCase;
+  generateCompanyBriefingUseCase: GenerateCompanyBriefingUseCase;
   computeHealthScoreUseCase: ComputeHealthScoreUseCase;
   chatWithAssistantUseCase: ChatWithAssistantUseCase;
   computeResumeMatchScoreUseCase: ComputeResumeMatchScoreUseCase;
@@ -543,6 +546,12 @@ export function buildContainer(): AwilixContainer<Cradle> {
       new RateLimiter(
         RATE_LIMIT.COMPUTE_RESUME_MATCH_SCORE.MAX_ATTEMPTS,
         RATE_LIMIT.COMPUTE_RESUME_MATCH_SCORE.WINDOW_MS,
+      ),
+    ),
+    generateCompanyBriefingRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.GENERATE_COMPANY_BRIEFING.MAX_ATTEMPTS,
+        RATE_LIMIT.GENERATE_COMPANY_BRIEFING.WINDOW_MS,
       ),
     ),
     updatePasswordRateLimiter: asValue(
@@ -786,6 +795,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
       lifetime: Lifetime.TRANSIENT,
     }),
     generateCoverLetterUseCase: asClass(GenerateCoverLetterUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    generateCompanyBriefingUseCase: asClass(GenerateCompanyBriefingUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
     computeHealthScoreUseCase: asClass(ComputeHealthScoreUseCase, { lifetime: Lifetime.TRANSIENT }),
