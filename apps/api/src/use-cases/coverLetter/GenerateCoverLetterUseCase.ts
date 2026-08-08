@@ -6,7 +6,8 @@ import type { IEducationRepository } from '#src/use-cases/ports/IEducationReposi
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
+import { ERROR_CODES, AI_PROMPT_INPUT } from '#src/constants.js';
 
 export interface GenerateCoverLetterInput {
   applicationId: string;
@@ -126,7 +127,11 @@ export class GenerateCoverLetterUseCase {
       `Company: ${app.company}`,
       `Role: ${app.role}`,
       ...(app.location ? [`Location: ${app.location}`] : []),
-      ...(app.description ? [`\nJob description:\n${app.description.slice(0, 3000)}`] : []),
+      ...(app.description
+        ? [
+            `\nJob description:\n${wrapUntrustedContent(app.description.slice(0, AI_PROMPT_INPUT.COVER_LETTER_JOB_DESCRIPTION_MAX_CHARS))}`,
+          ]
+        : []),
     ];
 
     if (resumeText?.trim()) {

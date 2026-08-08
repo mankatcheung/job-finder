@@ -7,7 +7,8 @@ import type { IWorkExperienceRepository } from '#src/use-cases/ports/IWorkExperi
 import type { IEducationRepository } from '#src/use-cases/ports/IEducationRepository.js';
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
+import { ERROR_CODES, AI_PROMPT_INPUT } from '#src/constants.js';
 
 export interface ComputeResumeMatchScoreInput {
   applicationId: string;
@@ -51,7 +52,7 @@ const USER_PROMPT_TEMPLATE = (
 }
 
 Job description:
-${jobDescription.slice(0, 6000)}
+${wrapUntrustedContent(jobDescription.slice(0, AI_PROMPT_INPUT.RESUME_MATCH_JOB_DESCRIPTION_MAX_CHARS))}
 
 Resume:
 ${resumeText.slice(0, 6000)}`;
