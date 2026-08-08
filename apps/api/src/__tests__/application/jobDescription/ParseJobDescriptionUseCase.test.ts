@@ -1,8 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ParseJobDescriptionUseCase } from '#src/use-cases/jobDescription/ParseJobDescriptionUseCase.js';
-import { makeLLMProvider, makeLLMProviderFactory } from '#src/__tests__/helpers/mocks.js';
+import {
+  makeLLMProvider,
+  makeLLMProviderFactory,
+  makeRateLimiter,
+} from '#src/__tests__/helpers/mocks.js';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
+import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 
 function makeSourceResolver(text: string): IJobPostingSourceResolver {
   return { resolve: vi.fn().mockResolvedValue(text) };
@@ -11,8 +16,10 @@ function makeSourceResolver(text: string): IJobPostingSourceResolver {
 describe('ParseJobDescriptionUseCase', () => {
   let llmProviderFactory: ILLMProviderFactory;
   let jobPostingSourceResolver: IJobPostingSourceResolver;
+  let parseJobDescriptionRateLimiter: IRateLimiter;
 
   beforeEach(() => {
+    parseJobDescriptionRateLimiter = makeRateLimiter();
     llmProviderFactory = makeLLMProviderFactory({
       forUser: vi.fn().mockResolvedValue(
         makeLLMProvider(
@@ -33,6 +40,7 @@ describe('ParseJobDescriptionUseCase', () => {
     const useCase = new ParseJobDescriptionUseCase({
       llmProviderFactory,
       jobPostingSourceResolver,
+      parseJobDescriptionRateLimiter,
     });
     const result = await useCase.execute({
       userId: 'user-1',
@@ -61,6 +69,7 @@ describe('ParseJobDescriptionUseCase', () => {
     const useCase = new ParseJobDescriptionUseCase({
       llmProviderFactory,
       jobPostingSourceResolver,
+      parseJobDescriptionRateLimiter,
     });
     const result = await useCase.execute({ userId: 'user-1', text: 'job posting' });
     expect(result.company).toBe('Acme');
@@ -74,6 +83,7 @@ describe('ParseJobDescriptionUseCase', () => {
     const useCase = new ParseJobDescriptionUseCase({
       llmProviderFactory,
       jobPostingSourceResolver,
+      parseJobDescriptionRateLimiter,
     });
     const result = await useCase.execute({ userId: 'user-1', text: 'some text' });
     expect(result).toEqual({
@@ -90,6 +100,7 @@ describe('ParseJobDescriptionUseCase', () => {
     const useCase = new ParseJobDescriptionUseCase({
       llmProviderFactory,
       jobPostingSourceResolver,
+      parseJobDescriptionRateLimiter,
     });
 
     const err = await useCase.execute({ userId: 'user-1', text: 'some text' }).catch((e) => e);
@@ -105,6 +116,7 @@ describe('ParseJobDescriptionUseCase', () => {
     const useCase = new ParseJobDescriptionUseCase({
       llmProviderFactory,
       jobPostingSourceResolver,
+      parseJobDescriptionRateLimiter,
     });
     await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow(
       'Either text or url must be provided',
@@ -118,6 +130,7 @@ describe('ParseJobDescriptionUseCase', () => {
     const useCase = new ParseJobDescriptionUseCase({
       llmProviderFactory,
       jobPostingSourceResolver,
+      parseJobDescriptionRateLimiter,
     });
     await expect(useCase.execute({ userId: 'user-1', text: '   ' })).rejects.toThrow(
       'Either text or url must be provided',
@@ -131,6 +144,7 @@ describe('ParseJobDescriptionUseCase', () => {
     const useCase = new ParseJobDescriptionUseCase({
       llmProviderFactory,
       jobPostingSourceResolver,
+      parseJobDescriptionRateLimiter,
     });
 
     const err = await useCase.execute({ userId: 'user-1', text: '   ' }).catch((e) => e);
@@ -160,6 +174,7 @@ describe('ParseJobDescriptionUseCase', () => {
     const useCase = new ParseJobDescriptionUseCase({
       llmProviderFactory,
       jobPostingSourceResolver,
+      parseJobDescriptionRateLimiter,
     });
     await useCase.execute({ userId: 'user-1', url: 'https://example.com/job' });
 
@@ -175,6 +190,20 @@ describe('ParseJobDescriptionUseCase', () => {
     ).toBe(true);
   });
 
+  it('throws RATE_LIMITED when the rate limiter rejects the request', async () => {
+    parseJobDescriptionRateLimiter = makeRateLimiter({ consume: vi.fn().mockReturnValue(false) });
+    const useCase = new ParseJobDescriptionUseCase({
+      llmProviderFactory,
+      jobPostingSourceResolver,
+      parseJobDescriptionRateLimiter,
+    });
+
+    const err = await useCase.execute({ userId: 'user-1', text: 'some text' }).catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('RATE_LIMITED');
+    expect(jobPostingSourceResolver.resolve).not.toHaveBeenCalled();
+  });
+
   it('throws when source resolver fails', async () => {
     jobPostingSourceResolver = {
       resolve: vi.fn().mockRejectedValue(new Error('Failed to fetch URL: 404')),
@@ -183,6 +212,7 @@ describe('ParseJobDescriptionUseCase', () => {
     const useCase = new ParseJobDescriptionUseCase({
       llmProviderFactory,
       jobPostingSourceResolver,
+      parseJobDescriptionRateLimiter,
     });
     await expect(
       useCase.execute({ userId: 'user-1', url: 'https://example.com/missing' }),

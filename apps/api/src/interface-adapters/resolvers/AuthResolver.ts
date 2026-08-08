@@ -5,6 +5,7 @@ import type { IReauthenticateUseCase } from '#src/use-cases/auth/IReauthenticate
 import type { IRequestPasswordResetUseCase } from '#src/use-cases/auth/IRequestPasswordResetUseCase.js';
 import type { IResetPasswordUseCase } from '#src/use-cases/auth/IResetPasswordUseCase.js';
 import type { IVerifyEmailUseCase } from '#src/use-cases/auth/IVerifyEmailUseCase.js';
+import type { IRequestBackupEmailRecoveryUseCase } from '#src/use-cases/auth/IRequestBackupEmailRecoveryUseCase.js';
 import type { ITokenService, TokenPair } from '#src/use-cases/ports/ITokenService.js';
 import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
 import type { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
@@ -23,6 +24,7 @@ interface Deps {
   rotateRefreshTokenUseCase: RotateRefreshTokenUseCase;
   sessionRepository: ISessionRepository;
   verifyEmailUseCase: IVerifyEmailUseCase;
+  requestBackupEmailRecoveryUseCase: IRequestBackupEmailRecoveryUseCase;
 }
 
 export interface DeviceInfo {
@@ -154,5 +156,9 @@ export class AuthResolver {
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
     await this.deps.resetPasswordUseCase.execute({ token, newPassword });
+  }
+
+  async requestBackupEmailRecovery(backupEmail: string, ipAddress: string | null): Promise<void> {
+    await this.deps.requestBackupEmailRecoveryUseCase.execute({ backupEmail, ipAddress });
   }
 }

@@ -5,6 +5,7 @@ import type { IWorkExperienceRepository } from '#src/use-cases/ports/IWorkExperi
 import type { IEducationRepository } from '#src/use-cases/ports/IEducationRepository.js';
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { ERROR_CODES } from '#src/constants.js';
 
 export interface GenerateCoverLetterInput {
@@ -20,6 +21,7 @@ interface Deps {
   educationRepository: IEducationRepository;
   skillRepository: ISkillRepository;
   userRepository: IUserRepository;
+  generateCoverLetterRateLimiter: IRateLimiter;
 }
 
 const SYSTEM_PROMPT = `You are a professional cover letter writer. Write compelling, personalized cover letters that are concise (3-4 paragraphs), specific to the role, and written in first person. Return ONLY the cover letter body — no subject line, no date, no address block, no explanation.`;
@@ -28,6 +30,12 @@ export class GenerateCoverLetterUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: GenerateCoverLetterInput): Promise<string> {
+    if (!this.deps.generateCoverLetterRateLimiter.consume(`cover-letter:user:${input.userId}`)) {
+      throw Object.assign(new Error('Too many requests — please wait a moment and try again'), {
+        code: ERROR_CODES.RATE_LIMITED,
+      });
+    }
+
     const app = await this.deps.applicationRepository.findById(input.applicationId);
     if (!app) {
       throw Object.assign(new Error('Application not found'), { code: ERROR_CODES.NOT_FOUND });

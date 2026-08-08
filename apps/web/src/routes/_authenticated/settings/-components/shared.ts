@@ -11,6 +11,8 @@ export const ME_QUERY = `
       timezone
       targetRole
       avatarUrl
+      backupEmail
+      backupEmailVerifiedAt
     }
   }
 `;
@@ -58,6 +60,18 @@ export const REQUEST_EMAIL_CHANGE = `
   }
 `;
 
+export const REQUEST_ADD_BACKUP_EMAIL = `
+  mutation RequestAddBackupEmail($currentPassword: String!, $backupEmail: String!) {
+    requestAddBackupEmail(currentPassword: $currentPassword, backupEmail: $backupEmail)
+  }
+`;
+
+export const REMOVE_BACKUP_EMAIL = `
+  mutation RemoveBackupEmail($currentPassword: String!) {
+    removeBackupEmail(currentPassword: $currentPassword)
+  }
+`;
+
 export const UPDATE_PASSWORD = `
   mutation UpdatePassword($currentPassword: String!, $newPassword: String!) {
     updatePassword(currentPassword: $currentPassword, newPassword: $newPassword)
@@ -86,10 +100,11 @@ export const EXPORT_USER_DATA = `
   }
 `;
 
-export const LOGIN_HISTORY = `
-  query LoginHistory {
-    loginHistory {
+export const SECURITY_ACTIVITY = `
+  query SecurityActivity {
+    securityActivity {
       id
+      eventType
       ipAddress
       userAgent
       createdAt
@@ -286,6 +301,15 @@ export const emailSchema = z.object({
   newEmail: z.string().email('Invalid email'),
 });
 
+export const backupEmailSchema = z.object({
+  currentPassword: z.string().min(1, 'Required'),
+  backupEmail: z.string().email('Invalid email'),
+});
+
+export const removeBackupEmailSchema = z.object({
+  currentPassword: z.string().min(1, 'Required'),
+});
+
 export const passwordSchema = z
   .object({
     currentPassword: z.string().min(1, 'Required'),
@@ -375,6 +399,8 @@ export const llmApiKeySchema = z
 export type ProfileForm = z.infer<typeof profileSchema>;
 export type CustomAiPromptForm = z.infer<typeof customAiPromptSchema>;
 export type EmailForm = z.infer<typeof emailSchema>;
+export type BackupEmailForm = z.infer<typeof backupEmailSchema>;
+export type RemoveBackupEmailForm = z.infer<typeof removeBackupEmailSchema>;
 export type PasswordForm = z.infer<typeof passwordSchema>;
 export type DeleteForm = z.infer<typeof deleteSchema>;
 export type ReauthForm = z.infer<typeof reauthSchema>;
@@ -408,12 +434,23 @@ export const LLM_PROVIDER_LABEL: Record<string, string> = Object.fromEntries(
   LLM_PROVIDER_OPTIONS.map((o) => [o.value, o.label]),
 );
 
-export interface LoginEvent {
+export interface SecurityActivityItem {
   id: string;
+  eventType: string;
   ipAddress: string | null;
   userAgent: string | null;
   createdAt: string;
 }
+
+export const SECURITY_EVENT_LABEL: Record<string, string> = {
+  login: 'Signed in',
+  password_changed: 'Password changed',
+  email_changed: 'Email address changed',
+  totp_enabled: 'Two-factor authentication enabled',
+  totp_disabled: 'Two-factor authentication disabled',
+  session_revoked: 'A session was revoked',
+  other_sessions_revoked: 'All other sessions were revoked',
+};
 
 export function describeDevice(userAgent: string | null): string {
   if (!userAgent) return 'Unknown device';
@@ -449,6 +486,8 @@ export type Me = {
   timezone: string | null;
   targetRole: string | null;
   avatarUrl: string | null;
+  backupEmail: string | null;
+  backupEmailVerifiedAt: string | null;
 };
 
 export type NotificationPreferences = {

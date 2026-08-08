@@ -10,6 +10,12 @@ UserRef.implement({
     timezone: t.exposeString('timezone', { nullable: true }),
     targetRole: t.exposeString('targetRole', { nullable: true }),
     avatarUrl: t.exposeString('avatarUrl', { nullable: true }),
+    backupEmail: t.exposeString('backupEmail', { nullable: true }),
+    backupEmailVerifiedAt: t.field({
+      type: 'String',
+      nullable: true,
+      resolve: (user) => user.backupEmailVerifiedAt?.toISOString() ?? null,
+    }),
     defaultLlmProvider: t.exposeString('defaultLlmProvider', { nullable: true }),
     customAiPrompt: t.exposeString('customAiPrompt', { nullable: true }),
   }),

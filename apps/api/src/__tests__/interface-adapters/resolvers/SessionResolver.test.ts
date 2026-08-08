@@ -73,9 +73,14 @@ describe('SessionResolver', () => {
     });
 
     const resolver = new SessionResolver(deps);
-    const result = await resolver.revokeSession('user-1', 'session-1');
+    const result = await resolver.revokeSession('user-1', 'session-1', '1.2.3.4', 'Mozilla/5.0');
 
-    expect(deps.revokeSessionUseCase.execute).toHaveBeenCalledWith('session-1', 'user-1');
+    expect(deps.revokeSessionUseCase.execute).toHaveBeenCalledWith(
+      'session-1',
+      'user-1',
+      '1.2.3.4',
+      'Mozilla/5.0',
+    );
     expect(result).toBe(true);
   });
 
@@ -87,9 +92,19 @@ describe('SessionResolver', () => {
     });
 
     const resolver = new SessionResolver(deps);
-    const result = await resolver.revokeOtherSessions('user-1', 'session-1');
+    const result = await resolver.revokeOtherSessions(
+      'user-1',
+      'session-1',
+      '1.2.3.4',
+      'Mozilla/5.0',
+    );
 
-    expect(deps.revokeOtherSessionsUseCase.execute).toHaveBeenCalledWith('user-1', 'session-1');
+    expect(deps.revokeOtherSessionsUseCase.execute).toHaveBeenCalledWith(
+      'user-1',
+      'session-1',
+      '1.2.3.4',
+      'Mozilla/5.0',
+    );
     expect(result).toBe(true);
   });
 });

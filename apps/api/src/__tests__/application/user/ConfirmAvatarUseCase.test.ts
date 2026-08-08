@@ -36,6 +36,19 @@ describe('ConfirmAvatarUseCase', () => {
     expect(userRepository.findById).not.toHaveBeenCalled();
   });
 
+  it('throws VALIDATION when sizeBytes exceeds the maximum allowed size', async () => {
+    const userRepository = makeUserRepository();
+    const useCase = new ConfirmAvatarUseCase({
+      userRepository,
+      storageProvider: makeStorageProvider(),
+    });
+
+    const err = await useCase.execute({ ...input, sizeBytes: 6 * 1024 * 1024 }).catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('VALIDATION');
+    expect(userRepository.findById).not.toHaveBeenCalled();
+  });
+
   it('throws NOT_FOUND when the user does not exist', async () => {
     const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(null) });
     const useCase = new ConfirmAvatarUseCase({

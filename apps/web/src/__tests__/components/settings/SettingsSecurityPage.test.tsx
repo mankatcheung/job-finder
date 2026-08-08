@@ -67,7 +67,7 @@ const defaultResponse = {
       current: true,
     },
   ],
-  loginHistory: [],
+  securityActivity: [],
   totpEnabled: false,
   linkedOAuthAccounts: [],
 };
@@ -351,14 +351,15 @@ describe('SettingsSecurityPage', () => {
     });
   });
 
-  describe('login history', () => {
-    it('renders recent login events with device and IP', async () => {
+  describe('security activity', () => {
+    it('renders a login event with device and IP', async () => {
       mockGqlRequest.mockImplementation((query: unknown) => {
-        if (typeof query === 'string' && query.includes('LoginHistory')) {
+        if (typeof query === 'string' && query.includes('SecurityActivity')) {
           return Promise.resolve({
-            loginHistory: [
+            securityActivity: [
               {
                 id: 'event-1',
+                eventType: 'login',
                 ipAddress: '203.0.113.5',
                 userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
                 createdAt: '2024-01-01T00:00:00.000Z',
@@ -372,21 +373,47 @@ describe('SettingsSecurityPage', () => {
       render(<SettingsSecurityPage />, { wrapper: Wrapper });
 
       await waitFor(() => {
+        expect(screen.getByText('Signed in')).toBeInTheDocument();
         expect(screen.getByText(/Mac · 203.0.113.5/)).toBeInTheDocument();
       });
     });
 
-    it('shows a message when there is no login history', async () => {
+    it('renders a non-login security event with its label', async () => {
+      mockGqlRequest.mockImplementation((query: unknown) => {
+        if (typeof query === 'string' && query.includes('SecurityActivity')) {
+          return Promise.resolve({
+            securityActivity: [
+              {
+                id: 'event-1',
+                eventType: 'password_changed',
+                ipAddress: '203.0.113.5',
+                userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+                createdAt: '2024-01-01T00:00:00.000Z',
+              },
+            ],
+          });
+        }
+        return Promise.resolve(defaultResponse);
+      });
+
       render(<SettingsSecurityPage />, { wrapper: Wrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('No login activity yet.')).toBeInTheDocument();
+        expect(screen.getByText('Password changed')).toBeInTheDocument();
       });
     });
 
-    it('shows an error message when login history fails to load', async () => {
+    it('shows a message when there is no security activity', async () => {
+      render(<SettingsSecurityPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('No security activity yet.')).toBeInTheDocument();
+      });
+    });
+
+    it('shows an error message when security activity fails to load', async () => {
       mockGqlRequest.mockImplementation((query: unknown) => {
-        if (typeof query === 'string' && query.includes('LoginHistory')) {
+        if (typeof query === 'string' && query.includes('SecurityActivity')) {
           return Promise.reject(new Error('network error'));
         }
         return Promise.resolve(defaultResponse);
@@ -395,7 +422,7 @@ describe('SettingsSecurityPage', () => {
       render(<SettingsSecurityPage />, { wrapper: Wrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to load login history.')).toBeInTheDocument();
+        expect(screen.getByText('Failed to load security activity.')).toBeInTheDocument();
       });
     });
   });
