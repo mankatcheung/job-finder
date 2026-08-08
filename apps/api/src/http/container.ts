@@ -265,6 +265,7 @@ export interface Cradle {
   generateCoverLetterRateLimiter: IRateLimiter;
   parseJobDescriptionRateLimiter: IRateLimiter;
   computeResumeMatchScoreRateLimiter: IRateLimiter;
+  generateCompanyBriefingRateLimiter: IRateLimiter;
   updatePasswordRateLimiter: IRateLimiter;
   requestEmailChangeRateLimiter: IRateLimiter;
   totpProvider: ITotpProvider;
@@ -545,6 +546,12 @@ export function buildContainer(): AwilixContainer<Cradle> {
       new RateLimiter(
         RATE_LIMIT.COMPUTE_RESUME_MATCH_SCORE.MAX_ATTEMPTS,
         RATE_LIMIT.COMPUTE_RESUME_MATCH_SCORE.WINDOW_MS,
+      ),
+    ),
+    generateCompanyBriefingRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.GENERATE_COMPANY_BRIEFING.MAX_ATTEMPTS,
+        RATE_LIMIT.GENERATE_COMPANY_BRIEFING.WINDOW_MS,
       ),
     ),
     updatePasswordRateLimiter: asValue(

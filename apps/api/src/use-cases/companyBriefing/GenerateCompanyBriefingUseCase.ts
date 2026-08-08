@@ -2,6 +2,7 @@ import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFacto
 import type { LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { ERROR_CODES } from '#src/constants.js';
 
 export interface GenerateCompanyBriefingInput {
@@ -13,6 +14,7 @@ interface Deps {
   llmProviderFactory: ILLMProviderFactory;
   applicationRepository: IApplicationRepository;
   userRepository: IUserRepository;
+  generateCompanyBriefingRateLimiter: IRateLimiter;
 }
 
 const SYSTEM_PROMPT = `You are a career research assistant preparing a candidate for a job application. Given a company, role, and job description, write a concise pre-interview briefing covering:
@@ -30,6 +32,14 @@ export class GenerateCompanyBriefingUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: GenerateCompanyBriefingInput): Promise<string> {
+    if (
+      !this.deps.generateCompanyBriefingRateLimiter.consume(`company-briefing:user:${input.userId}`)
+    ) {
+      throw Object.assign(new Error('Too many requests — please wait a moment and try again'), {
+        code: ERROR_CODES.RATE_LIMITED,
+      });
+    }
+
     const app = await this.deps.applicationRepository.findById(input.applicationId);
     if (!app) {
       throw Object.assign(new Error('Application not found'), { code: ERROR_CODES.NOT_FOUND });

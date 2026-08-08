@@ -7,6 +7,7 @@ import {
   makeLLMProviderFactory,
   makeUserRepository,
   makeUser,
+  makeRateLimiter,
 } from '#src/__tests__/helpers/mocks.js';
 
 const BRIEFING = 'Company overview:\nAcme builds widgets…\n\nTalking points:\n- Ask about X';
@@ -27,6 +28,7 @@ describe('GenerateCompanyBriefingUseCase', () => {
       applicationRepository,
       llmProviderFactory,
       userRepository,
+      generateCompanyBriefingRateLimiter: makeRateLimiter(),
     }).execute({
       applicationId: 'app-1',
       userId: 'user-1',
@@ -53,6 +55,7 @@ describe('GenerateCompanyBriefingUseCase', () => {
       applicationRepository,
       llmProviderFactory,
       userRepository,
+      generateCompanyBriefingRateLimiter: makeRateLimiter(),
     }).execute({
       applicationId: 'app-1',
       userId: 'user-1',
@@ -81,6 +84,7 @@ describe('GenerateCompanyBriefingUseCase', () => {
       applicationRepository,
       llmProviderFactory,
       userRepository,
+      generateCompanyBriefingRateLimiter: makeRateLimiter(),
     }).execute({
       applicationId: 'app-1',
       userId: 'user-1',
@@ -108,6 +112,7 @@ describe('GenerateCompanyBriefingUseCase', () => {
       applicationRepository,
       llmProviderFactory,
       userRepository,
+      generateCompanyBriefingRateLimiter: makeRateLimiter(),
     }).execute({
       applicationId: 'app-1',
       userId: 'user-1',
@@ -140,6 +145,7 @@ describe('GenerateCompanyBriefingUseCase', () => {
       applicationRepository,
       llmProviderFactory,
       userRepository,
+      generateCompanyBriefingRateLimiter: makeRateLimiter(),
     }).execute({
       applicationId: 'app-1',
       userId: 'user-1',
@@ -165,6 +171,7 @@ describe('GenerateCompanyBriefingUseCase', () => {
       applicationRepository,
       llmProviderFactory,
       userRepository,
+      generateCompanyBriefingRateLimiter: makeRateLimiter(),
     })
       .execute({ applicationId: 'missing', userId: 'user-1' })
       .catch((e) => e);
@@ -186,6 +193,7 @@ describe('GenerateCompanyBriefingUseCase', () => {
       applicationRepository,
       llmProviderFactory,
       userRepository,
+      generateCompanyBriefingRateLimiter: makeRateLimiter(),
     })
       .execute({ applicationId: 'app-1', userId: 'user-1' })
       .catch((e) => e);
@@ -206,10 +214,32 @@ describe('GenerateCompanyBriefingUseCase', () => {
       applicationRepository,
       llmProviderFactory,
       userRepository,
+      generateCompanyBriefingRateLimiter: makeRateLimiter(),
     })
       .execute({ applicationId: 'app-1', userId: 'user-1' })
       .catch((e) => e);
 
     expect((err as { code: string }).code).toBe('AI_NOT_CONFIGURED');
+  });
+
+  it('throws RATE_LIMITED when the rate limiter rejects the request', async () => {
+    const applicationRepository = makeApplicationRepository();
+    const llmProviderFactory = makeLLMProviderFactory();
+    const userRepository = makeUserRepository();
+    const generateCompanyBriefingRateLimiter = makeRateLimiter({
+      consume: vi.fn().mockReturnValue(false),
+    });
+
+    const err = await new GenerateCompanyBriefingUseCase({
+      applicationRepository,
+      llmProviderFactory,
+      userRepository,
+      generateCompanyBriefingRateLimiter,
+    })
+      .execute({ applicationId: 'app-1', userId: 'user-1' })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('RATE_LIMITED');
+    expect(applicationRepository.findById).not.toHaveBeenCalled();
   });
 });
