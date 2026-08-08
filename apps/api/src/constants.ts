@@ -169,6 +169,24 @@ export const RATE_LIMIT = {
     MAX_ATTEMPTS: 3,
     WINDOW_MS: 60 * 60 * 1000, // 1 hour
   },
+  // Single-shot AI mutations (cover letter / JD parsing / resume match) — more
+  // generous than CHAT_MESSAGE since each is a discrete action rather than a
+  // back-and-forth conversation, but previously had zero protection against a
+  // buggy client looping the mutation. BYOK means this only ever burns the
+  // calling user's own provider quota, so severity is about abuse/bug
+  // containment, not shared-resource protection.
+  GENERATE_COVER_LETTER: {
+    MAX_ATTEMPTS: 20,
+    WINDOW_MS: 5 * 60 * 1000, // 5 minutes
+  },
+  PARSE_JOB_DESCRIPTION: {
+    MAX_ATTEMPTS: 20,
+    WINDOW_MS: 5 * 60 * 1000, // 5 minutes
+  },
+  COMPUTE_RESUME_MATCH_SCORE: {
+    MAX_ATTEMPTS: 20,
+    WINDOW_MS: 5 * 60 * 1000, // 5 minutes
+  },
 } as const;
 
 /** Email-verification token settings. */
