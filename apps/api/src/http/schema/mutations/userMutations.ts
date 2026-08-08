@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
+import { DigestFrequencyEnum } from '#src/http/schema/types/enums/DigestFrequencyEnum.js';
 import { clearAuthCookies } from '#src/http/schema/types/AuthPayloadType.js';
 import { TotpSetupRef } from '#src/http/schema/types/TotpSetupType.js';
 import { ConfirmTotpSetupResultRef } from '#src/http/schema/types/ConfirmTotpSetupType.js';
@@ -344,6 +345,7 @@ builder.mutationField('updateNotificationPreferences', (t) =>
   t.boolean({
     args: {
       weeklyDigestEnabled: t.arg.boolean({ required: false }),
+      digestFrequency: t.arg({ type: DigestFrequencyEnum, required: false }),
       followUpRemindersEnabled: t.arg.boolean({ required: false }),
       pushNotificationsEnabled: t.arg.boolean({ required: false }),
     },
@@ -357,6 +359,7 @@ builder.mutationField('updateNotificationPreferences', (t) =>
           args.weeklyDigestEnabled ?? undefined,
           args.followUpRemindersEnabled ?? undefined,
           args.pushNotificationsEnabled ?? undefined,
+          args.digestFrequency ?? undefined,
         );
         return true;
       } catch (err) {

@@ -5,6 +5,7 @@ import './types/enums/ApplicationStatusEnum.js';
 import './types/enums/InterviewRoundEnums.js';
 import './types/enums/ActivityEventTypeEnum.js';
 import './types/enums/ApiTokenScopeEnum.js';
+import './types/enums/DigestFrequencyEnum.js';
 import './types/enums/OAuthProviderEnum.js';
 import './types/UserType.js';
 import './types/LinkedOAuthAccountType.js';

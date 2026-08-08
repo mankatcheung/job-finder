@@ -8,7 +8,11 @@ export interface WeeklyDigestData {
 
 export interface IEmailService {
   sendFollowUpReminder(to: string, company: string, role: string, followUpAt: Date): Promise<void>;
-  sendWeeklyDigest(to: string, data: WeeklyDigestData): Promise<void>;
+  sendWeeklyDigest(
+    to: string,
+    data: WeeklyDigestData,
+    frequency?: 'daily' | 'weekly',
+  ): Promise<void>;
   sendPasswordReset(to: string, resetUrl: string): Promise<void>;
   sendEmailVerification(to: string, verifyUrl: string): Promise<void>;
   sendNewDeviceLoginAlert(

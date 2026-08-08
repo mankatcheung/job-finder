@@ -53,6 +53,7 @@ export class DrizzleUserRepository implements IUserRepository {
       emailVerifiedAt?: Date | null;
       avatarKey?: string | null;
       weeklyDigestEnabled?: boolean;
+      digestFrequency?: 'daily' | 'weekly' | 'off';
       followUpRemindersEnabled?: boolean;
       pushNotificationsEnabled?: boolean;
       totpSecret?: string | null;
@@ -88,6 +89,7 @@ export class DrizzleUserRepository implements IUserRepository {
       emailVerifiedAt: row.emailVerifiedAt,
       avatarKey: row.avatarKey,
       weeklyDigestEnabled: row.weeklyDigestEnabled,
+      digestFrequency: row.digestFrequency as User['digestFrequency'],
       lastDigestSentAt: row.lastDigestSentAt,
       followUpRemindersEnabled: row.followUpRemindersEnabled,
       pushNotificationsEnabled: row.pushNotificationsEnabled,

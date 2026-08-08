@@ -20,9 +20,12 @@ export function SettingsNotificationsPage() {
       ),
   });
   const prefs = prefsData?.notificationPreferences;
+  const digestFrequency = prefs?.digestFrequency ?? (prefs?.weeklyDigestEnabled ? 'weekly' : 'off');
 
-  const onToggleWeeklyDigest = async (checked: boolean) => {
-    await gqlClient.request(UPDATE_NOTIFICATION_PREFERENCES, { weeklyDigestEnabled: checked });
+  const onChangeDigestFrequency = async (
+    digestFrequency: NotificationPreferences['digestFrequency'],
+  ) => {
+    await gqlClient.request(UPDATE_NOTIFICATION_PREFERENCES, { digestFrequency });
     await qc.invalidateQueries({ queryKey: ['notificationPreferences'] });
   };
 
@@ -68,15 +71,31 @@ export function SettingsNotificationsPage() {
         </div>
         {prefs && (
           <div className="space-y-3">
-            <label className="flex items-center gap-3 text-sm text-gray-900 dark:text-gray-100">
-              <input
-                type="checkbox"
-                checked={prefs.weeklyDigestEnabled}
-                onChange={(e) => onToggleWeeklyDigest(e.target.checked)}
-                className="h-4 w-4"
-              />
-              Weekly job search digest
-            </label>
+            <div>
+              <label
+                htmlFor="digest-frequency"
+                className="block text-sm font-medium text-gray-900 dark:text-gray-100"
+              >
+                Job search digest
+              </label>
+              <select
+                id="digest-frequency"
+                value={digestFrequency}
+                onChange={(e) =>
+                  onChangeDigestFrequency(
+                    e.target.value as NotificationPreferences['digestFrequency'],
+                  )
+                }
+                className="mt-1 block w-full max-w-xs rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              >
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="off">Off</option>
+              </select>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Daily summarizes the last 24 hours; weekly summarizes the last 7 days.
+              </p>
+            </div>
             <label className="flex items-center gap-3 text-sm text-gray-900 dark:text-gray-100">
               <input
                 type="checkbox"

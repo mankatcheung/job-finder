@@ -170,12 +170,14 @@ export class UserResolver {
     weeklyDigestEnabled?: boolean,
     followUpRemindersEnabled?: boolean,
     pushNotificationsEnabled?: boolean,
+    digestFrequency?: 'daily' | 'weekly' | 'off',
   ): Promise<void> {
     await this.deps.updateNotificationPreferencesUseCase.execute({
       userId,
       weeklyDigestEnabled,
       followUpRemindersEnabled,
       pushNotificationsEnabled,
+      digestFrequency,
     });
   }
 
