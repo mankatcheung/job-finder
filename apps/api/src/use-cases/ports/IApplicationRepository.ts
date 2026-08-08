@@ -41,6 +41,7 @@ export interface FindApplicationsPageFilters {
   status?: ApplicationStatus;
   starred?: boolean;
   search?: string;
+  likelyGhosted?: boolean;
 }
 
 export interface FindApplicationsPagePagination {

@@ -24,7 +24,7 @@ import { Route } from '../index';
 import { applicationsPageQueryOptions, APPLICATION_STATUSES, type Application } from '../index';
 
 function ApplicationsPage() {
-  const { status, starred } = Route.useSearch();
+  const { status, starred, likelyGhosted } = Route.useSearch();
   const [searchInput, setSearchInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -44,7 +44,7 @@ function ApplicationsPage() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteQuery(applicationsPageQueryOptions(status, starred, searchTerm));
+  } = useInfiniteQuery(applicationsPageQueryOptions(status, starred, searchTerm, likelyGhosted));
 
   const apps = useMemo(
     () => data?.pages.flatMap((page) => page.applicationsPage.items) ?? [],
@@ -151,6 +151,13 @@ function ApplicationsPage() {
           <StarIcon size={11} className={starred ? 'fill-white' : ''} />
           Starred
         </Link>
+        <Link
+          to="/applications"
+          search={likelyGhosted ? {} : { likelyGhosted: true }}
+          className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${likelyGhosted ? 'bg-amber-500 text-white border-amber-500' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-amber-400'}`}
+        >
+          Likely ghosted
+        </Link>
       </div>
 
       {isLoading ? (
@@ -170,7 +177,9 @@ function ApplicationsPage() {
               ? ` matching "${searchTerm}"`
               : status
                 ? ` with status "${status}"`
-                : ''}{' '}
+                : likelyGhosted
+                  ? ' likely ghosted'
+                  : ''}{' '}
             yet.
           </p>
         </div>
@@ -238,6 +247,11 @@ function ApplicationsPage() {
                       : new Date(app.createdAt).toLocaleDateString()}
                   </p>
                   <StatusBadge status={app.status} />
+                  {app.likelyGhosted && (
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                      Likely ghosted
+                    </span>
+                  )}
                 </div>
               </Link>
             </div>

@@ -219,6 +219,11 @@ function AppCard({ app, isDragging }: { app: Application; isDragging?: boolean }
       <div className="flex items-center justify-between mt-2">
         {app.starred && <StarIcon size={11} className="text-yellow-400 fill-yellow-400" />}
         <StatusBadge status={app.status as ApplicationStatus} />
+        {app.likelyGhosted && (
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+            Likely ghosted
+          </span>
+        )}
       </div>
     </Link>
   );

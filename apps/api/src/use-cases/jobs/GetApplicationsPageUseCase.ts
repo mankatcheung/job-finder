@@ -21,7 +21,12 @@ export class GetApplicationsPageUseCase implements IGetApplicationsPageUseCase {
 
     const { items, hasNextPage } = await this.deps.applicationRepository.findPageByUserId(
       input.userId,
-      { status: input.status, starred: input.starred, search: input.search },
+      {
+        status: input.status,
+        starred: input.starred,
+        search: input.search,
+        likelyGhosted: input.likelyGhosted,
+      },
       { cursor: input.cursor, limit },
     );
 
