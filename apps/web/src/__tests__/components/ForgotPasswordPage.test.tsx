@@ -44,4 +44,25 @@ describe('ForgotPasswordPage', () => {
       email: 'test@example.com',
     });
   });
+
+  it('can request recovery through a backup email', async () => {
+    mockGqlRequest.mockResolvedValue({ requestBackupEmailRecovery: true });
+    render(<ForgotPasswordPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: /use a backup email/i }));
+    await fireEvent.input(screen.getByLabelText('Email'), {
+      target: { value: 'backup@example.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send recovery link' }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/sent a recovery link/i)).toBeInTheDocument();
+    });
+    expect(mockGqlRequest).toHaveBeenCalledWith(
+      expect.stringContaining('RequestBackupEmailRecovery'),
+      {
+        backupEmail: 'backup@example.com',
+      },
+    );
+  });
 });
