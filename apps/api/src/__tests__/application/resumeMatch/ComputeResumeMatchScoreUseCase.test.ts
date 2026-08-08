@@ -12,6 +12,7 @@ import {
   makeWorkExperienceRepository,
   makeEducationRepository,
   makeSkillRepository,
+  makeRateLimiter,
 } from '#src/__tests__/helpers/mocks.js';
 
 const MATCH_RESPONSE = JSON.stringify({
@@ -39,6 +40,7 @@ function makeDeps(overrides?: Record<string, unknown>) {
     workExperienceRepository: makeWorkExperienceRepository(),
     educationRepository: makeEducationRepository(),
     skillRepository: makeSkillRepository(),
+    computeResumeMatchScoreRateLimiter: makeRateLimiter(),
     ...overrides,
   };
 }
@@ -326,5 +328,20 @@ describe('ComputeResumeMatchScoreUseCase', () => {
 
     expect(userMsg.content).toContain('We need a TS engineer');
     expect(userMsg.content).toContain('My resume content');
+  });
+
+  it('throws RATE_LIMITED when the rate limiter rejects the request', async () => {
+    const deps = makeDeps({
+      computeResumeMatchScoreRateLimiter: makeRateLimiter({
+        consume: vi.fn().mockReturnValue(false),
+      }),
+    });
+
+    const err = await new ComputeResumeMatchScoreUseCase(deps as never)
+      .execute({ applicationId: 'app-1', userId: 'user-1' })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('RATE_LIMITED');
+    expect(deps.applicationRepository.findById).not.toHaveBeenCalled();
   });
 });
