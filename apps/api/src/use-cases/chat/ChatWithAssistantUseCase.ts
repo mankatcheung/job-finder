@@ -47,10 +47,16 @@ interface Deps {
 
 const SYSTEM_PROMPT = `You are a helpful assistant inside a job application tracker. Answer the user's questions about their job applications, contacts, interview rounds, and professional background using the available tools — never guess at data you haven't fetched. Be concise; summarize lists rather than dumping raw data. Questions about notes, contacts, or interview rounds are scoped to one application, so first find its id with list_applications if you don't already have it. You can also look up the user's work experience, education, and skills to help with cover letters, interview prep, or career advice.`;
 
-const TOOLS: LLMToolDefinition[] = MCP_TOOLS.map((t) => ({
+// The system prompt and tool catalogue are identical on every chat request
+// from every user, so they're marked as a cache breakpoint: Anthropic (the
+// only provider requiring an explicit opt-in) caches the static prefix up to
+// and including the marked block, and reuses it across both same-turn tool
+// round-trips and later turns/users instead of reprocessing it every call.
+const TOOLS: LLMToolDefinition[] = MCP_TOOLS.map((t, i, arr) => ({
   name: t.name,
   description: t.description,
   parameters: t.inputSchema,
+  ...(i === arr.length - 1 ? { cacheBreakpoint: true } : {}),
 }));
 
 export class ChatWithAssistantUseCase {
@@ -81,7 +87,7 @@ export class ChatWithAssistantUseCase {
     const history = await this.deps.messageRepository.findAllByConversationId(input.conversationId);
 
     const messages: LLMMessage[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: SYSTEM_PROMPT, cacheBreakpoint: true },
       ...(user?.customAiPrompt
         ? [{ role: 'system', content: user.customAiPrompt } as LLMMessage]
         : []),

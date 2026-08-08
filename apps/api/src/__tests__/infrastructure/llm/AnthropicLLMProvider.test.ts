@@ -184,6 +184,29 @@ describe('AnthropicLLMProvider', () => {
       ]);
     });
 
+    it('attaches cache_control only to tools marked cacheBreakpoint', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ content: [{ type: 'text', text: 'ok' }] }) as never,
+      );
+
+      const provider = new AnthropicLLMProvider('secret-key');
+      const tools = [
+        { name: 'list_applications', description: 'List applications', parameters: {} },
+        {
+          name: 'get_application',
+          description: 'Get an application',
+          parameters: {},
+          cacheBreakpoint: true,
+        },
+      ];
+      await provider.completeWithTools([{ role: 'user', content: 'hi' }], tools);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.tools[0].cache_control).toBeUndefined();
+      expect(body.tools[1].cache_control).toEqual({ type: 'ephemeral' });
+    });
+
     it('parses tool_use blocks from the response alongside any text block', async () => {
       vi.mocked(fetch).mockResolvedValue(
         jsonResponse({
@@ -255,6 +278,70 @@ describe('AnthropicLLMProvider', () => {
         role: 'user',
         content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: '[]' }],
       });
+    });
+  });
+
+  describe('prompt caching', () => {
+    it('keeps the bare-string system field when no system message is marked cacheBreakpoint', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ content: [{ type: 'text', text: 'ok' }] }) as never,
+      );
+
+      const provider = new AnthropicLLMProvider('secret-key');
+      await provider.complete([
+        { role: 'system', content: 'be helpful' },
+        { role: 'user', content: 'hi' },
+      ]);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.system).toBe('be helpful');
+    });
+
+    it('switches to a content-block system field, attaching cache_control only to the marked block', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ content: [{ type: 'text', text: 'ok' }] }) as never,
+      );
+
+      const provider = new AnthropicLLMProvider('secret-key');
+      await provider.complete([
+        { role: 'system', content: 'shared system prompt', cacheBreakpoint: true },
+        { role: 'system', content: 'per-user custom prompt' },
+        { role: 'user', content: 'hi' },
+      ]);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.system).toEqual([
+        {
+          type: 'text',
+          text: 'shared system prompt',
+          cache_control: { type: 'ephemeral' },
+        },
+        { type: 'text', text: 'per-user custom prompt' },
+      ]);
+    });
+
+    it('applies the same system cache_control behavior to completeWithTools', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ content: [{ type: 'text', text: 'ok' }] }) as never,
+      );
+
+      const provider = new AnthropicLLMProvider('secret-key');
+      await provider.completeWithTools(
+        [{ role: 'system', content: 'shared system prompt', cacheBreakpoint: true }],
+        [],
+      );
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.system).toEqual([
+        {
+          type: 'text',
+          text: 'shared system prompt',
+          cache_control: { type: 'ephemeral' },
+        },
+      ]);
     });
   });
 });

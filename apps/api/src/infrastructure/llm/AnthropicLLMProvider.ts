@@ -12,6 +12,10 @@ type AnthropicContentBlock =
   | { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> }
   | { type: 'tool_result'; tool_use_id: string; content: string };
 
+type AnthropicCacheControl = { type: 'ephemeral' };
+
+type AnthropicSystemBlock = { type: 'text'; text: string; cache_control?: AnthropicCacheControl };
+
 interface AnthropicWireMessage {
   role: 'user' | 'assistant';
   content: string | AnthropicContentBlock[];
@@ -58,6 +62,7 @@ export class AnthropicLLMProvider implements ILLMProvider {
         name: t.name,
         description: t.description,
         input_schema: t.parameters,
+        ...(t.cacheBreakpoint ? { cache_control: { type: 'ephemeral' as const } } : {}),
       })),
     });
 
@@ -74,14 +79,26 @@ export class AnthropicLLMProvider implements ILLMProvider {
     return { content: text, toolCalls };
   }
 
-  private splitSystem(messages: LLMMessage[]): { system: string; conversation: LLMMessage[] } {
+  private splitSystem(messages: LLMMessage[]): {
+    system: string | AnthropicSystemBlock[];
+    conversation: LLMMessage[];
+  } {
     // Anthropic's Messages API takes the system prompt as a separate
     // top-level field rather than a message with role "system".
-    const system = messages
-      .filter((m) => m.role === 'system')
-      .map((m) => m.content)
-      .join('\n\n');
+    const systemMessages = messages.filter((m) => m.role === 'system');
     const conversation = messages.filter((m) => m.role !== 'system');
+
+    // Only switch to the content-block form when a cache breakpoint is
+    // actually in use — keeps the existing bare-string wire shape unchanged
+    // for every caller that doesn't request caching.
+    const system = systemMessages.some((m) => m.cacheBreakpoint)
+      ? systemMessages.map((m) => ({
+          type: 'text' as const,
+          text: m.content,
+          ...(m.cacheBreakpoint ? { cache_control: { type: 'ephemeral' as const } } : {}),
+        }))
+      : systemMessages.map((m) => m.content).join('\n\n');
+
     return { system, conversation };
   }
 
