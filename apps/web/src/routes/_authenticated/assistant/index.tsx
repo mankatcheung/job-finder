@@ -4,11 +4,7 @@ import {
   conversationsQueryOptions,
   chatHistoryQueryOptions,
 } from '#/routes/_authenticated/assistant/-shared';
-import { lazy } from 'react';
-
-const AssistantPage = lazy(() =>
-  import('./-components/AssistantPage').then((m) => ({ default: m.AssistantPage })),
-);
+import { AssistantPage } from './-components/AssistantPage';
 
 const searchSchema = z.object({ conversation: z.string().optional() });
 

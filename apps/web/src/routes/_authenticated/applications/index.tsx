@@ -2,12 +2,8 @@ import { createFileRoute } from '@tanstack/react-router';
 import { infiniteQueryOptions } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
 import { z } from 'zod';
-import { lazy } from 'react';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
-
-const ApplicationsPage = lazy(() =>
-  import('./-components/ApplicationsPage').then((m) => ({ default: m.ApplicationsPage })),
-);
+import { ApplicationsPage } from './-components/ApplicationsPage';
 
 const PAGE_SIZE = 20;
 

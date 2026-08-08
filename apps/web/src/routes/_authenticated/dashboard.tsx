@@ -1,11 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { queryOptions } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
-import { lazy } from 'react';
-
-const DashboardPage = lazy(() =>
-  import('./-components/DashboardPage').then((m) => ({ default: m.DashboardPage })),
-);
+import { DashboardPage } from './-components/DashboardPage';
 
 const APPLICATIONS_QUERY = `
   query Applications {
