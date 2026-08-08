@@ -5,6 +5,7 @@ import './types/enums/ApplicationStatusEnum.js';
 import './types/enums/InterviewRoundEnums.js';
 import './types/enums/ActivityEventTypeEnum.js';
 import './types/enums/ApiTokenScopeEnum.js';
+import './types/enums/DigestFrequencyEnum.js';
 import './types/enums/OAuthProviderEnum.js';
 import './types/UserType.js';
 import './types/LinkedOAuthAccountType.js';
@@ -35,6 +36,7 @@ import './types/WorkExperienceType.js';
 import './types/EducationType.js';
 import './types/SkillType.js';
 import './types/OfferType.js';
+import './types/ShareLinkType.js';
 
 // Queries
 import './queries/applicationQueries.js';
@@ -48,6 +50,7 @@ import './queries/apiTokenQueries.js';
 import './queries/contactQueries.js';
 import './queries/healthScoreQueries.js';
 import './queries/loginEventQueries.js';
+import './queries/securityActivityQueries.js';
 import './queries/sessionQueries.js';
 import './queries/oauthQueries.js';
 import './queries/calendarQueries.js';
@@ -57,6 +60,7 @@ import './queries/workExperienceQueries.js';
 import './queries/educationQueries.js';
 import './queries/skillQueries.js';
 import './queries/offerQueries.js';
+import './queries/shareLinkQueries.js';
 
 // Mutations
 import './mutations/authMutations.js';
@@ -70,6 +74,7 @@ import './mutations/apiTokenMutations.js';
 import './mutations/contactMutations.js';
 import './mutations/jobDescriptionMutations.js';
 import './mutations/coverLetterMutations.js';
+import './mutations/companyBriefingMutations.js';
 import './mutations/resumeMatchMutations.js';
 import './mutations/sessionMutations.js';
 import './mutations/oauthMutations.js';
@@ -80,5 +85,6 @@ import './mutations/workExperienceMutations.js';
 import './mutations/educationMutations.js';
 import './mutations/skillMutations.js';
 import './mutations/offerMutations.js';
+import './mutations/shareLinkMutations.js';
 
 export const schema = builder.toSchema();

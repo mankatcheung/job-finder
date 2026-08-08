@@ -10,6 +10,7 @@ export const user = sqliteTable('User', {
   emailVerifiedAt: integer('emailVerifiedAt', { mode: 'timestamp_ms' }),
   avatarKey: text('avatarKey'),
   weeklyDigestEnabled: integer('weeklyDigestEnabled', { mode: 'boolean' }).notNull().default(true),
+  digestFrequency: text('digestFrequency').notNull().default('weekly'),
   lastDigestSentAt: integer('lastDigestSentAt', { mode: 'timestamp_ms' }),
   followUpRemindersEnabled: integer('followUpRemindersEnabled', { mode: 'boolean' })
     .notNull()
@@ -28,6 +29,10 @@ export const user = sqliteTable('User', {
   defaultLlmProvider: text('defaultLlmProvider'),
   /** User-authored instruction spliced into the system prompt for AI-generated text (cover letters, chat assistant). */
   customAiPrompt: text('customAiPrompt'),
+  /** Secondary email for account recovery when primary inbox is inaccessible. */
+  backupEmail: text('backupEmail'),
+  /** When the backup email was verified; null until verification completes. */
+  backupEmailVerifiedAt: integer('backupEmailVerifiedAt', { mode: 'timestamp_ms' }),
   createdAt: integer('createdAt', { mode: 'timestamp_ms' })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -90,6 +95,23 @@ export const loginEvent = sqliteTable(
       .$defaultFn(() => new Date()),
   },
   (table) => [index('LoginEvent_userId_idx').on(table.userId)],
+);
+
+export const securityEvent = sqliteTable(
+  'SecurityEvent',
+  {
+    id: text('id').primaryKey(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    eventType: text('eventType').notNull(),
+    ipAddress: text('ipAddress'),
+    userAgent: text('userAgent'),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [index('SecurityEvent_userId_idx').on(table.userId)],
 );
 
 export const llmApiKey = sqliteTable(
@@ -225,6 +247,24 @@ export const passwordResetToken = sqliteTable(
   (table) => [index('PasswordResetToken_userId_idx').on(table.userId)],
 );
 
+export const backupEmailVerificationToken = sqliteTable(
+  'BackupEmailVerificationToken',
+  {
+    id: text('id').primaryKey(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    tokenHash: text('tokenHash').notNull().unique(),
+    newBackupEmail: text('newBackupEmail').notNull(),
+    expiresAt: integer('expiresAt', { mode: 'timestamp_ms' }).notNull(),
+    usedAt: integer('usedAt', { mode: 'timestamp_ms' }),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [index('BackupEmailVerificationToken_userId_idx').on(table.userId)],
+);
+
 export const apiToken = sqliteTable(
   'ApiToken',
   {
@@ -241,6 +281,23 @@ export const apiToken = sqliteTable(
       .$defaultFn(() => new Date()),
   },
   (table) => [index('ApiToken_userId_idx').on(table.userId)],
+);
+
+export const shareLink = sqliteTable(
+  'ShareLink',
+  {
+    id: text('id').primaryKey(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    tokenHash: text('tokenHash').notNull().unique(),
+    lastUsedAt: integer('lastUsedAt', { mode: 'timestamp_ms' }),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [index('ShareLink_userId_idx').on(table.userId)],
 );
 
 export const jobApplication = sqliteTable(

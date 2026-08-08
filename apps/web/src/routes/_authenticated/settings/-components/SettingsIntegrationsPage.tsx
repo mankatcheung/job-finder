@@ -13,6 +13,9 @@ import {
   API_TOKENS_QUERY,
   CREATE_API_TOKEN,
   DELETE_API_TOKEN,
+  SHARE_LINKS_QUERY,
+  CREATE_SHARE_LINK,
+  DELETE_SHARE_LINK,
   llmApiKeySchema,
   customAiPromptSchema,
   CUSTOM_LLM_PROVIDER,
@@ -21,6 +24,8 @@ import {
   type LlmApiKey,
   type ApiToken,
   type CreateApiTokenPayload,
+  type ShareLink,
+  type CreateShareLinkPayload,
   LLM_PROVIDER_OPTIONS,
   LLM_PROVIDER_LABEL,
   inputCls,
@@ -173,6 +178,54 @@ export function SettingsIntegrationsPage() {
       setApiTokenError(extractGqlError(err) ?? 'Failed to delete token.');
     } finally {
       setDeletingApiTokenId(null);
+    }
+  };
+
+  // Share links
+  const { data: shareLinksData } = useQuery({
+    queryKey: ['shareLinks'],
+    queryFn: () => gqlClient.request<{ shareLinks: ShareLink[] }>(SHARE_LINKS_QUERY),
+  });
+  const shareLinks = shareLinksData?.shareLinks ?? [];
+  const [newShareLink, setNewShareLink] = useState<CreateShareLinkPayload | null>(null);
+  const [shareLinkName, setShareLinkName] = useState('');
+  const [creatingShareLink, setCreatingShareLink] = useState(false);
+  const [shareLinkError, setShareLinkError] = useState<string | null>(null);
+
+  const shareUrl = (token: string) =>
+    `${window.location.origin}/share?token=${encodeURIComponent(token)}`;
+
+  const onCreateShareLink = async () => {
+    if (!shareLinkName.trim()) return;
+    setCreatingShareLink(true);
+    setShareLinkError(null);
+    try {
+      const res = await gqlClient.request<{ createShareLink: CreateShareLinkPayload }>(
+        CREATE_SHARE_LINK,
+        {
+          name: shareLinkName.trim(),
+        },
+      );
+      setNewShareLink(res.createShareLink);
+      setShareLinkName('');
+      await qc.invalidateQueries({ queryKey: ['shareLinks'] });
+    } catch (err) {
+      setShareLinkError(extractGqlError(err) ?? 'Failed to create share link.');
+    } finally {
+      setCreatingShareLink(false);
+    }
+  };
+
+  const [deletingShareLinkId, setDeletingShareLinkId] = useState<string | null>(null);
+  const onDeleteShareLink = async (id: string) => {
+    setDeletingShareLinkId(id);
+    try {
+      await gqlClient.request(DELETE_SHARE_LINK, { id });
+      await qc.invalidateQueries({ queryKey: ['shareLinks'] });
+    } catch (err) {
+      setShareLinkError(extractGqlError(err) ?? 'Failed to delete share link.');
+    } finally {
+      setDeletingShareLinkId(null);
     }
   };
 
@@ -482,6 +535,113 @@ export function SettingsIntegrationsPage() {
                   <Trash2Icon size={14} />{' '}
                   <span className="hidden sm:inline">
                     {deletingApiTokenId === token.id ? 'Deleting…' : 'Revoke'}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <hr className="border-gray-200 dark:border-gray-700" />
+
+      {/* ── Share links ── */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Share links</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Generate a read-only link to share a summary of your job search — status counts and
+            recent activity only, never company names, notes, contacts, or documents. Useful for
+            keeping a mentor or accountability partner in the loop without giving full account
+            access.
+          </p>
+        </div>
+
+        {newShareLink && (
+          <div className="space-y-3">
+            <p className="text-sm text-green-600">
+              Share link created successfully. Copy it now — the link won&apos;t be shown again.
+            </p>
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+              <code className="flex-1 text-sm font-mono text-gray-900 dark:text-gray-100 break-all">
+                {shareUrl(newShareLink.token)}
+              </code>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(shareUrl(newShareLink.token));
+                }}
+                aria-label="Copy link"
+                className="shrink-0 flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:underline"
+              >
+                <CopyIcon size={14} /> <span className="hidden sm:inline">Copy</span>
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setNewShareLink(null)}
+              aria-label="Done"
+              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <CheckIcon size={14} /> <span className="hidden sm:inline">Done</span>
+            </button>
+          </div>
+        )}
+
+        {!newShareLink && (
+          <>
+            {shareLinkError && (
+              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+                {shareLinkError}
+              </p>
+            )}
+            <div className="flex items-end gap-3">
+              <div className="flex-1">
+                <label className={labelCls}>Link name</label>
+                <input
+                  type="text"
+                  value={shareLinkName}
+                  onChange={(e) => setShareLinkName(e.target.value)}
+                  className={inputCls}
+                  placeholder="e.g. For my mentor"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={onCreateShareLink}
+                disabled={creatingShareLink || !shareLinkName.trim()}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                {creatingShareLink ? 'Creating…' : 'Create link'}
+              </button>
+            </div>
+          </>
+        )}
+
+        {shareLinks.length > 0 && (
+          <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
+            {shareLinks.map((link) => (
+              <li key={link.id} className="flex items-center justify-between gap-4 px-3 py-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {link.name}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Created {new Date(link.createdAt).toLocaleDateString()}
+                    {link.lastUsedAt &&
+                      ` · Last viewed ${new Date(link.lastUsedAt).toLocaleDateString()}`}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onDeleteShareLink(link.id)}
+                  disabled={deletingShareLinkId === link.id}
+                  aria-label="Revoke share link"
+                  className="shrink-0 flex items-center gap-1 text-xs text-red-600 hover:underline disabled:opacity-60"
+                >
+                  <Trash2Icon size={14} />{' '}
+                  <span className="hidden sm:inline">
+                    {deletingShareLinkId === link.id ? 'Deleting…' : 'Revoke'}
                   </span>
                 </button>
               </li>

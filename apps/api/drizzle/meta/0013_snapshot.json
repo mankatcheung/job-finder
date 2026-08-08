@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "446acb4e-8c65-4824-ae11-7e57363c27b8",
+  "id": "3cc48e9e-31b2-4d7a-965a-8c864ed3cab7",
   "prevId": "9b5e09c4-bb3c-4a4a-87a6-958a75d1fd4b",
   "tables": {
     "ActivityLog": {
@@ -1713,6 +1713,74 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "SecurityEvent": {
+      "name": "SecurityEvent",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "eventType": {
+          "name": "eventType",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ipAddress": {
+          "name": "ipAddress",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "userAgent": {
+          "name": "userAgent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "SecurityEvent_userId_idx": {
+          "name": "SecurityEvent_userId_idx",
+          "columns": ["userId"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "SecurityEvent_userId_User_id_fk": {
+          "name": "SecurityEvent_userId_User_id_fk",
+          "tableFrom": "SecurityEvent",
+          "tableTo": "User",
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "Session": {
       "name": "Session",
       "columns": {
@@ -2053,14 +2121,6 @@
           "notNull": true,
           "autoincrement": false,
           "default": false
-        },
-        "weeklyApplicationGoal": {
-          "name": "weeklyApplicationGoal",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 5
         },
         "totpSecret": {
           "name": "totpSecret",

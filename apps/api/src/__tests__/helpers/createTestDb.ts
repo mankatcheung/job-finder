@@ -18,6 +18,7 @@ const SCHEMA_STATEMENTS = [
     "emailVerifiedAt" INTEGER,
     "avatarKey" TEXT,
     "weeklyDigestEnabled" INTEGER NOT NULL DEFAULT 1,
+    "digestFrequency" TEXT NOT NULL DEFAULT 'weekly',
     "lastDigestSentAt" INTEGER,
     "followUpRemindersEnabled" INTEGER NOT NULL DEFAULT 1,
     "pushNotificationsEnabled" INTEGER NOT NULL DEFAULT 0,
@@ -26,6 +27,8 @@ const SCHEMA_STATEMENTS = [
     "totpEnabled" INTEGER NOT NULL DEFAULT 0,
     "defaultLlmProvider" TEXT,
     "customAiPrompt" TEXT,
+    "backupEmail" TEXT,
+    "backupEmailVerifiedAt" INTEGER,
     "createdAt" INTEGER NOT NULL,
     "updatedAt" INTEGER NOT NULL
   )`,
@@ -53,6 +56,16 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "ApiToken_userId_idx" ON "ApiToken"("userId")`,
+  `CREATE TABLE "ShareLink" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "tokenHash" TEXT NOT NULL UNIQUE,
+    "lastUsedAt" INTEGER,
+    "createdAt" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "ShareLink_userId_idx" ON "ShareLink"("userId")`,
   `CREATE TABLE "LoginEvent" (
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,
@@ -62,6 +75,16 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "LoginEvent_userId_idx" ON "LoginEvent"("userId")`,
+  `CREATE TABLE "SecurityEvent" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "eventType" TEXT NOT NULL,
+    "ipAddress" TEXT,
+    "userAgent" TEXT,
+    "createdAt" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "SecurityEvent_userId_idx" ON "SecurityEvent"("userId")`,
   `CREATE TABLE "Conversation" (
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,
@@ -287,6 +310,17 @@ const SCHEMA_STATEMENTS = [
   )`,
   `CREATE INDEX "Notification_userId_idx" ON "Notification"("userId")`,
   `CREATE INDEX "Notification_userId_readAt_idx" ON "Notification"("userId", "readAt")`,
+  `CREATE TABLE "BackupEmailVerificationToken" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "tokenHash" TEXT NOT NULL UNIQUE,
+    "newBackupEmail" TEXT NOT NULL,
+    "expiresAt" INTEGER NOT NULL,
+    "usedAt" INTEGER,
+    "createdAt" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "BackupEmailVerificationToken_userId_idx" ON "BackupEmailVerificationToken"("userId")`,
 ];
 
 export interface TestDb {

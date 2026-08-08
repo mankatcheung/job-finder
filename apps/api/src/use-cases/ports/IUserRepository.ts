@@ -3,6 +3,7 @@ import type { User } from '#src/domain/user/User.js';
 export interface IUserRepository {
   findById(id: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
+  findByBackupEmail(email: string): Promise<User | null>;
   findAll(): Promise<User[]>;
   create(data: {
     id: string;
@@ -22,6 +23,7 @@ export interface IUserRepository {
       emailVerifiedAt?: Date | null;
       avatarKey?: string | null;
       weeklyDigestEnabled?: boolean;
+      digestFrequency?: 'daily' | 'weekly' | 'off';
       followUpRemindersEnabled?: boolean;
       pushNotificationsEnabled?: boolean;
       weeklyApplicationGoal?: number;
@@ -29,6 +31,8 @@ export interface IUserRepository {
       totpEnabled?: boolean;
       defaultLlmProvider?: string | null;
       customAiPrompt?: string | null;
+      backupEmail?: string | null;
+      backupEmailVerifiedAt?: Date | null;
     },
   ): Promise<User>;
   delete(id: string): Promise<void>;

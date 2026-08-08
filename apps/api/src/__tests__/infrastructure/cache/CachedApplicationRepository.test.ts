@@ -7,7 +7,7 @@ function makeRepo() {
   const inner = makeApplicationRepository();
   const cache = new MemoryCache(60_000);
   const repo = new CachedApplicationRepository({
-    prismaApplicationRepository: inner,
+    drizzleApplicationRepository: inner,
     cache,
   });
   return { repo, inner, cache };

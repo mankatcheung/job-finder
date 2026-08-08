@@ -5,6 +5,7 @@ import {
   makeUserRepository,
   makeUser,
   makeTotpBackupCodeRepository,
+  makeSecurityEventRepository,
 } from '#src/__tests__/helpers/mocks.js';
 
 vi.mock('bcryptjs', () => ({
@@ -13,6 +14,10 @@ vi.mock('bcryptjs', () => ({
     compare: vi.fn(),
   },
 }));
+
+function securityDeps() {
+  return { securityEventRepository: makeSecurityEventRepository(), generateId: () => 'evt-1' };
+}
 
 describe('DisableTotpUseCase', () => {
   beforeEach(() => {
@@ -25,7 +30,11 @@ describe('DisableTotpUseCase', () => {
     const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(null) });
     const totpBackupCodeRepository = makeTotpBackupCodeRepository();
 
-    const err = await new DisableTotpUseCase({ userRepository, totpBackupCodeRepository })
+    const err = await new DisableTotpUseCase({
+      userRepository,
+      totpBackupCodeRepository,
+      ...securityDeps(),
+    })
       .execute(input)
       .catch((e) => e);
 
@@ -38,7 +47,11 @@ describe('DisableTotpUseCase', () => {
     const totpBackupCodeRepository = makeTotpBackupCodeRepository();
     vi.mocked(bcrypt.compare).mockResolvedValue(false as never);
 
-    const err = await new DisableTotpUseCase({ userRepository, totpBackupCodeRepository })
+    const err = await new DisableTotpUseCase({
+      userRepository,
+      totpBackupCodeRepository,
+      ...securityDeps(),
+    })
       .execute(input)
       .catch((e) => e);
 
@@ -53,12 +66,39 @@ describe('DisableTotpUseCase', () => {
     const totpBackupCodeRepository = makeTotpBackupCodeRepository();
     vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
 
-    await new DisableTotpUseCase({ userRepository, totpBackupCodeRepository }).execute(input);
+    await new DisableTotpUseCase({
+      userRepository,
+      totpBackupCodeRepository,
+      ...securityDeps(),
+    }).execute(input);
 
     expect(userRepository.update).toHaveBeenCalledWith('user-1', {
       totpEnabled: false,
       totpSecret: null,
     });
     expect(totpBackupCodeRepository.deleteAllForUser).toHaveBeenCalledWith('user-1');
+  });
+
+  it('records a totp_disabled security event with the caller device info', async () => {
+    const user = makeUser({ id: 'user-1', totpEnabled: true, totpSecret: 'ABCD1234' });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+    const totpBackupCodeRepository = makeTotpBackupCodeRepository();
+    const securityEventRepository = makeSecurityEventRepository();
+    vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+
+    await new DisableTotpUseCase({
+      userRepository,
+      totpBackupCodeRepository,
+      securityEventRepository,
+      generateId: () => 'evt-1',
+    }).execute({ ...input, ipAddress: '1.2.3.4', userAgent: 'Mozilla/5.0' });
+
+    expect(securityEventRepository.create).toHaveBeenCalledWith({
+      id: 'evt-1',
+      userId: 'user-1',
+      eventType: 'totp_disabled',
+      ipAddress: '1.2.3.4',
+      userAgent: 'Mozilla/5.0',
+    });
   });
 });

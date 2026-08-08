@@ -1,5 +1,6 @@
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
+import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { ERROR_CODES } from '#src/constants.js';
 
 export interface ParseJobDescriptionInput {
@@ -19,6 +20,7 @@ export interface ParsedJobDescription {
 interface Deps {
   llmProviderFactory: ILLMProviderFactory;
   jobPostingSourceResolver: IJobPostingSourceResolver;
+  parseJobDescriptionRateLimiter: IRateLimiter;
 }
 
 const SYSTEM_PROMPT = `You are a job posting parser. Extract structured data from job postings and return ONLY valid JSON with no markdown, no explanation, and no code fences. If a field cannot be determined, use null.`;
@@ -41,6 +43,16 @@ export class ParseJobDescriptionUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: ParseJobDescriptionInput): Promise<ParsedJobDescription> {
+    if (
+      !this.deps.parseJobDescriptionRateLimiter.consume(
+        `parse-job-description:user:${input.userId}`,
+      )
+    ) {
+      throw Object.assign(new Error('Too many requests — please wait a moment and try again'), {
+        code: ERROR_CODES.RATE_LIMITED,
+      });
+    }
+
     const llmProvider = await this.deps.llmProviderFactory.forUser(input.userId);
     if (!llmProvider) {
       throw Object.assign(new Error('Add your AI API key in Settings to use this feature'), {

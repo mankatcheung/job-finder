@@ -2,6 +2,8 @@ import { vi } from 'vitest';
 import type { ITransactionManager } from '#src/use-cases/ports/ITransactionManager.js';
 import type { IApiTokenRepository } from '#src/use-cases/ports/IApiTokenRepository.js';
 import type { ApiToken } from '#src/domain/apiToken/ApiToken.js';
+import type { IShareLinkRepository } from '#src/use-cases/ports/IShareLinkRepository.js';
+import type { ShareLink } from '#src/domain/shareLink/ShareLink.js';
 import type { INotificationRepository } from '#src/use-cases/ports/INotificationRepository.js';
 import type { Notification } from '#src/domain/notification/Notification.js';
 import type { ICreateNotificationUseCase } from '#src/use-cases/notifications/ICreateNotificationUseCase.js';
@@ -16,6 +18,7 @@ import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js'
 import type { IPasswordResetTokenRepository } from '#src/use-cases/ports/IPasswordResetTokenRepository.js';
 import type { PasswordResetToken } from '#src/domain/passwordResetToken/PasswordResetToken.js';
 import type { ILoginEventRepository } from '#src/use-cases/ports/ILoginEventRepository.js';
+import type { ISecurityEventRepository } from '#src/use-cases/ports/ISecurityEventRepository.js';
 import type { IMessageRepository } from '#src/use-cases/ports/IMessageRepository.js';
 import type { IConversationRepository } from '#src/use-cases/ports/IConversationRepository.js';
 import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
@@ -29,6 +32,7 @@ import type { Note } from '#src/domain/note/Note.js';
 import type { InterviewRound } from '#src/domain/interviewRound/InterviewRound.js';
 import type { Contact } from '#src/domain/contact/Contact.js';
 import type { LoginEvent } from '#src/domain/loginEvent/LoginEvent.js';
+import type { SecurityEvent } from '#src/domain/securityEvent/SecurityEvent.js';
 import type { Message } from '#src/domain/message/Message.js';
 import type { Conversation } from '#src/domain/conversation/Conversation.js';
 import type { ITotpBackupCodeRepository } from '#src/use-cases/ports/ITotpBackupCodeRepository.js';
@@ -56,6 +60,7 @@ import type { IPdfRenderer } from '#src/use-cases/ports/IPdfRenderer.js';
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
   findByEmail: vi.fn(),
+  findByBackupEmail: vi.fn(),
   findAll: vi.fn().mockResolvedValue([]),
   create: vi.fn(),
   update: vi.fn(),
@@ -127,6 +132,14 @@ export const makeLoginEventRepository = (
   ...overrides,
 });
 
+export const makeSecurityEventRepository = (
+  overrides?: Partial<ISecurityEventRepository>,
+): ISecurityEventRepository => ({
+  create: vi.fn(),
+  findRecentByUserId: vi.fn().mockResolvedValue([]),
+  ...overrides,
+});
+
 export const makeMessageRepository = (
   overrides?: Partial<IMessageRepository>,
 ): IMessageRepository => ({
@@ -192,6 +205,28 @@ export const makeNotification = (overrides?: Partial<Notification>): Notificatio
   body: 'Software Engineer — phone interview tomorrow at 10:00 AM',
   url: '/applications/app-1',
   readAt: null,
+  createdAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+export const makeShareLinkRepository = (
+  overrides?: Partial<IShareLinkRepository>,
+): IShareLinkRepository => ({
+  findAllByUserId: vi.fn().mockResolvedValue([]),
+  findByTokenHash: vi.fn().mockResolvedValue(null),
+  findByIdAndUserId: vi.fn().mockResolvedValue(null),
+  create: vi.fn(),
+  updateLastUsed: vi.fn(),
+  delete: vi.fn(),
+  ...overrides,
+});
+
+export const makeShareLink = (overrides?: Partial<ShareLink>): ShareLink => ({
+  id: 'share-link-1',
+  userId: 'user-1',
+  name: 'For my mentor',
+  tokenHash: 'hashed-value',
+  lastUsedAt: null,
   createdAt: new Date('2024-01-01'),
   ...overrides,
 });
@@ -333,6 +368,16 @@ export const makeLoginEvent = (overrides?: Partial<LoginEvent>): LoginEvent => (
   ...overrides,
 });
 
+export const makeSecurityEvent = (overrides?: Partial<SecurityEvent>): SecurityEvent => ({
+  id: 'sec-event-1',
+  userId: 'user-1',
+  eventType: 'password_changed',
+  ipAddress: '127.0.0.1',
+  userAgent: 'Mozilla/5.0',
+  createdAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
 export const makeMessage = (overrides?: Partial<Message>): Message => ({
   id: 'msg-1',
   conversationId: 'conv-1',
@@ -364,6 +409,7 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   emailVerifiedAt: null,
   avatarKey: null,
   weeklyDigestEnabled: true,
+  digestFrequency: 'weekly',
   lastDigestSentAt: null,
   followUpRemindersEnabled: true,
   pushNotificationsEnabled: false,
@@ -372,6 +418,8 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   totpEnabled: false,
   defaultLlmProvider: null,
   customAiPrompt: null,
+  backupEmail: null,
+  backupEmailVerifiedAt: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,

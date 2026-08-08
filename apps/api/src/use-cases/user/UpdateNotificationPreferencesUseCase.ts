@@ -1,5 +1,6 @@
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import { ERROR_CODES } from '#src/constants.js';
+import { DIGEST_FREQUENCY } from '#src/constants.js';
 import type {
   IUpdateNotificationPreferencesUseCase,
   UpdateNotificationPreferencesInput,
@@ -27,11 +28,18 @@ export class UpdateNotificationPreferencesUseCase implements IUpdateNotification
       });
     }
 
+    const frequency = input.digestFrequency;
+    if (frequency && !Object.values(DIGEST_FREQUENCY).includes(frequency)) {
+      throw Object.assign(new Error('Invalid digest frequency'), { code: ERROR_CODES.VALIDATION });
+    }
+
     const updateData: Parameters<IUserRepository['update']>[1] = {
-      weeklyDigestEnabled: input.weeklyDigestEnabled,
+      weeklyDigestEnabled:
+        frequency === 'off' ? false : frequency ? true : input.weeklyDigestEnabled,
       followUpRemindersEnabled: input.followUpRemindersEnabled,
       pushNotificationsEnabled: input.pushNotificationsEnabled,
     };
+    if (frequency) updateData.digestFrequency = frequency;
     if (input.weeklyApplicationGoal !== undefined) {
       updateData.weeklyApplicationGoal = input.weeklyApplicationGoal;
     }

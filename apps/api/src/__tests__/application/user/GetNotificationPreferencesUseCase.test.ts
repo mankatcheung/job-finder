@@ -18,7 +18,11 @@ describe('GetNotificationPreferencesUseCase', () => {
   });
 
   it('returns the preferences from the user record', async () => {
-    const user = makeUser({ weeklyDigestEnabled: false, followUpRemindersEnabled: true });
+    const user = makeUser({
+      weeklyDigestEnabled: false,
+      digestFrequency: 'off',
+      followUpRemindersEnabled: true,
+    });
     const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
 
     const result = await new GetNotificationPreferencesUseCase({ userRepository }).execute(
@@ -27,6 +31,7 @@ describe('GetNotificationPreferencesUseCase', () => {
 
     expect(result).toEqual({
       weeklyDigestEnabled: false,
+      digestFrequency: 'off',
       followUpRemindersEnabled: true,
       pushNotificationsEnabled: false,
       weeklyApplicationGoal: 5,

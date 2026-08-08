@@ -10,7 +10,12 @@ const STATUS_LABELS: Record<string, string> = {
   withdrawn: 'Withdrawn',
 };
 
-export function buildWeeklyDigestHtml(data: WeeklyDigestData, weekLabel: string): string {
+export function buildWeeklyDigestHtml(
+  data: WeeklyDigestData,
+  periodLabel: string,
+  frequency: 'daily' | 'weekly' = 'weekly',
+): string {
+  const period = frequency === 'daily' ? 'today' : 'this week';
   const statusRows = Object.entries(data.byStatus)
     .filter(([, count]) => count > 0)
     .map(
@@ -24,7 +29,7 @@ export function buildWeeklyDigestHtml(data: WeeklyDigestData, weekLabel: string)
 
   const newAppsHtml =
     data.newThisWeek.length === 0
-      ? '<p style="color:#9ca3af;font-size:14px;margin:0;">No new applications this week.</p>'
+      ? `<p style="color:#9ca3af;font-size:14px;margin:0;">No new applications ${period}.</p>`
       : data.newThisWeek
           .map(
             (a) =>
@@ -51,7 +56,7 @@ export function buildWeeklyDigestHtml(data: WeeklyDigestData, weekLabel: string)
 
   const upcomingHtml =
     data.upcomingFollowUps.length === 0
-      ? '<p style="color:#9ca3af;font-size:14px;margin:0;">No upcoming follow-ups this week.</p>'
+      ? `<p style="color:#9ca3af;font-size:14px;margin:0;">No upcoming follow-ups ${period}.</p>`
       : data.upcomingFollowUps
           .map(
             (a) =>
@@ -79,8 +84,8 @@ export function buildWeeklyDigestHtml(data: WeeklyDigestData, weekLabel: string)
   <div style="max-width:600px;margin:32px auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#2563eb,#4f46e5);padding:32px 32px 24px;">
-      <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;">Your Weekly Job Search Digest</h1>
-      <p style="margin:6px 0 0;color:#bfdbfe;font-size:14px;">${weekLabel}</p>
+       <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;">Your ${frequency === 'daily' ? 'Daily' : 'Weekly'} Job Search Digest</h1>
+       <p style="margin:6px 0 0;color:#bfdbfe;font-size:14px;">${periodLabel}</p>
     </div>
 
     <!-- Overview -->
@@ -99,7 +104,7 @@ export function buildWeeklyDigestHtml(data: WeeklyDigestData, weekLabel: string)
 
     <div style="padding:24px 32px;border-bottom:1px solid #f3f4f6;">
       <h2 style="margin:0 0 12px;font-size:15px;font-weight:600;color:#111827;">
-        🆕 New this week <span style="font-weight:400;color:#6b7280;">(${data.newThisWeek.length})</span>
+         🆕 New ${period} <span style="font-weight:400;color:#6b7280;">(${data.newThisWeek.length})</span>
       </h2>
       ${newAppsHtml}
     </div>
@@ -119,7 +124,7 @@ export function buildWeeklyDigestHtml(data: WeeklyDigestData, weekLabel: string)
     <!-- Upcoming follow-ups -->
     <div style="padding:24px 32px;border-bottom:1px solid #f3f4f6;">
       <h2 style="margin:0 0 12px;font-size:15px;font-weight:600;color:#111827;">
-        📅 Upcoming follow-ups <span style="font-weight:400;color:#6b7280;">(${data.upcomingFollowUps.length})</span>
+         📅 Upcoming follow-ups ${period} <span style="font-weight:400;color:#6b7280;">(${data.upcomingFollowUps.length})</span>
       </h2>
       ${upcomingHtml}
     </div>

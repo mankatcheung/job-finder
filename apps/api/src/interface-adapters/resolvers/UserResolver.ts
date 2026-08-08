@@ -1,3 +1,4 @@
+import type { DeviceInfo } from '#src/interface-adapters/resolvers/AuthResolver.js';
 import type { IRequestEmailChangeUseCase } from '#src/use-cases/user/IRequestEmailChangeUseCase.js';
 import type { IConfirmEmailChangeUseCase } from '#src/use-cases/user/IConfirmEmailChangeUseCase.js';
 import type { IUpdatePasswordUseCase } from '#src/use-cases/user/IUpdatePasswordUseCase.js';
@@ -45,6 +46,9 @@ import type {
   IGetWeeklyApplicationGoalUseCase,
   WeeklyApplicationGoalStats,
 } from '#src/use-cases/user/IGetWeeklyApplicationGoalUseCase.js';
+import type { IRequestAddBackupEmailUseCase } from '#src/use-cases/user/IRequestAddBackupEmailUseCase.js';
+import type { IConfirmBackupEmailUseCase } from '#src/use-cases/user/IConfirmBackupEmailUseCase.js';
+import type { IRemoveBackupEmailUseCase } from '#src/use-cases/user/IRemoveBackupEmailUseCase.js';
 import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
 import { UserMapper, type UserDTO } from '#src/interface-adapters/mappers/UserMapper.js';
 
@@ -72,6 +76,9 @@ interface Deps {
   confirmAvatarUseCase: IConfirmAvatarUseCase;
   removeAvatarUseCase: IRemoveAvatarUseCase;
   getWeeklyApplicationGoalUseCase?: IGetWeeklyApplicationGoalUseCase;
+  requestAddBackupEmailUseCase: IRequestAddBackupEmailUseCase;
+  confirmBackupEmailUseCase: IConfirmBackupEmailUseCase;
+  removeBackupEmailUseCase: IRemoveBackupEmailUseCase;
   storageProvider: IStorageProvider;
   userMapper: UserMapper;
 }
@@ -93,8 +100,12 @@ export class UserResolver {
     });
   }
 
-  async confirmEmailChange(token: string): Promise<void> {
-    await this.deps.confirmEmailChangeUseCase.execute({ token });
+  async confirmEmailChange(token: string, device: DeviceInfo): Promise<void> {
+    await this.deps.confirmEmailChangeUseCase.execute({
+      token,
+      ipAddress: device.ipAddress,
+      userAgent: device.userAgent,
+    });
   }
 
   async updatePassword(
@@ -102,12 +113,15 @@ export class UserResolver {
     currentPassword: string,
     newPassword: string,
     authTime: number | null | undefined,
+    device: DeviceInfo,
   ): Promise<void> {
     await this.deps.updatePasswordUseCase.execute({
       userId,
       currentPassword,
       newPassword,
       authTime,
+      ipAddress: device.ipAddress,
+      userAgent: device.userAgent,
     });
   }
 
@@ -127,12 +141,26 @@ export class UserResolver {
     return this.deps.generateTotpSecretUseCase.execute({ userId, password });
   }
 
-  async confirmTotpSetup(userId: string, code: string): Promise<ConfirmTotpSetupOutput> {
-    return this.deps.confirmTotpSetupUseCase.execute({ userId, code });
+  async confirmTotpSetup(
+    userId: string,
+    code: string,
+    device: DeviceInfo,
+  ): Promise<ConfirmTotpSetupOutput> {
+    return this.deps.confirmTotpSetupUseCase.execute({
+      userId,
+      code,
+      ipAddress: device.ipAddress,
+      userAgent: device.userAgent,
+    });
   }
 
-  async disableTotp(userId: string, password: string): Promise<void> {
-    await this.deps.disableTotpUseCase.execute({ userId, password });
+  async disableTotp(userId: string, password: string, device: DeviceInfo): Promise<void> {
+    await this.deps.disableTotpUseCase.execute({
+      userId,
+      password,
+      ipAddress: device.ipAddress,
+      userAgent: device.userAgent,
+    });
   }
 
   async getTotpStatus(userId: string): Promise<boolean> {
@@ -182,14 +210,22 @@ export class UserResolver {
     weeklyDigestEnabled?: boolean,
     followUpRemindersEnabled?: boolean,
     pushNotificationsEnabled?: boolean,
-    weeklyApplicationGoal?: number,
+    weeklyApplicationGoalOrDigestFrequency?: number | 'daily' | 'weekly' | 'off',
+    digestFrequency?: 'daily' | 'weekly' | 'off',
   ): Promise<void> {
     await this.deps.updateNotificationPreferencesUseCase.execute({
       userId,
       weeklyDigestEnabled,
       followUpRemindersEnabled,
       pushNotificationsEnabled,
-      weeklyApplicationGoal,
+      weeklyApplicationGoal:
+        typeof weeklyApplicationGoalOrDigestFrequency === 'number'
+          ? weeklyApplicationGoalOrDigestFrequency
+          : undefined,
+      digestFrequency:
+        typeof weeklyApplicationGoalOrDigestFrequency === 'string'
+          ? weeklyApplicationGoalOrDigestFrequency
+          : digestFrequency,
     });
   }
 
@@ -238,5 +274,35 @@ export class UserResolver {
 
   async removeAvatar(userId: string): Promise<void> {
     await this.deps.removeAvatarUseCase.execute(userId);
+  }
+
+  async requestAddBackupEmail(
+    userId: string,
+    backupEmail: string,
+    currentPassword: string,
+    authTime: number | null | undefined,
+  ): Promise<void> {
+    await this.deps.requestAddBackupEmailUseCase.execute({
+      userId,
+      backupEmail,
+      currentPassword,
+      authTime,
+    });
+  }
+
+  async confirmBackupEmail(token: string): Promise<void> {
+    await this.deps.confirmBackupEmailUseCase.execute({ token });
+  }
+
+  async removeBackupEmail(
+    userId: string,
+    currentPassword: string,
+    authTime: number | null | undefined,
+  ): Promise<void> {
+    await this.deps.removeBackupEmailUseCase.execute({
+      userId,
+      currentPassword,
+      authTime,
+    });
   }
 }

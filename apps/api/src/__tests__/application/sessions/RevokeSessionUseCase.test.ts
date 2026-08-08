@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RevokeSessionUseCase } from '#src/use-cases/sessions/RevokeSessionUseCase.js';
-import { makeSessionRepository, makeSession } from '#src/__tests__/helpers/mocks.js';
+import {
+  makeSessionRepository,
+  makeSession,
+  makeSecurityEventRepository,
+} from '#src/__tests__/helpers/mocks.js';
+
+function securityDeps() {
+  return { securityEventRepository: makeSecurityEventRepository(), generateId: () => 'evt-1' };
+}
 
 describe('RevokeSessionUseCase', () => {
   beforeEach(() => {
@@ -12,7 +20,7 @@ describe('RevokeSessionUseCase', () => {
       findByIdAndUserId: vi.fn().mockResolvedValue(null),
     });
 
-    const err = await new RevokeSessionUseCase({ sessionRepository })
+    const err = await new RevokeSessionUseCase({ sessionRepository, ...securityDeps() })
       .execute('session-1', 'user-1')
       .catch((e) => e);
 
@@ -26,9 +34,34 @@ describe('RevokeSessionUseCase', () => {
       findByIdAndUserId: vi.fn().mockResolvedValue(session),
     });
 
-    await new RevokeSessionUseCase({ sessionRepository }).execute('session-1', 'user-1');
+    await new RevokeSessionUseCase({ sessionRepository, ...securityDeps() }).execute(
+      'session-1',
+      'user-1',
+    );
 
     expect(sessionRepository.findByIdAndUserId).toHaveBeenCalledWith('session-1', 'user-1');
     expect(sessionRepository.revoke).toHaveBeenCalledWith('session-1');
+  });
+
+  it('records a session_revoked security event with the caller device info', async () => {
+    const session = makeSession({ id: 'session-1', userId: 'user-1' });
+    const sessionRepository = makeSessionRepository({
+      findByIdAndUserId: vi.fn().mockResolvedValue(session),
+    });
+    const securityEventRepository = makeSecurityEventRepository();
+
+    await new RevokeSessionUseCase({
+      sessionRepository,
+      securityEventRepository,
+      generateId: () => 'evt-1',
+    }).execute('session-1', 'user-1', '1.2.3.4', 'Mozilla/5.0');
+
+    expect(securityEventRepository.create).toHaveBeenCalledWith({
+      id: 'evt-1',
+      userId: 'user-1',
+      eventType: 'session_revoked',
+      ipAddress: '1.2.3.4',
+      userAgent: 'Mozilla/5.0',
+    });
   });
 });

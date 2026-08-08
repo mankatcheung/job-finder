@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
+import type { ISecurityEventRepository } from '#src/use-cases/ports/ISecurityEventRepository.js';
 import { ERROR_CODES } from '#src/constants.js';
 import { assertValidPassword } from '#src/use-cases/auth/passwordValidation.js';
 import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
@@ -13,6 +14,8 @@ import type {
 interface Deps {
   userRepository: IUserRepository;
   updatePasswordRateLimiter: IRateLimiter;
+  securityEventRepository: ISecurityEventRepository;
+  generateId: () => string;
 }
 
 export class UpdatePasswordUseCase implements IUpdatePasswordUseCase {
@@ -47,5 +50,13 @@ export class UpdatePasswordUseCase implements IUpdatePasswordUseCase {
 
     const passwordHash = await bcrypt.hash(input.newPassword, 12);
     await this.deps.userRepository.update(input.userId, { passwordHash });
+
+    await this.deps.securityEventRepository.create({
+      id: this.deps.generateId(),
+      userId: input.userId,
+      eventType: 'password_changed',
+      ipAddress: input.ipAddress ?? null,
+      userAgent: input.userAgent ?? null,
+    });
   }
 }

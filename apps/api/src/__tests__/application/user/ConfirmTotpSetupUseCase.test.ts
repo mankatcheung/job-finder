@@ -6,6 +6,7 @@ import {
   makeUser,
   makeTotpBackupCodeRepository,
   makeTotpProvider,
+  makeSecurityEventRepository,
 } from '#src/__tests__/helpers/mocks.js';
 
 // Test-only fixture helper: production code only ever verifies codes (a real
@@ -20,6 +21,7 @@ function generateValidCode(secret: string): Promise<string> {
 describe('ConfirmTotpSetupUseCase', () => {
   const generateId = vi.fn(() => 'backup-code-id');
   const totpProvider = makeTotpProvider();
+  const securityEventRepository = makeSecurityEventRepository();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -35,6 +37,7 @@ describe('ConfirmTotpSetupUseCase', () => {
       totpBackupCodeRepository,
       totpProvider,
       generateId,
+      securityEventRepository,
     })
       .execute({ userId: 'missing', code: '123456' })
       .catch((e) => e);
@@ -52,6 +55,7 @@ describe('ConfirmTotpSetupUseCase', () => {
       totpBackupCodeRepository,
       totpProvider,
       generateId,
+      securityEventRepository,
     })
       .execute({ userId: 'user-1', code: '123456' })
       .catch((e) => e);
@@ -69,6 +73,7 @@ describe('ConfirmTotpSetupUseCase', () => {
       totpBackupCodeRepository,
       totpProvider,
       generateId,
+      securityEventRepository,
     })
       .execute({ userId: 'user-1', code: '123456' })
       .catch((e) => e);
@@ -90,6 +95,7 @@ describe('ConfirmTotpSetupUseCase', () => {
       totpBackupCodeRepository,
       totpProvider,
       generateId,
+      securityEventRepository,
     })
       .execute({ userId: 'user-1', code: '000000' })
       .catch((e) => e);
@@ -111,6 +117,7 @@ describe('ConfirmTotpSetupUseCase', () => {
       totpBackupCodeRepository,
       totpProvider,
       generateId,
+      securityEventRepository,
     }).execute({
       userId: 'user-1',
       code: validCode,
@@ -124,5 +131,34 @@ describe('ConfirmTotpSetupUseCase', () => {
     expect(totpBackupCodeRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({ userId: 'user-1', id: 'backup-code-id' }),
     );
+  });
+
+  it('records a totp_enabled security event with the caller device info', async () => {
+    const secret = totpProvider.generateSecret();
+    const validCode = await generateValidCode(secret);
+    const user = makeUser({ id: 'user-1', totpEnabled: false, totpSecret: `encrypted:${secret}` });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+    const totpBackupCodeRepository = makeTotpBackupCodeRepository();
+
+    await new ConfirmTotpSetupUseCase({
+      userRepository,
+      totpBackupCodeRepository,
+      totpProvider,
+      generateId,
+      securityEventRepository,
+    }).execute({
+      userId: 'user-1',
+      code: validCode,
+      ipAddress: '1.2.3.4',
+      userAgent: 'Mozilla/5.0',
+    });
+
+    expect(securityEventRepository.create).toHaveBeenCalledWith({
+      id: 'backup-code-id',
+      userId: 'user-1',
+      eventType: 'totp_enabled',
+      ipAddress: '1.2.3.4',
+      userAgent: 'Mozilla/5.0',
+    });
   });
 });

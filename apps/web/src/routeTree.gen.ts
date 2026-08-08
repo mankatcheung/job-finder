@@ -11,11 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root';
 import { Route as IndexRouteImport } from './routes/index';
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route';
+import { Route as ConfirmBackupEmailRouteImport } from './routes/confirm-backup-email';
 import { Route as ConfirmEmailChangeRouteImport } from './routes/confirm-email-change';
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password';
 import { Route as LoginRouteImport } from './routes/login';
 import { Route as RegisterRouteImport } from './routes/register';
 import { Route as ResetPasswordRouteImport } from './routes/reset-password';
+import { Route as ShareRouteImport } from './routes/share';
 import { Route as VerifyEmailRouteImport } from './routes/verify-email';
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account';
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics';
@@ -50,6 +52,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any);
+const ConfirmBackupEmailRoute = ConfirmBackupEmailRouteImport.update({
+  id: '/confirm-backup-email',
+  path: '/confirm-backup-email',
+  getParentRoute: () => rootRouteImport,
+} as any);
 const ConfirmEmailChangeRoute = ConfirmEmailChangeRouteImport.update({
   id: '/confirm-email-change',
   path: '/confirm-email-change',
@@ -73,6 +80,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const ShareRoute = ShareRouteImport.update({
+  id: '/share',
+  path: '/share',
   getParentRoute: () => rootRouteImport,
 } as any);
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
@@ -217,11 +229,13 @@ const AuthenticatedApplicationsApplicationIdOffersCompareRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute;
+  '/confirm-backup-email': typeof ConfirmBackupEmailRoute;
   '/confirm-email-change': typeof ConfirmEmailChangeRoute;
   '/forgot-password': typeof ForgotPasswordRoute;
   '/login': typeof LoginRoute;
   '/register': typeof RegisterRoute;
   '/reset-password': typeof ResetPasswordRoute;
+  '/share': typeof ShareRoute;
   '/verify-email': typeof VerifyEmailRoute;
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren;
   '/account': typeof AuthenticatedAccountRoute;
@@ -249,11 +263,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute;
+  '/confirm-backup-email': typeof ConfirmBackupEmailRoute;
   '/confirm-email-change': typeof ConfirmEmailChangeRoute;
   '/forgot-password': typeof ForgotPasswordRoute;
   '/login': typeof LoginRoute;
   '/register': typeof RegisterRoute;
   '/reset-password': typeof ResetPasswordRoute;
+  '/share': typeof ShareRoute;
   '/verify-email': typeof VerifyEmailRoute;
   '/account': typeof AuthenticatedAccountRoute;
   '/analytics': typeof AuthenticatedAnalyticsRoute;
@@ -282,11 +298,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport;
   '/': typeof IndexRoute;
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren;
+  '/confirm-backup-email': typeof ConfirmBackupEmailRoute;
   '/confirm-email-change': typeof ConfirmEmailChangeRoute;
   '/forgot-password': typeof ForgotPasswordRoute;
   '/login': typeof LoginRoute;
   '/register': typeof RegisterRoute;
   '/reset-password': typeof ResetPasswordRoute;
+  '/share': typeof ShareRoute;
   '/verify-email': typeof VerifyEmailRoute;
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren;
   '/_authenticated/account': typeof AuthenticatedAccountRoute;
@@ -316,11 +334,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
     | '/'
+    | '/confirm-backup-email'
     | '/confirm-email-change'
     | '/forgot-password'
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/share'
     | '/verify-email'
     | '/settings'
     | '/account'
@@ -348,11 +368,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo;
   to:
     | '/'
+    | '/confirm-backup-email'
     | '/confirm-email-change'
     | '/forgot-password'
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/share'
     | '/verify-email'
     | '/account'
     | '/analytics'
@@ -380,11 +402,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/confirm-backup-email'
     | '/confirm-email-change'
     | '/forgot-password'
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/share'
     | '/verify-email'
     | '/_authenticated/settings'
     | '/_authenticated/account'
@@ -414,11 +438,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren;
+  ConfirmBackupEmailRoute: typeof ConfirmBackupEmailRoute;
   ConfirmEmailChangeRoute: typeof ConfirmEmailChangeRoute;
   ForgotPasswordRoute: typeof ForgotPasswordRoute;
   LoginRoute: typeof LoginRoute;
   RegisterRoute: typeof RegisterRoute;
   ResetPasswordRoute: typeof ResetPasswordRoute;
+  ShareRoute: typeof ShareRoute;
   VerifyEmailRoute: typeof VerifyEmailRoute;
 }
 
@@ -436,6 +462,13 @@ declare module '@tanstack/react-router' {
       path: '';
       fullPath: '/';
       preLoaderRoute: typeof AuthenticatedRouteRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/confirm-backup-email': {
+      id: '/confirm-backup-email';
+      path: '/confirm-backup-email';
+      fullPath: '/confirm-backup-email';
+      preLoaderRoute: typeof ConfirmBackupEmailRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     '/confirm-email-change': {
@@ -471,6 +504,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password';
       fullPath: '/reset-password';
       preLoaderRoute: typeof ResetPasswordRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/share': {
+      id: '/share';
+      path: '/share';
+      fullPath: '/share';
+      preLoaderRoute: typeof ShareRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     '/verify-email': {
@@ -722,11 +762,13 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  ConfirmBackupEmailRoute: ConfirmBackupEmailRoute,
   ConfirmEmailChangeRoute: ConfirmEmailChangeRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ShareRoute: ShareRoute,
   VerifyEmailRoute: VerifyEmailRoute,
 };
 export const routeTree = rootRouteImport

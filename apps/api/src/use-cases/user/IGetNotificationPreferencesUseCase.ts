@@ -1,5 +1,6 @@
 export interface NotificationPreferences {
   weeklyDigestEnabled: boolean;
+  digestFrequency: 'daily' | 'weekly' | 'off';
   followUpRemindersEnabled: boolean;
   pushNotificationsEnabled: boolean;
   weeklyApplicationGoal: number;

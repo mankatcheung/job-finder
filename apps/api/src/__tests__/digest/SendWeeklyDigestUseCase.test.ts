@@ -14,6 +14,7 @@ function makeEmailService(): IEmailService {
     sendWeeklyDigest: vi.fn().mockResolvedValue(undefined),
     sendPasswordReset: vi.fn().mockResolvedValue(undefined),
     sendEmailVerification: vi.fn().mockResolvedValue(undefined),
+    sendBackupEmailVerification: vi.fn().mockResolvedValue(undefined),
     sendNewDeviceLoginAlert: vi.fn().mockResolvedValue(undefined),
   };
 }
@@ -69,6 +70,46 @@ describe('SendWeeklyDigestUseCase', () => {
     expect(result).toEqual({ totalUsers: 1, sent: 0, skipped: 1 });
     expect(applicationRepository.findAllByUserId).not.toHaveBeenCalled();
     expect(emailService.sendWeeklyDigest).not.toHaveBeenCalled();
+  });
+
+  it('skips users whose digest frequency is off', async () => {
+    const user = makeUser({ digestFrequency: 'off', weeklyDigestEnabled: false });
+    const userRepository = makeUserRepository({ findAll: vi.fn().mockResolvedValue([user]) });
+    const applicationRepository = makeApplicationRepository();
+    const emailService = makeEmailService();
+
+    const result = await new SendWeeklyDigestUseCase({
+      userRepository,
+      applicationRepository,
+      emailService,
+    }).execute();
+
+    expect(result).toEqual({ totalUsers: 1, sent: 0, skipped: 1 });
+    expect(emailService.sendWeeklyDigest).not.toHaveBeenCalled();
+  });
+
+  it('sends daily digests after the daily resend window', async () => {
+    const user = makeUser({
+      digestFrequency: 'daily',
+      lastDigestSentAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+    });
+    const userRepository = makeUserRepository({ findAll: vi.fn().mockResolvedValue([user]) });
+    const applicationRepository = makeApplicationRepository({
+      findAllByUserId: vi.fn().mockResolvedValue([makeApplication()]),
+    });
+    const emailService = makeEmailService();
+
+    await new SendWeeklyDigestUseCase({
+      userRepository,
+      applicationRepository,
+      emailService,
+    }).execute();
+
+    expect(emailService.sendWeeklyDigest).toHaveBeenCalledWith(
+      user.email,
+      expect.any(Object),
+      'daily',
+    );
   });
 
   it('sends a digest for each user with applications', async () => {
