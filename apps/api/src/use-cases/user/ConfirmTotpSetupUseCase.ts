@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'crypto';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ITotpBackupCodeRepository } from '#src/use-cases/ports/ITotpBackupCodeRepository.js';
 import type { ITotpProvider } from '#src/use-cases/ports/ITotpProvider.js';
+import type { ISecurityEventRepository } from '#src/use-cases/ports/ISecurityEventRepository.js';
 import { ERROR_CODES, TOTP_BACKUP_CODES } from '#src/constants.js';
 import type {
   IConfirmTotpSetupUseCase,
@@ -13,6 +14,7 @@ interface Deps {
   userRepository: IUserRepository;
   totpBackupCodeRepository: ITotpBackupCodeRepository;
   totpProvider: ITotpProvider;
+  securityEventRepository: ISecurityEventRepository;
   generateId: () => string;
 }
 
@@ -56,6 +58,14 @@ export class ConfirmTotpSetupUseCase implements IConfirmTotpSetupUseCase {
         }),
       ),
     );
+
+    await this.deps.securityEventRepository.create({
+      id: this.deps.generateId(),
+      userId: input.userId,
+      eventType: 'totp_enabled',
+      ipAddress: input.ipAddress ?? null,
+      userAgent: input.userAgent ?? null,
+    });
 
     return { backupCodes };
   }

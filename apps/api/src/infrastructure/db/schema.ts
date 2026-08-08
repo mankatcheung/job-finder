@@ -91,6 +91,23 @@ export const loginEvent = sqliteTable(
   (table) => [index('LoginEvent_userId_idx').on(table.userId)],
 );
 
+export const securityEvent = sqliteTable(
+  'SecurityEvent',
+  {
+    id: text('id').primaryKey(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    eventType: text('eventType').notNull(),
+    ipAddress: text('ipAddress'),
+    userAgent: text('userAgent'),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [index('SecurityEvent_userId_idx').on(table.userId)],
+);
+
 export const llmApiKey = sqliteTable(
   'LlmApiKey',
   {

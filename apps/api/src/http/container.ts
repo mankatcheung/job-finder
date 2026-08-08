@@ -19,6 +19,7 @@ import { DrizzlePushSubscriptionRepository } from '#src/infrastructure/db/reposi
 import { DrizzleContactRepository } from '#src/infrastructure/db/repositories/DrizzleContactRepository.js';
 import { DrizzlePasswordResetTokenRepository } from '#src/infrastructure/db/repositories/DrizzlePasswordResetTokenRepository.js';
 import { DrizzleLoginEventRepository } from '#src/infrastructure/db/repositories/DrizzleLoginEventRepository.js';
+import { DrizzleSecurityEventRepository } from '#src/infrastructure/db/repositories/DrizzleSecurityEventRepository.js';
 import { DrizzleSessionRepository } from '#src/infrastructure/db/repositories/DrizzleSessionRepository.js';
 import { DrizzleWorkExperienceRepository } from '#src/infrastructure/db/repositories/DrizzleWorkExperienceRepository.js';
 import { DrizzleEducationRepository } from '#src/infrastructure/db/repositories/DrizzleEducationRepository.js';
@@ -59,6 +60,7 @@ import { InterviewRoundMapper } from '#src/interface-adapters/mappers/InterviewR
 import { ActivityLogMapper } from '#src/interface-adapters/mappers/ActivityLogMapper.js';
 import { ContactMapper } from '#src/interface-adapters/mappers/ContactMapper.js';
 import { LoginEventMapper } from '#src/interface-adapters/mappers/LoginEventMapper.js';
+import { SecurityActivityMapper } from '#src/interface-adapters/mappers/SecurityActivityMapper.js';
 import { MessageMapper } from '#src/interface-adapters/mappers/MessageMapper.js';
 import { ConversationMapper } from '#src/interface-adapters/mappers/ConversationMapper.js';
 import { SessionMapper } from '#src/interface-adapters/mappers/SessionMapper.js';
@@ -76,6 +78,7 @@ import { InterviewRoundResolver } from '#src/interface-adapters/resolvers/Interv
 import { ActivityLogResolver } from '#src/interface-adapters/resolvers/ActivityLogResolver.js';
 import { ContactResolver } from '#src/interface-adapters/resolvers/ContactResolver.js';
 import { LoginEventResolver } from '#src/interface-adapters/resolvers/LoginEventResolver.js';
+import { SecurityActivityResolver } from '#src/interface-adapters/resolvers/SecurityActivityResolver.js';
 import { ApiTokenResolver } from '#src/interface-adapters/resolvers/ApiTokenResolver.js';
 import { NotificationResolver } from '#src/interface-adapters/resolvers/NotificationResolver.js';
 import { SessionResolver } from '#src/interface-adapters/resolvers/SessionResolver.js';
@@ -142,6 +145,7 @@ import { UpdateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/Upda
 import { DeleteInterviewRoundUseCase } from '#src/use-cases/interviewRounds/DeleteInterviewRoundUseCase.js';
 import { GetActivityLogsUseCase } from '#src/use-cases/activityLogs/GetActivityLogsUseCase.js';
 import { GetLoginHistoryUseCase } from '#src/use-cases/loginEvents/GetLoginHistoryUseCase.js';
+import { GetSecurityActivityUseCase } from '#src/use-cases/securityEvents/GetSecurityActivityUseCase.js';
 import { GetChatHistoryUseCase } from '#src/use-cases/chat/GetChatHistoryUseCase.js';
 import { CreateConversationUseCase } from '#src/use-cases/conversations/CreateConversationUseCase.js';
 import { ListConversationsUseCase } from '#src/use-cases/conversations/ListConversationsUseCase.js';
@@ -249,6 +253,7 @@ export interface Cradle {
   contactRepository: DrizzleContactRepository;
   passwordResetTokenRepository: DrizzlePasswordResetTokenRepository;
   loginEventRepository: DrizzleLoginEventRepository;
+  securityEventRepository: DrizzleSecurityEventRepository;
   messageRepository: DrizzleMessageRepository;
   conversationRepository: DrizzleConversationRepository;
   llmApiKeyRepository: ILlmApiKeyRepository;
@@ -281,6 +286,7 @@ export interface Cradle {
   activityLogMapper: ActivityLogMapper;
   contactMapper: ContactMapper;
   loginEventMapper: LoginEventMapper;
+  securityActivityMapper: SecurityActivityMapper;
   messageMapper: MessageMapper;
   conversationMapper: ConversationMapper;
   llmApiKeyMapper: LlmApiKeyMapper;
@@ -301,6 +307,7 @@ export interface Cradle {
   activityLogResolver: ActivityLogResolver;
   contactResolver: ContactResolver;
   loginEventResolver: LoginEventResolver;
+  securityActivityResolver: SecurityActivityResolver;
   apiTokenResolver: ApiTokenResolver;
   notificationResolver: NotificationResolver;
   sessionResolver: SessionResolver;
@@ -377,6 +384,7 @@ export interface Cradle {
   deleteInterviewRoundUseCase: DeleteInterviewRoundUseCase;
   getActivityLogsUseCase: GetActivityLogsUseCase;
   getLoginHistoryUseCase: GetLoginHistoryUseCase;
+  getSecurityActivityUseCase: GetSecurityActivityUseCase;
   getChatHistoryUseCase: GetChatHistoryUseCase;
   createConversationUseCase: CreateConversationUseCase;
   listConversationsUseCase: ListConversationsUseCase;
@@ -498,6 +506,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
       lifetime: Lifetime.SINGLETON,
     }),
     loginEventRepository: asClass(DrizzleLoginEventRepository, { lifetime: Lifetime.SINGLETON }),
+    securityEventRepository: asClass(DrizzleSecurityEventRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
     messageRepository: asClass(DrizzleMessageRepository, { lifetime: Lifetime.SINGLETON }),
     conversationRepository: asClass(DrizzleConversationRepository, {
       lifetime: Lifetime.SINGLETON,
@@ -558,6 +569,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     webPushService: asClass(WebPushService, { lifetime: Lifetime.SINGLETON }),
     contactMapper: asClass(ContactMapper, { lifetime: Lifetime.SINGLETON }),
     loginEventMapper: asClass(LoginEventMapper, { lifetime: Lifetime.SINGLETON }),
+    securityActivityMapper: asClass(SecurityActivityMapper, { lifetime: Lifetime.SINGLETON }),
     messageMapper: asClass(MessageMapper, { lifetime: Lifetime.SINGLETON }),
     conversationMapper: asClass(ConversationMapper, { lifetime: Lifetime.SINGLETON }),
     llmApiKeyMapper: asClass(LlmApiKeyMapper, { lifetime: Lifetime.SINGLETON }),
@@ -578,6 +590,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     activityLogResolver: asClass(ActivityLogResolver, { lifetime: Lifetime.SINGLETON }),
     contactResolver: asClass(ContactResolver, { lifetime: Lifetime.SINGLETON }),
     loginEventResolver: asClass(LoginEventResolver, { lifetime: Lifetime.SINGLETON }),
+    securityActivityResolver: asClass(SecurityActivityResolver, { lifetime: Lifetime.SINGLETON }),
     apiTokenResolver: asClass(ApiTokenResolver, { lifetime: Lifetime.SINGLETON }),
     notificationResolver: asClass(NotificationResolver, { lifetime: Lifetime.SINGLETON }),
     sessionResolver: asClass(SessionResolver, { lifetime: Lifetime.SINGLETON }),
@@ -711,6 +724,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     }),
     getActivityLogsUseCase: asClass(GetActivityLogsUseCase, { lifetime: Lifetime.TRANSIENT }),
     getLoginHistoryUseCase: asClass(GetLoginHistoryUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getSecurityActivityUseCase: asClass(GetSecurityActivityUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     getChatHistoryUseCase: asClass(GetChatHistoryUseCase, { lifetime: Lifetime.TRANSIENT }),
     createConversationUseCase: asClass(CreateConversationUseCase, {
       lifetime: Lifetime.TRANSIENT,

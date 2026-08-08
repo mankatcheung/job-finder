@@ -18,13 +18,28 @@ export class SessionResolver {
     return sessions.map((session) => this.deps.sessionMapper.toDTO(session, currentSessionId));
   }
 
-  async revokeSession(userId: string, id: string): Promise<boolean> {
-    await this.deps.revokeSessionUseCase.execute(id, userId);
+  async revokeSession(
+    userId: string,
+    id: string,
+    ipAddress: string | null,
+    userAgent: string | null,
+  ): Promise<boolean> {
+    await this.deps.revokeSessionUseCase.execute(id, userId, ipAddress, userAgent);
     return true;
   }
 
-  async revokeOtherSessions(userId: string, currentSessionId: string): Promise<boolean> {
-    await this.deps.revokeOtherSessionsUseCase.execute(userId, currentSessionId);
+  async revokeOtherSessions(
+    userId: string,
+    currentSessionId: string,
+    ipAddress: string | null,
+    userAgent: string | null,
+  ): Promise<boolean> {
+    await this.deps.revokeOtherSessionsUseCase.execute(
+      userId,
+      currentSessionId,
+      ipAddress,
+      userAgent,
+    );
     return true;
   }
 }

@@ -1,7 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import bcrypt from 'bcryptjs';
 import { UpdatePasswordUseCase } from '#src/use-cases/user/UpdatePasswordUseCase.js';
-import { makeUserRepository, makeUser, makeRateLimiter } from '#src/__tests__/helpers/mocks.js';
+import {
+  makeUserRepository,
+  makeUser,
+  makeRateLimiter,
+  makeSecurityEventRepository,
+} from '#src/__tests__/helpers/mocks.js';
 
 vi.mock('bcryptjs', () => ({
   default: {
@@ -9,6 +14,10 @@ vi.mock('bcryptjs', () => ({
     compare: vi.fn(),
   },
 }));
+
+function securityDeps() {
+  return { securityEventRepository: makeSecurityEventRepository(), generateId: () => 'evt-1' };
+}
 
 describe('UpdatePasswordUseCase', () => {
   beforeEach(() => {
@@ -34,12 +43,39 @@ describe('UpdatePasswordUseCase', () => {
     await new UpdatePasswordUseCase({
       userRepository,
       updatePasswordRateLimiter,
+      ...securityDeps(),
     }).execute(input);
 
     expect(updatePasswordRateLimiter.consume).toHaveBeenCalledWith('update-password:user:user-1');
     expect(bcrypt.compare).toHaveBeenCalledWith(input.currentPassword, user.passwordHash);
     expect(bcrypt.hash).toHaveBeenCalledWith(input.newPassword, 12);
     expect(userRepository.update).toHaveBeenCalledWith('user-1', { passwordHash: 'new-hash' });
+  });
+
+  it('records a password_changed security event with the caller device info', async () => {
+    const user = makeUser({ id: 'user-1' });
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(user),
+      update: vi.fn().mockResolvedValue(user),
+    });
+    const securityEventRepository = makeSecurityEventRepository();
+    vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+    vi.mocked(bcrypt.hash).mockResolvedValue('new-hash' as never);
+
+    await new UpdatePasswordUseCase({
+      userRepository,
+      updatePasswordRateLimiter: makeRateLimiter(),
+      securityEventRepository,
+      generateId: () => 'evt-1',
+    }).execute({ ...input, ipAddress: '1.2.3.4', userAgent: 'Mozilla/5.0' });
+
+    expect(securityEventRepository.create).toHaveBeenCalledWith({
+      id: 'evt-1',
+      userId: 'user-1',
+      eventType: 'password_changed',
+      ipAddress: '1.2.3.4',
+      userAgent: 'Mozilla/5.0',
+    });
   });
 
   it('throws NOT_FOUND when user does not exist', async () => {
@@ -50,6 +86,7 @@ describe('UpdatePasswordUseCase', () => {
     const err = await new UpdatePasswordUseCase({
       userRepository,
       updatePasswordRateLimiter: makeRateLimiter(),
+      ...securityDeps(),
     })
       .execute(input)
       .catch((e) => e);
@@ -68,6 +105,7 @@ describe('UpdatePasswordUseCase', () => {
     const err = await new UpdatePasswordUseCase({
       userRepository,
       updatePasswordRateLimiter: makeRateLimiter(),
+      ...securityDeps(),
     })
       .execute(input)
       .catch((e) => e);
@@ -83,6 +121,7 @@ describe('UpdatePasswordUseCase', () => {
     const err = await new UpdatePasswordUseCase({
       userRepository,
       updatePasswordRateLimiter: makeRateLimiter(),
+      ...securityDeps(),
     })
       .execute({ ...input, newPassword: 'short1' })
       .catch((e) => e);
@@ -100,7 +139,11 @@ describe('UpdatePasswordUseCase', () => {
       consume: vi.fn().mockReturnValue(false),
     });
 
-    const err = await new UpdatePasswordUseCase({ userRepository, updatePasswordRateLimiter })
+    const err = await new UpdatePasswordUseCase({
+      userRepository,
+      updatePasswordRateLimiter,
+      ...securityDeps(),
+    })
       .execute(input)
       .catch((e) => e);
 
@@ -119,6 +162,7 @@ describe('UpdatePasswordUseCase', () => {
       const err = await new UpdatePasswordUseCase({
         userRepository,
         updatePasswordRateLimiter: makeRateLimiter(),
+        ...securityDeps(),
       })
         .execute({ ...input, authTime: Date.now() - 16 * 60 * 1000 })
         .catch((e) => e);
@@ -139,6 +183,7 @@ describe('UpdatePasswordUseCase', () => {
       await new UpdatePasswordUseCase({
         userRepository,
         updatePasswordRateLimiter: makeRateLimiter(),
+        ...securityDeps(),
       }).execute({ ...input, authTime: Date.now() });
 
       expect(userRepository.update).toHaveBeenCalledWith('user-1', { passwordHash: 'new-hash' });
@@ -156,6 +201,7 @@ describe('UpdatePasswordUseCase', () => {
       await new UpdatePasswordUseCase({
         userRepository,
         updatePasswordRateLimiter: makeRateLimiter(),
+        ...securityDeps(),
       }).execute({ ...input, authTime: undefined });
 
       expect(userRepository.update).toHaveBeenCalledWith('user-1', { passwordHash: 'new-hash' });
@@ -173,6 +219,7 @@ describe('UpdatePasswordUseCase', () => {
       await new UpdatePasswordUseCase({
         userRepository,
         updatePasswordRateLimiter: makeRateLimiter(),
+        ...securityDeps(),
       }).execute({ ...input, authTime: null });
 
       expect(userRepository.update).toHaveBeenCalledWith('user-1', { passwordHash: 'new-hash' });

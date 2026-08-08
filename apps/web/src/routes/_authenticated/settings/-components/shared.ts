@@ -86,10 +86,11 @@ export const EXPORT_USER_DATA = `
   }
 `;
 
-export const LOGIN_HISTORY = `
-  query LoginHistory {
-    loginHistory {
+export const SECURITY_ACTIVITY = `
+  query SecurityActivity {
+    securityActivity {
       id
+      eventType
       ipAddress
       userAgent
       createdAt
@@ -407,12 +408,23 @@ export const LLM_PROVIDER_LABEL: Record<string, string> = Object.fromEntries(
   LLM_PROVIDER_OPTIONS.map((o) => [o.value, o.label]),
 );
 
-export interface LoginEvent {
+export interface SecurityActivityItem {
   id: string;
+  eventType: string;
   ipAddress: string | null;
   userAgent: string | null;
   createdAt: string;
 }
+
+export const SECURITY_EVENT_LABEL: Record<string, string> = {
+  login: 'Signed in',
+  password_changed: 'Password changed',
+  email_changed: 'Email address changed',
+  totp_enabled: 'Two-factor authentication enabled',
+  totp_disabled: 'Two-factor authentication disabled',
+  session_revoked: 'A session was revoked',
+  other_sessions_revoked: 'All other sessions were revoked',
+};
 
 export function describeDevice(userAgent: string | null): string {
   if (!userAgent) return 'Unknown device';
