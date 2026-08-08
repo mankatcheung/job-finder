@@ -4,6 +4,8 @@ export interface UpdatePasswordInput {
   newPassword: string;
   /** Epoch-ms of the caller's session's last full authentication — see `REAUTH` in constants.ts. */
   authTime?: number | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
 }
 
 export interface IUpdatePasswordUseCase {

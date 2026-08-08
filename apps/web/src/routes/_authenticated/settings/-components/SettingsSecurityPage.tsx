@@ -16,7 +16,7 @@ import {
   SESSIONS_QUERY,
   REVOKE_SESSION,
   REVOKE_OTHER_SESSIONS,
-  LOGIN_HISTORY,
+  SECURITY_ACTIVITY,
   emailSchema,
   passwordSchema,
   totpBeginSchema,
@@ -30,8 +30,9 @@ import {
   type TotpSetup,
   type LinkedOAuthAccount,
   type Session,
-  type LoginEvent,
+  type SecurityActivityItem,
   OAUTH_PROVIDER_LABEL,
+  SECURITY_EVENT_LABEL,
   describeDevice,
   inputCls,
   labelCls,
@@ -159,15 +160,15 @@ export function SettingsSecurityPage() {
     await qc.invalidateQueries({ queryKey: ['sessions'] });
   };
 
-  // Login history
-  const [loginHistory, setLoginHistory] = useState<LoginEvent[] | null>(null);
-  const [loginHistoryError, setLoginHistoryError] = useState<string | null>(null);
+  // Security activity (logins, password/email changes, 2FA toggles, session revocations)
+  const [securityActivity, setSecurityActivity] = useState<SecurityActivityItem[] | null>(null);
+  const [securityActivityError, setSecurityActivityError] = useState<string | null>(null);
   useEffect(() => {
     gqlClient
-      .request<{ loginHistory: LoginEvent[] }>(LOGIN_HISTORY)
-      .then((res) => setLoginHistory(res.loginHistory))
+      .request<{ securityActivity: SecurityActivityItem[] }>(SECURITY_ACTIVITY)
+      .then((res) => setSecurityActivity(res.securityActivity))
       .catch((err) =>
-        setLoginHistoryError(extractGqlError(err) ?? 'Failed to load login history.'),
+        setSecurityActivityError(extractGqlError(err) ?? 'Failed to load security activity.'),
       );
   }, []);
 
@@ -562,36 +563,39 @@ export function SettingsSecurityPage() {
 
       <hr className="border-gray-200 dark:border-gray-700" />
 
-      {/* ── Login history ── */}
+      {/* ── Security activity ── */}
       <section className="space-y-4">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            Recent login activity
+            Security activity
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            A record of recent successful sign-ins to your account.
+            A record of sign-ins and account security changes: password and email updates,
+            two-factor authentication, and session revocations.
           </p>
         </div>
-        {loginHistoryError && (
+        {securityActivityError && (
           <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-            {loginHistoryError}
+            {securityActivityError}
           </p>
         )}
-        {!loginHistoryError && loginHistory === null && (
+        {!securityActivityError && securityActivity === null && (
           <p className="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
         )}
-        {!loginHistoryError && loginHistory?.length === 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">No login activity yet.</p>
+        {!securityActivityError && securityActivity?.length === 0 && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">No security activity yet.</p>
         )}
-        {!loginHistoryError && loginHistory && loginHistory.length > 0 && (
+        {!securityActivityError && securityActivity && securityActivity.length > 0 && (
           <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
-            {loginHistory.map((event) => (
+            {securityActivity.map((event) => (
               <li key={event.id} className="px-3 py-2 text-sm">
                 <p className="text-gray-900 dark:text-gray-100">
-                  {describeDevice(event.userAgent)}
-                  {event.ipAddress ? ` · ${event.ipAddress}` : ''}
+                  {SECURITY_EVENT_LABEL[event.eventType] ?? event.eventType}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {describeDevice(event.userAgent)}
+                  {event.ipAddress ? ` · ${event.ipAddress}` : ''}
+                  {' · '}
                   {new Date(event.createdAt).toLocaleString()}
                 </p>
               </li>

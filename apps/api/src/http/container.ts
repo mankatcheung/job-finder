@@ -19,6 +19,7 @@ import { DrizzlePushSubscriptionRepository } from '#src/infrastructure/db/reposi
 import { DrizzleContactRepository } from '#src/infrastructure/db/repositories/DrizzleContactRepository.js';
 import { DrizzlePasswordResetTokenRepository } from '#src/infrastructure/db/repositories/DrizzlePasswordResetTokenRepository.js';
 import { DrizzleLoginEventRepository } from '#src/infrastructure/db/repositories/DrizzleLoginEventRepository.js';
+import { DrizzleSecurityEventRepository } from '#src/infrastructure/db/repositories/DrizzleSecurityEventRepository.js';
 import { DrizzleSessionRepository } from '#src/infrastructure/db/repositories/DrizzleSessionRepository.js';
 import { DrizzleWorkExperienceRepository } from '#src/infrastructure/db/repositories/DrizzleWorkExperienceRepository.js';
 import { DrizzleEducationRepository } from '#src/infrastructure/db/repositories/DrizzleEducationRepository.js';
@@ -60,6 +61,7 @@ import { InterviewRoundMapper } from '#src/interface-adapters/mappers/InterviewR
 import { ActivityLogMapper } from '#src/interface-adapters/mappers/ActivityLogMapper.js';
 import { ContactMapper } from '#src/interface-adapters/mappers/ContactMapper.js';
 import { LoginEventMapper } from '#src/interface-adapters/mappers/LoginEventMapper.js';
+import { SecurityActivityMapper } from '#src/interface-adapters/mappers/SecurityActivityMapper.js';
 import { MessageMapper } from '#src/interface-adapters/mappers/MessageMapper.js';
 import { ConversationMapper } from '#src/interface-adapters/mappers/ConversationMapper.js';
 import { SessionMapper } from '#src/interface-adapters/mappers/SessionMapper.js';
@@ -77,6 +79,7 @@ import { InterviewRoundResolver } from '#src/interface-adapters/resolvers/Interv
 import { ActivityLogResolver } from '#src/interface-adapters/resolvers/ActivityLogResolver.js';
 import { ContactResolver } from '#src/interface-adapters/resolvers/ContactResolver.js';
 import { LoginEventResolver } from '#src/interface-adapters/resolvers/LoginEventResolver.js';
+import { SecurityActivityResolver } from '#src/interface-adapters/resolvers/SecurityActivityResolver.js';
 import { ApiTokenResolver } from '#src/interface-adapters/resolvers/ApiTokenResolver.js';
 import { NotificationResolver } from '#src/interface-adapters/resolvers/NotificationResolver.js';
 import { SessionResolver } from '#src/interface-adapters/resolvers/SessionResolver.js';
@@ -147,6 +150,7 @@ import { UpdateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/Upda
 import { DeleteInterviewRoundUseCase } from '#src/use-cases/interviewRounds/DeleteInterviewRoundUseCase.js';
 import { GetActivityLogsUseCase } from '#src/use-cases/activityLogs/GetActivityLogsUseCase.js';
 import { GetLoginHistoryUseCase } from '#src/use-cases/loginEvents/GetLoginHistoryUseCase.js';
+import { GetSecurityActivityUseCase } from '#src/use-cases/securityEvents/GetSecurityActivityUseCase.js';
 import { GetChatHistoryUseCase } from '#src/use-cases/chat/GetChatHistoryUseCase.js';
 import { CreateConversationUseCase } from '#src/use-cases/conversations/CreateConversationUseCase.js';
 import { ListConversationsUseCase } from '#src/use-cases/conversations/ListConversationsUseCase.js';
@@ -188,6 +192,7 @@ import { ParseJobDescriptionUseCase } from '#src/use-cases/jobDescription/ParseJ
 import { FetchJobPostingSourceResolver } from '#src/infrastructure/jobDescription/FetchJobPostingSourceResolver.js';
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
 import { GenerateCoverLetterUseCase } from '#src/use-cases/coverLetter/GenerateCoverLetterUseCase.js';
+import { GenerateCompanyBriefingUseCase } from '#src/use-cases/companyBriefing/GenerateCompanyBriefingUseCase.js';
 import { ComputeHealthScoreUseCase } from '#src/use-cases/application/ComputeHealthScoreUseCase.js';
 import { ComputeResumeMatchScoreUseCase } from '#src/use-cases/application/ComputeResumeMatchScoreUseCase.js';
 import { GetCalendarEventsUseCase } from '#src/use-cases/calendar/GetCalendarEventsUseCase.js';
@@ -254,6 +259,7 @@ export interface Cradle {
   contactRepository: DrizzleContactRepository;
   passwordResetTokenRepository: DrizzlePasswordResetTokenRepository;
   loginEventRepository: DrizzleLoginEventRepository;
+  securityEventRepository: DrizzleSecurityEventRepository;
   messageRepository: DrizzleMessageRepository;
   conversationRepository: DrizzleConversationRepository;
   llmApiKeyRepository: ILlmApiKeyRepository;
@@ -266,6 +272,10 @@ export interface Cradle {
   totpBackupCodeRepository: DrizzleTotpBackupCodeRepository;
   totpRateLimiter: IRateLimiter;
   chatRateLimiter: IRateLimiter;
+  generateCoverLetterRateLimiter: IRateLimiter;
+  parseJobDescriptionRateLimiter: IRateLimiter;
+  computeResumeMatchScoreRateLimiter: IRateLimiter;
+  generateCompanyBriefingRateLimiter: IRateLimiter;
   updatePasswordRateLimiter: IRateLimiter;
   requestEmailChangeRateLimiter: IRateLimiter;
   backupEmailVerificationTokenRepository: DrizzleBackupEmailVerificationTokenRepository;
@@ -289,6 +299,7 @@ export interface Cradle {
   activityLogMapper: ActivityLogMapper;
   contactMapper: ContactMapper;
   loginEventMapper: LoginEventMapper;
+  securityActivityMapper: SecurityActivityMapper;
   messageMapper: MessageMapper;
   conversationMapper: ConversationMapper;
   llmApiKeyMapper: LlmApiKeyMapper;
@@ -309,6 +320,7 @@ export interface Cradle {
   activityLogResolver: ActivityLogResolver;
   contactResolver: ContactResolver;
   loginEventResolver: LoginEventResolver;
+  securityActivityResolver: SecurityActivityResolver;
   apiTokenResolver: ApiTokenResolver;
   notificationResolver: NotificationResolver;
   sessionResolver: SessionResolver;
@@ -389,6 +401,7 @@ export interface Cradle {
   deleteInterviewRoundUseCase: DeleteInterviewRoundUseCase;
   getActivityLogsUseCase: GetActivityLogsUseCase;
   getLoginHistoryUseCase: GetLoginHistoryUseCase;
+  getSecurityActivityUseCase: GetSecurityActivityUseCase;
   getChatHistoryUseCase: GetChatHistoryUseCase;
   createConversationUseCase: CreateConversationUseCase;
   listConversationsUseCase: ListConversationsUseCase;
@@ -422,6 +435,7 @@ export interface Cradle {
   jobPostingSourceResolver: IJobPostingSourceResolver;
   parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
   generateCoverLetterUseCase: GenerateCoverLetterUseCase;
+  generateCompanyBriefingUseCase: GenerateCompanyBriefingUseCase;
   computeHealthScoreUseCase: ComputeHealthScoreUseCase;
   chatWithAssistantUseCase: ChatWithAssistantUseCase;
   computeResumeMatchScoreUseCase: ComputeResumeMatchScoreUseCase;
@@ -510,6 +524,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
       lifetime: Lifetime.SINGLETON,
     }),
     loginEventRepository: asClass(DrizzleLoginEventRepository, { lifetime: Lifetime.SINGLETON }),
+    securityEventRepository: asClass(DrizzleSecurityEventRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
     messageRepository: asClass(DrizzleMessageRepository, { lifetime: Lifetime.SINGLETON }),
     conversationRepository: asClass(DrizzleConversationRepository, {
       lifetime: Lifetime.SINGLETON,
@@ -535,6 +552,30 @@ export function buildContainer(): AwilixContainer<Cradle> {
     ),
     chatRateLimiter: asValue(
       new RateLimiter(RATE_LIMIT.CHAT_MESSAGE.MAX_ATTEMPTS, RATE_LIMIT.CHAT_MESSAGE.WINDOW_MS),
+    ),
+    generateCoverLetterRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.GENERATE_COVER_LETTER.MAX_ATTEMPTS,
+        RATE_LIMIT.GENERATE_COVER_LETTER.WINDOW_MS,
+      ),
+    ),
+    parseJobDescriptionRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.PARSE_JOB_DESCRIPTION.MAX_ATTEMPTS,
+        RATE_LIMIT.PARSE_JOB_DESCRIPTION.WINDOW_MS,
+      ),
+    ),
+    computeResumeMatchScoreRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.COMPUTE_RESUME_MATCH_SCORE.MAX_ATTEMPTS,
+        RATE_LIMIT.COMPUTE_RESUME_MATCH_SCORE.WINDOW_MS,
+      ),
+    ),
+    generateCompanyBriefingRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.GENERATE_COMPANY_BRIEFING.MAX_ATTEMPTS,
+        RATE_LIMIT.GENERATE_COMPANY_BRIEFING.WINDOW_MS,
+      ),
     ),
     updatePasswordRateLimiter: asValue(
       new RateLimiter(
@@ -585,6 +626,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     webPushService: asClass(WebPushService, { lifetime: Lifetime.SINGLETON }),
     contactMapper: asClass(ContactMapper, { lifetime: Lifetime.SINGLETON }),
     loginEventMapper: asClass(LoginEventMapper, { lifetime: Lifetime.SINGLETON }),
+    securityActivityMapper: asClass(SecurityActivityMapper, { lifetime: Lifetime.SINGLETON }),
     messageMapper: asClass(MessageMapper, { lifetime: Lifetime.SINGLETON }),
     conversationMapper: asClass(ConversationMapper, { lifetime: Lifetime.SINGLETON }),
     llmApiKeyMapper: asClass(LlmApiKeyMapper, { lifetime: Lifetime.SINGLETON }),
@@ -605,6 +647,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     activityLogResolver: asClass(ActivityLogResolver, { lifetime: Lifetime.SINGLETON }),
     contactResolver: asClass(ContactResolver, { lifetime: Lifetime.SINGLETON }),
     loginEventResolver: asClass(LoginEventResolver, { lifetime: Lifetime.SINGLETON }),
+    securityActivityResolver: asClass(SecurityActivityResolver, { lifetime: Lifetime.SINGLETON }),
     apiTokenResolver: asClass(ApiTokenResolver, { lifetime: Lifetime.SINGLETON }),
     notificationResolver: asClass(NotificationResolver, { lifetime: Lifetime.SINGLETON }),
     sessionResolver: asClass(SessionResolver, { lifetime: Lifetime.SINGLETON }),
@@ -750,6 +793,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     }),
     getActivityLogsUseCase: asClass(GetActivityLogsUseCase, { lifetime: Lifetime.TRANSIENT }),
     getLoginHistoryUseCase: asClass(GetLoginHistoryUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getSecurityActivityUseCase: asClass(GetSecurityActivityUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     getChatHistoryUseCase: asClass(GetChatHistoryUseCase, { lifetime: Lifetime.TRANSIENT }),
     createConversationUseCase: asClass(CreateConversationUseCase, {
       lifetime: Lifetime.TRANSIENT,
@@ -804,6 +850,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
       lifetime: Lifetime.TRANSIENT,
     }),
     generateCoverLetterUseCase: asClass(GenerateCoverLetterUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    generateCompanyBriefingUseCase: asClass(GenerateCompanyBriefingUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
     computeHealthScoreUseCase: asClass(ComputeHealthScoreUseCase, { lifetime: Lifetime.TRANSIENT }),

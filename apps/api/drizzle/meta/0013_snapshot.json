@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "6213eede-052a-4fd7-b89d-bed933aa621e",
+  "id": "3cc48e9e-31b2-4d7a-965a-8c864ed3cab7",
   "prevId": "9b5e09c4-bb3c-4a4a-87a6-958a75d1fd4b",
   "tables": {
     "ActivityLog": {
@@ -196,86 +196,6 @@
           "tableFrom": "ApplicationTag",
           "tableTo": "JobApplication",
           "columnsFrom": ["applicationId"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "BackupEmailVerificationToken": {
-      "name": "BackupEmailVerificationToken",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "userId": {
-          "name": "userId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "tokenHash": {
-          "name": "tokenHash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "newBackupEmail": {
-          "name": "newBackupEmail",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "expiresAt": {
-          "name": "expiresAt",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "usedAt": {
-          "name": "usedAt",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {
-        "BackupEmailVerificationToken_tokenHash_unique": {
-          "name": "BackupEmailVerificationToken_tokenHash_unique",
-          "columns": ["tokenHash"],
-          "isUnique": true
-        },
-        "BackupEmailVerificationToken_userId_idx": {
-          "name": "BackupEmailVerificationToken_userId_idx",
-          "columns": ["userId"],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "BackupEmailVerificationToken_userId_User_id_fk": {
-          "name": "BackupEmailVerificationToken_userId_User_id_fk",
-          "tableFrom": "BackupEmailVerificationToken",
-          "tableTo": "User",
-          "columnsFrom": ["userId"],
           "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
@@ -1793,6 +1713,74 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "SecurityEvent": {
+      "name": "SecurityEvent",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "eventType": {
+          "name": "eventType",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ipAddress": {
+          "name": "ipAddress",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "userAgent": {
+          "name": "userAgent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "SecurityEvent_userId_idx": {
+          "name": "SecurityEvent_userId_idx",
+          "columns": ["userId"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "SecurityEvent_userId_User_id_fk": {
+          "name": "SecurityEvent_userId_User_id_fk",
+          "tableFrom": "SecurityEvent",
+          "tableTo": "User",
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "Session": {
       "name": "Session",
       "columns": {
@@ -2159,20 +2147,6 @@
         "customAiPrompt": {
           "name": "customAiPrompt",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "backupEmail": {
-          "name": "backupEmail",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "backupEmailVerifiedAt": {
-          "name": "backupEmailVerifiedAt",
-          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false

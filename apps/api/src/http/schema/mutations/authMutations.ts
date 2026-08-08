@@ -1,19 +1,10 @@
 import { GraphQLError } from 'graphql';
-import type { IHttpRequest } from '#src/http/ports/IHttpRequest.js';
 import { builder } from '#src/http/schema/builder.js';
 import { setAuthCookies, clearAuthCookies } from '#src/http/schema/types/AuthPayloadType.js';
 import { LoginResultRef } from '#src/http/schema/types/LoginResultType.js';
-import type { DeviceInfo } from '#src/interface-adapters/resolvers/AuthResolver.js';
+import { deviceInfoFrom } from '#src/http/schema/requestDeviceInfo.js';
 import { fromCodedError } from '#src/http/errors/AppError.js';
 import { COOKIES, ERROR_CODES } from '#src/constants.js';
-
-function deviceInfoFrom(request: IHttpRequest): DeviceInfo {
-  const userAgent = request.headers['user-agent'];
-  return {
-    userAgent: typeof userAgent === 'string' ? userAgent : null,
-    ipAddress: request.ip,
-  };
-}
 
 builder.mutationField('register', (t) =>
   t.string({

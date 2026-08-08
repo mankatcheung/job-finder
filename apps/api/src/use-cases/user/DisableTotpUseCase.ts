@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ITotpBackupCodeRepository } from '#src/use-cases/ports/ITotpBackupCodeRepository.js';
+import type { ISecurityEventRepository } from '#src/use-cases/ports/ISecurityEventRepository.js';
 import { ERROR_CODES } from '#src/constants.js';
 import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
 import type {
@@ -11,6 +12,8 @@ import type {
 interface Deps {
   userRepository: IUserRepository;
   totpBackupCodeRepository: ITotpBackupCodeRepository;
+  securityEventRepository: ISecurityEventRepository;
+  generateId: () => string;
 }
 
 export class DisableTotpUseCase implements IDisableTotpUseCase {
@@ -30,5 +33,13 @@ export class DisableTotpUseCase implements IDisableTotpUseCase {
       totpSecret: null,
     });
     await this.deps.totpBackupCodeRepository.deleteAllForUser(input.userId);
+
+    await this.deps.securityEventRepository.create({
+      id: this.deps.generateId(),
+      userId: input.userId,
+      eventType: 'totp_disabled',
+      ipAddress: input.ipAddress ?? null,
+      userAgent: input.userAgent ?? null,
+    });
   }
 }

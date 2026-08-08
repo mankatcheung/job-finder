@@ -5,6 +5,7 @@ import { TotpSetupRef } from '#src/http/schema/types/TotpSetupType.js';
 import { ConfirmTotpSetupResultRef } from '#src/http/schema/types/ConfirmTotpSetupType.js';
 import { ImportSummaryRef } from '#src/http/schema/types/ImportSummaryType.js';
 import { UploadUrlPayloadRef } from '#src/http/schema/types/AuthPayloadType.js';
+import { deviceInfoFrom } from '#src/http/schema/requestDeviceInfo.js';
 import { fromCodedError } from '#src/http/errors/AppError.js';
 import { ERROR_CODES } from '#src/constants.js';
 import type { JwtUser } from '#src/http/context.js';
@@ -51,7 +52,7 @@ builder.mutationField('confirmEmailChange', (t) =>
     resolve: async (_root, args, ctx) => {
       const { userResolver } = ctx.diScope.cradle;
       try {
-        await userResolver.confirmEmailChange(args.token);
+        await userResolver.confirmEmailChange(args.token, deviceInfoFrom(ctx.request));
         return true;
       } catch (err) {
         throw fromCodedError(err);
@@ -76,6 +77,7 @@ builder.mutationField('updatePassword', (t) =>
           args.currentPassword,
           args.newPassword,
           sessionAuthTime(ctx.user),
+          deviceInfoFrom(ctx.request),
         );
         return true;
       } catch (err) {
@@ -163,7 +165,11 @@ builder.mutationField('confirmTotpSetup', (t) =>
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { userResolver } = ctx.diScope.cradle;
       try {
-        return await userResolver.confirmTotpSetup(ctx.user.sub, args.code);
+        return await userResolver.confirmTotpSetup(
+          ctx.user.sub,
+          args.code,
+          deviceInfoFrom(ctx.request),
+        );
       } catch (err) {
         throw fromCodedError(err);
       }
@@ -181,7 +187,7 @@ builder.mutationField('disableTotp', (t) =>
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { userResolver } = ctx.diScope.cradle;
       try {
-        await userResolver.disableTotp(ctx.user.sub, args.password);
+        await userResolver.disableTotp(ctx.user.sub, args.password, deviceInfoFrom(ctx.request));
         return true;
       } catch (err) {
         throw fromCodedError(err);

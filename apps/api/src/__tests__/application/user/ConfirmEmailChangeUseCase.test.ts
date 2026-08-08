@@ -6,6 +6,7 @@ import {
   makeUser,
   makeEmailVerificationTokenRepository,
   makeEmailVerificationToken,
+  makeSecurityEventRepository,
 } from '#src/__tests__/helpers/mocks.js';
 
 const RAW_TOKEN = 'raw-confirm-token';
@@ -14,6 +15,8 @@ const TOKEN_HASH = createHash('sha256').update(RAW_TOKEN).digest('hex');
 const makeDeps = (overrides?: object) => ({
   userRepository: makeUserRepository(),
   emailVerificationTokenRepository: makeEmailVerificationTokenRepository(),
+  securityEventRepository: makeSecurityEventRepository(),
+  generateId: () => 'evt-1',
   ...overrides,
 });
 
@@ -129,6 +132,33 @@ describe('ConfirmEmailChangeUseCase', () => {
       emailVerifiedAt: expect.any(Date) as Date,
     });
     expect(emailVerificationTokenRepository.markUsed).toHaveBeenCalledWith('token-1');
+  });
+
+  it('records an email_changed security event with the caller device info', async () => {
+    const token = makeEmailVerificationToken({
+      id: 'token-1',
+      tokenHash: TOKEN_HASH,
+      userId: 'user-1',
+      newEmail: 'new@example.com',
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+    });
+    const emailVerificationTokenRepository = makeEmailVerificationTokenRepository({
+      findByTokenHash: vi.fn().mockResolvedValue(token),
+    });
+    const userRepository = makeUserRepository({ findByEmail: vi.fn().mockResolvedValue(null) });
+    const securityEventRepository = makeSecurityEventRepository();
+
+    await new ConfirmEmailChangeUseCase(
+      makeDeps({ userRepository, emailVerificationTokenRepository, securityEventRepository }),
+    ).execute({ token: RAW_TOKEN, ipAddress: '1.2.3.4', userAgent: 'Mozilla/5.0' });
+
+    expect(securityEventRepository.create).toHaveBeenCalledWith({
+      id: 'evt-1',
+      userId: 'user-1',
+      eventType: 'email_changed',
+      ipAddress: '1.2.3.4',
+      userAgent: 'Mozilla/5.0',
+    });
   });
 
   it('allows re-confirming the same email the token owner already has (no false CONFLICT)', async () => {
