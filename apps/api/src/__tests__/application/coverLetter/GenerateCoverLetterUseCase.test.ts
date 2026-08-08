@@ -10,6 +10,7 @@ import {
   makeSkillRepository,
   makeUserRepository,
   makeUser,
+  makeRateLimiter,
 } from '#src/__tests__/helpers/mocks.js';
 
 const COVER_LETTER = 'Dear Hiring Manager,\n\nI am excited to apply…\n\nSincerely,\nJane';
@@ -20,6 +21,7 @@ function baseDeps(overrides?: Record<string, unknown>) {
     educationRepository: makeEducationRepository(),
     skillRepository: makeSkillRepository(),
     userRepository: makeUserRepository({ findById: vi.fn().mockResolvedValue(makeUser()) }),
+    generateCoverLetterRateLimiter: makeRateLimiter(),
     ...overrides,
   };
 }
@@ -217,5 +219,24 @@ describe('GenerateCoverLetterUseCase', () => {
       .catch((e) => e);
 
     expect((err as { code: string }).code).toBe('AI_NOT_CONFIGURED');
+  });
+
+  it('throws RATE_LIMITED when the rate limiter rejects the request', async () => {
+    const applicationRepository = makeApplicationRepository();
+    const llmProviderFactory = makeLLMProviderFactory();
+    const generateCoverLetterRateLimiter = makeRateLimiter({
+      consume: vi.fn().mockReturnValue(false),
+    });
+
+    const err = await new GenerateCoverLetterUseCase({
+      applicationRepository,
+      llmProviderFactory,
+      ...baseDeps({ generateCoverLetterRateLimiter }),
+    } as never)
+      .execute({ applicationId: 'app-1', userId: 'user-1' })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('RATE_LIMITED');
+    expect(applicationRepository.findById).not.toHaveBeenCalled();
   });
 });

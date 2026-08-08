@@ -261,6 +261,9 @@ export interface Cradle {
   totpBackupCodeRepository: DrizzleTotpBackupCodeRepository;
   totpRateLimiter: IRateLimiter;
   chatRateLimiter: IRateLimiter;
+  generateCoverLetterRateLimiter: IRateLimiter;
+  parseJobDescriptionRateLimiter: IRateLimiter;
+  computeResumeMatchScoreRateLimiter: IRateLimiter;
   updatePasswordRateLimiter: IRateLimiter;
   requestEmailChangeRateLimiter: IRateLimiter;
   totpProvider: ITotpProvider;
@@ -523,6 +526,24 @@ export function buildContainer(): AwilixContainer<Cradle> {
     ),
     chatRateLimiter: asValue(
       new RateLimiter(RATE_LIMIT.CHAT_MESSAGE.MAX_ATTEMPTS, RATE_LIMIT.CHAT_MESSAGE.WINDOW_MS),
+    ),
+    generateCoverLetterRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.GENERATE_COVER_LETTER.MAX_ATTEMPTS,
+        RATE_LIMIT.GENERATE_COVER_LETTER.WINDOW_MS,
+      ),
+    ),
+    parseJobDescriptionRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.PARSE_JOB_DESCRIPTION.MAX_ATTEMPTS,
+        RATE_LIMIT.PARSE_JOB_DESCRIPTION.WINDOW_MS,
+      ),
+    ),
+    computeResumeMatchScoreRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.COMPUTE_RESUME_MATCH_SCORE.MAX_ATTEMPTS,
+        RATE_LIMIT.COMPUTE_RESUME_MATCH_SCORE.WINDOW_MS,
+      ),
     ),
     updatePasswordRateLimiter: asValue(
       new RateLimiter(
