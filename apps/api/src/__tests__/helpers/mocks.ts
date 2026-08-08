@@ -2,6 +2,8 @@ import { vi } from 'vitest';
 import type { ITransactionManager } from '#src/use-cases/ports/ITransactionManager.js';
 import type { IApiTokenRepository } from '#src/use-cases/ports/IApiTokenRepository.js';
 import type { ApiToken } from '#src/domain/apiToken/ApiToken.js';
+import type { IShareLinkRepository } from '#src/use-cases/ports/IShareLinkRepository.js';
+import type { ShareLink } from '#src/domain/shareLink/ShareLink.js';
 import type { INotificationRepository } from '#src/use-cases/ports/INotificationRepository.js';
 import type { Notification } from '#src/domain/notification/Notification.js';
 import type { ICreateNotificationUseCase } from '#src/use-cases/notifications/ICreateNotificationUseCase.js';
@@ -203,6 +205,28 @@ export const makeNotification = (overrides?: Partial<Notification>): Notificatio
   body: 'Software Engineer — phone interview tomorrow at 10:00 AM',
   url: '/applications/app-1',
   readAt: null,
+  createdAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+export const makeShareLinkRepository = (
+  overrides?: Partial<IShareLinkRepository>,
+): IShareLinkRepository => ({
+  findAllByUserId: vi.fn().mockResolvedValue([]),
+  findByTokenHash: vi.fn().mockResolvedValue(null),
+  findByIdAndUserId: vi.fn().mockResolvedValue(null),
+  create: vi.fn(),
+  updateLastUsed: vi.fn(),
+  delete: vi.fn(),
+  ...overrides,
+});
+
+export const makeShareLink = (overrides?: Partial<ShareLink>): ShareLink => ({
+  id: 'share-link-1',
+  userId: 'user-1',
+  name: 'For my mentor',
+  tokenHash: 'hashed-value',
+  lastUsedAt: null,
   createdAt: new Date('2024-01-01'),
   ...overrides,
 });

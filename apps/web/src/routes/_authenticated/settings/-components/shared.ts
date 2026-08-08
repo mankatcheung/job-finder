@@ -278,6 +278,34 @@ export const DELETE_API_TOKEN = `
   }
 `;
 
+export const SHARE_LINKS_QUERY = `
+  query ShareLinks {
+    shareLinks {
+      id
+      name
+      lastUsedAt
+      createdAt
+    }
+  }
+`;
+
+export const CREATE_SHARE_LINK = `
+  mutation CreateShareLink($name: String!) {
+    createShareLink(name: $name) {
+      id
+      name
+      token
+      createdAt
+    }
+  }
+`;
+
+export const DELETE_SHARE_LINK = `
+  mutation DeleteShareLink($id: ID!) {
+    deleteShareLink(id: $id)
+  }
+`;
+
 // ── Schemas ────────────────────────────────────────────────────────────────
 
 export const profileSchema = z.object({
@@ -516,6 +544,20 @@ export type CreateApiTokenPayload = {
   name: string;
   token: string;
   scope: string;
+  createdAt: string;
+};
+
+export type ShareLink = {
+  id: string;
+  name: string;
+  lastUsedAt: string | null;
+  createdAt: string;
+};
+
+export type CreateShareLinkPayload = {
+  id: string;
+  name: string;
+  token: string;
   createdAt: string;
 };
 

@@ -169,6 +169,13 @@ import { CreateApiTokenUseCase } from '#src/use-cases/apiTokens/CreateApiTokenUs
 import { ListApiTokensUseCase } from '#src/use-cases/apiTokens/ListApiTokensUseCase.js';
 import { DeleteApiTokenUseCase } from '#src/use-cases/apiTokens/DeleteApiTokenUseCase.js';
 import { ValidateApiTokenUseCase } from '#src/use-cases/apiTokens/ValidateApiTokenUseCase.js';
+import { DrizzleShareLinkRepository } from '#src/infrastructure/db/repositories/DrizzleShareLinkRepository.js';
+import { ShareLinkMapper } from '#src/interface-adapters/mappers/ShareLinkMapper.js';
+import { ShareLinkResolver } from '#src/interface-adapters/resolvers/ShareLinkResolver.js';
+import { CreateShareLinkUseCase } from '#src/use-cases/shareLinks/CreateShareLinkUseCase.js';
+import { ListShareLinksUseCase } from '#src/use-cases/shareLinks/ListShareLinksUseCase.js';
+import { DeleteShareLinkUseCase } from '#src/use-cases/shareLinks/DeleteShareLinkUseCase.js';
+import { GetSharedSummaryUseCase } from '#src/use-cases/shareLinks/GetSharedSummaryUseCase.js';
 import { DrizzleNotificationRepository } from '#src/infrastructure/db/repositories/DrizzleNotificationRepository.js';
 import { NotificationMapper } from '#src/interface-adapters/mappers/NotificationMapper.js';
 import { CreateNotificationUseCase } from '#src/use-cases/notifications/CreateNotificationUseCase.js';
@@ -272,6 +279,7 @@ export interface Cradle {
   workExperienceRepository: CachedWorkExperienceRepository;
   activityLogRepository: DrizzleActivityLogRepository;
   apiTokenRepository: CachedApiTokenRepository;
+  shareLinkRepository: DrizzleShareLinkRepository;
   notificationRepository: CachedNotificationRepository;
   contactRepository: CachedContactRepository;
   passwordResetTokenRepository: DrizzlePasswordResetTokenRepository;
@@ -304,6 +312,7 @@ export interface Cradle {
 
   applicationMapper: ApplicationMapper;
   apiTokenMapper: ApiTokenMapper;
+  shareLinkMapper: ShareLinkMapper;
   notificationMapper: NotificationMapper;
   noteMapper: NoteMapper;
   documentMapper: DocumentMapper;
@@ -336,6 +345,7 @@ export interface Cradle {
   loginEventResolver: LoginEventResolver;
   securityActivityResolver: SecurityActivityResolver;
   apiTokenResolver: ApiTokenResolver;
+  shareLinkResolver: ShareLinkResolver;
   notificationResolver: NotificationResolver;
   sessionResolver: SessionResolver;
   workExperienceResolver: WorkExperienceResolver;
@@ -424,6 +434,10 @@ export interface Cradle {
   listApiTokensUseCase: ListApiTokensUseCase;
   deleteApiTokenUseCase: DeleteApiTokenUseCase;
   validateApiTokenUseCase: ValidateApiTokenUseCase;
+  createShareLinkUseCase: CreateShareLinkUseCase;
+  listShareLinksUseCase: ListShareLinksUseCase;
+  deleteShareLinkUseCase: DeleteShareLinkUseCase;
+  getSharedSummaryUseCase: GetSharedSummaryUseCase;
   createNotificationUseCase: CreateNotificationUseCase;
   getNotificationsPageUseCase: GetNotificationsPageUseCase;
   markNotificationsReadUseCase: MarkNotificationsReadUseCase;
@@ -539,6 +553,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
       lifetime: Lifetime.SINGLETON,
     }),
     apiTokenRepository: asClass(CachedApiTokenRepository, { lifetime: Lifetime.SINGLETON }),
+    shareLinkRepository: asClass(DrizzleShareLinkRepository, { lifetime: Lifetime.SINGLETON }),
     contactRepository: asClass(CachedContactRepository, { lifetime: Lifetime.SINGLETON }),
     notificationRepository: asClass(CachedNotificationRepository, {
       lifetime: Lifetime.SINGLETON,
@@ -647,6 +662,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     // Mappers
     applicationMapper: asClass(ApplicationMapper, { lifetime: Lifetime.SINGLETON }),
     apiTokenMapper: asClass(ApiTokenMapper, { lifetime: Lifetime.SINGLETON }),
+    shareLinkMapper: asClass(ShareLinkMapper, { lifetime: Lifetime.SINGLETON }),
     notificationMapper: asClass(NotificationMapper, { lifetime: Lifetime.SINGLETON }),
     noteMapper: asClass(NoteMapper, { lifetime: Lifetime.SINGLETON }),
     documentMapper: asClass(DocumentMapper, { lifetime: Lifetime.SINGLETON }),
@@ -680,6 +696,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     loginEventResolver: asClass(LoginEventResolver, { lifetime: Lifetime.SINGLETON }),
     securityActivityResolver: asClass(SecurityActivityResolver, { lifetime: Lifetime.SINGLETON }),
     apiTokenResolver: asClass(ApiTokenResolver, { lifetime: Lifetime.SINGLETON }),
+    shareLinkResolver: asClass(ShareLinkResolver, { lifetime: Lifetime.SINGLETON }),
     notificationResolver: asClass(NotificationResolver, { lifetime: Lifetime.SINGLETON }),
     sessionResolver: asClass(SessionResolver, { lifetime: Lifetime.SINGLETON }),
     oauthResolver: asClass(OAuthResolver, { lifetime: Lifetime.SINGLETON }),
@@ -839,6 +856,10 @@ export function buildContainer(): AwilixContainer<Cradle> {
     listApiTokensUseCase: asClass(ListApiTokensUseCase, { lifetime: Lifetime.TRANSIENT }),
     deleteApiTokenUseCase: asClass(DeleteApiTokenUseCase, { lifetime: Lifetime.TRANSIENT }),
     validateApiTokenUseCase: asClass(ValidateApiTokenUseCase, { lifetime: Lifetime.TRANSIENT }),
+    createShareLinkUseCase: asClass(CreateShareLinkUseCase, { lifetime: Lifetime.TRANSIENT }),
+    listShareLinksUseCase: asClass(ListShareLinksUseCase, { lifetime: Lifetime.TRANSIENT }),
+    deleteShareLinkUseCase: asClass(DeleteShareLinkUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getSharedSummaryUseCase: asClass(GetSharedSummaryUseCase, { lifetime: Lifetime.TRANSIENT }),
     createNotificationUseCase: asClass(CreateNotificationUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
