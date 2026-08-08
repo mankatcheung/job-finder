@@ -18,7 +18,7 @@ export const Route = createFileRoute('/confirm-email-change')({
 
 type Status = 'confirming' | 'success' | 'error';
 
-export function ConfirmEmailChangePage() {
+function ConfirmEmailChangePage() {
   const { token } = Route.useSearch();
   const [status, setStatus] = useState<Status>(token ? 'confirming' : 'error');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

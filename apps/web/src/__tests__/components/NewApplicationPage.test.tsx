@@ -22,7 +22,7 @@ vi.mock('#/lib/queryClient', () => ({
   queryClient: { invalidateQueries: vi.fn() },
 }));
 
-import { NewApplicationPage } from '#/routes/_authenticated/applications/new';
+import { NewApplicationPage } from '#/routes/_authenticated/applications/-components/NewApplicationPage';
 
 describe('NewApplicationPage', () => {
   beforeEach(() => {

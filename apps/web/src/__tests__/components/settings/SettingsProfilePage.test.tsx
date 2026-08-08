@@ -37,7 +37,7 @@ vi.mock('@vercel/blob/client', () => ({
 }));
 
 import { ThemeProvider } from '#/lib/theme';
-import { SettingsProfilePage } from '#/routes/_authenticated/settings/profile';
+import { SettingsProfilePage } from '#/routes/_authenticated/settings/-components/SettingsProfilePage';
 
 const makeClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
 

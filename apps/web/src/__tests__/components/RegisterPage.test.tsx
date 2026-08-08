@@ -35,7 +35,7 @@ vi.mock('#/lib/queryClient', () => ({
   queryClient: { resetQueries: vi.fn() },
 }));
 
-import { RegisterPage } from '#/routes/register';
+import { RegisterPage } from '#/routes/-components/RegisterPage';
 
 const fillForm = (email: string, password: string, confirm: string) => {
   fireEvent.change(screen.getByPlaceholderText('you@example.com'), {

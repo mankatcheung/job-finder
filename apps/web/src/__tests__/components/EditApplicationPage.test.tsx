@@ -27,7 +27,7 @@ vi.mock('#/lib/queryClient', () => ({
   queryClient: { invalidateQueries: mockInvalidate },
 }));
 
-import { EditApplicationPage } from '#/routes/_authenticated/applications/$applicationId/edit';
+import { EditApplicationPage } from '#/routes/_authenticated/applications/$applicationId/-components/EditApplicationPage';
 
 const makeClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });

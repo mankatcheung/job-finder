@@ -17,6 +17,7 @@ const { mockNavigate, mockGqlRequest, mockSetAccessToken, mockUseSearch } = vi.h
 vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => (opts: unknown) => ({ ...(opts as object), useSearch: mockUseSearch }),
   useNavigate: () => mockNavigate,
+  useSearch: () => mockUseSearch(),
   useRouterState: ({ select }: { select: (s: { location: { pathname: string } }) => string }) =>
     select({ location: { pathname: '/dashboard' } }),
   useChildMatches: () => [{ routeId: '/_authenticated/dashboard' }],
@@ -84,21 +85,21 @@ describe('Accessibility audits', () => {
 
   describe('LoginPage', () => {
     it('has no detectable a11y violations', async () => {
-      const { LoginPage } = await import('#/routes/login');
+      const { LoginPage } = await import('#/routes/-components/LoginPage');
       await checkA11y(<LoginPage />);
     });
   });
 
   describe('RegisterPage', () => {
     it('has no detectable a11y violations', async () => {
-      const { RegisterPage } = await import('#/routes/register');
+      const { RegisterPage } = await import('#/routes/-components/RegisterPage');
       await checkA11y(<RegisterPage />);
     });
   });
 
   describe('ForgotPasswordPage', () => {
     it('has no detectable a11y violations', async () => {
-      const { ForgotPasswordPage } = await import('#/routes/forgot-password');
+      const { ForgotPasswordPage } = await import('#/routes/-components/ForgotPasswordPage');
       await checkA11y(<ForgotPasswordPage />);
     });
   });
@@ -106,7 +107,7 @@ describe('Accessibility audits', () => {
   describe('ResetPasswordPage', () => {
     it('has no detectable a11y violations', async () => {
       mockUseSearch.mockReturnValue({ token: 'valid-token' });
-      const { ResetPasswordPage } = await import('#/routes/reset-password');
+      const { ResetPasswordPage } = await import('#/routes/-components/ResetPasswordPage');
       await checkA11y(<ResetPasswordPage />);
     });
   });
@@ -117,7 +118,8 @@ describe('Accessibility audits', () => {
     it('has no detectable a11y violations', async () => {
       mockGqlRequest.mockResolvedValue({ me: { avatarUrl: null } });
       const { ThemeProvider } = await import('#/lib/theme');
-      const { AuthenticatedLayout } = await import('#/routes/_authenticated/route');
+      const { AuthenticatedLayout } =
+        await import('#/routes/_authenticated/-components/AuthenticatedLayout');
 
       function AuthWrapper({ children }: { children: React.ReactNode }) {
         return (
@@ -134,7 +136,7 @@ describe('Accessibility audits', () => {
   describe('DashboardPage', () => {
     it('has no detectable a11y violations', async () => {
       mockGqlRequest.mockResolvedValue({ applications: [] });
-      const { DashboardPage } = await import('#/routes/_authenticated/dashboard');
+      const { DashboardPage } = await import('#/routes/_authenticated/-components/DashboardPage');
       await checkA11y(<DashboardPage />);
     });
   });
@@ -158,7 +160,7 @@ describe('Accessibility audits', () => {
       });
       const { ThemeProvider } = await import('#/lib/theme');
       const { SettingsNotificationsPage } =
-        await import('#/routes/_authenticated/settings/notifications');
+        await import('#/routes/_authenticated/settings/-components/SettingsNotificationsPage');
 
       function SettingsWrapper({ children }: { children: React.ReactNode }) {
         return (

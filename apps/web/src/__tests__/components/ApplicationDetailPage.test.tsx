@@ -34,7 +34,7 @@ vi.mock('#/lib/undoToast', () => ({
   }),
 }));
 
-import { ApplicationDetailPage } from '#/routes/_authenticated/applications/$applicationId/index';
+import { ApplicationDetailPage } from '#/routes/_authenticated/applications/$applicationId/-components/ApplicationDetailPage';
 
 const makeClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });

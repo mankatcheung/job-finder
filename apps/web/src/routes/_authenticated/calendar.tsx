@@ -106,7 +106,7 @@ export const Route = createFileRoute('/_authenticated/calendar')({
   component: CalendarPage,
 });
 
-export function CalendarPage() {
+function CalendarPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [anchorDate, setAnchorDate] = useState(() => {
     const now = new Date();

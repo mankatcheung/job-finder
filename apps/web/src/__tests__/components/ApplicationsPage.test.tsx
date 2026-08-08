@@ -35,7 +35,7 @@ vi.mock('#/lib/undoToast', () => ({
 
 vi.mock('#/graphql/generated/graphql', () => ({}));
 
-import { ApplicationsPage } from '#/routes/_authenticated/applications/index';
+import { ApplicationsPage } from '#/routes/_authenticated/applications/-components/ApplicationsPage';
 
 const makeClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
