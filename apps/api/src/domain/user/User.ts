@@ -9,6 +9,7 @@ export interface User {
   emailVerifiedAt: Date | null;
   avatarKey: string | null;
   weeklyDigestEnabled: boolean;
+  digestFrequency: 'daily' | 'weekly' | 'off';
   lastDigestSentAt: Date | null;
   followUpRemindersEnabled: boolean;
   pushNotificationsEnabled: boolean;

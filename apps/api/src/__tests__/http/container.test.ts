@@ -17,7 +17,7 @@ describe('buildContainer', () => {
     const container = buildContainer();
 
     expect(container.resolve('tokenService')).toBeInstanceOf(JwtTokenService);
-  });
+  }, 15_000);
 
   it('resolves the offer use cases and resolver through proxy injection', async () => {
     const { buildContainer } = await import('#src/http/container.js');

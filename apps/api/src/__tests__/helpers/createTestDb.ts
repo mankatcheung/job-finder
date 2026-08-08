@@ -18,6 +18,7 @@ const SCHEMA_STATEMENTS = [
     "emailVerifiedAt" INTEGER,
     "avatarKey" TEXT,
     "weeklyDigestEnabled" INTEGER NOT NULL DEFAULT 1,
+    "digestFrequency" TEXT NOT NULL DEFAULT 'weekly',
     "lastDigestSentAt" INTEGER,
     "followUpRemindersEnabled" INTEGER NOT NULL DEFAULT 1,
     "pushNotificationsEnabled" INTEGER NOT NULL DEFAULT 0,

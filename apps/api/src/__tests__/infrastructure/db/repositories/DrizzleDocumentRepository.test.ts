@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { DrizzleDocumentRepository } from '#src/infrastructure/db/repositories/DrizzleDocumentRepository.js';
 import { createTestDb, type TestDb } from '#src/__tests__/helpers/createTestDb.js';
 import { user, jobApplication, document } from '#src/infrastructure/db/schema.js';
+import { eq } from 'drizzle-orm';
 
 const BASE_DOC = {
   id: 'doc-1',
@@ -64,6 +65,14 @@ describe('DrizzleDocumentRepository', () => {
     it('returns all documents for the application ordered newest first', async () => {
       await repo.create(BASE_DOC);
       await repo.create({ ...BASE_DOC, id: 'doc-2', storageKey: 'path/to/cover.pdf' });
+      await db.db
+        .update(document)
+        .set({ createdAt: new Date('2024-01-01T00:00:00Z') })
+        .where(eq(document.id, 'doc-1'));
+      await db.db
+        .update(document)
+        .set({ createdAt: new Date('2024-01-02T00:00:00Z') })
+        .where(eq(document.id, 'doc-2'));
 
       const docs = await repo.findAllByApplicationId('app-1');
       expect(docs).toHaveLength(2);

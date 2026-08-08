@@ -48,17 +48,21 @@ export class BrevoEmailService implements IEmailService {
     }
   }
 
-  async sendWeeklyDigest(to: string, data: WeeklyDigestData): Promise<void> {
+  async sendWeeklyDigest(
+    to: string,
+    data: WeeklyDigestData,
+    frequency: 'daily' | 'weekly' = 'weekly',
+  ): Promise<void> {
     const now = new Date();
-    const weekLabel = `Week of ${now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
-    const htmlContent = buildWeeklyDigestHtml(data, weekLabel);
+    const periodLabel = `${frequency === 'daily' ? 'Day' : 'Week'} of ${now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+    const htmlContent = buildWeeklyDigestHtml(data, periodLabel, frequency);
     const response = await fetch(EMAIL.BREVO_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'api-key': this.apiKey },
       body: JSON.stringify({
         sender: { name: this.fromName, email: this.fromEmail },
         to: [{ email: to }],
-        subject: `Your Weekly Job Search Digest — ${weekLabel}`,
+        subject: `Your ${frequency === 'daily' ? 'Daily' : 'Weekly'} Job Search Digest — ${periodLabel}`,
         htmlContent,
       }),
     });

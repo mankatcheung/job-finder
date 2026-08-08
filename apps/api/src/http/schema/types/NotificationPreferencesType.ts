@@ -6,6 +6,7 @@ export const NotificationPreferencesRef =
 NotificationPreferencesRef.implement({
   fields: (t) => ({
     weeklyDigestEnabled: t.exposeBoolean('weeklyDigestEnabled'),
+    digestFrequency: t.exposeString('digestFrequency'),
     followUpRemindersEnabled: t.exposeBoolean('followUpRemindersEnabled'),
     pushNotificationsEnabled: t.exposeBoolean('pushNotificationsEnabled'),
   }),

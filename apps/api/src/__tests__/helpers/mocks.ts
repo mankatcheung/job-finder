@@ -385,6 +385,7 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   emailVerifiedAt: null,
   avatarKey: null,
   weeklyDigestEnabled: true,
+  digestFrequency: 'weekly',
   lastDigestSentAt: null,
   followUpRemindersEnabled: true,
   pushNotificationsEnabled: false,

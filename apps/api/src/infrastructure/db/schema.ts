@@ -10,6 +10,7 @@ export const user = sqliteTable('User', {
   emailVerifiedAt: integer('emailVerifiedAt', { mode: 'timestamp_ms' }),
   avatarKey: text('avatarKey'),
   weeklyDigestEnabled: integer('weeklyDigestEnabled', { mode: 'boolean' }).notNull().default(true),
+  digestFrequency: text('digestFrequency').notNull().default('weekly'),
   lastDigestSentAt: integer('lastDigestSentAt', { mode: 'timestamp_ms' }),
   followUpRemindersEnabled: integer('followUpRemindersEnabled', { mode: 'boolean' })
     .notNull()

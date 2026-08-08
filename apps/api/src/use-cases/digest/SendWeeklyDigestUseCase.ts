@@ -1,7 +1,7 @@
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IEmailService, WeeklyDigestData } from '#src/use-cases/ports/IEmailService.js';
-import { DURATIONS_MS, DIGEST_WINDOW_MS } from '#src/constants.js';
+import { DURATIONS_MS, DIGEST_WINDOW_MS, DIGEST_FREQUENCY } from '#src/constants.js';
 
 interface Deps {
   userRepository: IUserRepository;
@@ -16,6 +16,7 @@ export interface DigestSummary {
 }
 
 const SEVEN_DAYS_MS = DURATIONS_MS.WEEK;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export class SendWeeklyDigestUseCase {
   constructor(private readonly deps: Deps) {}
@@ -27,7 +28,11 @@ export class SendWeeklyDigestUseCase {
 
     await Promise.allSettled(
       users.map(async (user) => {
-        if (!user.weeklyDigestEnabled) {
+        const frequency = user.digestFrequency ?? (user.weeklyDigestEnabled ? 'weekly' : 'off');
+        if (
+          frequency === DIGEST_FREQUENCY.OFF ||
+          (!user.weeklyDigestEnabled && frequency === 'weekly')
+        ) {
           skipped++;
           return;
         }
@@ -36,7 +41,11 @@ export class SendWeeklyDigestUseCase {
 
         if (
           user.lastDigestSentAt &&
-          user.lastDigestSentAt.getTime() > now.getTime() - DIGEST_WINDOW_MS.RESEND_AFTER
+          user.lastDigestSentAt.getTime() >
+            now.getTime() -
+              (frequency === DIGEST_FREQUENCY.DAILY
+                ? DIGEST_WINDOW_MS.DAILY_RESEND_AFTER
+                : DIGEST_WINDOW_MS.RESEND_AFTER)
         ) {
           skipped++;
           return;
@@ -48,8 +57,9 @@ export class SendWeeklyDigestUseCase {
           return;
         }
 
-        const weekAgo = new Date(now.getTime() - SEVEN_DAYS_MS);
-        const nextWeek = new Date(now.getTime() + SEVEN_DAYS_MS);
+        const periodMs = frequency === DIGEST_FREQUENCY.DAILY ? DAY_MS : SEVEN_DAYS_MS;
+        const periodAgo = new Date(now.getTime() - periodMs);
+        const nextPeriod = new Date(now.getTime() + periodMs);
 
         const byStatus: Record<string, number> = {};
         for (const app of apps) {
@@ -57,7 +67,7 @@ export class SendWeeklyDigestUseCase {
         }
 
         const newThisWeek = apps
-          .filter((a) => a.createdAt >= weekAgo)
+          .filter((a) => a.createdAt >= periodAgo)
           .map((a) => ({ company: a.company, role: a.role }));
 
         const overdueFollowUps = apps
@@ -70,7 +80,7 @@ export class SendWeeklyDigestUseCase {
           .map((a) => ({ company: a.company, role: a.role, followUpAt: a.followUpAt! }));
 
         const upcomingFollowUps = apps
-          .filter((a) => a.followUpAt != null && a.followUpAt >= now && a.followUpAt <= nextWeek)
+          .filter((a) => a.followUpAt != null && a.followUpAt >= now && a.followUpAt <= nextPeriod)
           .map((a) => ({ company: a.company, role: a.role, followUpAt: a.followUpAt! }));
 
         const data: WeeklyDigestData = {
@@ -81,7 +91,11 @@ export class SendWeeklyDigestUseCase {
           upcomingFollowUps,
         };
 
-        await this.deps.emailService.sendWeeklyDigest(user.email, data);
+        if (frequency === DIGEST_FREQUENCY.DAILY) {
+          await this.deps.emailService.sendWeeklyDigest(user.email, data, frequency);
+        } else {
+          await this.deps.emailService.sendWeeklyDigest(user.email, data);
+        }
         await this.deps.userRepository.updateLastDigestSentAt(user.id, now);
         sent++;
       }),

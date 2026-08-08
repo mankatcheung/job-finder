@@ -153,6 +153,7 @@ export const NOTIFICATION_PREFERENCES_QUERY = `
   query NotificationPreferences {
     notificationPreferences {
       weeklyDigestEnabled
+      digestFrequency
       followUpRemindersEnabled
       pushNotificationsEnabled
     }
@@ -160,9 +161,9 @@ export const NOTIFICATION_PREFERENCES_QUERY = `
 `;
 
 export const UPDATE_NOTIFICATION_PREFERENCES = `
-  mutation UpdateNotificationPreferences($weeklyDigestEnabled: Boolean, $followUpRemindersEnabled: Boolean, $pushNotificationsEnabled: Boolean) {
+  mutation UpdateNotificationPreferences($digestFrequency: DigestFrequency, $followUpRemindersEnabled: Boolean, $pushNotificationsEnabled: Boolean) {
     updateNotificationPreferences(
-      weeklyDigestEnabled: $weeklyDigestEnabled
+      digestFrequency: $digestFrequency
       followUpRemindersEnabled: $followUpRemindersEnabled
       pushNotificationsEnabled: $pushNotificationsEnabled
     )
@@ -491,6 +492,7 @@ export type Me = {
 
 export type NotificationPreferences = {
   weeklyDigestEnabled: boolean;
+  digestFrequency: 'daily' | 'weekly' | 'off';
   followUpRemindersEnabled: boolean;
   pushNotificationsEnabled: boolean;
 };
