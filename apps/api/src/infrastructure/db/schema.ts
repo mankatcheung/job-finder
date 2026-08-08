@@ -18,6 +18,7 @@ export const user = sqliteTable('User', {
   pushNotificationsEnabled: integer('pushNotificationsEnabled', { mode: 'boolean' })
     .notNull()
     .default(false),
+  weeklyApplicationGoal: integer('weeklyApplicationGoal').notNull().default(5),
   totpSecret: text('totpSecret'),
   totpEnabled: integer('totpEnabled', { mode: 'boolean' }).notNull().default(false),
   /**

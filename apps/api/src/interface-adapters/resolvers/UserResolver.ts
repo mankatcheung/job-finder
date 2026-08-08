@@ -42,6 +42,10 @@ import type {
 } from '#src/use-cases/user/IRequestAvatarUploadUrlUseCase.js';
 import type { IConfirmAvatarUseCase } from '#src/use-cases/user/IConfirmAvatarUseCase.js';
 import type { IRemoveAvatarUseCase } from '#src/use-cases/user/IRemoveAvatarUseCase.js';
+import type {
+  IGetWeeklyApplicationGoalUseCase,
+  WeeklyApplicationGoalStats,
+} from '#src/use-cases/user/IGetWeeklyApplicationGoalUseCase.js';
 import type { IRequestAddBackupEmailUseCase } from '#src/use-cases/user/IRequestAddBackupEmailUseCase.js';
 import type { IConfirmBackupEmailUseCase } from '#src/use-cases/user/IConfirmBackupEmailUseCase.js';
 import type { IRemoveBackupEmailUseCase } from '#src/use-cases/user/IRemoveBackupEmailUseCase.js';
@@ -71,6 +75,7 @@ interface Deps {
   requestAvatarUploadUrlUseCase: IRequestAvatarUploadUrlUseCase;
   confirmAvatarUseCase: IConfirmAvatarUseCase;
   removeAvatarUseCase: IRemoveAvatarUseCase;
+  getWeeklyApplicationGoalUseCase?: IGetWeeklyApplicationGoalUseCase;
   requestAddBackupEmailUseCase: IRequestAddBackupEmailUseCase;
   confirmBackupEmailUseCase: IConfirmBackupEmailUseCase;
   removeBackupEmailUseCase: IRemoveBackupEmailUseCase;
@@ -193,11 +198,19 @@ export class UserResolver {
     return this.deps.getNotificationPreferencesUseCase.execute(userId);
   }
 
+  async getWeeklyApplicationGoal(userId: string): Promise<WeeklyApplicationGoalStats> {
+    if (!this.deps.getWeeklyApplicationGoalUseCase) {
+      throw new Error('Weekly application goal use case is not configured');
+    }
+    return this.deps.getWeeklyApplicationGoalUseCase.execute(userId);
+  }
+
   async updateNotificationPreferences(
     userId: string,
     weeklyDigestEnabled?: boolean,
     followUpRemindersEnabled?: boolean,
     pushNotificationsEnabled?: boolean,
+    weeklyApplicationGoalOrDigestFrequency?: number | 'daily' | 'weekly' | 'off',
     digestFrequency?: 'daily' | 'weekly' | 'off',
   ): Promise<void> {
     await this.deps.updateNotificationPreferencesUseCase.execute({
@@ -205,7 +218,14 @@ export class UserResolver {
       weeklyDigestEnabled,
       followUpRemindersEnabled,
       pushNotificationsEnabled,
-      digestFrequency,
+      weeklyApplicationGoal:
+        typeof weeklyApplicationGoalOrDigestFrequency === 'number'
+          ? weeklyApplicationGoalOrDigestFrequency
+          : undefined,
+      digestFrequency:
+        typeof weeklyApplicationGoalOrDigestFrequency === 'string'
+          ? weeklyApplicationGoalOrDigestFrequency
+          : digestFrequency,
     });
   }
 

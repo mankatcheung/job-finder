@@ -147,6 +147,7 @@ import { GetUserUseCase } from '#src/use-cases/user/GetUserUseCase.js';
 import { RequestAvatarUploadUrlUseCase } from '#src/use-cases/user/RequestAvatarUploadUrlUseCase.js';
 import { ConfirmAvatarUseCase } from '#src/use-cases/user/ConfirmAvatarUseCase.js';
 import { RemoveAvatarUseCase } from '#src/use-cases/user/RemoveAvatarUseCase.js';
+import { GetWeeklyApplicationGoalUseCase } from '#src/use-cases/user/GetWeeklyApplicationGoalUseCase.js';
 import { RequestAddBackupEmailUseCase } from '#src/use-cases/user/RequestAddBackupEmailUseCase.js';
 import { ConfirmBackupEmailUseCase } from '#src/use-cases/user/ConfirmBackupEmailUseCase.js';
 import { RemoveBackupEmailUseCase } from '#src/use-cases/user/RemoveBackupEmailUseCase.js';
@@ -415,6 +416,7 @@ export interface Cradle {
   requestAvatarUploadUrlUseCase: RequestAvatarUploadUrlUseCase;
   confirmAvatarUseCase: ConfirmAvatarUseCase;
   removeAvatarUseCase: RemoveAvatarUseCase;
+  getWeeklyApplicationGoalUseCase: GetWeeklyApplicationGoalUseCase;
   requestAddBackupEmailUseCase: RequestAddBackupEmailUseCase;
   confirmBackupEmailUseCase: ConfirmBackupEmailUseCase;
   removeBackupEmailUseCase: RemoveBackupEmailUseCase;
@@ -817,6 +819,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     }),
     confirmAvatarUseCase: asClass(ConfirmAvatarUseCase, { lifetime: Lifetime.TRANSIENT }),
     removeAvatarUseCase: asClass(RemoveAvatarUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getWeeklyApplicationGoalUseCase: asClass(GetWeeklyApplicationGoalUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     requestAddBackupEmailUseCase: asClass(RequestAddBackupEmailUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

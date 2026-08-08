@@ -22,6 +22,7 @@ const SCHEMA_STATEMENTS = [
     "lastDigestSentAt" INTEGER,
     "followUpRemindersEnabled" INTEGER NOT NULL DEFAULT 1,
     "pushNotificationsEnabled" INTEGER NOT NULL DEFAULT 0,
+    "weeklyApplicationGoal" INTEGER NOT NULL DEFAULT 5,
     "totpSecret" TEXT,
     "totpEnabled" INTEGER NOT NULL DEFAULT 0,
     "defaultLlmProvider" TEXT,

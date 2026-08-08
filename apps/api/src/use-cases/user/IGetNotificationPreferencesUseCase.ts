@@ -3,6 +3,7 @@ export interface NotificationPreferences {
   digestFrequency: 'daily' | 'weekly' | 'off';
   followUpRemindersEnabled: boolean;
   pushNotificationsEnabled: boolean;
+  weeklyApplicationGoal: number;
 }
 
 export interface IGetNotificationPreferencesUseCase {

@@ -9,5 +9,6 @@ NotificationPreferencesRef.implement({
     digestFrequency: t.exposeString('digestFrequency'),
     followUpRemindersEnabled: t.exposeBoolean('followUpRemindersEnabled'),
     pushNotificationsEnabled: t.exposeBoolean('pushNotificationsEnabled'),
+    weeklyApplicationGoal: t.exposeInt('weeklyApplicationGoal'),
   }),
 });

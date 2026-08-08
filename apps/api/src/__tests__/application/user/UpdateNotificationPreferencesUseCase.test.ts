@@ -48,4 +48,24 @@ describe('UpdateNotificationPreferencesUseCase', () => {
       followUpRemindersEnabled: undefined,
     });
   });
+
+  it('updates and validates the weekly application goal', async () => {
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(makeUser({ id: 'user-1' })),
+    });
+    const useCase = new UpdateNotificationPreferencesUseCase({ userRepository });
+
+    await useCase.execute({ userId: 'user-1', weeklyApplicationGoal: 10 });
+    expect(userRepository.update).toHaveBeenCalledWith('user-1', {
+      weeklyDigestEnabled: undefined,
+      followUpRemindersEnabled: undefined,
+      pushNotificationsEnabled: undefined,
+      weeklyApplicationGoal: 10,
+    });
+
+    const err = await useCase
+      .execute({ userId: 'user-1', weeklyApplicationGoal: 0 })
+      .catch((error) => error);
+    expect((err as { code: string }).code).toBe('VALIDATION');
+  });
 });

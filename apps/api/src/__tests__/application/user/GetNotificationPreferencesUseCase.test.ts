@@ -34,6 +34,7 @@ describe('GetNotificationPreferencesUseCase', () => {
       digestFrequency: 'off',
       followUpRemindersEnabled: true,
       pushNotificationsEnabled: false,
+      weeklyApplicationGoal: 5,
     });
   });
 });

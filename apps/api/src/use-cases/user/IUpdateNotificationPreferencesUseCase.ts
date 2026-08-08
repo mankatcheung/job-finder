@@ -4,6 +4,7 @@ export interface UpdateNotificationPreferencesInput {
   digestFrequency?: 'daily' | 'weekly' | 'off';
   followUpRemindersEnabled?: boolean;
   pushNotificationsEnabled?: boolean;
+  weeklyApplicationGoal?: number;
 }
 
 export interface IUpdateNotificationPreferencesUseCase {

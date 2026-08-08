@@ -26,6 +26,7 @@ export interface IUserRepository {
       digestFrequency?: 'daily' | 'weekly' | 'off';
       followUpRemindersEnabled?: boolean;
       pushNotificationsEnabled?: boolean;
+      weeklyApplicationGoal?: number;
       totpSecret?: string | null;
       totpEnabled?: boolean;
       defaultLlmProvider?: string | null;

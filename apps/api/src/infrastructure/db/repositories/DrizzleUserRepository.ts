@@ -61,6 +61,7 @@ export class DrizzleUserRepository implements IUserRepository {
       digestFrequency?: 'daily' | 'weekly' | 'off';
       followUpRemindersEnabled?: boolean;
       pushNotificationsEnabled?: boolean;
+      weeklyApplicationGoal?: number;
       totpSecret?: string | null;
       totpEnabled?: boolean;
       defaultLlmProvider?: string | null;
@@ -100,6 +101,7 @@ export class DrizzleUserRepository implements IUserRepository {
       lastDigestSentAt: row.lastDigestSentAt,
       followUpRemindersEnabled: row.followUpRemindersEnabled,
       pushNotificationsEnabled: row.pushNotificationsEnabled,
+      weeklyApplicationGoal: row.weeklyApplicationGoal,
       totpSecret: row.totpSecret,
       totpEnabled: row.totpEnabled,
       defaultLlmProvider: row.defaultLlmProvider,

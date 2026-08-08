@@ -413,6 +413,7 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   lastDigestSentAt: null,
   followUpRemindersEnabled: true,
   pushNotificationsEnabled: false,
+  weeklyApplicationGoal: 5,
   totpSecret: null,
   totpEnabled: false,
   defaultLlmProvider: null,

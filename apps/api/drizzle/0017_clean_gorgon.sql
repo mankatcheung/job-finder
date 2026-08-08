@@ -1,0 +1,1 @@
+ALTER TABLE `User` ADD `weeklyApplicationGoal` integer DEFAULT 5 NOT NULL;

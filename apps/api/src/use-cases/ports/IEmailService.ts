@@ -4,6 +4,9 @@ export interface WeeklyDigestData {
   newThisWeek: Array<{ company: string; role: string }>;
   overdueFollowUps: Array<{ company: string; role: string; followUpAt: Date }>;
   upcomingFollowUps: Array<{ company: string; role: string; followUpAt: Date }>;
+  weeklyApplicationGoal?: number;
+  currentWeekApplicationCount?: number;
+  applicationStreakWeeks?: number;
 }
 
 export interface IEmailService {
