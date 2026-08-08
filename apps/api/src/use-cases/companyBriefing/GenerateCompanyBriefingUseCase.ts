@@ -3,7 +3,8 @@ import type { LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
+import { ERROR_CODES, AI_PROMPT_INPUT } from '#src/constants.js';
 
 export interface GenerateCompanyBriefingInput {
   applicationId: string;
@@ -78,7 +79,11 @@ export class GenerateCompanyBriefingUseCase {
       `Company: ${app.company}`,
       `Role: ${app.role}`,
       ...(app.location ? [`Location: ${app.location}`] : []),
-      ...(app.description ? [`\nJob description:\n${app.description.slice(0, 3000)}`] : []),
+      ...(app.description
+        ? [
+            `\nJob description:\n${wrapUntrustedContent(app.description.slice(0, AI_PROMPT_INPUT.COMPANY_BRIEFING_JOB_DESCRIPTION_MAX_CHARS))}`,
+          ]
+        : []),
     ];
 
     return lines.join('\n');

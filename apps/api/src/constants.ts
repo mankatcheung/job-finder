@@ -452,6 +452,25 @@ export const DOCUMENT_TYPE = {
   OTHER: 'other',
 } as const;
 
+/**
+ * Character-truncation limits for job-description-derived content
+ * interpolated into LLM prompts. Named here instead of scattered ad hoc
+ * `.slice(N)` calls so token-budget decisions are visible in one place. These
+ * are also exactly the fields wrapped with `wrapUntrustedContent` (see
+ * JEF-112) — this content originates from an external job posting page or a
+ * user paste of one, not from the requesting user's own account data.
+ */
+export const AI_PROMPT_INPUT = {
+  /** ParseJobDescriptionUseCase — raw scraped/pasted job posting text. */
+  JOB_POSTING_MAX_CHARS: 8000,
+  /** GenerateCoverLetterUseCase — the application's job description field. */
+  COVER_LETTER_JOB_DESCRIPTION_MAX_CHARS: 3000,
+  /** GenerateCompanyBriefingUseCase — the application's job description field. */
+  COMPANY_BRIEFING_JOB_DESCRIPTION_MAX_CHARS: 3000,
+  /** ComputeResumeMatchScoreUseCase — the application's job description field. */
+  RESUME_MATCH_JOB_DESCRIPTION_MAX_CHARS: 6000,
+} as const;
+
 /** In-app AI chat assistant settings. */
 export const CHAT = {
   /** Hard cap on LLM<->tool round-trips within a single chat turn, to bound cost/latency. */

@@ -1,7 +1,8 @@
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
+import { ERROR_CODES, AI_PROMPT_INPUT } from '#src/constants.js';
 
 export interface ParseJobDescriptionInput {
   userId: string;
@@ -37,7 +38,7 @@ const USER_PROMPT_TEMPLATE = (
 }
 
 Job posting:
-${text.slice(0, 8000)}`;
+${wrapUntrustedContent(text.slice(0, AI_PROMPT_INPUT.JOB_POSTING_MAX_CHARS))}`;
 
 export class ParseJobDescriptionUseCase {
   constructor(private readonly deps: Deps) {}
