@@ -169,10 +169,26 @@ export const RATE_LIMIT = {
     MAX_ATTEMPTS: 3,
     WINDOW_MS: 60 * 60 * 1000, // 1 hour
   },
+  REQUEST_ADD_BACKUP_EMAIL: {
+    MAX_ATTEMPTS: 3,
+    WINDOW_MS: 60 * 60 * 1000, // 1 hour
+  },
+  BACKUP_EMAIL_RECOVERY: {
+    MAX_ATTEMPTS: 5,
+    WINDOW_MS: 15 * 60 * 1000, // 15 minutes
+  },
 } as const;
 
 /** Email-verification token settings. */
 export const EMAIL_VERIFICATION_TOKEN = {
+  /** Number of random bytes hex-encoded into the token body. */
+  RANDOM_BYTES: 32,
+  /** How long a verification link stays valid, in milliseconds. */
+  TTL_MS: 24 * 60 * 60 * 1000, // 24 hours
+} as const;
+
+/** Backup email verification token settings. */
+export const BACKUP_EMAIL_VERIFICATION_TOKEN = {
   /** Number of random bytes hex-encoded into the token body. */
   RANDOM_BYTES: 32,
   /** How long a verification link stays valid, in milliseconds. */

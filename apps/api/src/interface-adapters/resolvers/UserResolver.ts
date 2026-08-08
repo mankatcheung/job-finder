@@ -41,6 +41,9 @@ import type {
 } from '#src/use-cases/user/IRequestAvatarUploadUrlUseCase.js';
 import type { IConfirmAvatarUseCase } from '#src/use-cases/user/IConfirmAvatarUseCase.js';
 import type { IRemoveAvatarUseCase } from '#src/use-cases/user/IRemoveAvatarUseCase.js';
+import type { IRequestAddBackupEmailUseCase } from '#src/use-cases/user/IRequestAddBackupEmailUseCase.js';
+import type { IConfirmBackupEmailUseCase } from '#src/use-cases/user/IConfirmBackupEmailUseCase.js';
+import type { IRemoveBackupEmailUseCase } from '#src/use-cases/user/IRemoveBackupEmailUseCase.js';
 import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
 import { UserMapper, type UserDTO } from '#src/interface-adapters/mappers/UserMapper.js';
 
@@ -67,6 +70,9 @@ interface Deps {
   requestAvatarUploadUrlUseCase: IRequestAvatarUploadUrlUseCase;
   confirmAvatarUseCase: IConfirmAvatarUseCase;
   removeAvatarUseCase: IRemoveAvatarUseCase;
+  requestAddBackupEmailUseCase: IRequestAddBackupEmailUseCase;
+  confirmBackupEmailUseCase: IConfirmBackupEmailUseCase;
+  removeBackupEmailUseCase: IRemoveBackupEmailUseCase;
   storageProvider: IStorageProvider;
   userMapper: UserMapper;
 }
@@ -224,5 +230,35 @@ export class UserResolver {
 
   async removeAvatar(userId: string): Promise<void> {
     await this.deps.removeAvatarUseCase.execute(userId);
+  }
+
+  async requestAddBackupEmail(
+    userId: string,
+    backupEmail: string,
+    currentPassword: string,
+    authTime: number | null | undefined,
+  ): Promise<void> {
+    await this.deps.requestAddBackupEmailUseCase.execute({
+      userId,
+      backupEmail,
+      currentPassword,
+      authTime,
+    });
+  }
+
+  async confirmBackupEmail(token: string): Promise<void> {
+    await this.deps.confirmBackupEmailUseCase.execute({ token });
+  }
+
+  async removeBackupEmail(
+    userId: string,
+    currentPassword: string,
+    authTime: number | null | undefined,
+  ): Promise<void> {
+    await this.deps.removeBackupEmailUseCase.execute({
+      userId,
+      currentPassword,
+      authTime,
+    });
   }
 }

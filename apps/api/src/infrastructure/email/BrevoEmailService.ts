@@ -2,6 +2,7 @@ import type { IEmailService, WeeklyDigestData } from '#src/use-cases/ports/IEmai
 import { buildWeeklyDigestHtml } from './templates/weeklyDigestTemplate.js';
 import { buildPasswordResetHtml } from './templates/passwordResetTemplate.js';
 import { buildEmailVerificationHtml } from './templates/emailVerificationTemplate.js';
+import { buildBackupEmailVerificationHtml } from './templates/backupEmailVerificationTemplate.js';
 import { buildNewDeviceLoginAlertHtml } from './templates/newDeviceLoginAlertTemplate.js';
 import { EMAIL, ENV } from '#src/constants.js';
 
@@ -94,6 +95,24 @@ export class BrevoEmailService implements IEmailService {
         sender: { name: this.fromName, email: this.fromEmail },
         to: [{ email: to }],
         subject: 'Verify your Job Finder email',
+        htmlContent,
+      }),
+    });
+    if (!response.ok && response.status !== 201) {
+      const body = await response.text();
+      throw new Error(`Brevo API error ${response.status}: ${body}`);
+    }
+  }
+
+  async sendBackupEmailVerification(to: string, verifyUrl: string): Promise<void> {
+    const htmlContent = buildBackupEmailVerificationHtml(verifyUrl);
+    const response = await fetch(EMAIL.BREVO_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'api-key': this.apiKey },
+      body: JSON.stringify({
+        sender: { name: this.fromName, email: this.fromEmail },
+        to: [{ email: to }],
+        subject: 'Verify your backup email for Job Finder',
         htmlContent,
       }),
     });

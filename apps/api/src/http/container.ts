@@ -27,6 +27,7 @@ import { DrizzleMessageRepository } from '#src/infrastructure/db/repositories/Dr
 import { DrizzleConversationRepository } from '#src/infrastructure/db/repositories/DrizzleConversationRepository.js';
 import { DrizzleEmailVerificationTokenRepository } from '#src/infrastructure/db/repositories/DrizzleEmailVerificationTokenRepository.js';
 import { DrizzleTotpBackupCodeRepository } from '#src/infrastructure/db/repositories/DrizzleTotpBackupCodeRepository.js';
+import { DrizzleBackupEmailVerificationTokenRepository } from '#src/infrastructure/db/repositories/DrizzleBackupEmailVerificationTokenRepository.js';
 import { RateLimiter } from '#src/infrastructure/rateLimit/RateLimiter.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { TotpProvider } from '#src/infrastructure/auth/TotpProvider.js';
@@ -136,6 +137,10 @@ import { GetUserUseCase } from '#src/use-cases/user/GetUserUseCase.js';
 import { RequestAvatarUploadUrlUseCase } from '#src/use-cases/user/RequestAvatarUploadUrlUseCase.js';
 import { ConfirmAvatarUseCase } from '#src/use-cases/user/ConfirmAvatarUseCase.js';
 import { RemoveAvatarUseCase } from '#src/use-cases/user/RemoveAvatarUseCase.js';
+import { RequestAddBackupEmailUseCase } from '#src/use-cases/user/RequestAddBackupEmailUseCase.js';
+import { ConfirmBackupEmailUseCase } from '#src/use-cases/user/ConfirmBackupEmailUseCase.js';
+import { RemoveBackupEmailUseCase } from '#src/use-cases/user/RemoveBackupEmailUseCase.js';
+import { RequestBackupEmailRecoveryUseCase } from '#src/use-cases/auth/RequestBackupEmailRecoveryUseCase.js';
 import { CreateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/CreateInterviewRoundUseCase.js';
 import { GetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/GetInterviewRoundsUseCase.js';
 import { UpdateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/UpdateInterviewRoundUseCase.js';
@@ -263,6 +268,9 @@ export interface Cradle {
   chatRateLimiter: IRateLimiter;
   updatePasswordRateLimiter: IRateLimiter;
   requestEmailChangeRateLimiter: IRateLimiter;
+  backupEmailVerificationTokenRepository: DrizzleBackupEmailVerificationTokenRepository;
+  requestAddBackupEmailRateLimiter: IRateLimiter;
+  backupEmailRecoveryRateLimiter: IRateLimiter;
   totpProvider: ITotpProvider;
   oauthAccountRepository: DrizzleOAuthAccountRepository;
   googleOAuthProvider: IOAuthProvider;
@@ -371,6 +379,10 @@ export interface Cradle {
   requestAvatarUploadUrlUseCase: RequestAvatarUploadUrlUseCase;
   confirmAvatarUseCase: ConfirmAvatarUseCase;
   removeAvatarUseCase: RemoveAvatarUseCase;
+  requestAddBackupEmailUseCase: RequestAddBackupEmailUseCase;
+  confirmBackupEmailUseCase: ConfirmBackupEmailUseCase;
+  removeBackupEmailUseCase: RemoveBackupEmailUseCase;
+  requestBackupEmailRecoveryUseCase: RequestBackupEmailRecoveryUseCase;
   createInterviewRoundUseCase: CreateInterviewRoundUseCase;
   getInterviewRoundsUseCase: GetInterviewRoundsUseCase;
   updateInterviewRoundUseCase: UpdateInterviewRoundUseCase;
@@ -536,6 +548,21 @@ export function buildContainer(): AwilixContainer<Cradle> {
         RATE_LIMIT.REQUEST_EMAIL_CHANGE.WINDOW_MS,
       ),
     ),
+    backupEmailVerificationTokenRepository: asClass(DrizzleBackupEmailVerificationTokenRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
+    requestAddBackupEmailRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.REQUEST_ADD_BACKUP_EMAIL.MAX_ATTEMPTS,
+        RATE_LIMIT.REQUEST_ADD_BACKUP_EMAIL.WINDOW_MS,
+      ),
+    ),
+    backupEmailRecoveryRateLimiter: asValue(
+      new RateLimiter(
+        RATE_LIMIT.BACKUP_EMAIL_RECOVERY.MAX_ATTEMPTS,
+        RATE_LIMIT.BACKUP_EMAIL_RECOVERY.WINDOW_MS,
+      ),
+    ),
     totpProvider: asClass(TotpProvider, { lifetime: Lifetime.SINGLETON }),
     oauthAccountRepository: asClass(DrizzleOAuthAccountRepository, {
       lifetime: Lifetime.SINGLETON,
@@ -699,6 +726,18 @@ export function buildContainer(): AwilixContainer<Cradle> {
     }),
     confirmAvatarUseCase: asClass(ConfirmAvatarUseCase, { lifetime: Lifetime.TRANSIENT }),
     removeAvatarUseCase: asClass(RemoveAvatarUseCase, { lifetime: Lifetime.TRANSIENT }),
+    requestAddBackupEmailUseCase: asClass(RequestAddBackupEmailUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    confirmBackupEmailUseCase: asClass(ConfirmBackupEmailUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    removeBackupEmailUseCase: asClass(RemoveBackupEmailUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    requestBackupEmailRecoveryUseCase: asClass(RequestBackupEmailRecoveryUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     createInterviewRoundUseCase: asClass(CreateInterviewRoundUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

@@ -365,3 +365,68 @@ builder.mutationField('updateNotificationPreferences', (t) =>
     },
   }),
 );
+
+builder.mutationField('requestAddBackupEmail', (t) =>
+  t.boolean({
+    args: {
+      currentPassword: t.arg.string({ required: true }),
+      backupEmail: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        await userResolver.requestAddBackupEmail(
+          ctx.user.sub,
+          args.backupEmail,
+          args.currentPassword,
+          sessionAuthTime(ctx.user),
+        );
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
+builder.mutationField('confirmBackupEmail', (t) =>
+  t.boolean({
+    args: {
+      token: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        await userResolver.confirmBackupEmail(args.token);
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
+builder.mutationField('removeBackupEmail', (t) =>
+  t.boolean({
+    args: {
+      currentPassword: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        await userResolver.removeBackupEmail(
+          ctx.user.sub,
+          args.currentPassword,
+          sessionAuthTime(ctx.user),
+        );
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
