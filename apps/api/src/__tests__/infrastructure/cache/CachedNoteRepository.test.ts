@@ -6,7 +6,7 @@ import { makeNoteRepository, makeNote } from '#src/__tests__/helpers/mocks.js';
 function makeRepo() {
   const inner = makeNoteRepository();
   const cache = new MemoryCache(60_000);
-  const repo = new CachedNoteRepository({ prismaNoteRepository: inner, cache });
+  const repo = new CachedNoteRepository({ drizzleNoteRepository: inner, cache });
   return { repo, inner, cache };
 }
 

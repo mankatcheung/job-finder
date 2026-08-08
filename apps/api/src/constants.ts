@@ -360,6 +360,11 @@ export const CACHE_KEYS = {
   docList: (applicationId: string) => `docs:list:${applicationId}`,
   roundById: (id: string) => `rounds:byId:${id}`,
   roundList: (applicationId: string) => `rounds:list:${applicationId}`,
+  contactById: (id: string) => `contacts:byId:${id}`,
+  contactList: (applicationId: string) => `contacts:list:${applicationId}`,
+  apiTokenByHash: (tokenHash: string) => `tokens:byHash:${tokenHash}`,
+  apiTokenList: (userId: string) => `tokens:list:${userId}`,
+  notificationUnreadCount: (userId: string) => `notifications:unreadCount:${userId}`,
 } as const;
 
 /** Background-job and business-rule durations, in milliseconds. */
