@@ -282,6 +282,23 @@ export const apiToken = sqliteTable(
   (table) => [index('ApiToken_userId_idx').on(table.userId)],
 );
 
+export const shareLink = sqliteTable(
+  'ShareLink',
+  {
+    id: text('id').primaryKey(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    tokenHash: text('tokenHash').notNull().unique(),
+    lastUsedAt: integer('lastUsedAt', { mode: 'timestamp_ms' }),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [index('ShareLink_userId_idx').on(table.userId)],
+);
+
 export const jobApplication = sqliteTable(
   'JobApplication',
   {

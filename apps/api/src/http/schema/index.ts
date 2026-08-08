@@ -35,6 +35,7 @@ import './types/WorkExperienceType.js';
 import './types/EducationType.js';
 import './types/SkillType.js';
 import './types/OfferType.js';
+import './types/ShareLinkType.js';
 
 // Queries
 import './queries/applicationQueries.js';
@@ -58,6 +59,7 @@ import './queries/workExperienceQueries.js';
 import './queries/educationQueries.js';
 import './queries/skillQueries.js';
 import './queries/offerQueries.js';
+import './queries/shareLinkQueries.js';
 
 // Mutations
 import './mutations/authMutations.js';
@@ -82,5 +84,6 @@ import './mutations/workExperienceMutations.js';
 import './mutations/educationMutations.js';
 import './mutations/skillMutations.js';
 import './mutations/offerMutations.js';
+import './mutations/shareLinkMutations.js';
 
 export const schema = builder.toSchema();

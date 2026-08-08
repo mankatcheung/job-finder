@@ -55,6 +55,16 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "ApiToken_userId_idx" ON "ApiToken"("userId")`,
+  `CREATE TABLE "ShareLink" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "tokenHash" TEXT NOT NULL UNIQUE,
+    "lastUsedAt" INTEGER,
+    "createdAt" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "ShareLink_userId_idx" ON "ShareLink"("userId")`,
   `CREATE TABLE "LoginEvent" (
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,

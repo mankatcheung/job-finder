@@ -115,6 +115,13 @@ export const API_TOKEN = {
   RANDOM_BYTES: 24,
 } as const;
 
+/** Read-only share-link (`jfsl_...`) settings — see ShareLink domain entity. */
+export const SHARE_LINK = {
+  PREFIX: 'jfsl_',
+  /** Number of random bytes hex-encoded into the token body. */
+  RANDOM_BYTES: 24,
+} as const;
+
 /** Password-reset token settings. */
 export const PASSWORD_RESET_TOKEN = {
   /** Number of random bytes hex-encoded into the token body. */

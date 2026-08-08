@@ -17,6 +17,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password';
 import { Route as LoginRouteImport } from './routes/login';
 import { Route as RegisterRouteImport } from './routes/register';
 import { Route as ResetPasswordRouteImport } from './routes/reset-password';
+import { Route as ShareRouteImport } from './routes/share';
 import { Route as VerifyEmailRouteImport } from './routes/verify-email';
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account';
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics';
@@ -79,6 +80,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const ShareRoute = ShareRouteImport.update({
+  id: '/share',
+  path: '/share',
   getParentRoute: () => rootRouteImport,
 } as any);
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
@@ -229,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute;
   '/register': typeof RegisterRoute;
   '/reset-password': typeof ResetPasswordRoute;
+  '/share': typeof ShareRoute;
   '/verify-email': typeof VerifyEmailRoute;
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren;
   '/account': typeof AuthenticatedAccountRoute;
@@ -262,6 +269,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute;
   '/register': typeof RegisterRoute;
   '/reset-password': typeof ResetPasswordRoute;
+  '/share': typeof ShareRoute;
   '/verify-email': typeof VerifyEmailRoute;
   '/account': typeof AuthenticatedAccountRoute;
   '/analytics': typeof AuthenticatedAnalyticsRoute;
@@ -296,6 +304,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute;
   '/register': typeof RegisterRoute;
   '/reset-password': typeof ResetPasswordRoute;
+  '/share': typeof ShareRoute;
   '/verify-email': typeof VerifyEmailRoute;
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren;
   '/_authenticated/account': typeof AuthenticatedAccountRoute;
@@ -331,6 +340,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/share'
     | '/verify-email'
     | '/settings'
     | '/account'
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/share'
     | '/verify-email'
     | '/account'
     | '/analytics'
@@ -397,6 +408,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/share'
     | '/verify-email'
     | '/_authenticated/settings'
     | '/_authenticated/account'
@@ -432,6 +444,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute;
   RegisterRoute: typeof RegisterRoute;
   ResetPasswordRoute: typeof ResetPasswordRoute;
+  ShareRoute: typeof ShareRoute;
   VerifyEmailRoute: typeof VerifyEmailRoute;
 }
 
@@ -491,6 +504,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password';
       fullPath: '/reset-password';
       preLoaderRoute: typeof ResetPasswordRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/share': {
+      id: '/share';
+      path: '/share';
+      fullPath: '/share';
+      preLoaderRoute: typeof ShareRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     '/verify-email': {
@@ -748,6 +768,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ShareRoute: ShareRoute,
   VerifyEmailRoute: VerifyEmailRoute,
 };
 export const routeTree = rootRouteImport
