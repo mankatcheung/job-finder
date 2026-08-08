@@ -120,14 +120,19 @@ describe('UserResolver', () => {
   });
 
   describe('confirmEmailChange', () => {
-    it('delegates to confirmEmailChangeUseCase with the token', async () => {
+    it('delegates to confirmEmailChangeUseCase with the token and device info', async () => {
       const deps = makeDeps();
       const resolver = new UserResolver(deps);
 
-      await resolver.confirmEmailChange('raw-token');
+      await resolver.confirmEmailChange('raw-token', {
+        ipAddress: '1.2.3.4',
+        userAgent: 'Mozilla/5.0',
+      });
 
       expect(deps.confirmEmailChangeUseCase.execute).toHaveBeenCalledWith({
         token: 'raw-token',
+        ipAddress: '1.2.3.4',
+        userAgent: 'Mozilla/5.0',
       });
     });
 
@@ -139,7 +144,12 @@ describe('UserResolver', () => {
         }),
       });
 
-      await expect(new UserResolver(deps).confirmEmailChange('bad-token')).rejects.toMatchObject({
+      await expect(
+        new UserResolver(deps).confirmEmailChange('bad-token', {
+          ipAddress: null,
+          userAgent: null,
+        }),
+      ).rejects.toMatchObject({
         code: 'UNAUTHORIZED',
       });
     });
@@ -150,13 +160,18 @@ describe('UserResolver', () => {
       const deps = makeDeps();
       const resolver = new UserResolver(deps);
 
-      await resolver.updatePassword('user-1', 'oldPass', 'newPass', 1_700_000_000_000);
+      await resolver.updatePassword('user-1', 'oldPass', 'newPass', 1_700_000_000_000, {
+        ipAddress: '1.2.3.4',
+        userAgent: 'Mozilla/5.0',
+      });
 
       expect(deps.updatePasswordUseCase.execute).toHaveBeenCalledWith({
         userId: 'user-1',
         currentPassword: 'oldPass',
         newPassword: 'newPass',
         authTime: 1_700_000_000_000,
+        ipAddress: '1.2.3.4',
+        userAgent: 'Mozilla/5.0',
       });
     });
   });
@@ -228,11 +243,16 @@ describe('UserResolver', () => {
         }),
       });
 
-      const result = await new UserResolver(deps).confirmTotpSetup('user-1', '123456');
+      const result = await new UserResolver(deps).confirmTotpSetup('user-1', '123456', {
+        ipAddress: '1.2.3.4',
+        userAgent: 'Mozilla/5.0',
+      });
 
       expect(deps.confirmTotpSetupUseCase.execute).toHaveBeenCalledWith({
         userId: 'user-1',
         code: '123456',
+        ipAddress: '1.2.3.4',
+        userAgent: 'Mozilla/5.0',
       });
       expect(result).toEqual(output);
     });
@@ -246,7 +266,10 @@ describe('UserResolver', () => {
       });
 
       await expect(
-        new UserResolver(deps).confirmTotpSetup('user-1', 'bad-code'),
+        new UserResolver(deps).confirmTotpSetup('user-1', 'bad-code', {
+          ipAddress: null,
+          userAgent: null,
+        }),
       ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
     });
   });
@@ -255,11 +278,16 @@ describe('UserResolver', () => {
     it('delegates to disableTotpUseCase with the correct arguments', async () => {
       const deps = makeDeps();
 
-      await new UserResolver(deps).disableTotp('user-1', 'secret');
+      await new UserResolver(deps).disableTotp('user-1', 'secret', {
+        ipAddress: '1.2.3.4',
+        userAgent: 'Mozilla/5.0',
+      });
 
       expect(deps.disableTotpUseCase.execute).toHaveBeenCalledWith({
         userId: 'user-1',
         password: 'secret',
+        ipAddress: '1.2.3.4',
+        userAgent: 'Mozilla/5.0',
       });
     });
   });

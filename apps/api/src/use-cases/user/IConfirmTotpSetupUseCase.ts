@@ -1,6 +1,8 @@
 export interface ConfirmTotpSetupInput {
   userId: string;
   code: string;
+  ipAddress?: string | null;
+  userAgent?: string | null;
 }
 
 export interface ConfirmTotpSetupOutput {

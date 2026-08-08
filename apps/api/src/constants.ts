@@ -378,6 +378,17 @@ export const LOGIN_HISTORY = {
   LIMIT: 20,
 } as const;
 
+/** Unified security activity feed (logins + password/email/2FA/session events). */
+export const SECURITY_ACTIVITY = {
+  /**
+   * Max number of items in the merged feed, and the per-source fetch limit
+   * (each source is fetched up to this many, then merged/sorted/truncated,
+   * so the most recent N overall are never missed even if one source
+   * dominates recent activity).
+   */
+  LIMIT: 20,
+} as const;
+
 /** Limits for bulk-write mutations (e.g. bulk update/delete applications). */
 export const BULK_ACTIONS = {
   /** Max number of IDs accepted in a single bulk mutation call. */

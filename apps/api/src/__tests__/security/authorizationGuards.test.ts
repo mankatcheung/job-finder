@@ -15,6 +15,7 @@ import {
   makeUser,
   makeEmailVerificationTokenRepository,
   makeRateLimiter,
+  makeSecurityEventRepository,
 } from '#src/__tests__/helpers/mocks.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 
@@ -55,6 +56,8 @@ const makeUpdatePasswordDeps = (overrides?: {
 }) => ({
   userRepository: makeUserRepository(),
   updatePasswordRateLimiter: makeRateLimiter(),
+  securityEventRepository: makeSecurityEventRepository(),
+  generateId: () => 'evt-1',
   ...overrides,
 });
 
