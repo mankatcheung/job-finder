@@ -160,6 +160,22 @@ describe('ChatWithAssistantUseCase', () => {
     expect(messages[3]).toEqual({ role: 'user', content: 'new question' });
   });
 
+  it('marks the system prompt and the last tool definition as a cache breakpoint', async () => {
+    const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+    });
+
+    await new ChatWithAssistantUseCase(deps as never).execute({ ...baseInput, message: 'hi' });
+
+    const [messages, tools] = vi.mocked(llmProvider.completeWithTools).mock.calls[0];
+    expect(messages[0]).toMatchObject({ role: 'system', cacheBreakpoint: true });
+    expect(tools.slice(0, -1).every((t) => !t.cacheBreakpoint)).toBe(true);
+    expect(tools[tools.length - 1]).toMatchObject({ cacheBreakpoint: true });
+  });
+
   it("splices the user's custom AI prompt in as a second system message when set", async () => {
     const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
     const deps = makeDeps({
