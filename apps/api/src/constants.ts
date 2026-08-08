@@ -365,6 +365,14 @@ export const CACHE_KEYS = {
   apiTokenByHash: (tokenHash: string) => `tokens:byHash:${tokenHash}`,
   apiTokenList: (userId: string) => `tokens:list:${userId}`,
   notificationUnreadCount: (userId: string) => `notifications:unreadCount:${userId}`,
+  userById: (id: string) => `users:byId:${id}`,
+  userByEmail: (email: string) => `users:byEmail:${email}`,
+  skillById: (id: string) => `skills:byId:${id}`,
+  skillList: (userId: string) => `skills:list:${userId}`,
+  educationById: (id: string) => `education:byId:${id}`,
+  educationList: (userId: string) => `education:list:${userId}`,
+  workExperienceById: (id: string) => `workExperience:byId:${id}`,
+  workExperienceList: (userId: string) => `workExperience:list:${userId}`,
 } as const;
 
 /** Background-job and business-rule durations, in milliseconds. */
