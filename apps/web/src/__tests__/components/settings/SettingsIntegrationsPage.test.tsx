@@ -34,7 +34,7 @@ vi.mock('@vercel/blob/client', () => ({
 }));
 
 import { ThemeProvider } from '#/lib/theme';
-import { SettingsIntegrationsPage } from '#/routes/_authenticated/settings/integrations';
+import { SettingsIntegrationsPage } from '#/routes/_authenticated/settings/-components/SettingsIntegrationsPage';
 
 const makeClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
 

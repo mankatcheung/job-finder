@@ -41,7 +41,7 @@ vi.mock('#/lib/undoToast', () => ({
   }),
 }));
 
-import { AssistantPage } from '#/routes/_authenticated/assistant/index';
+import { AssistantPage } from '#/routes/_authenticated/assistant/-components/AssistantPage';
 
 const makeClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });

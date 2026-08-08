@@ -15,7 +15,7 @@ vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
 }));
 
-import { DashboardPage } from '#/routes/_authenticated/dashboard';
+import { DashboardPage } from '#/routes/_authenticated/-components/DashboardPage';
 
 const makeClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
 

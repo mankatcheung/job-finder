@@ -35,7 +35,7 @@ vi.mock('#/lib/undoToast', () => ({
   }),
 }));
 
-import { ConversationHistoryPage } from '#/routes/_authenticated/assistant/history';
+import { ConversationHistoryPage } from '#/routes/_authenticated/assistant/-components/ConversationHistoryPage';
 
 const makeClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });

@@ -7,10 +7,7 @@ const { mockGqlRequest, mockUseSearch } = vi.hoisted(() => ({
 }));
 
 vi.mock('@tanstack/react-router', () => ({
-  createFileRoute: () => (opts: Record<string, unknown>) => ({
-    ...opts,
-    useSearch: mockUseSearch,
-  }),
+  useSearch: mockUseSearch,
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
     <a href={to}>{children}</a>
   ),
@@ -20,7 +17,7 @@ vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
 }));
 
-import { ResetPasswordPage } from '#/routes/reset-password';
+import { ResetPasswordPage } from '#/routes/-components/ResetPasswordPage';
 
 describe('ResetPasswordPage', () => {
   beforeEach(() => {

@@ -12,7 +12,7 @@ const { mockNavigate, mockGqlRequest, mockSetAccessToken, mockUseSearch } = vi.h
 vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => (opts: object) => ({ ...opts, useSearch: mockUseSearch }),
   useNavigate: () => mockNavigate,
-  redirect: vi.fn(),
+  useSearch: () => mockUseSearch(),
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
     <a href={to}>{children}</a>
   ),
@@ -36,7 +36,7 @@ vi.mock('#/lib/queryClient', () => ({
   queryClient: { resetQueries: vi.fn() },
 }));
 
-import { LoginPage } from '#/routes/login';
+import { LoginPage } from '#/routes/-components/LoginPage';
 
 const noTotpResponse = {
   login: { success: true, totpRequired: false, accessToken: 'access-token' },
