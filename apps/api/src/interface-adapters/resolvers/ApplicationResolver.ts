@@ -33,6 +33,7 @@ interface GetApplicationsPageInput {
   search?: string;
   cursor?: string;
   limit?: number;
+  likelyGhosted?: boolean;
 }
 
 interface BulkUpdateInput {

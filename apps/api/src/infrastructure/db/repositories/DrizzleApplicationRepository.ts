@@ -1,4 +1,4 @@
-import { eq, and, or, desc, gte, lte, lt, like, isNull, inArray } from 'drizzle-orm';
+import { eq, and, or, desc, gte, lte, lt, like, isNull, isNotNull, inArray } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
 import { jobApplication, applicationTag } from '../schema.js';
 import type { Application } from '#src/domain/application/Application.js';
@@ -13,6 +13,7 @@ import type {
 } from '#src/use-cases/ports/IApplicationRepository.js';
 import { txStorage, getClient } from '../transactionContext.js';
 import { REMINDER_WINDOW_MS } from '#src/constants.js';
+import { LIKELY_GHOSTED_AFTER_DAYS } from '#src/use-cases/jobs/applicationStaleness.js';
 
 type AppRow = typeof jobApplication.$inferSelect & { tags: string[] };
 
@@ -70,6 +71,17 @@ export class DrizzleApplicationRepository implements IApplicationRepository {
     const conditions = [eq(jobApplication.userId, userId)];
     if (filters.status) conditions.push(eq(jobApplication.status, filters.status));
     if (filters.starred) conditions.push(eq(jobApplication.starred, true));
+    if (filters.likelyGhosted) {
+      const cutoff = new Date(Date.now() - LIKELY_GHOSTED_AFTER_DAYS * 24 * 60 * 60 * 1000);
+      conditions.push(
+        and(
+          inArray(jobApplication.status, ['applied', 'interviewing']),
+          isNotNull(jobApplication.appliedAt),
+          lte(jobApplication.updatedAt, cutoff),
+          or(isNull(jobApplication.reminderSentAt), lte(jobApplication.reminderSentAt, cutoff)),
+        )!,
+      );
+    }
     if (search) {
       conditions.push(
         or(

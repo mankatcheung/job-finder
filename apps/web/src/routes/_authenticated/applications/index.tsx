@@ -17,7 +17,11 @@ const APPLICATION_STATUSES: ApplicationStatus[] = [
   'withdrawn',
 ];
 
-const searchSchema = z.object({ status: z.string().optional(), starred: z.boolean().optional() });
+const searchSchema = z.object({
+  status: z.string().optional(),
+  starred: z.boolean().optional(),
+  likelyGhosted: z.boolean().optional(),
+});
 
 export const APPLICATIONS_PAGE_QUERY = `
   query ApplicationsPage(
@@ -26,6 +30,7 @@ export const APPLICATIONS_PAGE_QUERY = `
     $search: String
     $cursor: String
     $limit: Int
+    $likelyGhosted: Boolean
   ) {
     applicationsPage(
       status: $status
@@ -33,6 +38,7 @@ export const APPLICATIONS_PAGE_QUERY = `
       search: $search
       cursor: $cursor
       limit: $limit
+      likelyGhosted: $likelyGhosted
     ) {
       hasNextPage
       nextCursor
@@ -67,6 +73,7 @@ export type Application = {
   followUpAt?: string | null;
   tags: string[];
   createdAt: string;
+  likelyGhosted: boolean;
 };
 
 export type ApplicationsPageResult = {
@@ -83,9 +90,17 @@ export function applicationsPageQueryOptions(
   status: string | undefined,
   starred: boolean | undefined,
   searchTerm: string,
+  likelyGhosted: boolean | undefined,
 ) {
   return infiniteQueryOptions({
-    queryKey: ['applications', 'page', status ?? null, starred ?? false, searchTerm],
+    queryKey: [
+      'applications',
+      'page',
+      status ?? null,
+      starred ?? false,
+      likelyGhosted ?? false,
+      searchTerm,
+    ],
     queryFn: ({ pageParam }) =>
       gqlClient.request<ApplicationsPageResult>(APPLICATIONS_PAGE_QUERY, {
         status: status ?? null,
@@ -93,6 +108,7 @@ export function applicationsPageQueryOptions(
         search: searchTerm || null,
         cursor: pageParam,
         limit: PAGE_SIZE,
+        ...(likelyGhosted !== undefined ? { likelyGhosted } : {}),
       }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) =>
@@ -104,10 +120,14 @@ export const Route = createFileRoute('/_authenticated/applications/')({
   validateSearch: searchSchema,
   // searchTerm is local-only component state (always '' on a fresh navigation),
   // so only status/starred — the URL-driven filters — need to be loader deps.
-  loaderDeps: ({ search }) => ({ status: search.status, starred: search.starred }),
+  loaderDeps: ({ search }) => ({
+    status: search.status,
+    starred: search.starred,
+    likelyGhosted: search.likelyGhosted,
+  }),
   loader: ({ context: { queryClient }, deps }) =>
     queryClient.ensureInfiniteQueryData(
-      applicationsPageQueryOptions(deps.status, deps.starred, ''),
+      applicationsPageQueryOptions(deps.status, deps.starred, '', deps.likelyGhosted),
     ),
   component: ApplicationsPage,
 });

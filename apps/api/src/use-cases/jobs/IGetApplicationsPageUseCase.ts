@@ -6,6 +6,7 @@ export interface GetApplicationsPageInput {
   status?: ApplicationStatus;
   starred?: boolean;
   search?: string;
+  likelyGhosted?: boolean;
   cursor?: string;
   limit?: number;
 }

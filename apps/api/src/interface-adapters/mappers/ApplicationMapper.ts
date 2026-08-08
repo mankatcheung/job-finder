@@ -1,5 +1,6 @@
 import type { Application } from '#src/domain/application/Application.js';
 import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
+import { isLikelyGhosted } from '#src/use-cases/jobs/applicationStaleness.js';
 
 export interface ApplicationDTO {
   id: string;
@@ -18,6 +19,7 @@ export interface ApplicationDTO {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  likelyGhosted: boolean;
 }
 
 export interface ApplicationConnectionDTO {
@@ -45,6 +47,7 @@ export class ApplicationMapper {
       tags: app.tags,
       createdAt: app.createdAt.toISOString(),
       updatedAt: app.updatedAt.toISOString(),
+      likelyGhosted: isLikelyGhosted(app),
     };
   }
 }

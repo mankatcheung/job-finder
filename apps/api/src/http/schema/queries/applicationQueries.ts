@@ -33,6 +33,7 @@ builder.queryField('applicationsPage', (t) =>
       search: t.arg.string({ required: false }),
       cursor: t.arg.string({ required: false }),
       limit: t.arg.int({ required: false }),
+      likelyGhosted: t.arg.boolean({ required: false }),
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
@@ -44,6 +45,7 @@ builder.queryField('applicationsPage', (t) =>
         search: args.search ?? undefined,
         cursor: args.cursor ?? undefined,
         limit: args.limit ?? undefined,
+        likelyGhosted: args.likelyGhosted ?? undefined,
       });
     },
   }),
