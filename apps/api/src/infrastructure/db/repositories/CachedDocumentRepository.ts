@@ -7,7 +7,7 @@ import type { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
 import { CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
-  prismaDocumentRepository: IDocumentRepository;
+  drizzleDocumentRepository: IDocumentRepository;
   cache: MemoryCache;
 }
 
@@ -17,8 +17,8 @@ export class CachedDocumentRepository implements IDocumentRepository {
   private readonly inner: IDocumentRepository;
   private readonly cache: MemoryCache;
 
-  constructor({ prismaDocumentRepository, cache }: Deps) {
-    this.inner = prismaDocumentRepository;
+  constructor({ drizzleDocumentRepository, cache }: Deps) {
+    this.inner = drizzleDocumentRepository;
     this.cache = cache;
   }
 

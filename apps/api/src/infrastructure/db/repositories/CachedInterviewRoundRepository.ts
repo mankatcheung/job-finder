@@ -8,7 +8,7 @@ import type { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
 import { CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
-  prismaInterviewRoundRepository: IInterviewRoundRepository;
+  drizzleInterviewRoundRepository: IInterviewRoundRepository;
   cache: MemoryCache;
 }
 
@@ -17,8 +17,8 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
   private readonly inner: IInterviewRoundRepository;
   private readonly cache: MemoryCache;
 
-  constructor({ prismaInterviewRoundRepository, cache }: Deps) {
-    this.inner = prismaInterviewRoundRepository;
+  constructor({ drizzleInterviewRoundRepository, cache }: Deps) {
+    this.inner = drizzleInterviewRoundRepository;
     this.cache = cache;
   }
 

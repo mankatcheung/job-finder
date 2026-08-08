@@ -240,9 +240,9 @@ export interface Cradle {
 
   // Raw repositories (used internally by the cached decorators)
   userRepository: DrizzleUserRepository;
-  prismaApplicationRepository: DrizzleApplicationRepository;
-  prismaNoteRepository: DrizzleNoteRepository;
-  prismaDocumentRepository: DrizzleDocumentRepository;
+  drizzleApplicationRepository: DrizzleApplicationRepository;
+  drizzleNoteRepository: DrizzleNoteRepository;
+  drizzleDocumentRepository: DrizzleDocumentRepository;
   documentDraftRepository: DrizzleDocumentDraftRepository;
   drizzleApiTokenRepository: DrizzleApiTokenRepository;
   drizzleContactRepository: DrizzleContactRepository;
@@ -252,7 +252,7 @@ export interface Cradle {
   applicationRepository: CachedApplicationRepository;
   noteRepository: CachedNoteRepository;
   documentRepository: CachedDocumentRepository;
-  prismaInterviewRoundRepository: DrizzleInterviewRoundRepository;
+  drizzleInterviewRoundRepository: DrizzleInterviewRoundRepository;
   interviewRoundRepository: CachedInterviewRoundRepository;
   activityLogRepository: DrizzleActivityLogRepository;
   apiTokenRepository: CachedApiTokenRepository;
@@ -486,11 +486,11 @@ export function buildContainer(): AwilixContainer<Cradle> {
 
     // Raw repositories
     userRepository: asClass(DrizzleUserRepository, { lifetime: Lifetime.SINGLETON }),
-    prismaApplicationRepository: asClass(DrizzleApplicationRepository, {
+    drizzleApplicationRepository: asClass(DrizzleApplicationRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
-    prismaNoteRepository: asClass(DrizzleNoteRepository, { lifetime: Lifetime.SINGLETON }),
-    prismaDocumentRepository: asClass(DrizzleDocumentRepository, { lifetime: Lifetime.SINGLETON }),
+    drizzleNoteRepository: asClass(DrizzleNoteRepository, { lifetime: Lifetime.SINGLETON }),
+    drizzleDocumentRepository: asClass(DrizzleDocumentRepository, { lifetime: Lifetime.SINGLETON }),
     documentDraftRepository: asClass(DrizzleDocumentDraftRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
@@ -499,7 +499,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     applicationRepository: asClass(CachedApplicationRepository, { lifetime: Lifetime.SINGLETON }),
     noteRepository: asClass(CachedNoteRepository, { lifetime: Lifetime.SINGLETON }),
     documentRepository: asClass(CachedDocumentRepository, { lifetime: Lifetime.SINGLETON }),
-    prismaInterviewRoundRepository: asClass(DrizzleInterviewRoundRepository, {
+    drizzleInterviewRoundRepository: asClass(DrizzleInterviewRoundRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
     interviewRoundRepository: asClass(CachedInterviewRoundRepository, {
