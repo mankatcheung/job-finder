@@ -8,6 +8,7 @@ import { ErrorState } from '#/components/ErrorState';
 import { StatusBadge } from '../../../-components/StatusBadge';
 import {
   ActivityIcon,
+  Building2Icon,
   CalendarIcon,
   CheckIcon,
   DollarSignIcon,
@@ -29,6 +30,7 @@ import { ActivityTab } from './ActivityTab';
 import { InterviewsTab } from './InterviewsTab';
 import { ContactsTab } from './ContactsTab';
 import { DocumentsTab } from './DocumentsTab';
+import { CompanyBriefingTab } from './CompanyBriefingTab';
 import { CoverLetterTab } from './CoverLetterTab';
 import { ResumeMatchTab } from './ResumeMatchTab';
 import { Route } from '../index';
@@ -84,6 +86,7 @@ export function ApplicationDetailPage() {
     | 'contacts'
     | 'activity'
     | 'documents'
+    | 'company briefing'
     | 'cover letter'
     | 'resume match'
     | 'offers'
@@ -95,6 +98,7 @@ export function ApplicationDetailPage() {
     { id: 'contacts' as const, label: 'Contacts', icon: UsersIcon },
     { id: 'activity' as const, label: 'Activity', icon: ActivityIcon },
     { id: 'documents' as const, label: 'Documents', icon: UploadIcon },
+    { id: 'company briefing' as const, label: 'Company Briefing', icon: Building2Icon },
     { id: 'cover letter' as const, label: 'Cover Letter', icon: PenLineIcon },
     { id: 'resume match' as const, label: 'Resume Match', icon: FileTextIcon },
     { id: 'offers' as const, label: 'Offers', icon: DollarSignIcon },
@@ -513,6 +517,8 @@ export function ApplicationDetailPage() {
           {activeTab === 'activity' && <ActivityTab applicationId={applicationId} />}
 
           {activeTab === 'documents' && <DocumentsTab applicationId={applicationId} />}
+
+          {activeTab === 'company briefing' && <CompanyBriefingTab applicationId={applicationId} />}
 
           {activeTab === 'cover letter' && <CoverLetterTab applicationId={applicationId} />}
 
