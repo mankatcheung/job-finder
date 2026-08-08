@@ -55,6 +55,12 @@ export function SettingsNotificationsPage() {
     await qc.invalidateQueries({ queryKey: ['notificationPreferences'] });
   };
 
+  const onChangeWeeklyGoal = async (goal: number) => {
+    if (!Number.isInteger(goal) || goal < 1 || goal > 100) return;
+    await gqlClient.request(UPDATE_NOTIFICATION_PREFERENCES, { weeklyApplicationGoal: goal });
+    await qc.invalidateQueries({ queryKey: ['notificationPreferences'] });
+  };
+
   return (
     <div className="space-y-10">
       <section className="space-y-4">
@@ -86,6 +92,26 @@ export function SettingsNotificationsPage() {
               />
               Follow-up reminder emails
             </label>
+            <div>
+              <label
+                htmlFor="weekly-application-goal"
+                className="block text-sm font-medium text-gray-900 dark:text-gray-100"
+              >
+                Weekly application goal
+              </label>
+              <input
+                id="weekly-application-goal"
+                type="number"
+                min={1}
+                max={100}
+                value={prefs.weeklyApplicationGoal}
+                onChange={(e) => void onChangeWeeklyGoal(Number(e.target.value))}
+                className="mt-1 block w-28 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Used for dashboard progress and your weekly digest.
+              </p>
+            </div>
           </div>
         )}
       </section>

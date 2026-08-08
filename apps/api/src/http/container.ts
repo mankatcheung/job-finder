@@ -136,6 +136,7 @@ import { GetUserUseCase } from '#src/use-cases/user/GetUserUseCase.js';
 import { RequestAvatarUploadUrlUseCase } from '#src/use-cases/user/RequestAvatarUploadUrlUseCase.js';
 import { ConfirmAvatarUseCase } from '#src/use-cases/user/ConfirmAvatarUseCase.js';
 import { RemoveAvatarUseCase } from '#src/use-cases/user/RemoveAvatarUseCase.js';
+import { GetWeeklyApplicationGoalUseCase } from '#src/use-cases/user/GetWeeklyApplicationGoalUseCase.js';
 import { CreateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/CreateInterviewRoundUseCase.js';
 import { GetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/GetInterviewRoundsUseCase.js';
 import { UpdateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/UpdateInterviewRoundUseCase.js';
@@ -371,6 +372,7 @@ export interface Cradle {
   requestAvatarUploadUrlUseCase: RequestAvatarUploadUrlUseCase;
   confirmAvatarUseCase: ConfirmAvatarUseCase;
   removeAvatarUseCase: RemoveAvatarUseCase;
+  getWeeklyApplicationGoalUseCase: GetWeeklyApplicationGoalUseCase;
   createInterviewRoundUseCase: CreateInterviewRoundUseCase;
   getInterviewRoundsUseCase: GetInterviewRoundsUseCase;
   updateInterviewRoundUseCase: UpdateInterviewRoundUseCase;
@@ -699,6 +701,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     }),
     confirmAvatarUseCase: asClass(ConfirmAvatarUseCase, { lifetime: Lifetime.TRANSIENT }),
     removeAvatarUseCase: asClass(RemoveAvatarUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getWeeklyApplicationGoalUseCase: asClass(GetWeeklyApplicationGoalUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     createInterviewRoundUseCase: asClass(CreateInterviewRoundUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

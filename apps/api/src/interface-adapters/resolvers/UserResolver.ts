@@ -41,6 +41,10 @@ import type {
 } from '#src/use-cases/user/IRequestAvatarUploadUrlUseCase.js';
 import type { IConfirmAvatarUseCase } from '#src/use-cases/user/IConfirmAvatarUseCase.js';
 import type { IRemoveAvatarUseCase } from '#src/use-cases/user/IRemoveAvatarUseCase.js';
+import type {
+  IGetWeeklyApplicationGoalUseCase,
+  WeeklyApplicationGoalStats,
+} from '#src/use-cases/user/IGetWeeklyApplicationGoalUseCase.js';
 import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
 import { UserMapper, type UserDTO } from '#src/interface-adapters/mappers/UserMapper.js';
 
@@ -67,6 +71,7 @@ interface Deps {
   requestAvatarUploadUrlUseCase: IRequestAvatarUploadUrlUseCase;
   confirmAvatarUseCase: IConfirmAvatarUseCase;
   removeAvatarUseCase: IRemoveAvatarUseCase;
+  getWeeklyApplicationGoalUseCase?: IGetWeeklyApplicationGoalUseCase;
   storageProvider: IStorageProvider;
   userMapper: UserMapper;
 }
@@ -165,17 +170,26 @@ export class UserResolver {
     return this.deps.getNotificationPreferencesUseCase.execute(userId);
   }
 
+  async getWeeklyApplicationGoal(userId: string): Promise<WeeklyApplicationGoalStats> {
+    if (!this.deps.getWeeklyApplicationGoalUseCase) {
+      throw new Error('Weekly application goal use case is not configured');
+    }
+    return this.deps.getWeeklyApplicationGoalUseCase.execute(userId);
+  }
+
   async updateNotificationPreferences(
     userId: string,
     weeklyDigestEnabled?: boolean,
     followUpRemindersEnabled?: boolean,
     pushNotificationsEnabled?: boolean,
+    weeklyApplicationGoal?: number,
   ): Promise<void> {
     await this.deps.updateNotificationPreferencesUseCase.execute({
       userId,
       weeklyDigestEnabled,
       followUpRemindersEnabled,
       pushNotificationsEnabled,
+      weeklyApplicationGoal,
     });
   }
 

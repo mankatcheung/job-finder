@@ -15,6 +15,7 @@ import { StatusBadge } from './StatusBadge';
 import {
   applicationsQueryOptions,
   calendarEventsQueryOptions,
+  weeklyApplicationGoalQueryOptions,
   type CalendarEventKind,
 } from '../dashboard';
 
@@ -33,6 +34,8 @@ const UPCOMING_EVENT_LABEL: Record<CalendarEventKind, string> = {
 export function DashboardPage() {
   const { data, isLoading, isError, error, refetch } = useQuery(applicationsQueryOptions);
   const { data: calendarData } = useQuery(calendarEventsQueryOptions);
+  const { data: goalData } = useQuery(weeklyApplicationGoalQueryOptions);
+  const goal = goalData?.weeklyApplicationGoal;
 
   const apps = data?.applications ?? [];
   const now = new Date();
@@ -95,6 +98,32 @@ export function DashboardPage() {
           />
         ))}
       </div>
+
+      {goal && (
+        <section className="mb-10 rounded-xl border border-blue-100 bg-blue-50 p-5 dark:border-blue-900/50 dark:bg-blue-900/20">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Weekly application goal
+              </h2>
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                {goal.currentWeekCount} of {goal.weeklyApplicationGoal} applications this week
+              </p>
+            </div>
+            <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+              {goal.streakWeeks} week{goal.streakWeeks === 1 ? '' : 's'} streak
+            </p>
+          </div>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/80 dark:bg-gray-700">
+            <div
+              className="h-full rounded-full bg-blue-600 transition-all"
+              style={{
+                width: `${Math.min(100, (goal.currentWeekCount / goal.weeklyApplicationGoal) * 100)}%`,
+              }}
+            />
+          </div>
+        </section>
+      )}
 
       {upcomingEvents.length > 0 && (
         <div className="mb-10">

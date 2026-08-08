@@ -27,6 +27,7 @@ import './types/TotpSetupType.js';
 import './types/LoginEventType.js';
 import './types/ImportSummaryType.js';
 import './types/NotificationPreferencesType.js';
+import './types/WeeklyApplicationGoalType.js';
 import './types/NotificationType.js';
 import './types/NotificationConnectionType.js';
 import './types/SessionType.js';

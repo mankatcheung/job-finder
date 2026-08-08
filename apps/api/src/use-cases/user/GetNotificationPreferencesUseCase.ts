@@ -20,6 +20,7 @@ export class GetNotificationPreferencesUseCase implements IGetNotificationPrefer
       weeklyDigestEnabled: user.weeklyDigestEnabled,
       followUpRemindersEnabled: user.followUpRemindersEnabled,
       pushNotificationsEnabled: user.pushNotificationsEnabled,
+      weeklyApplicationGoal: user.weeklyApplicationGoal,
     };
   }
 }

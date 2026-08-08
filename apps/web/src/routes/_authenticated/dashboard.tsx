@@ -31,6 +31,17 @@ const CALENDAR_EVENTS_QUERY = `
   }
 `;
 
+const WEEKLY_APPLICATION_GOAL_QUERY = `
+  query WeeklyApplicationGoal {
+    weeklyApplicationGoal {
+      weeklyApplicationGoal
+      currentWeekCount
+      currentWeekStart
+      streakWeeks
+    }
+  }
+`;
+
 type Application = {
   id: string;
   company: string;
@@ -63,13 +74,29 @@ export const calendarEventsQueryOptions = queryOptions({
   queryFn: () => gqlClient.request<{ calendarEvents: CalendarEvent[] }>(CALENDAR_EVENTS_QUERY),
 });
 
-export type { Application, CalendarEventKind, CalendarEvent };
+export const weeklyApplicationGoalQueryOptions = queryOptions({
+  queryKey: ['weeklyApplicationGoal'],
+  queryFn: () =>
+    gqlClient.request<{ weeklyApplicationGoal: WeeklyApplicationGoal }>(
+      WEEKLY_APPLICATION_GOAL_QUERY,
+    ),
+});
+
+type WeeklyApplicationGoal = {
+  weeklyApplicationGoal: number;
+  currentWeekCount: number;
+  currentWeekStart: string;
+  streakWeeks: number;
+};
+
+export type { Application, CalendarEventKind, CalendarEvent, WeeklyApplicationGoal };
 
 export const Route = createFileRoute('/_authenticated/dashboard')({
   loader: ({ context: { queryClient } }) =>
     Promise.all([
       queryClient.ensureQueryData(applicationsQueryOptions),
       queryClient.ensureQueryData(calendarEventsQueryOptions),
+      queryClient.ensureQueryData(weeklyApplicationGoalQueryOptions),
     ]),
   component: DashboardPage,
 });

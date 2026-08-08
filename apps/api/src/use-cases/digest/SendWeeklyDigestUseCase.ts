@@ -2,6 +2,7 @@ import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IEmailService, WeeklyDigestData } from '#src/use-cases/ports/IEmailService.js';
 import { DURATIONS_MS, DIGEST_WINDOW_MS } from '#src/constants.js';
+import { getWeeklyApplicationGoalStats } from '#src/use-cases/user/weeklyApplicationGoal.js';
 
 interface Deps {
   userRepository: IUserRepository;
@@ -79,6 +80,17 @@ export class SendWeeklyDigestUseCase {
           newThisWeek,
           overdueFollowUps,
           upcomingFollowUps,
+          weeklyApplicationGoal: user.weeklyApplicationGoal,
+          currentWeekApplicationCount: getWeeklyApplicationGoalStats(
+            apps,
+            user.weeklyApplicationGoal,
+            now,
+          ).currentWeekCount,
+          applicationStreakWeeks: getWeeklyApplicationGoalStats(
+            apps,
+            user.weeklyApplicationGoal,
+            now,
+          ).streakWeeks,
         };
 
         await this.deps.emailService.sendWeeklyDigest(user.email, data);

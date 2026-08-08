@@ -63,6 +63,15 @@ export function buildWeeklyDigestHtml(data: WeeklyDigestData, weekLabel: string)
           )
           .join('');
 
+  const goalHtml =
+    data.weeklyApplicationGoal == null
+      ? ''
+      : `<div style="padding:24px 32px;border-bottom:1px solid #f3f4f6;background:#eff6ff;">
+       <h2 style="margin:0 0 8px;font-size:15px;font-weight:600;color:#1e3a8a;">Weekly application goal</h2>
+       <p style="margin:0;color:#374151;font-size:14px;">${data.currentWeekApplicationCount ?? 0} of ${data.weeklyApplicationGoal} applications this week</p>
+       <p style="margin:8px 0 0;color:#4b5563;font-size:13px;">Current streak: ${data.applicationStreakWeeks ?? 0} week${(data.applicationStreakWeeks ?? 0) === 1 ? '' : 's'}</p>
+     </div>`;
+
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -86,6 +95,8 @@ export function buildWeeklyDigestHtml(data: WeeklyDigestData, weekLabel: string)
     </div>
 
     <!-- New this week -->
+    ${goalHtml}
+
     <div style="padding:24px 32px;border-bottom:1px solid #f3f4f6;">
       <h2 style="margin:0 0 12px;font-size:15px;font-weight:600;color:#111827;">
         🆕 New this week <span style="font-weight:400;color:#6b7280;">(${data.newThisWeek.length})</span>

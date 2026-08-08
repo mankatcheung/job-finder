@@ -8,5 +8,6 @@ NotificationPreferencesRef.implement({
     weeklyDigestEnabled: t.exposeBoolean('weeklyDigestEnabled'),
     followUpRemindersEnabled: t.exposeBoolean('followUpRemindersEnabled'),
     pushNotificationsEnabled: t.exposeBoolean('pushNotificationsEnabled'),
+    weeklyApplicationGoal: t.exposeInt('weeklyApplicationGoal'),
   }),
 });
