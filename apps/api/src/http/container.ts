@@ -11,6 +11,9 @@ import { DrizzleDocumentRepository } from '#src/infrastructure/db/repositories/D
 import { DrizzleDocumentDraftRepository } from '#src/infrastructure/db/repositories/DrizzleDocumentDraftRepository.js';
 import { CachedApplicationRepository } from '#src/infrastructure/db/repositories/CachedApplicationRepository.js';
 import { CachedNoteRepository } from '#src/infrastructure/db/repositories/CachedNoteRepository.js';
+import { CachedApiTokenRepository } from '#src/infrastructure/db/repositories/CachedApiTokenRepository.js';
+import { CachedContactRepository } from '#src/infrastructure/db/repositories/CachedContactRepository.js';
+import { CachedNotificationRepository } from '#src/infrastructure/db/repositories/CachedNotificationRepository.js';
 import { CachedDocumentRepository } from '#src/infrastructure/db/repositories/CachedDocumentRepository.js';
 import { DrizzleInterviewRoundRepository } from '#src/infrastructure/db/repositories/DrizzleInterviewRoundRepository.js';
 import { CachedInterviewRoundRepository } from '#src/infrastructure/db/repositories/CachedInterviewRoundRepository.js';
@@ -241,6 +244,9 @@ export interface Cradle {
   prismaNoteRepository: DrizzleNoteRepository;
   prismaDocumentRepository: DrizzleDocumentRepository;
   documentDraftRepository: DrizzleDocumentDraftRepository;
+  drizzleApiTokenRepository: DrizzleApiTokenRepository;
+  drizzleContactRepository: DrizzleContactRepository;
+  drizzleNotificationRepository: DrizzleNotificationRepository;
 
   // Cached repository decorators (what use-cases consume)
   applicationRepository: CachedApplicationRepository;
@@ -249,9 +255,9 @@ export interface Cradle {
   prismaInterviewRoundRepository: DrizzleInterviewRoundRepository;
   interviewRoundRepository: CachedInterviewRoundRepository;
   activityLogRepository: DrizzleActivityLogRepository;
-  apiTokenRepository: DrizzleApiTokenRepository;
-  notificationRepository: DrizzleNotificationRepository;
-  contactRepository: DrizzleContactRepository;
+  apiTokenRepository: CachedApiTokenRepository;
+  notificationRepository: CachedNotificationRepository;
+  contactRepository: CachedContactRepository;
   passwordResetTokenRepository: DrizzlePasswordResetTokenRepository;
   loginEventRepository: DrizzleLoginEventRepository;
   securityEventRepository: DrizzleSecurityEventRepository;
@@ -499,15 +505,24 @@ export function buildContainer(): AwilixContainer<Cradle> {
     interviewRoundRepository: asClass(CachedInterviewRoundRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
+    apiTokenRepository: asClass(CachedApiTokenRepository, { lifetime: Lifetime.SINGLETON }),
+    contactRepository: asClass(CachedContactRepository, { lifetime: Lifetime.SINGLETON }),
+    notificationRepository: asClass(CachedNotificationRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
     activityLogRepository: asClass(DrizzleActivityLogRepository, { lifetime: Lifetime.SINGLETON }),
-    apiTokenRepository: asClass(DrizzleApiTokenRepository, { lifetime: Lifetime.SINGLETON }),
-    notificationRepository: asClass(DrizzleNotificationRepository, {
+    drizzleApiTokenRepository: asClass(DrizzleApiTokenRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
+    drizzleNotificationRepository: asClass(DrizzleNotificationRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
     pushSubscriptionRepository: asClass(DrizzlePushSubscriptionRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
-    contactRepository: asClass(DrizzleContactRepository, { lifetime: Lifetime.SINGLETON }),
+    drizzleContactRepository: asClass(DrizzleContactRepository, {
+      lifetime: Lifetime.SINGLETON,
+    }),
     passwordResetTokenRepository: asClass(DrizzlePasswordResetTokenRepository, {
       lifetime: Lifetime.SINGLETON,
     }),
