@@ -21,6 +21,7 @@ const makeEmailService = (overrides?: Partial<IEmailService>): IEmailService => 
   sendWeeklyDigest: vi.fn().mockResolvedValue(undefined),
   sendPasswordReset: vi.fn().mockResolvedValue(undefined),
   sendEmailVerification: vi.fn().mockResolvedValue(undefined),
+  sendBackupEmailVerification: vi.fn().mockResolvedValue(undefined),
   sendNewDeviceLoginAlert: vi.fn().mockResolvedValue(undefined),
   ...overrides,
 });
@@ -175,6 +176,7 @@ describe('RequestEmailChangeUseCase', () => {
     vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
     const emailService = makeEmailService({
       sendEmailVerification: vi.fn().mockRejectedValue(new Error('Brevo is down')),
+      sendBackupEmailVerification: vi.fn().mockResolvedValue(undefined),
     });
 
     await expect(

@@ -27,6 +27,10 @@ export const user = sqliteTable('User', {
   defaultLlmProvider: text('defaultLlmProvider'),
   /** User-authored instruction spliced into the system prompt for AI-generated text (cover letters, chat assistant). */
   customAiPrompt: text('customAiPrompt'),
+  /** Secondary email for account recovery when primary inbox is inaccessible. */
+  backupEmail: text('backupEmail'),
+  /** When the backup email was verified; null until verification completes. */
+  backupEmailVerifiedAt: integer('backupEmailVerifiedAt', { mode: 'timestamp_ms' }),
   createdAt: integer('createdAt', { mode: 'timestamp_ms' })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -239,6 +243,24 @@ export const passwordResetToken = sqliteTable(
       .$defaultFn(() => new Date()),
   },
   (table) => [index('PasswordResetToken_userId_idx').on(table.userId)],
+);
+
+export const backupEmailVerificationToken = sqliteTable(
+  'BackupEmailVerificationToken',
+  {
+    id: text('id').primaryKey(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    tokenHash: text('tokenHash').notNull().unique(),
+    newBackupEmail: text('newBackupEmail').notNull(),
+    expiresAt: integer('expiresAt', { mode: 'timestamp_ms' }).notNull(),
+    usedAt: integer('usedAt', { mode: 'timestamp_ms' }),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [index('BackupEmailVerificationToken_userId_idx').on(table.userId)],
 );
 
 export const apiToken = sqliteTable(

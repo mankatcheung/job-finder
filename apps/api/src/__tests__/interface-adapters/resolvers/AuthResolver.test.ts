@@ -8,6 +8,7 @@ import type { IReauthenticateUseCase } from '#src/use-cases/auth/IReauthenticate
 import type { IRequestPasswordResetUseCase } from '#src/use-cases/auth/IRequestPasswordResetUseCase.js';
 import type { IResetPasswordUseCase } from '#src/use-cases/auth/IResetPasswordUseCase.js';
 import type { IVerifyEmailUseCase } from '#src/use-cases/auth/IVerifyEmailUseCase.js';
+import type { IRequestBackupEmailRecoveryUseCase } from '#src/use-cases/auth/IRequestBackupEmailRecoveryUseCase.js';
 import type { ITokenService } from '#src/use-cases/ports/ITokenService.js';
 import type { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
 import type { RotateRefreshTokenUseCase } from '#src/use-cases/sessions/RotateRefreshTokenUseCase.js';
@@ -84,6 +85,9 @@ const baseDeps = () => ({
   }),
   sessionRepository: makeSessionRepository(),
   verifyEmailUseCase: makeVerifyEmailUseCase(),
+  requestBackupEmailRecoveryUseCase: stub<IRequestBackupEmailRecoveryUseCase>({
+    execute: vi.fn().mockResolvedValue(undefined),
+  }),
 });
 
 describe('AuthResolver', () => {

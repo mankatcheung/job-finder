@@ -9,6 +9,8 @@ export interface UserDTO {
   avatarUrl: string | null;
   defaultLlmProvider: string | null;
   customAiPrompt: string | null;
+  backupEmail: string | null;
+  backupEmailVerifiedAt: Date | null;
 }
 
 export class UserMapper {
@@ -22,6 +24,8 @@ export class UserMapper {
       avatarUrl,
       defaultLlmProvider: user.defaultLlmProvider,
       customAiPrompt: user.customAiPrompt,
+      backupEmail: user.backupEmail,
+      backupEmailVerifiedAt: user.backupEmailVerifiedAt,
     };
   }
 }

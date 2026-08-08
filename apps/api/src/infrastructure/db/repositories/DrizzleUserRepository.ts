@@ -26,6 +26,11 @@ export class DrizzleUserRepository implements IUserRepository {
     return row ? this.toEntity(row) : null;
   }
 
+  async findByBackupEmail(email: string): Promise<User | null> {
+    const [row] = await this.db.select().from(user).where(eq(user.backupEmail, email)).limit(1);
+    return row ? this.toEntity(row) : null;
+  }
+
   async findAll(): Promise<User[]> {
     const rows = await this.db.select().from(user).orderBy(asc(user.createdAt));
     return rows.map((r) => this.toEntity(r));
@@ -59,6 +64,8 @@ export class DrizzleUserRepository implements IUserRepository {
       totpEnabled?: boolean;
       defaultLlmProvider?: string | null;
       customAiPrompt?: string | null;
+      backupEmail?: string | null;
+      backupEmailVerifiedAt?: Date | null;
     },
   ): Promise<User> {
     const [row] = await this.db
@@ -95,6 +102,8 @@ export class DrizzleUserRepository implements IUserRepository {
       totpEnabled: row.totpEnabled,
       defaultLlmProvider: row.defaultLlmProvider,
       customAiPrompt: row.customAiPrompt,
+      backupEmail: row.backupEmail,
+      backupEmailVerifiedAt: row.backupEmailVerifiedAt,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

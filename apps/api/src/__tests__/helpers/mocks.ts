@@ -58,6 +58,7 @@ import type { IPdfRenderer } from '#src/use-cases/ports/IPdfRenderer.js';
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
   findByEmail: vi.fn(),
+  findByBackupEmail: vi.fn(),
   findAll: vi.fn().mockResolvedValue([]),
   create: vi.fn(),
   update: vi.fn(),
@@ -391,6 +392,8 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   totpEnabled: false,
   defaultLlmProvider: null,
   customAiPrompt: null,
+  backupEmail: null,
+  backupEmailVerifiedAt: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,

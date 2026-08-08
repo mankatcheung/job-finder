@@ -21,6 +21,9 @@ import type { IGetUserUseCase } from '#src/use-cases/user/IGetUserUseCase.js';
 import type { IRequestAvatarUploadUrlUseCase } from '#src/use-cases/user/IRequestAvatarUploadUrlUseCase.js';
 import type { IConfirmAvatarUseCase } from '#src/use-cases/user/IConfirmAvatarUseCase.js';
 import type { IRemoveAvatarUseCase } from '#src/use-cases/user/IRemoveAvatarUseCase.js';
+import type { IRequestAddBackupEmailUseCase } from '#src/use-cases/user/IRequestAddBackupEmailUseCase.js';
+import type { IConfirmBackupEmailUseCase } from '#src/use-cases/user/IConfirmBackupEmailUseCase.js';
+import type { IRemoveBackupEmailUseCase } from '#src/use-cases/user/IRemoveBackupEmailUseCase.js';
 import { UserMapper } from '#src/interface-adapters/mappers/UserMapper.js';
 import { LlmApiKeyMapper } from '#src/interface-adapters/mappers/LlmApiKeyMapper.js';
 import { makeUser, makeStorageProvider, makeLlmApiKey } from '#src/__tests__/helpers/mocks.js';
@@ -76,6 +79,15 @@ const makeDeps = (overrides?: object) => ({
     execute: vi.fn().mockResolvedValue(undefined),
   }),
   removeAvatarUseCase: stub<IRemoveAvatarUseCase>({
+    execute: vi.fn().mockResolvedValue(undefined),
+  }),
+  requestAddBackupEmailUseCase: stub<IRequestAddBackupEmailUseCase>({
+    execute: vi.fn().mockResolvedValue(undefined),
+  }),
+  confirmBackupEmailUseCase: stub<IConfirmBackupEmailUseCase>({
+    execute: vi.fn().mockResolvedValue(undefined),
+  }),
+  removeBackupEmailUseCase: stub<IRemoveBackupEmailUseCase>({
     execute: vi.fn().mockResolvedValue(undefined),
   }),
   storageProvider: makeStorageProvider({

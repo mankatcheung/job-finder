@@ -186,3 +186,20 @@ builder.mutationField('verifyEmail', (t) =>
     },
   }),
 );
+
+builder.mutationField('requestBackupEmailRecovery', (t) =>
+  t.boolean({
+    args: {
+      backupEmail: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      const { authResolver } = ctx.diScope.cradle;
+      try {
+        await authResolver.requestBackupEmailRecovery(args.backupEmail, ctx.request.ip ?? null);
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);

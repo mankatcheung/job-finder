@@ -11,6 +11,8 @@ export const ME_QUERY = `
       timezone
       targetRole
       avatarUrl
+      backupEmail
+      backupEmailVerifiedAt
     }
   }
 `;
@@ -55,6 +57,18 @@ export const UPDATE_PROFILE = `
 export const REQUEST_EMAIL_CHANGE = `
   mutation RequestEmailChange($currentPassword: String!, $newEmail: String!) {
     requestEmailChange(currentPassword: $currentPassword, newEmail: $newEmail)
+  }
+`;
+
+export const REQUEST_ADD_BACKUP_EMAIL = `
+  mutation RequestAddBackupEmail($currentPassword: String!, $backupEmail: String!) {
+    requestAddBackupEmail(currentPassword: $currentPassword, backupEmail: $backupEmail)
+  }
+`;
+
+export const REMOVE_BACKUP_EMAIL = `
+  mutation RemoveBackupEmail($currentPassword: String!) {
+    removeBackupEmail(currentPassword: $currentPassword)
   }
 `;
 
@@ -286,6 +300,15 @@ export const emailSchema = z.object({
   newEmail: z.string().email('Invalid email'),
 });
 
+export const backupEmailSchema = z.object({
+  currentPassword: z.string().min(1, 'Required'),
+  backupEmail: z.string().email('Invalid email'),
+});
+
+export const removeBackupEmailSchema = z.object({
+  currentPassword: z.string().min(1, 'Required'),
+});
+
 export const passwordSchema = z
   .object({
     currentPassword: z.string().min(1, 'Required'),
@@ -375,6 +398,8 @@ export const llmApiKeySchema = z
 export type ProfileForm = z.infer<typeof profileSchema>;
 export type CustomAiPromptForm = z.infer<typeof customAiPromptSchema>;
 export type EmailForm = z.infer<typeof emailSchema>;
+export type BackupEmailForm = z.infer<typeof backupEmailSchema>;
+export type RemoveBackupEmailForm = z.infer<typeof removeBackupEmailSchema>;
 export type PasswordForm = z.infer<typeof passwordSchema>;
 export type DeleteForm = z.infer<typeof deleteSchema>;
 export type ReauthForm = z.infer<typeof reauthSchema>;
@@ -460,6 +485,8 @@ export type Me = {
   timezone: string | null;
   targetRole: string | null;
   avatarUrl: string | null;
+  backupEmail: string | null;
+  backupEmailVerifiedAt: string | null;
 };
 
 export type NotificationPreferences = {
