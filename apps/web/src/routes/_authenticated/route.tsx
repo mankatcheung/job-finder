@@ -1,8 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { hydrateSession } from '#/graphql/client';
-
-const AuthenticatedLayout = () =>
-  import('./-components/AuthenticatedLayout').then((m) => m.AuthenticatedLayout);
+import { AuthenticatedLayout } from './-components/AuthenticatedLayout';
 
 export const Route = createFileRoute('/_authenticated')({
   // See routes/index.tsx for why this must be ssr: false.
