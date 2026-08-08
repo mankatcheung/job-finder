@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
@@ -15,7 +16,14 @@ const REQUEST_PASSWORD_RESET_MUTATION = `
   }
 `;
 
+const REQUEST_BACKUP_EMAIL_RECOVERY_MUTATION = `
+  mutation RequestBackupEmailRecovery($backupEmail: String!) {
+    requestBackupEmailRecovery(backupEmail: $backupEmail)
+  }
+`;
+
 export function ForgotPasswordPage() {
+  const [recoveryMode, setRecoveryMode] = useState<'primary' | 'backup'>('primary');
   const {
     register,
     handleSubmit,
@@ -27,7 +35,11 @@ export function ForgotPasswordPage() {
   const onSubmit = async (data: FormValues) => {
     // Always resolves — the backend responds identically for known and unknown
     // emails so this form can't be used to enumerate accounts.
-    await gqlClient.request(REQUEST_PASSWORD_RESET_MUTATION, data);
+    if (recoveryMode === 'backup') {
+      await gqlClient.request(REQUEST_BACKUP_EMAIL_RECOVERY_MUTATION, { backupEmail: data.email });
+    } else {
+      await gqlClient.request(REQUEST_PASSWORD_RESET_MUTATION, data);
+    }
   };
 
   return (
@@ -38,14 +50,15 @@ export function ForgotPasswordPage() {
             Forgot your password?
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Enter your email and we&apos;ll send you a link to reset it.
+            {recoveryMode === 'backup'
+              ? 'Use your verified backup email to recover access.'
+              : 'Enter your email and we&apos;ll send you a link to reset it.'}
           </p>
         </div>
 
         {isSubmitSuccessful ? (
           <p className="text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg px-3 py-3">
-            If an account exists for that email, we&apos;ve sent a password reset link. Check your
-            inbox.
+            If an account exists for that email, we&apos;ve sent a recovery link. Check your inbox.
           </p>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -71,10 +84,24 @@ export function ForgotPasswordPage() {
               disabled={isSubmitting}
               className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              {isSubmitting ? 'Sending…' : 'Send reset link'}
+              {isSubmitting
+                ? 'Sending…'
+                : recoveryMode === 'backup'
+                  ? 'Send recovery link'
+                  : 'Send reset link'}
             </button>
           </form>
         )}
+
+        <button
+          type="button"
+          onClick={() => setRecoveryMode((mode) => (mode === 'primary' ? 'backup' : 'primary'))}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          {recoveryMode === 'primary'
+            ? 'Lost access to your primary email? Use a backup email.'
+            : 'Use your primary email instead'}
+        </button>
 
         <p className="text-sm text-gray-500 dark:text-gray-400">
           <Link to="/login" className="text-blue-600 hover:underline">

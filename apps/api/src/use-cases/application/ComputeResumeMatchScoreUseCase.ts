@@ -6,6 +6,7 @@ import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFacto
 import type { IWorkExperienceRepository } from '#src/use-cases/ports/IWorkExperienceRepository.js';
 import type { IEducationRepository } from '#src/use-cases/ports/IEducationRepository.js';
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
+import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { ERROR_CODES } from '#src/constants.js';
 
 export interface ComputeResumeMatchScoreInput {
@@ -31,6 +32,7 @@ interface Deps {
   workExperienceRepository: IWorkExperienceRepository;
   educationRepository: IEducationRepository;
   skillRepository: ISkillRepository;
+  computeResumeMatchScoreRateLimiter: IRateLimiter;
 }
 
 const RESUME_DOCUMENT_TYPE = 'resume';
@@ -65,6 +67,14 @@ export class ComputeResumeMatchScoreUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: ComputeResumeMatchScoreInput): Promise<ResumeMatchScore> {
+    if (
+      !this.deps.computeResumeMatchScoreRateLimiter.consume(`resume-match:user:${input.userId}`)
+    ) {
+      throw Object.assign(new Error('Too many requests — please wait a moment and try again'), {
+        code: ERROR_CODES.RATE_LIMITED,
+      });
+    }
+
     const app = await this.deps.applicationRepository.findById(input.applicationId);
     if (!app) {
       throw Object.assign(new Error('Application not found'), { code: ERROR_CODES.NOT_FOUND });

@@ -1,6 +1,7 @@
 import { createHash } from 'crypto';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IEmailVerificationTokenRepository } from '#src/use-cases/ports/IEmailVerificationTokenRepository.js';
+import type { ISecurityEventRepository } from '#src/use-cases/ports/ISecurityEventRepository.js';
 import { ERROR_CODES } from '#src/constants.js';
 import type {
   IConfirmEmailChangeUseCase,
@@ -10,6 +11,8 @@ import type {
 interface Deps {
   userRepository: IUserRepository;
   emailVerificationTokenRepository: IEmailVerificationTokenRepository;
+  securityEventRepository: ISecurityEventRepository;
+  generateId: () => string;
 }
 
 export class ConfirmEmailChangeUseCase implements IConfirmEmailChangeUseCase {
@@ -43,5 +46,13 @@ export class ConfirmEmailChangeUseCase implements IConfirmEmailChangeUseCase {
       emailVerifiedAt: new Date(),
     });
     await this.deps.emailVerificationTokenRepository.markUsed(verificationToken.id);
+
+    await this.deps.securityEventRepository.create({
+      id: this.deps.generateId(),
+      userId: verificationToken.userId,
+      eventType: 'email_changed',
+      ipAddress: input.ipAddress ?? null,
+      userAgent: input.userAgent ?? null,
+    });
   }
 }

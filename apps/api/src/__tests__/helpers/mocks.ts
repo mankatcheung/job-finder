@@ -16,6 +16,7 @@ import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js'
 import type { IPasswordResetTokenRepository } from '#src/use-cases/ports/IPasswordResetTokenRepository.js';
 import type { PasswordResetToken } from '#src/domain/passwordResetToken/PasswordResetToken.js';
 import type { ILoginEventRepository } from '#src/use-cases/ports/ILoginEventRepository.js';
+import type { ISecurityEventRepository } from '#src/use-cases/ports/ISecurityEventRepository.js';
 import type { IMessageRepository } from '#src/use-cases/ports/IMessageRepository.js';
 import type { IConversationRepository } from '#src/use-cases/ports/IConversationRepository.js';
 import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
@@ -29,6 +30,7 @@ import type { Note } from '#src/domain/note/Note.js';
 import type { InterviewRound } from '#src/domain/interviewRound/InterviewRound.js';
 import type { Contact } from '#src/domain/contact/Contact.js';
 import type { LoginEvent } from '#src/domain/loginEvent/LoginEvent.js';
+import type { SecurityEvent } from '#src/domain/securityEvent/SecurityEvent.js';
 import type { Message } from '#src/domain/message/Message.js';
 import type { Conversation } from '#src/domain/conversation/Conversation.js';
 import type { ITotpBackupCodeRepository } from '#src/use-cases/ports/ITotpBackupCodeRepository.js';
@@ -56,6 +58,7 @@ import type { IPdfRenderer } from '#src/use-cases/ports/IPdfRenderer.js';
 export const makeUserRepository = (overrides?: Partial<IUserRepository>): IUserRepository => ({
   findById: vi.fn(),
   findByEmail: vi.fn(),
+  findByBackupEmail: vi.fn(),
   findAll: vi.fn().mockResolvedValue([]),
   create: vi.fn(),
   update: vi.fn(),
@@ -122,6 +125,14 @@ export const makeActivityLogRepository = (
 export const makeLoginEventRepository = (
   overrides?: Partial<ILoginEventRepository>,
 ): ILoginEventRepository => ({
+  create: vi.fn(),
+  findRecentByUserId: vi.fn().mockResolvedValue([]),
+  ...overrides,
+});
+
+export const makeSecurityEventRepository = (
+  overrides?: Partial<ISecurityEventRepository>,
+): ISecurityEventRepository => ({
   create: vi.fn(),
   findRecentByUserId: vi.fn().mockResolvedValue([]),
   ...overrides,
@@ -333,6 +344,16 @@ export const makeLoginEvent = (overrides?: Partial<LoginEvent>): LoginEvent => (
   ...overrides,
 });
 
+export const makeSecurityEvent = (overrides?: Partial<SecurityEvent>): SecurityEvent => ({
+  id: 'sec-event-1',
+  userId: 'user-1',
+  eventType: 'password_changed',
+  ipAddress: '127.0.0.1',
+  userAgent: 'Mozilla/5.0',
+  createdAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
 export const makeMessage = (overrides?: Partial<Message>): Message => ({
   id: 'msg-1',
   conversationId: 'conv-1',
@@ -371,6 +392,8 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   totpEnabled: false,
   defaultLlmProvider: null,
   customAiPrompt: null,
+  backupEmail: null,
+  backupEmailVerifiedAt: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   ...overrides,

@@ -18,6 +18,10 @@ export interface User {
   defaultLlmProvider: string | null;
   /** User-authored instruction spliced into the system prompt for AI-generated text (cover letters, chat assistant). */
   customAiPrompt: string | null;
+  /** Secondary email for account recovery when primary inbox is inaccessible. */
+  backupEmail: string | null;
+  /** When the backup email was verified; null until verification completes. */
+  backupEmailVerifiedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

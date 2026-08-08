@@ -49,6 +49,13 @@ export class CachedUserRepository implements IUserRepository {
     return this.inner.findAll();
   }
 
+  // Not cached: only two low-frequency, already-rate-limited call sites
+  // (backup-email recovery request and add-backup-email verification) — not
+  // worth a third cache key/invalidation path for.
+  findByBackupEmail(email: string): Promise<User | null> {
+    return this.inner.findByBackupEmail(email);
+  }
+
   async create(data: {
     id: string;
     email: string;
@@ -82,6 +89,8 @@ export class CachedUserRepository implements IUserRepository {
       totpEnabled?: boolean;
       defaultLlmProvider?: string | null;
       customAiPrompt?: string | null;
+      backupEmail?: string | null;
+      backupEmailVerifiedAt?: Date | null;
     },
   ): Promise<User> {
     const result = await this.inner.update(id, data);

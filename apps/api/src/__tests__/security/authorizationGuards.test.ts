@@ -15,6 +15,7 @@ import {
   makeUser,
   makeEmailVerificationTokenRepository,
   makeRateLimiter,
+  makeSecurityEventRepository,
 } from '#src/__tests__/helpers/mocks.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 
@@ -33,6 +34,7 @@ const emailService: IEmailService = {
   sendWeeklyDigest: vi.fn().mockResolvedValue(undefined),
   sendPasswordReset: vi.fn().mockResolvedValue(undefined),
   sendEmailVerification: vi.fn().mockResolvedValue(undefined),
+  sendBackupEmailVerification: vi.fn().mockResolvedValue(undefined),
   sendNewDeviceLoginAlert: vi.fn().mockResolvedValue(undefined),
 };
 
@@ -55,6 +57,8 @@ const makeUpdatePasswordDeps = (overrides?: {
 }) => ({
   userRepository: makeUserRepository(),
   updatePasswordRateLimiter: makeRateLimiter(),
+  securityEventRepository: makeSecurityEventRepository(),
+  generateId: () => 'evt-1',
   ...overrides,
 });
 

@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
+import { deviceInfoFrom } from '#src/http/schema/requestDeviceInfo.js';
 import { ERROR_CODES } from '#src/constants.js';
 
 builder.mutationField('revokeSession', (t) =>
@@ -11,7 +12,13 @@ builder.mutationField('revokeSession', (t) =>
       if (!ctx.user)
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { sessionResolver } = ctx.diScope.cradle;
-      return sessionResolver.revokeSession(ctx.user.sub, String(args.id));
+      const device = deviceInfoFrom(ctx.request);
+      return sessionResolver.revokeSession(
+        ctx.user.sub,
+        String(args.id),
+        device.ipAddress,
+        device.userAgent,
+      );
     },
   }),
 );
@@ -27,7 +34,13 @@ builder.mutationField('revokeOtherSessions', (t) =>
           extensions: { code: ERROR_CODES.UNAUTHORIZED },
         });
       const { sessionResolver } = ctx.diScope.cradle;
-      return sessionResolver.revokeOtherSessions(user.sub, user.sid);
+      const device = deviceInfoFrom(ctx.request);
+      return sessionResolver.revokeOtherSessions(
+        user.sub,
+        user.sid,
+        device.ipAddress,
+        device.userAgent,
+      );
     },
   }),
 );

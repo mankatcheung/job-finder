@@ -86,6 +86,19 @@ describe('CachedUserRepository', () => {
     });
   });
 
+  describe('findByBackupEmail', () => {
+    it('always passes through to inner without caching', async () => {
+      const { repo, inner } = makeRepo();
+      vi.mocked(inner.findByBackupEmail).mockResolvedValue(user);
+
+      const r1 = await repo.findByBackupEmail('backup@example.com');
+      const r2 = await repo.findByBackupEmail('backup@example.com');
+      expect(r1).toEqual(user);
+      expect(r2).toEqual(user);
+      expect(inner.findByBackupEmail).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('create', () => {
     it('delegates to inner and invalidates a stale "not found" email cache entry', async () => {
       const { repo, inner } = makeRepo();

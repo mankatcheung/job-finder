@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root';
 import { Route as IndexRouteImport } from './routes/index';
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route';
+import { Route as ConfirmBackupEmailRouteImport } from './routes/confirm-backup-email';
 import { Route as ConfirmEmailChangeRouteImport } from './routes/confirm-email-change';
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password';
 import { Route as LoginRouteImport } from './routes/login';
@@ -48,6 +49,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any);
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const ConfirmBackupEmailRoute = ConfirmBackupEmailRouteImport.update({
+  id: '/confirm-backup-email',
+  path: '/confirm-backup-email',
   getParentRoute: () => rootRouteImport,
 } as any);
 const ConfirmEmailChangeRoute = ConfirmEmailChangeRouteImport.update({
@@ -217,6 +223,7 @@ const AuthenticatedApplicationsApplicationIdOffersCompareRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute;
+  '/confirm-backup-email': typeof ConfirmBackupEmailRoute;
   '/confirm-email-change': typeof ConfirmEmailChangeRoute;
   '/forgot-password': typeof ForgotPasswordRoute;
   '/login': typeof LoginRoute;
@@ -249,6 +256,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute;
+  '/confirm-backup-email': typeof ConfirmBackupEmailRoute;
   '/confirm-email-change': typeof ConfirmEmailChangeRoute;
   '/forgot-password': typeof ForgotPasswordRoute;
   '/login': typeof LoginRoute;
@@ -282,6 +290,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport;
   '/': typeof IndexRoute;
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren;
+  '/confirm-backup-email': typeof ConfirmBackupEmailRoute;
   '/confirm-email-change': typeof ConfirmEmailChangeRoute;
   '/forgot-password': typeof ForgotPasswordRoute;
   '/login': typeof LoginRoute;
@@ -316,6 +325,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
     | '/'
+    | '/confirm-backup-email'
     | '/confirm-email-change'
     | '/forgot-password'
     | '/login'
@@ -348,6 +358,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo;
   to:
     | '/'
+    | '/confirm-backup-email'
     | '/confirm-email-change'
     | '/forgot-password'
     | '/login'
@@ -380,6 +391,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/confirm-backup-email'
     | '/confirm-email-change'
     | '/forgot-password'
     | '/login'
@@ -414,6 +426,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren;
+  ConfirmBackupEmailRoute: typeof ConfirmBackupEmailRoute;
   ConfirmEmailChangeRoute: typeof ConfirmEmailChangeRoute;
   ForgotPasswordRoute: typeof ForgotPasswordRoute;
   LoginRoute: typeof LoginRoute;
@@ -436,6 +449,13 @@ declare module '@tanstack/react-router' {
       path: '';
       fullPath: '/';
       preLoaderRoute: typeof AuthenticatedRouteRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/confirm-backup-email': {
+      id: '/confirm-backup-email';
+      path: '/confirm-backup-email';
+      fullPath: '/confirm-backup-email';
+      preLoaderRoute: typeof ConfirmBackupEmailRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     '/confirm-email-change': {
@@ -722,6 +742,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  ConfirmBackupEmailRoute: ConfirmBackupEmailRoute,
   ConfirmEmailChangeRoute: ConfirmEmailChangeRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,

@@ -169,10 +169,48 @@ export const RATE_LIMIT = {
     MAX_ATTEMPTS: 3,
     WINDOW_MS: 60 * 60 * 1000, // 1 hour
   },
+  REQUEST_ADD_BACKUP_EMAIL: {
+    MAX_ATTEMPTS: 3,
+    WINDOW_MS: 60 * 60 * 1000, // 1 hour
+  },
+  BACKUP_EMAIL_RECOVERY: {
+    MAX_ATTEMPTS: 5,
+    WINDOW_MS: 15 * 60 * 1000, // 15 minutes
+  },
+  // Single-shot AI mutations (cover letter / JD parsing / resume match) — more
+  // generous than CHAT_MESSAGE since each is a discrete action rather than a
+  // back-and-forth conversation, but previously had zero protection against a
+  // buggy client looping the mutation. BYOK means this only ever burns the
+  // calling user's own provider quota, so severity is about abuse/bug
+  // containment, not shared-resource protection.
+  GENERATE_COVER_LETTER: {
+    MAX_ATTEMPTS: 20,
+    WINDOW_MS: 5 * 60 * 1000, // 5 minutes
+  },
+  PARSE_JOB_DESCRIPTION: {
+    MAX_ATTEMPTS: 20,
+    WINDOW_MS: 5 * 60 * 1000, // 5 minutes
+  },
+  COMPUTE_RESUME_MATCH_SCORE: {
+    MAX_ATTEMPTS: 20,
+    WINDOW_MS: 5 * 60 * 1000, // 5 minutes
+  },
+  GENERATE_COMPANY_BRIEFING: {
+    MAX_ATTEMPTS: 20,
+    WINDOW_MS: 5 * 60 * 1000, // 5 minutes
+  },
 } as const;
 
 /** Email-verification token settings. */
 export const EMAIL_VERIFICATION_TOKEN = {
+  /** Number of random bytes hex-encoded into the token body. */
+  RANDOM_BYTES: 32,
+  /** How long a verification link stays valid, in milliseconds. */
+  TTL_MS: 24 * 60 * 60 * 1000, // 24 hours
+} as const;
+
+/** Backup email verification token settings. */
+export const BACKUP_EMAIL_VERIFICATION_TOKEN = {
   /** Number of random bytes hex-encoded into the token body. */
   RANDOM_BYTES: 32,
   /** How long a verification link stays valid, in milliseconds. */
@@ -322,6 +360,11 @@ export const CACHE_KEYS = {
   docList: (applicationId: string) => `docs:list:${applicationId}`,
   roundById: (id: string) => `rounds:byId:${id}`,
   roundList: (applicationId: string) => `rounds:list:${applicationId}`,
+  contactById: (id: string) => `contacts:byId:${id}`,
+  contactList: (applicationId: string) => `contacts:list:${applicationId}`,
+  apiTokenByHash: (tokenHash: string) => `tokens:byHash:${tokenHash}`,
+  apiTokenList: (userId: string) => `tokens:list:${userId}`,
+  notificationUnreadCount: (userId: string) => `notifications:unreadCount:${userId}`,
   userById: (id: string) => `users:byId:${id}`,
   userByEmail: (email: string) => `users:byEmail:${email}`,
   skillById: (id: string) => `skills:byId:${id}`,
@@ -361,6 +404,17 @@ export const DEFAULTS = {
 /** Account security activity log settings. */
 export const LOGIN_HISTORY = {
   /** Max number of recent login events surfaced to the user. */
+  LIMIT: 20,
+} as const;
+
+/** Unified security activity feed (logins + password/email/2FA/session events). */
+export const SECURITY_ACTIVITY = {
+  /**
+   * Max number of items in the merged feed, and the per-source fetch limit
+   * (each source is fetched up to this many, then merged/sorted/truncated,
+   * so the most recent N overall are never missed even if one source
+   * dominates recent activity).
+   */
   LIMIT: 20,
 } as const;
 
