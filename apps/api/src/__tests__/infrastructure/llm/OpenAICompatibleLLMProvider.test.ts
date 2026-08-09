@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OpenAICompatibleLLMProvider } from '#src/infrastructure/llm/OpenAICompatibleLLMProvider.js';
+import { LLM } from '#src/constants.js';
 import type { LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
 
 const BASE_URL = 'https://api.example.com/v1/chat/completions';
@@ -65,6 +66,19 @@ describe('OpenAICompatibleLLMProvider', () => {
     expect(body.max_tokens).toBe(512);
   });
 
+  it('clamps a maxTokens request above the hard ceiling (JEF-126)', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse({ choices: [{ message: { content: 'ok' } }] }) as never,
+    );
+
+    const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+    await provider.complete([{ role: 'user', content: 'hi' }], 999_999);
+
+    const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(options.body as string);
+    expect(body.max_tokens).toBe(LLM.MAX_OUTPUT_TOKENS_CAP);
+  });
+
   it('returns the content of the first choice', async () => {
     vi.mocked(fetch).mockResolvedValue(
       jsonResponse({ choices: [{ message: { content: 'generated response' } }] }) as never,
@@ -105,6 +119,19 @@ describe('OpenAICompatibleLLMProvider', () => {
         parameters: { type: 'object' },
       },
     ];
+
+    it('clamps a maxTokens request above the hard ceiling (JEF-126)', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ choices: [{ message: { content: 'ok' } }] }) as never,
+      );
+
+      const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+      await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS, 999_999);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.max_tokens).toBe(LLM.MAX_OUTPUT_TOKENS_CAP);
+    });
 
     it('sends tool definitions in the OpenAI function-calling shape', async () => {
       vi.mocked(fetch).mockResolvedValue(

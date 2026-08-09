@@ -123,6 +123,32 @@ describe('AnthropicLLMProvider', () => {
       expect(body.max_tokens).toBe(512);
     });
 
+    it('clamps a maxTokens request above the hard ceiling (JEF-126)', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ content: [{ type: 'text', text: 'ok' }] }) as never,
+      );
+
+      const provider = new AnthropicLLMProvider('secret-key');
+      await provider.complete([{ role: 'user', content: 'hi' }], 999_999);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.max_tokens).toBe(LLM.MAX_OUTPUT_TOKENS_CAP);
+    });
+
+    it('leaves an under-ceiling maxTokens request unchanged', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ content: [{ type: 'text', text: 'ok' }] }) as never,
+      );
+
+      const provider = new AnthropicLLMProvider('secret-key');
+      await provider.complete([{ role: 'user', content: 'hi' }], 1024);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.max_tokens).toBe(1024);
+    });
+
     it('returns the text of the first text content block', async () => {
       vi.mocked(fetch).mockResolvedValue(
         jsonResponse({ content: [{ type: 'text', text: 'generated response' }] }) as never,
@@ -164,6 +190,19 @@ describe('AnthropicLLMProvider', () => {
         parameters: { type: 'object' },
       },
     ];
+
+    it('clamps a maxTokens request above the hard ceiling (JEF-126)', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ content: [{ type: 'text', text: 'ok' }] }) as never,
+      );
+
+      const provider = new AnthropicLLMProvider('secret-key');
+      await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS, 999_999);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.max_tokens).toBe(LLM.MAX_OUTPUT_TOKENS_CAP);
+    });
 
     it('sends tool definitions in the Anthropic input_schema shape', async () => {
       vi.mocked(fetch).mockResolvedValue(

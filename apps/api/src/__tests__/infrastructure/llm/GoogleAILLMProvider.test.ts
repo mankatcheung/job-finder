@@ -94,6 +94,19 @@ describe('GoogleAILLMProvider', () => {
       expect(body.generationConfig).toEqual({ maxOutputTokens: 512 });
     });
 
+    it('clamps a maxTokens request above the hard ceiling (JEF-126)', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }) as never,
+      );
+
+      const provider = new GoogleAILLMProvider('secret-key');
+      await provider.complete([{ role: 'user', content: 'hi' }], 999_999);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.generationConfig).toEqual({ maxOutputTokens: LLM.MAX_OUTPUT_TOKENS_CAP });
+    });
+
     it('returns the text from the first candidate', async () => {
       vi.mocked(fetch).mockResolvedValue(
         jsonResponse({
@@ -137,6 +150,19 @@ describe('GoogleAILLMProvider', () => {
         parameters: { type: 'object' },
       },
     ];
+
+    it('clamps a maxTokens request above the hard ceiling (JEF-126)', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }) as never,
+      );
+
+      const provider = new GoogleAILLMProvider('secret-key');
+      await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS, 999_999);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.generationConfig).toEqual({ maxOutputTokens: LLM.MAX_OUTPUT_TOKENS_CAP });
+    });
 
     it('sends tool definitions in the Gemini functionDeclarations shape', async () => {
       vi.mocked(fetch).mockResolvedValue(

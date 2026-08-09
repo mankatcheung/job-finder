@@ -318,6 +318,17 @@ export const LLM = {
   DEEPSEEK_DEFAULT_MODEL: 'deepseek-chat',
   NVIDIA_API_URL: 'https://integrate.api.nvidia.com/v1/chat/completions',
   NVIDIA_DEFAULT_MODEL: 'meta/llama-3.1-8b-instruct',
+  /** Output-token budget applied when a caller doesn't specify one. */
+  DEFAULT_MAX_TOKENS: 512,
+  /**
+   * Hard ceiling on requested output tokens (JEF-126), enforced by every
+   * provider regardless of what a caller asks for — clamps `maxTokens`
+   * before it reaches the LLM API, so a bug or a future call site that
+   * passes an unreasonably large value can't run up cost via unbounded
+   * output length. Comfortably above the largest current explicit request
+   * (GenerateCoverLetterUseCase's 1024).
+   */
+  MAX_OUTPUT_TOKENS_CAP: 2048,
 } as const;
 
 /**
