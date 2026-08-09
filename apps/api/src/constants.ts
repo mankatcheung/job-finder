@@ -22,6 +22,8 @@ export const ERROR_CODES = {
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
   /** User hasn't configured their own LLM API key — AI features are unavailable, not a fallback error. */
   AI_NOT_CONFIGURED: 'AI_NOT_CONFIGURED',
+  /** The LLM's response wasn't valid JSON, or didn't match the expected shape (JEF-108) — distinct from a genuine AI answer, so callers can tell "couldn't parse" apart from "the model said 0/empty". */
+  AI_RESPONSE_INVALID: 'AI_RESPONSE_INVALID',
   /** Session is stale for a 2FA-enabled account attempting a sensitive change — caller must reauthenticate (see `reauthenticate` mutation) and retry. */
   STEP_UP_REQUIRED: 'STEP_UP_REQUIRED',
 } as const;

@@ -7,6 +7,7 @@ import {
   ForbiddenError,
   ValidationError,
   RateLimitedError,
+  AiResponseInvalidError,
   fromCodedError,
 } from '#src/http/errors/AppError.js';
 import { ERROR_CODES } from '#src/constants.js';
@@ -87,6 +88,20 @@ describe('ValidationError', () => {
   });
 });
 
+describe('AiResponseInvalidError', () => {
+  it('defaults to a "couldn\'t be understood" message with a 502 status and AI_RESPONSE_INVALID code', () => {
+    const err = new AiResponseInvalidError();
+
+    expect(err.message).toBe("The AI's response couldn't be understood — please try again");
+    expect(err.statusCode).toBe(502);
+    expect(err.code).toBe(ERROR_CODES.AI_RESPONSE_INVALID);
+  });
+
+  it('uses the given message when provided', () => {
+    expect(new AiResponseInvalidError('Custom message').message).toBe('Custom message');
+  });
+});
+
 describe('RateLimitedError', () => {
   it('defaults to "Too many requests" with a 429 status and RATE_LIMITED code', () => {
     const err = new RateLimitedError();
@@ -116,6 +131,7 @@ describe('fromCodedError', () => {
     [ERROR_CODES.FORBIDDEN, ForbiddenError],
     [ERROR_CODES.VALIDATION, ValidationError],
     [ERROR_CODES.RATE_LIMITED, RateLimitedError],
+    [ERROR_CODES.AI_RESPONSE_INVALID, AiResponseInvalidError],
   ])('maps a %s-coded Error to a %s, preserving the message', (code, ExpectedClass) => {
     const raw = Object.assign(new Error('Domain-specific message'), { code });
 
