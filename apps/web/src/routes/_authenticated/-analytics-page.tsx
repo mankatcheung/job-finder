@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { ErrorState } from '#/components/ErrorState';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { analyticsQueryOptions } from './-analytics-queries';
+import { DocumentVersionOutcomesPanel } from './-document-version-outcomes-panel';
 
 const STAGE_ORDER: ApplicationStatus[] = [
   'draft',
@@ -163,6 +164,8 @@ export function AnalyticsPage() {
           </ResponsiveContainer>
         )}
       </div>
+
+      <DocumentVersionOutcomesPanel />
     </div>
   );
 }

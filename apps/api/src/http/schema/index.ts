@@ -42,6 +42,7 @@ import './types/ShareLinkType.js';
 import './queries/applicationQueries.js';
 import './queries/noteQueries.js';
 import './queries/documentQueries.js';
+import './queries/documentVersionOutcomeQueries.js';
 import './queries/documentDraftQueries.js';
 import './queries/userQueries.js';
 import './queries/interviewRoundQueries.js';

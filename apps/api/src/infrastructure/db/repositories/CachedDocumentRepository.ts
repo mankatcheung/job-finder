@@ -33,6 +33,14 @@ export class CachedDocumentRepository implements IDocumentRepository {
     return result;
   }
 
+  // Not cached: this reads across every application for the user, which
+  // doesn't fit the per-applicationId cache key scheme used above, and
+  // invalidating it correctly would require busting it on every document
+  // create/delete for any of the user's applications.
+  async findAllByUserId(userId: string): Promise<Document[]> {
+    return this.inner.findAllByUserId(userId);
+  }
+
   async findById(id: string): Promise<Document | null> {
     const key = CACHE_KEYS.docById(id);
     const hit = this.cache.get<Document | null>(key);

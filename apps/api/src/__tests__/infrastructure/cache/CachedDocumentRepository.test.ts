@@ -48,6 +48,20 @@ describe('CachedDocumentRepository', () => {
     });
   });
 
+  describe('findAllByUserId', () => {
+    it('delegates to inner on every call without caching', async () => {
+      const { repo, inner } = makeRepo();
+      vi.mocked(inner.findAllByUserId).mockResolvedValue([doc]);
+
+      const r1 = await repo.findAllByUserId('user-1');
+      const r2 = await repo.findAllByUserId('user-1');
+
+      expect(r1).toEqual([doc]);
+      expect(r2).toEqual([doc]);
+      expect(inner.findAllByUserId).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('findById', () => {
     it('fetches from inner on first call', async () => {
       const { repo, inner } = makeRepo();

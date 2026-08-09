@@ -87,6 +87,7 @@ export const makeDocumentRepository = (
   overrides?: Partial<IDocumentRepository>,
 ): IDocumentRepository => ({
   findAllByApplicationId: vi.fn(),
+  findAllByUserId: vi.fn(),
   findById: vi.fn(),
   create: vi.fn(),
   delete: vi.fn(),
