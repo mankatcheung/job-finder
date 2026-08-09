@@ -268,7 +268,7 @@ export function AuthenticatedLayout() {
           >
             <KeyboardIcon size={18} />
             Shortcuts
-            <kbd className="ml-auto text-[10px] text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded font-mono">
+            <kbd className="ml-auto text-[10px] text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded font-mono">
               {getKeyModifier()}+/
             </kbd>
           </button>
