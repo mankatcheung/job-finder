@@ -6,6 +6,7 @@ import type {
   LLMToolCall,
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { LLM } from '#src/constants.js';
+import { fetchWithRetry } from '#src/infrastructure/llm/fetchWithRetry.js';
 
 type AnthropicContentBlock =
   | { type: 'text'; text: string }
@@ -127,7 +128,7 @@ export class AnthropicLLMProvider implements ILLMProvider {
   }
 
   private async post(body: Record<string, unknown>): Promise<AnthropicWireResponse> {
-    const response = await fetch(LLM.ANTHROPIC_API_URL, {
+    const response = await fetchWithRetry(LLM.ANTHROPIC_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -6,6 +6,7 @@ import type {
   LLMToolCall,
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { AUTH_HEADER } from '#src/constants.js';
+import { fetchWithRetry } from '#src/infrastructure/llm/fetchWithRetry.js';
 
 interface OpenAIWireMessage {
   role: string;
@@ -108,7 +109,7 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
   }
 
   private async post(body: Record<string, unknown>): Promise<OpenAIWireResponse> {
-    const response = await fetch(this.baseUrl, {
+    const response = await fetchWithRetry(this.baseUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
