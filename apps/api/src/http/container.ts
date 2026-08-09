@@ -134,6 +134,7 @@ import { ExportUserDataUseCase } from '#src/use-cases/user/ExportUserDataUseCase
 import { GenerateTotpSecretUseCase } from '#src/use-cases/user/GenerateTotpSecretUseCase.js';
 import { ConfirmTotpSetupUseCase } from '#src/use-cases/user/ConfirmTotpSetupUseCase.js';
 import { DisableTotpUseCase } from '#src/use-cases/user/DisableTotpUseCase.js';
+import { RegenerateTotpBackupCodesUseCase } from '#src/use-cases/user/RegenerateTotpBackupCodesUseCase.js';
 import { GetTotpStatusUseCase } from '#src/use-cases/user/GetTotpStatusUseCase.js';
 import { SaveLlmApiKeyUseCase } from '#src/use-cases/user/SaveLlmApiKeyUseCase.js';
 import { ListLlmApiKeysUseCase } from '#src/use-cases/user/ListLlmApiKeysUseCase.js';
@@ -392,6 +393,7 @@ export interface Cradle {
   generateTotpSecretUseCase: GenerateTotpSecretUseCase;
   confirmTotpSetupUseCase: ConfirmTotpSetupUseCase;
   disableTotpUseCase: DisableTotpUseCase;
+  regenerateTotpBackupCodesUseCase: RegenerateTotpBackupCodesUseCase;
   getTotpStatusUseCase: GetTotpStatusUseCase;
   saveLlmApiKeyUseCase: SaveLlmApiKeyUseCase;
   listLlmApiKeysUseCase: ListLlmApiKeysUseCase;
@@ -779,6 +781,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     }),
     confirmTotpSetupUseCase: asClass(ConfirmTotpSetupUseCase, { lifetime: Lifetime.TRANSIENT }),
     disableTotpUseCase: asClass(DisableTotpUseCase, { lifetime: Lifetime.TRANSIENT }),
+    regenerateTotpBackupCodesUseCase: asClass(RegenerateTotpBackupCodesUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     getTotpStatusUseCase: asClass(GetTotpStatusUseCase, { lifetime: Lifetime.TRANSIENT }),
     saveLlmApiKeyUseCase: asClass(SaveLlmApiKeyUseCase, { lifetime: Lifetime.TRANSIENT }),
     listLlmApiKeysUseCase: asClass(ListLlmApiKeysUseCase, { lifetime: Lifetime.TRANSIENT }),

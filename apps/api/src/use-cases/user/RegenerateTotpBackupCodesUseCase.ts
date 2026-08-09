@@ -1,0 +1,68 @@
+import { createHash, randomBytes } from 'crypto';
+import bcrypt from 'bcryptjs';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { ITotpBackupCodeRepository } from '#src/use-cases/ports/ITotpBackupCodeRepository.js';
+import type { ISecurityEventRepository } from '#src/use-cases/ports/ISecurityEventRepository.js';
+import { ERROR_CODES, TOTP_BACKUP_CODES } from '#src/constants.js';
+import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
+import { isSessionFresh } from '#src/use-cases/auth/sessionFreshness.js';
+import type {
+  IRegenerateTotpBackupCodesUseCase,
+  RegenerateTotpBackupCodesInput,
+  RegenerateTotpBackupCodesOutput,
+} from './IRegenerateTotpBackupCodesUseCase.js';
+
+interface Deps {
+  userRepository: IUserRepository;
+  totpBackupCodeRepository: ITotpBackupCodeRepository;
+  securityEventRepository: ISecurityEventRepository;
+  generateId: () => string;
+}
+
+export class RegenerateTotpBackupCodesUseCase implements IRegenerateTotpBackupCodesUseCase {
+  constructor(private readonly deps: Deps) {}
+
+  async execute(input: RegenerateTotpBackupCodesInput): Promise<RegenerateTotpBackupCodesOutput> {
+    const user = await this.deps.userRepository.findById(input.userId);
+    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!user.totpEnabled) {
+      throw Object.assign(new Error('Two-factor authentication is not enabled'), {
+        code: ERROR_CODES.CONFLICT,
+      });
+    }
+    assertHasPassword(user.passwordHash);
+
+    if (!(await bcrypt.compare(input.currentPassword, user.passwordHash))) {
+      throw Object.assign(new Error('Invalid password'), { code: ERROR_CODES.UNAUTHORIZED });
+    }
+    if (!isSessionFresh(input.authTime)) {
+      throw Object.assign(new Error('Please verify your identity again to continue.'), {
+        code: ERROR_CODES.STEP_UP_REQUIRED,
+      });
+    }
+
+    const backupCodes = Array.from({ length: TOTP_BACKUP_CODES.COUNT }, () =>
+      randomBytes(TOTP_BACKUP_CODES.RANDOM_BYTES).toString('hex'),
+    );
+    await this.deps.totpBackupCodeRepository.deleteAllForUser(input.userId);
+    await Promise.all(
+      backupCodes.map((code) =>
+        this.deps.totpBackupCodeRepository.create({
+          id: this.deps.generateId(),
+          userId: input.userId,
+          codeHash: createHash('sha256').update(code).digest('hex'),
+        }),
+      ),
+    );
+
+    await this.deps.securityEventRepository.create({
+      id: this.deps.generateId(),
+      userId: input.userId,
+      eventType: 'totp_backup_codes_regenerated',
+      ipAddress: input.ipAddress ?? null,
+      userAgent: input.userAgent ?? null,
+    });
+
+    return { backupCodes };
+  }
+}
