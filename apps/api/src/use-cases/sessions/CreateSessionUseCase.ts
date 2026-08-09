@@ -30,6 +30,13 @@ export class CreateSessionUseCase {
     const deviceLabel = this.deps.deviceLabeler.describe(input.userAgent);
     const location = await this.deps.ipLocationResolver.lookup(input.ipAddress);
 
+    // Snapshot known user-agents *before* inserting this session — querying
+    // after insertion would always find this session's own userAgent already
+    // persisted, making every login look like a "known" device.
+    const knownUserAgents = input.userAgent
+      ? await this.deps.sessionRepository.findDistinctUserAgentsByUserId(input.userId)
+      : [];
+
     const session = await this.deps.sessionRepository.create({
       id: this.deps.generateId(),
       userId: input.userId,
@@ -48,6 +55,7 @@ export class CreateSessionUseCase {
       deviceLabel,
       location,
       input.ipAddress,
+      knownUserAgents,
     ).catch(() => {});
 
     return session;
@@ -64,11 +72,9 @@ export class CreateSessionUseCase {
     deviceLabel: string,
     location: string | null,
     ipAddress: string | null,
+    knownUserAgents: string[],
   ): Promise<void> {
     if (!userAgent) return;
-
-    const knownUserAgents =
-      await this.deps.sessionRepository.findDistinctUserAgentsByUserId(userId);
 
     // If this is the user's very first session, don't alert (registration or first login).
     if (knownUserAgents.length === 0) return;

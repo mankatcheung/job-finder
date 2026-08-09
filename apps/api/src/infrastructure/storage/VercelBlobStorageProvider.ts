@@ -18,12 +18,12 @@ export class VercelBlobStorageProvider implements IStorageProvider {
   private readonly token: string;
 
   constructor() {
-    this.token = process.env[ENV.BLOB_PUBLIC_READ_WRITE_TOKEN] ?? '';
+    this.token = process.env[ENV.BLOB_READ_WRITE_TOKEN] ?? '';
   }
 
   private assertConfigured(): void {
     if (!this.token) {
-      throw new Error(`${ENV.BLOB_PUBLIC_READ_WRITE_TOKEN} is not configured`);
+      throw new Error(`${ENV.BLOB_READ_WRITE_TOKEN} is not configured`);
     }
   }
 

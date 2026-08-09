@@ -1,47 +1,43 @@
 import { test, expect } from '@playwright/test';
-
-const uniqueEmail = () => `account-test-${Date.now()}@e2e.example.com`;
+import { registerAndLogin, uniqueEmail } from './helpers/auth';
 
 test.describe('Account settings', () => {
   const password = 'SecurePass123';
-  let email: string;
 
   test.beforeEach(async ({ page }) => {
-    email = uniqueEmail();
-    await page.goto('/register');
-    await page.getByPlaceholder('you@example.com').fill(email);
-    const [pw, confirm] = await page.getByPlaceholder('••••••••').all();
-    await pw.fill(password);
-    await confirm.fill(password);
-    await page.getByRole('button', { name: /create account/i }).click();
-    await expect(page).toHaveURL(/dashboard/);
-    await page.goto('/account');
+    await registerAndLogin(page, { email: uniqueEmail('account-test'), password });
+    await page.goto('/settings/security');
   });
 
   test('renders all account sections', async ({ page }) => {
-    await expect(page.getByText('Account settings')).toBeVisible();
     await expect(page.getByText('Email address')).toBeVisible();
-    await expect(page.getByText('Password')).toBeVisible();
+    await expect(page.getByText('Password', { exact: true })).toBeVisible();
+
+    await page.goto('/settings/data');
     await expect(page.getByText('Export your data')).toBeVisible();
     await expect(page.getByText('Danger zone')).toBeVisible();
   });
 
   test('updates email with correct password', async ({ page }) => {
-    const newEmail = uniqueEmail();
+    // Now a confirm-by-email flow (requestEmailChange), not an immediate
+    // change — the only client-visible signal of success is the form
+    // resetting (no success banner is shown).
+    const newEmail = uniqueEmail('new');
     const emailSection = page.locator('section').filter({ hasText: 'Email address' });
+    const newEmailInput = emailSection.getByPlaceholder('you@example.com');
 
     await emailSection.getByPlaceholder('••••••••').fill(password);
-    await emailSection.getByPlaceholder('you@example.com').fill(newEmail);
+    await newEmailInput.fill(newEmail);
     await emailSection.getByRole('button', { name: /update email/i }).click();
 
-    await expect(emailSection.getByText('Email updated successfully.')).toBeVisible();
+    await expect(newEmailInput).toHaveValue('');
   });
 
   test('shows error when updating email with wrong password', async ({ page }) => {
     const emailSection = page.locator('section').filter({ hasText: 'Email address' });
 
     await emailSection.getByPlaceholder('••••••••').fill('wrongpassword');
-    await emailSection.getByPlaceholder('you@example.com').fill(uniqueEmail());
+    await emailSection.getByPlaceholder('you@example.com').fill(uniqueEmail('wrong'));
     await emailSection.getByRole('button', { name: /update email/i }).click();
 
     await expect(emailSection.locator('p.text-red-600')).toBeVisible();
@@ -73,6 +69,7 @@ test.describe('Account settings', () => {
   });
 
   test('deletes account, clears session, and redirects to /login', async ({ page }) => {
+    await page.goto('/settings/data');
     const dangerSection = page.locator('section').filter({ hasText: 'Danger zone' });
     await dangerSection.getByPlaceholder('••••••••').fill(password);
     await dangerSection.getByRole('button', { name: /delete my account/i }).click();

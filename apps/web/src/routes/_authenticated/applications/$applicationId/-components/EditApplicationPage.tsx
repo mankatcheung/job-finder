@@ -10,7 +10,7 @@ import { getErrorMessage } from '#/lib/errors';
 import { StarIcon, XIcon } from 'lucide-react';
 import { JdImportPanel } from '../../-components/JdImportPanel';
 import { applicationQueryOptions } from '../-application-query';
-import { Route } from '../index';
+import { Route } from '../edit';
 
 const APPLICATION_STATUSES = [
   'draft',
