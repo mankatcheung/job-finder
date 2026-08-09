@@ -60,6 +60,12 @@ export class AiNotConfiguredError extends AppError {
   }
 }
 
+export class AiResponseInvalidError extends AppError {
+  constructor(message = "The AI's response couldn't be understood — please try again") {
+    super(message, 502, ERROR_CODES.AI_RESPONSE_INVALID);
+  }
+}
+
 export class StepUpRequiredError extends AppError {
   constructor(message = 'Please verify your identity again to continue') {
     super(message, 403, ERROR_CODES.STEP_UP_REQUIRED);
@@ -87,6 +93,8 @@ export function fromCodedError(err: unknown): AppError {
         return new ServiceUnavailableError(err.message);
       case ERROR_CODES.AI_NOT_CONFIGURED:
         return new AiNotConfiguredError(err.message);
+      case ERROR_CODES.AI_RESPONSE_INVALID:
+        return new AiResponseInvalidError(err.message);
       case ERROR_CODES.STEP_UP_REQUIRED:
         return new StepUpRequiredError(err.message);
     }
