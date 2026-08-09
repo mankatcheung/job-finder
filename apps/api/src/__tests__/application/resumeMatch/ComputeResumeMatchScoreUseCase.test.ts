@@ -272,21 +272,43 @@ describe('ComputeResumeMatchScoreUseCase', () => {
     expect(result.score).toBe(100);
   });
 
-  it('returns a default score when the LLM responds with invalid JSON', async () => {
+  it('throws AI_RESPONSE_INVALID when the LLM responds with invalid JSON', async () => {
     const deps = makeDeps({
       llmProviderFactory: makeLLMProviderFactory({
         forUser: vi.fn().mockResolvedValue(makeLLMProvider('not json')),
       }),
     });
 
-    const result = await new ComputeResumeMatchScoreUseCase(deps as never).execute({
-      applicationId: 'app-1',
-      userId: 'user-1',
-      resumeText: 'resume',
+    const err = await new ComputeResumeMatchScoreUseCase(deps as never)
+      .execute({ applicationId: 'app-1', userId: 'user-1', resumeText: 'resume' })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('AI_RESPONSE_INVALID');
+  });
+
+  it('throws AI_RESPONSE_INVALID when matchedKeywords is not an array (JEF-108)', async () => {
+    // matchedKeywords as a string, not string[] — previously never checked
+    // to actually be an array, so it would pass straight through untouched.
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(
+          makeLLMProvider(
+            JSON.stringify({
+              matchPercentage: 80,
+              matchedKeywords: 'TypeScript, GraphQL',
+              missingKeywords: [],
+              summary: 'Good fit.',
+            }),
+          ),
+        ),
+      }),
     });
 
-    expect(result.score).toBe(0);
-    expect(result.label).toBe('Needs work');
+    const err = await new ComputeResumeMatchScoreUseCase(deps as never)
+      .execute({ applicationId: 'app-1', userId: 'user-1', resumeText: 'resume' })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('AI_RESPONSE_INVALID');
   });
 
   it('strips markdown code fences from the LLM response before parsing', async () => {

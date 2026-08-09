@@ -20,20 +20,17 @@ export class DocumentTextExtractor implements IDocumentTextExtractor {
   }
 
   private async extractPdf(buffer: Buffer): Promise<string> {
-    // Lazy: pdf-parse pulls in pdfjs-dist, which eagerly tries to load the
-    // native @napi-rs/canvas binary for PDF-rendering polyfills we never use
-    // (this class only extracts text). Importing it here instead of at
-    // module scope means that load only happens when a PDF is actually
-    // extracted, not on every cold start via container.ts's eager import of
-    // this whole class.
-    const { PDFParse } = await import('pdf-parse');
-    const parser = new PDFParse({ data: buffer });
-    try {
-      const result = await parser.getText();
-      return result.text;
-    } finally {
-      await parser.destroy();
-    }
+    // Lazy: keeps this PDF-parsing dependency out of the eager import graph
+    // triggered by container.ts's cold-start load of this whole class —
+    // only pulled in when a PDF is actually extracted.
+    //
+    // Markdown, not plain text: a flat-text dump loses resume structure
+    // (section headings, bullet lists) that both the resume-match-score and
+    // cover-letter prompts rely on to make sense of the content — pdf2md
+    // reconstructs that structure from font/layout cues instead of just
+    // concatenating text runs.
+    const { default: pdf2md } = await import('@opendocsg/pdf2md');
+    return pdf2md(new Uint8Array(buffer));
   }
 
   private async extractDocx(buffer: Buffer): Promise<string> {

@@ -22,6 +22,8 @@ export const ERROR_CODES = {
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
   /** User hasn't configured their own LLM API key — AI features are unavailable, not a fallback error. */
   AI_NOT_CONFIGURED: 'AI_NOT_CONFIGURED',
+  /** The LLM's response wasn't valid JSON, or didn't match the expected shape (JEF-108) — distinct from a genuine AI answer, so callers can tell "couldn't parse" apart from "the model said 0/empty". */
+  AI_RESPONSE_INVALID: 'AI_RESPONSE_INVALID',
   /** Session is stale for a 2FA-enabled account attempting a sensitive change — caller must reauthenticate (see `reauthenticate` mutation) and retry. */
   STEP_UP_REQUIRED: 'STEP_UP_REQUIRED',
 } as const;
@@ -318,6 +320,17 @@ export const LLM = {
   DEEPSEEK_DEFAULT_MODEL: 'deepseek-chat',
   NVIDIA_API_URL: 'https://integrate.api.nvidia.com/v1/chat/completions',
   NVIDIA_DEFAULT_MODEL: 'meta/llama-3.1-8b-instruct',
+  /** Output-token budget applied when a caller doesn't specify one. */
+  DEFAULT_MAX_TOKENS: 512,
+  /**
+   * Hard ceiling on requested output tokens (JEF-126), enforced by every
+   * provider regardless of what a caller asks for — clamps `maxTokens`
+   * before it reaches the LLM API, so a bug or a future call site that
+   * passes an unreasonably large value can't run up cost via unbounded
+   * output length. Comfortably above the largest current explicit request
+   * (GenerateCoverLetterUseCase's 1024).
+   */
+  MAX_OUTPUT_TOKENS_CAP: 2048,
   /** Per-attempt request timeout for provider fetches, in milliseconds (JEF-110). */
   REQUEST_TIMEOUT_MS: 45_000,
   /** Extra attempts after the first for transient (network / 5xx) failures — 4xx responses never retry. */

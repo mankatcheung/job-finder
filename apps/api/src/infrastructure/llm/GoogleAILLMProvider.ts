@@ -24,7 +24,10 @@ export class GoogleAILLMProvider implements ILLMProvider {
     private readonly model: string = LLM.GOOGLEAI_DEFAULT_MODEL,
   ) {}
 
-  async complete(messages: LLMMessage[], maxTokens = 512): Promise<string> {
+  async complete(
+    messages: LLMMessage[],
+    maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+  ): Promise<string> {
     if (!this.apiKey) throw new Error('Google AI API key is not set');
 
     const contents = messages.map((m) => ({
@@ -34,7 +37,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
 
     const json = await this.post({
       contents,
-      generationConfig: { maxOutputTokens: maxTokens },
+      generationConfig: { maxOutputTokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP) },
     });
 
     return json.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
@@ -43,7 +46,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
   async completeWithTools(
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
-    maxTokens = 512,
+    maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
   ): Promise<LLMCompletionResult> {
     if (!this.apiKey) throw new Error('Google AI API key is not set');
 
@@ -77,7 +80,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
           })),
         },
       ],
-      generationConfig: { maxOutputTokens: maxTokens },
+      generationConfig: { maxOutputTokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP) },
     });
 
     const parts = json.candidates?.[0]?.content?.parts ?? [];

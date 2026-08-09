@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentRepository.js';
 import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
@@ -8,6 +9,7 @@ import type { IEducationRepository } from '#src/use-cases/ports/IEducationReposi
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
+import { parseAiJson } from '#src/use-cases/shared/parseAiJson.js';
 import { ERROR_CODES, AI_PROMPT_INPUT } from '#src/constants.js';
 
 export interface ComputeResumeMatchScoreInput {
@@ -56,6 +58,18 @@ ${wrapUntrustedContent(jobDescription.slice(0, AI_PROMPT_INPUT.RESUME_MATCH_JOB_
 
 Resume:
 ${resumeText.slice(0, 6000)}`;
+
+// matchPercentage is intentionally left unclamped here — parseResponse()
+// clamps it to 0-100 after parsing, same as before this validation existed.
+// matchedKeywords/missingKeywords are the specific gap called out in
+// JEF-108: previously never checked to actually be arrays, so a
+// malformed-but-truthy value (e.g. a string) passed straight through.
+const resumeMatchLlmResponseSchema = z.object({
+  matchPercentage: z.number().optional(),
+  matchedKeywords: z.array(z.string()).optional(),
+  missingKeywords: z.array(z.string()).optional(),
+  summary: z.string().optional(),
+});
 
 function scoreLabel(score: number): string {
   if (score >= 90) return 'Excellent match';
@@ -199,34 +213,14 @@ export class ComputeResumeMatchScoreUseCase {
   }
 
   private parseResponse(raw: string): ResumeMatchScore {
-    const clean = raw
-      .trim()
-      .replace(/^```(?:json)?/i, '')
-      .replace(/```$/, '')
-      .trim();
-    try {
-      const parsed = JSON.parse(clean) as {
-        matchPercentage?: number;
-        matchedKeywords?: string[];
-        missingKeywords?: string[];
-        summary?: string;
-      };
-      const score = Math.max(0, Math.min(100, Math.round(parsed.matchPercentage ?? 0)));
-      return {
-        score,
-        label: scoreLabel(score),
-        matchedKeywords: parsed.matchedKeywords ?? [],
-        missingKeywords: parsed.missingKeywords ?? [],
-        summary: parsed.summary ?? '',
-      };
-    } catch {
-      return {
-        score: 0,
-        label: scoreLabel(0),
-        matchedKeywords: [],
-        missingKeywords: [],
-        summary: '',
-      };
-    }
+    const parsed = parseAiJson(raw, resumeMatchLlmResponseSchema);
+    const score = Math.max(0, Math.min(100, Math.round(parsed.matchPercentage ?? 0)));
+    return {
+      score,
+      label: scoreLabel(score),
+      matchedKeywords: parsed.matchedKeywords ?? [],
+      missingKeywords: parsed.missingKeywords ?? [],
+      summary: parsed.summary ?? '',
+    };
   }
 }

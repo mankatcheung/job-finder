@@ -5,7 +5,7 @@ import type {
   LLMCompletionResult,
   LLMToolCall,
 } from '#src/use-cases/ports/ILLMProvider.js';
-import { AUTH_HEADER } from '#src/constants.js';
+import { AUTH_HEADER, LLM } from '#src/constants.js';
 import { fetchWithRetry } from '#src/infrastructure/llm/fetchWithRetry.js';
 
 interface OpenAIWireMessage {
@@ -41,13 +41,16 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     private readonly model: string,
   ) {}
 
-  async complete(messages: LLMMessage[], maxTokens = 512): Promise<string> {
+  async complete(
+    messages: LLMMessage[],
+    maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+  ): Promise<string> {
     if (!this.apiKey) throw new Error('API key is not set');
 
     const json = await this.post({
       model: this.model,
       messages: this.toWireMessages(messages),
-      max_tokens: maxTokens,
+      max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
     });
 
     return json.choices[0]?.message?.content ?? '';
@@ -56,14 +59,14 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
   async completeWithTools(
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
-    maxTokens = 512,
+    maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
   ): Promise<LLMCompletionResult> {
     if (!this.apiKey) throw new Error('API key is not set');
 
     const json = await this.post({
       model: this.model,
       messages: this.toWireMessages(messages),
-      max_tokens: maxTokens,
+      max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
       tools: tools.map((t) => ({
         type: 'function',
         function: { name: t.name, description: t.description, parameters: t.parameters },

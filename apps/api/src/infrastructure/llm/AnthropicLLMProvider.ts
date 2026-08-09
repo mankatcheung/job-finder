@@ -32,13 +32,16 @@ export class AnthropicLLMProvider implements ILLMProvider {
     private readonly model: string = LLM.ANTHROPIC_DEFAULT_MODEL,
   ) {}
 
-  async complete(messages: LLMMessage[], maxTokens = 512): Promise<string> {
+  async complete(
+    messages: LLMMessage[],
+    maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+  ): Promise<string> {
     if (!this.apiKey) throw new Error('Anthropic API key is not set');
 
     const { system, conversation } = this.splitSystem(messages);
     const json = await this.post({
       model: this.model,
-      max_tokens: maxTokens,
+      max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
       ...(system ? { system } : {}),
       messages: conversation.map((m) => ({ role: m.role, content: m.content })),
     });
@@ -49,14 +52,14 @@ export class AnthropicLLMProvider implements ILLMProvider {
   async completeWithTools(
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
-    maxTokens = 512,
+    maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
   ): Promise<LLMCompletionResult> {
     if (!this.apiKey) throw new Error('Anthropic API key is not set');
 
     const { system, conversation } = this.splitSystem(messages);
     const json = await this.post({
       model: this.model,
-      max_tokens: maxTokens,
+      max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
       ...(system ? { system } : {}),
       messages: this.toWireMessages(conversation),
       tools: tools.map((t) => ({

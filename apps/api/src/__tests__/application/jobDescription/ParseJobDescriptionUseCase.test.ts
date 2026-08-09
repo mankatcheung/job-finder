@@ -76,7 +76,7 @@ describe('ParseJobDescriptionUseCase', () => {
     expect(result.role).toBe('SWE');
   });
 
-  it('returns all-null result when LLM returns invalid JSON', async () => {
+  it('throws AI_RESPONSE_INVALID when the LLM returns invalid JSON', async () => {
     llmProviderFactory = makeLLMProviderFactory({
       forUser: vi.fn().mockResolvedValue(makeLLMProvider('Sorry, I cannot parse this.')),
     });
@@ -85,14 +85,38 @@ describe('ParseJobDescriptionUseCase', () => {
       jobPostingSourceResolver,
       parseJobDescriptionRateLimiter,
     });
-    const result = await useCase.execute({ userId: 'user-1', text: 'some text' });
-    expect(result).toEqual({
-      company: null,
-      role: null,
-      location: null,
-      salary: null,
-      description: null,
+
+    const err = await useCase.execute({ userId: 'user-1', text: 'some text' }).catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('AI_RESPONSE_INVALID');
+  });
+
+  it('throws AI_RESPONSE_INVALID when a field has the wrong type (JEF-108)', async () => {
+    // `company` as a number, not a string — a malformed-but-truthy field
+    // that a bare `as Partial<T>` assertion would previously let through
+    // untouched.
+    llmProviderFactory = makeLLMProviderFactory({
+      forUser: vi.fn().mockResolvedValue(
+        makeLLMProvider(
+          JSON.stringify({
+            company: 12345,
+            role: 'Senior Engineer',
+            location: null,
+            salary: null,
+            description: null,
+          }),
+        ),
+      ),
     });
+    const useCase = new ParseJobDescriptionUseCase({
+      llmProviderFactory,
+      jobPostingSourceResolver,
+      parseJobDescriptionRateLimiter,
+    });
+
+    const err = await useCase.execute({ userId: 'user-1', text: 'some text' }).catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('AI_RESPONSE_INVALID');
   });
 
   it('throws AI_NOT_CONFIGURED when the user has no LLM API key set up', async () => {

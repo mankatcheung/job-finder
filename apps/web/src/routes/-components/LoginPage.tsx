@@ -75,7 +75,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <main className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="w-full max-w-sm space-y-6">
         <Link to="/" className="flex items-center justify-center gap-2">
           <LogoMark size={28} />
@@ -86,7 +86,7 @@ export function LoginPage() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Sign in</h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Don&apos;t have an account?{' '}
-              <Link to="/register" className="text-blue-600 hover:underline">
+              <Link to="/register" className="text-blue-600 underline">
                 Register
               </Link>
             </p>
@@ -160,7 +160,7 @@ export function LoginPage() {
           <OAuthButtons label="Sign in" />
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -190,7 +190,7 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <main className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex items-center justify-center gap-2">
           <LogoMark size={28} />
@@ -251,6 +251,6 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
           </button>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

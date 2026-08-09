@@ -1,7 +1,9 @@
+import { z } from 'zod';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
+import { parseAiJson } from '#src/use-cases/shared/parseAiJson.js';
 import { ERROR_CODES, AI_PROMPT_INPUT } from '#src/constants.js';
 
 export interface ParseJobDescriptionInput {
@@ -39,6 +41,20 @@ const USER_PROMPT_TEMPLATE = (
 
 Job posting:
 ${wrapUntrustedContent(text.slice(0, AI_PROMPT_INPUT.JOB_POSTING_MAX_CHARS))}`;
+
+// A field the model omits, or explicitly sends as null, both mean the same
+// thing here ("couldn't determine this") — parseResponse() normalizes both
+// to null below. A field present with the wrong type (e.g. a number where a
+// string is expected) fails validation instead of silently passing through.
+const nullableStringField = z.string().nullable().optional();
+
+const parsedJobDescriptionSchema = z.object({
+  company: nullableStringField,
+  role: nullableStringField,
+  location: nullableStringField,
+  salary: nullableStringField,
+  description: nullableStringField,
+});
 
 export class ParseJobDescriptionUseCase {
   constructor(private readonly deps: Deps) {}
@@ -80,22 +96,13 @@ export class ParseJobDescriptionUseCase {
   }
 
   private parseResponse(raw: string): ParsedJobDescription {
-    const clean = raw
-      .trim()
-      .replace(/^```(?:json)?/i, '')
-      .replace(/```$/, '')
-      .trim();
-    try {
-      const parsed = JSON.parse(clean) as Partial<ParsedJobDescription>;
-      return {
-        company: parsed.company ?? null,
-        role: parsed.role ?? null,
-        location: parsed.location ?? null,
-        salary: parsed.salary ?? null,
-        description: parsed.description ?? null,
-      };
-    } catch {
-      return { company: null, role: null, location: null, salary: null, description: null };
-    }
+    const parsed = parseAiJson(raw, parsedJobDescriptionSchema);
+    return {
+      company: parsed.company ?? null,
+      role: parsed.role ?? null,
+      location: parsed.location ?? null,
+      salary: parsed.salary ?? null,
+      description: parsed.description ?? null,
+    };
   }
 }
