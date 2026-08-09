@@ -1,0 +1,127 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const { mockGqlRequest } = vi.hoisted(() => ({
+  mockGqlRequest: vi.fn(),
+}));
+
+vi.mock('#/graphql/client', () => ({
+  gqlClient: { request: mockGqlRequest },
+}));
+
+vi.mock('#/lib/undoToast', () => ({
+  showUndoToast: vi.fn(({ onExecute }) => {
+    onExecute();
+  }),
+}));
+
+import { InterviewsTab } from '#/routes/_authenticated/applications/$applicationId/-components/InterviewsTab';
+
+const makeClient = () =>
+  new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return <QueryClientProvider client={makeClient()}>{children}</QueryClientProvider>;
+}
+
+const mockRound = {
+  id: 'round-1',
+  applicationId: 'app-1',
+  type: 'technical',
+  scheduledAt: '2024-06-01T15:00:00.000Z',
+  completedAt: null,
+  interviewerName: 'Alex Kim',
+  notes: 'Discuss system design',
+  outcome: 'pending',
+  createdAt: '2024-01-01T00:00:00.000Z',
+  updatedAt: '2024-01-01T00:00:00.000Z',
+};
+
+const baseProps = { applicationId: 'app-1', company: 'Acme Corp', role: 'Engineer' };
+
+describe('InterviewsTab', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('shows an empty state when there are no rounds', async () => {
+    mockGqlRequest.mockResolvedValue({ interviewRounds: [] });
+    render(<InterviewsTab {...baseProps} />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('No interview rounds yet.')).toBeInTheDocument();
+    });
+  });
+
+  it('renders an existing round with its outcome and interviewer', async () => {
+    mockGqlRequest.mockResolvedValue({ interviewRounds: [mockRound] });
+    render(<InterviewsTab {...baseProps} />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('technical')).toBeInTheDocument();
+    });
+    expect(screen.getByText('pending')).toBeInTheDocument();
+    expect(screen.getByText('with Alex Kim')).toBeInTheDocument();
+  });
+
+  it('shows the Export to Calendar button only when a round has a scheduled date', async () => {
+    mockGqlRequest.mockResolvedValue({ interviewRounds: [{ ...mockRound, scheduledAt: null }] });
+    render(<InterviewsTab {...baseProps} />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('technical')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Export to Calendar')).not.toBeInTheDocument();
+  });
+
+  it('creates a new interview round', async () => {
+    mockGqlRequest.mockImplementation((query: string) => {
+      if (query.includes('CreateInterviewRound')) {
+        return Promise.resolve({ createInterviewRound: { ...mockRound, id: 'round-2' } });
+      }
+      return Promise.resolve({ interviewRounds: [] });
+    });
+    render(<InterviewsTab {...baseProps} />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('No interview rounds yet.')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /add interview round/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
+
+    await waitFor(() => {
+      expect(mockGqlRequest).toHaveBeenCalledWith(
+        expect.stringContaining('CreateInterviewRound'),
+        expect.objectContaining({
+          input: expect.objectContaining({ applicationId: 'app-1', type: 'phone' }),
+        }),
+      );
+    });
+  });
+
+  it('deletes an interview round', async () => {
+    mockGqlRequest.mockImplementation((query: string) => {
+      if (query.includes('DeleteInterviewRound')) {
+        return Promise.resolve({ deleteInterviewRound: true });
+      }
+      return Promise.resolve({ interviewRounds: [mockRound] });
+    });
+    render(<InterviewsTab {...baseProps} />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('technical')).toBeInTheDocument();
+    });
+
+    const card = screen.getByText('technical').closest('div[class*="bg-white"]') as HTMLElement;
+    fireEvent.click(within(card).getAllByRole('button')[1]);
+
+    await waitFor(() => {
+      expect(mockGqlRequest).toHaveBeenCalledWith(
+        expect.stringContaining('DeleteInterviewRound'),
+        expect.objectContaining({ id: 'round-1' }),
+      );
+    });
+  });
+});
