@@ -1,6 +1,6 @@
 import { eq, desc } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
-import { document } from '../schema.js';
+import { document, jobApplication } from '../schema.js';
 import type { Document } from '#src/domain/document/Document.js';
 import type {
   IDocumentRepository,
@@ -27,6 +27,16 @@ export class DrizzleDocumentRepository implements IDocumentRepository {
       .where(eq(document.applicationId, applicationId))
       .orderBy(desc(document.createdAt));
     return rows.map((r) => this.toEntity(r));
+  }
+
+  async findAllByUserId(userId: string): Promise<Document[]> {
+    const rows = await this.db
+      .select({ document })
+      .from(document)
+      .innerJoin(jobApplication, eq(document.applicationId, jobApplication.id))
+      .where(eq(jobApplication.userId, userId))
+      .orderBy(desc(document.createdAt));
+    return rows.map((r) => this.toEntity(r.document));
   }
 
   async findById(id: string): Promise<Document | null> {

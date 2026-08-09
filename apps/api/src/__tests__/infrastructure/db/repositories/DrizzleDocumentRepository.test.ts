@@ -84,6 +84,50 @@ describe('DrizzleDocumentRepository', () => {
     });
   });
 
+  describe('findAllByUserId', () => {
+    beforeEach(async () => {
+      await db.db.delete(jobApplication).where(eq(jobApplication.id, 'app-2'));
+      await db.db.delete(user).where(eq(user.id, 'u2'));
+    });
+
+    it('returns documents across every application owned by the user, not other users', async () => {
+      await db.db.insert(user).values({ id: 'u2', email: 'u2@t.com', passwordHash: 'h' });
+      await db.db.insert(jobApplication).values({
+        id: 'app-2',
+        userId: 'u2',
+        company: 'Globex',
+        role: 'Eng',
+        status: 'draft',
+      });
+      await repo.create(BASE_DOC);
+      await repo.create({ ...BASE_DOC, id: 'doc-2', applicationId: 'app-2', storageKey: 'other' });
+
+      const docs = await repo.findAllByUserId('u1');
+
+      expect(docs.map((d) => d.id)).toEqual(['doc-1']);
+    });
+
+    it('returns documents from multiple applications owned by the same user', async () => {
+      await db.db.insert(jobApplication).values({
+        id: 'app-2',
+        userId: 'u1',
+        company: 'Globex',
+        role: 'Eng',
+        status: 'draft',
+      });
+      await repo.create(BASE_DOC);
+      await repo.create({ ...BASE_DOC, id: 'doc-2', applicationId: 'app-2', storageKey: 'other' });
+
+      const docs = await repo.findAllByUserId('u1');
+
+      expect(docs.map((d) => d.id).sort()).toEqual(['doc-1', 'doc-2']);
+    });
+
+    it('returns an empty array when the user has no documents', async () => {
+      expect(await repo.findAllByUserId('u1')).toHaveLength(0);
+    });
+  });
+
   describe('delete', () => {
     it('removes the document', async () => {
       await repo.create(BASE_DOC);
