@@ -1,4 +1,4 @@
-import Fastify, { type FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { fastifyAwilixPlugin } from '@fastify/awilix';
 import mercurius from 'mercurius';
 import cookie from '@fastify/cookie';
@@ -27,19 +27,20 @@ import {
 import { ENV, NODE_ENV, ROUTES } from '#src/constants.js';
 
 /**
- * Builds and fully configures the Fastify instance (cors/cookie/awilix/
- * mercurius, all routes) without binding a port. Split out from `index.ts`
- * so integration tests can get a real, fully-wired app via `.inject()`
- * without starting a real server — `index.ts` is reduced to calling this
- * and then `.listen(...)`.
+ * Fully configures an already-constructed Fastify instance (cors/cookie/
+ * awilix/mercurius, all routes) without binding a port, and returns it.
+ * Split out from `index.ts` so integration tests can get a real, fully-wired
+ * app via `.inject()` without starting a real server — `index.ts` is reduced
+ * to constructing the instance and calling this, then `.listen(...)`.
+ *
+ * Takes the instance as a parameter rather than constructing it here:
+ * Vercel's zero-config Fastify build detection scans the entrypoint file
+ * itself for a literal `import fastify` + constructor call to know how to
+ * wrap the serverless function — moving that construction in here broke
+ * preview deploys with "No entrypoint found which imports fastify" even
+ * though `index.ts` still used Fastify transitively through this function.
  */
-export async function buildApp(): Promise<FastifyInstance> {
-  const fastify = Fastify({
-    logger: {
-      level: process.env[ENV.NODE_ENV] === NODE_ENV.PRODUCTION ? 'warn' : 'info',
-    },
-  });
-
+export async function buildApp(fastify: FastifyInstance): Promise<FastifyInstance> {
   if (isObservabilityEnabled) {
     await fastify.register(fastifyOtelInstrumentation.plugin());
   }

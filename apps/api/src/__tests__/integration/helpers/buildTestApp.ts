@@ -1,9 +1,9 @@
 import { createClient } from '@libsql/client';
+import Fastify, { type FastifyInstance } from 'fastify';
 import { unlinkSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import type { FastifyInstance } from 'fastify';
 import { ENV } from '#src/constants.js';
 import { applyMigrations } from '#src/infrastructure/db/applyMigrations.js';
 
@@ -42,7 +42,9 @@ export async function buildTestApp(): Promise<TestApp> {
   process.env[ENV.JWT_REFRESH_SECRET] ??= 'test-refresh-secret';
 
   const { buildApp } = await import('#src/http/buildApp.js');
-  const app = await buildApp();
+  // Logger disabled — buildApp() otherwise logs every request at 'info',
+  // which is just noise across dozens of requests per integration test file.
+  const app = await buildApp(Fastify({ logger: false }));
   await app.ready();
 
   return {

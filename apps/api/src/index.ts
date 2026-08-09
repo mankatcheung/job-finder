@@ -1,9 +1,22 @@
+import Fastify from 'fastify';
 import { buildApp } from '#src/http/buildApp.js';
-import { ENV } from '#src/constants.js';
+import { ENV, NODE_ENV } from '#src/constants.js';
 
 // startObservability();
 
-const fastify = await buildApp();
+// Constructed here, not inside buildApp(), so this file keeps a literal
+// `import fastify` + constructor call — Vercel's zero-config Fastify build
+// detection scans the entrypoint for exactly that to know how to wrap the
+// serverless function; buildApp() takes the instance as a parameter instead
+// of constructing its own (see buildApp.ts's own comment for the failure
+// this avoids).
+const fastify = Fastify({
+  logger: {
+    level: process.env[ENV.NODE_ENV] === NODE_ENV.PRODUCTION ? 'warn' : 'info',
+  },
+});
+
+await buildApp(fastify);
 
 const port = Number(process.env[ENV.PORT] ?? 3001);
 
