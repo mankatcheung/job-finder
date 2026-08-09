@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   infiniteQueryOptions,
   useInfiniteQuery,
@@ -185,7 +186,7 @@ function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
 
   const selectedCount = selectedIds.size;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4">
       <div className="fixed inset-0 bg-black/40" onClick={onClose} />
       <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
@@ -302,6 +303,7 @@ function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
