@@ -26,13 +26,19 @@ test.describe('Notifications', () => {
     await secondDeviceContext.close();
 
     // Back on the first session: open the inbox and find the alert.
-    // (Interacting with the panel's "Mark read" action is skipped here —
-    // JEF-125 tracks a real pointer-events/stacking bug where clicks on it
-    // land on the sidebar nav underneath instead.)
     await page.getByRole('button', { name: /notifications/i }).click();
     await expect(page.getByText('New sign-in detected')).toBeVisible();
     await expect(page.getByText('Unknown device signed in')).toBeVisible();
-    await expect(page.getByRole('checkbox', { name: 'Select New sign-in detected' })).toBeVisible();
+    const checkbox = page.getByRole('checkbox', { name: 'Select New sign-in detected' });
+    await expect(checkbox).toBeVisible();
+
+    // Mark it read via the bulk-action bar and confirm the panel stays open
+    // and doesn't navigate away (JEF-125).
+    await checkbox.check();
+    await page.getByRole('button', { name: 'Mark read' }).click();
+    await expect(page).not.toHaveURL(/applications/);
+    await expect(page.getByRole('heading', { name: 'Notifications' })).toBeVisible();
+    await expect(checkbox).not.toBeChecked();
   });
 
   test('shows "You\'re all caught up." when there are no notifications', async ({ page }) => {
