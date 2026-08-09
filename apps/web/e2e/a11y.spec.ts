@@ -18,6 +18,13 @@ import { registerAndLogin, uniqueEmail } from './helpers/auth';
 
 /** Run an axe scan and assert zero violations. */
 async function scan(page: import('@playwright/test').Page, label: string) {
+  // Every element has a 150ms color/background/border-color transition
+  // (see `body, body *` in styles.css, there for a smooth dark-mode
+  // toggle). Newly-mounted or just-navigated-to content can still be
+  // mid-transition when axe reads computed styles, which produces
+  // transient, artificially low color-contrast readings that don't
+  // reflect the settled page. Give it a beat to finish.
+  await page.waitForTimeout(250);
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations, `A11y violations on ${label}`).toEqual([]);
 }
@@ -44,6 +51,17 @@ test.describe('Accessibility scans – public pages', () => {
 
 test.describe('Accessibility scans – authenticated pages', () => {
   test.beforeEach(async ({ page }) => {
+    // The sidebar staggers its nav items in with a fade/slide entrance
+    // animation. Scanning mid-animation catches elements at a transient,
+    // partial opacity and reports false-positive color-contrast violations
+    // that aren't representative of the settled page. Respecting
+    // prefers-reduced-motion scans the same steady state a motion-sensitive
+    // user would see — the app's own CSS already disables these animations
+    // for that preference (see .sidebar-entrance-item in styles.css).
+    // Using `page.emulateMedia` directly rather than the `reducedMotion`
+    // test/context option — the latter didn't reliably flip
+    // `prefers-reduced-motion` for this app's CSS in practice.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     await registerAndLogin(page, { email: uniqueEmail('a11y'), password: 'SecurePass123' });
   });
 

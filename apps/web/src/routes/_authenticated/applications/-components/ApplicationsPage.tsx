@@ -130,6 +130,7 @@ function ApplicationsPage() {
             else params.delete('status');
             window.location.search = params.toString();
           }}
+          aria-label="Filter by status"
           className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 capitalize"
         >
           <option value="">All statuses</option>
@@ -169,7 +170,7 @@ function ApplicationsPage() {
       ) : isError ? (
         <ErrorState error={error} onRetry={() => refetch()} />
       ) : apps.length === 0 ? (
-        <div className="text-center py-16 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-16 text-gray-600 dark:text-gray-400">
           <BriefcaseIcon size={40} className="mx-auto mb-3 opacity-40" />
           <p>
             No applications

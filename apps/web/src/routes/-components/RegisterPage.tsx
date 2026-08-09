@@ -55,7 +55,7 @@ export function RegisterPage() {
 
   if (registeredEmail) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+      <main className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
         <div className="w-full max-w-sm space-y-6">
           <Link to="/" className="flex items-center justify-center gap-2">
             <LogoMark size={28} />
@@ -97,12 +97,12 @@ export function RegisterPage() {
             </Link>
           </div>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <main className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="w-full max-w-sm space-y-6">
         <Link to="/" className="flex items-center justify-center gap-2">
           <LogoMark size={28} />
@@ -113,7 +113,7 @@ export function RegisterPage() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Create account</h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Already have an account?{' '}
-              <Link to="/login" className="text-blue-600 hover:underline">
+              <Link to="/login" className="text-blue-600 underline">
                 Sign in
               </Link>
             </p>
@@ -181,7 +181,7 @@ export function RegisterPage() {
           <OAuthButtons label="Sign up" />
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
