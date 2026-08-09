@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { registerAndLogin, uniqueEmail } from './helpers/auth';
 
 /**
  * Accessibility (axe-core) scans for key public pages.
@@ -8,6 +9,11 @@ import AxeBuilder from '@axe-core/playwright';
  * violations.  Violations that are impractical to fix (e.g. color-
  * contrast on brand-coloured elements) can be disabled per-scan via
  * AxeBuilder’s `disableRules()` or `exclude()`.
+ *
+ * Deliberately not using `waitForLoadState('networkidle')` — something on
+ * these pages (likely TanStack Devtools or the Vite HMR client) keeps a
+ * connection open indefinitely, so networkidle never resolves. Waiting for
+ * a concrete piece of rendered UI is both faster and more reliable.
  */
 
 /** Run an axe scan and assert zero violations. */
@@ -19,37 +25,26 @@ async function scan(page: import('@playwright/test').Page, label: string) {
 test.describe('Accessibility scans – public pages', () => {
   test('login page passes axe', async ({ page }) => {
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
     await scan(page, '/login');
   });
 
   test('register page passes axe', async ({ page }) => {
     await page.goto('/register');
-    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('heading', { name: 'Create account' })).toBeVisible();
     await scan(page, '/register');
   });
 
   test('forgot-password page passes axe', async ({ page }) => {
     await page.goto('/forgot-password');
-    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('heading', { name: /forgot your password/i })).toBeVisible();
     await scan(page, '/forgot-password');
   });
 });
 
 test.describe('Accessibility scans – authenticated pages', () => {
   test.beforeEach(async ({ page }) => {
-    // Register a fresh user so we have an authenticated session.
-    const email = `a11y-${Date.now()}@e2e.example.com`;
-    const password = 'SecurePass123';
-
-    await page.goto('/register');
-    await page.getByPlaceholder('you@example.com').fill(email);
-    const [pw, confirm] = await page.getByPlaceholder('••••••••').all();
-    await pw.fill(password);
-    await confirm.fill(password);
-    await page.getByRole('button', { name: /create account/i }).click();
-    await expect(page).toHaveURL(/dashboard/);
-    await page.waitForLoadState('networkidle');
+    await registerAndLogin(page, { email: uniqueEmail('a11y'), password: 'SecurePass123' });
   });
 
   test('dashboard page passes axe', async ({ page }) => {
@@ -58,7 +53,7 @@ test.describe('Accessibility scans – authenticated pages', () => {
 
   test('applications page passes axe', async ({ page }) => {
     await page.goto('/applications');
-    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('heading', { name: 'Applications' })).toBeVisible();
     await scan(page, '/applications');
   });
 });

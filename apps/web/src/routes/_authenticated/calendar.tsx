@@ -97,7 +97,11 @@ function formatWeekRange(start: Date, end: Date): string {
 }
 
 const calendarEventsQueryOptions = queryOptions({
-  queryKey: ['calendarEvents'],
+  // Distinct from dashboard.tsx's ['calendarEvents'] key (same-shaped data,
+  // different query) — sharing a key meant this page's loader could serve
+  // the dashboard widget's stale cached result (60s default staleTime)
+  // instead of fetching fresh data, hiding events created in between.
+  queryKey: ['calendarEvents', 'page'],
   queryFn: () => gqlClient.request<{ calendarEvents: CalendarEvent[] }>(CALENDAR_EVENTS_QUERY),
 });
 
