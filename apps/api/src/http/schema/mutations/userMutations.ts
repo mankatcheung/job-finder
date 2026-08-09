@@ -197,6 +197,30 @@ builder.mutationField('disableTotp', (t) =>
   }),
 );
 
+builder.mutationField('regenerateTotpBackupCodes', (t) =>
+  t.field({
+    type: ConfirmTotpSetupResultRef,
+    args: {
+      currentPassword: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        return await userResolver.regenerateTotpBackupCodes(
+          ctx.user.sub,
+          args.currentPassword,
+          sessionAuthTime(ctx.user),
+          deviceInfoFrom(ctx.request),
+        );
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
 builder.mutationField('saveLlmApiKey', (t) =>
   t.boolean({
     args: {

@@ -3,6 +3,7 @@ export const SECURITY_EVENT_TYPES = [
   'email_changed',
   'totp_enabled',
   'totp_disabled',
+  'totp_backup_codes_regenerated',
   'session_revoked',
   'other_sessions_revoked',
 ] as const;

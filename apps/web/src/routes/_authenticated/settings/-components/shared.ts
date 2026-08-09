@@ -202,6 +202,14 @@ export const DISABLE_TOTP = `
   }
 `;
 
+export const REGENERATE_TOTP_BACKUP_CODES = `
+  mutation RegenerateTotpBackupCodes($currentPassword: String!) {
+    regenerateTotpBackupCodes(currentPassword: $currentPassword) {
+      backupCodes
+    }
+  }
+`;
+
 export const LLM_API_KEYS_QUERY = `
   query LlmApiKeys {
     llmApiKeys {
@@ -478,6 +486,7 @@ export const SECURITY_EVENT_LABEL: Record<string, string> = {
   email_changed: 'Email address changed',
   totp_enabled: 'Two-factor authentication enabled',
   totp_disabled: 'Two-factor authentication disabled',
+  totp_backup_codes_regenerated: 'Backup codes regenerated',
   session_revoked: 'A session was revoked',
   other_sessions_revoked: 'All other sessions were revoked',
 };

@@ -15,6 +15,7 @@ import {
   BEGIN_TOTP_SETUP,
   CONFIRM_TOTP_SETUP,
   DISABLE_TOTP,
+  REGENERATE_TOTP_BACKUP_CODES,
   SESSIONS_QUERY,
   REVOKE_SESSION,
   REVOKE_OTHER_SESSIONS,
@@ -179,6 +180,9 @@ export function SettingsSecurityPage() {
   };
 
   const totpDisableForm = useForm<TotpDisableForm>({ resolver: zodResolver(totpDisableSchema) });
+  const regenerateBackupCodesForm = useForm<TotpDisableForm>({
+    resolver: zodResolver(totpDisableSchema),
+  });
   const onDisableTotp = async (data: TotpDisableForm) => {
     try {
       await gqlClient.request(DISABLE_TOTP, data);
@@ -188,6 +192,24 @@ export function SettingsSecurityPage() {
     } catch (err) {
       totpDisableForm.setError('root', {
         message: extractGqlError(err) ?? 'Failed to disable two-factor authentication.',
+      });
+    }
+  };
+
+  const onRegenerateBackupCodes = async (data: TotpDisableForm) => {
+    try {
+      const result = await withStepUp(() =>
+        gqlClient.request<{ regenerateTotpBackupCodes: { backupCodes: string[] } }>(
+          REGENERATE_TOTP_BACKUP_CODES,
+          { currentPassword: data.password },
+        ),
+      );
+      setBackupCodes(result.regenerateTotpBackupCodes.backupCodes);
+      regenerateBackupCodesForm.reset();
+    } catch (err) {
+      if (err instanceof Error && err.message === STEP_UP_CANCELLED) return;
+      regenerateBackupCodesForm.setError('root', {
+        message: extractGqlError(err) ?? 'Failed to regenerate backup codes.',
       });
     }
   };
@@ -549,35 +571,78 @@ export function SettingsSecurityPage() {
             </button>
           </div>
         ) : totpEnabled ? (
-          <form onSubmit={totpDisableForm.handleSubmit(onDisableTotp)} className="space-y-3">
-            <p className="text-sm text-green-600">Two-factor authentication is enabled.</p>
-            <div>
-              <label className={labelCls}>Confirm your password to disable</label>
-              <input
-                type="password"
-                {...totpDisableForm.register('password')}
-                className={inputCls}
-                placeholder="••••••••"
-              />
-              {totpDisableForm.formState.errors.password && (
-                <p className="mt-1 text-xs text-red-600">
-                  {totpDisableForm.formState.errors.password.message}
+          <>
+            <form onSubmit={totpDisableForm.handleSubmit(onDisableTotp)} className="space-y-3">
+              <p className="text-sm text-green-600">Two-factor authentication is enabled.</p>
+              <div>
+                <label className={labelCls}>Confirm your password to disable</label>
+                <input
+                  type="password"
+                  {...totpDisableForm.register('password')}
+                  className={inputCls}
+                  placeholder="••••••••"
+                />
+                {totpDisableForm.formState.errors.password && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {totpDisableForm.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
+              {totpDisableForm.formState.errors.root && (
+                <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+                  {totpDisableForm.formState.errors.root.message}
                 </p>
               )}
-            </div>
-            {totpDisableForm.formState.errors.root && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                {totpDisableForm.formState.errors.root.message}
-              </p>
-            )}
-            <button
-              type="submit"
-              disabled={totpDisableForm.formState.isSubmitting}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+              <button
+                type="submit"
+                disabled={totpDisableForm.formState.isSubmitting}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                {totpDisableForm.formState.isSubmitting ? 'Disabling…' : 'Disable 2FA'}
+              </button>
+            </form>
+            <form
+              onSubmit={regenerateBackupCodesForm.handleSubmit(onRegenerateBackupCodes)}
+              className="space-y-3 border-t border-gray-200 pt-4 dark:border-gray-700"
             >
-              {totpDisableForm.formState.isSubmitting ? 'Disabling…' : 'Disable 2FA'}
-            </button>
-          </form>
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  Regenerate backup codes
+                </p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  This invalidates all existing backup codes and shows a new batch once.
+                </p>
+              </div>
+              <div>
+                <label className={labelCls}>Current password</label>
+                <input
+                  type="password"
+                  {...regenerateBackupCodesForm.register('password')}
+                  className={inputCls}
+                  placeholder="••••••••"
+                />
+                {regenerateBackupCodesForm.formState.errors.password && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {regenerateBackupCodesForm.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
+              {regenerateBackupCodesForm.formState.errors.root && (
+                <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+                  {regenerateBackupCodesForm.formState.errors.root.message}
+                </p>
+              )}
+              <button
+                type="submit"
+                disabled={regenerateBackupCodesForm.formState.isSubmitting}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-60 text-gray-900 text-sm font-medium rounded-lg transition-colors dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100"
+              >
+                {regenerateBackupCodesForm.formState.isSubmitting
+                  ? 'Regenerating…'
+                  : 'Regenerate backup codes'}
+              </button>
+            </form>
+          </>
         ) : totpSetup ? (
           <div className="space-y-3">
             <p className="text-sm text-gray-500 dark:text-gray-400">

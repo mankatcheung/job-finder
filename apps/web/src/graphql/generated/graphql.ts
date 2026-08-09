@@ -365,6 +365,7 @@ export type Mutation = {
   compareOffers?: Maybe<Array<OfferComparison>>;
   computeResumeMatchScore?: Maybe<ResumeMatchScore>;
   confirmAvatar?: Maybe<Scalars['String']['output']>;
+  confirmBackupEmail?: Maybe<Scalars['Boolean']['output']>;
   confirmDocument?: Maybe<Document>;
   confirmEmailChange?: Maybe<Scalars['Boolean']['output']>;
   confirmTotpSetup?: Maybe<ConfirmTotpSetupResult>;
@@ -396,6 +397,7 @@ export type Mutation = {
   disableTotp?: Maybe<Scalars['Boolean']['output']>;
   exportDocumentDraftToPdf?: Maybe<Document>;
   extractDocumentText?: Maybe<ExtractDocumentTextPayload>;
+  generateCompanyBriefing?: Maybe<Scalars['String']['output']>;
   generateCoverLetter?: Maybe<Scalars['String']['output']>;
   importUserData?: Maybe<ImportSummary>;
   login?: Maybe<LoginResult>;
@@ -405,10 +407,14 @@ export type Mutation = {
   parseJobDescription?: Maybe<ParsedJobDescription>;
   reauthenticate?: Maybe<LoginResult>;
   refreshToken?: Maybe<Scalars['String']['output']>;
+  regenerateTotpBackupCodes?: Maybe<ConfirmTotpSetupResult>;
   register?: Maybe<Scalars['String']['output']>;
   registerPushSubscription?: Maybe<Scalars['Boolean']['output']>;
   removeAvatar?: Maybe<Scalars['Boolean']['output']>;
+  removeBackupEmail?: Maybe<Scalars['Boolean']['output']>;
+  requestAddBackupEmail?: Maybe<Scalars['Boolean']['output']>;
   requestAvatarUploadUrl?: Maybe<UploadUrlPayload>;
+  requestBackupEmailRecovery?: Maybe<Scalars['Boolean']['output']>;
   requestEmailChange?: Maybe<Scalars['Boolean']['output']>;
   requestPasswordReset?: Maybe<Scalars['Boolean']['output']>;
   requestUploadUrl?: Maybe<UploadUrlPayload>;
@@ -474,6 +480,11 @@ export type MutationConfirmAvatarArgs = {
   mimeType: Scalars['String']['input'];
   sizeBytes: Scalars['Int']['input'];
   storageKey: Scalars['String']['input'];
+};
+
+
+export type MutationConfirmBackupEmailArgs = {
+  token: Scalars['String']['input'];
 };
 
 
@@ -641,6 +652,11 @@ export type MutationExtractDocumentTextArgs = {
 };
 
 
+export type MutationGenerateCompanyBriefingArgs = {
+  applicationId: Scalars['ID']['input'];
+};
+
+
 export type MutationGenerateCoverLetterArgs = {
   applicationId: Scalars['ID']['input'];
   resumeText?: InputMaybe<Scalars['String']['input']>;
@@ -683,6 +699,11 @@ export type MutationReauthenticateArgs = {
 };
 
 
+export type MutationRegenerateTotpBackupCodesArgs = {
+  currentPassword: Scalars['String']['input'];
+};
+
+
 export type MutationRegisterArgs = {
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
@@ -696,9 +717,25 @@ export type MutationRegisterPushSubscriptionArgs = {
 };
 
 
+export type MutationRemoveBackupEmailArgs = {
+  currentPassword: Scalars['String']['input'];
+};
+
+
+export type MutationRequestAddBackupEmailArgs = {
+  backupEmail: Scalars['String']['input'];
+  currentPassword: Scalars['String']['input'];
+};
+
+
 export type MutationRequestAvatarUploadUrlArgs = {
   filename: Scalars['String']['input'];
   mimeType: Scalars['String']['input'];
+};
+
+
+export type MutationRequestBackupEmailRecoveryArgs = {
+  backupEmail: Scalars['String']['input'];
 };
 
 
@@ -940,6 +977,7 @@ export type Query = {
   notificationPreferences?: Maybe<NotificationPreferences>;
   notificationsPage?: Maybe<NotificationConnection>;
   offers?: Maybe<Array<Offer>>;
+  securityActivity?: Maybe<Array<SecurityActivityItem>>;
   sessions?: Maybe<Array<Session>>;
   skills?: Maybe<Array<Skill>>;
   totpEnabled?: Maybe<Scalars['Boolean']['output']>;
@@ -1035,6 +1073,15 @@ export type ResumeMatchScore = {
   missingKeywords?: Maybe<Array<Scalars['String']['output']>>;
   score?: Maybe<Scalars['Int']['output']>;
   summary?: Maybe<Scalars['String']['output']>;
+};
+
+export type SecurityActivityItem = {
+  __typename?: 'SecurityActivityItem';
+  createdAt?: Maybe<Scalars['String']['output']>;
+  eventType?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['String']['output']>;
+  ipAddress?: Maybe<Scalars['String']['output']>;
+  userAgent?: Maybe<Scalars['String']['output']>;
 };
 
 export type Session = {
@@ -1140,6 +1187,8 @@ export type UploadUrlPayload = {
 export type User = {
   __typename?: 'User';
   avatarUrl?: Maybe<Scalars['String']['output']>;
+  backupEmail?: Maybe<Scalars['String']['output']>;
+  backupEmailVerifiedAt?: Maybe<Scalars['String']['output']>;
   customAiPrompt?: Maybe<Scalars['String']['output']>;
   defaultLlmProvider?: Maybe<Scalars['String']['output']>;
   email?: Maybe<Scalars['String']['output']>;

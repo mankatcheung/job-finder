@@ -16,6 +16,10 @@ import type {
   ConfirmTotpSetupOutput,
 } from '#src/use-cases/user/IConfirmTotpSetupUseCase.js';
 import type { IDisableTotpUseCase } from '#src/use-cases/user/IDisableTotpUseCase.js';
+import type {
+  IRegenerateTotpBackupCodesUseCase,
+  RegenerateTotpBackupCodesOutput,
+} from '#src/use-cases/user/IRegenerateTotpBackupCodesUseCase.js';
 import type { IGetTotpStatusUseCase } from '#src/use-cases/user/IGetTotpStatusUseCase.js';
 import type { ISaveLlmApiKeyUseCase } from '#src/use-cases/user/ISaveLlmApiKeyUseCase.js';
 import type { IListLlmApiKeysUseCase } from '#src/use-cases/user/IListLlmApiKeysUseCase.js';
@@ -61,6 +65,7 @@ interface Deps {
   generateTotpSecretUseCase: IGenerateTotpSecretUseCase;
   confirmTotpSetupUseCase: IConfirmTotpSetupUseCase;
   disableTotpUseCase: IDisableTotpUseCase;
+  regenerateTotpBackupCodesUseCase?: IRegenerateTotpBackupCodesUseCase;
   getTotpStatusUseCase: IGetTotpStatusUseCase;
   saveLlmApiKeyUseCase: ISaveLlmApiKeyUseCase;
   listLlmApiKeysUseCase: IListLlmApiKeysUseCase;
@@ -158,6 +163,24 @@ export class UserResolver {
     await this.deps.disableTotpUseCase.execute({
       userId,
       password,
+      ipAddress: device.ipAddress,
+      userAgent: device.userAgent,
+    });
+  }
+
+  async regenerateTotpBackupCodes(
+    userId: string,
+    currentPassword: string,
+    authTime: number | null | undefined,
+    device: DeviceInfo,
+  ): Promise<RegenerateTotpBackupCodesOutput> {
+    if (!this.deps.regenerateTotpBackupCodesUseCase) {
+      throw new Error('Regenerate TOTP backup codes use case is not configured');
+    }
+    return this.deps.regenerateTotpBackupCodesUseCase.execute({
+      userId,
+      currentPassword,
+      authTime,
       ipAddress: device.ipAddress,
       userAgent: device.userAgent,
     });
