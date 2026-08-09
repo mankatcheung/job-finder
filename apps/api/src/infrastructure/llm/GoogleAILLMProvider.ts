@@ -6,6 +6,7 @@ import type {
   LLMToolCall,
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { LLM } from '#src/constants.js';
+import { fetchWithRetry } from '#src/infrastructure/llm/fetchWithRetry.js';
 
 interface GoogleAIPart {
   text?: string;
@@ -120,7 +121,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
   private async post(body: Record<string, unknown>): Promise<GoogleAIWireResponse> {
     const url = `${LLM.GOOGLEAI_API_URL}/${this.model}:generateContent?key=${this.apiKey}`;
 
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

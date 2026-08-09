@@ -111,6 +111,38 @@ describe('OpenAICompatibleLLMProvider', () => {
     );
   });
 
+  it('retries a transient 5xx failure and succeeds (JEF-110)', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.mocked(fetch)
+        .mockResolvedValueOnce(jsonResponse({ error: 'unavailable' }, false, 503) as never)
+        .mockResolvedValueOnce(
+          jsonResponse({ choices: [{ message: { content: 'ok after retry' } }] }) as never,
+        );
+
+      const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+      const promise = provider.complete([{ role: 'user', content: 'hi' }]);
+      await vi.runAllTimersAsync();
+      const result = await promise;
+
+      expect(result).toBe('ok after retry');
+      expect(fetch).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not retry a 4xx failure', async () => {
+    vi.mocked(fetch).mockResolvedValue(jsonResponse({ error: 'bad key' }, false, 401) as never);
+
+    const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+
+    await expect(provider.complete([{ role: 'user', content: 'hi' }])).rejects.toThrow(
+      /LLM provider error 401/,
+    );
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
   describe('completeWithTools', () => {
     const TOOLS = [
       {

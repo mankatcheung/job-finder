@@ -140,6 +140,40 @@ describe('GoogleAILLMProvider', () => {
         /Google AI error 429/,
       );
     });
+
+    it('retries a transient 5xx failure and succeeds (JEF-110)', async () => {
+      vi.useFakeTimers();
+      try {
+        vi.mocked(fetch)
+          .mockResolvedValueOnce(jsonResponse({ error: 'unavailable' }, false, 503) as never)
+          .mockResolvedValueOnce(
+            jsonResponse({
+              candidates: [{ content: { parts: [{ text: 'ok after retry' }] } }],
+            }) as never,
+          );
+
+        const provider = new GoogleAILLMProvider('secret-key');
+        const promise = provider.complete([{ role: 'user', content: 'hi' }]);
+        await vi.runAllTimersAsync();
+        const result = await promise;
+
+        expect(result).toBe('ok after retry');
+        expect(fetch).toHaveBeenCalledTimes(2);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('does not retry a 4xx failure', async () => {
+      vi.mocked(fetch).mockResolvedValue(jsonResponse({ error: 'bad key' }, false, 401) as never);
+
+      const provider = new GoogleAILLMProvider('secret-key');
+
+      await expect(provider.complete([{ role: 'user', content: 'hi' }])).rejects.toThrow(
+        /Google AI error 401/,
+      );
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('completeWithTools', () => {

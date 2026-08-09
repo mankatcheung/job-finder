@@ -331,6 +331,12 @@ export const LLM = {
    * (GenerateCoverLetterUseCase's 1024).
    */
   MAX_OUTPUT_TOKENS_CAP: 2048,
+  /** Per-attempt request timeout for provider fetches, in milliseconds (JEF-110). */
+  REQUEST_TIMEOUT_MS: 45_000,
+  /** Extra attempts after the first for transient (network / 5xx) failures — 4xx responses never retry. */
+  MAX_RETRIES: 2,
+  /** Base delay before a retry, in milliseconds; doubles each attempt (300ms, 600ms, ...). */
+  RETRY_BACKOFF_BASE_MS: 300,
 } as const;
 
 /**
