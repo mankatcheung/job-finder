@@ -21,6 +21,12 @@ export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
   size?: IconButtonSize;
 }
 
+/**
+ * Icon-only button (close, delete, external-link, ...) with a required
+ * `label` for accessibility since there's no visible text.
+ *
+ * @category Actions
+ */
 export function IconButton({
   label,
   icon,

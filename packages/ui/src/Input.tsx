@@ -4,6 +4,12 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   invalid?: boolean;
 }
 
+/**
+ * Single-line text input with a bordered, rounded style and an `invalid`
+ * state for form validation errors.
+ *
+ * @category Forms
+ */
 export function Input({ invalid = false, className, ...rest }: InputProps) {
   const classes = [
     'w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 disabled:opacity-60 focus:outline-none focus:ring-2',

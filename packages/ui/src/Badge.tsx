@@ -17,6 +17,11 @@ export interface BadgeProps {
   className?: string;
 }
 
+/**
+ * Small rounded pill for status/tag labels, in one of 6 tone colors.
+ *
+ * @category Feedback
+ */
 export function Badge({ tone = 'gray', children, className }: BadgeProps) {
   const classes = [
     'inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full',

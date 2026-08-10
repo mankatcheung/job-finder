@@ -1,0 +1,14 @@
+{
+  "projectId": "fb693e14-9709-4342-961a-fd47ca446641",
+  "shape": "package",
+  "pkg": "@job-finder/ui",
+  "globalName": "JobFinderUI",
+  "buildCmd": "pnpm --filter @job-finder/ui build",
+  "cssEntry": "dist/styles.css",
+  "readmeHeader": ".design-sync/conventions.md",
+  "overrides": {
+    "Modal": { "cardMode": "single", "viewport": "640x520" },
+    "Button": { "cardMode": "column" },
+    "Badge": { "cardMode": "column" }
+  }
+}

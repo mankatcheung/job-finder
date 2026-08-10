@@ -22,6 +22,12 @@ export interface ModalProps {
   children: ReactNode;
 }
 
+/**
+ * Centered overlay dialog with a backdrop, Escape-to-close, and focus
+ * trapping. Renders via a portal to `document.body`.
+ *
+ * @category Overlay
+ */
 export function Modal({ open, onClose, title, size = 'md', children }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
