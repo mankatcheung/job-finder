@@ -213,6 +213,7 @@ import { ComputeHealthScoreUseCase } from '#src/use-cases/application/ComputeHea
 import { ComputeResumeMatchScoreUseCase } from '#src/use-cases/application/ComputeResumeMatchScoreUseCase.js';
 import { GetCalendarEventsUseCase } from '#src/use-cases/calendar/GetCalendarEventsUseCase.js';
 import { GetDocumentVersionOutcomesUseCase } from '#src/use-cases/documents/GetDocumentVersionOutcomesUseCase.js';
+import { GetOfferAnalyticsUseCase } from '#src/use-cases/offers/GetOfferAnalyticsUseCase.js';
 import { SendWeeklyDigestUseCase } from '#src/use-cases/digest/SendWeeklyDigestUseCase.js';
 import { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
 import { RotateRefreshTokenUseCase } from '#src/use-cases/sessions/RotateRefreshTokenUseCase.js';
@@ -474,6 +475,7 @@ export interface Cradle {
   computeResumeMatchScoreUseCase: ComputeResumeMatchScoreUseCase;
   getCalendarEventsUseCase: GetCalendarEventsUseCase;
   getDocumentVersionOutcomesUseCase: GetDocumentVersionOutcomesUseCase;
+  getOfferAnalyticsUseCase: GetOfferAnalyticsUseCase;
   sendWeeklyDigestUseCase: SendWeeklyDigestUseCase;
   createSessionUseCase: CreateSessionUseCase;
   rotateRefreshTokenUseCase: RotateRefreshTokenUseCase;
@@ -925,6 +927,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     getDocumentVersionOutcomesUseCase: asClass(GetDocumentVersionOutcomesUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
+    getOfferAnalyticsUseCase: asClass(GetOfferAnalyticsUseCase, { lifetime: Lifetime.TRANSIENT }),
     computeResumeMatchScoreUseCase: asClass(ComputeResumeMatchScoreUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),

@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { offer } from '#src/infrastructure/db/schema.js';
+import { offer, jobApplication } from '#src/infrastructure/db/schema.js';
 import type { DrizzleDb, DrizzleClient } from '#src/infrastructure/db/client.js';
 import { getClient } from '#src/infrastructure/db/transactionContext.js';
 import type {
@@ -40,6 +40,15 @@ export class DrizzleOfferRepository implements IOfferRepository {
   async findAllByApplicationId(applicationId: string): Promise<Offer[]> {
     const rows = await this.db.select().from(offer).where(eq(offer.applicationId, applicationId));
     return rows.map((row) => this.toEntity(row));
+  }
+
+  async findAllByUserId(userId: string): Promise<Offer[]> {
+    const rows = await this.db
+      .select({ offer })
+      .from(offer)
+      .innerJoin(jobApplication, eq(offer.applicationId, jobApplication.id))
+      .where(eq(jobApplication.userId, userId));
+    return rows.map((r) => this.toEntity(r.offer));
   }
 
   async findById(id: string): Promise<Offer | null> {

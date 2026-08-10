@@ -26,6 +26,8 @@ export interface UpdateOfferData {
 
 export interface IOfferRepository {
   findAllByApplicationId(applicationId: string): Promise<Offer[]>;
+  /** Across every application owned by the user — for cross-application analytics. */
+  findAllByUserId(userId: string): Promise<Offer[]>;
   findById(id: string): Promise<Offer | null>;
   create(data: CreateOfferData): Promise<Offer>;
   update(id: string, data: UpdateOfferData): Promise<Offer>;

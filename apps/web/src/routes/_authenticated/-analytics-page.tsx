@@ -4,6 +4,7 @@ import { ErrorState } from '#/components/ErrorState';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { analyticsQueryOptions } from './-analytics-queries';
 import { DocumentVersionOutcomesPanel } from './-document-version-outcomes-panel';
+import { OfferAnalyticsPanel } from './-offer-analytics-panel';
 
 const STAGE_ORDER: ApplicationStatus[] = [
   'draft',
@@ -166,6 +167,7 @@ export function AnalyticsPage() {
       </div>
 
       <DocumentVersionOutcomesPanel />
+      <OfferAnalyticsPanel />
     </div>
   );
 }

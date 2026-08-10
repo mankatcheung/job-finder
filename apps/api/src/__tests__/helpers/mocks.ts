@@ -13,6 +13,8 @@ import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentReposito
 import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
 import type { IInterviewRoundRepository } from '#src/use-cases/ports/IInterviewRoundRepository.js';
 import type { IActivityLogRepository } from '#src/use-cases/ports/IActivityLogRepository.js';
+import type { IOfferRepository } from '#src/use-cases/ports/IOfferRepository.js';
+import type { Offer } from '#src/domain/offer/Offer.js';
 import type { IContactRepository } from '#src/use-cases/ports/IContactRepository.js';
 import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
 import type { IPasswordResetTokenRepository } from '#src/use-cases/ports/IPasswordResetTokenRepository.js';
@@ -731,5 +733,31 @@ export const makeSkill = (overrides?: Partial<Skill>): Skill => ({
   category: 'Language',
   proficiency: 'expert',
   createdAt: new Date('2024-01-01'),
+  ...overrides,
+});
+
+export const makeOfferRepository = (overrides?: Partial<IOfferRepository>): IOfferRepository => ({
+  findAllByApplicationId: vi.fn().mockResolvedValue([]),
+  findAllByUserId: vi.fn().mockResolvedValue([]),
+  findById: vi.fn().mockResolvedValue(null),
+  create: vi.fn(),
+  update: vi.fn(),
+  delete: vi.fn(),
+  ...overrides,
+});
+
+export const makeOffer = (overrides?: Partial<Offer>): Offer => ({
+  id: 'offer-1',
+  applicationId: 'app-1',
+  baseSalary: 120_000,
+  bonus: null,
+  equity: null,
+  benefits: null,
+  costOfLivingAdjustment: null,
+  currency: 'USD',
+  period: 'yearly',
+  notes: null,
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
   ...overrides,
 });
