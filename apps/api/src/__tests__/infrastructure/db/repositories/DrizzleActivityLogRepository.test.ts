@@ -74,4 +74,56 @@ describe('DrizzleActivityLogRepository', () => {
       expect(await repo.findAllByApplicationId('app-1')).toHaveLength(0);
     });
   });
+
+  describe('findAllByUserId', () => {
+    it('returns all logs across every application owned by the user, ordered oldest first', async () => {
+      await db.db.insert(jobApplication).values({
+        id: 'app-2',
+        userId: 'u1',
+        company: 'Globex',
+        role: 'Eng',
+        status: 'draft',
+      });
+      await db.db.insert(activityLog).values({
+        id: 'log-1',
+        applicationId: 'app-1',
+        actorId: 'u1',
+        eventType: 'status_changed',
+        payload: '{}',
+        createdAt: new Date('2024-01-02T00:00:00Z'),
+      });
+      await db.db.insert(activityLog).values({
+        id: 'log-2',
+        applicationId: 'app-2',
+        actorId: 'u1',
+        eventType: 'status_changed',
+        payload: '{}',
+        createdAt: new Date('2024-01-01T00:00:00Z'),
+      });
+
+      const logs = await repo.findAllByUserId('u1');
+      expect(logs.map((l) => l.id)).toEqual(['log-2', 'log-1']);
+    });
+
+    it("does not return another user's logs", async () => {
+      await db.db.insert(user).values({ id: 'u2', email: 'u2@t.com', passwordHash: 'h' });
+      await db.db.insert(jobApplication).values({
+        id: 'app-3',
+        userId: 'u2',
+        company: 'Initech',
+        role: 'Eng',
+        status: 'draft',
+      });
+      await db.db.insert(activityLog).values({
+        id: 'log-3',
+        applicationId: 'app-3',
+        actorId: 'u2',
+        eventType: 'status_changed',
+        payload: '{}',
+      });
+
+      const logs = await repo.findAllByUserId('u1');
+      expect(logs.find((l) => l.id === 'log-3')).toBeUndefined();
+    });
+  });
 });
