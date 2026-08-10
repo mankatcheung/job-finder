@@ -63,6 +63,16 @@ export function AnalyticsPage() {
       ? Math.round((gotResponse.length / appliedOrBeyond.length) * 100)
       : 0;
 
+  // Distinct from responseRate above: an explicit rejection still counts as
+  // a "response" there, but shouldn't count as ghosting. likelyGhosted is
+  // already computed server-side per application (JEF-57) — this just
+  // rolls it up into a rate over the same appliedOrBeyond denominator.
+  const ghostedApps = appliedOrBeyond.filter((a) => a.likelyGhosted);
+  const ghostingRate =
+    appliedOrBeyond.length > 0
+      ? Math.round((ghostedApps.length / appliedOrBeyond.length) * 100)
+      : 0;
+
   const totalApps = apps.length;
   const activeApps = apps.filter((a) =>
     ['applied', 'interviewing', 'offered'].includes(a.status),
@@ -102,12 +112,13 @@ export function AnalyticsPage() {
     <div className="p-4 sm:p-8 max-w-5xl mx-auto space-y-8">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Analytics</h1>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         {[
           { label: 'Total', value: totalApps },
           { label: 'Active', value: activeApps, color: 'text-blue-600' },
           { label: 'Response rate', value: `${responseRate}%`, color: 'text-purple-600' },
           { label: 'Offer rate', value: `${successRate}%`, color: 'text-green-600' },
+          { label: 'Ghosting rate', value: `${ghostingRate}%`, color: 'text-gray-500' },
         ].map(({ label, value, color }) => (
           <div
             key={label}
