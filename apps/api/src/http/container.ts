@@ -213,6 +213,7 @@ import { ComputeHealthScoreUseCase } from '#src/use-cases/application/ComputeHea
 import { ComputeResumeMatchScoreUseCase } from '#src/use-cases/application/ComputeResumeMatchScoreUseCase.js';
 import { GetCalendarEventsUseCase } from '#src/use-cases/calendar/GetCalendarEventsUseCase.js';
 import { GetDocumentVersionOutcomesUseCase } from '#src/use-cases/documents/GetDocumentVersionOutcomesUseCase.js';
+import { GetInterviewRoundAnalyticsUseCase } from '#src/use-cases/interviewRounds/GetInterviewRoundAnalyticsUseCase.js';
 import { SendWeeklyDigestUseCase } from '#src/use-cases/digest/SendWeeklyDigestUseCase.js';
 import { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
 import { RotateRefreshTokenUseCase } from '#src/use-cases/sessions/RotateRefreshTokenUseCase.js';
@@ -474,6 +475,7 @@ export interface Cradle {
   computeResumeMatchScoreUseCase: ComputeResumeMatchScoreUseCase;
   getCalendarEventsUseCase: GetCalendarEventsUseCase;
   getDocumentVersionOutcomesUseCase: GetDocumentVersionOutcomesUseCase;
+  getInterviewRoundAnalyticsUseCase: GetInterviewRoundAnalyticsUseCase;
   sendWeeklyDigestUseCase: SendWeeklyDigestUseCase;
   createSessionUseCase: CreateSessionUseCase;
   rotateRefreshTokenUseCase: RotateRefreshTokenUseCase;
@@ -923,6 +925,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     chatWithAssistantUseCase: asClass(ChatWithAssistantUseCase, { lifetime: Lifetime.TRANSIENT }),
     getCalendarEventsUseCase: asClass(GetCalendarEventsUseCase, { lifetime: Lifetime.TRANSIENT }),
     getDocumentVersionOutcomesUseCase: asClass(GetDocumentVersionOutcomesUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    getInterviewRoundAnalyticsUseCase: asClass(GetInterviewRoundAnalyticsUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
     computeResumeMatchScoreUseCase: asClass(ComputeResumeMatchScoreUseCase, {
