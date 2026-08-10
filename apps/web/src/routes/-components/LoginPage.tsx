@@ -8,6 +8,7 @@ import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 import { getErrorMessage } from '#/lib/errors';
 import { LogoMark } from '#/components/LogoMark';
+import { Button, Input } from '@job-finder/ui';
 
 const schema = z.object({
   email: z.string().email('Invalid email'),
@@ -103,10 +104,10 @@ export function LoginPage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email
               </label>
-              <input
+              <Input
                 type="email"
                 {...register('email')}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                invalid={!!errors.email}
                 placeholder="you@example.com"
               />
               {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
@@ -121,10 +122,10 @@ export function LoginPage() {
                   Forgot password?
                 </Link>
               </div>
-              <input
+              <Input
                 type="password"
                 {...register('password')}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                invalid={!!errors.password}
                 placeholder="••••••••"
               />
               {errors.password && (
@@ -148,13 +149,9 @@ export function LoginPage() {
               </p>
             )}
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-            >
+            <Button type="submit" disabled={isSubmitting} fullWidth>
               {isSubmitting ? 'Signing in…' : 'Sign in'}
-            </button>
+            </Button>
           </form>
 
           <OAuthButtons label="Sign in" />
@@ -211,11 +208,11 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Code
               </label>
-              <input
+              <Input
                 type="text"
                 autoFocus
                 {...register('code')}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                invalid={!!errors.code}
                 placeholder="123456"
               />
               {errors.code && <p className="mt-1 text-xs text-red-600">{errors.code.message}</p>}
@@ -237,18 +234,14 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
               </p>
             )}
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-            >
+            <Button type="submit" disabled={isSubmitting} fullWidth>
               {isSubmitting ? 'Verifying…' : 'Verify'}
-            </button>
+            </Button>
           </form>
 
-          <button type="button" onClick={onBack} className="text-sm text-blue-600 hover:underline">
+          <Button variant="link" size="sm" onClick={onBack}>
             Back to sign in
-          </button>
+          </Button>
         </div>
       </div>
     </main>

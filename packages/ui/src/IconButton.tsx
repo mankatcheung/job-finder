@@ -1,0 +1,47 @@
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
+
+export type IconButtonVariant = 'default' | 'danger';
+export type IconButtonSize = 'sm' | 'md';
+
+const VARIANT_CLASSES: Record<IconButtonVariant, string> = {
+  default: 'text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
+  danger: 'text-gray-400 hover:text-red-600 dark:hover:text-red-400',
+};
+
+const SIZE_CLASSES: Record<IconButtonSize, string> = {
+  sm: 'p-1 rounded',
+  md: 'p-1.5 rounded-lg',
+};
+
+export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Accessible name — required since the button has no visible text. */
+  label: string;
+  icon: ReactNode;
+  variant?: IconButtonVariant;
+  size?: IconButtonSize;
+}
+
+export function IconButton({
+  label,
+  icon,
+  variant = 'default',
+  size = 'md',
+  type = 'button',
+  className,
+  ...rest
+}: IconButtonProps) {
+  const classes = [
+    VARIANT_CLASSES[variant],
+    SIZE_CLASSES[size],
+    'disabled:opacity-30 disabled:cursor-not-allowed transition-colors',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <button type={type} aria-label={label} title={label} className={classes} {...rest}>
+      {icon}
+    </button>
+  );
+}
