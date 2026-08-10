@@ -130,8 +130,18 @@ describe('AssistantPage (chat)', () => {
       if (query.includes('ChatHistory'))
         return Promise.resolve({
           chatHistory: [
-            { role: 'user', content: 'earlier question' },
-            { role: 'assistant', content: 'earlier answer' },
+            {
+              id: 'm1',
+              role: 'user',
+              content: 'earlier question',
+              createdAt: '2024-01-01T00:00:00.000Z',
+            },
+            {
+              id: 'm2',
+              role: 'assistant',
+              content: 'earlier answer',
+              createdAt: '2024-01-01T00:00:01.000Z',
+            },
           ],
         });
       return Promise.resolve({});

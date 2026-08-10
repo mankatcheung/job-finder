@@ -21,8 +21,10 @@ export const CONVERSATIONS_QUERY = `
 export const CHAT_HISTORY_QUERY = `
   query ChatHistory($conversationId: ID!) {
     chatHistory(conversationId: $conversationId) {
+      id
       role
       content
+      createdAt
     }
   }
 `;
@@ -57,8 +59,14 @@ export const DELETE_CONVERSATION = `
 export type ChatRole = 'user' | 'assistant';
 
 export interface ChatMessage {
+  // Server-persisted messages carry their real id/createdAt; optimistic
+  // messages appended client-side before the round-trip completes get a
+  // locally-generated id/timestamp instead — both give the message list a
+  // stable React key without waiting on the network.
+  id: string;
   role: ChatRole;
   content: string;
+  createdAt: string;
 }
 
 export interface ChatHistoryResult {
