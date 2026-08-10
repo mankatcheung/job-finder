@@ -214,6 +214,7 @@ import { ComputeResumeMatchScoreUseCase } from '#src/use-cases/application/Compu
 import { GetApplicationChannelAnalyticsUseCase } from '#src/use-cases/application/GetApplicationChannelAnalyticsUseCase.js';
 import { GetCalendarEventsUseCase } from '#src/use-cases/calendar/GetCalendarEventsUseCase.js';
 import { GetDocumentVersionOutcomesUseCase } from '#src/use-cases/documents/GetDocumentVersionOutcomesUseCase.js';
+import { GetInterviewRoundAnalyticsUseCase } from '#src/use-cases/interviewRounds/GetInterviewRoundAnalyticsUseCase.js';
 import { GetOfferAnalyticsUseCase } from '#src/use-cases/offers/GetOfferAnalyticsUseCase.js';
 import { GetResponseTimeAnalyticsUseCase } from '#src/use-cases/activityLogs/GetResponseTimeAnalyticsUseCase.js';
 import { SendWeeklyDigestUseCase } from '#src/use-cases/digest/SendWeeklyDigestUseCase.js';
@@ -478,6 +479,7 @@ export interface Cradle {
   getApplicationChannelAnalyticsUseCase: GetApplicationChannelAnalyticsUseCase;
   getCalendarEventsUseCase: GetCalendarEventsUseCase;
   getDocumentVersionOutcomesUseCase: GetDocumentVersionOutcomesUseCase;
+  getInterviewRoundAnalyticsUseCase: GetInterviewRoundAnalyticsUseCase;
   getOfferAnalyticsUseCase: GetOfferAnalyticsUseCase;
   getResponseTimeAnalyticsUseCase: GetResponseTimeAnalyticsUseCase;
   sendWeeklyDigestUseCase: SendWeeklyDigestUseCase;
@@ -929,6 +931,9 @@ export function buildContainer(): AwilixContainer<Cradle> {
     chatWithAssistantUseCase: asClass(ChatWithAssistantUseCase, { lifetime: Lifetime.TRANSIENT }),
     getCalendarEventsUseCase: asClass(GetCalendarEventsUseCase, { lifetime: Lifetime.TRANSIENT }),
     getDocumentVersionOutcomesUseCase: asClass(GetDocumentVersionOutcomesUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    getInterviewRoundAnalyticsUseCase: asClass(GetInterviewRoundAnalyticsUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
     getOfferAnalyticsUseCase: asClass(GetOfferAnalyticsUseCase, { lifetime: Lifetime.TRANSIENT }),
