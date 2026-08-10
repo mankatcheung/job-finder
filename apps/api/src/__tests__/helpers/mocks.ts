@@ -121,6 +121,7 @@ export const makeActivityLogRepository = (
   overrides?: Partial<IActivityLogRepository>,
 ): IActivityLogRepository => ({
   findAllByApplicationId: vi.fn().mockResolvedValue([]),
+  findAllByUserId: vi.fn().mockResolvedValue([]),
   append: vi.fn(),
   ...overrides,
 });
