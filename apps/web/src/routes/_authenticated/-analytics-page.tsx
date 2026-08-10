@@ -4,6 +4,7 @@ import { ErrorState } from '#/components/ErrorState';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { analyticsQueryOptions } from './-analytics-queries';
 import { DocumentVersionOutcomesPanel } from './-document-version-outcomes-panel';
+import { OfferAnalyticsPanel } from './-offer-analytics-panel';
 import { ApplicationChannelAnalyticsPanel } from './-application-channel-analytics-panel';
 import { ResponseTimeAnalyticsPanel } from './-response-time-analytics-panel';
 
@@ -179,6 +180,7 @@ export function AnalyticsPage() {
       </div>
 
       <DocumentVersionOutcomesPanel />
+      <OfferAnalyticsPanel />
       <ApplicationChannelAnalyticsPanel />
       <ResponseTimeAnalyticsPanel />
     </div>

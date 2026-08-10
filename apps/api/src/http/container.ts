@@ -214,6 +214,7 @@ import { ComputeResumeMatchScoreUseCase } from '#src/use-cases/application/Compu
 import { GetApplicationChannelAnalyticsUseCase } from '#src/use-cases/application/GetApplicationChannelAnalyticsUseCase.js';
 import { GetCalendarEventsUseCase } from '#src/use-cases/calendar/GetCalendarEventsUseCase.js';
 import { GetDocumentVersionOutcomesUseCase } from '#src/use-cases/documents/GetDocumentVersionOutcomesUseCase.js';
+import { GetOfferAnalyticsUseCase } from '#src/use-cases/offers/GetOfferAnalyticsUseCase.js';
 import { GetResponseTimeAnalyticsUseCase } from '#src/use-cases/activityLogs/GetResponseTimeAnalyticsUseCase.js';
 import { SendWeeklyDigestUseCase } from '#src/use-cases/digest/SendWeeklyDigestUseCase.js';
 import { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
@@ -477,6 +478,7 @@ export interface Cradle {
   getApplicationChannelAnalyticsUseCase: GetApplicationChannelAnalyticsUseCase;
   getCalendarEventsUseCase: GetCalendarEventsUseCase;
   getDocumentVersionOutcomesUseCase: GetDocumentVersionOutcomesUseCase;
+  getOfferAnalyticsUseCase: GetOfferAnalyticsUseCase;
   getResponseTimeAnalyticsUseCase: GetResponseTimeAnalyticsUseCase;
   sendWeeklyDigestUseCase: SendWeeklyDigestUseCase;
   createSessionUseCase: CreateSessionUseCase;
@@ -929,6 +931,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
     getDocumentVersionOutcomesUseCase: asClass(GetDocumentVersionOutcomesUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
+    getOfferAnalyticsUseCase: asClass(GetOfferAnalyticsUseCase, { lifetime: Lifetime.TRANSIENT }),
     getResponseTimeAnalyticsUseCase: asClass(GetResponseTimeAnalyticsUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
