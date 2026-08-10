@@ -25,6 +25,7 @@ const app = (overrides: Partial<Record<string, unknown>> = {}) => ({
   status: 'applied',
   appliedAt: '2024-01-01T00:00:00.000Z',
   createdAt: '2024-01-01T00:00:00.000Z',
+  likelyGhosted: false,
   ...overrides,
 });
 
@@ -77,6 +78,28 @@ describe('AnalyticsPage', () => {
     expect(screen.getByText('Response rate').parentElement).toHaveTextContent('80%');
     // offer rate = accepted / total = 1/6 -> 17%
     expect(screen.getByText('Offer rate').parentElement).toHaveTextContent('17%');
+    // no likelyGhosted apps in this fixture
+    expect(screen.getByText('Ghosting rate').parentElement).toHaveTextContent('0%');
+  });
+
+  it('computes ghosting rate from likelyGhosted, over the same denominator as response rate', async () => {
+    mockGqlRequest.mockResolvedValue({
+      applications: [
+        app({ id: '1', status: 'draft', likelyGhosted: false }),
+        app({ id: '2', status: 'applied', likelyGhosted: true }),
+        app({ id: '3', status: 'interviewing', likelyGhosted: true }),
+        app({ id: '4', status: 'rejected', likelyGhosted: false }),
+      ],
+    });
+    render(<AnalyticsPage />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('Analytics')).toBeInTheDocument();
+    });
+
+    // appliedOrBeyond excludes draft (3 apps: applied, interviewing, rejected)
+    // 2 of those 3 are likelyGhosted -> 67%
+    expect(screen.getByText('Ghosting rate').parentElement).toHaveTextContent('67%');
   });
 
   it('renders chart section headings once data has loaded', async () => {

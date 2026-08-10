@@ -5,7 +5,7 @@ import type { ApplicationStatus } from '#/graphql/generated/graphql';
 const ANALYTICS_QUERY = `
   query AnalyticsApplications {
     applications {
-      id company role status appliedAt createdAt
+      id company role status appliedAt createdAt likelyGhosted
     }
   }
 `;
@@ -17,6 +17,7 @@ export type AnalyticsApplication = {
   status: ApplicationStatus;
   appliedAt?: string | null;
   createdAt: string;
+  likelyGhosted: boolean;
 };
 
 // Kept in its own module (no recharts import) so the analytics route's
