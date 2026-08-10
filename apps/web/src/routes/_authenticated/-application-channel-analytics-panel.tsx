@@ -12,28 +12,39 @@ const SMALL_SAMPLE_THRESHOLD = 3;
 function GroupRow({ stat }: { stat: ApplicationGroupStat }) {
   const smallSample = stat.applicationCount < SMALL_SAMPLE_THRESHOLD;
   return (
-    <div className="flex items-center gap-3 py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
-      <span className="flex-1 min-w-0 text-sm text-gray-900 dark:text-gray-100 truncate">
+    <div className="flex flex-col gap-1.5 py-2 border-b border-gray-100 dark:border-gray-700 last:border-0 sm:flex-row sm:items-center sm:gap-3">
+      <span className="text-sm text-gray-900 dark:text-gray-100 truncate sm:flex-1 sm:min-w-0">
         {stat.label}
       </span>
-      <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
-        {stat.applicationCount} app{stat.applicationCount === 1 ? '' : 's'}
-      </span>
-      <div className="shrink-0 w-16 h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
-        <div className="h-full bg-purple-500" style={{ width: `${stat.responseRate}%` }} />
+      {/* `sm:contents` hoists these into the row above as direct flex items,
+          so the fixed-width count/bar/% columns line up across every row —
+          they're only wrapped together for the stacked mobile layout. */}
+      <div className="flex flex-wrap items-center gap-2 sm:contents">
+        <span className="shrink-0 w-14 text-xs text-gray-500 dark:text-gray-400 sm:w-16 sm:text-right">
+          {stat.applicationCount} app{stat.applicationCount === 1 ? '' : 's'}
+        </span>
+        <div className="flex items-center gap-1.5 shrink-0 sm:gap-2">
+          <div className="w-10 h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden sm:w-16">
+            <div className="h-full bg-purple-500" style={{ width: `${stat.responseRate}%` }} />
+          </div>
+          <span className="w-9 text-right text-xs font-medium text-gray-700 dark:text-gray-300 sm:w-10">
+            {stat.responseRate}%
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0 sm:gap-2">
+          <div className="w-10 h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden sm:w-16">
+            <div className="h-full bg-green-500" style={{ width: `${stat.offerRate}%` }} />
+          </div>
+          <span className="w-9 text-right text-xs font-medium text-gray-700 dark:text-gray-300 sm:w-10">
+            {stat.offerRate}%
+          </span>
+        </div>
+        {smallSample && (
+          <span className="shrink-0 text-[10px] text-gray-400 dark:text-gray-500 sm:whitespace-nowrap">
+            small sample
+          </span>
+        )}
       </div>
-      <span className="shrink-0 w-10 text-right text-xs font-medium text-gray-700 dark:text-gray-300">
-        {stat.responseRate}%
-      </span>
-      <div className="shrink-0 w-16 h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
-        <div className="h-full bg-green-500" style={{ width: `${stat.offerRate}%` }} />
-      </div>
-      <span className="shrink-0 w-10 text-right text-xs font-medium text-gray-700 dark:text-gray-300">
-        {stat.offerRate}%
-      </span>
-      {smallSample && (
-        <span className="shrink-0 text-[10px] text-gray-400 dark:text-gray-500">small sample</span>
-      )}
     </div>
   );
 }
