@@ -19,6 +19,21 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* iOS Safari auto-zooms the whole page when a focused input/select/textarea
+   has a font-size under 16px. Every form in this app uses Tailwind's
+   text-sm (14px) with no shared Input component to patch centrally, so
+   this needs !important — a plain type selector can't out-specificity the
+   .text-sm utility class applied directly on each element's className.
+   Scoped to coarse-pointer (touch) devices so desktop's text-sm inputs are
+   unaffected regardless of window width. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 body {
   margin: 0;
   padding-top: env(safe-area-inset-top);
