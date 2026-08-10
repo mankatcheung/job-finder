@@ -1,0 +1,7 @@
+@import 'tailwindcss';
+@source './';
+
+/* Matches apps/web/src/styles.css — dark mode is toggled via a `.dark`
+   class on the root, not OS `prefers-color-scheme`, so previews rendered
+   outside the app (e.g. in claude.ai/design) must use the same selector. */
+@custom-variant dark (&:where(.dark, .dark *));

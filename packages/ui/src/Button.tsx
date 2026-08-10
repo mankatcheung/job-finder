@@ -30,6 +30,11 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
+/**
+ * Standard clickable button with 5 visual variants and 2 sizes.
+ *
+ * @category Actions
+ */
 export function Button({
   variant = 'primary',
   size = 'md',

@@ -16,3 +16,10 @@ uploads/
 apps/api/src/index.js
 apps/api/src/generated/
 *.tsbuildinfo
+
+# design-sync (see .design-sync/config.json / NOTES.md)
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
