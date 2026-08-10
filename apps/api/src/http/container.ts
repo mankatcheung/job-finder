@@ -211,9 +211,11 @@ import { GenerateCoverLetterUseCase } from '#src/use-cases/coverLetter/GenerateC
 import { GenerateCompanyBriefingUseCase } from '#src/use-cases/companyBriefing/GenerateCompanyBriefingUseCase.js';
 import { ComputeHealthScoreUseCase } from '#src/use-cases/application/ComputeHealthScoreUseCase.js';
 import { ComputeResumeMatchScoreUseCase } from '#src/use-cases/application/ComputeResumeMatchScoreUseCase.js';
+import { GetApplicationChannelAnalyticsUseCase } from '#src/use-cases/application/GetApplicationChannelAnalyticsUseCase.js';
 import { GetCalendarEventsUseCase } from '#src/use-cases/calendar/GetCalendarEventsUseCase.js';
 import { GetDocumentVersionOutcomesUseCase } from '#src/use-cases/documents/GetDocumentVersionOutcomesUseCase.js';
 import { GetOfferAnalyticsUseCase } from '#src/use-cases/offers/GetOfferAnalyticsUseCase.js';
+import { GetResponseTimeAnalyticsUseCase } from '#src/use-cases/activityLogs/GetResponseTimeAnalyticsUseCase.js';
 import { SendWeeklyDigestUseCase } from '#src/use-cases/digest/SendWeeklyDigestUseCase.js';
 import { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
 import { RotateRefreshTokenUseCase } from '#src/use-cases/sessions/RotateRefreshTokenUseCase.js';
@@ -473,9 +475,11 @@ export interface Cradle {
   computeHealthScoreUseCase: ComputeHealthScoreUseCase;
   chatWithAssistantUseCase: ChatWithAssistantUseCase;
   computeResumeMatchScoreUseCase: ComputeResumeMatchScoreUseCase;
+  getApplicationChannelAnalyticsUseCase: GetApplicationChannelAnalyticsUseCase;
   getCalendarEventsUseCase: GetCalendarEventsUseCase;
   getDocumentVersionOutcomesUseCase: GetDocumentVersionOutcomesUseCase;
   getOfferAnalyticsUseCase: GetOfferAnalyticsUseCase;
+  getResponseTimeAnalyticsUseCase: GetResponseTimeAnalyticsUseCase;
   sendWeeklyDigestUseCase: SendWeeklyDigestUseCase;
   createSessionUseCase: CreateSessionUseCase;
   rotateRefreshTokenUseCase: RotateRefreshTokenUseCase;
@@ -928,7 +932,13 @@ export function buildContainer(): AwilixContainer<Cradle> {
       lifetime: Lifetime.TRANSIENT,
     }),
     getOfferAnalyticsUseCase: asClass(GetOfferAnalyticsUseCase, { lifetime: Lifetime.TRANSIENT }),
+    getResponseTimeAnalyticsUseCase: asClass(GetResponseTimeAnalyticsUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
     computeResumeMatchScoreUseCase: asClass(ComputeResumeMatchScoreUseCase, {
+      lifetime: Lifetime.TRANSIENT,
+    }),
+    getApplicationChannelAnalyticsUseCase: asClass(GetApplicationChannelAnalyticsUseCase, {
       lifetime: Lifetime.TRANSIENT,
     }),
     sendWeeklyDigestUseCase: asClass(SendWeeklyDigestUseCase, { lifetime: Lifetime.TRANSIENT }),
