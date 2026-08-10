@@ -117,7 +117,7 @@ export function AuthenticatedLayout() {
   }, []);
 
   return (
-    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen lg:h-screen flex bg-gray-50 dark:bg-gray-900">
       <CommandPalette />
       <ShortcutCheatSheet isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
 
@@ -231,7 +231,7 @@ export function AuthenticatedLayout() {
           <NotificationInboxButton />
         </div>
 
-        <nav aria-label="Main navigation" className="flex-1 px-3 py-4 space-y-1">
+        <nav aria-label="Main navigation" className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {MAIN_NAV.map((item, i) => (
             <NavItem
               key={item.to}
