@@ -10,5 +10,7 @@ export interface AppendActivityLogData {
 
 export interface IActivityLogRepository {
   findAllByApplicationId(applicationId: string): Promise<ActivityLog[]>;
+  /** Across every application owned by the user — for cross-application analytics. */
+  findAllByUserId(userId: string): Promise<ActivityLog[]>;
   append(data: AppendActivityLogData): Promise<ActivityLog>;
 }

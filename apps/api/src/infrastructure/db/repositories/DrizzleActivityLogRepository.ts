@@ -1,6 +1,6 @@
-import { eq, desc } from 'drizzle-orm';
+import { eq, asc, desc } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
-import { activityLog } from '../schema.js';
+import { activityLog, jobApplication } from '../schema.js';
 import type { ActivityLog } from '#src/domain/activityLog/ActivityLog.js';
 import type {
   IActivityLogRepository,
@@ -26,6 +26,16 @@ export class DrizzleActivityLogRepository implements IActivityLogRepository {
       .where(eq(activityLog.applicationId, applicationId))
       .orderBy(desc(activityLog.createdAt));
     return rows.map((r) => this.toEntity(r));
+  }
+
+  async findAllByUserId(userId: string): Promise<ActivityLog[]> {
+    const rows = await this.db
+      .select({ activityLog })
+      .from(activityLog)
+      .innerJoin(jobApplication, eq(activityLog.applicationId, jobApplication.id))
+      .where(eq(jobApplication.userId, userId))
+      .orderBy(asc(activityLog.createdAt));
+    return rows.map((r) => this.toEntity(r.activityLog));
   }
 
   async append(data: AppendActivityLogData): Promise<ActivityLog> {
