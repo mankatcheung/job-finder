@@ -32,6 +32,9 @@ name: CI & Deploy
 #   7. Add repository secrets (in GitHub Settings > Secrets > Actions):
 #      PRODUCTION_DATABASE_URL — the libsql:// URL for your production Turso DB
 #      PRODUCTION_DATABASE_AUTH_TOKEN — the auth token for the production Turso DB
+#      NTFY_TOPIC — ntfy.sh topic (shared with deploy-preview.yml) that
+#        receives a push notification once both apps finish deploying to
+#        production
 
 on:
   push:
@@ -135,3 +138,24 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+
+  notify-deploy:
+    name: Notify production deploy via ntfy
+    needs: [deploy-api, deploy-web]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify via ntfy
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          COMMIT_URL: ${{ github.event.head_commit.url }}
+        run: |
+          SHORT_SHA="${COMMIT_SHA:0:7}"
+          BODY=$(printf '%s\n%s' "$COMMIT_MESSAGE" "$COMMIT_URL")
+          curl -sS \
+            -H "Title: Production updated (${SHORT_SHA})" \
+            -H "X-Click: ${COMMIT_URL}" \
+            -d "$BODY" \
+            "https://ntfy.sh/${NTFY_TOPIC}"
