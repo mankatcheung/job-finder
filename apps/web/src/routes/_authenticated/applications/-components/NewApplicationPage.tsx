@@ -7,7 +7,7 @@ import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { getErrorMessage } from '#/lib/errors';
 import { StarIcon, XIcon } from 'lucide-react';
-import { Alert, Button, FormLabel, Input, Textarea } from '@job-finder/ui';
+import { Alert, Button, Checkbox, FormLabel, Input, Textarea } from '@job-finder/ui';
 import { JdImportPanel } from './JdImportPanel';
 
 const schema = z.object({
@@ -199,12 +199,7 @@ export function NewApplicationPage() {
         </Field>
 
         <div className="flex items-center gap-3">
-          <input
-            {...register('starred')}
-            id="starred-new"
-            type="checkbox"
-            className="w-4 h-4 rounded border-gray-300 text-yellow-400 focus:ring-yellow-400"
-          />
+          <Checkbox {...register('starred')} id="starred-new" tone="yellow" />
           <label
             htmlFor="starred-new"
             className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none"

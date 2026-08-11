@@ -7,7 +7,7 @@ import {
   type NotificationPreferences,
 } from './shared';
 import { usePushNotifications } from '#/hooks/usePushNotifications';
-import { Select } from '@job-finder/ui';
+import { Checkbox, Select } from '@job-finder/ui';
 
 export function SettingsNotificationsPage() {
   const qc = useQueryClient();
@@ -104,11 +104,9 @@ export function SettingsNotificationsPage() {
               </p>
             </div>
             <label className="flex items-center gap-3 text-sm text-gray-900 dark:text-gray-100">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={prefs.followUpRemindersEnabled}
                 onChange={(e) => onToggleFollowUpReminders(e.target.checked)}
-                className="h-4 w-4"
               />
               Follow-up reminder emails
             </label>
@@ -148,12 +146,10 @@ export function SettingsNotificationsPage() {
         </div>
         {push.isSupported ? (
           <label className="flex items-center gap-3 text-sm text-gray-900 dark:text-gray-100">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={push.isPermissionGranted}
               disabled={push.isBusy || push.isPermissionDenied}
               onChange={(e) => onTogglePushNotifications(e.target.checked)}
-              className="h-4 w-4"
             />
             {push.isPermissionDenied
               ? 'Push notifications blocked — reset in browser settings'

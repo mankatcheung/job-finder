@@ -8,7 +8,16 @@ import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { getErrorMessage } from '#/lib/errors';
 import { StarIcon, XIcon } from 'lucide-react';
-import { Alert, Button, FormLabel, Input, Select, Skeleton, Textarea } from '@job-finder/ui';
+import {
+  Alert,
+  Button,
+  Checkbox,
+  FormLabel,
+  Input,
+  Select,
+  Skeleton,
+  Textarea,
+} from '@job-finder/ui';
 import { JdImportPanel } from '../../-components/JdImportPanel';
 import { applicationQueryOptions } from '../-application-query';
 import { Route } from '../edit';
@@ -242,12 +251,7 @@ export function EditApplicationPage() {
         </Field>
 
         <div className="flex items-center gap-3">
-          <input
-            {...register('starred')}
-            id="starred-edit"
-            type="checkbox"
-            className="w-4 h-4 rounded border-gray-300 text-yellow-400 focus:ring-yellow-400"
-          />
+          <Checkbox {...register('starred')} id="starred-edit" tone="yellow" />
           <label
             htmlFor="starred-edit"
             className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none"

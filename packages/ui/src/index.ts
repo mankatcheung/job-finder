@@ -30,3 +30,6 @@ export type { CardProps } from './Card';
 
 export { Skeleton } from './Skeleton';
 export type { SkeletonProps } from './Skeleton';
+
+export { Checkbox } from './Checkbox';
+export type { CheckboxProps, CheckboxSize, CheckboxTone } from './Checkbox';
