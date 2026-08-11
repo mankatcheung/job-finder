@@ -12,3 +12,6 @@ export type { BadgeProps, BadgeTone } from './Badge';
 
 export { Modal } from './Modal';
 export type { ModalProps, ModalSize } from './Modal';
+
+export { FormLabel } from './FormLabel';
+export type { FormLabelProps, FormLabelSize } from './FormLabel';

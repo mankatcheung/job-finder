@@ -583,8 +583,6 @@ export const OAUTH_PROVIDER_LABEL: Record<LinkedOAuthAccount['provider'], string
 export const inputCls =
   'w-full min-w-0 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500';
 
-export const labelCls = 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1';
-
 export function extractGqlError(err: unknown): string | null {
   if (typeof err === 'object' && err !== null && 'response' in err) {
     const r = (err as { response?: { errors?: Array<{ message?: string }> } }).response;

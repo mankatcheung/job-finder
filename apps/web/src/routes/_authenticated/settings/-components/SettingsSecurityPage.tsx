@@ -1,5 +1,5 @@
 import { UnlinkIcon, CheckIcon, LogOutIcon, BanIcon } from 'lucide-react';
-import { Button, Input } from '@job-finder/ui';
+import { Button, FormLabel, Input } from '@job-finder/ui';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -42,7 +42,6 @@ import {
   OAUTH_PROVIDER_LABEL,
   SECURITY_EVENT_LABEL,
   describeDevice,
-  labelCls,
   extractGqlError,
 } from './shared';
 import { useStepUpReauth, STEP_UP_CANCELLED } from './useStepUpReauth';
@@ -259,7 +258,7 @@ export function SettingsSecurityPage() {
         </div>
         <form onSubmit={emailForm.handleSubmit(onUpdateEmail)} className="space-y-3">
           <div>
-            <label className={labelCls}>Current password</label>
+            <FormLabel>Current password</FormLabel>
             <Input
               type="password"
               {...emailForm.register('currentPassword')}
@@ -273,7 +272,7 @@ export function SettingsSecurityPage() {
             )}
           </div>
           <div>
-            <label className={labelCls}>New email</label>
+            <FormLabel>New email</FormLabel>
             <Input
               type="email"
               {...emailForm.register('newEmail')}
@@ -326,7 +325,7 @@ export function SettingsSecurityPage() {
               className="space-y-3"
             >
               <div>
-                <label className={labelCls}>Current password to remove it</label>
+                <FormLabel>Current password to remove it</FormLabel>
                 <Input
                   type="password"
                   {...removeBackupEmailForm.register('currentPassword')}
@@ -356,7 +355,7 @@ export function SettingsSecurityPage() {
         ) : (
           <form onSubmit={backupEmailForm.handleSubmit(onAddBackupEmail)} className="space-y-3">
             <div>
-              <label className={labelCls}>Backup email</label>
+              <FormLabel>Backup email</FormLabel>
               <Input
                 type="email"
                 {...backupEmailForm.register('backupEmail')}
@@ -370,7 +369,7 @@ export function SettingsSecurityPage() {
               )}
             </div>
             <div>
-              <label className={labelCls}>Current password</label>
+              <FormLabel>Current password</FormLabel>
               <Input
                 type="password"
                 {...backupEmailForm.register('currentPassword')}
@@ -412,7 +411,7 @@ export function SettingsSecurityPage() {
         </div>
         <form onSubmit={passwordForm.handleSubmit(onUpdatePassword)} className="space-y-3">
           <div>
-            <label className={labelCls}>Current password</label>
+            <FormLabel>Current password</FormLabel>
             <Input
               type="password"
               {...passwordForm.register('currentPassword')}
@@ -426,7 +425,7 @@ export function SettingsSecurityPage() {
             )}
           </div>
           <div>
-            <label className={labelCls}>New password</label>
+            <FormLabel>New password</FormLabel>
             <Input
               type="password"
               {...passwordForm.register('newPassword')}
@@ -440,7 +439,7 @@ export function SettingsSecurityPage() {
             )}
           </div>
           <div>
-            <label className={labelCls}>Confirm new password</label>
+            <FormLabel>Confirm new password</FormLabel>
             <Input
               type="password"
               {...passwordForm.register('confirmPassword')}
@@ -560,7 +559,7 @@ export function SettingsSecurityPage() {
             <form onSubmit={totpDisableForm.handleSubmit(onDisableTotp)} className="space-y-3">
               <p className="text-sm text-green-600">Two-factor authentication is enabled.</p>
               <div>
-                <label className={labelCls}>Confirm your password to disable</label>
+                <FormLabel>Confirm your password to disable</FormLabel>
                 <Input
                   type="password"
                   {...totpDisableForm.register('password')}
@@ -599,7 +598,7 @@ export function SettingsSecurityPage() {
                 </p>
               </div>
               <div>
-                <label className={labelCls}>Current password</label>
+                <FormLabel>Current password</FormLabel>
                 <Input
                   type="password"
                   {...regenerateBackupCodesForm.register('password')}
@@ -643,7 +642,7 @@ export function SettingsSecurityPage() {
             </p>
             <form onSubmit={totpConfirmForm.handleSubmit(onConfirmTotpSetup)} className="space-y-3">
               <div>
-                <label className={labelCls}>Enter the code from your app</label>
+                <FormLabel>Enter the code from your app</FormLabel>
                 <Input
                   type="text"
                   inputMode="numeric"
@@ -670,7 +669,7 @@ export function SettingsSecurityPage() {
         ) : (
           <form onSubmit={totpBeginForm.handleSubmit(onBeginTotpSetup)} className="space-y-3">
             <div>
-              <label className={labelCls}>Confirm your password to enable 2FA</label>
+              <FormLabel>Confirm your password to enable 2FA</FormLabel>
               <Input
                 type="password"
                 {...totpBeginForm.register('password')}

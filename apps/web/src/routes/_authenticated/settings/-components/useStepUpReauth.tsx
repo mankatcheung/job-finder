@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient, setAccessToken } from '#/graphql/client';
-import { Button, Input, Modal } from '@job-finder/ui';
+import { Button, FormLabel, Input, Modal } from '@job-finder/ui';
 import {
   REAUTHENTICATE,
   reauthSchema,
@@ -10,7 +10,6 @@ import {
   type ReauthenticateResult,
   extractGqlError,
   extractGqlErrorCode,
-  labelCls,
 } from './shared';
 
 /** Thrown to the caller of `withStepUp` when the user dismisses the reauth dialog instead of completing it. */
@@ -102,7 +101,7 @@ function StepUpReauthDialog({
         </div>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
           <div>
-            <label className={labelCls}>Password</label>
+            <FormLabel>Password</FormLabel>
             <Input
               type="password"
               {...form.register('password')}
@@ -116,7 +115,7 @@ function StepUpReauthDialog({
           </div>
           {totpRequired && (
             <div>
-              <label className={labelCls}>Two-factor code</label>
+              <FormLabel>Two-factor code</FormLabel>
               <Input
                 type="text"
                 inputMode="numeric"

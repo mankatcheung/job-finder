@@ -8,6 +8,7 @@ import { getErrorMessage } from '#/lib/errors';
 import { DocumentPreviewModal, isPreviewableMimeType } from './DocumentPreviewModal';
 import { DOCUMENTS_QUERY, type Document } from './DocumentsTab';
 import { SCORE_COLORS, scoreColor } from './HealthScorePanel';
+import { FormLabel } from '@job-finder/ui';
 
 const COMPUTE_RESUME_MATCH_SCORE = `
   mutation ComputeResumeMatchScore($applicationId: ID!, $resumeText: String) {
@@ -90,9 +91,7 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
           </div>
         ) : (
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Your resume
-            </label>
+            <FormLabel>Your resume</FormLabel>
             <textarea
               value={resumeText}
               onChange={(e) => setResumeText(e.target.value)}

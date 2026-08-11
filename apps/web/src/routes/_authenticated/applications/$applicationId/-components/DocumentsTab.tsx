@@ -5,7 +5,7 @@ import { put as putBlob } from '@vercel/blob/client';
 import { CheckIcon, ExternalLinkIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
-import { Button, Input } from '@job-finder/ui';
+import { Button, FormLabel, Input } from '@job-finder/ui';
 import { DocumentPreviewModal, isPreviewableMimeType } from './DocumentPreviewModal';
 
 export const DOCUMENTS_QUERY = `
@@ -300,7 +300,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Document type</label>
+              <FormLabel size="xs">Document type</FormLabel>
               <select
                 value={docType}
                 onChange={(e) => setDocType(e.target.value)}
@@ -313,9 +313,9 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
+              <FormLabel size="xs">
                 Version <span className="font-normal">(optional)</span>
-              </label>
+              </FormLabel>
               <Input
                 value={docVersion}
                 onChange={(e) => setDocVersion(e.target.value)}

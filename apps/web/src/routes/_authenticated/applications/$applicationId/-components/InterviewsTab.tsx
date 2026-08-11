@@ -3,8 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CalendarIcon, CheckIcon, EditIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
-import { Button, Input } from '@job-finder/ui';
-
+import { Button, FormLabel, Input } from '@job-finder/ui';
 const INTERVIEW_ROUNDS_QUERY = `
   query InterviewRounds($applicationId: ID!) {
     interviewRounds(applicationId: $applicationId) {
@@ -280,7 +279,7 @@ export function InterviewsTab({
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
+          <FormLabel size="xs">Type</FormLabel>
           <select
             value={form.type}
             onChange={(e) => setForm({ ...form, type: e.target.value })}
@@ -294,7 +293,7 @@ export function InterviewsTab({
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Outcome</label>
+          <FormLabel size="xs">Outcome</FormLabel>
           <select
             value={form.outcome}
             onChange={(e) => setForm({ ...form, outcome: e.target.value })}
@@ -309,7 +308,7 @@ export function InterviewsTab({
         </div>
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">Scheduled at</label>
+        <FormLabel size="xs">Scheduled at</FormLabel>
         <Input
           type="datetime-local"
           value={form.scheduledAt}
@@ -317,7 +316,7 @@ export function InterviewsTab({
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">Interviewer</label>
+        <FormLabel size="xs">Interviewer</FormLabel>
         <Input
           value={form.interviewerName}
           onChange={(e) => setForm({ ...form, interviewerName: e.target.value })}
@@ -325,7 +324,7 @@ export function InterviewsTab({
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">Notes</label>
+        <FormLabel size="xs">Notes</FormLabel>
         <textarea
           value={form.notes}
           onChange={(e) => setForm({ ...form, notes: e.target.value })}

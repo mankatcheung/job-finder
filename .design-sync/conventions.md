@@ -27,16 +27,14 @@ Read `styles.css` (and what it `@import`s, including `_ds_bundle.css`) before st
 ## Example: a login-style form (real composition pattern from this app)
 
 ```tsx
-import { Input, Button } from '@job-finder/ui';
+import { Input, Button, FormLabel } from '@job-finder/ui';
 
 function LoginForm() {
   return (
     <form className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Email
-        </label>
-        <Input type="email" placeholder="you@example.com" />
+        <FormLabel htmlFor="email">Email</FormLabel>
+        <Input id="email" type="email" placeholder="you@example.com" />
       </div>
       <Button type="submit" fullWidth>
         Sign in
@@ -46,4 +44,4 @@ function LoginForm() {
 }
 ```
 
-Labels are plain `<label>` elements styled inline (there's no `Label`/`FormField` component in this DS yet) — follow the classes shown above (`text-sm font-medium text-gray-700 dark:text-gray-300 mb-1`) for consistency until one exists.
+`FormLabel` renders a `<label>` and takes a `size` prop: `'sm'` (default — `text-sm font-medium text-gray-700 dark:text-gray-300`, the standard full-page form label) or `'xs'` (`text-xs font-medium text-gray-500`, no dark-mode variant — the compact label used in denser panel forms). Pass `htmlFor` like any native `<label>` to associate it with a field.

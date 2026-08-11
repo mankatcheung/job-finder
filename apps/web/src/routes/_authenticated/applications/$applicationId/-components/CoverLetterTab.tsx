@@ -4,8 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { CopyIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
-import { Button } from '@job-finder/ui';
-
+import { Button, FormLabel } from '@job-finder/ui';
 const GENERATE_COVER_LETTER = `
   mutation GenerateCoverLetter($applicationId: ID!, $resumeText: String) {
     generateCoverLetter(applicationId: $applicationId, resumeText: $resumeText)
@@ -42,12 +41,12 @@ export function CoverLetterTab({ applicationId }: { applicationId: string }) {
     <div className="space-y-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <FormLabel>
             Your resume / background{' '}
             <span className="font-normal text-gray-400">
               (optional — paste for a tailored letter)
             </span>
-          </label>
+          </FormLabel>
           <textarea
             value={resumeText}
             onChange={(e) => setResumeText(e.target.value)}
