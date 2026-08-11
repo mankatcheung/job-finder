@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card, Skeleton } from '@job-finder/ui';
+import { Card, EmptyState, Skeleton } from '@job-finder/ui';
 import { interviewRoundAnalyticsQueryOptions } from './-interview-round-analytics-queries';
 
 const TYPE_LABEL: Record<string, string> = {
@@ -48,9 +48,11 @@ export function InterviewRoundAnalyticsPanel() {
       </p>
 
       {analytics.byType.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-8">
-          Log outcomes on your interview rounds to see pass rates here.
-        </p>
+        <EmptyState
+          size="compact"
+          className="py-8"
+          message="Log outcomes on your interview rounds to see pass rates here."
+        />
       ) : (
         <div className="space-y-3 mb-6">
           {analytics.byType.map((stat) => {

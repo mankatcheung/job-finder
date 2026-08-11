@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card, Skeleton } from '@job-finder/ui';
+import { Card, EmptyState, Skeleton } from '@job-finder/ui';
 import { documentVersionOutcomesQueryOptions } from './-document-version-outcomes-queries';
 
 const DOCUMENT_TYPE_LABEL: Record<string, string> = {
@@ -44,10 +44,11 @@ export function DocumentVersionOutcomesPanel() {
       </p>
 
       {outcomes.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-8">
-          Add a version label when uploading a resume or cover letter to see how each version
-          performs here.
-        </p>
+        <EmptyState
+          size="compact"
+          className="py-8"
+          message="Add a version label when uploading a resume or cover letter to see how each version performs here."
+        />
       ) : (
         <div className="space-y-3">
           {outcomes.map((o) => {

@@ -3,7 +3,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useMemo } from 'react';
 import { showUndoToast } from '#/lib/undoToast';
 import { ErrorState } from '#/components/ErrorState';
-import { Card, Skeleton, Spinner } from '@job-finder/ui';
+import { Card, EmptyState, Skeleton, Spinner } from '@job-finder/ui';
 import { StatusBadge } from '../../-components/StatusBadge';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { useBulkActions } from '../-useBulkActions';
@@ -170,20 +170,23 @@ function ApplicationsPage() {
       ) : isError ? (
         <ErrorState error={error} onRetry={() => refetch()} />
       ) : apps.length === 0 ? (
-        <div className="text-center py-16 text-gray-600 dark:text-gray-400">
-          <BriefcaseIcon size={40} className="mx-auto mb-3 opacity-40" />
-          <p>
-            No applications
-            {searchTerm
-              ? ` matching "${searchTerm}"`
-              : status
-                ? ` with status "${status}"`
-                : likelyGhosted
-                  ? ' likely ghosted'
-                  : ''}{' '}
-            yet.
-          </p>
-        </div>
+        <EmptyState
+          className="py-16"
+          icon={<BriefcaseIcon size={40} />}
+          message={
+            <>
+              No applications
+              {searchTerm
+                ? ` matching "${searchTerm}"`
+                : status
+                  ? ` with status "${status}"`
+                  : likelyGhosted
+                    ? ' likely ghosted'
+                    : ''}{' '}
+              yet.
+            </>
+          }
+        />
       ) : (
         <div className="space-y-2">
           <label className="flex items-center gap-2 px-1 text-xs text-gray-500 dark:text-gray-400 select-none cursor-pointer">

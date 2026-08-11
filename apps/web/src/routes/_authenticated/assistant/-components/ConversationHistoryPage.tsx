@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon, MessageCircleIcon, PlusIcon, Trash2Icon } from 'lucide-react';
+import { EmptyState } from '@job-finder/ui';
 import {
   conversationsQueryOptions,
   deleteConversationWithUndo,
@@ -39,13 +40,16 @@ export function ConversationHistoryPage() {
       </div>
 
       {conversations.length === 0 ? (
-        <div className="text-center py-16 text-gray-500 dark:text-gray-400">
-          <MessageCircleIcon size={28} className="mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-          <p className="text-sm">No conversations yet.</p>
-          <Link to="/assistant" className="text-sm text-blue-600 dark:text-blue-400 underline">
-            Start one
-          </Link>
-        </div>
+        <EmptyState
+          className="py-16"
+          icon={<MessageCircleIcon size={28} />}
+          message={<span className="text-sm">No conversations yet.</span>}
+          action={
+            <Link to="/assistant" className="text-sm text-blue-600 dark:text-blue-400 underline">
+              Start one
+            </Link>
+          }
+        />
       ) : (
         <ul className="space-y-1.5">
           {conversations.map((c) => (

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { ErrorState } from '#/components/ErrorState';
-import { Card, Skeleton } from '@job-finder/ui';
+import { Card, EmptyState, Skeleton } from '@job-finder/ui';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { analyticsQueryOptions } from './-analytics-queries';
 import { DocumentVersionOutcomesPanel } from './-document-version-outcomes-panel';
@@ -139,7 +139,7 @@ export function AnalyticsPage() {
           Applications per week
         </h2>
         {weeklyData.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">No data yet.</p>
+          <EmptyState size="compact" className="py-8" message="No data yet." />
         ) : (
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={weeklyData} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
@@ -157,7 +157,7 @@ export function AnalyticsPage() {
           Stage funnel
         </h2>
         {apps.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">No data yet.</p>
+          <EmptyState size="compact" className="py-8" message="No data yet." />
         ) : (
           <ResponsiveContainer width="100%" height={220}>
             <BarChart

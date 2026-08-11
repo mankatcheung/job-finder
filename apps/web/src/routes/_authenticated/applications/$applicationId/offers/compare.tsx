@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { GitCompareArrowsIcon, CheckIcon } from 'lucide-react';
-import { Button } from '@job-finder/ui';
+import { Button, EmptyState } from '@job-finder/ui';
 
 const OFFERS_QUERY = `
   query Offers($applicationId: ID!) {
@@ -128,9 +128,7 @@ function CompareOffersPage() {
       </div>
 
       {offers.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          <p>No offers to compare. Add offers first.</p>
-        </div>
+        <EmptyState className="py-12" message="No offers to compare. Add offers first." />
       ) : (
         <>
           <div className="mb-6">

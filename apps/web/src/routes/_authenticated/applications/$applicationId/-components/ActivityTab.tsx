@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
-import { Card } from '@job-finder/ui';
-
+import { Card, EmptyState } from '@job-finder/ui';
 const ACTIVITY_LOGS_QUERY = `
   query ActivityLogs($applicationId: ID!) {
     activityLogs(applicationId: $applicationId) {
@@ -60,7 +59,7 @@ export function ActivityTab({ applicationId }: { applicationId: string }) {
   return (
     <div className="space-y-3">
       {logs.length === 0 && (
-        <p className="text-sm text-gray-400 py-4 text-center">No activity yet.</p>
+        <EmptyState size="compact" className="py-4" message="No activity yet." />
       )}
       {logs.map((log) => {
         const detail = formatActivityPayload(log.eventType, log.payload);

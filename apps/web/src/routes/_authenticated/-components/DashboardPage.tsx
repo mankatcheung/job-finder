@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ErrorState } from '#/components/ErrorState';
-import { Card, Skeleton } from '@job-finder/ui';
+import { Card, EmptyState, Skeleton } from '@job-finder/ui';
 import {
   AlertCircleIcon,
   BriefcaseIcon,
@@ -175,16 +175,19 @@ export function DashboardPage() {
         ) : isError ? (
           <ErrorState error={error} onRetry={() => refetch()} />
         ) : apps.length === 0 ? (
-          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-            <BriefcaseIcon size={40} className="mx-auto mb-3 opacity-40" />
-            <p>No applications yet.</p>
-            <Link
-              to="/applications/new"
-              className="mt-2 inline-block text-blue-600 hover:underline text-sm"
-            >
-              Add your first one →
-            </Link>
-          </div>
+          <EmptyState
+            className="py-12"
+            icon={<BriefcaseIcon size={40} />}
+            message="No applications yet."
+            action={
+              <Link
+                to="/applications/new"
+                className="mt-2 inline-block text-blue-600 hover:underline text-sm"
+              >
+                Add your first one →
+              </Link>
+            }
+          />
         ) : (
           <div className="space-y-2">
             {apps.slice(0, 8).map((app) => {

@@ -33,3 +33,6 @@ export type { SkeletonProps } from './Skeleton';
 
 export { Spinner } from './Spinner';
 export type { SpinnerProps, SpinnerSize, SpinnerTone } from './Spinner';
+
+export { EmptyState } from './EmptyState';
+export type { EmptyStateProps, EmptyStateSize } from './EmptyState';

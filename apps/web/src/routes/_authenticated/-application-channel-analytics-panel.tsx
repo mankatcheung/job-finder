@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card, Skeleton } from '@job-finder/ui';
+import { Card, EmptyState, Skeleton } from '@job-finder/ui';
 import {
   applicationChannelAnalyticsQueryOptions,
   type ApplicationGroupStat,
@@ -79,9 +79,11 @@ export function ApplicationChannelAnalyticsPanel() {
       <div className="mb-6">
         <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">By source</h3>
         {analytics.bySource.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-6">
-            Add a source when logging an application to see performance by channel here.
-          </p>
+          <EmptyState
+            size="compact"
+            className="py-6"
+            message="Add a source when logging an application to see performance by channel here."
+          />
         ) : (
           <div className="space-y-1">
             {analytics.bySource.map((stat) => (
@@ -94,9 +96,11 @@ export function ApplicationChannelAnalyticsPanel() {
       <div>
         <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">By tag</h3>
         {analytics.byTag.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-6">
-            Add tags to your applications to see performance by tag here.
-          </p>
+          <EmptyState
+            size="compact"
+            className="py-6"
+            message="Add tags to your applications to see performance by tag here."
+          />
         ) : (
           <div className="space-y-1">
             {analytics.byTag.map((stat) => (
