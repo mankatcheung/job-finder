@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
-import { Button, FormLabel, Input } from '@job-finder/ui';
+import { Button, FormLabel, Input, Select, Textarea } from '@job-finder/ui';
 import {
   LLM_API_KEYS_QUERY,
   SAVE_LLM_API_KEY,
@@ -29,7 +29,6 @@ import {
   type CreateShareLinkPayload,
   LLM_PROVIDER_OPTIONS,
   LLM_PROVIDER_LABEL,
-  inputCls,
   extractGqlError,
 } from './shared';
 
@@ -312,13 +311,13 @@ export function SettingsIntegrationsPage() {
           <form onSubmit={llmApiKeyForm.handleSubmit(onSaveLlmApiKey)} className="space-y-3">
             <div>
               <FormLabel>Provider</FormLabel>
-              <select {...llmApiKeyForm.register('provider')} className={inputCls}>
+              <Select {...llmApiKeyForm.register('provider')}>
                 {availableProviderOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
             <div>
               <FormLabel>API key</FormLabel>
@@ -401,9 +400,9 @@ export function SettingsIntegrationsPage() {
         >
           <div>
             <FormLabel>Custom instructions</FormLabel>
-            <textarea
+            <Textarea
               {...customAiPromptForm.register('customAiPrompt')}
-              className={inputCls}
+              invalid={!!customAiPromptForm.formState.errors.customAiPrompt}
               rows={3}
               placeholder="e.g. Keep cover letters under 200 words and write in a casual tone."
             />

@@ -5,6 +5,7 @@ import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
 import { getErrorMessage } from '#/lib/errors';
 import { ErrorState } from '#/components/ErrorState';
+import { Textarea } from '@job-finder/ui';
 import { StatusBadge } from '../../../-components/StatusBadge';
 import {
   ActivityIcon,
@@ -410,10 +411,10 @@ export function ApplicationDetailPage() {
           {activeTab === 'notes' && (
             <div className="space-y-4">
               <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                <textarea
+                <Textarea
                   value={noteContent}
                   onChange={(e) => setNoteContent(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none h-24"
+                  className="h-24"
                   placeholder="Add a note…"
                 />
                 <div className="mt-2 flex justify-end">
@@ -443,12 +444,12 @@ export function ApplicationDetailPage() {
                 >
                   {editingNote?.id === note.id ? (
                     <>
-                      <textarea
+                      <Textarea
                         value={editingNote.content}
                         onChange={(e) =>
                           setEditingNote({ ...editingNote, content: e.target.value })
                         }
-                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none h-24"
+                        className="h-24"
                       />
                       <div className="mt-2 flex gap-2 justify-end">
                         <button

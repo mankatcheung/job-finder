@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CalendarIcon, CheckIcon, EditIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
-import { Button, FormLabel, Input } from '@job-finder/ui';
+import { Button, FormLabel, Input, Select, Textarea } from '@job-finder/ui';
+
 const INTERVIEW_ROUNDS_QUERY = `
   query InterviewRounds($applicationId: ID!) {
     interviewRounds(applicationId: $applicationId) {
@@ -264,9 +265,6 @@ export function InterviewsTab({
     });
   };
 
-  const inputCls =
-    'w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500';
-
   const RoundForm = ({
     onSubmit,
     onCancel,
@@ -280,31 +278,26 @@ export function InterviewsTab({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <FormLabel size="xs">Type</FormLabel>
-          <select
-            value={form.type}
-            onChange={(e) => setForm({ ...form, type: e.target.value })}
-            className={inputCls}
-          >
+          <Select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
             {ROUND_TYPES.map((t) => (
               <option key={t} value={t}>
                 {t.charAt(0).toUpperCase() + t.slice(1)}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
           <FormLabel size="xs">Outcome</FormLabel>
-          <select
+          <Select
             value={form.outcome}
             onChange={(e) => setForm({ ...form, outcome: e.target.value })}
-            className={inputCls}
           >
             {ROUND_OUTCOMES.map((o) => (
               <option key={o} value={o}>
                 {o.charAt(0).toUpperCase() + o.slice(1)}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
       <div>
@@ -325,10 +318,10 @@ export function InterviewsTab({
       </div>
       <div>
         <FormLabel size="xs">Notes</FormLabel>
-        <textarea
+        <Textarea
           value={form.notes}
           onChange={(e) => setForm({ ...form, notes: e.target.value })}
-          className={`${inputCls} h-20 resize-none`}
+          className="h-20"
           placeholder="How did it go?"
         />
       </div>
