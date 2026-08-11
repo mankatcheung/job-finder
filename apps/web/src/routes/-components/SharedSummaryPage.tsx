@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSearch } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
+import { Alert } from '@job-finder/ui';
 
 const SHARED_SUMMARY_QUERY = `
   query SharedSummary($token: String!) {
@@ -67,15 +68,11 @@ export function SharedSummaryPage() {
         </div>
 
         {!token ? (
-          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-3">
-            This link is missing a token.
-          </p>
+          <Alert>This link is missing a token.</Alert>
         ) : isLoading ? (
           <p className="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
         ) : !summary ? (
-          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-3">
-            This link is invalid or has been revoked.
-          </p>
+          <Alert>This link is invalid or has been revoked.</Alert>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-4">

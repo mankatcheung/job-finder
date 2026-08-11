@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { DocumentDraftEditor } from '../-components/DocumentDraftEditor';
 import { DownloadIcon, TrashIcon, ArrowLeftIcon } from 'lucide-react';
-import { Button, IconButton } from '@job-finder/ui';
+import { Alert, Button, IconButton } from '@job-finder/ui';
 
 const DRAFT_QUERY = `
   query DocumentDraft($id: ID!) {
@@ -167,11 +167,7 @@ function DocumentDraftEditPage() {
         </div>
       </div>
 
-      {error && (
-        <p className="mb-4 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-          {error}
-        </p>
-      )}
+      {error && <Alert className="mb-4">{error}</Alert>}
 
       <DocumentDraftEditor contentJson={draft.contentJson} onUpdate={handleUpdate} />
     </div>

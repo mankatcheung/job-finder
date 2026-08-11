@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient, setAccessToken } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
-import { Button, Input } from '@job-finder/ui';
+import { Alert, Button, Input } from '@job-finder/ui';
 import {
   EXPORT_USER_DATA,
   IMPORT_USER_DATA,
@@ -128,11 +128,7 @@ export function SettingsDataPage() {
             className="hidden"
           />
         </label>
-        {importError && (
-          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-            {importError}
-          </p>
-        )}
+        {importError && <Alert>{importError}</Alert>}
         {importResult && (
           <p className="text-sm text-green-600">
             Imported {importResult.applicationsImported} application
@@ -172,9 +168,7 @@ export function SettingsDataPage() {
             )}
           </div>
           {deleteForm.formState.errors.root && (
-            <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-              {deleteForm.formState.errors.root.message}
-            </p>
+            <Alert>{deleteForm.formState.errors.root.message}</Alert>
           )}
           <Button type="submit" variant="destructive" disabled={deleteForm.formState.isSubmitting}>
             {deleteForm.formState.isSubmitting ? 'Deleting…' : 'Delete my account'}

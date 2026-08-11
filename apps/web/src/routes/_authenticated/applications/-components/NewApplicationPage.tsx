@@ -7,7 +7,7 @@ import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { getErrorMessage } from '#/lib/errors';
 import { StarIcon, XIcon } from 'lucide-react';
-import { Button, Input, Textarea } from '@job-finder/ui';
+import { Alert, Button, Input, Textarea } from '@job-finder/ui';
 import { JdImportPanel } from './JdImportPanel';
 
 const schema = z.object({
@@ -215,11 +215,7 @@ export function NewApplicationPage() {
           </label>
         </div>
 
-        {errors.root && (
-          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-            {errors.root.message}
-          </p>
-        )}
+        {errors.root && <Alert>{errors.root.message}</Alert>}
 
         <div className="flex gap-3 pt-2">
           <Button type="submit" disabled={isSubmitting}>
