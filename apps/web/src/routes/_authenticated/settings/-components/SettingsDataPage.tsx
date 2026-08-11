@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient, setAccessToken } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
+import { Button, Input } from '@job-finder/ui';
 import {
   EXPORT_USER_DATA,
   IMPORT_USER_DATA,
@@ -13,7 +14,6 @@ import {
   type DeleteForm,
   type ImportSummary,
   extractGqlError,
-  inputCls,
   labelCls,
 } from './shared';
 import { useStepUpReauth, STEP_UP_CANCELLED } from './useStepUpReauth';
@@ -159,10 +159,10 @@ export function SettingsDataPage() {
         <form onSubmit={deleteForm.handleSubmit(onDeleteAccount)} className="space-y-3">
           <div>
             <label className={labelCls}>Confirm your password</label>
-            <input
+            <Input
               type="password"
               {...deleteForm.register('password')}
-              className={inputCls}
+              invalid={!!deleteForm.formState.errors.password}
               placeholder="••••••••"
             />
             {deleteForm.formState.errors.password && (
@@ -176,13 +176,9 @@ export function SettingsDataPage() {
               {deleteForm.formState.errors.root.message}
             </p>
           )}
-          <button
-            type="submit"
-            disabled={deleteForm.formState.isSubmitting}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-          >
+          <Button type="submit" variant="destructive" disabled={deleteForm.formState.isSubmitting}>
             {deleteForm.formState.isSubmitting ? 'Deleting…' : 'Delete my account'}
-          </button>
+          </Button>
         </form>
       </section>
     </div>

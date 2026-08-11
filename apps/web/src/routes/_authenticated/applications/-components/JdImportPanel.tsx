@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { SparklesIcon } from 'lucide-react';
+import { Button, Input } from '@job-finder/ui';
 
 const PARSE_JD_MUTATION = `
   mutation ParseJobDescription($text: String, $url: String) {
@@ -109,12 +110,11 @@ export function JdImportPanel({ onFill }: Props) {
               className={`${inputClass} resize-none`}
             />
           ) : (
-            <input
+            <Input
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://company.com/jobs/..."
-              className={inputClass}
             />
           )}
 
@@ -129,15 +129,15 @@ export function JdImportPanel({ onFill }: Props) {
             </p>
           )}
 
-          <button
-            type="button"
+          <Button
             onClick={handleAutoFill}
             disabled={loading || (mode === 'text' ? !text.trim() : !url.trim())}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
           >
-            <SparklesIcon size={13} />
-            {loading ? 'Parsing…' : filled ? 'Filled!' : 'Auto-fill fields'}
-          </button>
+            <span className="flex items-center gap-2">
+              <SparklesIcon size={13} />
+              {loading ? 'Parsing…' : filled ? 'Filled!' : 'Auto-fill fields'}
+            </span>
+          </Button>
           <p className="text-xs text-blue-500 dark:text-blue-400">
             Fields will be pre-filled — you can review and edit before saving.
           </p>

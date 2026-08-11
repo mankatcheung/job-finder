@@ -8,6 +8,7 @@ import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { getErrorMessage } from '#/lib/errors';
 import { StarIcon, XIcon } from 'lucide-react';
+import { Button, Input } from '@job-finder/ui';
 import { JdImportPanel } from '../../-components/JdImportPanel';
 import { applicationQueryOptions } from '../-application-query';
 import { Route } from '../edit';
@@ -165,10 +166,10 @@ export function EditApplicationPage() {
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Company *" error={errors.company?.message}>
-            <input {...register('company')} className={inputClass} />
+            <Input {...register('company')} invalid={!!errors.company} />
           </Field>
           <Field label="Role *" error={errors.role?.message}>
-            <input {...register('role')} className={inputClass} />
+            <Input {...register('role')} invalid={!!errors.role} />
           </Field>
         </div>
 
@@ -183,15 +184,15 @@ export function EditApplicationPage() {
         </Field>
 
         <Field label="Job URL" error={errors.jobUrl?.message}>
-          <input {...register('jobUrl')} className={inputClass} type="url" />
+          <Input {...register('jobUrl')} invalid={!!errors.jobUrl} type="url" />
         </Field>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Location">
-            <input {...register('location')} className={inputClass} />
+            <Input {...register('location')} />
           </Field>
           <Field label="Salary range">
-            <input {...register('salaryRange')} className={inputClass} />
+            <Input {...register('salaryRange')} />
           </Field>
         </div>
 
@@ -201,14 +202,10 @@ export function EditApplicationPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Source">
-            <input
-              {...register('source')}
-              className={inputClass}
-              placeholder="LinkedIn, referral, Indeed…"
-            />
+            <Input {...register('source')} placeholder="LinkedIn, referral, Indeed…" />
           </Field>
           <Field label="Follow-up date">
-            <input {...register('followUpAt')} className={inputClass} type="date" />
+            <Input {...register('followUpAt')} type="date" />
           </Field>
         </div>
 
@@ -233,7 +230,7 @@ export function EditApplicationPage() {
                 ))}
               </div>
             )}
-            <input
+            <Input
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={(e) => {
@@ -244,7 +241,6 @@ export function EditApplicationPage() {
                   setTagInput('');
                 }
               }}
-              className={inputClass}
               placeholder="Type a tag and press Enter…"
             />
           </div>
@@ -272,13 +268,9 @@ export function EditApplicationPage() {
         )}
 
         <div className="flex gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-          >
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Saving…' : 'Save changes'}
-          </button>
+          </Button>
           <a
             href={`/applications/${applicationId}`}
             className="px-5 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"

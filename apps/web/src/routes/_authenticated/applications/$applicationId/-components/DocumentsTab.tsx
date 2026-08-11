@@ -5,6 +5,7 @@ import { put as putBlob } from '@vercel/blob/client';
 import { CheckIcon, ExternalLinkIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
+import { Button, Input } from '@job-finder/ui';
 import { DocumentPreviewModal, isPreviewableMimeType } from './DocumentPreviewModal';
 
 export const DOCUMENTS_QUERY = `
@@ -315,31 +316,37 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
               <label className="block text-xs font-medium text-gray-500 mb-1">
                 Version <span className="font-normal">(optional)</span>
               </label>
-              <input
+              <Input
                 value={docVersion}
                 onChange={(e) => setDocVersion(e.target.value)}
-                className={inputCls}
                 placeholder="e.g. v2"
               />
             </div>
           </div>
           <div className="flex gap-2 justify-end">
-            <button
+            <Button
+              size="sm"
               onClick={handleConfirm}
               disabled={confirming}
               aria-label="Confirm upload"
-              className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-medium rounded-lg"
             >
-              <CheckIcon size={14} />{' '}
-              <span className="hidden sm:inline">{confirming ? 'Saving…' : 'Confirm upload'}</span>
-            </button>
-            <button
+              <span className="flex items-center gap-1">
+                <CheckIcon size={14} />{' '}
+                <span className="hidden sm:inline">
+                  {confirming ? 'Saving…' : 'Confirm upload'}
+                </span>
+              </span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setPendingUpload(null)}
               aria-label="Cancel"
-              className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
             >
-              <XIcon size={14} /> <span className="hidden sm:inline">Cancel</span>
-            </button>
+              <span className="flex items-center gap-1">
+                <XIcon size={14} /> <span className="hidden sm:inline">Cancel</span>
+              </span>
+            </Button>
           </div>
           {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
         </div>
@@ -353,13 +360,13 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               {isPreviewableMimeType(doc.mimeType) ? (
-                <button
-                  type="button"
+                <Button
+                  variant="link"
                   onClick={() => setPreviewDoc(doc)}
-                  className="text-sm font-medium text-blue-600 hover:underline truncate text-left"
+                  className="truncate text-left"
                 >
                   {doc.name}
-                </button>
+                </Button>
               ) : (
                 <a
                   href={doc.url}

@@ -13,6 +13,7 @@ import {
   WrenchIcon,
 } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
+import { Button, IconButton, Input } from '@job-finder/ui';
 import { inputCls, labelCls } from './-components/shared';
 
 export const Route = createFileRoute('/_authenticated/settings/experience')({
@@ -444,16 +445,18 @@ function SettingsExperiencePage() {
               Your professional background for AI-generated content.
             </p>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="link"
+            size="sm"
             onClick={() => {
               setWeEditing(null);
               setWeFormOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline"
           >
-            <PlusIcon size={14} /> <span className="hidden sm:inline">Add</span>
-          </button>
+            <span className="flex items-center gap-1.5">
+              <PlusIcon size={14} /> <span className="hidden sm:inline">Add</span>
+            </span>
+          </Button>
         </div>
 
         {workExperiences.length === 0 && !weFormOpen && (
@@ -482,25 +485,20 @@ function SettingsExperiencePage() {
               )}
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              <button
-                type="button"
+              <IconButton
+                label="Edit"
+                icon={<PencilIcon size={14} />}
                 onClick={() => {
                   setWeEditing(we);
                   setWeFormOpen(true);
                 }}
-                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                aria-label="Edit"
-              >
-                <PencilIcon size={14} />
-              </button>
-              <button
-                type="button"
+              />
+              <IconButton
+                label="Delete"
+                icon={<Trash2Icon size={14} />}
+                variant="danger"
                 onClick={() => deleteWe.mutate(we.id)}
-                className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                aria-label="Delete"
-              >
-                <Trash2Icon size={14} />
-              </button>
+              />
             </div>
           </div>
         ))}
@@ -515,9 +513,9 @@ function SettingsExperiencePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={labelCls}>Company *</label>
-                <input
+                <Input
                   {...weForm.register('company')}
-                  className={inputCls}
+                  invalid={!!weForm.formState.errors.company}
                   placeholder="Acme Corp"
                 />
                 {weForm.formState.errors.company && (
@@ -528,9 +526,9 @@ function SettingsExperiencePage() {
               </div>
               <div>
                 <label className={labelCls}>Title *</label>
-                <input
+                <Input
                   {...weForm.register('title')}
-                  className={inputCls}
+                  invalid={!!weForm.formState.errors.title}
                   placeholder="Software Engineer"
                 />
                 {weForm.formState.errors.title && (
@@ -541,15 +539,15 @@ function SettingsExperiencePage() {
               </div>
               <div>
                 <label className={labelCls}>Location</label>
-                <input
-                  {...weForm.register('location')}
-                  className={inputCls}
-                  placeholder="San Francisco, CA"
-                />
+                <Input {...weForm.register('location')} placeholder="San Francisco, CA" />
               </div>
               <div>
                 <label className={labelCls}>Start Date *</label>
-                <input type="date" {...weForm.register('startDate')} className={inputCls} />
+                <Input
+                  type="date"
+                  {...weForm.register('startDate')}
+                  invalid={!!weForm.formState.errors.startDate}
+                />
                 {weForm.formState.errors.startDate && (
                   <p className="mt-1 text-xs text-red-600">
                     {weForm.formState.errors.startDate.message}
@@ -558,7 +556,7 @@ function SettingsExperiencePage() {
               </div>
               <div>
                 <label className={labelCls}>End Date</label>
-                <input type="date" {...weForm.register('endDate')} className={inputCls} />
+                <Input type="date" {...weForm.register('endDate')} />
               </div>
             </div>
             <div>
@@ -576,24 +574,19 @@ function SettingsExperiencePage() {
               </p>
             )}
             <div className="flex items-center gap-2">
-              <button
-                type="submit"
-                disabled={weForm.formState.isSubmitting}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-              >
+              <Button type="submit" disabled={weForm.formState.isSubmitting}>
                 {weForm.formState.isSubmitting ? 'Saving…' : weEditing ? 'Update' : 'Add'}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => {
                   setWeFormOpen(false);
                   setWeEditing(null);
                   weForm.reset();
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </form>
         )}
@@ -612,16 +605,18 @@ function SettingsExperiencePage() {
               Academic background for AI-generated content.
             </p>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="link"
+            size="sm"
             onClick={() => {
               setEduEditing(null);
               setEduFormOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline"
           >
-            <PlusIcon size={14} /> <span className="hidden sm:inline">Add</span>
-          </button>
+            <span className="flex items-center gap-1.5">
+              <PlusIcon size={14} /> <span className="hidden sm:inline">Add</span>
+            </span>
+          </Button>
         </div>
 
         {educations.length === 0 && !eduFormOpen && (
@@ -651,25 +646,20 @@ function SettingsExperiencePage() {
               )}
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              <button
-                type="button"
+              <IconButton
+                label="Edit"
+                icon={<PencilIcon size={14} />}
                 onClick={() => {
                   setEduEditing(edu);
                   setEduFormOpen(true);
                 }}
-                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                aria-label="Edit"
-              >
-                <PencilIcon size={14} />
-              </button>
-              <button
-                type="button"
+              />
+              <IconButton
+                label="Delete"
+                icon={<Trash2Icon size={14} />}
+                variant="danger"
                 onClick={() => deleteEdu.mutate(edu.id)}
-                className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                aria-label="Delete"
-              >
-                <Trash2Icon size={14} />
-              </button>
+              />
             </div>
           </div>
         ))}
@@ -684,9 +674,9 @@ function SettingsExperiencePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={labelCls}>Institution *</label>
-                <input
+                <Input
                   {...eduForm.register('institution')}
-                  className={inputCls}
+                  invalid={!!eduForm.formState.errors.institution}
                   placeholder="MIT"
                 />
                 {eduForm.formState.errors.institution && (
@@ -697,19 +687,19 @@ function SettingsExperiencePage() {
               </div>
               <div>
                 <label className={labelCls}>Degree</label>
-                <input {...eduForm.register('degree')} className={inputCls} placeholder="B.S." />
+                <Input {...eduForm.register('degree')} placeholder="B.S." />
               </div>
               <div>
                 <label className={labelCls}>Field</label>
-                <input
-                  {...eduForm.register('field')}
-                  className={inputCls}
-                  placeholder="Computer Science"
-                />
+                <Input {...eduForm.register('field')} placeholder="Computer Science" />
               </div>
               <div>
                 <label className={labelCls}>Start Date *</label>
-                <input type="date" {...eduForm.register('startDate')} className={inputCls} />
+                <Input
+                  type="date"
+                  {...eduForm.register('startDate')}
+                  invalid={!!eduForm.formState.errors.startDate}
+                />
                 {eduForm.formState.errors.startDate && (
                   <p className="mt-1 text-xs text-red-600">
                     {eduForm.formState.errors.startDate.message}
@@ -718,7 +708,7 @@ function SettingsExperiencePage() {
               </div>
               <div>
                 <label className={labelCls}>End Date</label>
-                <input type="date" {...eduForm.register('endDate')} className={inputCls} />
+                <Input type="date" {...eduForm.register('endDate')} />
               </div>
             </div>
             <div>
@@ -736,24 +726,19 @@ function SettingsExperiencePage() {
               </p>
             )}
             <div className="flex items-center gap-2">
-              <button
-                type="submit"
-                disabled={eduForm.formState.isSubmitting}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-              >
+              <Button type="submit" disabled={eduForm.formState.isSubmitting}>
                 {eduForm.formState.isSubmitting ? 'Saving…' : eduEditing ? 'Update' : 'Add'}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => {
                   setEduFormOpen(false);
                   setEduEditing(null);
                   eduForm.reset();
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </form>
         )}
@@ -772,16 +757,18 @@ function SettingsExperiencePage() {
               Technical and soft skills for AI-generated content.
             </p>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="link"
+            size="sm"
             onClick={() => {
               setSkillEditing(null);
               setSkillFormOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline"
           >
-            <PlusIcon size={14} /> <span className="hidden sm:inline">Add</span>
-          </button>
+            <span className="flex items-center gap-1.5">
+              <PlusIcon size={14} /> <span className="hidden sm:inline">Add</span>
+            </span>
+          </Button>
         </div>
 
         {skills.length === 0 && !skillFormOpen && (
@@ -801,25 +788,24 @@ function SettingsExperiencePage() {
                     · {skill.proficiency}
                   </span>
                 )}
-                <button
-                  type="button"
+                <IconButton
+                  label="Edit"
+                  icon={<PencilIcon size={12} />}
+                  size="sm"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => {
                     setSkillEditing(skill);
                     setSkillFormOpen(true);
                   }}
-                  className="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label="Edit"
-                >
-                  <PencilIcon size={12} />
-                </button>
-                <button
-                  type="button"
+                />
+                <IconButton
+                  label="Delete"
+                  icon={<Trash2Icon size={12} />}
+                  variant="danger"
+                  size="sm"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => deleteSkill.mutate(skill.id)}
-                  className="p-0.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label="Delete"
-                >
-                  <Trash2Icon size={12} />
-                </button>
+                />
               </div>
             ))}
           </div>
@@ -835,9 +821,9 @@ function SettingsExperiencePage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className={labelCls}>Skill *</label>
-                <input
+                <Input
                   {...skillForm.register('name')}
-                  className={inputCls}
+                  invalid={!!skillForm.formState.errors.name}
                   placeholder="TypeScript"
                 />
                 {skillForm.formState.errors.name && (
@@ -848,11 +834,7 @@ function SettingsExperiencePage() {
               </div>
               <div>
                 <label className={labelCls}>Category</label>
-                <input
-                  {...skillForm.register('category')}
-                  className={inputCls}
-                  placeholder="Language"
-                />
+                <Input {...skillForm.register('category')} placeholder="Language" />
               </div>
               <div>
                 <label className={labelCls}>Proficiency</label>
@@ -871,24 +853,19 @@ function SettingsExperiencePage() {
               </p>
             )}
             <div className="flex items-center gap-2">
-              <button
-                type="submit"
-                disabled={skillForm.formState.isSubmitting}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-              >
+              <Button type="submit" disabled={skillForm.formState.isSubmitting}>
                 {skillForm.formState.isSubmitting ? 'Saving…' : skillEditing ? 'Update' : 'Add'}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => {
                   setSkillFormOpen(false);
                   setSkillEditing(null);
                   skillForm.reset();
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </form>
         )}

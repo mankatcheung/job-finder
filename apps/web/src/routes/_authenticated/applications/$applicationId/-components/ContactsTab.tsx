@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CheckIcon, EditIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
+import { Button, Input } from '@job-finder/ui';
 
 const CONTACTS_QUERY = `
   query Contacts($applicationId: ID!) {
@@ -189,48 +190,43 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Name *</label>
-          <input
+          <Input
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className={inputCls}
             placeholder="Jane Smith"
           />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Role</label>
-          <input
+          <Input
             value={form.role}
             onChange={(e) => setForm({ ...form, role: e.target.value })}
-            className={inputCls}
             placeholder="Technical Recruiter"
           />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Email</label>
-          <input
+          <Input
             type="email"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className={inputCls}
             placeholder="jane@company.com"
           />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Phone</label>
-          <input
+          <Input
             value={form.phone}
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
-            className={inputCls}
             placeholder="+1 555 000 0000"
           />
         </div>
       </div>
       <div>
         <label className="block text-xs font-medium text-gray-500 mb-1">LinkedIn URL</label>
-        <input
+        <Input
           value={form.linkedinUrl}
           onChange={(e) => setForm({ ...form, linkedinUrl: e.target.value })}
-          className={inputCls}
           placeholder="https://linkedin.com/in/..."
         />
       </div>
@@ -244,22 +240,22 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
         />
       </div>
       <div className="flex gap-2 justify-end">
-        <button
+        <Button
+          size="sm"
           onClick={onSubmit}
           disabled={!form.name.trim() || submitting}
           aria-label="Save"
-          className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-medium rounded-lg"
         >
-          <CheckIcon size={14} />{' '}
-          <span className="hidden sm:inline">{submitting ? 'Saving…' : 'Save'}</span>
-        </button>
-        <button
-          onClick={onCancel}
-          aria-label="Cancel"
-          className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
-        >
-          <XIcon size={14} /> <span className="hidden sm:inline">Cancel</span>
-        </button>
+          <span className="flex items-center gap-1">
+            <CheckIcon size={14} />{' '}
+            <span className="hidden sm:inline">{submitting ? 'Saving…' : 'Save'}</span>
+          </span>
+        </Button>
+        <Button variant="ghost" size="sm" onClick={onCancel} aria-label="Cancel">
+          <span className="flex items-center gap-1">
+            <XIcon size={14} /> <span className="hidden sm:inline">Cancel</span>
+          </span>
+        </Button>
       </div>
     </div>
   );
@@ -267,16 +263,18 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
   return (
     <div className="space-y-4">
       {!showForm && !editingContact && (
-        <button
+        <Button
+          size="sm"
           onClick={() => {
             setShowForm(true);
             setForm(emptyContactForm());
           }}
           aria-label="Add contact"
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg"
         >
-          <PlusIcon size={14} /> <span className="hidden sm:inline">Add contact</span>
-        </button>
+          <span className="flex items-center gap-1.5">
+            <PlusIcon size={14} /> <span className="hidden sm:inline">Add contact</span>
+          </span>
+        </Button>
       )}
 
       {showForm && (

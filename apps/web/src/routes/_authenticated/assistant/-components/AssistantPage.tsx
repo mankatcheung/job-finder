@@ -13,6 +13,7 @@ import {
 } from '#/routes/_authenticated/assistant/-shared';
 import { ChatConversationView } from './ChatConversationView';
 import { HistoryIcon, PlusIcon, Trash2Icon } from 'lucide-react';
+import { IconButton } from '@job-finder/ui';
 import { Route } from '../index';
 
 const SUGGESTED_QUESTIONS = [
@@ -68,25 +69,18 @@ export function AssistantPage() {
           <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Assistant</h1>
           <div className="flex items-center gap-1">
             {activeId && (
-              <button
-                type="button"
+              <IconButton
+                label="Delete conversation"
+                icon={<Trash2Icon size={16} />}
+                variant="danger"
                 onClick={onDeleteActiveConversation}
-                aria-label="Delete conversation"
-                title="Delete conversation"
-                className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors"
-              >
-                <Trash2Icon size={16} />
-              </button>
+              />
             )}
-            <button
-              type="button"
+            <IconButton
+              label="New conversation"
+              icon={<PlusIcon size={16} />}
               onClick={onNewConversation}
-              aria-label="New conversation"
-              title="New conversation"
-              className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-lg transition-colors"
-            >
-              <PlusIcon size={16} />
-            </button>
+            />
             <Link
               to="/assistant/history"
               aria-label="Conversation history"
