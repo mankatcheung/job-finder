@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { getErrorMessage } from '#/lib/errors';
-import { Button, Input, Skeleton } from '@job-finder/ui';
+import { Button, Input, Skeleton, Spinner } from '@job-finder/ui';
 import {
   CREATE_CONVERSATION,
   SEND_CHAT_MESSAGE,
@@ -210,7 +210,7 @@ export function ChatConversationView({
         {send.isPending && (
           <div className="flex justify-start">
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2 text-sm text-gray-400 flex items-center gap-2">
-              <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-gray-300 border-t-transparent rounded-full" />
+              <Spinner />
               {LOADING_MESSAGES[loadingMessageIndex]}
             </div>
           </div>

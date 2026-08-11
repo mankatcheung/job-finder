@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { CopyIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
-import { Button, Card } from '@job-finder/ui';
+import { Button, Card, Spinner } from '@job-finder/ui';
 
 const GENERATE_COMPANY_BRIEFING = `
   mutation GenerateCompanyBriefing($applicationId: ID!) {
@@ -45,7 +45,7 @@ export function CompanyBriefingTab({ applicationId }: { applicationId: string })
           <span className="flex items-center gap-2">
             {generate.isPending ? (
               <>
-                <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" />
+                <Spinner tone="white" />
                 Researching…
               </>
             ) : (

@@ -8,7 +8,7 @@ import { getErrorMessage } from '#/lib/errors';
 import { DocumentPreviewModal, isPreviewableMimeType } from './DocumentPreviewModal';
 import { DOCUMENTS_QUERY, type Document } from './DocumentsTab';
 import { SCORE_COLORS, scoreColor } from './HealthScorePanel';
-import { Card, FormLabel, Textarea } from '@job-finder/ui';
+import { Card, FormLabel, Spinner, Textarea } from '@job-finder/ui';
 
 const COMPUTE_RESUME_MATCH_SCORE = `
   mutation ComputeResumeMatchScore($applicationId: ID!, $resumeText: String) {
@@ -114,7 +114,7 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
         >
           {compute.isPending ? (
             <>
-              <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" />
+              <Spinner tone="white" />
               Checking match…
             </>
           ) : (
