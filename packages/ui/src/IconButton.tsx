@@ -1,11 +1,13 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
-export type IconButtonVariant = 'default' | 'danger';
+export type IconButtonVariant = 'default' | 'danger' | 'subtle';
 export type IconButtonSize = 'sm' | 'md';
 
 const VARIANT_CLASSES: Record<IconButtonVariant, string> = {
   default: 'text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
   danger: 'text-gray-400 hover:text-red-600 dark:hover:text-red-400',
+  subtle:
+    'text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200',
 };
 
 const SIZE_CLASSES: Record<IconButtonSize, string> = {
