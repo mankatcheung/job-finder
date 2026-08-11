@@ -8,7 +8,8 @@ import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 import { getErrorMessage } from '#/lib/errors';
 import { LogoMark } from '#/components/LogoMark';
-import { Button, FormLabel, Input } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input } from '@job-finder/ui';
+
 const schema = z.object({
   email: z.string().email('Invalid email'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
@@ -92,11 +93,7 @@ export function LoginPage() {
             </p>
           </div>
 
-          {oauthError && (
-            <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-              {oauthError}
-            </p>
-          )}
+          {oauthError && <Alert>{oauthError}</Alert>}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
@@ -131,7 +128,7 @@ export function LoginPage() {
             </div>
 
             {errors.root && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+              <Alert>
                 {errors.root.message?.includes('register') ? (
                   <>
                     No account found with this email.{' '}
@@ -143,7 +140,7 @@ export function LoginPage() {
                 ) : (
                   (errors.root.message ?? '')
                 )}
-              </p>
+              </Alert>
             )}
 
             <Button type="submit" disabled={isSubmitting} fullWidth>
@@ -214,7 +211,7 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
             </div>
 
             {errors.root && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+              <Alert>
                 {errors.root.message?.includes('register') ? (
                   <>
                     No account found with this email.{' '}
@@ -226,7 +223,7 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
                 ) : (
                   (errors.root.message ?? '')
                 )}
-              </p>
+              </Alert>
             )}
 
             <Button type="submit" disabled={isSubmitting} fullWidth>

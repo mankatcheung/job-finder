@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
-import { Button, FormLabel, Input, Select, Textarea } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input, Select, Textarea } from '@job-finder/ui';
 import {
   LLM_API_KEYS_QUERY,
   SAVE_LLM_API_KEY,
@@ -243,11 +243,7 @@ export function SettingsIntegrationsPage() {
           </p>
         </div>
 
-        {llmKeyListError && (
-          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-            {llmKeyListError}
-          </p>
-        )}
+        {llmKeyListError && <Alert>{llmKeyListError}</Alert>}
 
         {llmApiKeys.length > 0 && (
           <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -380,9 +376,7 @@ export function SettingsIntegrationsPage() {
               </div>
             )}
             {llmApiKeyForm.formState.errors.root && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                {llmApiKeyForm.formState.errors.root.message}
-              </p>
+              <Alert>{llmApiKeyForm.formState.errors.root.message}</Alert>
             )}
             <Button type="submit" disabled={llmApiKeyForm.formState.isSubmitting}>
               {llmApiKeyForm.formState.isSubmitting ? 'Saving…' : 'Add key'}
@@ -416,9 +410,7 @@ export function SettingsIntegrationsPage() {
             )}
           </div>
           {customAiPromptForm.formState.errors.root?.message && (
-            <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-              {customAiPromptForm.formState.errors.root.message}
-            </p>
+            <Alert>{customAiPromptForm.formState.errors.root.message}</Alert>
           )}
           {customAiPromptForm.formState.isSubmitSuccessful &&
             !customAiPromptForm.formState.errors.root?.message && (
@@ -474,11 +466,7 @@ export function SettingsIntegrationsPage() {
 
         {!newApiToken && (
           <>
-            {apiTokenError && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                {apiTokenError}
-              </p>
-            )}
+            {apiTokenError && <Alert>{apiTokenError}</Alert>}
             <div className="flex items-end gap-3">
               <div className="flex-1">
                 <FormLabel>Token name</FormLabel>
@@ -577,11 +565,7 @@ export function SettingsIntegrationsPage() {
 
         {!newShareLink && (
           <>
-            {shareLinkError && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                {shareLinkError}
-              </p>
-            )}
+            {shareLinkError && <Alert>{shareLinkError}</Alert>}
             <div className="flex items-end gap-3">
               <div className="flex-1">
                 <FormLabel>Link name</FormLabel>

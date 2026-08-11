@@ -3,7 +3,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
-import { Button, FormLabel, Input } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input } from '@job-finder/ui';
+
 const schema = z
   .object({
     newPassword: z.string().min(8, 'Password must be at least 8 characters'),
@@ -60,13 +61,9 @@ export function ResetPasswordPage() {
         </div>
 
         {!token ? (
-          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-3">
-            This reset link is invalid. Please request a new one.
-          </p>
+          <Alert>This reset link is invalid. Please request a new one.</Alert>
         ) : isSubmitSuccessful ? (
-          <p className="text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg px-3 py-3">
-            Your password has been reset.
-          </p>
+          <Alert tone="success">Your password has been reset.</Alert>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
@@ -95,11 +92,7 @@ export function ResetPasswordPage() {
               )}
             </div>
 
-            {errors.root && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                {errors.root.message}
-              </p>
-            )}
+            {errors.root && <Alert>{errors.root.message}</Alert>}
 
             <Button type="submit" disabled={isSubmitting} fullWidth>
               {isSubmitting ? 'Resetting…' : 'Reset password'}

@@ -7,7 +7,8 @@ import { gqlClient, setAccessToken } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 import { LogoMark } from '#/components/LogoMark';
-import { Button, FormLabel, Input } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input } from '@job-finder/ui';
+
 const schema = z
   .object({
     email: z.string().email('Invalid email'),
@@ -157,11 +158,7 @@ export function RegisterPage() {
               )}
             </div>
 
-            {errors.root && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                {errors.root.message}
-              </p>
-            )}
+            {errors.root && <Alert>{errors.root.message}</Alert>}
 
             <Button type="submit" disabled={isSubmitting} fullWidth>
               {isSubmitting ? 'Creating account…' : 'Create account'}
