@@ -30,3 +30,6 @@ export type { CardProps } from './Card';
 
 export { Skeleton } from './Skeleton';
 export type { SkeletonProps } from './Skeleton';
+
+export { ProgressBar } from './ProgressBar';
+export type { ProgressBarProps } from './ProgressBar';
