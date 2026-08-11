@@ -39,3 +39,6 @@ export type { EmptyStateProps, EmptyStateSize } from './EmptyState';
 
 export { Checkbox } from './Checkbox';
 export type { CheckboxProps, CheckboxSize, CheckboxTone } from './Checkbox';
+
+export { ProgressBar } from './ProgressBar';
+export type { ProgressBarProps } from './ProgressBar';

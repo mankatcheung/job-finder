@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ErrorState } from '#/components/ErrorState';
-import { Card, EmptyState, Skeleton } from '@job-finder/ui';
+import { Card, EmptyState, ProgressBar, Skeleton } from '@job-finder/ui';
 import {
   AlertCircleIcon,
   BriefcaseIcon,
@@ -115,14 +115,11 @@ export function DashboardPage() {
               {goal.streakWeeks} week{goal.streakWeeks === 1 ? '' : 's'} streak
             </p>
           </div>
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/80 dark:bg-gray-700">
-            <div
-              className="h-full rounded-full bg-blue-600 transition-all"
-              style={{
-                width: `${Math.min(100, (goal.currentWeekCount / goal.weeklyApplicationGoal) * 100)}%`,
-              }}
-            />
-          </div>
+          <ProgressBar
+            className="mt-4"
+            value={goal.currentWeekCount}
+            max={goal.weeklyApplicationGoal}
+          />
         </section>
       )}
 
