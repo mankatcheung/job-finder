@@ -8,7 +8,7 @@ import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { getErrorMessage } from '#/lib/errors';
 import { StarIcon, XIcon } from 'lucide-react';
-import { Button, Input, Textarea } from '@job-finder/ui';
+import { Button, Input, Select, Textarea } from '@job-finder/ui';
 import { JdImportPanel } from '../../-components/JdImportPanel';
 import { applicationQueryOptions } from '../-application-query';
 import { Route } from '../edit';
@@ -174,13 +174,13 @@ export function EditApplicationPage() {
         </div>
 
         <Field label="Status">
-          <select {...register('status')} className={inputClass}>
+          <Select {...register('status')}>
             {APPLICATION_STATUSES.map((s) => (
               <option key={s} value={s}>
                 {s.charAt(0).toUpperCase() + s.slice(1)}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
 
         <Field label="Job URL" error={errors.jobUrl?.message}>
