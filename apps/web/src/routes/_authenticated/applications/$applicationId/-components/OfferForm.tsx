@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Input } from '@job-finder/ui';
+import { Button, Input, Select, Textarea } from '@job-finder/ui';
 
 interface OfferFormData {
   baseSalary: number;
@@ -88,33 +88,31 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Currency
           </label>
-          <select
+          <Select
             value={formData.currency}
             onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           >
             {CURRENCIES.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Period
           </label>
-          <select
+          <Select
             value={formData.period}
             onChange={(e) => setFormData({ ...formData, period: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           >
             {PERIODS.map((p) => (
               <option key={p.value} value={p.value}>
                 {p.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 
@@ -134,12 +132,11 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Benefits
         </label>
-        <textarea
+        <Textarea
           value={formData.benefits}
           onChange={(e) => setFormData({ ...formData, benefits: e.target.value })}
           placeholder="e.g., Health insurance, 401k match, unlimited PTO"
           rows={2}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
         />
       </div>
 
@@ -163,11 +160,10 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Notes
         </label>
-        <textarea
+        <Textarea
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           rows={2}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
         />
       </div>
 

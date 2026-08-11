@@ -5,7 +5,7 @@ import { put as putBlob } from '@vercel/blob/client';
 import { CheckIcon, ExternalLinkIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
-import { Button, Card, Input } from '@job-finder/ui';
+import { Button, Card, Input, Select } from '@job-finder/ui';
 import { DocumentPreviewModal, isPreviewableMimeType } from './DocumentPreviewModal';
 
 export const DOCUMENTS_QUERY = `
@@ -199,9 +199,6 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
     }
   };
 
-  const inputCls =
-    'w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500';
-
   const docs = data?.documents ?? [];
   const drafts = draftsData?.documentDrafts ?? [];
 
@@ -298,16 +295,12 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Document type</label>
-              <select
-                value={docType}
-                onChange={(e) => setDocType(e.target.value)}
-                className={inputCls}
-              >
+              <Select value={docType} onChange={(e) => setDocType(e.target.value)}>
                 <option value="other">Other</option>
                 <option value="resume">Resume</option>
                 <option value="cover_letter">Cover Letter</option>
                 <option value="portfolio">Portfolio</option>
-              </select>
+              </Select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">

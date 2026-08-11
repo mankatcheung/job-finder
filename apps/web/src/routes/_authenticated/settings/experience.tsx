@@ -13,7 +13,7 @@ import {
   WrenchIcon,
 } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
-import { Button, IconButton, Input } from '@job-finder/ui';
+import { Button, IconButton, Input, Select, Textarea } from '@job-finder/ui';
 import { inputCls, labelCls } from './-components/shared';
 
 export const Route = createFileRoute('/_authenticated/settings/experience')({
@@ -561,9 +561,8 @@ function SettingsExperiencePage() {
             </div>
             <div>
               <label className={labelCls}>Description</label>
-              <textarea
+              <Textarea
                 {...weForm.register('description')}
-                className={inputCls}
                 rows={3}
                 placeholder="Key responsibilities and achievements..."
               />
@@ -713,9 +712,8 @@ function SettingsExperiencePage() {
             </div>
             <div>
               <label className={labelCls}>Description</label>
-              <textarea
+              <Textarea
                 {...eduForm.register('description')}
-                className={inputCls}
                 rows={3}
                 placeholder="Notable coursework, activities..."
               />
@@ -838,13 +836,13 @@ function SettingsExperiencePage() {
               </div>
               <div>
                 <label className={labelCls}>Proficiency</label>
-                <select {...skillForm.register('proficiency')} className={inputCls}>
+                <Select {...skillForm.register('proficiency')}>
                   <option value="">Select…</option>
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
                   <option value="advanced">Advanced</option>
                   <option value="expert">Expert</option>
-                </select>
+                </Select>
               </div>
             </div>
             {skillForm.formState.errors.root?.message && (
