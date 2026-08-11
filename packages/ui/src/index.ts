@@ -10,5 +10,8 @@ export type { InputProps } from './Input';
 export { Badge } from './Badge';
 export type { BadgeProps, BadgeTone } from './Badge';
 
+export { Alert } from './Alert';
+export type { AlertProps, AlertTone } from './Alert';
+
 export { Modal } from './Modal';
 export type { ModalProps, ModalSize } from './Modal';

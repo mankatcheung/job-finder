@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
+import { Alert } from '@job-finder/ui';
 
 const searchSchema = z.object({ token: z.string().optional() });
 
@@ -57,15 +58,13 @@ function ConfirmEmailChangePage() {
         )}
 
         {status === 'success' && (
-          <p className="text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg px-3 py-3">
+          <Alert tone="success">
             Your email address has been updated. Sign in again with your new email.
-          </p>
+          </Alert>
         )}
 
         {status === 'error' && (
-          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-3">
-            {token ? errorMessage : 'This confirmation link is invalid.'}
-          </p>
+          <Alert>{token ? errorMessage : 'This confirmation link is invalid.'}</Alert>
         )}
 
         <p className="text-sm text-gray-500 dark:text-gray-400">

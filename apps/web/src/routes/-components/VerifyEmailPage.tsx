@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearch } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
+import { Alert } from '@job-finder/ui';
 
 const VERIFY_EMAIL_MUTATION = `
   mutation VerifyEmail($token: String!) {
@@ -54,16 +55,10 @@ export function VerifyEmailPage() {
           <p className="text-sm text-gray-500 dark:text-gray-400">Verifying your email…</p>
         )}
 
-        {status === 'success' && (
-          <p className="text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg px-3 py-3">
-            Your email has been verified.
-          </p>
-        )}
+        {status === 'success' && <Alert tone="success">Your email has been verified.</Alert>}
 
         {status === 'error' && (
-          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-3">
-            {token ? errorMessage : 'This verification link is invalid.'}
-          </p>
+          <Alert>{token ? errorMessage : 'This verification link is invalid.'}</Alert>
         )}
 
         <p className="text-sm text-gray-500 dark:text-gray-400">

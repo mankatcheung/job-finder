@@ -1,6 +1,7 @@
 import { Link, useSearch } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { gqlClient } from '#/graphql/client';
+import { Alert } from '@job-finder/ui';
 
 const CONFIRM_BACKUP_EMAIL = `
   mutation ConfirmBackupEmail($token: String!) {
@@ -28,14 +29,14 @@ export function ConfirmBackupEmailPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Verify backup email</h1>
         {status === 'loading' && <p className="text-sm text-gray-500">Verifying your email…</p>}
         {status === 'success' && (
-          <p className="text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg px-3 py-3">
+          <Alert tone="success">
             Your backup email is verified and can now be used for account recovery.
-          </p>
+          </Alert>
         )}
         {status === 'error' && (
-          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-3">
+          <Alert>
             This verification link is invalid or expired. Request a new one from Security settings.
-          </p>
+          </Alert>
         )}
         <Link to="/login" className="text-sm text-blue-600 hover:underline">
           Back to sign in

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient, setAccessToken } from '#/graphql/client';
-import { Button, Input, Modal } from '@job-finder/ui';
+import { Alert, Button, Input, Modal } from '@job-finder/ui';
 import {
   REAUTHENTICATE,
   reauthSchema,
@@ -130,11 +130,7 @@ function StepUpReauthDialog({
               )}
             </div>
           )}
-          {form.formState.errors.root && (
-            <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-              {form.formState.errors.root.message}
-            </p>
-          )}
+          {form.formState.errors.root && <Alert>{form.formState.errors.root.message}</Alert>}
           <div className="flex gap-2 justify-end pt-2">
             <Button variant="link" onClick={onCancel}>
               Cancel

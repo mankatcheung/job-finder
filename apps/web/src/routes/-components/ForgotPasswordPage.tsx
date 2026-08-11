@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
-import { Button, Input } from '@job-finder/ui';
+import { Alert, Button, Input } from '@job-finder/ui';
 
 const schema = z.object({
   email: z.string().email('Invalid email'),
@@ -58,9 +58,9 @@ export function ForgotPasswordPage() {
         </div>
 
         {isSubmitSuccessful ? (
-          <p className="text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg px-3 py-3">
+          <Alert tone="success">
             If an account exists for that email, we&apos;ve sent a recovery link. Check your inbox.
-          </p>
+          </Alert>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
