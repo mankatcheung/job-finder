@@ -5,7 +5,7 @@ import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
 import { getErrorMessage } from '#/lib/errors';
 import { ErrorState } from '#/components/ErrorState';
-import { Textarea } from '@job-finder/ui';
+import { Card, Textarea } from '@job-finder/ui';
 import { StatusBadge } from '../../../-components/StatusBadge';
 import {
   ActivityIcon,
@@ -261,7 +261,7 @@ export function ApplicationDetailPage() {
         </a>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 mb-6">
+      <Card className="p-4 sm:p-6 mb-6">
         <div className="flex items-start justify-between gap-x-3 gap-y-2 flex-wrap">
           <div className="min-w-0">
             <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{app.company}</h1>
@@ -361,7 +361,7 @@ export function ApplicationDetailPage() {
         </dl>
 
         {healthScore && <HealthScorePanel healthScore={healthScore} />}
-      </div>
+      </Card>
 
       <div className="flex flex-col md:flex-row gap-6">
         {/* Mobile: horizontal scrollable strip */}
@@ -410,7 +410,7 @@ export function ApplicationDetailPage() {
         <div className="flex-1 min-w-0">
           {activeTab === 'notes' && (
             <div className="space-y-4">
-              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+              <Card className="p-4">
                 <Textarea
                   value={noteContent}
                   onChange={(e) => setNoteContent(e.target.value)}
@@ -429,7 +429,7 @@ export function ApplicationDetailPage() {
                     <PlusIcon size={14} /> <span className="hidden sm:inline">Add note</span>
                   </button>
                 </div>
-              </div>
+              </Card>
 
               {isNotesError && (
                 <p className="text-sm text-red-600 dark:text-red-400 py-2">
@@ -438,10 +438,7 @@ export function ApplicationDetailPage() {
               )}
 
               {notes.map((note) => (
-                <div
-                  key={note.id}
-                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
-                >
+                <Card key={note.id} className="p-4">
                   {editingNote?.id === note.id ? (
                     <>
                       <Textarea
@@ -504,7 +501,7 @@ export function ApplicationDetailPage() {
                   <p className="text-xs text-gray-400 mt-2">
                     {new Date(note.createdAt).toLocaleString()}
                   </p>
-                </div>
+                </Card>
               ))}
             </div>
           )}
