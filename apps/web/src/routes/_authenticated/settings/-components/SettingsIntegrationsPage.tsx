@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
-import { Button, Input, Select } from '@job-finder/ui';
+import { Button, Input, Select, Textarea } from '@job-finder/ui';
 import {
   LLM_API_KEYS_QUERY,
   SAVE_LLM_API_KEY,
@@ -402,9 +402,9 @@ export function SettingsIntegrationsPage() {
         >
           <div>
             <label className={labelCls}>Custom instructions</label>
-            <textarea
+            <Textarea
               {...customAiPromptForm.register('customAiPrompt')}
-              className={inputCls}
+              invalid={!!customAiPromptForm.formState.errors.customAiPrompt}
               rows={3}
               placeholder="e.g. Keep cover letters under 200 words and write in a casual tone."
             />
