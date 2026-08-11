@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { getErrorMessage } from '#/lib/errors';
-import { Button, Input } from '@job-finder/ui';
+import { Button, Input, Skeleton } from '@job-finder/ui';
 import {
   CREATE_CONVERSATION,
   SEND_CHAT_MESSAGE,
@@ -161,7 +161,7 @@ export function ChatConversationView({
         {conversationId && isHistoryLoading ? (
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-12 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+              <Skeleton key={i} className="h-12 rounded-xl" />
             ))}
           </div>
         ) : (

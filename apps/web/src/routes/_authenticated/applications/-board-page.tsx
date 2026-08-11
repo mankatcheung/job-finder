@@ -18,6 +18,7 @@ import { StatusBadge } from '../-components/StatusBadge';
 import { ErrorState } from '#/components/ErrorState';
 import { ListIcon, PlusIcon, StarIcon } from 'lucide-react';
 import { boardApplicationsQueryOptions, type BoardApplication } from './-board-queries';
+import { Skeleton } from '@job-finder/ui';
 
 const UPDATE_STATUS = `
   mutation UpdateApplicationStatus($id: ID!, $input: UpdateApplicationInput!) {
@@ -110,10 +111,7 @@ export function KanbanBoard() {
       <div className="p-4 sm:p-6 flex flex-col h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
         <div className="flex gap-3 overflow-x-auto pb-4 flex-1">
           {[...Array(4)].map((_, i) => (
-            <div
-              key={i}
-              className="flex-shrink-0 w-60 h-96 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse"
-            />
+            <Skeleton key={i} className="flex-shrink-0 w-60 h-96 rounded-xl" />
           ))}
         </div>
       </div>

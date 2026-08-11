@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card } from '@job-finder/ui';
+import { Card, Skeleton } from '@job-finder/ui';
 import { responseTimeAnalyticsQueryOptions } from './-response-time-analytics-queries';
 
 const STATUS_LABEL: Record<string, string> = {
@@ -34,7 +34,7 @@ export function ResponseTimeAnalyticsPanel() {
   const { data, isLoading } = useQuery(responseTimeAnalyticsQueryOptions);
 
   if (isLoading) {
-    return <div className="h-48 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />;
+    return <Skeleton className="h-48 rounded-xl" />;
   }
 
   const analytics = data?.responseTimeAnalytics;

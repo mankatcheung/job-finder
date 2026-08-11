@@ -3,7 +3,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useMemo } from 'react';
 import { showUndoToast } from '#/lib/undoToast';
 import { ErrorState } from '#/components/ErrorState';
-import { Card } from '@job-finder/ui';
+import { Card, Skeleton } from '@job-finder/ui';
 import { StatusBadge } from '../../-components/StatusBadge';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { useBulkActions } from '../-useBulkActions';
@@ -165,7 +165,7 @@ function ApplicationsPage() {
       {isLoading ? (
         <div className="space-y-3">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-20 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
+            <Skeleton key={i} className="h-20 rounded-lg" />
           ))}
         </div>
       ) : isError ? (

@@ -27,3 +27,6 @@ export type { FormLabelProps, FormLabelSize } from './FormLabel';
 
 export { Card } from './Card';
 export type { CardProps } from './Card';
+
+export { Skeleton } from './Skeleton';
+export type { SkeletonProps } from './Skeleton';

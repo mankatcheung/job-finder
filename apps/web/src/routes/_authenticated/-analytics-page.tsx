@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { ErrorState } from '#/components/ErrorState';
-import { Card } from '@job-finder/ui';
+import { Card, Skeleton } from '@job-finder/ui';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { analyticsQueryOptions } from './-analytics-queries';
 import { DocumentVersionOutcomesPanel } from './-document-version-outcomes-panel';
@@ -99,7 +99,7 @@ export function AnalyticsPage() {
     return (
       <div className="p-4 sm:p-8 max-w-5xl mx-auto space-y-6">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-64 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+          <Skeleton key={i} className="h-64 rounded-xl" />
         ))}
       </div>
     );
