@@ -29,7 +29,6 @@ import {
   type CreateShareLinkPayload,
   LLM_PROVIDER_OPTIONS,
   LLM_PROVIDER_LABEL,
-  inputCls,
   labelCls,
   extractGqlError,
 } from './shared';
