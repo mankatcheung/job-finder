@@ -13,7 +13,7 @@ import {
   WrenchIcon,
 } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
-import { Button, IconButton, Input, Select, Textarea } from '@job-finder/ui';
+import { Alert, Button, IconButton, Input, Select, Textarea } from '@job-finder/ui';
 import { labelCls } from './-components/shared';
 
 export const Route = createFileRoute('/_authenticated/settings/experience')({
@@ -568,9 +568,7 @@ function SettingsExperiencePage() {
               />
             </div>
             {weForm.formState.errors.root?.message && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                {weForm.formState.errors.root.message}
-              </p>
+              <Alert>{weForm.formState.errors.root.message}</Alert>
             )}
             <div className="flex items-center gap-2">
               <Button type="submit" disabled={weForm.formState.isSubmitting}>
@@ -719,9 +717,7 @@ function SettingsExperiencePage() {
               />
             </div>
             {eduForm.formState.errors.root?.message && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                {eduForm.formState.errors.root.message}
-              </p>
+              <Alert>{eduForm.formState.errors.root.message}</Alert>
             )}
             <div className="flex items-center gap-2">
               <Button type="submit" disabled={eduForm.formState.isSubmitting}>
@@ -846,9 +842,7 @@ function SettingsExperiencePage() {
               </div>
             </div>
             {skillForm.formState.errors.root?.message && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                {skillForm.formState.errors.root.message}
-              </p>
+              <Alert>{skillForm.formState.errors.root.message}</Alert>
             )}
             <div className="flex items-center gap-2">
               <Button type="submit" disabled={skillForm.formState.isSubmitting}>

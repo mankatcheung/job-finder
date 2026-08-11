@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { UserIcon, Trash2Icon } from 'lucide-react';
 import { put as putBlob } from '@vercel/blob/client';
 import { gqlClient } from '#/graphql/client';
-import { Button, Input } from '@job-finder/ui';
+import { Alert, Button, Input } from '@job-finder/ui';
 import { useTheme, type Theme } from '#/lib/theme';
 import { MonitorIcon, MoonIcon, SunIcon } from 'lucide-react';
 import {
@@ -246,9 +246,7 @@ export function SettingsProfilePage() {
             )}
           </div>
           {profileForm.formState.errors.root?.message && (
-            <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-              {profileForm.formState.errors.root.message}
-            </p>
+            <Alert>{profileForm.formState.errors.root.message}</Alert>
           )}
           {profileForm.formState.isSubmitSuccessful &&
             !profileForm.formState.errors.root?.message && (

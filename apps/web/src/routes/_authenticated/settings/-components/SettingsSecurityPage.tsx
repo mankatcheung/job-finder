@@ -1,5 +1,5 @@
 import { UnlinkIcon, CheckIcon, LogOutIcon, BanIcon } from 'lucide-react';
-import { Button, Input } from '@job-finder/ui';
+import { Alert, Button, Input } from '@job-finder/ui';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -287,9 +287,7 @@ export function SettingsSecurityPage() {
             )}
           </div>
           {emailForm.formState.errors.root?.message && (
-            <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-              {emailForm.formState.errors.root.message}
-            </p>
+            <Alert>{emailForm.formState.errors.root.message}</Alert>
           )}
           {emailForm.formState.isSubmitSuccessful && !emailForm.formState.errors.root?.message && (
             <p className="text-sm text-green-600">
@@ -340,9 +338,7 @@ export function SettingsSecurityPage() {
                 )}
               </div>
               {removeBackupEmailForm.formState.errors.root?.message && (
-                <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                  {removeBackupEmailForm.formState.errors.root.message}
-                </p>
+                <Alert>{removeBackupEmailForm.formState.errors.root.message}</Alert>
               )}
               <Button
                 type="submit"
@@ -384,9 +380,7 @@ export function SettingsSecurityPage() {
               )}
             </div>
             {backupEmailForm.formState.errors.root?.message && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                {backupEmailForm.formState.errors.root.message}
-              </p>
+              <Alert>{backupEmailForm.formState.errors.root.message}</Alert>
             )}
             {backupEmailForm.formState.isSubmitSuccessful && (
               <p className="text-sm text-green-600">
@@ -454,9 +448,7 @@ export function SettingsSecurityPage() {
             )}
           </div>
           {passwordForm.formState.errors.root && (
-            <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-              {passwordForm.formState.errors.root.message}
-            </p>
+            <Alert>{passwordForm.formState.errors.root.message}</Alert>
           )}
           {passwordForm.formState.isSubmitSuccessful && !passwordForm.formState.errors.root && (
             <p className="text-sm text-green-600">Password updated successfully.</p>
@@ -479,11 +471,7 @@ export function SettingsSecurityPage() {
             Sign in faster by linking a provider to your account.
           </p>
         </div>
-        {unlinkError && (
-          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-            {unlinkError}
-          </p>
-        )}
+        {unlinkError && <Alert>{unlinkError}</Alert>}
         <div className="space-y-2">
           {(['google', 'github'] as const).map((provider) => {
             const linked = linkedAccounts.find((a) => a.provider === provider);
@@ -574,9 +562,7 @@ export function SettingsSecurityPage() {
                 )}
               </div>
               {totpDisableForm.formState.errors.root && (
-                <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                  {totpDisableForm.formState.errors.root.message}
-                </p>
+                <Alert>{totpDisableForm.formState.errors.root.message}</Alert>
               )}
               <Button
                 type="submit"
@@ -613,9 +599,7 @@ export function SettingsSecurityPage() {
                 )}
               </div>
               {regenerateBackupCodesForm.formState.errors.root && (
-                <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                  {regenerateBackupCodesForm.formState.errors.root.message}
-                </p>
+                <Alert>{regenerateBackupCodesForm.formState.errors.root.message}</Alert>
               )}
               <button
                 type="submit"
@@ -658,9 +642,7 @@ export function SettingsSecurityPage() {
                 )}
               </div>
               {totpConfirmForm.formState.errors.root && (
-                <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                  {totpConfirmForm.formState.errors.root.message}
-                </p>
+                <Alert>{totpConfirmForm.formState.errors.root.message}</Alert>
               )}
               <Button type="submit" disabled={totpConfirmForm.formState.isSubmitting}>
                 {totpConfirmForm.formState.isSubmitting ? 'Confirming…' : 'Confirm'}
@@ -684,9 +666,7 @@ export function SettingsSecurityPage() {
               )}
             </div>
             {totpBeginForm.formState.errors.root && (
-              <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-                {totpBeginForm.formState.errors.root.message}
-              </p>
+              <Alert>{totpBeginForm.formState.errors.root.message}</Alert>
             )}
             <Button type="submit" disabled={totpBeginForm.formState.isSubmitting}>
               {totpBeginForm.formState.isSubmitting ? 'Starting…' : 'Enable 2FA'}
@@ -767,11 +747,7 @@ export function SettingsSecurityPage() {
             two-factor authentication, and session revocations.
           </p>
         </div>
-        {securityActivityError && (
-          <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
-            {securityActivityError}
-          </p>
-        )}
+        {securityActivityError && <Alert>{securityActivityError}</Alert>}
         {!securityActivityError && securityActivity === null && (
           <p className="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
         )}
