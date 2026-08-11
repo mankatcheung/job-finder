@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Card } from '@job-finder/ui';
 import { documentVersionOutcomesQueryOptions } from './-document-version-outcomes-queries';
 
 const DOCUMENT_TYPE_LABEL: Record<string, string> = {
@@ -34,7 +35,7 @@ export function DocumentVersionOutcomesPanel() {
   if (!outcomes) return null;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+    <Card className="p-6">
       <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
         Resume &amp; cover letter versions
       </h2>
@@ -86,6 +87,6 @@ export function DocumentVersionOutcomesPanel() {
           })}
         </div>
       )}
-    </div>
+    </Card>
   );
 }

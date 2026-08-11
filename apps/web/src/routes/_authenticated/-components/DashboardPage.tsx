@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ErrorState } from '#/components/ErrorState';
+import { Card } from '@job-finder/ui';
 import {
   AlertCircleIcon,
   BriefcaseIcon,
@@ -243,9 +244,7 @@ function StatCard({
     orange: 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
   };
   return (
-    <div
-      className={`bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 ${className}`}
-    >
+    <Card className={`p-4 ${className}`}>
       <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${colors[color]}`}>
         {icon}
       </div>
@@ -255,6 +254,6 @@ function StatCard({
         <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{value}</p>
       )}
       <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
-    </div>
+    </Card>
   );
 }

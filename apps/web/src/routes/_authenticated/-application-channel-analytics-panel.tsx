@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Card } from '@job-finder/ui';
 import {
   applicationChannelAnalyticsQueryOptions,
   type ApplicationGroupStat,
@@ -67,7 +68,7 @@ export function ApplicationChannelAnalyticsPanel() {
   if (!analytics) return null;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+    <Card className="p-6">
       <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
         Source &amp; tag performance
       </h2>
@@ -104,6 +105,6 @@ export function ApplicationChannelAnalyticsPanel() {
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

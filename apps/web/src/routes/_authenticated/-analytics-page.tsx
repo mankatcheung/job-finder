@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { ErrorState } from '#/components/ErrorState';
+import { Card } from '@job-finder/ui';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { analyticsQueryOptions } from './-analytics-queries';
 import { DocumentVersionOutcomesPanel } from './-document-version-outcomes-panel';
@@ -124,19 +125,16 @@ export function AnalyticsPage() {
           { label: 'Offer rate', value: `${successRate}%`, color: 'text-green-600' },
           { label: 'Ghosting rate', value: `${ghostingRate}%`, color: 'text-gray-500' },
         ].map(({ label, value, color }) => (
-          <div
-            key={label}
-            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
-          >
+          <Card key={label} className="p-4">
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{label}</p>
             <p className={`text-2xl font-bold ${color ?? 'text-gray-900 dark:text-gray-100'}`}>
               {value}
             </p>
-          </div>
+          </Card>
         ))}
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+      <Card className="p-6">
         <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
           Applications per week
         </h2>
@@ -152,9 +150,9 @@ export function AnalyticsPage() {
             </BarChart>
           </ResponsiveContainer>
         )}
-      </div>
+      </Card>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+      <Card className="p-6">
         <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
           Stage funnel
         </h2>
@@ -178,7 +176,7 @@ export function AnalyticsPage() {
             </BarChart>
           </ResponsiveContainer>
         )}
-      </div>
+      </Card>
 
       <DocumentVersionOutcomesPanel />
       <InterviewRoundAnalyticsPanel />

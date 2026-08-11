@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CheckIcon, EditIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
-import { Button, Input, Textarea } from '@job-finder/ui';
+import { Button, Card, Input, Textarea } from '@job-finder/ui';
 
 const CONTACTS_QUERY = `
   query Contacts($applicationId: ID!) {
@@ -183,7 +183,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
     onCancel: () => void;
     submitting: boolean;
   }) => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+    <Card className="p-4 space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Name *</label>
@@ -254,7 +254,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
           </span>
         </Button>
       </div>
-    </div>
+    </Card>
   );
 
   return (
@@ -289,10 +289,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
       )}
 
       {contacts.map((contact) => (
-        <div
-          key={contact.id}
-          className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
-        >
+        <Card key={contact.id} className="p-4">
           {editingContact?.id === contact.id ? (
             <ContactForm
               onSubmit={() => updateContact.mutate({ id: contact.id, f: form })}
@@ -368,7 +365,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
               </div>
             </div>
           )}
-        </div>
+        </Card>
       ))}
     </div>
   );
