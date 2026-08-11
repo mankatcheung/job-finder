@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Card } from '@job-finder/ui';
 import { interviewRoundAnalyticsQueryOptions } from './-interview-round-analytics-queries';
 
 const TYPE_LABEL: Record<string, string> = {
@@ -38,7 +39,7 @@ export function InterviewRoundAnalyticsPanel() {
   if (!analytics) return null;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+    <Card className="p-6">
       <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
         Interview round outcomes
       </h2>
@@ -110,6 +111,6 @@ export function InterviewRoundAnalyticsPanel() {
           </p>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

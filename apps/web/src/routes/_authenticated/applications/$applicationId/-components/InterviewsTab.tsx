@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CalendarIcon, CheckIcon, EditIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
-import { Button, Input } from '@job-finder/ui';
+import { Button, Card, Input } from '@job-finder/ui';
 
 const INTERVIEW_ROUNDS_QUERY = `
   query InterviewRounds($applicationId: ID!) {
@@ -277,7 +277,7 @@ export function InterviewsTab({
     onCancel: () => void;
     submitting: boolean;
   }) => (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+    <Card className="p-4 space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
@@ -341,7 +341,7 @@ export function InterviewsTab({
           Cancel
         </Button>
       </div>
-    </div>
+    </Card>
   );
 
   return (
@@ -386,10 +386,7 @@ export function InterviewsTab({
       )}
 
       {rounds.map((round) => (
-        <div
-          key={round.id}
-          className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
-        >
+        <Card key={round.id} className="p-4">
           {editingRound?.id === round.id ? (
             <RoundForm
               onSubmit={() => updateRound.mutate({ id: round.id, f: form })}
@@ -457,7 +454,7 @@ export function InterviewsTab({
               </p>
             </>
           )}
-        </div>
+        </Card>
       ))}
     </div>
   );

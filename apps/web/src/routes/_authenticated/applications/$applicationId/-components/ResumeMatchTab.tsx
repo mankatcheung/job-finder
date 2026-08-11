@@ -8,6 +8,7 @@ import { getErrorMessage } from '#/lib/errors';
 import { DocumentPreviewModal, isPreviewableMimeType } from './DocumentPreviewModal';
 import { DOCUMENTS_QUERY, type Document } from './DocumentsTab';
 import { SCORE_COLORS, scoreColor } from './HealthScorePanel';
+import { Card } from '@job-finder/ui';
 
 const COMPUTE_RESUME_MATCH_SCORE = `
   mutation ComputeResumeMatchScore($applicationId: ID!, $resumeText: String) {
@@ -62,7 +63,7 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+      <Card className="p-4 space-y-3">
         {usingUploadedResume && resumeDoc ? (
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -142,10 +143,10 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
             )}
           </p>
         )}
-      </div>
+      </Card>
 
       {result && color && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+        <Card className="p-4 space-y-4">
           <div
             className={`rounded-xl border border-gray-100 dark:border-gray-700 ${color.bg} p-3 flex items-center gap-3`}
           >
@@ -233,7 +234,7 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
               </div>
             </div>
           )}
-        </div>
+        </Card>
       )}
       <DocumentPreviewModal
         document={previewOpen && resumeDoc ? resumeDoc : null}

@@ -5,7 +5,7 @@ import { put as putBlob } from '@vercel/blob/client';
 import { CheckIcon, ExternalLinkIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
-import { Button, Input } from '@job-finder/ui';
+import { Button, Card, Input } from '@job-finder/ui';
 import { DocumentPreviewModal, isPreviewableMimeType } from './DocumentPreviewModal';
 
 export const DOCUMENTS_QUERY = `
@@ -220,10 +220,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
       {drafts.length > 0 && (
         <div className="space-y-3">
           {drafts.map((draft) => (
-            <div
-              key={draft.id}
-              className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
-            >
+            <Card key={draft.id} className="flex items-center justify-between px-4 py-3">
               <div className="min-w-0">
                 <Link
                   to="/applications/$applicationId/documents/$draftId"
@@ -261,7 +258,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
               >
                 <Trash2Icon size={14} />
               </button>
-            </div>
+            </Card>
           ))}
         </div>
       )}
@@ -353,10 +350,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
       )}
 
       {docs.map((doc) => (
-        <div
-          key={doc.id}
-          className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
-        >
+        <Card key={doc.id} className="flex items-center justify-between px-4 py-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               {isPreviewableMimeType(doc.mimeType) ? (
@@ -417,7 +411,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
               <Trash2Icon size={14} />
             </button>
           </div>
-        </div>
+        </Card>
       ))}
       <DocumentPreviewModal document={previewDoc} onClose={() => setPreviewDoc(null)} />
     </div>

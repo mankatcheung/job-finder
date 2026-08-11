@@ -3,6 +3,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useMemo } from 'react';
 import { showUndoToast } from '#/lib/undoToast';
 import { ErrorState } from '#/components/ErrorState';
+import { Card } from '@job-finder/ui';
 import { StatusBadge } from '../../-components/StatusBadge';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { useBulkActions } from '../-useBulkActions';
@@ -198,9 +199,9 @@ function ApplicationsPage() {
           </label>
 
           {apps.map((app) => (
-            <div
+            <Card
               key={app.id}
-              className="flex items-center gap-3 px-5 py-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+              className="flex items-center gap-3 px-5 py-4 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
             >
               <input
                 type="checkbox"
@@ -255,7 +256,7 @@ function ApplicationsPage() {
                   )}
                 </div>
               </Link>
-            </div>
+            </Card>
           ))}
 
           <div ref={sentinelRef} className="h-1" />

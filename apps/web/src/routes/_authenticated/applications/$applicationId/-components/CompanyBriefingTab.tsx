@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { CopyIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
-import { Button } from '@job-finder/ui';
+import { Button, Card } from '@job-finder/ui';
 
 const GENERATE_COMPANY_BRIEFING = `
   mutation GenerateCompanyBriefing($applicationId: ID!) {
@@ -35,7 +35,7 @@ export function CompanyBriefingTab({ applicationId }: { applicationId: string })
 
   return (
     <div className="space-y-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+      <Card className="p-4 space-y-3">
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Generate a quick pre-interview briefing — company overview, likely culture and interview
           style, and talking points — based on this application&apos;s company, role, and job
@@ -68,10 +68,10 @@ export function CompanyBriefingTab({ applicationId }: { applicationId: string })
             )}
           </p>
         )}
-      </div>
+      </Card>
 
       {briefing && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+        <Card className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Company briefing
@@ -90,7 +90,7 @@ export function CompanyBriefingTab({ applicationId }: { applicationId: string })
           <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-sans leading-relaxed">
             {briefing}
           </pre>
-        </div>
+        </Card>
       )}
     </div>
   );

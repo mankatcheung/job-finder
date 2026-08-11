@@ -12,3 +12,6 @@ export type { BadgeProps, BadgeTone } from './Badge';
 
 export { Modal } from './Modal';
 export type { ModalProps, ModalSize } from './Modal';
+
+export { Card } from './Card';
+export type { CardProps } from './Card';

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
+import { Card } from '@job-finder/ui';
 
 const ACTIVITY_LOGS_QUERY = `
   query ActivityLogs($applicationId: ID!) {
@@ -64,10 +65,7 @@ export function ActivityTab({ applicationId }: { applicationId: string }) {
       {logs.map((log) => {
         const detail = formatActivityPayload(log.eventType, log.payload);
         return (
-          <div
-            key={log.id}
-            className="flex items-start gap-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3"
-          >
+          <Card key={log.id} className="flex items-start gap-3 p-3">
             <span className="text-lg leading-none mt-0.5">{EVENT_ICONS[log.eventType] ?? '•'}</span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -78,7 +76,7 @@ export function ActivityTab({ applicationId }: { applicationId: string }) {
                 {new Date(log.createdAt).toLocaleString()}
               </p>
             </div>
-          </div>
+          </Card>
         );
       })}
     </div>
