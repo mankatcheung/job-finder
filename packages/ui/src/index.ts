@@ -22,5 +22,8 @@ export type { AlertProps, AlertTone } from './Alert';
 export { Modal } from './Modal';
 export type { ModalProps, ModalSize } from './Modal';
 
+export { FormLabel } from './FormLabel';
+export type { FormLabelProps, FormLabelSize } from './FormLabel';
+
 export { Card } from './Card';
 export type { CardProps } from './Card';

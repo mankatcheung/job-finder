@@ -13,8 +13,7 @@ import {
   WrenchIcon,
 } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
-import { Alert, Button, IconButton, Input, Select, Textarea } from '@job-finder/ui';
-import { labelCls } from './-components/shared';
+import { Alert, Button, FormLabel, IconButton, Input, Select, Textarea } from '@job-finder/ui';
 
 export const Route = createFileRoute('/_authenticated/settings/experience')({
   component: SettingsExperiencePage,
@@ -512,7 +511,7 @@ function SettingsExperiencePage() {
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className={labelCls}>Company *</label>
+                <FormLabel>Company *</FormLabel>
                 <Input
                   {...weForm.register('company')}
                   invalid={!!weForm.formState.errors.company}
@@ -525,7 +524,7 @@ function SettingsExperiencePage() {
                 )}
               </div>
               <div>
-                <label className={labelCls}>Title *</label>
+                <FormLabel>Title *</FormLabel>
                 <Input
                   {...weForm.register('title')}
                   invalid={!!weForm.formState.errors.title}
@@ -538,11 +537,11 @@ function SettingsExperiencePage() {
                 )}
               </div>
               <div>
-                <label className={labelCls}>Location</label>
+                <FormLabel>Location</FormLabel>
                 <Input {...weForm.register('location')} placeholder="San Francisco, CA" />
               </div>
               <div>
-                <label className={labelCls}>Start Date *</label>
+                <FormLabel>Start Date *</FormLabel>
                 <Input
                   type="date"
                   {...weForm.register('startDate')}
@@ -555,12 +554,12 @@ function SettingsExperiencePage() {
                 )}
               </div>
               <div>
-                <label className={labelCls}>End Date</label>
+                <FormLabel>End Date</FormLabel>
                 <Input type="date" {...weForm.register('endDate')} />
               </div>
             </div>
             <div>
-              <label className={labelCls}>Description</label>
+              <FormLabel>Description</FormLabel>
               <Textarea
                 {...weForm.register('description')}
                 rows={3}
@@ -670,7 +669,7 @@ function SettingsExperiencePage() {
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className={labelCls}>Institution *</label>
+                <FormLabel>Institution *</FormLabel>
                 <Input
                   {...eduForm.register('institution')}
                   invalid={!!eduForm.formState.errors.institution}
@@ -683,15 +682,15 @@ function SettingsExperiencePage() {
                 )}
               </div>
               <div>
-                <label className={labelCls}>Degree</label>
+                <FormLabel>Degree</FormLabel>
                 <Input {...eduForm.register('degree')} placeholder="B.S." />
               </div>
               <div>
-                <label className={labelCls}>Field</label>
+                <FormLabel>Field</FormLabel>
                 <Input {...eduForm.register('field')} placeholder="Computer Science" />
               </div>
               <div>
-                <label className={labelCls}>Start Date *</label>
+                <FormLabel>Start Date *</FormLabel>
                 <Input
                   type="date"
                   {...eduForm.register('startDate')}
@@ -704,12 +703,12 @@ function SettingsExperiencePage() {
                 )}
               </div>
               <div>
-                <label className={labelCls}>End Date</label>
+                <FormLabel>End Date</FormLabel>
                 <Input type="date" {...eduForm.register('endDate')} />
               </div>
             </div>
             <div>
-              <label className={labelCls}>Description</label>
+              <FormLabel>Description</FormLabel>
               <Textarea
                 {...eduForm.register('description')}
                 rows={3}
@@ -814,7 +813,7 @@ function SettingsExperiencePage() {
           >
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className={labelCls}>Skill *</label>
+                <FormLabel>Skill *</FormLabel>
                 <Input
                   {...skillForm.register('name')}
                   invalid={!!skillForm.formState.errors.name}
@@ -827,11 +826,11 @@ function SettingsExperiencePage() {
                 )}
               </div>
               <div>
-                <label className={labelCls}>Category</label>
+                <FormLabel>Category</FormLabel>
                 <Input {...skillForm.register('category')} placeholder="Language" />
               </div>
               <div>
-                <label className={labelCls}>Proficiency</label>
+                <FormLabel>Proficiency</FormLabel>
                 <Select {...skillForm.register('proficiency')}>
                   <option value="">Select…</option>
                   <option value="beginner">Beginner</option>

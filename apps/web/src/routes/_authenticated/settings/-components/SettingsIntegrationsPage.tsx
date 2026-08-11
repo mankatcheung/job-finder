@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
-import { Alert, Button, Input, Select, Textarea } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input, Select, Textarea } from '@job-finder/ui';
 import {
   LLM_API_KEYS_QUERY,
   SAVE_LLM_API_KEY,
@@ -29,7 +29,6 @@ import {
   type CreateShareLinkPayload,
   LLM_PROVIDER_OPTIONS,
   LLM_PROVIDER_LABEL,
-  labelCls,
   extractGqlError,
 } from './shared';
 
@@ -307,7 +306,7 @@ export function SettingsIntegrationsPage() {
         {availableProviderOptions.length > 0 ? (
           <form onSubmit={llmApiKeyForm.handleSubmit(onSaveLlmApiKey)} className="space-y-3">
             <div>
-              <label className={labelCls}>Provider</label>
+              <FormLabel>Provider</FormLabel>
               <Select {...llmApiKeyForm.register('provider')}>
                 {availableProviderOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -317,7 +316,7 @@ export function SettingsIntegrationsPage() {
               </Select>
             </div>
             <div>
-              <label className={labelCls}>API key</label>
+              <FormLabel>API key</FormLabel>
               <Input
                 type="password"
                 {...llmApiKeyForm.register('apiKey')}
@@ -333,7 +332,7 @@ export function SettingsIntegrationsPage() {
             {isCustomLlmProvider ? (
               <>
                 <div>
-                  <label className={labelCls}>Base URL</label>
+                  <FormLabel>Base URL</FormLabel>
                   <Input
                     type="url"
                     {...llmApiKeyForm.register('baseUrl')}
@@ -347,7 +346,7 @@ export function SettingsIntegrationsPage() {
                   )}
                 </div>
                 <div>
-                  <label className={labelCls}>Model</label>
+                  <FormLabel>Model</FormLabel>
                   <Input
                     type="text"
                     {...llmApiKeyForm.register('model')}
@@ -363,12 +362,12 @@ export function SettingsIntegrationsPage() {
               </>
             ) : (
               <div>
-                <label className={labelCls}>
+                <FormLabel>
                   Model{' '}
                   <span className="font-normal text-gray-400">
                     (optional — leave blank to use the provider default)
                   </span>
-                </label>
+                </FormLabel>
                 <Input
                   type="text"
                   {...llmApiKeyForm.register('model')}
@@ -394,7 +393,7 @@ export function SettingsIntegrationsPage() {
           className="space-y-3"
         >
           <div>
-            <label className={labelCls}>Custom instructions</label>
+            <FormLabel>Custom instructions</FormLabel>
             <Textarea
               {...customAiPromptForm.register('customAiPrompt')}
               invalid={!!customAiPromptForm.formState.errors.customAiPrompt}
@@ -470,7 +469,7 @@ export function SettingsIntegrationsPage() {
             {apiTokenError && <Alert>{apiTokenError}</Alert>}
             <div className="flex items-end gap-3">
               <div className="flex-1">
-                <label className={labelCls}>Token name</label>
+                <FormLabel>Token name</FormLabel>
                 <Input
                   type="text"
                   value={apiTokenName}
@@ -569,7 +568,7 @@ export function SettingsIntegrationsPage() {
             {shareLinkError && <Alert>{shareLinkError}</Alert>}
             <div className="flex items-end gap-3">
               <div className="flex-1">
-                <label className={labelCls}>Link name</label>
+                <FormLabel>Link name</FormLabel>
                 <Input
                   type="text"
                   value={shareLinkName}

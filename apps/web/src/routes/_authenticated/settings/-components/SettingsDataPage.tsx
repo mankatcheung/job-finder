@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient, setAccessToken } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
-import { Alert, Button, Input } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input } from '@job-finder/ui';
 import {
   EXPORT_USER_DATA,
   IMPORT_USER_DATA,
@@ -14,7 +14,6 @@ import {
   type DeleteForm,
   type ImportSummary,
   extractGqlError,
-  labelCls,
 } from './shared';
 import { useStepUpReauth, STEP_UP_CANCELLED } from './useStepUpReauth';
 
@@ -154,7 +153,7 @@ export function SettingsDataPage() {
         </div>
         <form onSubmit={deleteForm.handleSubmit(onDeleteAccount)} className="space-y-3">
           <div>
-            <label className={labelCls}>Confirm your password</label>
+            <FormLabel>Confirm your password</FormLabel>
             <Input
               type="password"
               {...deleteForm.register('password')}

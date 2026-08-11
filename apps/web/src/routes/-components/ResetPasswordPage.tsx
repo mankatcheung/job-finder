@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
-import { Alert, Button, Input } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input } from '@job-finder/ui';
 
 const schema = z
   .object({
@@ -67,9 +67,7 @@ export function ResetPasswordPage() {
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                New password
-              </label>
+              <FormLabel>New password</FormLabel>
               <Input
                 type="password"
                 {...register('newPassword')}
@@ -82,9 +80,7 @@ export function ResetPasswordPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Confirm new password
-              </label>
+              <FormLabel>Confirm new password</FormLabel>
               <Input
                 type="password"
                 {...register('confirmPassword')}

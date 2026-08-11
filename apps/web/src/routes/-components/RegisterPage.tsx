@@ -7,7 +7,7 @@ import { gqlClient, setAccessToken } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 import { LogoMark } from '#/components/LogoMark';
-import { Alert, Button, Input } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input } from '@job-finder/ui';
 
 const schema = z
   .object({
@@ -122,9 +122,7 @@ export function RegisterPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Email
-              </label>
+              <FormLabel>Email</FormLabel>
               <Input
                 type="email"
                 {...register('email')}
@@ -135,9 +133,7 @@ export function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Password
-              </label>
+              <FormLabel>Password</FormLabel>
               <Input
                 type="password"
                 {...register('password')}
@@ -150,9 +146,7 @@ export function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Confirm password
-              </label>
+              <FormLabel>Confirm password</FormLabel>
               <Input
                 type="password"
                 {...register('confirmPassword')}

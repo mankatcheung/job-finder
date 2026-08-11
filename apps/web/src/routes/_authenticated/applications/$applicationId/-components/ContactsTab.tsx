@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CheckIcon, EditIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
-import { Button, Card, Input, Textarea } from '@job-finder/ui';
+import { Button, Card, FormLabel, Input, Textarea } from '@job-finder/ui';
 
 const CONTACTS_QUERY = `
   query Contacts($applicationId: ID!) {
@@ -186,7 +186,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
     <Card className="p-4 space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Name *</label>
+          <FormLabel size="xs">Name *</FormLabel>
           <Input
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -194,7 +194,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Role</label>
+          <FormLabel size="xs">Role</FormLabel>
           <Input
             value={form.role}
             onChange={(e) => setForm({ ...form, role: e.target.value })}
@@ -202,7 +202,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Email</label>
+          <FormLabel size="xs">Email</FormLabel>
           <Input
             type="email"
             value={form.email}
@@ -211,7 +211,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Phone</label>
+          <FormLabel size="xs">Phone</FormLabel>
           <Input
             value={form.phone}
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -220,7 +220,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
         </div>
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">LinkedIn URL</label>
+        <FormLabel size="xs">LinkedIn URL</FormLabel>
         <Input
           value={form.linkedinUrl}
           onChange={(e) => setForm({ ...form, linkedinUrl: e.target.value })}
@@ -228,7 +228,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">Notes</label>
+        <FormLabel size="xs">Notes</FormLabel>
         <Textarea
           value={form.notes}
           onChange={(e) => setForm({ ...form, notes: e.target.value })}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Input, Select, Textarea } from '@job-finder/ui';
+import { Button, FormLabel, Input, Select, Textarea } from '@job-finder/ui';
 
 interface OfferFormData {
   baseSalary: number;
@@ -57,9 +57,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Base Salary *
-          </label>
+          <FormLabel>Base Salary *</FormLabel>
           <Input
             type="number"
             value={formData.baseSalary}
@@ -69,9 +67,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Bonus
-          </label>
+          <FormLabel>Bonus</FormLabel>
           <Input
             type="number"
             value={formData.bonus ?? ''}
@@ -85,9 +81,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Currency
-          </label>
+          <FormLabel>Currency</FormLabel>
           <Select
             value={formData.currency}
             onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
@@ -100,9 +94,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
           </Select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Period
-          </label>
+          <FormLabel>Period</FormLabel>
           <Select
             value={formData.period}
             onChange={(e) => setFormData({ ...formData, period: e.target.value })}
@@ -117,9 +109,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Equity
-        </label>
+        <FormLabel>Equity</FormLabel>
         <Input
           type="text"
           value={formData.equity}
@@ -129,9 +119,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Benefits
-        </label>
+        <FormLabel>Benefits</FormLabel>
         <Textarea
           value={formData.benefits}
           onChange={(e) => setFormData({ ...formData, benefits: e.target.value })}
@@ -141,9 +129,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Cost of Living Adjustment (%)
-        </label>
+        <FormLabel>Cost of Living Adjustment (%)</FormLabel>
         <Input
           type="number"
           value={formData.costOfLivingAdjustment ?? ''}
@@ -157,9 +143,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Notes
-        </label>
+        <FormLabel>Notes</FormLabel>
         <Textarea
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}

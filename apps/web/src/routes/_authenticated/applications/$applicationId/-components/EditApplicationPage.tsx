@@ -8,7 +8,7 @@ import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { getErrorMessage } from '#/lib/errors';
 import { StarIcon, XIcon } from 'lucide-react';
-import { Alert, Button, Input, Select, Textarea } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input, Select, Textarea } from '@job-finder/ui';
 import { JdImportPanel } from '../../-components/JdImportPanel';
 import { applicationQueryOptions } from '../-application-query';
 import { Route } from '../edit';
@@ -54,9 +54,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-        {label}
-      </label>
+      <FormLabel>{label}</FormLabel>
       {children}
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
     </div>

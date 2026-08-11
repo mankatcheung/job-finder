@@ -8,7 +8,7 @@ import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 import { getErrorMessage } from '#/lib/errors';
 import { LogoMark } from '#/components/LogoMark';
-import { Alert, Button, Input } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input } from '@job-finder/ui';
 
 const schema = z.object({
   email: z.string().email('Invalid email'),
@@ -97,9 +97,7 @@ export function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Email
-              </label>
+              <FormLabel>Email</FormLabel>
               <Input
                 type="email"
                 {...register('email')}
@@ -201,9 +199,7 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Code
-              </label>
+              <FormLabel>Code</FormLabel>
               <Input
                 type="text"
                 autoFocus

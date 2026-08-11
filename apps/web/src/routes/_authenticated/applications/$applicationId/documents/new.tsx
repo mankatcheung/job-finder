@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
-import { Alert, Button, Input, Select } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input, Select } from '@job-finder/ui';
 
 const CREATE_DRAFT_MUTATION = `
   mutation CreateDocumentDraft($input: CreateDocumentDraftInput!) {
@@ -150,9 +150,7 @@ function NewDocumentDraftPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Title
-          </label>
+          <FormLabel>Title</FormLabel>
           <Input
             type="text"
             value={title}
@@ -162,9 +160,7 @@ function NewDocumentDraftPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Start from (optional)
-          </label>
+          <FormLabel>Start from (optional)</FormLabel>
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
             Import text from an existing document, or start blank.
           </p>
