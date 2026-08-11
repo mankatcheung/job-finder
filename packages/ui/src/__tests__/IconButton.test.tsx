@@ -22,4 +22,11 @@ describe('IconButton', () => {
       'hover:text-red-600',
     );
   });
+
+  it('applies the subtle variant classes', () => {
+    render(<IconButton label="Options" icon={<svg />} variant="subtle" />);
+    expect(screen.getByRole('button', { name: 'Options' }).className).toContain(
+      'hover:bg-gray-100',
+    );
+  });
 });
