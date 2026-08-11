@@ -3,8 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CalendarIcon, CheckIcon, EditIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
-import { Button, Card, FormLabel, Input, Select, Textarea } from '@job-finder/ui';
-
+import { Button, Card, EmptyState, FormLabel, Input, Select, Textarea } from '@job-finder/ui';
 const INTERVIEW_ROUNDS_QUERY = `
   query InterviewRounds($applicationId: ID!) {
     interviewRounds(applicationId: $applicationId) {
@@ -374,7 +373,7 @@ export function InterviewsTab({
       )}
 
       {rounds.length === 0 && !showForm && (
-        <p className="text-sm text-gray-400 py-4 text-center">No interview rounds yet.</p>
+        <EmptyState size="compact" className="py-4" message="No interview rounds yet." />
       )}
 
       {rounds.map((round) => (

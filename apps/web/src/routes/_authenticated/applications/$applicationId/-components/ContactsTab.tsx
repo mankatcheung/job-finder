@@ -3,8 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CheckIcon, EditIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
-import { Button, Card, FormLabel, Input, Textarea } from '@job-finder/ui';
-
+import { Button, Card, EmptyState, FormLabel, Input, Textarea } from '@job-finder/ui';
 const CONTACTS_QUERY = `
   query Contacts($applicationId: ID!) {
     contacts(applicationId: $applicationId) { id applicationId name role email phone linkedinUrl notes createdAt updatedAt }
@@ -285,7 +284,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
       )}
 
       {contacts.length === 0 && !showForm && (
-        <p className="text-sm text-gray-400 py-4 text-center">No contacts yet.</p>
+        <EmptyState size="compact" className="py-4" message="No contacts yet." />
       )}
 
       {contacts.map((contact) => (

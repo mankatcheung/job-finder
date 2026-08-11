@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card } from '@job-finder/ui';
+import { Card, EmptyState } from '@job-finder/ui';
 import { responseTimeAnalyticsQueryOptions } from './-response-time-analytics-queries';
 
 const STATUS_LABEL: Record<string, string> = {
@@ -66,9 +66,11 @@ export function ResponseTimeAnalyticsPanel() {
       </div>
 
       {analytics.timeInStage.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-8">
-          Once applications move between stages, time spent in each stage shows up here.
-        </p>
+        <EmptyState
+          size="compact"
+          className="py-8"
+          message="Once applications move between stages, time spent in each stage shows up here."
+        />
       ) : (
         <div className="space-y-3">
           {analytics.timeInStage.map((stat) => {

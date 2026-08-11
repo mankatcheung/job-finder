@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card } from '@job-finder/ui';
+import { Card, EmptyState } from '@job-finder/ui';
 import { offerAnalyticsQueryOptions } from './-offer-analytics-queries';
 
 function formatCurrency(amount: number, currency: string): string {
@@ -54,9 +54,11 @@ export function OfferAnalyticsPanel() {
       </p>
 
       {analytics.byCurrency.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-8">
-          Log an offer on an application to see compensation trends here.
-        </p>
+        <EmptyState
+          size="compact"
+          className="py-8"
+          message="Log an offer on an application to see compensation trends here."
+        />
       ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">

@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { OfferForm } from '../-components/OfferForm';
 import { PlusIcon, TrashIcon, PencilIcon } from 'lucide-react';
+import { EmptyState } from '@job-finder/ui';
 
 const OFFERS_QUERY = `
   query Offers($applicationId: ID!) {
@@ -196,9 +197,10 @@ function OffersPage() {
       )}
 
       {offers.length === 0 && !showForm ? (
-        <div className="text-center py-12 text-gray-500">
-          <p>No offers yet. Add an offer to start comparing compensation packages.</p>
-        </div>
+        <EmptyState
+          className="py-12"
+          message="No offers yet. Add an offer to start comparing compensation packages."
+        />
       ) : (
         <div className="space-y-4">
           {offers.map((offer) => (
