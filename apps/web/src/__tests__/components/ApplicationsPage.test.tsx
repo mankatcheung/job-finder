@@ -480,6 +480,31 @@ describe('ApplicationsPage', () => {
       });
     });
 
+    it('optimistically removes deleted applications when a filter is active', async () => {
+      // The default-state test above exercises the empty-filter cache key
+      // (status/starred/likelyGhosted/searchTerm all absent). This exercises
+      // a non-default filter, so the fix is verified against the actual
+      // scenario the original bug was about: the optimistic update missing
+      // the currently-visible *filtered* query's cache entry.
+      mockUseSearch.mockReturnValue({ status: 'applied' });
+      render(<ApplicationsPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByLabelText('Select all'));
+      mockMutationResult({ deleteApplication: true });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Delete selected' }));
+
+      expect(screen.queryByText('Stripe')).not.toBeInTheDocument();
+      expect(screen.queryByText('Vercel')).not.toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('deleteApplication'), {
+          id: '1',
+        });
+      });
+    });
+
     it('does not delete when undo is clicked', async () => {
       // Override mock to NOT execute immediately
       const { showUndoToast } = await import('#/lib/undoToast');
