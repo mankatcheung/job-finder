@@ -22,6 +22,7 @@ import {
 import { toast } from 'sonner';
 import { Route } from '../index';
 import {
+  applicationsPageQueryKey,
   applicationsPageQueryOptions,
   APPLICATION_STATUSES,
   type Application,
@@ -273,7 +274,16 @@ function ApplicationsPage() {
       )}
 
       {selectedCount > 0 && (
-        <BulkActionBar selectedIds={selectedIds} apps={apps} onClear={clearSelection} bulk={bulk} />
+        <BulkActionBar
+          selectedIds={selectedIds}
+          apps={apps}
+          onClear={clearSelection}
+          bulk={bulk}
+          status={status}
+          starred={starred}
+          likelyGhosted={likelyGhosted}
+          searchTerm={searchTerm}
+        />
       )}
     </div>
   );
@@ -284,11 +294,19 @@ function BulkActionBar({
   apps,
   onClear,
   bulk,
+  status,
+  starred,
+  likelyGhosted,
+  searchTerm,
 }: {
   selectedIds: Set<string>;
   apps: Application[];
   onClear: () => void;
   bulk: ReturnType<typeof useBulkActions>;
+  status: string | undefined;
+  starred: boolean | undefined;
+  likelyGhosted: boolean | undefined;
+  searchTerm: string;
 }) {
   const qc = useQueryClient();
   const [tagInput, setTagInput] = useState('');
@@ -302,13 +320,14 @@ function BulkActionBar({
   };
 
   const onDelete = () => {
+    // Must match the exact key applicationsPageQueryOptions registers this
+    // query under (including the active filters) — getQueryData/setQueryData
+    // require an exact key match, unlike invalidateQueries' prefix matching.
+    const queryKey = applicationsPageQueryKey(status, starred, searchTerm, likelyGhosted);
     // Snapshot all pages of the infinite query
-    const snapshot = qc.getQueryData<InfiniteData<ApplicationsPageResult>>([
-      'applications',
-      'page',
-    ]);
+    const snapshot = qc.getQueryData<InfiniteData<ApplicationsPageResult>>(queryKey);
     // Optimistically remove selected apps from all pages
-    qc.setQueryData<InfiniteData<ApplicationsPageResult>>(['applications', 'page'], (prev) => {
+    qc.setQueryData<InfiniteData<ApplicationsPageResult>>(queryKey, (prev) => {
       if (!prev) return prev;
       return {
         ...prev,
@@ -328,7 +347,7 @@ function BulkActionBar({
         onClear();
       },
       onUndo: () => {
-        qc.setQueryData(['applications', 'page'], snapshot);
+        qc.setQueryData(queryKey, snapshot);
         toast.dismiss();
       },
     });
