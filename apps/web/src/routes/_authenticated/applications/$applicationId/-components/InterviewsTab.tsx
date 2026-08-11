@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CalendarIcon, CheckIcon, EditIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
-import { Button, Input } from '@job-finder/ui';
+import { Button, Input, Textarea } from '@job-finder/ui';
 
 const INTERVIEW_ROUNDS_QUERY = `
   query InterviewRounds($applicationId: ID!) {
@@ -326,10 +326,10 @@ export function InterviewsTab({
       </div>
       <div>
         <label className="block text-xs font-medium text-gray-500 mb-1">Notes</label>
-        <textarea
+        <Textarea
           value={form.notes}
           onChange={(e) => setForm({ ...form, notes: e.target.value })}
-          className={`${inputCls} h-20 resize-none`}
+          className="h-20"
           placeholder="How did it go?"
         />
       </div>

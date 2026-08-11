@@ -8,7 +8,7 @@ import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { getErrorMessage } from '#/lib/errors';
 import { StarIcon, XIcon } from 'lucide-react';
-import { Button, Input } from '@job-finder/ui';
+import { Button, Input, Textarea } from '@job-finder/ui';
 import { JdImportPanel } from '../../-components/JdImportPanel';
 import { applicationQueryOptions } from '../-application-query';
 import { Route } from '../edit';
@@ -197,7 +197,7 @@ export function EditApplicationPage() {
         </div>
 
         <Field label="Description / Notes">
-          <textarea {...register('description')} className={`${inputClass} h-28 resize-none`} />
+          <Textarea {...register('description')} className="h-28" />
         </Field>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
