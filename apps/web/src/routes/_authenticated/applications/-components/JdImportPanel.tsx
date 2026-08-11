@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { SparklesIcon } from 'lucide-react';
-import { Button, Input } from '@job-finder/ui';
+import { Button, Input, Textarea } from '@job-finder/ui';
 
 const PARSE_JD_MUTATION = `
   mutation ParseJobDescription($text: String, $url: String) {
@@ -65,9 +65,6 @@ export function JdImportPanel({ onFill }: Props) {
       ? 'px-3 py-1.5 text-xs font-medium rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
       : 'px-3 py-1.5 text-xs font-medium rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors';
 
-  const inputClass =
-    'w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500';
-
   return (
     <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 overflow-hidden">
       <button
@@ -102,12 +99,11 @@ export function JdImportPanel({ onFill }: Props) {
           </div>
 
           {mode === 'text' ? (
-            <textarea
+            <Textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
               rows={5}
               placeholder="Paste the job description here…"
-              className={`${inputClass} resize-none`}
             />
           ) : (
             <Input
