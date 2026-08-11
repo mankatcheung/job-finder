@@ -27,3 +27,6 @@ export type { FormLabelProps, FormLabelSize } from './FormLabel';
 
 export { Card } from './Card';
 export type { CardProps } from './Card';
+
+export { Spinner } from './Spinner';
+export type { SpinnerProps, SpinnerSize, SpinnerTone } from './Spinner';

@@ -10,14 +10,13 @@ import {
 import { gqlClient } from '#/graphql/client';
 import { useInfiniteScrollSentinel } from '#/lib/useInfiniteScrollSentinel';
 import { useHotkeys } from '#/hooks/useHotkeys';
-import { Button, IconButton } from '@job-finder/ui';
+import { Button, IconButton, Spinner } from '@job-finder/ui';
 import {
   BellIcon,
   XIcon,
   CalendarIcon,
   ClockIcon,
   ShieldIcon,
-  Loader2Icon,
   CheckCheckIcon,
   EyeOffIcon,
 } from 'lucide-react';
@@ -239,7 +238,7 @@ function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
         <div className="flex-1 overflow-y-auto">
           {isLoading && (
             <div className="flex justify-center py-8 text-gray-400">
-              <Loader2Icon size={20} className="animate-spin" />
+              <Spinner size="md" />
             </div>
           )}
           {isError && (
@@ -298,7 +297,7 @@ function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
           <div ref={sentinelRef} className="h-1" />
           {isFetchingNextPage && (
             <div className="flex justify-center py-3 text-gray-400">
-              <Loader2Icon size={16} className="animate-spin" />
+              <Spinner size="md" />
             </div>
           )}
         </div>

@@ -3,7 +3,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useMemo } from 'react';
 import { showUndoToast } from '#/lib/undoToast';
 import { ErrorState } from '#/components/ErrorState';
-import { Card } from '@job-finder/ui';
+import { Card, Spinner } from '@job-finder/ui';
 import { StatusBadge } from '../../-components/StatusBadge';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { useBulkActions } from '../-useBulkActions';
@@ -11,7 +11,6 @@ import { useInfiniteScrollSentinel } from '#/lib/useInfiniteScrollSentinel';
 import {
   BriefcaseIcon,
   KanbanIcon,
-  Loader2Icon,
   PlusIcon,
   SearchIcon,
   StarIcon,
@@ -262,7 +261,7 @@ function ApplicationsPage() {
           <div ref={sentinelRef} className="h-1" />
           {isFetchingNextPage && (
             <div className="flex justify-center py-4 text-gray-400">
-              <Loader2Icon size={18} className="animate-spin" />
+              <Spinner size="md" />
             </div>
           )}
         </div>
