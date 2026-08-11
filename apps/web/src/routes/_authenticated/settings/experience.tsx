@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { Button, IconButton, Input, Select, Textarea } from '@job-finder/ui';
-import { inputCls, labelCls } from './-components/shared';
+import { labelCls } from './-components/shared';
 
 export const Route = createFileRoute('/_authenticated/settings/experience')({
   component: SettingsExperiencePage,
