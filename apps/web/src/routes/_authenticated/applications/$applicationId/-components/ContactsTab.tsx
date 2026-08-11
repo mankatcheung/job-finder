@@ -347,10 +347,16 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
                 </button>
                 <button
                   onClick={() => {
-                    const snapshot = qc.getQueryData(['contacts', applicationId]);
-                    qc.setQueryData(['contacts', applicationId], (prev: any) => ({
-                      contacts: (prev?.contacts ?? []).filter((c: any) => c.id !== contact.id),
-                    }));
+                    const snapshot = qc.getQueryData<{ contacts: Contact[] }>([
+                      'contacts',
+                      applicationId,
+                    ]);
+                    qc.setQueryData<{ contacts: Contact[] }>(
+                      ['contacts', applicationId],
+                      (prev) => ({
+                        contacts: (prev?.contacts ?? []).filter((c) => c.id !== contact.id),
+                      }),
+                    );
                     showUndoToast({
                       message: 'Contact deleted',
                       onExecute: () => deleteContact.mutate(contact.id),

@@ -422,12 +422,18 @@ export function InterviewsTab({
                   </button>
                   <button
                     onClick={() => {
-                      const snapshot = qc.getQueryData(['interviewRounds', applicationId]);
-                      qc.setQueryData(['interviewRounds', applicationId], (prev: any) => ({
-                        interviewRounds: (prev?.interviewRounds ?? []).filter(
-                          (r: any) => r.id !== round.id,
-                        ),
-                      }));
+                      const snapshot = qc.getQueryData<{ interviewRounds: InterviewRound[] }>([
+                        'interviewRounds',
+                        applicationId,
+                      ]);
+                      qc.setQueryData<{ interviewRounds: InterviewRound[] }>(
+                        ['interviewRounds', applicationId],
+                        (prev) => ({
+                          interviewRounds: (prev?.interviewRounds ?? []).filter(
+                            (r) => r.id !== round.id,
+                          ),
+                        }),
+                      );
                       showUndoToast({
                         message: 'Interview round deleted',
                         onExecute: () => deleteRound.mutate(round.id),

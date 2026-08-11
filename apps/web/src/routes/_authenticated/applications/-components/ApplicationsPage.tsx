@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { useState, useEffect, useMemo } from 'react';
 import { showUndoToast } from '#/lib/undoToast';
 import { ErrorState } from '#/components/ErrorState';
@@ -21,7 +21,12 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Route } from '../index';
-import { applicationsPageQueryOptions, APPLICATION_STATUSES, type Application } from '../index';
+import {
+  applicationsPageQueryOptions,
+  APPLICATION_STATUSES,
+  type Application,
+  type ApplicationsPageResult,
+} from '../index';
 
 function ApplicationsPage() {
   const { status, starred, likelyGhosted } = Route.useSearch();
@@ -298,17 +303,20 @@ function BulkActionBar({
 
   const onDelete = () => {
     // Snapshot all pages of the infinite query
-    const snapshot = qc.getQueryData(['applications', 'page']);
+    const snapshot = qc.getQueryData<InfiniteData<ApplicationsPageResult>>([
+      'applications',
+      'page',
+    ]);
     // Optimistically remove selected apps from all pages
-    qc.setQueryData(['applications', 'page'], (prev: any) => {
+    qc.setQueryData<InfiniteData<ApplicationsPageResult>>(['applications', 'page'], (prev) => {
       if (!prev) return prev;
       return {
         ...prev,
-        pages: prev.pages.map((page: any) => ({
+        pages: prev.pages.map((page) => ({
           ...page,
           applicationsPage: {
             ...page.applicationsPage,
-            items: page.applicationsPage.items.filter((a: any) => !ids.includes(a.id)),
+            items: page.applicationsPage.items.filter((a) => !ids.includes(a.id)),
           },
         })),
       };

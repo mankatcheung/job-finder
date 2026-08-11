@@ -239,12 +239,16 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
               </div>
               <button
                 onClick={() => {
-                  const snapshot = qc.getQueryData(['documentDrafts', applicationId]);
-                  qc.setQueryData(['documentDrafts', applicationId], (prev: any) => ({
-                    documentDrafts: (prev?.documentDrafts ?? []).filter(
-                      (d: any) => d.id !== draft.id,
-                    ),
-                  }));
+                  const snapshot = qc.getQueryData<{ documentDrafts: DocumentDraft[] }>([
+                    'documentDrafts',
+                    applicationId,
+                  ]);
+                  qc.setQueryData<{ documentDrafts: DocumentDraft[] }>(
+                    ['documentDrafts', applicationId],
+                    (prev) => ({
+                      documentDrafts: (prev?.documentDrafts ?? []).filter((d) => d.id !== draft.id),
+                    }),
+                  );
                   showUndoToast({
                     message: 'Draft deleted',
                     onExecute: () => deleteDraft.mutate(draft.id),
@@ -389,10 +393,16 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
             </a>
             <button
               onClick={() => {
-                const snapshot = qc.getQueryData(['documents', applicationId]);
-                qc.setQueryData(['documents', applicationId], (prev: any) => ({
-                  documents: (prev?.documents ?? []).filter((d: any) => d.id !== doc.id),
-                }));
+                const snapshot = qc.getQueryData<{ documents: Document[] }>([
+                  'documents',
+                  applicationId,
+                ]);
+                qc.setQueryData<{ documents: Document[] }>(
+                  ['documents', applicationId],
+                  (prev) => ({
+                    documents: (prev?.documents ?? []).filter((d) => d.id !== doc.id),
+                  }),
+                );
                 showUndoToast({
                   message: 'Document deleted',
                   onExecute: () => deleteDoc.mutate(doc.id),
