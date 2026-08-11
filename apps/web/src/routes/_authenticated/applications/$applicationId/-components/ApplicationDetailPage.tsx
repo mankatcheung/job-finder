@@ -481,10 +481,16 @@ export function ApplicationDetailPage() {
                         </button>
                         <button
                           onClick={() => {
-                            const snapshot = qc.getQueryData(['notes', applicationId]);
-                            qc.setQueryData(['notes', applicationId], (prev: any) => ({
-                              notes: (prev?.notes ?? []).filter((n: any) => n.id !== note.id),
-                            }));
+                            const snapshot = qc.getQueryData<{ notes: Note[] }>([
+                              'notes',
+                              applicationId,
+                            ]);
+                            qc.setQueryData<{ notes: Note[] }>(
+                              ['notes', applicationId],
+                              (prev) => ({
+                                notes: (prev?.notes ?? []).filter((n) => n.id !== note.id),
+                              }),
+                            );
                             showUndoToast({
                               message: 'Note deleted',
                               onExecute: () => deleteNote.mutate(note.id),

@@ -455,6 +455,56 @@ describe('ApplicationsPage', () => {
       });
       expect(screen.queryByText('2 selected')).not.toBeInTheDocument();
     });
+
+    it('optimistically removes deleted applications from the list', async () => {
+      render(<ApplicationsPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByLabelText('Select all'));
+      mockMutationResult({ deleteApplication: true });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Delete selected' }));
+
+      // The optimistic update writes directly into the query-cache entry the
+      // list renders from. mockMutationResult's refetch mock deliberately
+      // keeps returning the unfiltered list, so only a correctly-keyed
+      // optimistic write — not the eventual refetch — can make these rows
+      // disappear here; a wrong cache key would leave them visible.
+      expect(screen.queryByText('Stripe')).not.toBeInTheDocument();
+      expect(screen.queryByText('Vercel')).not.toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('deleteApplication'), {
+          id: '1',
+        });
+      });
+    });
+
+    it('optimistically removes deleted applications when a filter is active', async () => {
+      // The default-state test above exercises the empty-filter cache key
+      // (status/starred/likelyGhosted/searchTerm all absent). This exercises
+      // a non-default filter, so the fix is verified against the actual
+      // scenario the original bug was about: the optimistic update missing
+      // the currently-visible *filtered* query's cache entry.
+      mockUseSearch.mockReturnValue({ status: 'applied' });
+      render(<ApplicationsPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByLabelText('Select all'));
+      mockMutationResult({ deleteApplication: true });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Delete selected' }));
+
+      expect(screen.queryByText('Stripe')).not.toBeInTheDocument();
+      expect(screen.queryByText('Vercel')).not.toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('deleteApplication'), {
+          id: '1',
+        });
+      });
+    });
+
     it('does not delete when undo is clicked', async () => {
       // Override mock to NOT execute immediately
       const { showUndoToast } = await import('#/lib/undoToast');

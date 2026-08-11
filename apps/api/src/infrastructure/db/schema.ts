@@ -1,4 +1,11 @@
-import { sqliteTable, text, integer, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import {
+  sqliteTable,
+  text,
+  integer,
+  index,
+  uniqueIndex,
+  type AnySQLiteColumn,
+} from 'drizzle-orm/sqlite-core';
 
 export const user = sqliteTable('User', {
   id: text('id').primaryKey(),
@@ -422,7 +429,7 @@ export const document = sqliteTable(
     storageKey: text('storageKey').notNull().unique(),
     documentType: text('documentType').notNull().default('other'),
     version: text('version'),
-    sourceDraftId: text('sourceDraftId').references((): any => documentDraft.id, {
+    sourceDraftId: text('sourceDraftId').references((): AnySQLiteColumn => documentDraft.id, {
       onDelete: 'set null',
     }),
     createdAt: integer('createdAt', { mode: 'timestamp_ms' })

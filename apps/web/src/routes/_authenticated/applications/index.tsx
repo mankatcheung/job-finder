@@ -86,6 +86,22 @@ export type ApplicationsPageResult = {
 
 export { PAGE_SIZE, APPLICATION_STATUSES };
 
+export function applicationsPageQueryKey(
+  status: string | undefined,
+  starred: boolean | undefined,
+  searchTerm: string,
+  likelyGhosted: boolean | undefined,
+) {
+  return [
+    'applications',
+    'page',
+    status ?? null,
+    starred ?? false,
+    likelyGhosted ?? false,
+    searchTerm,
+  ] as const;
+}
+
 export function applicationsPageQueryOptions(
   status: string | undefined,
   starred: boolean | undefined,
@@ -93,14 +109,7 @@ export function applicationsPageQueryOptions(
   likelyGhosted: boolean | undefined,
 ) {
   return infiniteQueryOptions({
-    queryKey: [
-      'applications',
-      'page',
-      status ?? null,
-      starred ?? false,
-      likelyGhosted ?? false,
-      searchTerm,
-    ],
+    queryKey: applicationsPageQueryKey(status, starred, searchTerm, likelyGhosted),
     queryFn: ({ pageParam }) =>
       gqlClient.request<ApplicationsPageResult>(APPLICATIONS_PAGE_QUERY, {
         status: status ?? null,

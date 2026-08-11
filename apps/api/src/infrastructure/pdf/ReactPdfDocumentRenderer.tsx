@@ -1,5 +1,6 @@
 import type { IPdfRenderer, PdfRenderData } from '#src/use-cases/ports/IPdfRenderer.js';
 import type { JSONContent } from '@tiptap/core';
+import type { Style } from '@react-pdf/types';
 
 function extractTextFromNode(node: JSONContent): string {
   if (node.text) return node.text;
@@ -133,8 +134,7 @@ export class ReactPdfDocumentRenderer implements IPdfRenderer {
       }
 
       if (node.type === 'text') {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let textStyle: any = {};
+        let textStyle: Style = {};
         if (node.marks) {
           for (const mark of node.marks) {
             if (mark.type === 'bold') textStyle = { ...textStyle, fontFamily: 'Helvetica-Bold' };

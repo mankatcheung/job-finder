@@ -10,8 +10,7 @@ expect.extend(toHaveNoViolations);
 // useState initializers, which run during render before any effect.
 if (typeof localStorage === 'undefined') {
   const store: Record<string, string> = {};
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (globalThis as any).localStorage = {
+  globalThis.localStorage = {
     getItem(key: string) {
       return store[key] ?? null;
     },
