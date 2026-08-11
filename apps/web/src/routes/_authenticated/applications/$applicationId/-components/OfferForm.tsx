@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button, Input } from '@job-finder/ui';
 
 interface OfferFormData {
   baseSalary: number;
@@ -59,11 +60,10 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Base Salary *
           </label>
-          <input
+          <Input
             type="number"
             value={formData.baseSalary}
             onChange={(e) => setFormData({ ...formData, baseSalary: Number(e.target.value) })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             required
             min={0}
           />
@@ -72,13 +72,12 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Bonus
           </label>
-          <input
+          <Input
             type="number"
             value={formData.bonus ?? ''}
             onChange={(e) =>
               setFormData({ ...formData, bonus: e.target.value ? Number(e.target.value) : null })
             }
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             min={0}
           />
         </div>
@@ -123,12 +122,11 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Equity
         </label>
-        <input
+        <Input
           type="text"
           value={formData.equity}
           onChange={(e) => setFormData({ ...formData, equity: e.target.value })}
           placeholder="e.g., 1000 RSUs over 4 years"
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
         />
       </div>
 
@@ -149,7 +147,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Cost of Living Adjustment (%)
         </label>
-        <input
+        <Input
           type="number"
           value={formData.costOfLivingAdjustment ?? ''}
           onChange={(e) =>
@@ -158,7 +156,6 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
               costOfLivingAdjustment: e.target.value ? Number(e.target.value) : null,
             })
           }
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
         />
       </div>
 
@@ -175,20 +172,12 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
       </div>
 
       <div className="flex gap-3 justify-end">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
-        >
+        <Button type="button" variant="secondary" onClick={onCancel}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={loading || formData.baseSalary <= 0}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-60"
-        >
+        </Button>
+        <Button type="submit" disabled={loading || formData.baseSalary <= 0}>
           {loading ? 'Saving…' : 'Save Offer'}
-        </button>
+        </Button>
       </div>
     </form>
   );

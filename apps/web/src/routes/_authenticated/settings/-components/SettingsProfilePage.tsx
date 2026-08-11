@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { UserIcon, Trash2Icon } from 'lucide-react';
 import { put as putBlob } from '@vercel/blob/client';
 import { gqlClient } from '#/graphql/client';
+import { Button, Input } from '@job-finder/ui';
 import { useTheme, type Theme } from '#/lib/theme';
 import { MonitorIcon, MoonIcon, SunIcon } from 'lucide-react';
 import {
@@ -16,7 +17,6 @@ import {
   profileSchema,
   type ProfileForm,
   type Me,
-  inputCls,
   labelCls,
   extractGqlError,
 } from './shared';
@@ -199,10 +199,10 @@ export function SettingsProfilePage() {
         <form onSubmit={profileForm.handleSubmit(onUpdateProfile)} className="space-y-3">
           <div>
             <label className={labelCls}>Name</label>
-            <input
+            <Input
               type="text"
               {...profileForm.register('name')}
-              className={inputCls}
+              invalid={!!profileForm.formState.errors.name}
               placeholder="Jane Doe"
             />
             {profileForm.formState.errors.name && (
@@ -213,11 +213,11 @@ export function SettingsProfilePage() {
           </div>
           <div>
             <label className={labelCls}>Timezone</label>
-            <input
+            <Input
               type="text"
               list="timezone-options"
               {...profileForm.register('timezone')}
-              className={inputCls}
+              invalid={!!profileForm.formState.errors.timezone}
               placeholder="America/Los_Angeles"
             />
             <datalist id="timezone-options">
@@ -233,10 +233,10 @@ export function SettingsProfilePage() {
           </div>
           <div>
             <label className={labelCls}>Target role</label>
-            <input
+            <Input
               type="text"
               {...profileForm.register('targetRole')}
-              className={inputCls}
+              invalid={!!profileForm.formState.errors.targetRole}
               placeholder="Senior Product Designer"
             />
             {profileForm.formState.errors.targetRole && (
@@ -254,13 +254,9 @@ export function SettingsProfilePage() {
             !profileForm.formState.errors.root?.message && (
               <p className="text-sm text-green-600">Profile updated successfully.</p>
             )}
-          <button
-            type="submit"
-            disabled={profileForm.formState.isSubmitting}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-          >
+          <Button type="submit" disabled={profileForm.formState.isSubmitting}>
             {profileForm.formState.isSubmitting ? 'Saving…' : 'Save profile'}
-          </button>
+          </Button>
         </form>
       </section>
     </div>

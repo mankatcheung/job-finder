@@ -1,4 +1,5 @@
 import { UnlinkIcon, CheckIcon, LogOutIcon, BanIcon } from 'lucide-react';
+import { Button, Input } from '@job-finder/ui';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -41,7 +42,6 @@ import {
   OAUTH_PROVIDER_LABEL,
   SECURITY_EVENT_LABEL,
   describeDevice,
-  inputCls,
   labelCls,
   extractGqlError,
 } from './shared';
@@ -260,10 +260,10 @@ export function SettingsSecurityPage() {
         <form onSubmit={emailForm.handleSubmit(onUpdateEmail)} className="space-y-3">
           <div>
             <label className={labelCls}>Current password</label>
-            <input
+            <Input
               type="password"
               {...emailForm.register('currentPassword')}
-              className={inputCls}
+              invalid={!!emailForm.formState.errors.currentPassword}
               placeholder="••••••••"
             />
             {emailForm.formState.errors.currentPassword && (
@@ -274,10 +274,10 @@ export function SettingsSecurityPage() {
           </div>
           <div>
             <label className={labelCls}>New email</label>
-            <input
+            <Input
               type="email"
               {...emailForm.register('newEmail')}
-              className={inputCls}
+              invalid={!!emailForm.formState.errors.newEmail}
               placeholder="you@example.com"
             />
             {emailForm.formState.errors.newEmail && (
@@ -296,13 +296,9 @@ export function SettingsSecurityPage() {
               Confirmation link sent. Check the new address&apos;s inbox to complete the change.
             </p>
           )}
-          <button
-            type="submit"
-            disabled={emailForm.formState.isSubmitting}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-          >
+          <Button type="submit" disabled={emailForm.formState.isSubmitting}>
             {emailForm.formState.isSubmitting ? 'Sending…' : 'Update email'}
-          </button>
+          </Button>
         </form>
       </section>
 
@@ -331,10 +327,10 @@ export function SettingsSecurityPage() {
             >
               <div>
                 <label className={labelCls}>Current password to remove it</label>
-                <input
+                <Input
                   type="password"
                   {...removeBackupEmailForm.register('currentPassword')}
-                  className={inputCls}
+                  invalid={!!removeBackupEmailForm.formState.errors.currentPassword}
                   placeholder="••••••••"
                 />
                 {removeBackupEmailForm.formState.errors.currentPassword && (
@@ -348,23 +344,23 @@ export function SettingsSecurityPage() {
                   {removeBackupEmailForm.formState.errors.root.message}
                 </p>
               )}
-              <button
+              <Button
                 type="submit"
+                variant="destructive"
                 disabled={removeBackupEmailForm.formState.isSubmitting}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
               >
                 {removeBackupEmailForm.formState.isSubmitting ? 'Removing…' : 'Remove backup email'}
-              </button>
+              </Button>
             </form>
           </div>
         ) : (
           <form onSubmit={backupEmailForm.handleSubmit(onAddBackupEmail)} className="space-y-3">
             <div>
               <label className={labelCls}>Backup email</label>
-              <input
+              <Input
                 type="email"
                 {...backupEmailForm.register('backupEmail')}
-                className={inputCls}
+                invalid={!!backupEmailForm.formState.errors.backupEmail}
                 placeholder="backup@example.com"
               />
               {backupEmailForm.formState.errors.backupEmail && (
@@ -375,10 +371,10 @@ export function SettingsSecurityPage() {
             </div>
             <div>
               <label className={labelCls}>Current password</label>
-              <input
+              <Input
                 type="password"
                 {...backupEmailForm.register('currentPassword')}
-                className={inputCls}
+                invalid={!!backupEmailForm.formState.errors.currentPassword}
                 placeholder="••••••••"
               />
               {backupEmailForm.formState.errors.currentPassword && (
@@ -397,13 +393,9 @@ export function SettingsSecurityPage() {
                 Check the backup inbox for a verification link.
               </p>
             )}
-            <button
-              type="submit"
-              disabled={backupEmailForm.formState.isSubmitting}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-            >
+            <Button type="submit" disabled={backupEmailForm.formState.isSubmitting}>
               {backupEmailForm.formState.isSubmitting ? 'Sending…' : 'Add backup email'}
-            </button>
+            </Button>
           </form>
         )}
       </section>
@@ -421,10 +413,10 @@ export function SettingsSecurityPage() {
         <form onSubmit={passwordForm.handleSubmit(onUpdatePassword)} className="space-y-3">
           <div>
             <label className={labelCls}>Current password</label>
-            <input
+            <Input
               type="password"
               {...passwordForm.register('currentPassword')}
-              className={inputCls}
+              invalid={!!passwordForm.formState.errors.currentPassword}
               placeholder="••••••••"
             />
             {passwordForm.formState.errors.currentPassword && (
@@ -435,10 +427,10 @@ export function SettingsSecurityPage() {
           </div>
           <div>
             <label className={labelCls}>New password</label>
-            <input
+            <Input
               type="password"
               {...passwordForm.register('newPassword')}
-              className={inputCls}
+              invalid={!!passwordForm.formState.errors.newPassword}
               placeholder="••••••••"
             />
             {passwordForm.formState.errors.newPassword && (
@@ -449,10 +441,10 @@ export function SettingsSecurityPage() {
           </div>
           <div>
             <label className={labelCls}>Confirm new password</label>
-            <input
+            <Input
               type="password"
               {...passwordForm.register('confirmPassword')}
-              className={inputCls}
+              invalid={!!passwordForm.formState.errors.confirmPassword}
               placeholder="••••••••"
             />
             {passwordForm.formState.errors.confirmPassword && (
@@ -469,13 +461,9 @@ export function SettingsSecurityPage() {
           {passwordForm.formState.isSubmitSuccessful && !passwordForm.formState.errors.root && (
             <p className="text-sm text-green-600">Password updated successfully.</p>
           )}
-          <button
-            type="submit"
-            disabled={passwordForm.formState.isSubmitting}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-          >
+          <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
             {passwordForm.formState.isSubmitting ? 'Saving…' : 'Update password'}
-          </button>
+          </Button>
         </form>
       </section>
 
@@ -560,15 +548,12 @@ export function SettingsSecurityPage() {
                 <li key={code}>{code}</li>
               ))}
             </ul>
-            <button
-              type="button"
-              onClick={() => setBackupCodes(null)}
-              aria-label="I've saved these codes"
-              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-            >
-              <CheckIcon size={14} />{' '}
-              <span className="hidden sm:inline">I&apos;ve saved these codes</span>
-            </button>
+            <Button onClick={() => setBackupCodes(null)} aria-label="I've saved these codes">
+              <span className="flex items-center gap-1.5">
+                <CheckIcon size={14} />{' '}
+                <span className="hidden sm:inline">I&apos;ve saved these codes</span>
+              </span>
+            </Button>
           </div>
         ) : totpEnabled ? (
           <>
@@ -576,10 +561,10 @@ export function SettingsSecurityPage() {
               <p className="text-sm text-green-600">Two-factor authentication is enabled.</p>
               <div>
                 <label className={labelCls}>Confirm your password to disable</label>
-                <input
+                <Input
                   type="password"
                   {...totpDisableForm.register('password')}
-                  className={inputCls}
+                  invalid={!!totpDisableForm.formState.errors.password}
                   placeholder="••••••••"
                 />
                 {totpDisableForm.formState.errors.password && (
@@ -593,13 +578,13 @@ export function SettingsSecurityPage() {
                   {totpDisableForm.formState.errors.root.message}
                 </p>
               )}
-              <button
+              <Button
                 type="submit"
+                variant="destructive"
                 disabled={totpDisableForm.formState.isSubmitting}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
               >
                 {totpDisableForm.formState.isSubmitting ? 'Disabling…' : 'Disable 2FA'}
-              </button>
+              </Button>
             </form>
             <form
               onSubmit={regenerateBackupCodesForm.handleSubmit(onRegenerateBackupCodes)}
@@ -615,10 +600,10 @@ export function SettingsSecurityPage() {
               </div>
               <div>
                 <label className={labelCls}>Current password</label>
-                <input
+                <Input
                   type="password"
                   {...regenerateBackupCodesForm.register('password')}
-                  className={inputCls}
+                  invalid={!!regenerateBackupCodesForm.formState.errors.password}
                   placeholder="••••••••"
                 />
                 {regenerateBackupCodesForm.formState.errors.password && (
@@ -659,11 +644,11 @@ export function SettingsSecurityPage() {
             <form onSubmit={totpConfirmForm.handleSubmit(onConfirmTotpSetup)} className="space-y-3">
               <div>
                 <label className={labelCls}>Enter the code from your app</label>
-                <input
+                <Input
                   type="text"
                   inputMode="numeric"
                   {...totpConfirmForm.register('code')}
-                  className={inputCls}
+                  invalid={!!totpConfirmForm.formState.errors.code}
                   placeholder="123456"
                 />
                 {totpConfirmForm.formState.errors.code && (
@@ -677,23 +662,19 @@ export function SettingsSecurityPage() {
                   {totpConfirmForm.formState.errors.root.message}
                 </p>
               )}
-              <button
-                type="submit"
-                disabled={totpConfirmForm.formState.isSubmitting}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-              >
+              <Button type="submit" disabled={totpConfirmForm.formState.isSubmitting}>
                 {totpConfirmForm.formState.isSubmitting ? 'Confirming…' : 'Confirm'}
-              </button>
+              </Button>
             </form>
           </div>
         ) : (
           <form onSubmit={totpBeginForm.handleSubmit(onBeginTotpSetup)} className="space-y-3">
             <div>
               <label className={labelCls}>Confirm your password to enable 2FA</label>
-              <input
+              <Input
                 type="password"
                 {...totpBeginForm.register('password')}
-                className={inputCls}
+                invalid={!!totpBeginForm.formState.errors.password}
                 placeholder="••••••••"
               />
               {totpBeginForm.formState.errors.password && (
@@ -707,13 +688,9 @@ export function SettingsSecurityPage() {
                 {totpBeginForm.formState.errors.root.message}
               </p>
             )}
-            <button
-              type="submit"
-              disabled={totpBeginForm.formState.isSubmitting}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-            >
+            <Button type="submit" disabled={totpBeginForm.formState.isSubmitting}>
               {totpBeginForm.formState.isSubmitting ? 'Starting…' : 'Enable 2FA'}
-            </button>
+            </Button>
           </form>
         )}
       </section>

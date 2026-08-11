@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient, setAccessToken } from '#/graphql/client';
+import { Button, Input, Modal } from '@job-finder/ui';
 import {
   REAUTHENTICATE,
   reauthSchema,
@@ -9,7 +10,6 @@ import {
   type ReauthenticateResult,
   extractGqlError,
   extractGqlErrorCode,
-  inputCls,
   labelCls,
 } from './shared';
 
@@ -89,8 +89,8 @@ function StepUpReauthDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-sm rounded-lg bg-white dark:bg-gray-800 p-6 space-y-4 shadow-xl">
+    <Modal open onClose={onCancel} size="sm">
+      <div className="p-6 space-y-4">
         <div>
           <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             Confirm it&apos;s you
@@ -103,10 +103,10 @@ function StepUpReauthDialog({
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
           <div>
             <label className={labelCls}>Password</label>
-            <input
+            <Input
               type="password"
               {...form.register('password')}
-              className={inputCls}
+              invalid={!!form.formState.errors.password}
               placeholder="••••••••"
               autoFocus
             />
@@ -117,11 +117,11 @@ function StepUpReauthDialog({
           {totpRequired && (
             <div>
               <label className={labelCls}>Two-factor code</label>
-              <input
+              <Input
                 type="text"
                 inputMode="numeric"
                 {...form.register('code')}
-                className={inputCls}
+                invalid={!!form.formState.errors.code}
                 placeholder="123456"
                 autoFocus
               />
@@ -136,27 +136,19 @@ function StepUpReauthDialog({
             </p>
           )}
           <div className="flex gap-2 justify-end pt-2">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:underline"
-            >
+            <Button variant="link" onClick={onCancel}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={form.formState.isSubmitting}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-            >
+            </Button>
+            <Button type="submit" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting
                 ? 'Verifying…'
                 : totpRequired
                   ? 'Verify code'
                   : 'Confirm'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   );
 }

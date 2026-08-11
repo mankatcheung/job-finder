@@ -10,6 +10,7 @@ import {
 import { gqlClient } from '#/graphql/client';
 import { useInfiniteScrollSentinel } from '#/lib/useInfiniteScrollSentinel';
 import { useHotkeys } from '#/hooks/useHotkeys';
+import { Button, IconButton } from '@job-finder/ui';
 import {
   BellIcon,
   XIcon,
@@ -110,21 +111,22 @@ export function NotificationInboxButton({ className = '' }: { className?: string
 
   return (
     <>
-      <button
-        type="button"
+      <IconButton
+        label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
         onClick={() => setIsOpen(true)}
-        aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
-        title="Notifications"
-        className={`relative p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 rounded-lg transition-colors ${className}`}
-      >
-        <BellIcon size={18} />
-        {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
-          </span>
-        )}
-      </button>
+        className={`relative ${className}`}
+        icon={
+          <>
+            <BellIcon size={18} />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+              </span>
+            )}
+          </>
+        }
+      />
       {isOpen && <NotificationInboxPanel onClose={() => setIsOpen(false)} />}
     </>
   );
@@ -192,13 +194,7 @@ function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
       <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
           <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Notifications</h2>
-          <button
-            onClick={onClose}
-            className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
-            aria-label="Close"
-          >
-            <XIcon size={16} />
-          </button>
+          <IconButton label="Close" icon={<XIcon size={16} />} size="sm" onClick={onClose} />
         </div>
 
         {items.length > 0 && (
@@ -215,22 +211,26 @@ function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
             </label>
             {selectedCount > 0 && (
               <div className="flex items-center gap-3">
-                <button
-                  type="button"
+                <Button
+                  variant="link"
+                  size="sm"
                   onClick={() => markSelected(true)}
                   aria-label="Mark read"
-                  className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
                 >
-                  <CheckCheckIcon size={14} /> <span className="hidden sm:inline">Mark read</span>
-                </button>
-                <button
-                  type="button"
+                  <span className="flex items-center gap-1">
+                    <CheckCheckIcon size={14} /> <span className="hidden sm:inline">Mark read</span>
+                  </span>
+                </Button>
+                <Button
+                  variant="link"
+                  size="sm"
                   onClick={() => markSelected(false)}
                   aria-label="Mark unread"
-                  className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
                 >
-                  <EyeOffIcon size={14} /> <span className="hidden sm:inline">Mark unread</span>
-                </button>
+                  <span className="flex items-center gap-1">
+                    <EyeOffIcon size={14} /> <span className="hidden sm:inline">Mark unread</span>
+                  </span>
+                </Button>
               </div>
             )}
           </div>

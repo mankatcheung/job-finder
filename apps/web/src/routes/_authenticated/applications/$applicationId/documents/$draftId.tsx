@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { DocumentDraftEditor } from '../-components/DocumentDraftEditor';
 import { DownloadIcon, TrashIcon, ArrowLeftIcon } from 'lucide-react';
+import { Button, IconButton } from '@job-finder/ui';
 
 const DRAFT_QUERY = `
   query DocumentDraft($id: ID!) {
@@ -134,15 +135,13 @@ function DocumentDraftEditPage() {
     <div className="max-w-4xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <button
-            type="button"
+          <IconButton
+            label="Back"
+            icon={<ArrowLeftIcon className="h-5 w-5" />}
             onClick={() =>
               navigate({ to: '/applications/$applicationId', params: { applicationId } })
             }
-            className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-          >
-            <ArrowLeftIcon className="h-5 w-5" />
-          </button>
+          />
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{draft.title}</h1>
             <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -153,22 +152,18 @@ function DocumentDraftEditPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleExportPdf}
-            disabled={exporting}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors"
-          >
-            <DownloadIcon className="h-4 w-4" />
-            {exporting ? 'Exporting…' : 'Export PDF'}
-          </button>
-          <button
-            type="button"
+          <Button onClick={handleExportPdf} disabled={exporting}>
+            <span className="inline-flex items-center gap-1.5">
+              <DownloadIcon className="h-4 w-4" />
+              {exporting ? 'Exporting…' : 'Export PDF'}
+            </span>
+          </Button>
+          <IconButton
+            label="Delete"
+            icon={<TrashIcon className="h-4 w-4" />}
+            variant="danger"
             onClick={handleDelete}
-            className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
-          >
-            <TrashIcon className="h-4 w-4" />
-          </button>
+          />
         </div>
       </div>
 

@@ -103,8 +103,9 @@ describe('DocumentPreviewModal', () => {
   it('calls onClose when the backdrop is clicked', () => {
     const onClose = vi.fn();
     const { container } = render(<DocumentPreviewModal document={pdfDoc} onClose={onClose} />);
-    // The backdrop is the fixed inset-0 div with bg-black/50
-    const backdrop = container.querySelector('.bg-black\\/50');
+    // Modal renders via a portal to document.body, so the backdrop lives
+    // outside the RTL container div — query the owner document instead.
+    const backdrop = container.ownerDocument.querySelector('.bg-black\\/50');
     expect(backdrop).toBeInTheDocument();
     fireEvent.click(backdrop!);
     expect(onClose).toHaveBeenCalledOnce();

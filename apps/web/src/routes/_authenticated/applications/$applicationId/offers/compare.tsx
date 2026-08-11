@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { GitCompareArrowsIcon, CheckIcon } from 'lucide-react';
+import { Button } from '@job-finder/ui';
 
 const OFFERS_QUERY = `
   query Offers($applicationId: ID!) {
@@ -118,14 +119,12 @@ function CompareOffersPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Compare Offers</h1>
-        <button
-          onClick={handleCompare}
-          disabled={selectedIds.length < 2 || comparing}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-60"
-        >
-          <GitCompareArrowsIcon className="h-4 w-4" />
-          {comparing ? 'Comparing…' : `Compare (${selectedIds.length})`}
-        </button>
+        <Button onClick={handleCompare} disabled={selectedIds.length < 2 || comparing}>
+          <span className="inline-flex items-center gap-1.5">
+            <GitCompareArrowsIcon className="h-4 w-4" />
+            {comparing ? 'Comparing…' : `Compare (${selectedIds.length})`}
+          </span>
+        </Button>
       </div>
 
       {offers.length === 0 ? (

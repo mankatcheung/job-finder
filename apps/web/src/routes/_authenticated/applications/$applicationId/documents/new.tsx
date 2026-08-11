@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
+import { Button, Input } from '@job-finder/ui';
 
 const CREATE_DRAFT_MUTATION = `
   mutation CreateDocumentDraft($input: CreateDocumentDraftInput!) {
@@ -152,12 +153,11 @@ function NewDocumentDraftPage() {
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Title
           </label>
-          <input
+          <Input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={type === 'cover_letter' ? 'Cover Letter' : 'Resume'}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -198,22 +198,18 @@ function NewDocumentDraftPage() {
         )}
 
         <div className="flex gap-3">
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={() =>
               navigate({ to: '/applications/$applicationId', params: { applicationId } })
             }
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading || !title.trim()}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors"
-          >
+          </Button>
+          <Button type="submit" disabled={loading || !title.trim()}>
             {loading ? 'Creating…' : 'Create Draft'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

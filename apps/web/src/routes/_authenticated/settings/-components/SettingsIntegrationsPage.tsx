@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
+import { Button, Input } from '@job-finder/ui';
 import {
   LLM_API_KEYS_QUERY,
   SAVE_LLM_API_KEY,
@@ -274,18 +275,20 @@ export function SettingsIntegrationsPage() {
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
                     {!isDefault && (
-                      <button
-                        type="button"
+                      <Button
+                        variant="link"
+                        size="sm"
                         onClick={() => onSetDefaultProvider(key.provider)}
                         disabled={settingDefaultProvider === key.provider}
                         aria-label="Make default"
-                        className="flex items-center gap-1 text-xs text-blue-600 hover:underline disabled:opacity-60"
                       >
-                        <StarIcon size={14} />{' '}
-                        <span className="hidden sm:inline">
-                          {settingDefaultProvider === key.provider ? 'Setting…' : 'Make default'}
+                        <span className="flex items-center gap-1">
+                          <StarIcon size={14} />{' '}
+                          <span className="hidden sm:inline">
+                            {settingDefaultProvider === key.provider ? 'Setting…' : 'Make default'}
+                          </span>
                         </span>
-                      </button>
+                      </Button>
                     )}
                     <button
                       type="button"
@@ -320,10 +323,10 @@ export function SettingsIntegrationsPage() {
             </div>
             <div>
               <label className={labelCls}>API key</label>
-              <input
+              <Input
                 type="password"
                 {...llmApiKeyForm.register('apiKey')}
-                className={inputCls}
+                invalid={!!llmApiKeyForm.formState.errors.apiKey}
                 placeholder="sk-…"
               />
               {llmApiKeyForm.formState.errors.apiKey && (
@@ -336,10 +339,10 @@ export function SettingsIntegrationsPage() {
               <>
                 <div>
                   <label className={labelCls}>Base URL</label>
-                  <input
+                  <Input
                     type="url"
                     {...llmApiKeyForm.register('baseUrl')}
-                    className={inputCls}
+                    invalid={!!llmApiKeyForm.formState.errors.baseUrl}
                     placeholder="https://your-endpoint.example.com/v1/chat/completions"
                   />
                   {llmApiKeyForm.formState.errors.baseUrl && (
@@ -350,10 +353,10 @@ export function SettingsIntegrationsPage() {
                 </div>
                 <div>
                   <label className={labelCls}>Model</label>
-                  <input
+                  <Input
                     type="text"
                     {...llmApiKeyForm.register('model')}
-                    className={inputCls}
+                    invalid={!!llmApiKeyForm.formState.errors.model}
                     placeholder="e.g. gpt-4o-mini"
                   />
                   {llmApiKeyForm.formState.errors.model && (
@@ -371,10 +374,9 @@ export function SettingsIntegrationsPage() {
                     (optional — leave blank to use the provider default)
                   </span>
                 </label>
-                <input
+                <Input
                   type="text"
                   {...llmApiKeyForm.register('model')}
-                  className={inputCls}
                   placeholder="Provider default"
                 />
               </div>
@@ -384,13 +386,9 @@ export function SettingsIntegrationsPage() {
                 {llmApiKeyForm.formState.errors.root.message}
               </p>
             )}
-            <button
-              type="submit"
-              disabled={llmApiKeyForm.formState.isSubmitting}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-            >
+            <Button type="submit" disabled={llmApiKeyForm.formState.isSubmitting}>
               {llmApiKeyForm.formState.isSubmitting ? 'Saving…' : 'Add key'}
-            </button>
+            </Button>
           </form>
         ) : (
           <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -428,13 +426,9 @@ export function SettingsIntegrationsPage() {
             !customAiPromptForm.formState.errors.root?.message && (
               <p className="text-sm text-green-600">Custom instructions updated successfully.</p>
             )}
-          <button
-            type="submit"
-            disabled={customAiPromptForm.formState.isSubmitting}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-          >
+          <Button type="submit" disabled={customAiPromptForm.formState.isSubmitting}>
             {customAiPromptForm.formState.isSubmitting ? 'Saving…' : 'Save instructions'}
-          </button>
+          </Button>
         </form>
       </section>
 
@@ -459,25 +453,24 @@ export function SettingsIntegrationsPage() {
               <code className="flex-1 text-sm font-mono text-gray-900 dark:text-gray-100 break-all">
                 {newApiToken.token}
               </code>
-              <button
-                type="button"
+              <Button
+                variant="link"
                 onClick={() => {
                   navigator.clipboard.writeText(newApiToken.token);
                 }}
                 aria-label="Copy token"
-                className="shrink-0 flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:underline"
+                className="shrink-0"
               >
-                <CopyIcon size={14} /> <span className="hidden sm:inline">Copy</span>
-              </button>
+                <span className="flex items-center gap-1">
+                  <CopyIcon size={14} /> <span className="hidden sm:inline">Copy</span>
+                </span>
+              </Button>
             </div>
-            <button
-              type="button"
-              onClick={() => setNewApiToken(null)}
-              aria-label="Done"
-              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-            >
-              <CheckIcon size={14} /> <span className="hidden sm:inline">Done</span>
-            </button>
+            <Button onClick={() => setNewApiToken(null)} aria-label="Done">
+              <span className="flex items-center gap-1.5">
+                <CheckIcon size={14} /> <span className="hidden sm:inline">Done</span>
+              </span>
+            </Button>
           </div>
         )}
 
@@ -491,22 +484,19 @@ export function SettingsIntegrationsPage() {
             <div className="flex items-end gap-3">
               <div className="flex-1">
                 <label className={labelCls}>Token name</label>
-                <input
+                <Input
                   type="text"
                   value={apiTokenName}
                   onChange={(e) => setApiTokenName(e.target.value)}
-                  className={inputCls}
                   placeholder="e.g. CI pipeline"
                 />
               </div>
-              <button
-                type="button"
+              <Button
                 onClick={onCreateApiToken}
                 disabled={creatingApiToken || !apiTokenName.trim()}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
               >
                 {creatingApiToken ? 'Creating…' : 'Create token'}
-              </button>
+              </Button>
             </div>
           </>
         )}
@@ -566,25 +556,24 @@ export function SettingsIntegrationsPage() {
               <code className="flex-1 text-sm font-mono text-gray-900 dark:text-gray-100 break-all">
                 {shareUrl(newShareLink.token)}
               </code>
-              <button
-                type="button"
+              <Button
+                variant="link"
                 onClick={() => {
                   navigator.clipboard.writeText(shareUrl(newShareLink.token));
                 }}
                 aria-label="Copy link"
-                className="shrink-0 flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:underline"
+                className="shrink-0"
               >
-                <CopyIcon size={14} /> <span className="hidden sm:inline">Copy</span>
-              </button>
+                <span className="flex items-center gap-1">
+                  <CopyIcon size={14} /> <span className="hidden sm:inline">Copy</span>
+                </span>
+              </Button>
             </div>
-            <button
-              type="button"
-              onClick={() => setNewShareLink(null)}
-              aria-label="Done"
-              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-            >
-              <CheckIcon size={14} /> <span className="hidden sm:inline">Done</span>
-            </button>
+            <Button onClick={() => setNewShareLink(null)} aria-label="Done">
+              <span className="flex items-center gap-1.5">
+                <CheckIcon size={14} /> <span className="hidden sm:inline">Done</span>
+              </span>
+            </Button>
           </div>
         )}
 
@@ -598,22 +587,19 @@ export function SettingsIntegrationsPage() {
             <div className="flex items-end gap-3">
               <div className="flex-1">
                 <label className={labelCls}>Link name</label>
-                <input
+                <Input
                   type="text"
                   value={shareLinkName}
                   onChange={(e) => setShareLinkName(e.target.value)}
-                  className={inputCls}
                   placeholder="e.g. For my mentor"
                 />
               </div>
-              <button
-                type="button"
+              <Button
                 onClick={onCreateShareLink}
                 disabled={creatingShareLink || !shareLinkName.trim()}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
               >
                 {creatingShareLink ? 'Creating…' : 'Create link'}
-              </button>
+              </Button>
             </div>
           </>
         )}

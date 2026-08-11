@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CalendarIcon, CheckIcon, EditIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
+import { Button, Input } from '@job-finder/ui';
 
 const INTERVIEW_ROUNDS_QUERY = `
   query InterviewRounds($applicationId: ID!) {
@@ -309,19 +310,17 @@ export function InterviewsTab({
       </div>
       <div>
         <label className="block text-xs font-medium text-gray-500 mb-1">Scheduled at</label>
-        <input
+        <Input
           type="datetime-local"
           value={form.scheduledAt}
           onChange={(e) => setForm({ ...form, scheduledAt: e.target.value })}
-          className={inputCls}
         />
       </div>
       <div>
         <label className="block text-xs font-medium text-gray-500 mb-1">Interviewer</label>
-        <input
+        <Input
           value={form.interviewerName}
           onChange={(e) => setForm({ ...form, interviewerName: e.target.value })}
-          className={inputCls}
           placeholder="Name or team"
         />
       </div>
@@ -335,19 +334,12 @@ export function InterviewsTab({
         />
       </div>
       <div className="flex gap-2 justify-end">
-        <button
-          onClick={onSubmit}
-          disabled={submitting}
-          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-medium rounded-lg"
-        >
+        <Button size="sm" onClick={onSubmit} disabled={submitting}>
           {submitting ? 'Saving…' : 'Save'}
-        </button>
-        <button
-          onClick={onCancel}
-          className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
-        >
+        </Button>
+        <Button variant="ghost" size="sm" onClick={onCancel}>
           Cancel
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -356,22 +348,27 @@ export function InterviewsTab({
     <div className="space-y-4">
       {!showForm && !editingRound && (
         <div className="flex flex-wrap gap-2">
-          <button
+          <Button
+            size="sm"
             onClick={() => {
               setShowForm(true);
               setForm(emptyForm());
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg"
           >
-            <PlusIcon size={14} /> Add interview round
-          </button>
+            <span className="flex items-center gap-1.5">
+              <PlusIcon size={14} /> Add interview round
+            </span>
+          </Button>
           {rounds.some((r) => r.scheduledAt) && (
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => downloadIcs(generateIcs(rounds, company, role), company, role)}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs font-medium rounded-lg"
             >
-              <CalendarIcon size={14} /> Export to Calendar
-            </button>
+              <span className="flex items-center gap-1.5">
+                <CalendarIcon size={14} /> Export to Calendar
+              </span>
+            </Button>
           )}
         </div>
       )}

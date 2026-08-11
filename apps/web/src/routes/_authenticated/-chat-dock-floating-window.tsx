@@ -3,6 +3,7 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronDownIcon, Maximize2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
+import { IconButton } from '@job-finder/ui';
 import { useChatDock } from '#/lib/chatDock';
 import { conversationsQueryOptions } from '#/routes/_authenticated/assistant/-shared';
 import {
@@ -65,22 +66,17 @@ export function ChatDockFloatingWindow() {
           >
             <Maximize2Icon size={14} />
           </button>
-          <button
-            type="button"
+          <IconButton
+            label="Minimize"
+            icon={<ChevronDownIcon size={16} />}
             onClick={dock.minimize}
-            aria-label="Minimize"
-            className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded transition-colors"
-          >
-            <ChevronDownIcon size={16} />
-          </button>
-          <button
-            type="button"
+          />
+          <IconButton
+            label="Close"
+            icon={<XIcon size={14} />}
+            variant="danger"
             onClick={dock.closeExpanded}
-            aria-label="Close"
-            className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded transition-colors"
-          >
-            <XIcon size={14} />
-          </button>
+          />
         </div>
       </div>
 

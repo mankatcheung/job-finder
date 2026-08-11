@@ -4,6 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { CopyIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
+import { Button } from '@job-finder/ui';
 
 const GENERATE_COVER_LETTER = `
   mutation GenerateCoverLetter($applicationId: ID!, $resumeText: String) {
@@ -55,20 +56,18 @@ export function CoverLetterTab({ applicationId }: { applicationId: string }) {
             className={inputCls}
           />
         </div>
-        <button
-          onClick={() => generate.mutate()}
-          disabled={generate.isPending}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
-        >
-          {generate.isPending ? (
-            <>
-              <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" />
-              Generating…
-            </>
-          ) : (
-            <>✨ {coverLetter ? 'Regenerate' : 'Generate cover letter'}</>
-          )}
-        </button>
+        <Button onClick={() => generate.mutate()} disabled={generate.isPending}>
+          <span className="flex items-center gap-2">
+            {generate.isPending ? (
+              <>
+                <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" />
+                Generating…
+              </>
+            ) : (
+              <>✨ {coverLetter ? 'Regenerate' : 'Generate cover letter'}</>
+            )}
+          </span>
+        </Button>
         {generate.isError && (
           <p className="text-sm text-red-600 dark:text-red-400">
             {getGqlErrorCode(generate.error) === AI_NOT_CONFIGURED_CODE ? (
@@ -92,14 +91,12 @@ export function CoverLetterTab({ applicationId }: { applicationId: string }) {
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Generated cover letter
             </h3>
-            <button
-              onClick={handleCopy}
-              aria-label="Copy"
-              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <CopyIcon size={14} />{' '}
-              <span className="hidden sm:inline">{copied ? '✓ Copied' : 'Copy'}</span>
-            </button>
+            <Button variant="secondary" size="sm" onClick={handleCopy} aria-label="Copy">
+              <span className="flex items-center gap-1">
+                <CopyIcon size={14} />{' '}
+                <span className="hidden sm:inline">{copied ? '✓ Copied' : 'Copy'}</span>
+              </span>
+            </Button>
           </div>
           <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-sans leading-relaxed">
             {coverLetter}

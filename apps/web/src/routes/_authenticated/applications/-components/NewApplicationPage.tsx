@@ -7,6 +7,7 @@ import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { getErrorMessage } from '#/lib/errors';
 import { StarIcon, XIcon } from 'lucide-react';
+import { Button, Input } from '@job-finder/ui';
 import { JdImportPanel } from './JdImportPanel';
 
 const schema = z.object({
@@ -123,17 +124,17 @@ export function NewApplicationPage() {
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Company *" error={errors.company?.message}>
-            <input {...register('company')} className={inputClass} placeholder="Acme Corp" />
+            <Input {...register('company')} invalid={!!errors.company} placeholder="Acme Corp" />
           </Field>
           <Field label="Role *" error={errors.role?.message}>
-            <input {...register('role')} className={inputClass} placeholder="Senior Engineer" />
+            <Input {...register('role')} invalid={!!errors.role} placeholder="Senior Engineer" />
           </Field>
         </div>
 
         <Field label="Job URL" error={errors.jobUrl?.message}>
-          <input
+          <Input
             {...register('jobUrl')}
-            className={inputClass}
+            invalid={!!errors.jobUrl}
             placeholder="https://..."
             type="url"
           />
@@ -141,14 +142,10 @@ export function NewApplicationPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Location">
-            <input
-              {...register('location')}
-              className={inputClass}
-              placeholder="Remote / San Francisco"
-            />
+            <Input {...register('location')} placeholder="Remote / San Francisco" />
           </Field>
           <Field label="Salary range">
-            <input {...register('salaryRange')} className={inputClass} placeholder="$120k–$160k" />
+            <Input {...register('salaryRange')} placeholder="$120k–$160k" />
           </Field>
         </div>
 
@@ -162,14 +159,10 @@ export function NewApplicationPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Source">
-            <input
-              {...register('source')}
-              className={inputClass}
-              placeholder="LinkedIn, referral, Indeed…"
-            />
+            <Input {...register('source')} placeholder="LinkedIn, referral, Indeed…" />
           </Field>
           <Field label="Follow-up date">
-            <input {...register('followUpAt')} className={inputClass} type="date" />
+            <Input {...register('followUpAt')} type="date" />
           </Field>
         </div>
 
@@ -194,7 +187,7 @@ export function NewApplicationPage() {
                 ))}
               </div>
             )}
-            <input
+            <Input
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={(e) => {
@@ -205,7 +198,6 @@ export function NewApplicationPage() {
                   setTagInput('');
                 }
               }}
-              className={inputClass}
               placeholder="Type a tag and press Enter…"
             />
           </div>
@@ -233,13 +225,9 @@ export function NewApplicationPage() {
         )}
 
         <div className="flex gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-          >
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Saving…' : 'Save application'}
-          </button>
+          </Button>
           <a
             href="/applications"
             className="px-5 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"

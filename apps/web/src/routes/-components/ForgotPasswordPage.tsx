@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
+import { Button, Input } from '@job-finder/ui';
 
 const schema = z.object({
   email: z.string().email('Invalid email'),
@@ -69,39 +70,34 @@ export function ForgotPasswordPage() {
               >
                 Email
               </label>
-              <input
+              <Input
                 id="email"
                 type="email"
                 {...register('email')}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                invalid={!!errors.email}
                 placeholder="you@example.com"
               />
               {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-            >
+            <Button type="submit" disabled={isSubmitting} fullWidth>
               {isSubmitting
                 ? 'Sending…'
                 : recoveryMode === 'backup'
                   ? 'Send recovery link'
                   : 'Send reset link'}
-            </button>
+            </Button>
           </form>
         )}
 
-        <button
-          type="button"
+        <Button
+          variant="link"
           onClick={() => setRecoveryMode((mode) => (mode === 'primary' ? 'backup' : 'primary'))}
-          className="text-sm text-blue-600 hover:underline"
         >
           {recoveryMode === 'primary'
             ? 'Lost access to your primary email? Use a backup email.'
             : 'Use your primary email instead'}
-        </button>
+        </Button>
 
         <p className="text-sm text-gray-500 dark:text-gray-400">
           <Link to="/login" className="text-blue-600 hover:underline">

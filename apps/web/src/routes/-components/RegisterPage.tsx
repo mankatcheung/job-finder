@@ -7,6 +7,7 @@ import { gqlClient, setAccessToken } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 import { LogoMark } from '#/components/LogoMark';
+import { Button, Input } from '@job-finder/ui';
 
 const schema = z
   .object({
@@ -124,10 +125,10 @@ export function RegisterPage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email
               </label>
-              <input
+              <Input
                 type="email"
                 {...register('email')}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                invalid={!!errors.email}
                 placeholder="you@example.com"
               />
               {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
@@ -137,10 +138,10 @@ export function RegisterPage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Password
               </label>
-              <input
+              <Input
                 type="password"
                 {...register('password')}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                invalid={!!errors.password}
                 placeholder="••••••••"
               />
               {errors.password && (
@@ -152,10 +153,10 @@ export function RegisterPage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Confirm password
               </label>
-              <input
+              <Input
                 type="password"
                 {...register('confirmPassword')}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                invalid={!!errors.confirmPassword}
                 placeholder="••••••••"
               />
               {errors.confirmPassword && (
@@ -169,13 +170,9 @@ export function RegisterPage() {
               </p>
             )}
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
-            >
+            <Button type="submit" disabled={isSubmitting} fullWidth>
               {isSubmitting ? 'Creating account…' : 'Create account'}
-            </button>
+            </Button>
           </form>
 
           <OAuthButtons label="Sign up" />
