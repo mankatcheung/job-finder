@@ -1,8 +1,13 @@
 # design-sync notes for job-finder
 
-## Package shape, no Storybook
+## Storybook shape (switched 2026-08-11, JEF-153)
 
-`packages/ui` has no `.storybook/` and no `*.stories.*` files — confirmed with the user, deliberately skipped for now (only 5 components as of this writing; revisit once the set grows past ~10-15).
+`packages/ui` now has a real Storybook (`.storybook/main.ts` + `.storybook/preview.ts`, colocated at the package root — no `storybookConfigDir` needed since it matches `cfg.pkg`'s location). `shape` was switched from `package` to `storybook` at the same time — this was the revisit point flagged below (component count crossed ~10-15).
+
+- **Tailwind wiring**: `.storybook/main.ts`'s `viteFinal` pushes the `@tailwindcss/vite` plugin (a new devDependency — the package previously only had `@tailwindcss/cli` for the `dist/styles.css` build step) onto Storybook's own Vite config, and `.storybook/preview.ts` imports `../src/styles.css` directly (the source entry, not `dist/`) — matches `apps/web/vite.config.ts`'s own `@tailwindcss/vite` usage, so Storybook gets live Tailwind processing with no separate build step.
+- **Dark mode**: `.storybook/preview.ts` uses `@storybook/addon-themes`'s `withThemeByClassName` decorator (`{light: '', dark: 'dark'}`) to toggle Storybook's theme switcher onto the same `.dark`-class-on-ancestor convention the rest of this DS uses — not `prefers-color-scheme`.
+- **Every story uses `render:`, not `args:`** (these compositions are multi-element, e.g. `Button`'s `Variants` story renders 5 buttons) — for components with required props (`Button.children`, `Modal.open`/`onClose`/`children`, etc.), `type Story = StoryObj<typeof meta>` makes TypeScript demand `args` matching those required props even though `render` ignores them entirely. Fix: type `Story` off the component directly — `type Story = StoryObj<typeof ComponentName>` — not off `typeof meta`.
+- **`.design-sync/previews/*.tsx` (the old package-shape preview files) were deleted** — their content is now the real `*.stories.tsx` files next to each component in `packages/ui/src/`, which is the canonical source under the storybook shape. Don't recreate the old `previews/` dir; it's dead weight once `shape: "storybook"` is set.
 
 ## Two gotchas fixed to make this package sync-able
 

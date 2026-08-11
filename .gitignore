@@ -16,6 +16,7 @@ uploads/
 apps/api/src/index.js
 apps/api/src/generated/
 *.tsbuildinfo
+storybook-static
 
 # design-sync (see .design-sync/config.json / NOTES.md)
 .ds-sync/

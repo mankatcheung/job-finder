@@ -1,9 +1,18 @@
-import { Select } from '@job-finder/ui';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Select } from './Select';
+
+const meta = {
+  title: 'Forms/Select',
+  component: Select,
+} satisfies Meta<typeof Select>;
+
+export default meta;
+type Story = StoryObj<typeof Select>;
 
 const STATUSES = ['draft', 'applied', 'interviewing', 'offered', 'rejected', 'accepted'];
 
-export function Default() {
-  return (
+export const Default: Story = {
+  render: () => (
     <div className="max-w-xs">
       <Select defaultValue="applied">
         {STATUSES.map((s) => (
@@ -13,11 +22,11 @@ export function Default() {
         ))}
       </Select>
     </div>
-  );
-}
+  ),
+};
 
-export function Invalid() {
-  return (
+export const Invalid: Story = {
+  render: () => (
     <div className="max-w-xs">
       <Select invalid defaultValue="">
         <option value="" disabled>
@@ -30,5 +39,5 @@ export function Invalid() {
         ))}
       </Select>
     </div>
-  );
-}
+  ),
+};

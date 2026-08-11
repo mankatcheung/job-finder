@@ -1,7 +1,17 @@
-import { Card, Button } from '@job-finder/ui';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Card } from './Card';
+import { Button } from './Button';
 
-export function Default() {
-  return (
+const meta = {
+  title: 'Layout/Card',
+  component: Card,
+} satisfies Meta<typeof Card>;
+
+export default meta;
+type Story = StoryObj<typeof Card>;
+
+export const Default: Story = {
+  render: () => (
     <Card className="p-4 space-y-3 max-w-sm">
       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Add a note</p>
       <textarea
@@ -13,11 +23,11 @@ export function Default() {
         <Button size="sm">Add note</Button>
       </div>
     </Card>
-  );
-}
+  ),
+};
 
-export function ListRow() {
-  return (
+export const ListRow: Story = {
+  render: () => (
     <Card className="px-4 py-3 max-w-sm flex items-center justify-between">
       <div>
         <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Jane Smith</p>
@@ -25,5 +35,5 @@ export function ListRow() {
       </div>
       <span className="text-xs text-blue-600">Edit</span>
     </Card>
-  );
-}
+  ),
+};

@@ -1,6 +1,6 @@
 {
   "projectId": "fb693e14-9709-4342-961a-fd47ca446641",
-  "shape": "package",
+  "shape": "storybook",
   "pkg": "@job-finder/ui",
   "globalName": "JobFinderUI",
   "buildCmd": "pnpm --filter @job-finder/ui build",

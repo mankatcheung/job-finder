@@ -1,11 +1,20 @@
-import { Button } from '@job-finder/ui';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Button } from './Button';
 
-export function Default() {
-  return <Button>Sign in</Button>;
-}
+const meta = {
+  title: 'Actions/Button',
+  component: Button,
+} satisfies Meta<typeof Button>;
 
-export function Variants() {
-  return (
+export default meta;
+type Story = StoryObj<typeof Button>;
+
+export const Default: Story = {
+  render: () => <Button>Sign in</Button>,
+};
+
+export const Variants: Story = {
+  render: () => (
     <div className="flex flex-wrap items-center gap-3">
       <Button variant="primary">Primary</Button>
       <Button variant="destructive">Destructive</Button>
@@ -13,33 +22,33 @@ export function Variants() {
       <Button variant="ghost">Ghost</Button>
       <Button variant="link">Link</Button>
     </div>
-  );
-}
+  ),
+};
 
-export function Sizes() {
-  return (
+export const Sizes: Story = {
+  render: () => (
     <div className="flex items-center gap-3">
       <Button size="md">Continue</Button>
       <Button size="sm">Continue</Button>
     </div>
-  );
-}
+  ),
+};
 
-export function Disabled() {
-  return (
+export const Disabled: Story = {
+  render: () => (
     <div className="flex items-center gap-3">
       <Button disabled>Signing in…</Button>
       <Button variant="secondary" disabled>
         Cancel
       </Button>
     </div>
-  );
-}
+  ),
+};
 
-export function FullWidth() {
-  return (
+export const FullWidth: Story = {
+  render: () => (
     <div className="w-64">
       <Button fullWidth>Sign in</Button>
     </div>
-  );
-}
+  ),
+};
