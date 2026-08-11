@@ -3,7 +3,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useMemo } from 'react';
 import { showUndoToast } from '#/lib/undoToast';
 import { ErrorState } from '#/components/ErrorState';
-import { Card, EmptyState, Skeleton, Spinner } from '@job-finder/ui';
+import { Card, Checkbox, EmptyState, Skeleton, Spinner } from '@job-finder/ui';
 import { StatusBadge } from '../../-components/StatusBadge';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { useBulkActions } from '../-useBulkActions';
@@ -190,11 +190,9 @@ function ApplicationsPage() {
       ) : (
         <div className="space-y-2">
           <label className="flex items-center gap-2 px-1 text-xs text-gray-500 dark:text-gray-400 select-none cursor-pointer">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={allSelected}
               onChange={toggleAll}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               aria-label={allSelected ? 'Deselect all' : 'Select all'}
             />
             {selectedCount > 0 ? `${selectedCount} of ${apps.length} selected` : 'Select all'}
@@ -205,11 +203,10 @@ function ApplicationsPage() {
               key={app.id}
               className="flex items-center gap-3 px-5 py-4 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
             >
-              <input
-                type="checkbox"
+              <Checkbox
+                className="shrink-0"
                 checked={selectedIds.has(app.id)}
                 onChange={() => toggleOne(app.id)}
-                className="h-4 w-4 shrink-0 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 aria-label={`Select ${app.company}`}
               />
               <Link

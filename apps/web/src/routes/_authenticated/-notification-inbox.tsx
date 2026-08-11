@@ -10,7 +10,7 @@ import {
 import { gqlClient } from '#/graphql/client';
 import { useInfiniteScrollSentinel } from '#/lib/useInfiniteScrollSentinel';
 import { useHotkeys } from '#/hooks/useHotkeys';
-import { Button, IconButton, Spinner } from '@job-finder/ui';
+import { Button, Checkbox, IconButton, Spinner } from '@job-finder/ui';
 import {
   BellIcon,
   XIcon,
@@ -199,11 +199,10 @@ function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
         {items.length > 0 && (
           <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 dark:border-gray-700 shrink-0">
             <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 cursor-pointer select-none">
-              <input
-                type="checkbox"
+              <Checkbox
+                size="sm"
                 checked={allSelected}
                 onChange={toggleAll}
-                className="h-3.5 w-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 aria-label={allSelected ? 'Deselect all' : 'Select all'}
               />
               {selectedCount > 0 ? `${selectedCount} selected` : 'Select all'}
@@ -258,11 +257,11 @@ function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
                 notification.read ? '' : 'bg-blue-50/50 dark:bg-blue-900/10'
               }`}
             >
-              <input
-                type="checkbox"
+              <Checkbox
+                size="sm"
+                className="mt-1 shrink-0"
                 checked={selectedIds.has(notification.id)}
                 onChange={() => toggleOne(notification.id)}
-                className="mt-1 h-3.5 w-3.5 shrink-0 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 aria-label={`Select ${notification.title}`}
               />
               <button

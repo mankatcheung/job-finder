@@ -36,3 +36,6 @@ export type { SpinnerProps, SpinnerSize, SpinnerTone } from './Spinner';
 
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps, EmptyStateSize } from './EmptyState';
+
+export { Checkbox } from './Checkbox';
+export type { CheckboxProps, CheckboxSize, CheckboxTone } from './Checkbox';
