@@ -5,7 +5,7 @@ import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
 import { getErrorMessage } from '#/lib/errors';
 import { ErrorState } from '#/components/ErrorState';
-import { Card, Textarea } from '@job-finder/ui';
+import { Card, Skeleton, Textarea } from '@job-finder/ui';
 import { StatusBadge } from '../../../-components/StatusBadge';
 import {
   ActivityIcon,
@@ -246,7 +246,7 @@ export function ApplicationDetailPage() {
   if (!app)
     return (
       <div className="p-4 sm:p-8">
-        <div className="h-8 w-64 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+        <Skeleton className="h-8 w-64 rounded" />
       </div>
     );
 

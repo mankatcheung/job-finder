@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { gqlClient } from '#/graphql/client';
 import { ErrorState } from '#/components/ErrorState';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { Skeleton } from '@job-finder/ui';
 
 const CALENDAR_EVENTS_QUERY = `
   query CalendarEvents {
@@ -216,7 +217,7 @@ function CalendarPage() {
       </div>
 
       {isLoading ? (
-        <div className="animate-pulse h-96 bg-gray-100 dark:bg-gray-800 rounded-xl" />
+        <Skeleton className="h-96 rounded-xl" />
       ) : isError ? (
         <ErrorState error={error} onRetry={() => refetch()} />
       ) : (

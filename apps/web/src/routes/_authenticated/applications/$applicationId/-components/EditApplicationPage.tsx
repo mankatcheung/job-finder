@@ -8,7 +8,7 @@ import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { getErrorMessage } from '#/lib/errors';
 import { StarIcon, XIcon } from 'lucide-react';
-import { Alert, Button, FormLabel, Input, Select, Textarea } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input, Select, Skeleton, Textarea } from '@job-finder/ui';
 import { JdImportPanel } from '../../-components/JdImportPanel';
 import { applicationQueryOptions } from '../-application-query';
 import { Route } from '../edit';
@@ -127,7 +127,7 @@ export function EditApplicationPage() {
   if (!app)
     return (
       <div className="p-4 sm:p-8">
-        <div className="h-8 w-64 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+        <Skeleton className="h-8 w-64 rounded" />
       </div>
     );
 

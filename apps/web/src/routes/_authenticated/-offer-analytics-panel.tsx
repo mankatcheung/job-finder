@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card } from '@job-finder/ui';
+import { Card, Skeleton } from '@job-finder/ui';
 import { offerAnalyticsQueryOptions } from './-offer-analytics-queries';
 
 function formatCurrency(amount: number, currency: string): string {
@@ -38,7 +38,7 @@ export function OfferAnalyticsPanel() {
   const { data, isLoading } = useQuery(offerAnalyticsQueryOptions);
 
   if (isLoading) {
-    return <div className="h-48 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />;
+    return <Skeleton className="h-48 rounded-xl" />;
   }
 
   const analytics = data?.offerAnalytics;

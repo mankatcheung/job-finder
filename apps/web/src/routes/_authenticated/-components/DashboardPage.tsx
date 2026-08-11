@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ErrorState } from '#/components/ErrorState';
-import { Card } from '@job-finder/ui';
+import { Card, Skeleton } from '@job-finder/ui';
 import {
   AlertCircleIcon,
   BriefcaseIcon,
@@ -169,7 +169,7 @@ export function DashboardPage() {
         {isLoading ? (
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
+              <Skeleton key={i} className="h-16 rounded-lg" />
             ))}
           </div>
         ) : isError ? (

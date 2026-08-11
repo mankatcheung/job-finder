@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card } from '@job-finder/ui';
+import { Card, Skeleton } from '@job-finder/ui';
 import { documentVersionOutcomesQueryOptions } from './-document-version-outcomes-queries';
 
 const DOCUMENT_TYPE_LABEL: Record<string, string> = {
@@ -28,7 +28,7 @@ export function DocumentVersionOutcomesPanel() {
   const { data, isLoading } = useQuery(documentVersionOutcomesQueryOptions);
 
   if (isLoading) {
-    return <div className="h-48 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />;
+    return <Skeleton className="h-48 rounded-xl" />;
   }
 
   const outcomes = data?.documentVersionOutcomes;
