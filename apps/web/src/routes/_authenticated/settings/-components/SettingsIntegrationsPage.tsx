@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
-import { Button, Input } from '@job-finder/ui';
+import { Button, Input, Select } from '@job-finder/ui';
 import {
   LLM_API_KEYS_QUERY,
   SAVE_LLM_API_KEY,
@@ -313,13 +313,13 @@ export function SettingsIntegrationsPage() {
           <form onSubmit={llmApiKeyForm.handleSubmit(onSaveLlmApiKey)} className="space-y-3">
             <div>
               <label className={labelCls}>Provider</label>
-              <select {...llmApiKeyForm.register('provider')} className={inputCls}>
+              <Select {...llmApiKeyForm.register('provider')}>
                 {availableProviderOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
             <div>
               <label className={labelCls}>API key</label>

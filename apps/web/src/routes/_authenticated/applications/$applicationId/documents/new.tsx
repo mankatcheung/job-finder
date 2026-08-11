@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
-import { Button, Input } from '@job-finder/ui';
+import { Button, Input, Select } from '@job-finder/ui';
 
 const CREATE_DRAFT_MUTATION = `
   mutation CreateDocumentDraft($input: CreateDocumentDraftInput!) {
@@ -169,25 +169,18 @@ function NewDocumentDraftPage() {
             Import text from an existing document, or start blank.
           </p>
           {loadingDocs ? (
-            <select
-              disabled
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            >
+            <Select disabled>
               <option>Loading…</option>
-            </select>
+            </Select>
           ) : (
-            <select
-              value={sourceDocumentId}
-              onChange={(e) => setSourceDocumentId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
+            <Select value={sourceDocumentId} onChange={(e) => setSourceDocumentId(e.target.value)}>
               <option value="">Blank (start from scratch)</option>
               {documents.map((doc) => (
                 <option key={doc.id} value={doc.id}>
                   {doc.name} ({doc.documentType})
                 </option>
               ))}
-            </select>
+            </Select>
           )}
         </div>
 

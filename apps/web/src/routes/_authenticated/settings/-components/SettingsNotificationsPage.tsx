@@ -7,6 +7,7 @@ import {
   type NotificationPreferences,
 } from './shared';
 import { usePushNotifications } from '#/hooks/usePushNotifications';
+import { Select } from '@job-finder/ui';
 
 export function SettingsNotificationsPage() {
   const qc = useQueryClient();
@@ -84,7 +85,7 @@ export function SettingsNotificationsPage() {
               >
                 Job search digest
               </label>
-              <select
+              <Select
                 id="digest-frequency"
                 value={digestFrequency}
                 onChange={(e) =>
@@ -92,12 +93,12 @@ export function SettingsNotificationsPage() {
                     e.target.value as NotificationPreferences['digestFrequency'],
                   )
                 }
-                className="mt-1 block w-full max-w-xs rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                className="mt-1 max-w-xs"
               >
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
                 <option value="off">Off</option>
-              </select>
+              </Select>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 Daily summarizes the last 24 hours; weekly summarizes the last 7 days.
               </p>
