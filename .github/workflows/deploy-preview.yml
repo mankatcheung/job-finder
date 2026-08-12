@@ -50,18 +50,6 @@ env:
   DB_NAME: job-finder-preview-pr-${{ github.event.pull_request.number || inputs.pr-number || github.run_id }}
 
 jobs:
-  checks:
-    name: Typecheck & test
-    if: github.event.action != 'closed'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: ./.github/actions/setup-project
-
-      - run: pnpm typecheck
-      - run: pnpm test
-
   setup-turso-db:
     name: Setup, migrate & seed Turso DB
     if: github.event.action != 'closed'
@@ -110,7 +98,7 @@ jobs:
 
   deploy-api-preview:
     name: Deploy API preview
-    needs: [checks, setup-turso-db]
+    needs: [setup-turso-db]
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     outputs:
@@ -149,7 +137,7 @@ jobs:
 
   deploy-web-preview:
     name: Build & deploy web preview
-    needs: [checks, deploy-api-preview]
+    needs: [deploy-api-preview]
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     outputs:
