@@ -60,11 +60,12 @@ infrastructure/
 http/
   schema/         Pothos schema builder, types, queries, mutations
   plugins/        Fastify plugins (auth/JWT, CORS)
-  container.ts    Awilix DI container wiring — all dependencies registered here
+  container.ts    Awilix DI container — re-exports buildContainer()/Cradle
+  di/             DI registrations split by layer/domain (see container.ts)
   context.ts      GraphQL context shape (user, diScope, request, reply)
 ```
 
-**Dependency injection:** Awilix (`@fastify/awilix`) wires everything. Repositories and resolvers are `SINGLETON`; use cases are `TRANSIENT`. The `container.ts` file is the single place that connects all layers.
+**Dependency injection:** Awilix (`@fastify/awilix`) wires everything. Repositories and resolvers are `SINGLETON`; use cases are `TRANSIENT`. `container.ts` is a thin re-export; `http/di/index.ts` (`buildContainer`) composes typed registration modules split across `http/di/*.ts` (infrastructure, repositories, rate-limiters, mappers, resolvers) and `http/di/use-cases/*.ts` (one file per domain). The `Cradle` interface lives in `http/di/types.ts`.
 
 **Auth:** The API and web app are deployed on separate domains, so a cookie set by the API can never be read by the web app's own page or server (`document.cookie` and the web server both only ever see cookies scoped to their own domain). Two delivery mechanisms exist side by side:
 
@@ -120,7 +121,7 @@ Key API env vars: `DATABASE_URL` must be an absolute path for local SQLite (e.g.
 
 - **IDs** are `nanoid()` strings, not auto-increment integers.
 - **Domain entities** are plain TypeScript objects/classes with no Drizzle or framework imports. Mappers bridge Drizzle rows ↔ domain.
-- **Adding a new feature** follows the layer order: domain entity → port interface → use case → Drizzle repository implementation → Pothos type/resolver → GraphQL mutation/query → register in `container.ts` → add `.graphql` file in web → run codegen → build UI.
+- **Adding a new feature** follows the layer order: domain entity → port interface → use case → Drizzle repository implementation → Pothos type/resolver → GraphQL mutation/query → register in the matching `http/di/` module → add `.graphql` file in web → run codegen → build UI.
 - **Pothos schema:** Each resource has its type file (`http/schema/types/`), query file (`queries/`), and mutation file (`mutations/`). All are imported and composed in `http/schema/index.ts`.
 
 ## Workflow
