@@ -24,6 +24,35 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Matches exactly what Date.prototype.toISOString() produces.
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
+
+/**
+ * JSON has no Date type — Upstash's client JSON-encodes every value sent
+ * over its REST API, so a cached Date field silently becomes an ISO string
+ * (via Date.prototype.toJSON()) with nothing reviving it back on the way
+ * out. Domain entities are typed with real `Date` fields throughout this
+ * codebase, so a cache hit has to hand back the same shape a cache miss
+ * (straight from Drizzle) would (see JEF-157 — GetCalendarEventsUseCase
+ * crashed calling .getTime() on what a Redis hit had turned into a string).
+ * Only the read side needs this: the write side already gets Date → ISO
+ * string for free from JSON.stringify, that part was never broken.
+ */
+function reviveDates<T>(value: T): T {
+  if (typeof value === 'string') {
+    return (ISO_DATE_RE.test(value) ? new Date(value) : value) as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => reviveDates(item)) as T;
+  }
+  if (value !== null && typeof value === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) result[k] = reviveDates(v);
+    return result as T;
+  }
+  return value;
+}
+
 /**
  * Redis-backed ICache, shared across every serverless instance — fixes the
  * cross-instance invalidation gap a per-instance MemoryCache has on Vercel
@@ -64,7 +93,7 @@ export class RedisCache implements ICache {
     ttlMs = CACHE.DEFAULT_TTL_MS,
   ): Promise<T> {
     const hit = await this.redis.get<Envelope<T>>(key);
-    if (hit !== null) return hit.v;
+    if (hit !== null) return reviveDates(hit.v);
 
     const lockKey = `lock:${key}`;
     const acquired = await this.redis.set(lockKey, '1', { nx: true, px: this.lockTtlMs });
@@ -82,7 +111,7 @@ export class RedisCache implements ICache {
     for (let i = 0; i < this.maxPollAttempts; i++) {
       await sleep(this.pollIntervalMs);
       const retry = await this.redis.get<Envelope<T>>(key);
-      if (retry !== null) return retry.v;
+      if (retry !== null) return reviveDates(retry.v);
     }
 
     // The lock-holder didn't finish in time — fetch directly rather than
