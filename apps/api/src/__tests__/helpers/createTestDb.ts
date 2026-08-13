@@ -321,6 +321,44 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "BackupEmailVerificationToken_userId_idx" ON "BackupEmailVerificationToken"("userId")`,
+  `CREATE TABLE "Education" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "institution" TEXT NOT NULL,
+    "degree" TEXT,
+    "field" TEXT,
+    "startDate" INTEGER NOT NULL,
+    "endDate" INTEGER,
+    "description" TEXT,
+    "createdAt" INTEGER NOT NULL,
+    "updatedAt" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "Education_userId_idx" ON "Education"("userId")`,
+  `CREATE TABLE "Skill" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "category" TEXT,
+    "proficiency" TEXT,
+    "createdAt" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "Skill_userId_idx" ON "Skill"("userId")`,
+  `CREATE TABLE "WorkExperience" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "company" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "location" TEXT,
+    "startDate" INTEGER NOT NULL,
+    "endDate" INTEGER,
+    "description" TEXT,
+    "createdAt" INTEGER NOT NULL,
+    "updatedAt" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "WorkExperience_userId_idx" ON "WorkExperience"("userId")`,
 ];
 
 export interface TestDb {
