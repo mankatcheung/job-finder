@@ -10,6 +10,11 @@ function matchesGlob(key: string, pattern: string): boolean {
  * In-memory stand-in for @upstash/redis's Redis client, faithful enough to
  * real SET NX/PX and SCAN semantics to exercise RedisCache's real logic
  * (including the stampede lock and SCAN pagination) without a network call.
+ *
+ * set() round-trips every value through JSON, same as the real client
+ * serializing over its REST API — a naive by-reference store would hide
+ * exactly the class of bug this is meant to catch (JEF-157: a cached Date
+ * silently becoming a string, with nothing here to revive it).
  */
 class FakeRedisClient implements IRedisClient {
   private readonly store = new Map<string, { value: unknown; expiresAt: number | null }>();
@@ -30,7 +35,8 @@ class FakeRedisClient implements IRedisClient {
 
   async set(key: string, value: unknown, opts?: { nx?: true; px?: number }): Promise<unknown> {
     if (opts?.nx && this.isLive(key)) return null;
-    this.store.set(key, { value, expiresAt: opts?.px ? Date.now() + opts.px : null });
+    const serialized = JSON.parse(JSON.stringify(value)) as unknown;
+    this.store.set(key, { value: serialized, expiresAt: opts?.px ? Date.now() + opts.px : null });
     return 'OK';
   }
 
@@ -83,6 +89,24 @@ describe('RedisCache', () => {
       await cache.getOrSet('key', fetch);
       const result = await cache.getOrSet('key', fetch);
       expect(result).toBe('value');
+      expect(fetch).toHaveBeenCalledOnce();
+    });
+
+    it('revives Date fields back into real Date instances on a cache hit', async () => {
+      const { cache } = makeCache();
+      const scheduledAt = new Date('2026-09-01T10:00:00.000Z');
+      const fetch = vi.fn(async () => ({
+        id: 'round-1',
+        scheduledAt,
+        nested: { at: scheduledAt },
+      }));
+
+      await cache.getOrSet('key', fetch); // populates the cache (goes through fetch, not a hit)
+      const hit = await cache.getOrSet('key', fetch); // served from the cache — this is the code path under test
+
+      expect(hit.scheduledAt).toBeInstanceOf(Date);
+      expect(hit.scheduledAt.getTime()).toBe(scheduledAt.getTime());
+      expect(hit.nested.at).toBeInstanceOf(Date);
       expect(fetch).toHaveBeenCalledOnce();
     });
 
