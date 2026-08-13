@@ -1,0 +1,36 @@
+import type { SeedApplication } from '../../types.js';
+
+export const draftApplications: SeedApplication[] = [
+  {
+    company: 'Vercel',
+    role: 'Senior DX Engineer',
+    status: 'draft',
+    jobUrl: 'https://vercel.example.com/careers/dx-engineer',
+    location: 'Remote (Global)',
+    salaryRange: '$180k – $230k',
+    description: 'Improve developer experience across Next.js and Vercel platform tooling.',
+    appliedAt: null,
+    starred: false,
+    source: 'Company website',
+    tags: ['dx', 'remote', 'senior'],
+    notes: [{ content: 'Need to finish updating portfolio before applying.' }],
+    contacts: [],
+    interviewRounds: [],
+  },
+  {
+    company: 'Cloudflare',
+    role: 'Systems Engineer',
+    status: 'draft',
+    jobUrl: 'https://cloudflare.example.com/jobs/systems-engineer',
+    location: 'Austin, TX (Hybrid)',
+    salaryRange: '$155k – $195k',
+    description: 'Work on edge computing infrastructure and Workers runtime.',
+    appliedAt: null,
+    starred: false,
+    source: 'Hacker News',
+    tags: ['systems', 'infrastructure'],
+    notes: [],
+    contacts: [],
+    interviewRounds: [],
+  },
+];
