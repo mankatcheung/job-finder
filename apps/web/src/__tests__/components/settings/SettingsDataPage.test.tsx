@@ -2,10 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const { mockNavigate, mockGqlRequest, mockSetAccessToken } = vi.hoisted(() => ({
+const { mockNavigate, mockGqlRequest } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockGqlRequest: vi.fn(),
-  mockSetAccessToken: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-router', () => ({
@@ -24,7 +23,6 @@ vi.mock('@tanstack/react-start/server', () => ({
 
 vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
-  setAccessToken: mockSetAccessToken,
 }));
 
 vi.mock('#/lib/queryClient', () => ({
@@ -145,7 +143,6 @@ describe('SettingsDataPage', () => {
         expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('DeleteAccount'), {
           password: 'myPassword123',
         });
-        expect(mockSetAccessToken).toHaveBeenCalledWith(null);
         expect(mockNavigate).toHaveBeenCalledWith({ to: '/login' });
       });
     });
@@ -210,8 +207,6 @@ describe('SettingsDataPage', () => {
         password: 'myPassword123',
         code: undefined,
       });
-      expect(mockSetAccessToken).toHaveBeenCalledWith('new-access-token');
-      expect(mockSetAccessToken).toHaveBeenCalledWith(null);
     });
   });
 });

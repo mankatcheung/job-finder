@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
-import { hydrateSession } from '#/graphql/client';
+import { hasSessionCookie } from '#/graphql/client';
 import {
   LayoutDashboard,
   BarChart3,
@@ -17,9 +17,8 @@ export const Route = createFileRoute('/')({
   // false forces TanStack Start's hydrate() to call beforeLoad again on the
   // client instead of trusting an SSR-computed (and here undecidable) result.
   ssr: false,
-  beforeLoad: async () => {
-    const authed = await hydrateSession();
-    if (authed) throw redirect({ to: '/dashboard' });
+  beforeLoad: () => {
+    if (hasSessionCookie()) throw redirect({ to: '/dashboard' });
   },
   component: LandingPage,
 });

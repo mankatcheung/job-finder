@@ -7,10 +7,9 @@ import { axe } from 'jest-axe';
 /*  Shared mocks — reused across every component under test            */
 /* ------------------------------------------------------------------ */
 
-const { mockNavigate, mockGqlRequest, mockSetAccessToken, mockUseSearch } = vi.hoisted(() => ({
+const { mockNavigate, mockGqlRequest, mockUseSearch } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockGqlRequest: vi.fn(),
-  mockSetAccessToken: vi.fn(),
   mockUseSearch: vi.fn().mockReturnValue({}),
 }));
 
@@ -38,8 +37,7 @@ vi.mock('@tanstack/react-start/server', () => ({
 
 vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
-  setAccessToken: mockSetAccessToken,
-  hydrateSession: vi.fn().mockResolvedValue(false),
+  hasSessionCookie: vi.fn().mockReturnValue(false),
 }));
 
 vi.mock('#/lib/queryClient', () => ({

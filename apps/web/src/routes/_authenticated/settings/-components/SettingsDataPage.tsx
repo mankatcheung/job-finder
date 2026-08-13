@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { gqlClient, setAccessToken } from '#/graphql/client';
+import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { Alert, Button, FormLabel, Input } from '@job-finder/ui';
 import {
@@ -67,7 +67,6 @@ export function SettingsDataPage() {
   const onDeleteAccount = async (data: DeleteForm) => {
     try {
       await withStepUp(() => gqlClient.request(DELETE_ACCOUNT, data));
-      setAccessToken(null);
       queryClient.clear();
       await navigate({ to: '/login' });
     } catch (err) {

@@ -22,7 +22,6 @@ vi.mock('@tanstack/react-start/server', () => ({
 
 vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
-  setAccessToken: vi.fn(),
 }));
 
 vi.mock('#/lib/queryClient', () => ({

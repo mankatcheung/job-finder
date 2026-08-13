@@ -9,17 +9,15 @@ vi.mock('@tanstack/react-start/server', () => ({
 }));
 
 type Middleware = (response: unknown) => Promise<void>;
-type RequestMiddleware = (request: { headers: Headers }) => { headers: HeadersInit };
 
 // GraphQLClient must be a real constructor (not an arrow fn) to support `new`
 vi.mock('graphql-request', () => ({
   GraphQLClient: vi.fn(function (
-    this: { responseMiddleware: Middleware; requestMiddleware: RequestMiddleware },
+    this: { responseMiddleware: Middleware },
     _url: string,
-    opts: { responseMiddleware?: Middleware; requestMiddleware?: RequestMiddleware },
+    opts: { responseMiddleware?: Middleware },
   ) {
     this.responseMiddleware = opts?.responseMiddleware ?? (() => Promise.resolve());
-    this.requestMiddleware = opts?.requestMiddleware ?? ((r) => r);
   }),
 }));
 
@@ -104,143 +102,39 @@ describe('refresh token deduplication', () => {
   });
 });
 
-describe('access token', () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
-
+describe('hasSessionCookie', () => {
   beforeEach(() => {
-    fetchSpy = vi.spyOn(globalThis, 'fetch');
     vi.resetModules();
   });
 
   afterEach(() => {
-    fetchSpy.mockRestore();
-    mockLocationHref.mockClear();
+    // Expire every cookie set during the tests below so state doesn't leak across them.
+    for (const name of ['jf_logged_in', 'jf_logged_in_other', 'some_other_cookie']) {
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+    }
   });
 
-  // graphql-request passes a real Headers instance (with Content-Type/Accept
-  // already set) into requestMiddleware, not a plain object — spreading a
-  // Headers instance with {...headers} silently produces {} and drops every
-  // existing header, so these tests use a real Headers instance as input to
-  // catch that regression.
-
-  it('attaches no Authorization header before any token is set', async () => {
-    const { gqlClient } = await import('#/graphql/client');
-    const requestMiddleware = (gqlClient as unknown as { requestMiddleware: RequestMiddleware })
-      .requestMiddleware;
-
-    const result = requestMiddleware({
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-    });
-
-    expect(new Headers(result.headers).get('Authorization')).toBeNull();
+  it('returns false when the hint cookie is absent (no network call involved)', async () => {
+    const { hasSessionCookie } = await import('#/graphql/client');
+    expect(hasSessionCookie()).toBe(false);
   });
 
-  it('attaches Authorization: Bearer <token> once setAccessToken is called', async () => {
-    const { gqlClient, setAccessToken } = await import('#/graphql/client');
-    setAccessToken('abc123');
-    const requestMiddleware = (gqlClient as unknown as { requestMiddleware: RequestMiddleware })
-      .requestMiddleware;
-
-    const result = requestMiddleware({
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-    });
-
-    expect(new Headers(result.headers).get('Authorization')).toBe('Bearer abc123');
+  it('returns true when the hint cookie is present', async () => {
+    document.cookie = 'jf_logged_in=1';
+    const { hasSessionCookie } = await import('#/graphql/client');
+    expect(hasSessionCookie()).toBe(true);
   });
 
-  it('preserves existing headers (e.g. Content-Type) when attaching Authorization', async () => {
-    const { gqlClient, setAccessToken } = await import('#/graphql/client');
-    setAccessToken('abc123');
-    const requestMiddleware = (gqlClient as unknown as { requestMiddleware: RequestMiddleware })
-      .requestMiddleware;
-
-    const result = requestMiddleware({
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-    });
-
-    expect(new Headers(result.headers).get('Content-Type')).toBe('application/json');
+  it('returns true when the hint cookie is present alongside others', async () => {
+    document.cookie = 'some_other_cookie=abc';
+    document.cookie = 'jf_logged_in=1';
+    const { hasSessionCookie } = await import('#/graphql/client');
+    expect(hasSessionCookie()).toBe(true);
   });
 
-  it('stops attaching the header once setAccessToken(null) is called', async () => {
-    const { gqlClient, setAccessToken } = await import('#/graphql/client');
-    setAccessToken('abc123');
-    setAccessToken(null);
-    const requestMiddleware = (gqlClient as unknown as { requestMiddleware: RequestMiddleware })
-      .requestMiddleware;
-
-    const result = requestMiddleware({
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-    });
-
-    expect(new Headers(result.headers).get('Authorization')).toBeNull();
-  });
-});
-
-describe('hydrateSession', () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    fetchSpy = vi.spyOn(globalThis, 'fetch');
-    vi.resetModules();
-  });
-
-  afterEach(() => {
-    fetchSpy.mockRestore();
-    mockLocationHref.mockClear();
-  });
-
-  it('makes no network call when a token is already in memory', async () => {
-    const { setAccessToken, hydrateSession } = await import('#/graphql/client');
-    setAccessToken('already-have-one');
-
-    const authed = await hydrateSession();
-
-    expect(authed).toBe(true);
-    expect(fetchSpy).not.toHaveBeenCalled();
-  });
-
-  it('attempts a silent refresh and returns true when it succeeds', async () => {
-    fetchSpy.mockResolvedValue(
-      new Response(JSON.stringify({ data: { refreshToken: 'fresh-token' } }), {
-        headers: { 'Content-Type': 'application/json' },
-      }),
-    );
-    const { hydrateSession } = await import('#/graphql/client');
-
-    const authed = await hydrateSession();
-
-    expect(authed).toBe(true);
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
-  });
-
-  it('returns false when the silent refresh fails', async () => {
-    fetchSpy.mockResolvedValue(
-      new Response(JSON.stringify({ data: { refreshToken: null } }), {
-        headers: { 'Content-Type': 'application/json' },
-      }),
-    );
-    const { hydrateSession } = await import('#/graphql/client');
-
-    const authed = await hydrateSession();
-
-    expect(authed).toBe(false);
-  });
-
-  it('dedupes with a concurrent 401-triggered refresh via the same underlying call', async () => {
-    fetchSpy.mockResolvedValue(
-      new Response(JSON.stringify({ data: { refreshToken: 'shared-token' } }), {
-        headers: { 'Content-Type': 'application/json' },
-      }),
-    );
-    const { gqlClient, hydrateSession } = await import('#/graphql/client');
-    const middleware = (gqlClient as unknown as { responseMiddleware: Middleware })
-      .responseMiddleware;
-
-    await Promise.all([
-      hydrateSession(),
-      middleware({ errors: [{ extensions: { code: 'UNAUTHORIZED' } }] }),
-    ]);
-
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  it('does not false-positive on a cookie name that merely starts with the same prefix', async () => {
+    document.cookie = 'jf_logged_in_other=1';
+    const { hasSessionCookie } = await import('#/graphql/client');
+    expect(hasSessionCookie()).toBe(false);
   });
 });

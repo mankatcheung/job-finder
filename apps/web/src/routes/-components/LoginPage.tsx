@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { gqlClient, setAccessToken } from '#/graphql/client';
+import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 import { getErrorMessage } from '#/lib/errors';
@@ -63,7 +63,6 @@ export function LoginPage() {
         setPendingCredentials(data);
         return;
       }
-      setAccessToken(res.login.accessToken);
       await queryClient.resetQueries();
       await navigate({ to: '/dashboard' });
     } catch (err: unknown) {
@@ -168,11 +167,10 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
 
   const onSubmit = async (data: TotpFormValues) => {
     try {
-      const res = await gqlClient.request<{ loginWithTotp: string }>(LOGIN_WITH_TOTP_MUTATION, {
+      await gqlClient.request<{ loginWithTotp: string }>(LOGIN_WITH_TOTP_MUTATION, {
         ...credentials,
         code: data.code,
       });
-      setAccessToken(res.loginWithTotp);
       await queryClient.resetQueries();
       await navigate({ to: '/dashboard' });
     } catch (err: unknown) {

@@ -2,14 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useEffect } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
-const { mockGqlRequest, mockSetAccessToken } = vi.hoisted(() => ({
+const { mockGqlRequest } = vi.hoisted(() => ({
   mockGqlRequest: vi.fn(),
-  mockSetAccessToken: vi.fn(),
 }));
 
 vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
-  setAccessToken: mockSetAccessToken,
 }));
 
 import {
@@ -100,9 +98,6 @@ describe('useStepUpReauth', () => {
     fireEvent.click(screen.getByRole('button', { name: /^confirm$/i }));
 
     await waitFor(() => {
-      expect(mockSetAccessToken).toHaveBeenCalledWith('new-access-token');
-    });
-    await waitFor(() => {
       expect(onResolve).toHaveBeenCalledWith('retried');
     });
     expect(screen.queryByText("Confirm it's you")).not.toBeInTheDocument();
@@ -130,7 +125,6 @@ describe('useStepUpReauth', () => {
       expect(screen.getByPlaceholderText('123456')).toBeInTheDocument();
     });
     expect(screen.getByRole('button', { name: /verify code/i })).toBeInTheDocument();
-    expect(mockSetAccessToken).not.toHaveBeenCalled();
   });
 
   it('rejects with STEP_UP_CANCELLED when the dialog is dismissed', async () => {

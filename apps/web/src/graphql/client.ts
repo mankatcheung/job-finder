@@ -3,21 +3,27 @@ import { queryClient } from '#/lib/queryClient';
 import { DEFAULT_API_URL, ERROR_CODES } from '#/constants';
 
 const API_URL = import.meta.env.VITE_API_URL ?? DEFAULT_API_URL;
-const BEARER_PREFIX = 'Bearer ';
 
 const REFRESH_MUTATION = `mutation { refreshToken }`;
 
-/**
- * Held in memory only (never localStorage/sessionStorage) to bound XSS
- * exposure to this token's 15-minute lifetime. The API and web app are on
- * separate domains, so this — not the HttpOnly cookie the API also sets —
- * is what the web app can actually read; it's attached to every request via
- * the requestMiddleware below.
- */
-let accessToken: string | null = null;
+// Non-HttpOnly hint cookie the API sets alongside the real HttpOnly
+// jf_access_token/jf_refresh_token cookies (apps/api's setAuthCookies()) —
+// must match COOKIES.LOGGED_IN there. The web app can never read the real
+// tokens (by design), so this is how it knows a session likely exists
+// without a network round-trip.
+const LOGGED_IN_COOKIE = 'jf_logged_in';
 
-export function setAccessToken(token: string | null): void {
-  accessToken = token;
+/**
+ * Synchronous, no network call: used by route beforeLoad guards to decide
+ * whether to redirect to /login before rendering. This only needs to be
+ * directionally correct, not authoritative — the real access token cookie
+ * is attached automatically by the browser on every request (see
+ * `credentials: 'include'` below), and any request that finds it
+ * missing/expired gets silently refreshed and retried by
+ * responseMiddleware regardless of what this returned.
+ */
+export function hasSessionCookie(): boolean {
+  return document.cookie.split('; ').some((entry) => entry.startsWith(`${LOGGED_IN_COOKIE}=`));
 }
 
 let isRefreshing = false;
@@ -35,11 +41,8 @@ async function doRefresh(): Promise<boolean> {
       data?: { refreshToken?: string | null };
       errors?: unknown[];
     };
-    const token = json.data?.refreshToken ?? null;
-    setAccessToken(token);
-    return token !== null;
+    return (json.data?.refreshToken ?? null) !== null;
   } catch {
-    setAccessToken(null);
     return false;
   }
 }
@@ -55,30 +58,8 @@ function getOrStartRefresh(): Promise<boolean> {
   return refreshPromise!;
 }
 
-/**
- * Ensures an access token is in memory, attempting a silent refresh (relying
- * on the cross-site-capable refresh cookie) only when one isn't already
- * held — cheap on in-app navigations, one deduped network call on a cold
- * page load. Shared with the 401-retry path in responseMiddleware below via
- * the same getOrStartRefresh() singleton.
- */
-export async function hydrateSession(): Promise<boolean> {
-  if (accessToken) return true;
-  return getOrStartRefresh();
-}
-
 export const gqlClient = new GraphQLClient(API_URL, {
   credentials: 'include',
-  requestMiddleware: (request) => {
-    // graphql-request passes a real Headers instance here (with
-    // Content-Type/Accept already set) — spreading it with {...headers}
-    // silently drops every existing header, since Headers doesn't expose its
-    // entries as enumerable own properties. Route through the Headers API
-    // instead so nothing existing gets lost.
-    const headers = new Headers(request.headers);
-    if (accessToken) headers.set('Authorization', `${BEARER_PREFIX}${accessToken}`);
-    return { ...request, headers };
-  },
   responseMiddleware: async (response) => {
     // graphql-request v7 wraps GraphQL errors in a ClientError (extends Error).
     // The errors live on response.response.errors, not directly on response.
@@ -99,7 +80,7 @@ export const gqlClient = new GraphQLClient(API_URL, {
 
     const ok = await getOrStartRefresh();
     if (ok) {
-      // New access token is set — re-run all active queries so they pick it up.
+      // Fresh access-token cookie is set — re-run all active queries so they pick it up.
       await queryClient.invalidateQueries();
     } else {
       queryClient.clear();
