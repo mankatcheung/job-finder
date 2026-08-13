@@ -3,7 +3,10 @@ import { asClass, asValue, createContainer, Lifetime, type AwilixContainer } fro
 
 import { db } from '#src/infrastructure/db/client.js';
 
+import { Redis } from '@upstash/redis';
+import type { ICache } from '#src/infrastructure/cache/ICache.js';
 import { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
+import { RedisCache } from '#src/infrastructure/cache/RedisCache.js';
 import { DrizzleUserRepository } from '#src/infrastructure/db/repositories/DrizzleUserRepository.js';
 import { DrizzleApplicationRepository } from '#src/infrastructure/db/repositories/DrizzleApplicationRepository.js';
 import { DrizzleNoteRepository } from '#src/infrastructure/db/repositories/DrizzleNoteRepository.js';
@@ -244,7 +247,7 @@ import { GetOffersUseCase } from '#src/use-cases/offers/GetOffersUseCase.js';
 import { CompareOffersUseCase } from '#src/use-cases/offers/CompareOffersUseCase.js';
 import { ReactPdfDocumentRenderer } from '#src/infrastructure/pdf/ReactPdfDocumentRenderer.js';
 
-import { ENV, RATE_LIMIT, STORAGE_PROVIDER } from '#src/constants.js';
+import { CACHE_PROVIDER, ENV, RATE_LIMIT, STORAGE_PROVIDER } from '#src/constants.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IDocumentTextExtractor } from '#src/use-cases/ports/IDocumentTextExtractor.js';
@@ -258,7 +261,7 @@ export interface Cradle {
   webAppOrigin: string;
   logger: ILogger;
   tokenService: JwtTokenService;
-  cache: MemoryCache;
+  cache: ICache;
   passwordResetRateLimiter: RateLimiter;
 
   // Raw repositories (used internally by the cached decorators)
@@ -510,6 +513,27 @@ const StorageProvider: StorageProviderConstructor =
     ? VercelBlobStorageProvider
     : LocalStorageProvider;
 
+/**
+ * Unlike storage (only document upload/download depend on it), the cache
+ * underlies nearly every read in the app — a misconfigured Redis provider
+ * would silently 500 almost every request. So this validates eagerly at
+ * container-build time instead of lazily on first use.
+ */
+function buildCache(): ICache {
+  if (process.env[ENV.CACHE_PROVIDER] !== CACHE_PROVIDER.REDIS) {
+    return new MemoryCache();
+  }
+
+  const url = process.env[ENV.UPSTASH_REDIS_REST_URL];
+  const token = process.env[ENV.UPSTASH_REDIS_REST_TOKEN];
+  if (!url || !token) {
+    throw new Error(
+      `${ENV.CACHE_PROVIDER}=${CACHE_PROVIDER.REDIS} requires both ${ENV.UPSTASH_REDIS_REST_URL} and ${ENV.UPSTASH_REDIS_REST_TOKEN}`,
+    );
+  }
+  return new RedisCache({ redis: new Redis({ url, token }) });
+}
+
 export function buildContainer(): AwilixContainer<Cradle> {
   const container = createContainer<Cradle>();
   container.register({
@@ -521,7 +545,7 @@ export function buildContainer(): AwilixContainer<Cradle> {
       process.env[ENV.CORS_ORIGIN]?.split(',')[0]?.trim() ?? 'http://localhost:3000',
     ),
     tokenService: asClass(JwtTokenService, { lifetime: Lifetime.SINGLETON }),
-    cache: asValue(new MemoryCache()),
+    cache: asValue(buildCache()),
     passwordResetRateLimiter: asValue(
       new RateLimiter(
         RATE_LIMIT.PASSWORD_RESET_REQUEST.MAX_ATTEMPTS,

@@ -4,19 +4,19 @@ import type {
   CreateSkillData,
   UpdateSkillData,
 } from '#src/use-cases/ports/ISkillRepository.js';
-import type { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
+import type { ICache } from '#src/infrastructure/cache/ICache.js';
 import { CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleSkillRepository: ISkillRepository;
-  cache: MemoryCache;
+  cache: ICache;
 }
 
 export class CachedSkillRepository implements ISkillRepository {
   // Tracks which userId owns each skill so delete() can invalidate the right list.
   private readonly userIdBySkillId = new Map<string, string>();
   private readonly inner: ISkillRepository;
-  private readonly cache: MemoryCache;
+  private readonly cache: ICache;
 
   constructor({ drizzleSkillRepository, cache }: Deps) {
     this.inner = drizzleSkillRepository;
@@ -25,22 +25,14 @@ export class CachedSkillRepository implements ISkillRepository {
 
   async findAllByUserId(userId: string): Promise<Skill[]> {
     const key = CACHE_KEYS.skillList(userId);
-    const hit = this.cache.get<Skill[]>(key);
-    if (hit) return hit;
-
-    const result = await this.inner.findAllByUserId(userId);
-    this.cache.set(key, result);
+    const result = await this.cache.getOrSet(key, () => this.inner.findAllByUserId(userId));
     for (const skill of result) this.userIdBySkillId.set(skill.id, skill.userId);
     return result;
   }
 
   async findById(id: string): Promise<Skill | null> {
     const key = CACHE_KEYS.skillById(id);
-    const hit = this.cache.get<Skill | null>(key);
-    if (hit !== undefined) return hit;
-
-    const result = await this.inner.findById(id);
-    this.cache.set(key, result);
+    const result = await this.cache.getOrSet(key, () => this.inner.findById(id));
     if (result) this.userIdBySkillId.set(id, result.userId);
     return result;
   }
@@ -48,14 +40,14 @@ export class CachedSkillRepository implements ISkillRepository {
   async create(data: CreateSkillData): Promise<Skill> {
     const result = await this.inner.create(data);
     this.userIdBySkillId.set(result.id, result.userId);
-    this.cache.delete(CACHE_KEYS.skillList(result.userId));
+    await this.cache.delete(CACHE_KEYS.skillList(result.userId));
     return result;
   }
 
   async update(id: string, data: UpdateSkillData): Promise<Skill> {
     const result = await this.inner.update(id, data);
-    this.cache.delete(CACHE_KEYS.skillById(id));
-    this.cache.delete(CACHE_KEYS.skillList(result.userId));
+    await this.cache.delete(CACHE_KEYS.skillById(id));
+    await this.cache.delete(CACHE_KEYS.skillList(result.userId));
     this.userIdBySkillId.set(id, result.userId);
     return result;
   }
@@ -63,8 +55,8 @@ export class CachedSkillRepository implements ISkillRepository {
   async delete(id: string): Promise<void> {
     const userId = this.userIdBySkillId.get(id);
     await this.inner.delete(id);
-    this.cache.delete(CACHE_KEYS.skillById(id));
+    await this.cache.delete(CACHE_KEYS.skillById(id));
     this.userIdBySkillId.delete(id);
-    if (userId) this.cache.delete(CACHE_KEYS.skillList(userId));
+    if (userId) await this.cache.delete(CACHE_KEYS.skillList(userId));
   }
 }

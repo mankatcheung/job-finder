@@ -4,18 +4,18 @@ import type {
   CreateInterviewRoundData,
   UpdateInterviewRoundData,
 } from '#src/use-cases/ports/IInterviewRoundRepository.js';
-import type { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
+import type { ICache } from '#src/infrastructure/cache/ICache.js';
 import { CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleInterviewRoundRepository: IInterviewRoundRepository;
-  cache: MemoryCache;
+  cache: ICache;
 }
 
 export class CachedInterviewRoundRepository implements IInterviewRoundRepository {
   private readonly appIdByRoundId = new Map<string, string>();
   private readonly inner: IInterviewRoundRepository;
-  private readonly cache: MemoryCache;
+  private readonly cache: ICache;
 
   constructor({ drizzleInterviewRoundRepository, cache }: Deps) {
     this.inner = drizzleInterviewRoundRepository;
@@ -24,11 +24,9 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
 
   async findAllByApplicationId(applicationId: string): Promise<InterviewRound[]> {
     const key = CACHE_KEYS.roundList(applicationId);
-    const hit = this.cache.get<InterviewRound[]>(key);
-    if (hit) return hit;
-
-    const result = await this.inner.findAllByApplicationId(applicationId);
-    this.cache.set(key, result);
+    const result = await this.cache.getOrSet(key, () =>
+      this.inner.findAllByApplicationId(applicationId),
+    );
     for (const r of result) this.appIdByRoundId.set(r.id, r.applicationId);
     return result;
   }
@@ -48,11 +46,7 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
 
   async findById(id: string): Promise<InterviewRound | null> {
     const key = CACHE_KEYS.roundById(id);
-    const hit = this.cache.get<InterviewRound | null>(key);
-    if (hit !== undefined) return hit;
-
-    const result = await this.inner.findById(id);
-    this.cache.set(key, result);
+    const result = await this.cache.getOrSet(key, () => this.inner.findById(id));
     if (result) this.appIdByRoundId.set(id, result.applicationId);
     return result;
   }
@@ -60,14 +54,14 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
   async create(data: CreateInterviewRoundData): Promise<InterviewRound> {
     const result = await this.inner.create(data);
     this.appIdByRoundId.set(result.id, result.applicationId);
-    this.cache.delete(CACHE_KEYS.roundList(result.applicationId));
+    await this.cache.delete(CACHE_KEYS.roundList(result.applicationId));
     return result;
   }
 
   async update(id: string, data: UpdateInterviewRoundData): Promise<InterviewRound> {
     const result = await this.inner.update(id, data);
-    this.cache.delete(CACHE_KEYS.roundById(id));
-    this.cache.delete(CACHE_KEYS.roundList(result.applicationId));
+    await this.cache.delete(CACHE_KEYS.roundById(id));
+    await this.cache.delete(CACHE_KEYS.roundList(result.applicationId));
     this.appIdByRoundId.set(id, result.applicationId);
     return result;
   }
@@ -79,8 +73,8 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
   async delete(id: string): Promise<void> {
     const applicationId = this.appIdByRoundId.get(id);
     await this.inner.delete(id);
-    this.cache.delete(CACHE_KEYS.roundById(id));
+    await this.cache.delete(CACHE_KEYS.roundById(id));
     this.appIdByRoundId.delete(id);
-    if (applicationId) this.cache.delete(CACHE_KEYS.roundList(applicationId));
+    if (applicationId) await this.cache.delete(CACHE_KEYS.roundList(applicationId));
   }
 }

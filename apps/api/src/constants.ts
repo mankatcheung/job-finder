@@ -40,6 +40,9 @@ export const ENV = {
   STORAGE_PROVIDER: 'STORAGE_PROVIDER',
   BLOB_READ_WRITE_TOKEN: 'BLOB_READ_WRITE_TOKEN',
   BLOB_PUBLIC_READ_WRITE_TOKEN: 'BLOB_PUBLIC_READ_WRITE_TOKEN',
+  CACHE_PROVIDER: 'CACHE_PROVIDER',
+  UPSTASH_REDIS_REST_URL: 'UPSTASH_REDIS_REST_URL',
+  UPSTASH_REDIS_REST_TOKEN: 'UPSTASH_REDIS_REST_TOKEN',
   BREVO_API_KEY: 'BREVO_API_KEY',
   FROM_EMAIL: 'FROM_EMAIL',
   FROM_NAME: 'FROM_NAME',
@@ -367,9 +370,22 @@ export const STORAGE_PROVIDER = {
   VERCEL_BLOB: 'vercel-blob',
 } as const;
 
-/** In-memory cache configuration. */
+/** Cache configuration, shared by MemoryCache and RedisCache. */
 export const CACHE = {
   DEFAULT_TTL_MS: 5 * 60 * 1000, // 5 minutes
+  // Stampede protection (RedisCache.getOrSet): how long a populate-lock is
+  // held before self-expiring (covers a crash mid-fetch), and how long a
+  // concurrent miss polls for the lock-holder's result before giving up and
+  // fetching directly itself.
+  STAMPEDE_LOCK_TTL_MS: 10_000,
+  STAMPEDE_POLL_INTERVAL_MS: 50,
+  STAMPEDE_MAX_POLL_ATTEMPTS: 20, // ~1s of waiting
+} as const;
+
+/** `CACHE_PROVIDER` values. */
+export const CACHE_PROVIDER = {
+  MEMORY: 'memory',
+  REDIS: 'redis',
 } as const;
 
 /**

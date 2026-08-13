@@ -8,19 +8,19 @@ import type {
   FindApplicationsPagePagination,
   ApplicationsPage,
 } from '#src/use-cases/ports/IApplicationRepository.js';
-import type { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
+import type { ICache } from '#src/infrastructure/cache/ICache.js';
 import { CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleApplicationRepository: IApplicationRepository;
-  cache: MemoryCache;
+  cache: ICache;
 }
 
 export class CachedApplicationRepository implements IApplicationRepository {
   // Tracks which userId owns each applicationId so delete() can invalidate the right list.
   private readonly userIdByAppId = new Map<string, string>();
   private readonly inner: IApplicationRepository;
-  private readonly cache: MemoryCache;
+  private readonly cache: ICache;
 
   constructor({ drizzleApplicationRepository, cache }: Deps) {
     this.inner = drizzleApplicationRepository;
@@ -32,11 +32,9 @@ export class CachedApplicationRepository implements IApplicationRepository {
     filters?: { status?: ApplicationStatus },
   ): Promise<Application[]> {
     const key = CACHE_KEYS.appList(userId, filters?.status ?? '');
-    const hit = this.cache.get<Application[]>(key);
-    if (hit) return hit;
-
-    const result = await this.inner.findAllByUserId(userId, filters);
-    this.cache.set(key, result);
+    const result = await this.cache.getOrSet(key, () =>
+      this.inner.findAllByUserId(userId, filters),
+    );
     for (const app of result) this.userIdByAppId.set(app.id, app.userId);
     return result;
   }
@@ -53,11 +51,7 @@ export class CachedApplicationRepository implements IApplicationRepository {
 
   async findById(id: string): Promise<Application | null> {
     const key = CACHE_KEYS.appById(id);
-    const hit = this.cache.get<Application | null>(key);
-    if (hit !== undefined) return hit;
-
-    const result = await this.inner.findById(id);
-    this.cache.set(key, result);
+    const result = await this.cache.getOrSet(key, () => this.inner.findById(id));
     if (result) this.userIdByAppId.set(id, result.userId);
     return result;
   }
@@ -65,14 +59,14 @@ export class CachedApplicationRepository implements IApplicationRepository {
   async create(data: CreateApplicationData): Promise<Application> {
     const result = await this.inner.create(data);
     this.userIdByAppId.set(result.id, result.userId);
-    this.cache.deleteByPrefix(CACHE_KEYS.appListPrefix(result.userId));
+    await this.cache.deleteByPrefix(CACHE_KEYS.appListPrefix(result.userId));
     return result;
   }
 
   async update(id: string, data: UpdateApplicationData): Promise<Application> {
     const result = await this.inner.update(id, data);
-    this.cache.delete(CACHE_KEYS.appById(id));
-    this.cache.deleteByPrefix(CACHE_KEYS.appListPrefix(result.userId));
+    await this.cache.delete(CACHE_KEYS.appById(id));
+    await this.cache.deleteByPrefix(CACHE_KEYS.appListPrefix(result.userId));
     this.userIdByAppId.set(id, result.userId);
     return result;
   }
@@ -80,9 +74,9 @@ export class CachedApplicationRepository implements IApplicationRepository {
   async delete(id: string): Promise<void> {
     const userId = this.userIdByAppId.get(id);
     await this.inner.delete(id);
-    this.cache.delete(CACHE_KEYS.appById(id));
+    await this.cache.delete(CACHE_KEYS.appById(id));
     this.userIdByAppId.delete(id);
-    if (userId) this.cache.deleteByPrefix(CACHE_KEYS.appListPrefix(userId));
+    if (userId) await this.cache.deleteByPrefix(CACHE_KEYS.appListPrefix(userId));
   }
 
   async findDueForReminder(): Promise<Application[]> {
@@ -91,6 +85,6 @@ export class CachedApplicationRepository implements IApplicationRepository {
 
   async updateReminderSentAt(id: string, sentAt: Date): Promise<void> {
     await this.inner.updateReminderSentAt(id, sentAt);
-    this.cache.delete(CACHE_KEYS.appById(id));
+    await this.cache.delete(CACHE_KEYS.appById(id));
   }
 }

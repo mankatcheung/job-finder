@@ -1,11 +1,11 @@
 import type { User } from '#src/domain/user/User.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
-import type { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
+import type { ICache } from '#src/infrastructure/cache/ICache.js';
 import { CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleUserRepository: IUserRepository;
-  cache: MemoryCache;
+  cache: ICache;
 }
 
 export class CachedUserRepository implements IUserRepository {
@@ -13,7 +13,7 @@ export class CachedUserRepository implements IUserRepository {
   // email itself — can invalidate the *old* email's cache entry, not just the new one.
   private readonly emailByUserId = new Map<string, string>();
   private readonly inner: IUserRepository;
-  private readonly cache: MemoryCache;
+  private readonly cache: ICache;
 
   constructor({ drizzleUserRepository, cache }: Deps) {
     this.inner = drizzleUserRepository;
@@ -22,22 +22,14 @@ export class CachedUserRepository implements IUserRepository {
 
   async findById(id: string): Promise<User | null> {
     const key = CACHE_KEYS.userById(id);
-    const hit = this.cache.get<User | null>(key);
-    if (hit !== undefined) return hit;
-
-    const result = await this.inner.findById(id);
-    this.cache.set(key, result);
+    const result = await this.cache.getOrSet(key, () => this.inner.findById(id));
     if (result) this.emailByUserId.set(id, result.email);
     return result;
   }
 
   async findByEmail(email: string): Promise<User | null> {
     const key = CACHE_KEYS.userByEmail(email);
-    const hit = this.cache.get<User | null>(key);
-    if (hit !== undefined) return hit;
-
-    const result = await this.inner.findByEmail(email);
-    this.cache.set(key, result);
+    const result = await this.cache.getOrSet(key, () => this.inner.findByEmail(email));
     if (result) this.emailByUserId.set(result.id, result.email);
     return result;
   }
@@ -68,7 +60,7 @@ export class CachedUserRepository implements IUserRepository {
     // RegisterUseCase/LoginOrSignupWithOAuthUseCase call findByEmail() first to
     // check for a duplicate, which may have cached a "not found" result for this
     // exact email — clear it so the new user is immediately visible to that check.
-    this.cache.delete(CACHE_KEYS.userByEmail(result.email));
+    await this.cache.delete(CACHE_KEYS.userByEmail(result.email));
     return result;
   }
 
@@ -95,10 +87,10 @@ export class CachedUserRepository implements IUserRepository {
   ): Promise<User> {
     const result = await this.inner.update(id, data);
     const oldEmail = this.emailByUserId.get(id);
-    this.cache.delete(CACHE_KEYS.userById(id));
-    this.cache.delete(CACHE_KEYS.userByEmail(result.email));
+    await this.cache.delete(CACHE_KEYS.userById(id));
+    await this.cache.delete(CACHE_KEYS.userByEmail(result.email));
     if (oldEmail && oldEmail !== result.email) {
-      this.cache.delete(CACHE_KEYS.userByEmail(oldEmail));
+      await this.cache.delete(CACHE_KEYS.userByEmail(oldEmail));
     }
     this.emailByUserId.set(id, result.email);
     return result;
@@ -107,13 +99,13 @@ export class CachedUserRepository implements IUserRepository {
   async delete(id: string): Promise<void> {
     const email = this.emailByUserId.get(id);
     await this.inner.delete(id);
-    this.cache.delete(CACHE_KEYS.userById(id));
+    await this.cache.delete(CACHE_KEYS.userById(id));
     this.emailByUserId.delete(id);
-    if (email) this.cache.delete(CACHE_KEYS.userByEmail(email));
+    if (email) await this.cache.delete(CACHE_KEYS.userByEmail(email));
   }
 
   async updateLastDigestSentAt(id: string, sentAt: Date): Promise<void> {
     await this.inner.updateLastDigestSentAt(id, sentAt);
-    this.cache.delete(CACHE_KEYS.userById(id));
+    await this.cache.delete(CACHE_KEYS.userById(id));
   }
 }
