@@ -3,6 +3,7 @@ import { HeadContent, Link, Scripts, createRootRouteWithContext } from '@tanstac
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
+import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from 'sonner';
 import { AlertTriangleIcon } from 'lucide-react';
 import { queryClient } from '#/lib/queryClient';
@@ -135,6 +136,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <ThemeProvider>
+          <Analytics />
           <NavigationProgressBar />
           <AppToaster />
           <QueryClientProvider client={queryClient}>
