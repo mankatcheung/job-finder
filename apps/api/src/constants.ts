@@ -380,6 +380,11 @@ export const CACHE = {
   STAMPEDE_LOCK_TTL_MS: 10_000,
   STAMPEDE_POLL_INTERVAL_MS: 50,
   STAMPEDE_MAX_POLL_ATTEMPTS: 20, // ~1s of waiting
+  // Circuit breaker (RedisCache): consecutive failures before short-circuiting
+  // further calls, and how long to wait before letting one trial call through
+  // to check whether Redis has recovered.
+  CIRCUIT_FAILURE_THRESHOLD: 5,
+  CIRCUIT_COOLDOWN_MS: 30_000,
 } as const;
 
 /** `CACHE_PROVIDER` values. */
