@@ -51,6 +51,7 @@
     "@pothos/core": "^4.3.0",
     "@react-pdf/renderer": "^4.5.1",
     "@tiptap/core": "^3.29.2",
+    "@upstash/redis": "^1.38.2",
     "@vercel/blob": "^2.6.1",
     "awilix": "^13.0.5",
     "bcryptjs": "^3.0.3",

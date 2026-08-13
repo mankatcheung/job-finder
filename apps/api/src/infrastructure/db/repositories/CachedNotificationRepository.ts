@@ -5,12 +5,12 @@ import type {
   FindNotificationsPagePagination,
   NotificationsPage,
 } from '#src/use-cases/ports/INotificationRepository.js';
-import type { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
+import type { ICache } from '#src/infrastructure/cache/ICache.js';
 import { CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleNotificationRepository: INotificationRepository;
-  cache: MemoryCache;
+  cache: ICache;
 }
 
 /**
@@ -21,7 +21,7 @@ interface Deps {
  */
 export class CachedNotificationRepository implements INotificationRepository {
   private readonly inner: INotificationRepository;
-  private readonly cache: MemoryCache;
+  private readonly cache: ICache;
 
   constructor({ drizzleNotificationRepository, cache }: Deps) {
     this.inner = drizzleNotificationRepository;
@@ -30,7 +30,7 @@ export class CachedNotificationRepository implements INotificationRepository {
 
   async create(data: CreateNotificationData): Promise<Notification> {
     const result = await this.inner.create(data);
-    this.cache.delete(CACHE_KEYS.notificationUnreadCount(data.userId));
+    await this.cache.delete(CACHE_KEYS.notificationUnreadCount(data.userId));
     return result;
   }
 
@@ -43,17 +43,12 @@ export class CachedNotificationRepository implements INotificationRepository {
 
   async markManyReadForUser(userId: string, ids: string[], isRead: boolean): Promise<number> {
     const result = await this.inner.markManyReadForUser(userId, ids, isRead);
-    this.cache.delete(CACHE_KEYS.notificationUnreadCount(userId));
+    await this.cache.delete(CACHE_KEYS.notificationUnreadCount(userId));
     return result;
   }
 
   async countUnreadForUser(userId: string): Promise<number> {
     const key = CACHE_KEYS.notificationUnreadCount(userId);
-    const hit = this.cache.get<number>(key);
-    if (hit !== undefined) return hit;
-
-    const result = await this.inner.countUnreadForUser(userId);
-    this.cache.set(key, result);
-    return result;
+    return this.cache.getOrSet(key, () => this.inner.countUnreadForUser(userId));
   }
 }
