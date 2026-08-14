@@ -9,6 +9,7 @@
  * Safe to run multiple times — it deletes any existing demo user (cascading to
  * all related rows) before inserting fresh data, so re-seeding is clean.
  */
+import 'dotenv/config';
 import { runSeed } from './seed/index.js';
 
 await runSeed();

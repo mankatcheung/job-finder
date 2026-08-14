@@ -13,10 +13,10 @@
     }
   },
   "scripts": {
-    "dev": "tsx watch -C development --env-file=.env src/index.ts",
+    "dev": "tsx watch -C development src/index.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "start": "node --env-file=.env dist/index.js",
+    "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -55,6 +55,7 @@
     "@vercel/blob": "^2.6.1",
     "awilix": "^13.0.5",
     "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
     "drizzle-orm": "^0.44.7",
     "fastify": "^5.0.0",
     "fastify-plugin": "^5.0.0",
