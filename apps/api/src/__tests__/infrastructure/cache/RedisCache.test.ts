@@ -57,6 +57,16 @@ class FakeRedisClient implements IRedisClient {
     return count;
   }
 
+  async incr(key: string): Promise<number> {
+    this.checkFailing();
+    // Real INCR on a fresh key creates it with no TTL; on an existing key it
+    // leaves the TTL untouched.
+    const entry = this.isLive(key) ? this.store.get(key)! : undefined;
+    const next = (typeof entry?.value === 'number' ? entry.value : 0) + 1;
+    this.store.set(key, { value: next, expiresAt: entry?.expiresAt ?? null });
+    return next;
+  }
+
   async scan(
     cursor: string | number,
     opts?: { match?: string; count?: number },

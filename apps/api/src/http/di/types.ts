@@ -38,7 +38,6 @@ import type { DrizzleApiTokenRepository } from '#src/infrastructure/db/repositor
 import type { DrizzleShareLinkRepository } from '#src/infrastructure/db/repositories/DrizzleShareLinkRepository.js';
 import type { DrizzleNotificationRepository } from '#src/infrastructure/db/repositories/DrizzleNotificationRepository.js';
 import type { DrizzleOfferRepository } from '#src/infrastructure/db/repositories/DrizzleOfferRepository.js';
-import type { RateLimiter } from '#src/infrastructure/rateLimit/RateLimiter.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import type { ITotpProvider } from '#src/use-cases/ports/ITotpProvider.js';
 import type { OAuthProviderRegistry } from '#src/infrastructure/auth/OAuthProviderRegistry.js';
@@ -244,7 +243,7 @@ export interface Cradle {
   logger: ILogger;
   tokenService: JwtTokenService;
   cache: ICache;
-  passwordResetRateLimiter: RateLimiter;
+  passwordResetRateLimiter: IRateLimiter;
 
   // Raw repositories (used internally by the cached decorators)
   drizzleUserRepository: DrizzleUserRepository;
@@ -294,6 +293,7 @@ export interface Cradle {
   requestEmailChangeRateLimiter: IRateLimiter;
   backupEmailVerificationTokenRepository: DrizzleBackupEmailVerificationTokenRepository;
   requestAddBackupEmailRateLimiter: IRateLimiter;
+  removeBackupEmailRateLimiter: IRateLimiter;
   backupEmailRecoveryRateLimiter: IRateLimiter;
   totpProvider: ITotpProvider;
   oauthAccountRepository: DrizzleOAuthAccountRepository;

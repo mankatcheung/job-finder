@@ -83,7 +83,9 @@ export class ComputeResumeMatchScoreUseCase {
 
   async execute(input: ComputeResumeMatchScoreInput): Promise<ResumeMatchScore> {
     if (
-      !this.deps.computeResumeMatchScoreRateLimiter.consume(`resume-match:user:${input.userId}`)
+      !(await this.deps.computeResumeMatchScoreRateLimiter.consume(
+        `resume-match:user:${input.userId}`,
+      ))
     ) {
       throw Object.assign(new Error('Too many requests — please wait a moment and try again'), {
         code: ERROR_CODES.RATE_LIMITED,

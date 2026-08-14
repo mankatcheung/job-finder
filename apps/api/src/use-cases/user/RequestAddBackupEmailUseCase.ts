@@ -25,7 +25,7 @@ export class RequestAddBackupEmailUseCase implements IRequestAddBackupEmailUseCa
   constructor(private readonly deps: Deps) {}
 
   async execute(input: RequestAddBackupEmailInput): Promise<void> {
-    const allowedByUser = this.deps.requestAddBackupEmailRateLimiter.consume(
+    const allowedByUser = await this.deps.requestAddBackupEmailRateLimiter.consume(
       `request-add-backup-email:user:${input.userId}`,
     );
     if (!allowedByUser) {
@@ -34,7 +34,7 @@ export class RequestAddBackupEmailUseCase implements IRequestAddBackupEmailUseCa
       });
     }
 
-    const allowedByEmail = this.deps.requestAddBackupEmailRateLimiter.consume(
+    const allowedByEmail = await this.deps.requestAddBackupEmailRateLimiter.consume(
       `request-add-backup-email:email:${input.backupEmail}`,
     );
     if (!allowedByEmail) {

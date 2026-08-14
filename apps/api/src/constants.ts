@@ -185,6 +185,10 @@ export const RATE_LIMIT = {
     MAX_ATTEMPTS: 3,
     WINDOW_MS: 60 * 60 * 1000, // 1 hour
   },
+  REMOVE_BACKUP_EMAIL: {
+    MAX_ATTEMPTS: 3,
+    WINDOW_MS: 60 * 60 * 1000, // 1 hour
+  },
   BACKUP_EMAIL_RECOVERY: {
     MAX_ATTEMPTS: 5,
     WINDOW_MS: 15 * 60 * 1000, // 15 minutes

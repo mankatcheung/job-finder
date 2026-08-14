@@ -31,7 +31,9 @@ export class GenerateCoverLetterUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: GenerateCoverLetterInput): Promise<string> {
-    if (!this.deps.generateCoverLetterRateLimiter.consume(`cover-letter:user:${input.userId}`)) {
+    if (
+      !(await this.deps.generateCoverLetterRateLimiter.consume(`cover-letter:user:${input.userId}`))
+    ) {
       throw Object.assign(new Error('Too many requests — please wait a moment and try again'), {
         code: ERROR_CODES.RATE_LIMITED,
       });

@@ -6,10 +6,11 @@ interface Bucket {
 }
 
 /**
- * In-process, fixed-window rate limiter. Suitable for a single Fastify
- * instance (no shared store) — buckets live in memory and are never
- * persisted, so limits reset on process restart and aren't shared across
- * horizontally-scaled instances.
+ * In-process, fixed-window rate limiter. Buckets live in memory and are
+ * never persisted, so limits reset on process restart and aren't shared
+ * across horizontally-scaled instances — used for local dev/tests only.
+ * Production uses RedisRateLimiter (JEF-160), selected via the same
+ * CACHE_PROVIDER toggle RedisCache uses.
  */
 export class RateLimiter implements IRateLimiter {
   private readonly buckets = new Map<string, Bucket>();
@@ -19,7 +20,7 @@ export class RateLimiter implements IRateLimiter {
     private readonly windowMs: number,
   ) {}
 
-  consume(key: string): boolean {
+  async consume(key: string): Promise<boolean> {
     const now = Date.now();
     const bucket = this.buckets.get(key);
 

@@ -344,7 +344,7 @@ export const makeTotpBackupCode = (overrides?: Partial<TotpBackupCode>): TotpBac
 });
 
 export const makeRateLimiter = (overrides?: Partial<IRateLimiter>): IRateLimiter => ({
-  consume: vi.fn().mockReturnValue(true),
+  consume: vi.fn().mockResolvedValue(true),
   ...overrides,
 });
 
