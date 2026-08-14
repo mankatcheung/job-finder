@@ -124,9 +124,9 @@ describe('CreateSessionUseCase', () => {
     expect(result).toEqual(session);
   });
 
-  // detectNewDeviceAndAlert runs fire-and-forget (not awaited by execute()),
-  // so assertions on it must poll via vi.waitFor rather than a plain await.
-  describe('new-device detection (fire-and-forget)', () => {
+  // detectNewDeviceAndAlert is awaited by execute(), so assertions after
+  // `await execute()` can check the alert side effects directly.
+  describe('new-device detection (awaited)', () => {
     it('persists a security_alert notification when signing in from an unrecognized device', async () => {
       const sessionRepository = makeSessionRepository({
         create: vi.fn().mockResolvedValue(makeSession()),
@@ -141,16 +141,14 @@ describe('CreateSessionUseCase', () => {
         makeDeps({ sessionRepository, userRepository, createNotificationUseCase }),
       ).execute({ userId: 'user-1', userAgent: 'New Browser/2.0', ipAddress: '10.0.0.1' });
 
-      await vi.waitFor(() => {
-        expect(createNotificationUseCase.execute).toHaveBeenCalledWith(
-          expect.objectContaining({
-            userId: 'user-1',
-            type: 'security_alert',
-            title: 'New sign-in detected',
-            url: '/settings/security',
-          }),
-        );
-      });
+      expect(createNotificationUseCase.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-1',
+          type: 'security_alert',
+          title: 'New sign-in detected',
+          url: '/settings/security',
+        }),
+      );
     });
 
     it('includes the location in the notification body when known', async () => {
@@ -167,13 +165,48 @@ describe('CreateSessionUseCase', () => {
         makeDeps({ sessionRepository, userRepository, createNotificationUseCase }),
       ).execute({ userId: 'user-1', userAgent: 'New Browser/2.0', ipAddress: '10.0.0.1' });
 
-      await vi.waitFor(() => {
-        expect(createNotificationUseCase.execute).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: 'Chrome on macOS signed in from San Francisco, United States',
-          }),
-        );
+      expect(createNotificationUseCase.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          body: 'Chrome on macOS signed in from San Francisco, United States',
+        }),
+      );
+    });
+
+    it('does not resolve until the new-device alert chain has settled (regression: was fire-and-forget)', async () => {
+      let releaseAlert!: () => void;
+      const alertGate = new Promise<void>((resolve) => (releaseAlert = resolve));
+      const emailService = makeEmailService({
+        sendNewDeviceLoginAlert: vi.fn().mockImplementation(async () => {
+          await alertGate;
+        }),
       });
+      const sessionRepository = makeSessionRepository({
+        create: vi.fn().mockResolvedValue(makeSession()),
+        findDistinctUserAgentsByUserId: vi.fn().mockResolvedValue(['Old Browser/1.0']),
+      });
+      const userRepository = makeUserRepository({
+        findById: vi.fn().mockResolvedValue(makeUser({ email: 'user@example.com' })),
+      });
+      const createNotificationUseCase = makeCreateNotificationUseCase();
+
+      let executed = false;
+      const executePromise = new CreateSessionUseCase(
+        makeDeps({ sessionRepository, userRepository, emailService, createNotificationUseCase }),
+      )
+        .execute({ userId: 'user-1', userAgent: 'New Browser/2.0', ipAddress: '10.0.0.1' })
+        .then(() => {
+          executed = true;
+        });
+
+      // Give the alert chain a tick: the email send should have been reached but
+      // execute() must still be pending, waiting on it.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(emailService.sendNewDeviceLoginAlert).toHaveBeenCalled();
+      expect(executed).toBe(false);
+
+      releaseAlert();
+      await executePromise;
+      expect(executed).toBe(true);
     });
 
     it('does not persist a notification for the very first session (no known devices yet)', async () => {
@@ -187,8 +220,6 @@ describe('CreateSessionUseCase', () => {
         makeDeps({ sessionRepository, createNotificationUseCase }),
       ).execute({ userId: 'user-1', userAgent: 'New Browser/2.0', ipAddress: '10.0.0.1' });
 
-      // Give the fire-and-forget chain a tick to run before asserting the negative.
-      await new Promise((resolve) => setTimeout(resolve, 0));
       expect(createNotificationUseCase.execute).not.toHaveBeenCalled();
     });
 
@@ -203,7 +234,6 @@ describe('CreateSessionUseCase', () => {
         makeDeps({ sessionRepository, createNotificationUseCase }),
       ).execute({ userId: 'user-1', userAgent: 'Known Browser/1.0', ipAddress: '10.0.0.1' });
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
       expect(createNotificationUseCase.execute).not.toHaveBeenCalled();
     });
   });
