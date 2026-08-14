@@ -47,6 +47,7 @@
     "@opentelemetry/resources": "^2.10.0",
     "@opentelemetry/sdk-metrics": "^2.10.0",
     "@opentelemetry/sdk-node": "^0.221.0",
+    "@opentelemetry/sdk-trace": "^2.10.0",
     "@opentelemetry/semantic-conventions": "^1.43.0",
     "@pothos/core": "^4.3.0",
     "@react-pdf/renderer": "^4.5.1",

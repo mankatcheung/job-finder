@@ -22,6 +22,7 @@ import { formatError } from '#src/http/errors/formatError.js';
 import { PinoLogger } from '#src/infrastructure/observability/PinoLogger.js';
 import {
   fastifyOtelInstrumentation,
+  flushObservability,
   isObservabilityEnabled,
 } from '#src/infrastructure/observability/tracing.js';
 import { ENV, NODE_ENV, ROUTES } from '#src/constants.js';
@@ -43,6 +44,14 @@ import { ENV, NODE_ENV, ROUTES } from '#src/constants.js';
 export async function buildApp(fastify: FastifyInstance): Promise<FastifyInstance> {
   if (isObservabilityEnabled) {
     await fastify.register(fastifyOtelInstrumentation.plugin());
+
+    // Vercel freezes the function shortly after the response is sent, well
+    // before the OTel SDK's default ~5s batch-export timer fires, so most
+    // spans would never reach Axiom. Force-flush after every response while
+    // the invocation is still alive. Runs after @fastify/otel's per-route
+    // hooks have ended the request span (they're onSend-hook based), so the
+    // flush captures complete spans.
+    fastify.addHook('onResponse', () => flushObservability());
   }
 
   await fastify.register(corsPlugin);
