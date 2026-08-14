@@ -26,7 +26,7 @@ export class RequestEmailChangeUseCase implements IRequestEmailChangeUseCase {
 
   async execute(input: RequestEmailChangeInput): Promise<void> {
     // Rate-limit by user ID to prevent abuse of email change requests
-    const allowed = this.deps.requestEmailChangeRateLimiter.consume(
+    const allowed = await this.deps.requestEmailChangeRateLimiter.consume(
       `request-email-change:user:${input.userId}`,
     );
     if (!allowed) {

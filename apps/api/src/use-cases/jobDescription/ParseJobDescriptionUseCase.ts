@@ -61,9 +61,9 @@ export class ParseJobDescriptionUseCase {
 
   async execute(input: ParseJobDescriptionInput): Promise<ParsedJobDescription> {
     if (
-      !this.deps.parseJobDescriptionRateLimiter.consume(
+      !(await this.deps.parseJobDescriptionRateLimiter.consume(
         `parse-job-description:user:${input.userId}`,
-      )
+      ))
     ) {
       throw Object.assign(new Error('Too many requests — please wait a moment and try again'), {
         code: ERROR_CODES.RATE_LIMITED,

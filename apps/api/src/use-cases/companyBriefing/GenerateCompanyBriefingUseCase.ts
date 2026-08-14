@@ -34,7 +34,9 @@ export class GenerateCompanyBriefingUseCase {
 
   async execute(input: GenerateCompanyBriefingInput): Promise<string> {
     if (
-      !this.deps.generateCompanyBriefingRateLimiter.consume(`company-briefing:user:${input.userId}`)
+      !(await this.deps.generateCompanyBriefingRateLimiter.consume(
+        `company-briefing:user:${input.userId}`,
+      ))
     ) {
       throw Object.assign(new Error('Too many requests — please wait a moment and try again'), {
         code: ERROR_CODES.RATE_LIMITED,

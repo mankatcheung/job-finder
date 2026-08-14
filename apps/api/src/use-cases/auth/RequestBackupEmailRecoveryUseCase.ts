@@ -22,11 +22,11 @@ export class RequestBackupEmailRecoveryUseCase implements IRequestBackupEmailRec
   constructor(private readonly deps: Deps) {}
 
   async execute(input: RequestBackupEmailRecoveryInput): Promise<void> {
-    const emailAllowed = this.deps.backupEmailRecoveryRateLimiter.consume(
+    const emailAllowed = await this.deps.backupEmailRecoveryRateLimiter.consume(
       `backup-email-recovery:email:${input.backupEmail.toLowerCase()}`,
     );
     const ipAllowed = input.ipAddress
-      ? this.deps.backupEmailRecoveryRateLimiter.consume(
+      ? await this.deps.backupEmailRecoveryRateLimiter.consume(
           `backup-email-recovery:ip:${input.ipAddress}`,
         )
       : true;

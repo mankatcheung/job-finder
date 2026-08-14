@@ -25,11 +25,11 @@ export class RequestPasswordResetUseCase implements IRequestPasswordResetUseCase
     // Rate-limit by both email and IP *before* looking the account up, and by
     // the exact same amount of work regardless of outcome, so a rate-limit
     // response never reveals whether the account exists.
-    const emailAllowed = this.deps.passwordResetRateLimiter.consume(
+    const emailAllowed = await this.deps.passwordResetRateLimiter.consume(
       `password-reset:email:${input.email.toLowerCase()}`,
     );
     const ipAllowed = input.ipAddress
-      ? this.deps.passwordResetRateLimiter.consume(`password-reset:ip:${input.ipAddress}`)
+      ? await this.deps.passwordResetRateLimiter.consume(`password-reset:ip:${input.ipAddress}`)
       : true;
     if (!emailAllowed || !ipAllowed) {
       throw Object.assign(new Error('Too many password reset requests. Try again later.'), {

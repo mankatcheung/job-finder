@@ -11,39 +11,39 @@ describe('RateLimiter', () => {
     vi.useRealTimers();
   });
 
-  it('allows requests up to the configured maximum within the window', () => {
+  it('allows requests up to the configured maximum within the window', async () => {
     const limiter = new RateLimiter(3, 60_000);
 
-    expect(limiter.consume('key-1')).toBe(true);
-    expect(limiter.consume('key-1')).toBe(true);
-    expect(limiter.consume('key-1')).toBe(true);
+    expect(await limiter.consume('key-1')).toBe(true);
+    expect(await limiter.consume('key-1')).toBe(true);
+    expect(await limiter.consume('key-1')).toBe(true);
   });
 
-  it('rejects requests once the maximum is exceeded within the window', () => {
+  it('rejects requests once the maximum is exceeded within the window', async () => {
     const limiter = new RateLimiter(2, 60_000);
 
-    expect(limiter.consume('key-1')).toBe(true);
-    expect(limiter.consume('key-1')).toBe(true);
-    expect(limiter.consume('key-1')).toBe(false);
+    expect(await limiter.consume('key-1')).toBe(true);
+    expect(await limiter.consume('key-1')).toBe(true);
+    expect(await limiter.consume('key-1')).toBe(false);
   });
 
-  it('tracks separate keys independently', () => {
+  it('tracks separate keys independently', async () => {
     const limiter = new RateLimiter(1, 60_000);
 
-    expect(limiter.consume('key-1')).toBe(true);
-    expect(limiter.consume('key-2')).toBe(true);
-    expect(limiter.consume('key-1')).toBe(false);
-    expect(limiter.consume('key-2')).toBe(false);
+    expect(await limiter.consume('key-1')).toBe(true);
+    expect(await limiter.consume('key-2')).toBe(true);
+    expect(await limiter.consume('key-1')).toBe(false);
+    expect(await limiter.consume('key-2')).toBe(false);
   });
 
-  it('resets the count once the window has elapsed', () => {
+  it('resets the count once the window has elapsed', async () => {
     const limiter = new RateLimiter(1, 60_000);
 
-    expect(limiter.consume('key-1')).toBe(true);
-    expect(limiter.consume('key-1')).toBe(false);
+    expect(await limiter.consume('key-1')).toBe(true);
+    expect(await limiter.consume('key-1')).toBe(false);
 
     vi.advanceTimersByTime(60_001);
 
-    expect(limiter.consume('key-1')).toBe(true);
+    expect(await limiter.consume('key-1')).toBe(true);
   });
 });

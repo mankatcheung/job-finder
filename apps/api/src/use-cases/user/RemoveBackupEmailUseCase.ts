@@ -20,7 +20,7 @@ export class RemoveBackupEmailUseCase implements IRemoveBackupEmailUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: RemoveBackupEmailInput): Promise<void> {
-    const allowed = this.deps.removeBackupEmailRateLimiter.consume(
+    const allowed = await this.deps.removeBackupEmailRateLimiter.consume(
       `remove-backup-email:user:${input.userId}`,
     );
     if (!allowed) {

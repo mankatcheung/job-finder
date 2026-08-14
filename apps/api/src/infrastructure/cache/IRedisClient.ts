@@ -7,6 +7,7 @@ export interface IRedisClient {
   get<T>(key: string): Promise<T | null>;
   set(key: string, value: unknown, opts?: { nx?: true; px?: number }): Promise<unknown>;
   del(...keys: string[]): Promise<number>;
+  incr(key: string): Promise<number>;
   scan(
     cursor: string | number,
     opts?: { match?: string; count?: number },
