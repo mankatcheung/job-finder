@@ -167,4 +167,53 @@ describe('CachedApplicationRepository', () => {
       expect(inner.delete).toHaveBeenCalledWith('unknown-id');
     });
   });
+
+  describe('updateReminderSentAt', () => {
+    it('delegates to inner and invalidates byId and list caches when userId is known', async () => {
+      const { repo, inner } = makeRepo();
+      vi.mocked(inner.findById).mockResolvedValue(app);
+      vi.mocked(inner.findAllByUserId).mockResolvedValue([app]);
+      vi.mocked(inner.updateReminderSentAt).mockResolvedValue(undefined);
+
+      // Populate caches (which also records appId→userId mapping)
+      await repo.findById('app-1');
+      await repo.findAllByUserId('user-1');
+
+      await repo.updateReminderSentAt('app-1', new Date());
+
+      const updated = { ...app, reminderSentAt: new Date() };
+      vi.mocked(inner.findById).mockResolvedValue(updated);
+      vi.mocked(inner.findAllByUserId).mockResolvedValue([updated]);
+      await repo.findById('app-1');
+      await repo.findAllByUserId('user-1');
+      expect(inner.findById).toHaveBeenCalledTimes(2);
+      expect(inner.findAllByUserId).toHaveBeenCalledTimes(2);
+    });
+
+    it('populates the userId mapping from findDueForReminder so list invalidation works for the reminder job path', async () => {
+      const { repo, inner } = makeRepo();
+      vi.mocked(inner.findDueForReminder).mockResolvedValue([app]);
+      vi.mocked(inner.findAllByUserId).mockResolvedValue([app]);
+      vi.mocked(inner.updateReminderSentAt).mockResolvedValue(undefined);
+
+      // Populate the user list cache directly (simulating an earlier dashboard read)
+      await repo.findAllByUserId('user-1');
+      // Simulate the background job: discover due apps via the uncached finder, then mark sent
+      await repo.findDueForReminder();
+      await repo.updateReminderSentAt(app.id, new Date());
+
+      const updated = { ...app, reminderSentAt: new Date() };
+      vi.mocked(inner.findAllByUserId).mockResolvedValue([updated]);
+      await repo.findAllByUserId('user-1');
+      expect(inner.findAllByUserId).toHaveBeenCalledTimes(2);
+    });
+
+    it('still updates via inner even when userId is unknown', async () => {
+      const { repo, inner } = makeRepo();
+      vi.mocked(inner.updateReminderSentAt).mockResolvedValue(undefined);
+
+      await repo.updateReminderSentAt('unknown-id', new Date());
+      expect(inner.updateReminderSentAt).toHaveBeenCalledWith('unknown-id', expect.any(Date));
+    });
+  });
 });

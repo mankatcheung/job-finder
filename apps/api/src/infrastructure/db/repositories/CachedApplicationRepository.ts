@@ -80,11 +80,15 @@ export class CachedApplicationRepository implements IApplicationRepository {
   }
 
   async findDueForReminder(): Promise<Application[]> {
-    return this.inner.findDueForReminder();
+    const result = await this.inner.findDueForReminder();
+    for (const app of result) this.userIdByAppId.set(app.id, app.userId);
+    return result;
   }
 
   async updateReminderSentAt(id: string, sentAt: Date): Promise<void> {
+    const userId = this.userIdByAppId.get(id);
     await this.inner.updateReminderSentAt(id, sentAt);
     await this.cache.delete(CACHE_KEYS.appById(id));
+    if (userId) await this.cache.deleteByPrefix(CACHE_KEYS.appListPrefix(userId));
   }
 }

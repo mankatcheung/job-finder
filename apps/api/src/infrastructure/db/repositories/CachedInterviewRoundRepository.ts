@@ -41,7 +41,9 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
 
   // Not cached: the time window changes on every call.
   async findUpcomingWithinWindow(windowMs: number): Promise<InterviewRound[]> {
-    return this.inner.findUpcomingWithinWindow(windowMs);
+    const result = await this.inner.findUpcomingWithinWindow(windowMs);
+    for (const r of result) this.appIdByRoundId.set(r.id, r.applicationId);
+    return result;
   }
 
   async findById(id: string): Promise<InterviewRound | null> {
@@ -67,7 +69,10 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
   }
 
   async updatePushNotificationSentAt(id: string, sentAt: Date): Promise<void> {
+    const applicationId = this.appIdByRoundId.get(id);
     await this.inner.updatePushNotificationSentAt(id, sentAt);
+    await this.cache.delete(CACHE_KEYS.roundById(id));
+    if (applicationId) await this.cache.delete(CACHE_KEYS.roundList(applicationId));
   }
 
   async delete(id: string): Promise<void> {
