@@ -5,9 +5,10 @@
 import 'dotenv/config';
 import Fastify from 'fastify';
 import { buildApp } from '#src/http/buildApp.js';
+import { startObservability } from '#src/infrastructure/observability/tracing.js';
 import { ENV, NODE_ENV } from '#src/constants.js';
 
-// startObservability();
+startObservability();
 
 // Constructed here, not inside buildApp(), so this file keeps a literal
 // `import fastify` + constructor call — Vercel's zero-config Fastify build
