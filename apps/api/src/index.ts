@@ -1,3 +1,8 @@
+// Must be the first import: several DI registrations (e.g. the Redis client
+// used by RedisCache/RedisRateLimiter) are constructed eagerly at
+// module-load time when buildApp() below is imported, reading process.env
+// as they go — dotenv/config's side effect has to run before any of that.
+import 'dotenv/config';
 import Fastify from 'fastify';
 import { buildApp } from '#src/http/buildApp.js';
 import { ENV, NODE_ENV } from '#src/constants.js';

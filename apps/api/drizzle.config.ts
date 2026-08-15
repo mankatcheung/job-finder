@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { defineConfig } from 'drizzle-kit';
+import { config as loadEnv } from 'dotenv';
 
 // `db:generate`/`db:push`/`db:studio` only work here against a local `file:`
 // DATABASE_URL. `db:migrate` (drizzle-kit migrate) does support a remote
@@ -7,11 +8,19 @@ import { defineConfig } from 'drizzle-kit';
 // migrator connects through the same libsql client used at runtime, so
 // applying generated migrations to Turso in production works with this same
 // config (see README for the deploy step).
-try {
-  process.loadEnvFile(path.join(import.meta.dirname, '.env'));
-} catch {
-  // no .env file present (e.g. CI) — env vars are expected to already be set
-}
+// No explicit `path` option: dotenv's own default (`process.cwd() + '.env'`)
+// is what we want here, and is actually more reliable than resolving off
+// `import.meta.dirname` — drizzle-kit loads this file through its own
+// loader, under which `import.meta.dirname` comes back `undefined` (this
+// was a real, silent bug in the `process.loadEnvFile()` version this
+// replaces: `path.join(undefined, '.env')` threw, and the try/catch around
+// it swallowed that thrown error identically to a genuinely-missing-file
+// case, silently no-op'ing .env loading here on every drizzle-kit
+// invocation). `pnpm --filter @job-finder/api db:generate`/etc. always run
+// with cwd set to this package directory, so the default resolves
+// correctly. dotenv itself silently no-ops if no .env file is found (e.g.
+// CI, where env vars are expected to already be set).
+loadEnv();
 
 const databaseUrl = process.env.DATABASE_URL ?? 'file:./local.db';
 const isLocalFile = databaseUrl.startsWith('file:');

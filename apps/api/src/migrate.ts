@@ -22,6 +22,7 @@
  *   DATABASE_URL=libsql://... DATABASE_AUTH_TOKEN=... pnpm db:migrate:apply
  */
 
+import 'dotenv/config';
 import { createClient } from '@libsql/client';
 import { applyMigrations } from '#src/infrastructure/db/applyMigrations.js';
 
