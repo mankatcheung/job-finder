@@ -413,6 +413,7 @@ export const CACHE_KEYS = {
   roundList: (applicationId: string) => `rounds:list:${applicationId}`,
   contactById: (id: string) => `contacts:byId:${id}`,
   contactList: (applicationId: string) => `contacts:list:${applicationId}`,
+  apiTokenById: (id: string) => `tokens:byId:${id}`,
   apiTokenByHash: (tokenHash: string) => `tokens:byHash:${tokenHash}`,
   apiTokenList: (userId: string) => `tokens:list:${userId}`,
   notificationUnreadCount: (userId: string) => `notifications:unreadCount:${userId}`,

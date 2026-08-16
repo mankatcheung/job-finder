@@ -10,6 +10,7 @@ export interface CreateApiTokenData {
 
 export interface IApiTokenRepository {
   findAllByUserId(userId: string): Promise<ApiToken[]>;
+  findById(id: string): Promise<ApiToken | null>;
   findByTokenHash(tokenHash: string): Promise<{ token: ApiToken; userEmail: string } | null>;
   create(data: CreateApiTokenData): Promise<ApiToken>;
   updateLastUsed(id: string): Promise<void>;

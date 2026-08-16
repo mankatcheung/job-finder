@@ -40,6 +40,11 @@ export class DrizzleApiTokenRepository implements IApiTokenRepository {
     return { token: this.toEntity(row.token), userEmail: row.userEmail };
   }
 
+  async findById(id: string): Promise<ApiToken | null> {
+    const [row] = await this.db.select().from(apiToken).where(eq(apiToken.id, id)).limit(1);
+    return row ? this.toEntity(row) : null;
+  }
+
   async findByIdAndUserId(id: string, userId: string): Promise<ApiToken | null> {
     const [row] = await this.db
       .select()

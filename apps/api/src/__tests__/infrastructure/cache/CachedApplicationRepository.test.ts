@@ -138,19 +138,16 @@ describe('CachedApplicationRepository', () => {
   });
 
   describe('delete', () => {
-    it('delegates to inner and invalidates caches when userId is known', async () => {
+    it('looks up the app via its own findById, then invalidates byId and list caches', async () => {
       const { repo, inner } = makeRepo();
       vi.mocked(inner.findById).mockResolvedValue(app);
       vi.mocked(inner.findAllByUserId).mockResolvedValue([app]);
       vi.mocked(inner.delete).mockResolvedValue(undefined);
 
-      // Populate caches (which also records userId→appId mapping)
-      await repo.findById('app-1');
       await repo.findAllByUserId('user-1');
-
       await repo.delete('app-1');
 
-      // Both caches should be invalidated
+      expect(inner.findById).toHaveBeenCalledWith('app-1');
       vi.mocked(inner.findById).mockResolvedValue(null);
       vi.mocked(inner.findAllByUserId).mockResolvedValue([]);
       await repo.findById('app-1');
@@ -159,8 +156,30 @@ describe('CachedApplicationRepository', () => {
       expect(inner.findAllByUserId).toHaveBeenCalledTimes(2);
     });
 
-    it('still deletes from inner even when userId is unknown', async () => {
+    it('invalidates the list cache from a second repo instance that never read the app locally (simulates a different serverless instance sharing the same Redis-backed cache)', async () => {
+      const inner = makeApplicationRepository();
+      const cache = new MemoryCache(60_000);
+      const repoA = new CachedApplicationRepository({ drizzleApplicationRepository: inner, cache });
+      const repoB = new CachedApplicationRepository({ drizzleApplicationRepository: inner, cache });
+
+      vi.mocked(inner.findAllByUserId).mockResolvedValue([app]);
+      vi.mocked(inner.findById).mockResolvedValue(app);
+      vi.mocked(inner.delete).mockResolvedValue(undefined);
+
+      // repoA warms the list cache, as if an earlier request landed on a different instance
+      await repoA.findAllByUserId('user-1');
+
+      // repoB has no local state whatsoever, yet must still invalidate correctly
+      await repoB.delete('app-1');
+
+      vi.mocked(inner.findAllByUserId).mockResolvedValue([]);
+      await repoA.findAllByUserId('user-1');
+      expect(inner.findAllByUserId).toHaveBeenCalledTimes(2);
+    });
+
+    it('still deletes from inner even when the app is not found', async () => {
       const { repo, inner } = makeRepo();
+      vi.mocked(inner.findById).mockResolvedValue(null);
       vi.mocked(inner.delete).mockResolvedValue(undefined);
 
       await repo.delete('unknown-id');
@@ -169,47 +188,50 @@ describe('CachedApplicationRepository', () => {
   });
 
   describe('updateReminderSentAt', () => {
-    it('delegates to inner and invalidates byId and list caches when userId is known', async () => {
+    it('looks up the app via its own findById, then invalidates byId and list caches', async () => {
       const { repo, inner } = makeRepo();
       vi.mocked(inner.findById).mockResolvedValue(app);
       vi.mocked(inner.findAllByUserId).mockResolvedValue([app]);
       vi.mocked(inner.updateReminderSentAt).mockResolvedValue(undefined);
 
-      // Populate caches (which also records appId→userId mapping)
-      await repo.findById('app-1');
       await repo.findAllByUserId('user-1');
-
       await repo.updateReminderSentAt('app-1', new Date());
 
+      expect(inner.findById).toHaveBeenCalledWith('app-1');
       const updated = { ...app, reminderSentAt: new Date() };
-      vi.mocked(inner.findById).mockResolvedValue(updated);
       vi.mocked(inner.findAllByUserId).mockResolvedValue([updated]);
-      await repo.findById('app-1');
       await repo.findAllByUserId('user-1');
-      expect(inner.findById).toHaveBeenCalledTimes(2);
       expect(inner.findAllByUserId).toHaveBeenCalledTimes(2);
     });
 
-    it('populates the userId mapping from findDueForReminder so list invalidation works for the reminder job path', async () => {
-      const { repo, inner } = makeRepo();
-      vi.mocked(inner.findDueForReminder).mockResolvedValue([app]);
+    it('invalidates the list cache from a second repo instance that never read the app locally (simulates the background reminder job landing on a different serverless instance than an earlier dashboard read)', async () => {
+      const inner = makeApplicationRepository();
+      const cache = new MemoryCache(60_000);
+      const repoA = new CachedApplicationRepository({ drizzleApplicationRepository: inner, cache });
+      const repoB = new CachedApplicationRepository({ drizzleApplicationRepository: inner, cache });
+
       vi.mocked(inner.findAllByUserId).mockResolvedValue([app]);
+      vi.mocked(inner.findDueForReminder).mockResolvedValue([app]);
+      vi.mocked(inner.findById).mockResolvedValue(app);
       vi.mocked(inner.updateReminderSentAt).mockResolvedValue(undefined);
 
-      // Populate the user list cache directly (simulating an earlier dashboard read)
-      await repo.findAllByUserId('user-1');
-      // Simulate the background job: discover due apps via the uncached finder, then mark sent
-      await repo.findDueForReminder();
-      await repo.updateReminderSentAt(app.id, new Date());
+      // repoA warms the list cache (e.g. an earlier dashboard read on a different instance)
+      await repoA.findAllByUserId('user-1');
+
+      // repoB discovers the due app via the uncached finder and marks it sent,
+      // with no local state carried over from repoA
+      await repoB.findDueForReminder();
+      await repoB.updateReminderSentAt(app.id, new Date());
 
       const updated = { ...app, reminderSentAt: new Date() };
       vi.mocked(inner.findAllByUserId).mockResolvedValue([updated]);
-      await repo.findAllByUserId('user-1');
+      await repoA.findAllByUserId('user-1');
       expect(inner.findAllByUserId).toHaveBeenCalledTimes(2);
     });
 
-    it('still updates via inner even when userId is unknown', async () => {
+    it('still updates via inner even when the app is not found', async () => {
       const { repo, inner } = makeRepo();
+      vi.mocked(inner.findById).mockResolvedValue(null);
       vi.mocked(inner.updateReminderSentAt).mockResolvedValue(undefined);
 
       await repo.updateReminderSentAt('unknown-id', new Date());
