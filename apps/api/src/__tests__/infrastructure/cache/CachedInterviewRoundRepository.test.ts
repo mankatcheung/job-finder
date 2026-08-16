@@ -134,18 +134,16 @@ describe('CachedInterviewRoundRepository', () => {
   });
 
   describe('delete', () => {
-    it('delegates to inner and invalidates the list cache when the applicationId is known', async () => {
+    it('looks up the round via its own findById, then invalidates byId and list caches', async () => {
       const { repo, inner } = makeRepo();
       vi.mocked(inner.findById).mockResolvedValue(round);
       vi.mocked(inner.findAllByApplicationId).mockResolvedValue([round]);
       vi.mocked(inner.delete).mockResolvedValue(undefined);
 
-      // Populate caches (records the roundId -> applicationId mapping)
-      await repo.findById('round-1');
       await repo.findAllByApplicationId('app-1');
-
       await repo.delete('round-1');
 
+      expect(inner.findById).toHaveBeenCalledWith('round-1');
       vi.mocked(inner.findById).mockResolvedValue(null);
       vi.mocked(inner.findAllByApplicationId).mockResolvedValue([]);
       await repo.findById('round-1');
@@ -154,8 +152,36 @@ describe('CachedInterviewRoundRepository', () => {
       expect(inner.findAllByApplicationId).toHaveBeenCalledTimes(2);
     });
 
-    it('still deletes from inner even when the applicationId is unknown', async () => {
+    it('invalidates the list cache from a second repo instance that never read the round locally (simulates a different serverless instance sharing the same Redis-backed cache)', async () => {
+      const inner = makeInterviewRoundRepository();
+      const cache = new MemoryCache(60_000);
+      const repoA = new CachedInterviewRoundRepository({
+        drizzleInterviewRoundRepository: inner,
+        cache,
+      });
+      const repoB = new CachedInterviewRoundRepository({
+        drizzleInterviewRoundRepository: inner,
+        cache,
+      });
+
+      vi.mocked(inner.findAllByApplicationId).mockResolvedValue([round]);
+      vi.mocked(inner.findById).mockResolvedValue(round);
+      vi.mocked(inner.delete).mockResolvedValue(undefined);
+
+      // repoA warms the list cache, as if an earlier request landed on a different instance
+      await repoA.findAllByApplicationId('app-1');
+
+      // repoB has no local state whatsoever, yet must still invalidate correctly
+      await repoB.delete('round-1');
+
+      vi.mocked(inner.findAllByApplicationId).mockResolvedValue([]);
+      await repoA.findAllByApplicationId('app-1');
+      expect(inner.findAllByApplicationId).toHaveBeenCalledTimes(2);
+    });
+
+    it('still deletes from inner even when the round is not found', async () => {
       const { repo, inner } = makeRepo();
+      vi.mocked(inner.findById).mockResolvedValue(null);
       vi.mocked(inner.delete).mockResolvedValue(undefined);
 
       await repo.delete('unknown-id');
@@ -164,47 +190,56 @@ describe('CachedInterviewRoundRepository', () => {
   });
 
   describe('updatePushNotificationSentAt', () => {
-    it('delegates to inner and invalidates byId and list caches when applicationId is known', async () => {
+    it('looks up the round via its own findById, then invalidates byId and list caches', async () => {
       const { repo, inner } = makeRepo();
       vi.mocked(inner.findById).mockResolvedValue(round);
       vi.mocked(inner.findAllByApplicationId).mockResolvedValue([round]);
       vi.mocked(inner.updatePushNotificationSentAt).mockResolvedValue(undefined);
 
-      // Populate caches (records the roundId -> applicationId mapping)
-      await repo.findById('round-1');
       await repo.findAllByApplicationId('app-1');
-
       await repo.updatePushNotificationSentAt('round-1', new Date());
 
+      expect(inner.findById).toHaveBeenCalledWith('round-1');
       const updated = { ...round, pushNotificationSentAt: new Date() };
-      vi.mocked(inner.findById).mockResolvedValue(updated);
       vi.mocked(inner.findAllByApplicationId).mockResolvedValue([updated]);
-      await repo.findById('round-1');
       await repo.findAllByApplicationId('app-1');
-      expect(inner.findById).toHaveBeenCalledTimes(2);
       expect(inner.findAllByApplicationId).toHaveBeenCalledTimes(2);
     });
 
-    it('populates the applicationId mapping from findUpcomingWithinWindow so list invalidation works for the push job path', async () => {
-      const { repo, inner } = makeRepo();
-      vi.mocked(inner.findUpcomingWithinWindow).mockResolvedValue([round]);
+    it('invalidates the list cache from a second repo instance that never read the round locally (simulates the background push job landing on a different serverless instance than an earlier dashboard read)', async () => {
+      const inner = makeInterviewRoundRepository();
+      const cache = new MemoryCache(60_000);
+      const repoA = new CachedInterviewRoundRepository({
+        drizzleInterviewRoundRepository: inner,
+        cache,
+      });
+      const repoB = new CachedInterviewRoundRepository({
+        drizzleInterviewRoundRepository: inner,
+        cache,
+      });
+
       vi.mocked(inner.findAllByApplicationId).mockResolvedValue([round]);
+      vi.mocked(inner.findUpcomingWithinWindow).mockResolvedValue([round]);
+      vi.mocked(inner.findById).mockResolvedValue(round);
       vi.mocked(inner.updatePushNotificationSentAt).mockResolvedValue(undefined);
 
-      // Populate the round list cache directly (simulating an earlier dashboard read)
-      await repo.findAllByApplicationId('app-1');
-      // Simulate the background job: discover upcoming rounds via the uncached finder, then mark sent
-      await repo.findUpcomingWithinWindow(86_400_000);
-      await repo.updatePushNotificationSentAt(round.id, new Date());
+      // repoA warms the list cache (e.g. an earlier dashboard read on a different instance)
+      await repoA.findAllByApplicationId('app-1');
+
+      // repoB discovers the upcoming round via the uncached finder and marks it
+      // notified, with no local state carried over from repoA
+      await repoB.findUpcomingWithinWindow(86_400_000);
+      await repoB.updatePushNotificationSentAt(round.id, new Date());
 
       const updated = { ...round, pushNotificationSentAt: new Date() };
       vi.mocked(inner.findAllByApplicationId).mockResolvedValue([updated]);
-      await repo.findAllByApplicationId('app-1');
+      await repoA.findAllByApplicationId('app-1');
       expect(inner.findAllByApplicationId).toHaveBeenCalledTimes(2);
     });
 
-    it('still updates via inner even when the applicationId is unknown', async () => {
+    it('still updates via inner even when the round is not found', async () => {
       const { repo, inner } = makeRepo();
+      vi.mocked(inner.findById).mockResolvedValue(null);
       vi.mocked(inner.updatePushNotificationSentAt).mockResolvedValue(undefined);
 
       await repo.updatePushNotificationSentAt('unknown-id', new Date());

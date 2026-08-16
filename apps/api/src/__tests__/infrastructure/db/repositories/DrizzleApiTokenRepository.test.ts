@@ -61,6 +61,28 @@ describe('DrizzleApiTokenRepository', () => {
     expect(result).toBeNull();
   });
 
+  it('findById returns the token by id', async () => {
+    const hash = createHash('sha256').update('jfat_byid').digest('hex');
+    await repo.create({
+      id: 'tok-1',
+      userId: 'user-1',
+      name: 'CLI',
+      tokenHash: hash,
+      scope: 'full',
+    });
+
+    const result = await repo.findById('tok-1');
+
+    expect(result).not.toBeNull();
+    expect(result!.userId).toBe('user-1');
+    expect(result!.tokenHash).toBe(hash);
+  });
+
+  it('findById returns null for unknown id', async () => {
+    const result = await repo.findById('missing');
+    expect(result).toBeNull();
+  });
+
   it('updateLastUsed sets lastUsedAt', async () => {
     const hash = createHash('sha256').update('jfat_xyz').digest('hex');
     await repo.create({ id: 'tok-1', userId: 'user-1', name: 'T', tokenHash: hash, scope: 'full' });
