@@ -4,7 +4,8 @@ import type {
   CreateDocumentData,
 } from '#src/use-cases/ports/IDocumentRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { BoundedMap } from '#src/infrastructure/cache/BoundedMap.js';
+import { CACHE, CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleDocumentRepository: IDocumentRepository;
@@ -13,7 +14,7 @@ interface Deps {
 
 export class CachedDocumentRepository implements IDocumentRepository {
   // Tracks which applicationId owns each document so delete() can invalidate the right list.
-  private readonly appIdByDocId = new Map<string, string>();
+  private readonly appIdByDocId = new BoundedMap<string, string>(CACHE.REVERSE_INDEX_MAX_ENTRIES);
   private readonly inner: IDocumentRepository;
   private readonly cache: ICache;
 

@@ -19,15 +19,26 @@ export class MemoryCache implements ICache {
   // across instances, but it's free and correctness never hurts.
   private readonly inFlight = new Map<string, Promise<unknown>>();
   private readonly ttlMs: number;
+  private readonly maxEntries: number;
 
-  constructor(ttlMs = CACHE.DEFAULT_TTL_MS) {
+  constructor(ttlMs: number = CACHE.DEFAULT_TTL_MS, maxEntries: number = CACHE.MEMORY_MAX_ENTRIES) {
+    if (!Number.isInteger(maxEntries) || maxEntries < 1) {
+      throw new Error('maxEntries must be a positive integer');
+    }
     this.ttlMs = ttlMs;
+    this.maxEntries = maxEntries;
   }
 
   async getOrSet<T>(key: string, fetch: () => Promise<T>, ttlMs = this.ttlMs): Promise<T> {
     const entry = this.store.get(key);
     if (entry) {
-      if (Date.now() <= entry.expiresAt) return entry.value as T;
+      if (Date.now() <= entry.expiresAt) {
+        // LRU touch: re-insert so this key counts as most-recently-used and
+        // is the last candidate for eviction (JEF-130).
+        this.store.delete(key);
+        this.store.set(key, entry);
+        return entry.value as T;
+      }
       this.store.delete(key);
     }
 
@@ -36,7 +47,7 @@ export class MemoryCache implements ICache {
 
     const promise = fetch()
       .then((value) => {
-        this.store.set(key, { value, expiresAt: Date.now() + ttlMs });
+        this.set(key, { value, expiresAt: Date.now() + ttlMs });
         return value;
       })
       .finally(() => {
@@ -44,6 +55,19 @@ export class MemoryCache implements ICache {
       });
     this.inFlight.set(key, promise);
     return promise;
+  }
+
+  private set(key: string, entry: CacheEntry<unknown>): void {
+    this.store.set(key, entry);
+    this.evictIfOverCapacity();
+  }
+
+  private evictIfOverCapacity(): void {
+    while (this.store.size > this.maxEntries) {
+      const oldest = this.store.keys().next().value;
+      if (oldest === undefined) break;
+      this.store.delete(oldest);
+    }
   }
 
   async delete(key: string): Promise<void> {

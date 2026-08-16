@@ -1,7 +1,8 @@
 import type { User } from '#src/domain/user/User.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { BoundedMap } from '#src/infrastructure/cache/BoundedMap.js';
+import { CACHE, CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleUserRepository: IUserRepository;
@@ -11,7 +12,7 @@ interface Deps {
 export class CachedUserRepository implements IUserRepository {
   // Tracks the last-cached email per user id so update() — which can change the
   // email itself — can invalidate the *old* email's cache entry, not just the new one.
-  private readonly emailByUserId = new Map<string, string>();
+  private readonly emailByUserId = new BoundedMap<string, string>(CACHE.REVERSE_INDEX_MAX_ENTRIES);
   private readonly inner: IUserRepository;
   private readonly cache: ICache;
 
