@@ -69,10 +69,10 @@ export const NODE_ENV = {
 
 /** Auth cookie names. */
 export const COOKIES = {
-  ACCESS_TOKEN: 'jf_access_token',
-  REFRESH_TOKEN: 'jf_refresh_token',
+  ACCESS_TOKEN: 'trakwyn_access_token',
+  REFRESH_TOKEN: 'trakwyn_refresh_token',
   /** Non-HttpOnly hint cookie the web app reads to know a session exists. */
-  LOGGED_IN: 'jf_logged_in',
+  LOGGED_IN: 'trakwyn_logged_in',
 } as const;
 
 /** Shared cookie options. */
@@ -358,7 +358,7 @@ export const AXIOM = {
   DATASET_HEADER: 'X-Axiom-Dataset',
   /** Metrics use a distinct dataset (and header) from logs/traces — Axiom requires a Metrics-type dataset. */
   METRICS_DATASET_HEADER: 'X-Axiom-Metrics-Dataset',
-  SERVICE_NAME: 'job-finder-api',
+  SERVICE_NAME: 'trakwyn-api',
 } as const;
 
 /** Email provider (Brevo) defaults. */
