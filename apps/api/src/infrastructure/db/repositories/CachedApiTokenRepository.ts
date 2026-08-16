@@ -4,7 +4,8 @@ import type {
   CreateApiTokenData,
 } from '#src/use-cases/ports/IApiTokenRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { BoundedMap } from '#src/infrastructure/cache/BoundedMap.js';
+import { CACHE, CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleApiTokenRepository: IApiTokenRepository;
@@ -17,7 +18,9 @@ export class CachedApiTokenRepository implements IApiTokenRepository {
   // updateLastUsed() deliberately does NOT touch this map or the cache: it
   // fires on every single validated request, so invalidating on it would
   // defeat the point of caching findByTokenHash at all.
-  private readonly metaByTokenId = new Map<string, { userId: string; tokenHash: string }>();
+  private readonly metaByTokenId = new BoundedMap<string, { userId: string; tokenHash: string }>(
+    CACHE.REVERSE_INDEX_MAX_ENTRIES,
+  );
   private readonly inner: IApiTokenRepository;
   private readonly cache: ICache;
 

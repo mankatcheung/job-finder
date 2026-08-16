@@ -5,7 +5,8 @@ import type {
   UpdateInterviewRoundData,
 } from '#src/use-cases/ports/IInterviewRoundRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { BoundedMap } from '#src/infrastructure/cache/BoundedMap.js';
+import { CACHE, CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleInterviewRoundRepository: IInterviewRoundRepository;
@@ -13,7 +14,7 @@ interface Deps {
 }
 
 export class CachedInterviewRoundRepository implements IInterviewRoundRepository {
-  private readonly appIdByRoundId = new Map<string, string>();
+  private readonly appIdByRoundId = new BoundedMap<string, string>(CACHE.REVERSE_INDEX_MAX_ENTRIES);
   private readonly inner: IInterviewRoundRepository;
   private readonly cache: ICache;
 

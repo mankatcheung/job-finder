@@ -1,7 +1,8 @@
 import type { Note } from '#src/domain/note/Note.js';
 import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { BoundedMap } from '#src/infrastructure/cache/BoundedMap.js';
+import { CACHE, CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleNoteRepository: INoteRepository;
@@ -10,7 +11,7 @@ interface Deps {
 
 export class CachedNoteRepository implements INoteRepository {
   // Tracks which applicationId owns each note so delete() can invalidate the right list.
-  private readonly appIdByNoteId = new Map<string, string>();
+  private readonly appIdByNoteId = new BoundedMap<string, string>(CACHE.REVERSE_INDEX_MAX_ENTRIES);
   private readonly inner: INoteRepository;
   private readonly cache: ICache;
 

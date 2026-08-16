@@ -116,4 +116,63 @@ describe('MemoryCache', () => {
     await cache.getOrSet('b', () => Promise.resolve(2));
     expect(cache.size).toBe(2);
   });
+
+  describe('eviction (JEF-130)', () => {
+    it('evicts the least-recently-used entry when exceeding maxEntries', async () => {
+      const small = new MemoryCache(1000, 2);
+      await small.getOrSet('a', () => Promise.resolve(1));
+      await small.getOrSet('b', () => Promise.resolve(2));
+      await small.getOrSet('c', () => Promise.resolve(3));
+
+      expect(small.size).toBe(2);
+      const fetchA = vi.fn().mockResolvedValue('a-refetched');
+      await small.getOrSet('a', fetchA);
+      expect(fetchA).toHaveBeenCalledOnce();
+    });
+
+    it('a hit refreshes recency so the entry is not the first evicted', async () => {
+      const small = new MemoryCache(1000, 2);
+      await small.getOrSet('a', () => Promise.resolve(1));
+      await small.getOrSet('b', () => Promise.resolve(2));
+      // Cache hit on 'a' (fetch is not called), making 'b' the LRU entry.
+      const hitFetch = vi.fn().mockResolvedValue('unused');
+      await small.getOrSet('a', hitFetch);
+      await small.getOrSet('c', () => Promise.resolve(3)); // evicts 'b', keeps 'a'
+
+      const fetchA = vi.fn().mockResolvedValue('a');
+      const fetchB = vi.fn().mockResolvedValue('b');
+      await small.getOrSet('a', fetchA);
+      await small.getOrSet('b', fetchB);
+      expect(hitFetch).not.toHaveBeenCalled();
+      expect(fetchA).not.toHaveBeenCalled();
+      expect(fetchB).toHaveBeenCalledOnce();
+    });
+
+    it('evicts expired entries before live ones when over the cap', async () => {
+      const small = new MemoryCache(1000, 2);
+      await small.getOrSet('a', () => Promise.resolve(1)); // will expire
+      await small.getOrSet('b', () => Promise.resolve(2)); // stays live
+
+      vi.useFakeTimers();
+      vi.advanceTimersByTime(1001); // 'a' is now expired (lazily)
+      await small.getOrSet('c', () => Promise.resolve(3)); // over cap → evicts expired 'a'
+      vi.useRealTimers();
+
+      expect(small.size).toBe(2);
+      const fetchB = vi.fn().mockResolvedValue(2);
+      const fetchC = vi.fn().mockResolvedValue(3);
+      const fetchA = vi.fn().mockResolvedValue(1);
+      await small.getOrSet('b', fetchB); // live → hit
+      await small.getOrSet('c', fetchC); // live → hit
+      await small.getOrSet('a', fetchA); // was evicted → refetch
+      expect(fetchB).not.toHaveBeenCalled();
+      expect(fetchC).not.toHaveBeenCalled();
+      expect(fetchA).toHaveBeenCalledOnce();
+    });
+
+    it('rejects maxEntries smaller than 1', () => {
+      expect(() => new MemoryCache(1000, 0)).toThrow('maxEntries');
+      expect(() => new MemoryCache(1000, -1)).toThrow('maxEntries');
+    });
+  });
 });

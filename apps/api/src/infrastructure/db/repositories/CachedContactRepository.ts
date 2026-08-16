@@ -5,7 +5,8 @@ import type {
   UpdateContactData,
 } from '#src/use-cases/ports/IContactRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { BoundedMap } from '#src/infrastructure/cache/BoundedMap.js';
+import { CACHE, CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleContactRepository: IContactRepository;
@@ -14,7 +15,9 @@ interface Deps {
 
 export class CachedContactRepository implements IContactRepository {
   // Tracks which applicationId owns each contact so delete() can invalidate the right list.
-  private readonly appIdByContactId = new Map<string, string>();
+  private readonly appIdByContactId = new BoundedMap<string, string>(
+    CACHE.REVERSE_INDEX_MAX_ENTRIES,
+  );
   private readonly inner: IContactRepository;
   private readonly cache: ICache;
 

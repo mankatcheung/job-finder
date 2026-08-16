@@ -9,7 +9,8 @@ import type {
   ApplicationsPage,
 } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { BoundedMap } from '#src/infrastructure/cache/BoundedMap.js';
+import { CACHE, CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleApplicationRepository: IApplicationRepository;
@@ -18,7 +19,7 @@ interface Deps {
 
 export class CachedApplicationRepository implements IApplicationRepository {
   // Tracks which userId owns each applicationId so delete() can invalidate the right list.
-  private readonly userIdByAppId = new Map<string, string>();
+  private readonly userIdByAppId = new BoundedMap<string, string>(CACHE.REVERSE_INDEX_MAX_ENTRIES);
   private readonly inner: IApplicationRepository;
   private readonly cache: ICache;
 
