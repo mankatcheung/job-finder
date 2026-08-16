@@ -8,7 +8,7 @@ import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 import { getErrorMessage } from '#/lib/errors';
 import { LogoMark } from '#/components/LogoMark';
-import { Alert, Button, FormLabel, Input } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
 
 const schema = z.object({
   email: z.string().email('Invalid email'),

@@ -1,5 +1,5 @@
 import { UnlinkIcon, CheckIcon, LogOutIcon, BanIcon } from 'lucide-react';
-import { Alert, Button, FormLabel, Input } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';

@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { CopyIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
-import { Button, Card, FormLabel, Spinner, Textarea } from '@job-finder/ui';
+import { Button, Card, FormLabel, Spinner, Textarea } from '@trakwyn/ui';
 
 const GENERATE_COVER_LETTER = `
   mutation GenerateCoverLetter($applicationId: ID!, $resumeText: String) {

@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ErrorState } from '#/components/ErrorState';
-import { Card, EmptyState, ProgressBar, Skeleton } from '@job-finder/ui';
+import { Card, EmptyState, ProgressBar, Skeleton } from '@trakwyn/ui';
 import {
   AlertCircleIcon,
   BriefcaseIcon,

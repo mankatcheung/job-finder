@@ -1,5 +1,5 @@
 import { XIcon, ExternalLinkIcon } from 'lucide-react';
-import { IconButton, Modal } from '@job-finder/ui';
+import { IconButton, Modal } from '@trakwyn/ui';
 
 const PREVIEWABLE_MIME_TYPES = ['application/pdf', 'image/png', 'image/jpeg'];
 

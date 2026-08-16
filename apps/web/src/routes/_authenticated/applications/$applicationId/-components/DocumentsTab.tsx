@@ -5,7 +5,7 @@ import { put as putBlob } from '@vercel/blob/client';
 import { CheckIcon, ExternalLinkIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
-import { Button, Card, FormLabel, Input, Select } from '@job-finder/ui';
+import { Button, Card, FormLabel, Input, Select } from '@trakwyn/ui';
 import { DocumentPreviewModal, isPreviewableMimeType } from './DocumentPreviewModal';
 
 export const DOCUMENTS_QUERY = `

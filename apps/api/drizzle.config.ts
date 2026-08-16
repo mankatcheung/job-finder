@@ -16,7 +16,7 @@ import { config as loadEnv } from 'dotenv';
 // replaces: `path.join(undefined, '.env')` threw, and the try/catch around
 // it swallowed that thrown error identically to a genuinely-missing-file
 // case, silently no-op'ing .env loading here on every drizzle-kit
-// invocation). `pnpm --filter @job-finder/api db:generate`/etc. always run
+// invocation). `pnpm --filter @trakwyn/api db:generate`/etc. always run
 // with cwd set to this package directory, so the default resolves
 // correctly. dotenv itself silently no-ops if no .env file is found (e.g.
 // CI, where env vars are expected to already be set).

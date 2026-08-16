@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { DocumentDraftEditor } from '../-components/DocumentDraftEditor';
 import { DownloadIcon, TrashIcon, ArrowLeftIcon } from 'lucide-react';
-import { Alert, Button, IconButton } from '@job-finder/ui';
+import { Alert, Button, IconButton } from '@trakwyn/ui';
 
 const DRAFT_QUERY = `
   query DocumentDraft($id: ID!) {

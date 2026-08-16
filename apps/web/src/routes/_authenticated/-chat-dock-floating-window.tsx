@@ -3,7 +3,7 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronDownIcon, Maximize2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
-import { IconButton } from '@job-finder/ui';
+import { IconButton } from '@trakwyn/ui';
 import { useChatDock } from '#/lib/chatDock';
 import { conversationsQueryOptions } from '#/routes/_authenticated/assistant/-shared';
 import {

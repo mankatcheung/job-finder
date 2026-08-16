@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, FormLabel, Input, Select, Textarea } from '@job-finder/ui';
+import { Button, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
 
 interface OfferFormData {
   baseSalary: number;

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { ErrorState } from '#/components/ErrorState';
-import { Card, EmptyState, Skeleton } from '@job-finder/ui';
+import { Card, EmptyState, Skeleton } from '@trakwyn/ui';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { analyticsQueryOptions } from './-analytics-queries';
 import { DocumentVersionOutcomesPanel } from './-document-version-outcomes-panel';

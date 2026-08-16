@@ -1,7 +1,7 @@
 import { Link, useSearch } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { gqlClient } from '#/graphql/client';
-import { Alert } from '@job-finder/ui';
+import { Alert } from '@trakwyn/ui';
 
 const CONFIRM_BACKUP_EMAIL = `
   mutation ConfirmBackupEmail($token: String!) {

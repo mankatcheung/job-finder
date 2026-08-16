@@ -1,9 +1,9 @@
 {
   "projectId": "fb693e14-9709-4342-961a-fd47ca446641",
   "shape": "storybook",
-  "pkg": "@job-finder/ui",
-  "globalName": "JobFinderUI",
-  "buildCmd": "pnpm --filter @job-finder/ui build",
+  "pkg": "@trakwyn/ui",
+  "globalName": "TrakwynUI",
+  "buildCmd": "pnpm --filter @trakwyn/ui build",
   "cssEntry": "dist/styles.css",
   "readmeHeader": ".design-sync/conventions.md",
   "overrides": {

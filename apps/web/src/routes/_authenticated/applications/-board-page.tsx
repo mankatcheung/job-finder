@@ -18,7 +18,7 @@ import { StatusBadge } from '../-components/StatusBadge';
 import { ErrorState } from '#/components/ErrorState';
 import { ListIcon, PlusIcon, StarIcon } from 'lucide-react';
 import { boardApplicationsQueryOptions, type BoardApplication } from './-board-queries';
-import { Skeleton } from '@job-finder/ui';
+import { Skeleton } from '@trakwyn/ui';
 
 const UPDATE_STATUS = `
   mutation UpdateApplicationStatus($id: ID!, $input: UpdateApplicationInput!) {

@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
-import { Alert, Button, FormLabel, Input, Select, Textarea } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
 import {
   LLM_API_KEYS_QUERY,
   SAVE_LLM_API_KEY,

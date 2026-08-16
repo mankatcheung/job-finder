@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
-import { Card, EmptyState } from '@job-finder/ui';
+import { Card, EmptyState } from '@trakwyn/ui';
 const ACTIVITY_LOGS_QUERY = `
   query ActivityLogs($applicationId: ID!) {
     activityLogs(applicationId: $applicationId) {

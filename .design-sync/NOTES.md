@@ -1,4 +1,4 @@
-# design-sync notes for job-finder
+# design-sync notes for trakwyn
 
 ## Storybook shape (switched 2026-08-11, JEF-153)
 
@@ -13,7 +13,7 @@
 
 1. **No compiled `.d.ts` tree.** `packages/ui/package.json` points `main`/`types` at raw `./src/index.ts` (deliberate — lets `apps/web` consume live source via Vite with no rebuild step). The converter's prop-extraction (`.d.ts`-based `<Name>Props`) globs for real `.d.ts` files and finds none there, so it would either crash (`ZERO_MATCH`) or fall back to a much weaker synthesized contract.
 
-   Fix: added a **declaration-only** build (`packages/ui/tsconfig.build.json`, `emitDeclarationOnly: true` → `dist/*.d.ts`) plus `"publishConfig": {"types": "./dist/index.d.ts"}` in `package.json`. `findTypesRoot()` in the converter's `lib/dts.mjs` checks `publishConfig.types` _before_ `types` — exactly for this workspace-package pattern (dev `types` points at src, publishConfig carries the built one). `main`/`types` themselves were left untouched, so `apps/web`'s live-source dev experience is unaffected. `buildCmd` in config.json runs `pnpm --filter @job-finder/ui build`, which also now compiles `dist/styles.css` (next point).
+   Fix: added a **declaration-only** build (`packages/ui/tsconfig.build.json`, `emitDeclarationOnly: true` → `dist/*.d.ts`) plus `"publishConfig": {"types": "./dist/index.d.ts"}` in `package.json`. `findTypesRoot()` in the converter's `lib/dts.mjs` checks `publishConfig.types` _before_ `types` — exactly for this workspace-package pattern (dev `types` points at src, publishConfig carries the built one). `main`/`types` themselves were left untouched, so `apps/web`'s live-source dev experience is unaffected. `buildCmd` in config.json runs `pnpm --filter @trakwyn/ui build`, which also now compiles `dist/styles.css` (next point).
 
 2. **No compiled CSS at all.** The whole package styles via bare Tailwind utility classes (`bg-blue-600`, `dark:bg-gray-700`, etc.) with zero design tokens or CSS-in-JS — nothing for `cfg.cssEntry` to point at out of the box. Without a real stylesheet, every preview (and every future design built with these components in claude.ai/design) would render completely unstyled.
 
@@ -21,7 +21,7 @@
 
    **Important**: `packages/ui/src/styles.css` also repeats the app's `@custom-variant dark (&:where(.dark, .dark *));` from `apps/web/src/styles.css` — dark mode here is a `.dark` class toggle, not `prefers-color-scheme`. Without this line Tailwind v4's default `dark:` behavior (media-query based) would make the compiled CSS behave differently from the real app. **If `apps/web`'s dark-mode strategy ever changes, this line needs to change too** — it's currently hand-duplicated, not shared.
 
-3. **`--node-modules` must point at `apps/web/node_modules`**, not `packages/ui/node_modules` or the repo root. `packages/ui` doesn't depend on itself (so it has no `@job-finder/ui` entry under its own `node_modules` for `join(NODE_MODULES, PKG)` to resolve), and pnpm doesn't hoist workspace packages to the repo root here — only `apps/web` (the sole consumer) has `@job-finder/ui` symlinked under its `node_modules`, which is also where `react`/`react-dom`/`@types/react` resolve for this package (all pinned at exactly `19.2.7` in `packages/ui/package.json` to avoid the "Incompatible React versions" crash pnpm's own resolver produced when left on caret ranges — see the `feat/design-system-ui-package` PR).
+3. **`--node-modules` must point at `apps/web/node_modules`**, not `packages/ui/node_modules` or the repo root. `packages/ui` doesn't depend on itself (so it has no `@trakwyn/ui` entry under its own `node_modules` for `join(NODE_MODULES, PKG)` to resolve), and pnpm doesn't hoist workspace packages to the repo root here — only `apps/web` (the sole consumer) has `@trakwyn/ui` symlinked under its `node_modules`, which is also where `react`/`react-dom`/`@types/react` resolve for this package (all pinned at exactly `19.2.7` in `packages/ui/package.json` to avoid the "Incompatible React versions" crash pnpm's own resolver produced when left on caret ranges — see the `feat/design-system-ui-package` PR).
 
 ## Known render warns
 

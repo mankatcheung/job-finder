@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
-import { Alert, Button, FormLabel, Input, Select } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input, Select } from '@trakwyn/ui';
 
 const CREATE_DRAFT_MUTATION = `
   mutation CreateDocumentDraft($input: CreateDocumentDraftInput!) {
