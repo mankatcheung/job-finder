@@ -32,7 +32,7 @@ describe('ApiTokenResolver', () => {
     const token = makeToken({ scope: 'read' });
     const deps = makeDeps({
       createApiTokenUseCase: stub<CreateApiTokenUseCase>({
-        execute: vi.fn().mockResolvedValue({ token, rawToken: 'jfat_rawvalue' }),
+        execute: vi.fn().mockResolvedValue({ token, rawToken: 'trakwyn_rawvalue' }),
       }),
     });
 
@@ -47,7 +47,7 @@ describe('ApiTokenResolver', () => {
     expect(result).toEqual({
       id: 'token-1',
       name: 'CI token',
-      token: 'jfat_rawvalue',
+      token: 'trakwyn_rawvalue',
       scope: 'read',
       createdAt: '2024-01-01T00:00:00.000Z',
     });

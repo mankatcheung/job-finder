@@ -367,7 +367,7 @@ export interface TestDb {
 }
 
 export async function createTestDb(): Promise<TestDb> {
-  const dbPath = join(tmpdir(), `job-finder-test-${randomUUID()}.db`);
+  const dbPath = join(tmpdir(), `trakwyn-test-${randomUUID()}.db`);
   const client = createClient({ url: `file:${dbPath}` });
   await client.execute('PRAGMA foreign_keys = ON');
 

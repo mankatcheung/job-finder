@@ -28,7 +28,7 @@ describe('buildApp observability flush hook', () => {
       previousEnv[key] = process.env[key];
     }
 
-    dbPath = join(tmpdir(), `job-finder-tracing-${randomUUID()}.db`);
+    dbPath = join(tmpdir(), `trakwyn-tracing-${randomUUID()}.db`);
     const databaseUrl = `file:${dbPath}`;
     const migrationClient = createClient({ url: databaseUrl });
     await applyMigrations(migrationClient);

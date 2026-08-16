@@ -26,5 +26,5 @@ export const AUTH_HEADER = {
   BEARER_PREFIX: 'Bearer ',
 } as const;
 
-/** Prefix every API token (`jfat_...`) starts with. */
-export const API_TOKEN_PREFIX = 'jfat_';
+/** Prefix every API token (`trakwyn_...`) starts with. */
+export const API_TOKEN_PREFIX = 'trakwyn_';

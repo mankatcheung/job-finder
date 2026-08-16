@@ -58,10 +58,10 @@ describe('AuthenticateRequestUseCase', () => {
     );
     const useCase = new AuthenticateRequestUseCase({ tokenService, validateApiTokenUseCase });
 
-    const result = await useCase.execute('jfat_abc123');
+    const result = await useCase.execute('trakwyn_abc123');
 
     expect(result).toEqual({ sub: 'user-1', email: 'user@example.com' });
-    expect(validateApiTokenUseCase.execute).toHaveBeenCalledWith('jfat_abc123');
+    expect(validateApiTokenUseCase.execute).toHaveBeenCalledWith('trakwyn_abc123');
     expect(tokenService.verifyAccess).not.toHaveBeenCalled();
   });
 
@@ -72,7 +72,7 @@ describe('AuthenticateRequestUseCase', () => {
     );
     const useCase = new AuthenticateRequestUseCase({ tokenService, validateApiTokenUseCase });
 
-    const result = await useCase.execute('jfat_readonly');
+    const result = await useCase.execute('trakwyn_readonly');
 
     expect(result).toBeNull();
   });
@@ -82,7 +82,7 @@ describe('AuthenticateRequestUseCase', () => {
     const validateApiTokenUseCase = makeValidateApiTokenUseCase(vi.fn().mockResolvedValue(null));
     const useCase = new AuthenticateRequestUseCase({ tokenService, validateApiTokenUseCase });
 
-    const result = await useCase.execute('jfat_unknown');
+    const result = await useCase.execute('trakwyn_unknown');
 
     expect(result).toBeNull();
   });
@@ -94,7 +94,7 @@ describe('AuthenticateRequestUseCase', () => {
     );
     const useCase = new AuthenticateRequestUseCase({ tokenService, validateApiTokenUseCase });
 
-    const result = await useCase.execute('jfat_broken');
+    const result = await useCase.execute('trakwyn_broken');
 
     expect(result).toBeNull();
   });

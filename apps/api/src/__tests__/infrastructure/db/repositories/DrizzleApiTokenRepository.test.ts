@@ -22,7 +22,7 @@ describe('DrizzleApiTokenRepository', () => {
   afterEach(() => db.cleanup());
 
   it('creates a token and retrieves it by userId', async () => {
-    const hash = createHash('sha256').update('jfat_abc').digest('hex');
+    const hash = createHash('sha256').update('trakwyn_abc').digest('hex');
     await repo.create({
       id: 'tok-1',
       userId: 'user-1',
@@ -39,7 +39,7 @@ describe('DrizzleApiTokenRepository', () => {
   });
 
   it('findByTokenHash returns token + userEmail for a valid hash', async () => {
-    const raw = 'jfat_abc123';
+    const raw = 'trakwyn_abc123';
     const hash = createHash('sha256').update(raw).digest('hex');
     await repo.create({
       id: 'tok-1',
@@ -62,7 +62,7 @@ describe('DrizzleApiTokenRepository', () => {
   });
 
   it('findById returns the token by id', async () => {
-    const hash = createHash('sha256').update('jfat_byid').digest('hex');
+    const hash = createHash('sha256').update('trakwyn_byid').digest('hex');
     await repo.create({
       id: 'tok-1',
       userId: 'user-1',
@@ -84,7 +84,7 @@ describe('DrizzleApiTokenRepository', () => {
   });
 
   it('updateLastUsed sets lastUsedAt', async () => {
-    const hash = createHash('sha256').update('jfat_xyz').digest('hex');
+    const hash = createHash('sha256').update('trakwyn_xyz').digest('hex');
     await repo.create({ id: 'tok-1', userId: 'user-1', name: 'T', tokenHash: hash, scope: 'full' });
 
     const before = await repo.findByTokenHash(hash);
@@ -97,7 +97,7 @@ describe('DrizzleApiTokenRepository', () => {
   });
 
   it('delete removes the token', async () => {
-    const hash = createHash('sha256').update('jfat_del').digest('hex');
+    const hash = createHash('sha256').update('trakwyn_del').digest('hex');
     await repo.create({ id: 'tok-1', userId: 'user-1', name: 'T', tokenHash: hash, scope: 'full' });
     await repo.delete('tok-1');
 
@@ -106,7 +106,7 @@ describe('DrizzleApiTokenRepository', () => {
   });
 
   it('cascades deletion when user is deleted', async () => {
-    const hash = createHash('sha256').update('jfat_cas').digest('hex');
+    const hash = createHash('sha256').update('trakwyn_cas').digest('hex');
     await repo.create({ id: 'tok-1', userId: 'user-1', name: 'T', tokenHash: hash, scope: 'full' });
 
     await db.db.delete(user);

@@ -91,7 +91,7 @@ describe('mcp integration', () => {
   });
 
   it('rejects a request with an invalid/unknown API token', async () => {
-    const res = await mcpInject('jfat_not-a-real-token', {
+    const res = await mcpInject('trakwyn_not-a-real-token', {
       jsonrpc: '2.0',
       id: 1,
       method: 'tools/list',

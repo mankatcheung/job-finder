@@ -8,14 +8,14 @@ describe('ValidateApiTokenUseCase', () => {
     const repo = makeApiTokenRepository({ findByTokenHash: vi.fn().mockResolvedValue(null) });
     const useCase = new ValidateApiTokenUseCase({ apiTokenRepository: repo });
 
-    const result = await useCase.execute('jfat_unknown');
+    const result = await useCase.execute('trakwyn_unknown');
 
     expect(result).toBeNull();
     expect(repo.updateLastUsed).not.toHaveBeenCalled();
   });
 
   it('returns user identity and updates lastUsedAt when token is valid', async () => {
-    const rawToken = 'jfat_abc123';
+    const rawToken = 'trakwyn_abc123';
     const expectedHash = createHash('sha256').update(rawToken).digest('hex');
     const token = makeApiToken({ id: 'token-1', userId: 'user-1' });
     const repo = makeApiTokenRepository({
