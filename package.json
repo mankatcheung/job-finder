@@ -1,5 +1,5 @@
 {
-  "name": "job-finder",
+  "name": "trakwyn",
   "private": true,
   "scripts": {
     "dev": "turbo run dev",
@@ -10,8 +10,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "clean": "turbo run clean",
-    "db:generate": "turbo run db:generate --filter=@job-finder/api",
-    "db:migrate": "turbo run db:migrate --filter=@job-finder/api",
+    "db:generate": "turbo run db:generate --filter=@trakwyn/api",
+    "db:migrate": "turbo run db:migrate --filter=@trakwyn/api",
     "setup:worktree": "bash scripts/setup-worktree.sh",
     "prepare": "husky"
   },

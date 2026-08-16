@@ -47,7 +47,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DB_NAME: job-finder-preview-pr-${{ github.event.pull_request.number || inputs.pr-number || github.run_id }}
+  DB_NAME: trakwyn-preview-pr-${{ github.event.pull_request.number || inputs.pr-number || github.run_id }}
 
 jobs:
   setup-turso-db:
@@ -88,13 +88,13 @@ jobs:
         env:
           DATABASE_URL: ${{ steps.provision-db.outputs.database-url }}
           DATABASE_AUTH_TOKEN: ${{ steps.gen-token.outputs.database-auth-token }}
-        run: pnpm --filter @job-finder/api db:migrate:apply
+        run: pnpm --filter @trakwyn/api db:migrate:apply
 
       - name: Seed database
         env:
           DATABASE_URL: ${{ steps.provision-db.outputs.database-url }}
           DATABASE_AUTH_TOKEN: ${{ steps.gen-token.outputs.database-auth-token }}
-        run: pnpm --filter @job-finder/api db:seed
+        run: pnpm --filter @trakwyn/api db:seed
 
   deploy-api-preview:
     name: Deploy API preview

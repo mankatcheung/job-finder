@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { SparklesIcon } from 'lucide-react';
-import { Button, Input, Textarea } from '@job-finder/ui';
+import { Button, Input, Textarea } from '@trakwyn/ui';
 
 const PARSE_JD_MUTATION = `
   mutation ParseJobDescription($text: String, $url: String) {

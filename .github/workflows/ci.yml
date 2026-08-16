@@ -105,7 +105,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
           DATABASE_AUTH_TOKEN: ${{ secrets.PRODUCTION_DATABASE_AUTH_TOKEN }}
-        run: pnpm --filter @job-finder/api db:migrate:apply
+        run: pnpm --filter @trakwyn/api db:migrate:apply
 
   deploy-api:
     name: Deploy api to Vercel

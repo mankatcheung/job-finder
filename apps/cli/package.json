@@ -1,5 +1,5 @@
 {
-  "name": "@job-finder/cli",
+  "name": "@trakwyn/cli",
   "version": "0.0.1",
   "private": true,
   "type": "module",

@@ -13,7 +13,7 @@ import {
 } from '#/routes/_authenticated/assistant/-shared';
 import { ChatConversationView } from './ChatConversationView';
 import { HistoryIcon, PlusIcon, Trash2Icon } from 'lucide-react';
-import { IconButton } from '@job-finder/ui';
+import { IconButton } from '@trakwyn/ui';
 import { Route } from '../index';
 
 const SUGGESTED_QUESTIONS = [

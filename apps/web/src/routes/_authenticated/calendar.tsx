@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { gqlClient } from '#/graphql/client';
 import { ErrorState } from '#/components/ErrorState';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
-import { Skeleton } from '@job-finder/ui';
+import { Skeleton } from '@trakwyn/ui';
 
 const CALENDAR_EVENTS_QUERY = `
   query CalendarEvents {

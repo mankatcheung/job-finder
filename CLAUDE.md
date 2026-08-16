@@ -20,8 +20,8 @@ pnpm typecheck
 pnpm test
 
 # Run tests for a single app
-pnpm --filter @job-finder/api test
-pnpm --filter @job-finder/web test
+pnpm --filter @trakwyn/api test
+pnpm --filter @trakwyn/web test
 
 # Run a single test file (from the app directory)
 cd apps/api && pnpm test -- src/__tests__/application/auth/LoginUseCase.test.ts

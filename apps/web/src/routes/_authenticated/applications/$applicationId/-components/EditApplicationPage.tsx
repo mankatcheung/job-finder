@@ -8,16 +8,7 @@ import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { getErrorMessage } from '#/lib/errors';
 import { StarIcon, XIcon } from 'lucide-react';
-import {
-  Alert,
-  Button,
-  Checkbox,
-  FormLabel,
-  Input,
-  Select,
-  Skeleton,
-  Textarea,
-} from '@job-finder/ui';
+import { Alert, Button, Checkbox, FormLabel, Input, Select, Skeleton, Textarea } from '@trakwyn/ui';
 import { JdImportPanel } from '../../-components/JdImportPanel';
 import { applicationQueryOptions } from '../-application-query';
 import { Route } from '../edit';

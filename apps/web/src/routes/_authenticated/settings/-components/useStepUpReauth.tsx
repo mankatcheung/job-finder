@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient, setAccessToken } from '#/graphql/client';
-import { Alert, Button, FormLabel, Input, Modal } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input, Modal } from '@trakwyn/ui';
 import {
   REAUTHENTICATE,
   reauthSchema,

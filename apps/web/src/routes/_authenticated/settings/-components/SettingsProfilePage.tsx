@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { UserIcon, Trash2Icon } from 'lucide-react';
 import { put as putBlob } from '@vercel/blob/client';
 import { gqlClient } from '#/graphql/client';
-import { Alert, Button, FormLabel, Input } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
 import { useTheme, type Theme } from '#/lib/theme';
 import { MonitorIcon, MoonIcon, SunIcon } from 'lucide-react';
 import {

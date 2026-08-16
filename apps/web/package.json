@@ -1,5 +1,5 @@
 {
-  "name": "@job-finder/web",
+  "name": "@trakwyn/web",
   "private": true,
   "type": "module",
   "imports": {
@@ -25,7 +25,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@hookform/resolvers": "^5.0.1",
-    "@job-finder/ui": "workspace:*",
+    "@trakwyn/ui": "workspace:*",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "latest",
     "@tanstack/react-query": "^5.80.7",

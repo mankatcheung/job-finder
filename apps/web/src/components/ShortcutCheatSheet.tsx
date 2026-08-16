@@ -1,5 +1,5 @@
 import { formatKeyCombo, getKeyModifier } from '#/hooks/useHotkeys';
-import { Modal } from '@job-finder/ui';
+import { Modal } from '@trakwyn/ui';
 
 interface Shortcut {
   keys: { key: string; ctrl?: boolean; meta?: boolean; shift?: boolean; alt?: boolean };

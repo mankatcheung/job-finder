@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSearch } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
-import { Alert } from '@job-finder/ui';
+import { Alert } from '@trakwyn/ui';
 
 const SHARED_SUMMARY_QUERY = `
   query SharedSummary($token: String!) {

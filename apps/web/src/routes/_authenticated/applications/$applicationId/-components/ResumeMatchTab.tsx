@@ -8,7 +8,7 @@ import { getErrorMessage } from '#/lib/errors';
 import { DocumentPreviewModal, isPreviewableMimeType } from './DocumentPreviewModal';
 import { DOCUMENTS_QUERY, type Document } from './DocumentsTab';
 import { SCORE_COLORS, scoreColor } from './HealthScorePanel';
-import { Card, FormLabel, Spinner, Textarea } from '@job-finder/ui';
+import { Card, FormLabel, Spinner, Textarea } from '@trakwyn/ui';
 
 const COMPUTE_RESUME_MATCH_SCORE = `
   mutation ComputeResumeMatchScore($applicationId: ID!, $resumeText: String) {

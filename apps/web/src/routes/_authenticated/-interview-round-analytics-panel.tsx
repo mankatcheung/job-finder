@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card, EmptyState, Skeleton } from '@job-finder/ui';
+import { Card, EmptyState, Skeleton } from '@trakwyn/ui';
 import { interviewRoundAnalyticsQueryOptions } from './-interview-round-analytics-queries';
 
 const TYPE_LABEL: Record<string, string> = {

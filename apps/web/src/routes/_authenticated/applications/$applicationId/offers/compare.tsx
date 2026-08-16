@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { GitCompareArrowsIcon, CheckIcon } from 'lucide-react';
-import { Button, EmptyState } from '@job-finder/ui';
+import { Button, EmptyState } from '@trakwyn/ui';
 
 const OFFERS_QUERY = `
   query Offers($applicationId: ID!) {

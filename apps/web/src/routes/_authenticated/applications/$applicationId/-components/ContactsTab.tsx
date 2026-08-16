@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CheckIcon, EditIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
-import { Button, Card, EmptyState, FormLabel, Input, Textarea } from '@job-finder/ui';
+import { Button, Card, EmptyState, FormLabel, Input, Textarea } from '@trakwyn/ui';
 const CONTACTS_QUERY = `
   query Contacts($applicationId: ID!) {
     contacts(applicationId: $applicationId) { id applicationId name role email phone linkedinUrl notes createdAt updatedAt }

@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { CopyIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
-import { Button, Card, Spinner } from '@job-finder/ui';
+import { Button, Card, Spinner } from '@trakwyn/ui';
 
 const GENERATE_COMPANY_BRIEFING = `
   mutation GenerateCompanyBriefing($applicationId: ID!) {

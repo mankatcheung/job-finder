@@ -1,4 +1,4 @@
-import { Badge, type BadgeTone } from '@job-finder/ui';
+import { Badge, type BadgeTone } from '@trakwyn/ui';
 
 const STATUS_TONES: Record<string, BadgeTone> = {
   draft: 'gray',

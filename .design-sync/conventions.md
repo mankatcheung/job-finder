@@ -1,6 +1,6 @@
-# Job Finder UI conventions
+# Trakwyn UI conventions
 
-`@job-finder/ui` ships 10 components — `Button`, `IconButton`, `Input`, `Badge`, `Modal`, `Textarea`, `Select`, `Card`, `Alert`, `FormLabel` — as plain functional React components. No context/provider wrapper is required: none of them read from React context, so they render correctly standalone with no setup beyond `import { X } from '@job-finder/ui'`.
+`@trakwyn/ui` ships 10 components — `Button`, `IconButton`, `Input`, `Badge`, `Modal`, `Textarea`, `Select`, `Card`, `Alert`, `FormLabel` — as plain functional React components. No context/provider wrapper is required: none of them read from React context, so they render correctly standalone with no setup beyond `import { X } from '@trakwyn/ui'`.
 
 - `Select` and `Textarea` share `Input`'s exact bordered/rounded/focus-ring styling and its `invalid` boolean prop (switches to `border-red-500` + `focus:ring-red-500`).
 - `Card` ships **no default padding** — call sites range from `p-3` to `p-6`, plus padding-free horizontal list rows — pass it via `className`.
@@ -31,7 +31,7 @@ Read `styles.css` (and what it `@import`s, including `_ds_bundle.css`) before st
 ## Example: a login-style form (real composition pattern from this app)
 
 ```tsx
-import { Input, Button, FormLabel } from '@job-finder/ui';
+import { Input, Button, FormLabel } from '@trakwyn/ui';
 
 function LoginForm() {
   return (

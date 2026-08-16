@@ -22,13 +22,13 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'pnpm --filter @job-finder/api dev',
+      command: 'pnpm --filter @trakwyn/api dev',
       url: 'http://localhost:3001/graphql',
       reuseExistingServer: !process.env.CI,
       timeout: 30_000,
     },
     {
-      command: 'pnpm --filter @job-finder/web dev',
+      command: 'pnpm --filter @trakwyn/web dev',
       url: 'http://localhost:3000',
       reuseExistingServer: !process.env.CI,
       timeout: 30_000,
