@@ -17,7 +17,7 @@ interface Deps {
 
 /**
  * Authenticates a raw access token — either a JWT (cookie/Bearer from login)
- * or an API token (`jfat_...` Bearer for programmatic access).
+ * or an API token (`trakwyn_...` Bearer for programmatic access).
  *
  * Only FULL-scoped API tokens are accepted; READ-scoped tokens are MCP-only.
  * Returns null for any invalid, expired, or insufficiently-scoped token.

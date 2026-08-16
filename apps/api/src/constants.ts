@@ -113,9 +113,9 @@ export const REAUTH = {
   FRESHNESS_WINDOW_MS: 15 * 60 * 1000, // 15 minutes
 } as const;
 
-/** API-token (`jfat_...`) settings. */
+/** API-token (`trakwyn_...`) settings. */
 export const API_TOKEN = {
-  PREFIX: 'jfat_',
+  PREFIX: 'trakwyn_',
   /** Number of random bytes hex-encoded into the token body. */
   RANDOM_BYTES: 24,
 } as const;

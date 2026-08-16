@@ -17,10 +17,10 @@ describe('AuthenticateMcpRequestUseCase', () => {
     );
     const useCase = new AuthenticateMcpRequestUseCase({ validateApiTokenUseCase });
 
-    const result = await useCase.execute('jfat_abc123');
+    const result = await useCase.execute('trakwyn_abc123');
 
     expect(result).toEqual({ sub: 'user-1' });
-    expect(validateApiTokenUseCase.execute).toHaveBeenCalledWith('jfat_abc123');
+    expect(validateApiTokenUseCase.execute).toHaveBeenCalledWith('trakwyn_abc123');
   });
 
   it('returns user id for a READ-scope API token (MCP accepts any scope)', async () => {
@@ -29,7 +29,7 @@ describe('AuthenticateMcpRequestUseCase', () => {
     );
     const useCase = new AuthenticateMcpRequestUseCase({ validateApiTokenUseCase });
 
-    const result = await useCase.execute('jfat_readonly');
+    const result = await useCase.execute('trakwyn_readonly');
 
     expect(result).toEqual({ sub: 'user-1' });
   });
@@ -48,7 +48,7 @@ describe('AuthenticateMcpRequestUseCase', () => {
     const validateApiTokenUseCase = makeValidateApiTokenUseCase(vi.fn().mockResolvedValue(null));
     const useCase = new AuthenticateMcpRequestUseCase({ validateApiTokenUseCase });
 
-    const result = await useCase.execute('jfat_unknown');
+    const result = await useCase.execute('trakwyn_unknown');
 
     expect(result).toBeNull();
   });
@@ -59,7 +59,7 @@ describe('AuthenticateMcpRequestUseCase', () => {
     );
     const useCase = new AuthenticateMcpRequestUseCase({ validateApiTokenUseCase });
 
-    const result = await useCase.execute('jfat_broken');
+    const result = await useCase.execute('trakwyn_broken');
 
     expect(result).toBeNull();
   });
