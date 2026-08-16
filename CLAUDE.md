@@ -69,7 +69,7 @@ http/
 
 **Auth:** The API and web app are deployed on separate domains, so a cookie set by the API can never be read by the web app's own page or server (`document.cookie` and the web server both only ever see cookies scoped to their own domain). Two delivery mechanisms exist side by side:
 
-- **Cookie** (`jf_access_token`, HttpOnly) — works when a client shares the API's domain (e.g. the browser extension, which reads it directly via `chrome.cookies.get()`, unaffected by same-origin restrictions).
+- **Cookie** (`trakwyn_access_token`, HttpOnly) — works when a client shares the API's domain (e.g. the browser extension, which reads it directly via `chrome.cookies.get()`, unaffected by same-origin restrictions).
 - **`Authorization: Bearer <token>` header** — what the web app uses. `login`/`register`/`loginWithTotp`/`refreshToken` return the access token directly in the GraphQL response body; the web app holds it in memory only (`apps/web/src/graphql/client.ts`, never localStorage — bounds XSS exposure to the token's 15-minute lifetime) and attaches it via `requestMiddleware` on every request.
 
 The GraphQL context (`buildGraphQLContext.ts`) falls back from cookie to bearer header, so both paths hit the same verification code.

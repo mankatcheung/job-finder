@@ -3,7 +3,7 @@ import { AUTH_HEADER, ERROR_CODES } from '../constants.js';
 
 export class AuthError extends Error {
   constructor() {
-    super('No API key set. Run: jf auth set-key');
+    super('No API key set. Run: tw auth set-key');
     this.name = 'AuthError';
   }
 }

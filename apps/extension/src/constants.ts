@@ -18,7 +18,7 @@ export const STORAGE_KEYS = {
 
 /** Auth cookie names shared with the API. */
 export const COOKIES = {
-  ACCESS_TOKEN: 'jf_access_token',
+  ACCESS_TOKEN: 'trakwyn_access_token',
 } as const;
 
 /** HTTP Authorization header. */

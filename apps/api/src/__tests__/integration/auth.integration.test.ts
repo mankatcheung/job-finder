@@ -135,13 +135,13 @@ describe('auth integration', () => {
       payload: { query: LOGIN_MUTATION, variables: { email, password } },
     });
 
-    const refreshCookie = loginRes.cookies.find((c) => c.name === 'jf_refresh_token');
+    const refreshCookie = loginRes.cookies.find((c) => c.name === 'trakwyn_refresh_token');
     expect(refreshCookie).toBeDefined();
 
     const refreshRes = await testApp.app.inject({
       method: 'POST',
       url: '/graphql',
-      cookies: { jf_refresh_token: refreshCookie!.value },
+      cookies: { trakwyn_refresh_token: refreshCookie!.value },
       payload: { query: REFRESH_TOKEN_MUTATION },
     });
     const refreshBody = refreshRes.json() as GraphQLResponse<{ refreshToken: string }>;

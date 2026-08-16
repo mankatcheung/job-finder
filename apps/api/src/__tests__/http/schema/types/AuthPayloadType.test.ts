@@ -32,8 +32,8 @@ describe('setAuthCookies sameSite policy', () => {
 
     setAuthCookies(reply, 'access', 'refresh');
 
-    expect(cookies.get('jf_access_token')).toMatchObject({ sameSite: 'lax', secure: false });
-    expect(cookies.get('jf_refresh_token')).toMatchObject({ sameSite: 'lax', secure: false });
+    expect(cookies.get('trakwyn_access_token')).toMatchObject({ sameSite: 'lax', secure: false });
+    expect(cookies.get('trakwyn_refresh_token')).toMatchObject({ sameSite: 'lax', secure: false });
   });
 
   it('uses SameSite=None and Secure in production, so a cross-site refresh cookie is still sent', async () => {
@@ -44,8 +44,8 @@ describe('setAuthCookies sameSite policy', () => {
 
     setAuthCookies(reply, 'access', 'refresh');
 
-    expect(cookies.get('jf_refresh_token')).toMatchObject({ sameSite: 'none', secure: true });
-    expect(cookies.get('jf_access_token')).toMatchObject({ sameSite: 'none', secure: true });
-    expect(cookies.get('jf_logged_in')).toMatchObject({ sameSite: 'none', secure: true });
+    expect(cookies.get('trakwyn_refresh_token')).toMatchObject({ sameSite: 'none', secure: true });
+    expect(cookies.get('trakwyn_access_token')).toMatchObject({ sameSite: 'none', secure: true });
+    expect(cookies.get('trakwyn_logged_in')).toMatchObject({ sameSite: 'none', secure: true });
   });
 });

@@ -5,7 +5,7 @@ import { registerAppsCommands } from './commands/apps.js';
 
 const program = new Command();
 
-program.name('jf').description('Job Finder CLI').version('0.0.1');
+program.name('tw').description('Trakwyn CLI').version('0.0.1');
 
 registerAuthCommands(program);
 registerAppsCommands(program);
