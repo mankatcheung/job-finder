@@ -176,7 +176,7 @@ describe('BrevoEmailService', () => {
 
       expect(url).toBe(EMAIL.BREVO_API_URL);
       expect(body.to).toEqual([{ email: 'user@example.com' }]);
-      expect(body.subject).toBe('Reset your Job Finder password');
+      expect(body.subject).toBe('Reset your Trakwyn password');
       expect(body.htmlContent).toBe(buildPasswordResetHtml(resetUrl));
     });
 
@@ -204,7 +204,7 @@ describe('BrevoEmailService', () => {
 
       expect(url).toBe(EMAIL.BREVO_API_URL);
       expect(body.to).toEqual([{ email: 'user@example.com' }]);
-      expect(body.subject).toBe('Verify your Job Finder email');
+      expect(body.subject).toBe('Verify your Trakwyn email');
       expect(body.htmlContent).toBe(buildEmailVerificationHtml(verifyUrl));
     });
 

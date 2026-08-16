@@ -120,7 +120,7 @@ export function SettingsProfilePage() {
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Appearance</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Choose how Job Finder looks on this device.
+            Choose how Trakwyn looks on this device.
           </p>
         </div>
         <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 p-1 gap-1">

@@ -146,7 +146,7 @@ export const API_TOKEN_SCOPE = {
 
 /** TOTP (RFC 6238) two-factor authentication settings. */
 export const TOTP_CONFIG = {
-  ISSUER: 'Job Finder',
+  ISSUER: 'Trakwyn',
   /** Accept codes from the adjacent time step to absorb minor clock drift. */
   EPOCH_TOLERANCE_S: 30,
 } as const;
@@ -242,7 +242,7 @@ export const AUTH_HEADER = {
 export const MCP = {
   JSONRPC_VERSION: '2.0',
   PROTOCOL_VERSION: '2024-11-05',
-  SERVER_NAME: 'job-finder-mcp',
+  SERVER_NAME: 'trakwyn-mcp',
   SERVER_VERSION: '1.0.0',
 } as const;
 
@@ -364,8 +364,8 @@ export const AXIOM = {
 /** Email provider (Brevo) defaults. */
 export const EMAIL = {
   BREVO_API_URL: 'https://api.brevo.com/v3/smtp/email',
-  DEFAULT_FROM_EMAIL: 'noreply@jobfinder.app',
-  DEFAULT_FROM_NAME: 'Job Finder',
+  DEFAULT_FROM_EMAIL: 'noreply@trakwyn.app',
+  DEFAULT_FROM_NAME: 'Trakwyn',
 } as const;
 
 /** `STORAGE_PROVIDER` values. */

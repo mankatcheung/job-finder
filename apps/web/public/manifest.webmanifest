@@ -1,6 +1,6 @@
 {
-  "name": "Job Finder",
-  "short_name": "Job Finder",
+  "name": "Trakwyn",
+  "short_name": "Trakwyn",
   "description": "Track job applications, interviews, and follow-ups in one place.",
   "start_url": "/",
   "scope": "/",

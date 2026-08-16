@@ -63,7 +63,7 @@ export function SharedSummaryPage() {
             Job search summary
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            A read-only, summary-level view shared via job-finder.
+            A read-only, summary-level view shared via Trakwyn.
           </p>
         </div>
 

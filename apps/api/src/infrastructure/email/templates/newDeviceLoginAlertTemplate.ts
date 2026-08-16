@@ -30,7 +30,7 @@ export function buildNewDeviceLoginAlertHtml(
     <div style="background-color:#ffffff;border-radius:12px;border:1px solid #e5e7eb;padding:32px;">
       <h1 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#111827;">New device signed in to your account</h1>
       <p style="margin:0 0 16px;color:#374151;font-size:15px;">
-        A new device was used to sign in to your <strong>Job Finder</strong> account.
+        A new device was used to sign in to your <strong>Trakwyn</strong> account.
       </p>
       <div style="background-color:#f3f4f6;border-radius:8px;padding:16px;margin-bottom:16px;">
         <p style="margin:0 0 8px;font-weight:600;color:#111827;font-size:15px;">${deviceLabel}</p>
@@ -46,7 +46,7 @@ export function buildNewDeviceLoginAlertHtml(
       </p>
     </div>
     <p style="margin:16px 0 0;text-align:center;color:#9ca3af;font-size:12px;">
-      Job Finder
+      Trakwyn
     </p>
   </div>
 </body>
