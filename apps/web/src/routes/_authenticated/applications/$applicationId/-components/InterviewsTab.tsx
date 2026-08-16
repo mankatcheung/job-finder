@@ -85,7 +85,7 @@ function generateIcs(rounds: InterviewRound[], company: string, role: string): s
     .map((r) =>
       [
         'BEGIN:VEVENT',
-        `UID:${r.id}@job-finder`,
+        `UID:${r.id}@trakwyn`,
         `DTSTART:${toIcsDate(r.scheduledAt!)}`,
         `DTEND:${endDate(r.scheduledAt!)}`,
         `SUMMARY:${esc(`${r.type.charAt(0).toUpperCase() + r.type.slice(1)} interview — ${role} at ${company}`)}`,
@@ -97,7 +97,7 @@ function generateIcs(rounds: InterviewRound[], company: string, role: string): s
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Job Finder//EN',
+    'PRODID:-//Trakwyn//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     ...events,

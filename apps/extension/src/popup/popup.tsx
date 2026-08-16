@@ -106,7 +106,7 @@ function App() {
       <div className="container">
         <div className="header">
           <img src={chrome.runtime.getURL('icons/icon48.png')} alt="" className="logo" />
-          <h1>Job Finder</h1>
+          <h1>Trakwyn</h1>
           <p className="subtitle">Sign in to save job postings</p>
         </div>
         <form onSubmit={handleLogin} className="form">
@@ -186,7 +186,7 @@ function App() {
     <div className="container">
       <div className="header-row">
         <img src={chrome.runtime.getURL('icons/icon16.png')} alt="" className="logo-sm" />
-        <span className="app-name">Job Finder</span>
+        <span className="app-name">Trakwyn</span>
         <button onClick={handleLogout} className="btn-text logout">
           Sign out
         </button>

@@ -22,7 +22,7 @@ export function watchForServiceWorkerUpdate(): () => void {
 
   const handleControllerChange = () => {
     if (hadController) {
-      toast('A new version of Job Finder is available.', {
+      toast('A new version of Trakwyn is available.', {
         id: 'sw-update',
         duration: Infinity,
         action: {

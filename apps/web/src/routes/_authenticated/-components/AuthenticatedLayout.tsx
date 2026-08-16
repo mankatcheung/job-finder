@@ -145,7 +145,7 @@ export function AuthenticatedLayout() {
             <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
               <span className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100">
                 <LogoMark size={22} />
-                Job Finder
+                Trakwyn
               </span>
               <button
                 onClick={closeSidebar}
@@ -220,7 +220,7 @@ export function AuthenticatedLayout() {
             </button>
             <span className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100">
               <LogoMark size={22} />
-              Job Finder
+              Trakwyn
             </span>
           </div>
           <div className="flex items-center gap-1">
@@ -233,7 +233,7 @@ export function AuthenticatedLayout() {
           <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between sidebar-entrance-item">
             <span className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100">
               <LogoMark size={22} />
-              Job Finder
+              Trakwyn
             </span>
             <NotificationInboxButton />
           </div>

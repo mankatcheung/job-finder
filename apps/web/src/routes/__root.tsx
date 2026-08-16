@@ -25,7 +25,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         name: 'viewport',
         content: 'width=device-width, initial-scale=1, viewport-fit=cover',
       },
-      { title: 'Job Finder' },
+      { title: 'Trakwyn' },
       { name: 'theme-color', content: '#1d4ed8' },
     ],
     links: [

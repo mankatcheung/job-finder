@@ -12,7 +12,7 @@ export function buildEmailVerificationHtml(verifyUrl: string): string {
     <!-- Body -->
     <div style="padding:32px;">
       <p style="margin:0 0 20px;font-size:14px;color:#374151;line-height:1.5;">
-        Confirm this is your email address to finish setting up your Job Finder account. Click
+        Confirm this is your email address to finish setting up your Trakwyn account. Click
         the button below. This link expires in 24 hours.
       </p>
       <p style="margin:0 0 28px;text-align:center;">

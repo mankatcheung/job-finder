@@ -12,7 +12,7 @@ export function buildBackupEmailVerificationHtml(verifyUrl: string): string {
     <!-- Body -->
     <div style="padding:32px;">
       <p style="margin:0 0 20px;font-size:14px;color:#374151;line-height:1.5;">
-        You've added this email as a backup recovery method for your Job Finder account.
+        You've added this email as a backup recovery method for your Trakwyn account.
         Click the button below to verify it. This link expires in 24 hours.
       </p>
       <p style="margin:0 0 28px;text-align:center;">

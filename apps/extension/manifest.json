@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Job Finder Clipper",
+  "name": "Trakwyn Clipper",
   "version": "1.0.0",
-  "description": "Save job postings directly to your Job Finder account.",
+  "description": "Save job postings directly to your Trakwyn account.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -10,7 +10,7 @@
   },
   "action": {
     "default_popup": "src/popup/popup.html",
-    "default_title": "Job Finder Clipper"
+    "default_title": "Trakwyn Clipper"
   },
   "permissions": ["cookies", "storage", "activeTab"],
   "host_permissions": [

@@ -35,7 +35,7 @@ describe('FetchJobPostingSourceResolver', () => {
     expect(global.fetch).toHaveBeenCalledWith(
       'https://example.com/job',
       expect.objectContaining({
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; JobFinderBot/1.0)' },
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TrakwynBot/1.0)' },
         signal: expect.any(AbortSignal),
       }),
     );

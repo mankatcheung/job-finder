@@ -236,10 +236,10 @@ export function SettingsIntegrationsPage() {
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">AI features</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Add your own API key from one or more providers to enable the assistant chatbot, cover
-            letter generation, and job description auto-fill. job-finder doesn&apos;t provide a
-            shared key — these features stay off until you add one. Automatic features (cover
-            letters, job description parsing, resume match) use your default provider below; the
-            assistant chatbot lets you choose the provider and model per conversation.
+            letter generation, and job description auto-fill. Trakwyn doesn&apos;t provide a shared
+            key — these features stay off until you add one. Automatic features (cover letters, job
+            description parsing, resume match) use your default provider below; the assistant
+            chatbot lets you choose the provider and model per conversation.
           </p>
         </div>
 

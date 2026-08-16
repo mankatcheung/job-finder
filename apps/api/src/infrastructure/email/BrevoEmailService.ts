@@ -80,7 +80,7 @@ export class BrevoEmailService implements IEmailService {
       body: JSON.stringify({
         sender: { name: this.fromName, email: this.fromEmail },
         to: [{ email: to }],
-        subject: 'Reset your Job Finder password',
+        subject: 'Reset your Trakwyn password',
         htmlContent,
       }),
     });
@@ -98,7 +98,7 @@ export class BrevoEmailService implements IEmailService {
       body: JSON.stringify({
         sender: { name: this.fromName, email: this.fromEmail },
         to: [{ email: to }],
-        subject: 'Verify your Job Finder email',
+        subject: 'Verify your Trakwyn email',
         htmlContent,
       }),
     });
@@ -116,7 +116,7 @@ export class BrevoEmailService implements IEmailService {
       body: JSON.stringify({
         sender: { name: this.fromName, email: this.fromEmail },
         to: [{ email: to }],
-        subject: 'Verify your backup email for Job Finder',
+        subject: 'Verify your backup email for Trakwyn',
         htmlContent,
       }),
     });
@@ -140,7 +140,7 @@ export class BrevoEmailService implements IEmailService {
       body: JSON.stringify({
         sender: { name: this.fromName, email: this.fromEmail },
         to: [{ email: to }],
-        subject: 'New device signed in to your Job Finder account',
+        subject: 'New device signed in to your Trakwyn account',
         htmlContent,
       }),
     });

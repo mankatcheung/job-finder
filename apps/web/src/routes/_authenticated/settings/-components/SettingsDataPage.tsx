@@ -29,7 +29,7 @@ export function SettingsDataPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `job-finder-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `trakwyn-export-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {

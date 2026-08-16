@@ -4,7 +4,7 @@ interface LogoMarkProps {
 }
 
 /**
- * Job Finder's mark: three cards climbing stage to stage, the last one
+ * Trakwyn's mark: three cards climbing stage to stage, the last one
  * checked — the application pipeline the board itself tracks. Fixed brand
  * blue (not `currentColor`) so it reads consistently in both themes, same
  * as the tile favicon/app-icon it's derived from.

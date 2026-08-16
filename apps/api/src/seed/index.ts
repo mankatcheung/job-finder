@@ -10,7 +10,7 @@ import { seedSkills } from './steps/skills.js';
 import { seedConversations } from './steps/conversations.js';
 import { seedNotifications } from './steps/notifications.js';
 
-export const DEMO_EMAIL = 'demo@jobfinder.app';
+export const DEMO_EMAIL = 'demo@trakwyn.app';
 export const DEMO_PASSWORD = 'demo1234';
 
 export async function runSeed(): Promise<void> {

@@ -59,8 +59,8 @@ describe('AuthenticatedLayout', () => {
 
   it('renders navigation links', () => {
     render(<AuthenticatedLayout />, { wrapper: Wrapper });
-    // "Job Finder" appears in both mobile header and desktop sidebar
-    expect(screen.getAllByText('Job Finder').length).toBeGreaterThanOrEqual(1);
+    // "Trakwyn" appears in both mobile header and desktop sidebar
+    expect(screen.getAllByText('Trakwyn').length).toBeGreaterThanOrEqual(1);
     // "Dashboard" / "Account" appear in sidebar and bottom nav
     expect(screen.getAllByText('Dashboard').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Settings').length).toBeGreaterThanOrEqual(1);
