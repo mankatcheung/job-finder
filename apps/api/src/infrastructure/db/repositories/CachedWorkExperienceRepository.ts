@@ -5,7 +5,8 @@ import type {
   UpdateWorkExperienceData,
 } from '#src/use-cases/ports/IWorkExperienceRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { BoundedMap } from '#src/infrastructure/cache/BoundedMap.js';
+import { CACHE, CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleWorkExperienceRepository: IWorkExperienceRepository;
@@ -14,7 +15,9 @@ interface Deps {
 
 export class CachedWorkExperienceRepository implements IWorkExperienceRepository {
   // Tracks which userId owns each work experience entry so delete() can invalidate the right list.
-  private readonly userIdByWorkExperienceId = new Map<string, string>();
+  private readonly userIdByWorkExperienceId = new BoundedMap<string, string>(
+    CACHE.REVERSE_INDEX_MAX_ENTRIES,
+  );
   private readonly inner: IWorkExperienceRepository;
   private readonly cache: ICache;
 

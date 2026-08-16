@@ -377,6 +377,17 @@ export const STORAGE_PROVIDER = {
 /** Cache configuration, shared by MemoryCache and RedisCache. */
 export const CACHE = {
   DEFAULT_TTL_MS: 5 * 60 * 1000, // 5 minutes
+  // MemoryCache (local dev/tests) hard cap on live entries: exceeding it
+  // evicts the least-recently-used entry so a warm/long-lived instance never
+  // grows unbounded (JEF-130). Production uses RedisCache, which bounds its
+  // own memory via Redis eviction.
+  MEMORY_MAX_ENTRIES: 10_000,
+  // Per-repository reverse-index maps (Cached*Repository): cap so the
+  // id→owner mappings used to bust list caches on delete()/update() don't
+  // grow monotonically with distinct ids seen (JEF-130). Evicted ids just
+  // miss the list-cache bust for that delete; the stale entry still expires
+  // via the normal TTL.
+  REVERSE_INDEX_MAX_ENTRIES: 10_000,
   // Stampede protection (RedisCache.getOrSet): how long a populate-lock is
   // held before self-expiring (covers a crash mid-fetch), and how long a
   // concurrent miss polls for the lock-holder's result before giving up and
