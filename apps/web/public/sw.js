@@ -6,7 +6,7 @@
 // cached on first fetch (safe to cache-first since a new deploy ships new
 // filenames); everything else — navigation, /graphql, /auth — passes
 // straight through to the network untouched.
-const CACHE_NAME = 'job-finder-static-v1';
+const CACHE_NAME = 'trakwyn-static-v1';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
@@ -66,7 +66,7 @@ self.addEventListener('push', (event) => {
     // If the payload isn't JSON, try plain text
     const text = event.data.text();
     event.waitUntil(
-      self.registration.showNotification('Job Finder', {
+      self.registration.showNotification('Trakwyn', {
         body: text,
         icon: '/logo192.png',
         badge: '/favicon.ico',
