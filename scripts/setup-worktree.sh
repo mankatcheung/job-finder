@@ -57,7 +57,7 @@ pnpm install --prefer-offline
 
 echo
 echo "Applying migrations..."
-pnpm --filter @job-finder/api db:migrate
+pnpm --filter @trakwyn/api db:migrate
 
 echo
 echo "Seeding local database..."
@@ -67,4 +67,4 @@ echo "Seeding local database..."
 (cd apps/api && npx tsx --env-file=.env src/seed.ts)
 
 echo
-echo "Worktree ready. Demo login: demo@jobfinder.app (see apps/api/src/seed.ts for the password)."
+echo "Worktree ready. Demo login: demo@trakwyn.app (see apps/api/src/seed.ts for the password)."
