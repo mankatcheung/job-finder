@@ -162,4 +162,56 @@ describe('CachedInterviewRoundRepository', () => {
       expect(inner.delete).toHaveBeenCalledWith('unknown-id');
     });
   });
+
+  describe('updatePushNotificationSentAt', () => {
+    it('delegates to inner and invalidates byId and list caches when applicationId is known', async () => {
+      const { repo, inner } = makeRepo();
+      vi.mocked(inner.findById).mockResolvedValue(round);
+      vi.mocked(inner.findAllByApplicationId).mockResolvedValue([round]);
+      vi.mocked(inner.updatePushNotificationSentAt).mockResolvedValue(undefined);
+
+      // Populate caches (records the roundId -> applicationId mapping)
+      await repo.findById('round-1');
+      await repo.findAllByApplicationId('app-1');
+
+      await repo.updatePushNotificationSentAt('round-1', new Date());
+
+      const updated = { ...round, pushNotificationSentAt: new Date() };
+      vi.mocked(inner.findById).mockResolvedValue(updated);
+      vi.mocked(inner.findAllByApplicationId).mockResolvedValue([updated]);
+      await repo.findById('round-1');
+      await repo.findAllByApplicationId('app-1');
+      expect(inner.findById).toHaveBeenCalledTimes(2);
+      expect(inner.findAllByApplicationId).toHaveBeenCalledTimes(2);
+    });
+
+    it('populates the applicationId mapping from findUpcomingWithinWindow so list invalidation works for the push job path', async () => {
+      const { repo, inner } = makeRepo();
+      vi.mocked(inner.findUpcomingWithinWindow).mockResolvedValue([round]);
+      vi.mocked(inner.findAllByApplicationId).mockResolvedValue([round]);
+      vi.mocked(inner.updatePushNotificationSentAt).mockResolvedValue(undefined);
+
+      // Populate the round list cache directly (simulating an earlier dashboard read)
+      await repo.findAllByApplicationId('app-1');
+      // Simulate the background job: discover upcoming rounds via the uncached finder, then mark sent
+      await repo.findUpcomingWithinWindow(86_400_000);
+      await repo.updatePushNotificationSentAt(round.id, new Date());
+
+      const updated = { ...round, pushNotificationSentAt: new Date() };
+      vi.mocked(inner.findAllByApplicationId).mockResolvedValue([updated]);
+      await repo.findAllByApplicationId('app-1');
+      expect(inner.findAllByApplicationId).toHaveBeenCalledTimes(2);
+    });
+
+    it('still updates via inner even when the applicationId is unknown', async () => {
+      const { repo, inner } = makeRepo();
+      vi.mocked(inner.updatePushNotificationSentAt).mockResolvedValue(undefined);
+
+      await repo.updatePushNotificationSentAt('unknown-id', new Date());
+      expect(inner.updatePushNotificationSentAt).toHaveBeenCalledWith(
+        'unknown-id',
+        expect.any(Date),
+      );
+    });
+  });
 });
