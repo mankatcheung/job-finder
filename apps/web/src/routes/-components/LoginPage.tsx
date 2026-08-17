@@ -159,6 +159,7 @@ export function LoginPage() {
 }
 
 function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: () => void }) {
+  const { t } = useLocale();
   const navigate = useNavigate();
   const {
     register,
@@ -192,16 +193,16 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              Two-factor authentication
+              {t('auth.twoFactor')}
             </h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Enter the 6-digit code from your authenticator app, or one of your backup codes.
+              {t('auth.twoFactorHelp')}
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <FormLabel>Code</FormLabel>
+              <FormLabel>{t('auth.code')}</FormLabel>
               <Input
                 type="text"
                 autoFocus
@@ -216,11 +217,11 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
               <Alert>
                 {errors.root.message?.includes('register') ? (
                   <>
-                    No account found with this email.{' '}
+                    {t('auth.noAccountFound')}{' '}
                     <Link to="/register" className="underline font-medium hover:text-red-700">
-                      Register
+                      {t('auth.register')}
                     </Link>{' '}
-                    to create one.
+                    {t('auth.createOne')}
                   </>
                 ) : (
                   (errors.root.message ?? '')
@@ -229,12 +230,12 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
             )}
 
             <Button type="submit" disabled={isSubmitting} fullWidth>
-              {isSubmitting ? 'Verifying…' : 'Verify'}
+              {isSubmitting ? t('auth.verifying') : t('auth.verify')}
             </Button>
           </form>
 
           <Button variant="link" size="sm" onClick={onBack}>
-            Back to sign in
+            {t('auth.backToSignIn')}
           </Button>
         </div>
       </div>
