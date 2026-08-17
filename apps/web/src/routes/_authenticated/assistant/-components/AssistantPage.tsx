@@ -2,6 +2,7 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { gqlClient } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import {
   LLM_API_KEYS_QUERY,
   LLM_PROVIDER_LABEL,
@@ -16,13 +17,13 @@ import { HistoryIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { IconButton } from '@trakwyn/ui';
 import { Route } from '../index';
 
-const SUGGESTED_QUESTIONS = [
-  "Which applications haven't I followed up on?",
-  'Summarize my interviews this month',
-  'What are my active applications?',
-];
-
 export function AssistantPage() {
+  const { t } = useLocale();
+  const SUGGESTED_QUESTIONS = [
+    t('assistant.suggestedQuestion1'),
+    t('assistant.suggestedQuestion2'),
+    t('assistant.suggestedQuestion3'),
+  ];
   const { conversation: activeId } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const qc = useQueryClient();
@@ -66,25 +67,27 @@ export function AssistantPage() {
     <div className="flex flex-col h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
       <div className="flex-1 flex flex-col min-w-0 px-4 pt-4 sm:px-8 sm:pt-8 max-w-3xl mx-auto w-full min-h-0">
         <div className="flex items-center justify-between mb-2 shrink-0">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Assistant</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            {t('assistant.title')}
+          </h1>
           <div className="flex items-center gap-1">
             {activeId && (
               <IconButton
-                label="Delete conversation"
+                label={t('assistant.deleteConversation')}
                 icon={<Trash2Icon size={16} />}
                 variant="danger"
                 onClick={onDeleteActiveConversation}
               />
             )}
             <IconButton
-              label="New conversation"
+              label={t('assistant.newConversation')}
               icon={<PlusIcon size={16} />}
               onClick={onNewConversation}
             />
             <Link
               to="/assistant/history"
-              aria-label="Conversation history"
-              title="Conversation history"
+              aria-label={t('assistant.conversationHistory')}
+              title={t('assistant.conversationHistory')}
               className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-lg transition-colors"
             >
               <HistoryIcon size={16} />
@@ -95,13 +98,15 @@ export function AssistantPage() {
         <div className="mb-4 shrink-0">
           {activeId && activeConversation?.llmProvider ? (
             <p className="text-xs text-gray-400 dark:text-gray-500">
-              Using{' '}
+              {t('assistant.using')}{' '}
               {LLM_PROVIDER_LABEL[activeConversation.llmProvider] ?? activeConversation.llmProvider}
               {activeConversation.llmModel ? ` (${activeConversation.llmModel})` : ''}
             </p>
           ) : !activeId && llmApiKeys.length > 0 ? (
             <div className="flex flex-wrap items-center gap-2">
-              <label className="text-xs text-gray-500 dark:text-gray-400">Provider</label>
+              <label className="text-xs text-gray-500 dark:text-gray-400">
+                {t('integrations.providerLabel')}
+              </label>
               <select
                 value={pickedProvider ?? ''}
                 onChange={(e) => setPickedProvider(e.target.value)}
@@ -117,17 +122,17 @@ export function AssistantPage() {
                 type="text"
                 value={pickedModel}
                 onChange={(e) => setPickedModel(e.target.value)}
-                placeholder="Model (optional)"
+                placeholder={t('assistant.modelOptionalPlaceholder')}
                 className="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 w-40"
               />
             </div>
           ) : !activeId ? (
             <p className="text-xs text-gray-400 dark:text-gray-500">
-              Add an AI API key in{' '}
+              {t('assistant.addApiKeyPrefix')}{' '}
               <Link to="/settings/integrations" className="underline">
-                Settings
+                {t('assistant.settingsLinkText')}
               </Link>{' '}
-              to use the assistant.
+              {t('assistant.addApiKeySuffix')}
             </p>
           ) : null}
         </div>

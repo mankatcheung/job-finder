@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useLocale } from '#/lib/i18n';
 import { Card, EmptyState, Skeleton } from '@trakwyn/ui';
 import {
   applicationChannelAnalyticsQueryOptions,
@@ -11,6 +12,7 @@ import {
 const SMALL_SAMPLE_THRESHOLD = 3;
 
 function GroupRow({ stat }: { stat: ApplicationGroupStat }) {
+  const { t } = useLocale();
   const smallSample = stat.applicationCount < SMALL_SAMPLE_THRESHOLD;
   return (
     <div className="flex flex-col gap-1.5 py-2 border-b border-gray-100 dark:border-gray-700 last:border-0 sm:flex-row sm:items-center sm:gap-3">
@@ -22,7 +24,7 @@ function GroupRow({ stat }: { stat: ApplicationGroupStat }) {
           they're only wrapped together for the stacked mobile layout. */}
       <div className="flex flex-wrap items-center gap-2 sm:contents">
         <span className="shrink-0 w-14 text-xs text-gray-500 dark:text-gray-400 sm:w-16 sm:text-right">
-          {stat.applicationCount} app{stat.applicationCount === 1 ? '' : 's'}
+          {t('channelAnalytics.appsCount', { count: stat.applicationCount })}
         </span>
         <div className="flex items-center gap-1.5 shrink-0 sm:gap-2">
           <div className="w-10 h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden sm:w-16">
@@ -42,7 +44,7 @@ function GroupRow({ stat }: { stat: ApplicationGroupStat }) {
         </div>
         {smallSample && (
           <span className="shrink-0 text-[10px] text-gray-400 dark:text-gray-500 sm:whitespace-nowrap">
-            small sample
+            {t('interviewAnalytics.smallSample')}
           </span>
         )}
       </div>
@@ -58,6 +60,7 @@ function GroupRow({ stat }: { stat: ApplicationGroupStat }) {
  * analytics panels — this is a supplementary insight, not critical path.
  */
 export function ApplicationChannelAnalyticsPanel() {
+  const { t } = useLocale();
   const { data, isLoading } = useQuery(applicationChannelAnalyticsQueryOptions);
 
   if (isLoading) {
@@ -70,19 +73,21 @@ export function ApplicationChannelAnalyticsPanel() {
   return (
     <Card className="p-6">
       <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-        Source &amp; tag performance
+        {t('channelAnalytics.title')}
       </h2>
       <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
-        Response rate and offer rate by where an application came from and how it&apos;s tagged.
+        {t('channelAnalytics.description')}
       </p>
 
       <div className="mb-6">
-        <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">By source</h3>
+        <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+          {t('channelAnalytics.bySource')}
+        </h3>
         {analytics.bySource.length === 0 ? (
           <EmptyState
             size="compact"
             className="py-6"
-            message="Add a source when logging an application to see performance by channel here."
+            message={t('channelAnalytics.bySourceEmpty')}
           />
         ) : (
           <div className="space-y-1">
@@ -94,13 +99,11 @@ export function ApplicationChannelAnalyticsPanel() {
       </div>
 
       <div>
-        <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">By tag</h3>
+        <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+          {t('channelAnalytics.byTag')}
+        </h3>
         {analytics.byTag.length === 0 ? (
-          <EmptyState
-            size="compact"
-            className="py-6"
-            message="Add tags to your applications to see performance by tag here."
-          />
+          <EmptyState size="compact" className="py-6" message={t('channelAnalytics.byTagEmpty')} />
         ) : (
           <div className="space-y-1">
             {analytics.byTag.map((stat) => (
