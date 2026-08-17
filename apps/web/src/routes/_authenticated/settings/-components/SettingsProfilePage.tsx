@@ -21,16 +21,15 @@ import {
   extractGqlError,
 } from './shared';
 
-const THEME_OPTIONS: { value: Theme; label: string; icon: React.ReactNode }[] = [
-  { value: 'light', label: 'Light', icon: <SunIcon size={16} /> },
-  { value: 'dark', label: 'Dark', icon: <MoonIcon size={16} /> },
-  { value: 'system', label: 'System', icon: <MonitorIcon size={16} /> },
-];
-
 export function SettingsProfilePage() {
   const qc = useQueryClient();
   const { theme, setTheme } = useTheme();
   const { locale, setLocale, t } = useLocale();
+  const THEME_OPTIONS: { value: Theme; label: string; icon: React.ReactNode }[] = [
+    { value: 'light', label: t('profile.themeLight'), icon: <SunIcon size={16} /> },
+    { value: 'dark', label: t('profile.themeDark'), icon: <MoonIcon size={16} /> },
+    { value: 'system', label: t('profile.themeSystem'), icon: <MonitorIcon size={16} /> },
+  ];
 
   const timezoneOptions = useMemo(() => {
     try {
@@ -64,7 +63,7 @@ export function SettingsProfilePage() {
       await qc.invalidateQueries({ queryKey: ['me'] });
     } catch (err) {
       profileForm.setError('root', {
-        message: extractGqlError(err) ?? 'Failed to update profile.',
+        message: extractGqlError(err) ?? t('profile.updateProfileFailed'),
       });
     }
   };
@@ -96,7 +95,7 @@ export function SettingsProfilePage() {
       });
       await qc.invalidateQueries({ queryKey: ['me'] });
     } catch (err) {
-      setAvatarError(extractGqlError(err) ?? 'Failed to upload photo.');
+      setAvatarError(extractGqlError(err) ?? t('profile.uploadPhotoFailed'));
     } finally {
       setAvatarUploading(false);
     }
@@ -109,7 +108,7 @@ export function SettingsProfilePage() {
       await gqlClient.request(REMOVE_AVATAR);
       await qc.invalidateQueries({ queryKey: ['me'] });
     } catch (err) {
-      setAvatarError(extractGqlError(err) ?? 'Failed to remove photo.');
+      setAvatarError(extractGqlError(err) ?? t('profile.removePhotoFailed'));
     } finally {
       setAvatarUploading(false);
     }
@@ -120,9 +119,11 @@ export function SettingsProfilePage() {
       {/* ── Appearance ── */}
       <section className="space-y-4">
         <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Appearance</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            {t('profile.appearanceTitle')}
+          </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Choose how Trakwyn looks on this device.
+            {t('profile.appearanceDescription')}
           </p>
         </div>
         <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 p-1 gap-1">
@@ -132,7 +133,7 @@ export function SettingsProfilePage() {
               type="button"
               onClick={() => setTheme(option.value)}
               aria-pressed={theme === option.value}
-              aria-label={`Theme: ${option.label}`}
+              aria-label={t('profile.themeAria', { theme: option.label })}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 theme === option.value
                   ? 'bg-blue-600 text-white'
@@ -175,9 +176,11 @@ export function SettingsProfilePage() {
       {/* ── Profile ── */}
       <section className="space-y-4">
         <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Profile</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            {t('profile.profileTitle')}
+          </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Personalize your account and improve reminder timing and AI-generated content.
+            {t('profile.profileDescription')}
           </p>
         </div>
 
@@ -185,7 +188,7 @@ export function SettingsProfilePage() {
           {me?.avatarUrl ? (
             <img
               src={me.avatarUrl}
-              alt="Profile photo"
+              alt={t('profile.profilePhotoAlt')}
               className="w-16 h-16 rounded-full object-cover border border-gray-200 dark:border-gray-600"
             />
           ) : (
@@ -196,7 +199,11 @@ export function SettingsProfilePage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <label className="cursor-pointer px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline">
-                {avatarUploading ? 'Uploading…' : me?.avatarUrl ? 'Change photo' : 'Upload photo'}
+                {avatarUploading
+                  ? t('documents.uploading')
+                  : me?.avatarUrl
+                    ? t('profile.changePhoto')
+                    : t('profile.uploadPhoto')}
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
@@ -210,10 +217,11 @@ export function SettingsProfilePage() {
                   type="button"
                   onClick={onRemoveAvatar}
                   disabled={avatarUploading}
-                  aria-label="Remove photo"
+                  aria-label={t('profile.removePhotoAria')}
                   className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 disabled:opacity-60"
                 >
-                  <Trash2Icon size={14} /> <span className="hidden sm:inline">Remove</span>
+                  <Trash2Icon size={14} />{' '}
+                  <span className="hidden sm:inline">{t('security.remove')}</span>
                 </button>
               )}
             </div>
@@ -223,7 +231,7 @@ export function SettingsProfilePage() {
 
         <form onSubmit={profileForm.handleSubmit(onUpdateProfile)} className="space-y-3">
           <div>
-            <FormLabel>Name</FormLabel>
+            <FormLabel>{t('profile.nameLabel')}</FormLabel>
             <Input
               type="text"
               {...profileForm.register('name')}
@@ -237,7 +245,7 @@ export function SettingsProfilePage() {
             )}
           </div>
           <div>
-            <FormLabel>Timezone</FormLabel>
+            <FormLabel>{t('profile.timezoneLabel')}</FormLabel>
             <Input
               type="text"
               list="timezone-options"
@@ -257,7 +265,7 @@ export function SettingsProfilePage() {
             )}
           </div>
           <div>
-            <FormLabel>Target role</FormLabel>
+            <FormLabel>{t('profile.targetRoleLabel')}</FormLabel>
             <Input
               type="text"
               {...profileForm.register('targetRole')}
@@ -275,10 +283,12 @@ export function SettingsProfilePage() {
           )}
           {profileForm.formState.isSubmitSuccessful &&
             !profileForm.formState.errors.root?.message && (
-              <p className="text-sm text-green-600">Profile updated successfully.</p>
+              <p className="text-sm text-green-600">{t('profile.profileUpdated')}</p>
             )}
           <Button type="submit" disabled={profileForm.formState.isSubmitting}>
-            {profileForm.formState.isSubmitting ? 'Saving…' : 'Save profile'}
+            {profileForm.formState.isSubmitting
+              ? t('applicationForm.saving')
+              : t('profile.saveProfile')}
           </Button>
         </form>
       </section>
