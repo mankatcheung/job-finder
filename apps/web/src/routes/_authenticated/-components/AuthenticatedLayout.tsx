@@ -150,7 +150,7 @@ export function AuthenticatedLayout() {
               </span>
               <button
                 onClick={closeSidebar}
-                aria-label="Close menu"
+                aria-label={t('authenticatedLayout.closeMenu')}
                 className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 rounded-lg transition-colors"
               >
                 <XIcon size={18} />
@@ -158,7 +158,7 @@ export function AuthenticatedLayout() {
             </div>
 
             <nav
-              aria-label="Main navigation"
+              aria-label={t('authenticatedLayout.mainNavigation')}
               className="flex-1 px-3 py-4 space-y-1 overflow-y-auto"
             >
               {MAIN_NAV.map((item, i) => (
@@ -214,7 +214,7 @@ export function AuthenticatedLayout() {
           <div className="flex items-center gap-2">
             <button
               onClick={openSidebar}
-              aria-label="Open menu"
+              aria-label={t('authenticatedLayout.openMenu')}
               className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 rounded-lg transition-colors"
             >
               <MenuIcon size={18} />
@@ -272,7 +272,7 @@ export function AuthenticatedLayout() {
               onClick={() => setShortcutsOpen(true)}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors sidebar-entrance-item"
               style={{ animationDelay: `${(MAIN_NAV.length + 1) * 50}ms` }}
-              title="Show keyboard shortcuts"
+              title={t('shortcuts.showShortcuts')}
             >
               <KeyboardIcon size={18} />
               {t('nav.shortcuts')}
@@ -305,7 +305,7 @@ export function AuthenticatedLayout() {
           The main element's pb already matches this total so content doesn't
           overlap. */}
         <nav
-          aria-label="Bottom navigation"
+          aria-label={t('authenticatedLayout.bottomNavigation')}
           className="lg:hidden fixed bottom-0 inset-x-0 z-40 h-[calc(4rem+env(safe-area-inset-bottom))] bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex items-center pb-[env(safe-area-inset-bottom)]"
         >
           <BottomNavItem
@@ -348,11 +348,12 @@ function AccountAvatarIcon({
   avatarUrl: string | null | undefined;
   size: number;
 }) {
+  const { t } = useLocale();
   if (avatarUrl) {
     return (
       <img
         src={avatarUrl}
-        alt="Your avatar"
+        alt={t('authenticatedLayout.yourAvatarAlt')}
         className="rounded-full object-cover"
         style={{ width: size, height: size }}
       />

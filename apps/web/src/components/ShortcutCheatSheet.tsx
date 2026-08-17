@@ -1,4 +1,5 @@
 import { formatKeyCombo, getKeyModifier } from '#/hooks/useHotkeys';
+import { useLocale } from '#/lib/i18n';
 import { Modal } from '@trakwyn/ui';
 
 interface Shortcut {
@@ -6,16 +7,16 @@ interface Shortcut {
   label: string;
 }
 
-const shortcuts: Shortcut[] = [
-  { keys: { key: 'k', ctrl: true, shift: true }, label: 'Open command palette' },
-  { keys: { key: 'n', ctrl: true }, label: 'New application' },
-  { keys: { key: '/', ctrl: true }, label: 'Show keyboard shortcuts' },
-  { keys: { key: 'Escape' }, label: 'Close modal / dialog' },
-];
-
 export function ShortcutCheatSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const { t } = useLocale();
+  const shortcuts: Shortcut[] = [
+    { keys: { key: 'k', ctrl: true, shift: true }, label: t('shortcuts.openCommandPalette') },
+    { keys: { key: 'n', ctrl: true }, label: t('shortcuts.newApplication') },
+    { keys: { key: '/', ctrl: true }, label: t('shortcuts.showShortcuts') },
+    { keys: { key: 'Escape' }, label: t('shortcuts.closeModal') },
+  ];
   return (
-    <Modal open={isOpen} onClose={onClose} title="Keyboard Shortcuts" size="sm">
+    <Modal open={isOpen} onClose={onClose} title={t('shortcuts.title')} size="sm">
       <ul className="py-2">
         {shortcuts.map((shortcut) => (
           <li
@@ -30,11 +31,11 @@ export function ShortcutCheatSheet({ isOpen, onClose }: { isOpen: boolean; onClo
         ))}
       </ul>
       <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
-        Press{' '}
+        {t('shortcuts.pressPrefix')}{' '}
         <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">
           {getKeyModifier()} + /
         </kbd>{' '}
-        to toggle this panel
+        {t('shortcuts.togglePanel')}
       </div>
     </Modal>
   );

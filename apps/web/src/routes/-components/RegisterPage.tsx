@@ -50,7 +50,7 @@ export function RegisterPage() {
       await queryClient.resetQueries();
       setRegisteredEmail(email);
     } catch (err: unknown) {
-      const msg = extractGqlError(err) ?? 'Registration failed. Please try again.';
+      const msg = extractGqlError(err) ?? t('registerPage.registrationFailed');
       setError('root', { message: msg });
     }
   };

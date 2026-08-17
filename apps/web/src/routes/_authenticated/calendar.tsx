@@ -3,6 +3,7 @@ import { queryOptions, useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { gqlClient } from '#/graphql/client';
 import { ErrorState } from '#/components/ErrorState';
+import { useLocale } from '#/lib/i18n';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Skeleton } from '@trakwyn/ui';
 
@@ -38,19 +39,6 @@ const EVENT_DOT_STYLES: Record<CalendarEventKind, string> = {
   followUp: 'bg-amber-500',
   interview: 'bg-purple-500',
 };
-
-const EVENT_LABEL: Record<CalendarEventKind, string> = {
-  applied: 'Applied',
-  followUp: 'Follow up',
-  interview: 'Interview',
-};
-
-const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const VIEW_MODES: { mode: ViewMode; label: string }[] = [
-  { mode: 'month', label: 'Month' },
-  { mode: 'week', label: 'Week' },
-  { mode: 'day', label: 'Day' },
-];
 
 // Local calendar day, deliberately not UTC — see JEF-54's timezone decision.
 function dayKey(date: Date): string {
@@ -112,6 +100,21 @@ export const Route = createFileRoute('/_authenticated/calendar')({
 });
 
 function CalendarPage() {
+  const { t, locale } = useLocale();
+  const EVENT_LABEL: Record<CalendarEventKind, string> = {
+    applied: t('status.applied'),
+    followUp: t('applicationDetail.followUpLabel'),
+    interview: t('dashboard.eventInterview'),
+  };
+  const WEEKDAY_LABELS = Array.from({ length: 7 }, (_, i) =>
+    // Jan 1, 2023 was a Sunday — used purely as a stable weekday-index anchor.
+    new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(new Date(2023, 0, 1 + i)),
+  );
+  const VIEW_MODES: { mode: ViewMode; label: string }[] = [
+    { mode: 'month', label: t('calendarPage.month') },
+    { mode: 'week', label: t('calendarPage.week') },
+    { mode: 'day', label: t('calendarPage.day') },
+  ];
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [anchorDate, setAnchorDate] = useState(() => {
     const now = new Date();
@@ -178,7 +181,7 @@ function CalendarPage() {
   return (
     <div className="p-4 sm:p-8 max-w-3xl mx-auto">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Calendar</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('nav.calendar')}</h1>
         <div className="flex gap-1 p-0.5 rounded-lg bg-gray-100 dark:bg-gray-800">
           {VIEW_MODES.map(({ mode, label }) => (
             <button
@@ -199,7 +202,7 @@ function CalendarPage() {
       <div className="flex items-center justify-center gap-2 mb-6">
         <button
           onClick={() => goToPeriod(-1)}
-          aria-label={`Previous ${viewMode}`}
+          aria-label={t('calendarPage.previousPeriod', { period: t(`calendarPage.${viewMode}`) })}
           className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
         >
           <ChevronLeftIcon size={18} />
@@ -209,7 +212,7 @@ function CalendarPage() {
         </span>
         <button
           onClick={() => goToPeriod(1)}
-          aria-label={`Next ${viewMode}`}
+          aria-label={t('calendarPage.nextPeriod', { period: t(`calendarPage.${viewMode}`) })}
           className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
         >
           <ChevronRightIcon size={18} />
@@ -277,12 +280,12 @@ function CalendarPage() {
           <div className="mt-6">
             {!dayInFocus && (
               <p className="text-sm text-gray-400 dark:text-gray-500 py-4 text-center">
-                Select a day to see its events.
+                {t('calendarPage.selectDayPrompt')}
               </p>
             )}
             {dayInFocus && focusedEvents.length === 0 && (
               <p className="text-sm text-gray-400 dark:text-gray-500 py-4 text-center">
-                No events on this day.
+                {t('calendarPage.noEventsOnDay')}
               </p>
             )}
             {dayInFocus && focusedEvents.length > 0 && (

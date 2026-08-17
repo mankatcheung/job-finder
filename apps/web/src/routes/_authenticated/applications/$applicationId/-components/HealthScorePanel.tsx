@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocale } from '#/lib/i18n';
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 
 export type HealthScoreCriterion = {
@@ -45,6 +46,7 @@ export function scoreColor(score: number): keyof typeof SCORE_COLORS {
 }
 
 export function HealthScorePanel({ healthScore }: { healthScore: HealthScore }) {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const color = SCORE_COLORS[scoreColor(healthScore.score)];
   const radius = 20;
@@ -95,7 +97,7 @@ export function HealthScorePanel({ healthScore }: { healthScore: HealthScore }) 
           </svg>
           <div className="text-left">
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-              Application health
+              {t('healthScore.applicationHealth')}
             </p>
             <span
               className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${color.badge}`}

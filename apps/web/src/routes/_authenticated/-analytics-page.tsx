@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { ErrorState } from '#/components/ErrorState';
+import { useLocale } from '#/lib/i18n';
 import { Card, EmptyState, Skeleton } from '@trakwyn/ui';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { analyticsQueryOptions } from './-analytics-queries';
@@ -42,6 +43,7 @@ function isoWeek(date: Date): string {
 }
 
 export function AnalyticsPage() {
+  const { t } = useLocale();
   const { data, isLoading, isError, error, refetch } = useQuery(analyticsQueryOptions);
 
   const apps = data?.applications ?? [];
@@ -115,15 +117,27 @@ export function AnalyticsPage() {
 
   return (
     <div className="p-4 sm:p-8 max-w-5xl mx-auto space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Analytics</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('nav.analytics')}</h1>
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         {[
-          { label: 'Total', value: totalApps },
-          { label: 'Active', value: activeApps, color: 'text-blue-600' },
-          { label: 'Response rate', value: `${responseRate}%`, color: 'text-purple-600' },
-          { label: 'Offer rate', value: `${successRate}%`, color: 'text-green-600' },
-          { label: 'Ghosting rate', value: `${ghostingRate}%`, color: 'text-gray-500' },
+          { label: t('dashboard.statTotal'), value: totalApps },
+          { label: t('analyticsPage.statActive'), value: activeApps, color: 'text-blue-600' },
+          {
+            label: t('analyticsPage.statResponseRate'),
+            value: `${responseRate}%`,
+            color: 'text-purple-600',
+          },
+          {
+            label: t('analyticsPage.statOfferRate'),
+            value: `${successRate}%`,
+            color: 'text-green-600',
+          },
+          {
+            label: t('analyticsPage.statGhostingRate'),
+            value: `${ghostingRate}%`,
+            color: 'text-gray-500',
+          },
         ].map(({ label, value, color }) => (
           <Card key={label} className="p-4">
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{label}</p>
@@ -136,17 +150,22 @@ export function AnalyticsPage() {
 
       <Card className="p-6">
         <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-          Applications per week
+          {t('analyticsPage.applicationsPerWeek')}
         </h2>
         {weeklyData.length === 0 ? (
-          <EmptyState size="compact" className="py-8" message="No data yet." />
+          <EmptyState size="compact" className="py-8" message={t('analyticsPage.noDataYet')} />
         ) : (
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={weeklyData} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
               <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#9ca3af' }} />
               <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Applications" />
+              <Bar
+                dataKey="count"
+                fill="#3b82f6"
+                radius={[4, 4, 0, 0]}
+                name={t('applications.title')}
+              />
             </BarChart>
           </ResponsiveContainer>
         )}
@@ -154,10 +173,10 @@ export function AnalyticsPage() {
 
       <Card className="p-6">
         <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-          Stage funnel
+          {t('analyticsPage.stageFunnel')}
         </h2>
         {apps.length === 0 ? (
-          <EmptyState size="compact" className="py-8" message="No data yet." />
+          <EmptyState size="compact" className="py-8" message={t('analyticsPage.noDataYet')} />
         ) : (
           <ResponsiveContainer width="100%" height={220}>
             <BarChart
@@ -166,9 +185,14 @@ export function AnalyticsPage() {
               margin={{ top: 0, right: 16, bottom: 0, left: 64 }}
             >
               <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
-              <YAxis type="category" dataKey="status" tick={{ fontSize: 11, fill: '#9ca3af' }} />
+              <YAxis
+                type="category"
+                dataKey="status"
+                tickFormatter={(value: string) => t(`status.${value}`, { defaultValue: value })}
+                tick={{ fontSize: 11, fill: '#9ca3af' }}
+              />
               <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]} name="Applications">
+              <Bar dataKey="count" radius={[0, 4, 4, 0]} name={t('applications.title')}>
                 {funnelData.map((entry) => (
                   <Cell key={entry.status} fill={STATUS_COLORS[entry.status] ?? '#3b82f6'} />
                 ))}
