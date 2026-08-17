@@ -37,7 +37,7 @@ async function authedGql<T>(query: string, variables?: Record<string, unknown>):
   return gql<T>(query, variables, auth.token);
 }
 
-const LOGIN = `mutation Login($email: String!, $password: String!) { login(email: $email, password: $password) }`;
+const LOGIN = `mutation Login($email: String!, $password: String!) { login(email: $email, password: $password) { success totpRequired accessToken } }`;
 const REFRESH = `mutation { refreshToken }`;
 const CREATE_APPLICATION = `
   mutation CreateApplication($input: CreateApplicationInput!) {
@@ -46,22 +46,27 @@ const CREATE_APPLICATION = `
 `;
 
 export async function login(email: string, password: string): Promise<void> {
-  const apiUrl = await getApiUrl();
+  // Sets HttpOnly cookies for the API origin as a side effect; the access
+  // token is also returned directly in the response, which is the
+  // supported way for non-web clients to read it (see LoginResultType.ts).
+  const data = await gql<{
+    login: { success: boolean; totpRequired: boolean; accessToken: string | null };
+  }>(LOGIN, { email, password });
 
-  // Call login — sets HttpOnly cookies for the API origin
-  await gql<{ login: boolean }>(LOGIN, { email, password });
-
-  // Read the access token from the cookie jar (requires `cookies` permission)
-  const cookie = await chrome.cookies.get({ url: apiUrl, name: COOKIES.ACCESS_TOKEN });
-  if (!cookie) throw new Error('Login succeeded but no token cookie found');
+  if (data.login.totpRequired) {
+    throw new Error(
+      "This account has two-factor authentication enabled, which the extension doesn't support yet — log in on the web app instead.",
+    );
+  }
+  if (!data.login.accessToken) throw new Error('Login failed');
 
   // Decode the JWT to get its expiry (payload is base64 URL-encoded)
-  const [, payload] = cookie.value.split('.');
+  const [, payload] = data.login.accessToken.split('.');
   const { exp } = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) as {
     exp: number;
   };
 
-  await setAuth({ token: cookie.value, expiresAt: exp * 1000 });
+  await setAuth({ token: data.login.accessToken, expiresAt: exp * 1000 });
 }
 
 export async function logout(): Promise<void> {
