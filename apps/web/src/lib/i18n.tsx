@@ -144,21 +144,25 @@ function LocaleContextBridge({
 
 export function useLocale(): LocaleContextValue {
   const context = useContext(LocaleContext);
-  const translation = useTranslation();
-  if (context) return context;
-  const { i18n, t } = translation;
+  const { i18n, t } = useTranslation();
   const locale = normalizeLocale(i18n.language);
-  return {
-    locale,
-    setLocale: (next) => void i18n.changeLanguage(next),
-    t: (key, options) => String(t(key, options)),
-    formatDate: (valueToFormat, options) =>
-      new Intl.DateTimeFormat(locale, options).format(
-        typeof valueToFormat === 'string' ? new Date(valueToFormat) : valueToFormat,
-      ),
-    formatNumber: (valueToFormat, options) =>
-      new Intl.NumberFormat(locale, options).format(valueToFormat),
-  };
+  // Memoized so callers can safely put `t`/the returned object in a useEffect
+  // dependency array without it changing (and re-firing) on every render.
+  const fallback = useMemo<LocaleContextValue>(
+    () => ({
+      locale,
+      setLocale: (next) => void i18n.changeLanguage(next),
+      t: (key, options) => String(t(key, options)),
+      formatDate: (valueToFormat, options) =>
+        new Intl.DateTimeFormat(locale, options).format(
+          typeof valueToFormat === 'string' ? new Date(valueToFormat) : valueToFormat,
+        ),
+      formatNumber: (valueToFormat, options) =>
+        new Intl.NumberFormat(locale, options).format(valueToFormat),
+    }),
+    [locale, i18n, t],
+  );
+  return context ?? fallback;
 }
 
 export const LOCALE_INIT_SCRIPT = `(function(){try{var p=new URLSearchParams(location.search).get('${LOCALE_QUERY_KEY}');var l=p||localStorage.getItem('${LOCALE_STORAGE_KEY}')||((navigator.languages||[])[0])||'en';document.documentElement.lang=l;}catch(e){}})();`;
