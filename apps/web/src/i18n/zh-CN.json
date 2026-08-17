@@ -476,5 +476,17 @@
   "dashboard.viewCalendar": "查看日历",
   "dashboard.eventInterview": "面试",
   "dashboard.recentApplicationsTitle": "最近的求职申请",
-  "dashboard.addFirstOne": "添加第一个 →"
+  "dashboard.addFirstOne": "添加第一个 →",
+  "offerCompare.title": "对比录用通知",
+  "offerCompare.comparing": "对比中…",
+  "offerCompare.compareCount": "对比（{{count}}）",
+  "offerCompare.loadingOffers": "正在加载录用通知…",
+  "offerCompare.noOffersToCompare": "没有可对比的录用通知，请先添加。",
+  "offerCompare.selectHint": "选择 2 个或以上的录用通知进行并排对比。",
+  "offerCompare.bonusSuffix": "奖金",
+  "offerCompare.companyHeader": "公司",
+  "offerCompare.roleHeader": "职位",
+  "offerCompare.baseYearlyHeader": "基本薪资（年）",
+  "offerCompare.totalCompHeader": "总薪酬",
+  "offerCompare.best": "最佳"
 }

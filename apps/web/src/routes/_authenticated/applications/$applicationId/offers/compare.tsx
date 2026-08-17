@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import { GitCompareArrowsIcon, CheckIcon } from 'lucide-react';
 import { Button, EmptyState } from '@trakwyn/ui';
 
@@ -64,6 +65,7 @@ export const Route = createFileRoute('/_authenticated/applications/$applicationI
 });
 
 function CompareOffersPage() {
+  const { t } = useLocale();
   const { applicationId } = Route.useParams();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -110,7 +112,7 @@ function CompareOffersPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="text-sm text-gray-500">Loading offers…</div>
+        <div className="text-sm text-gray-500">{t('offerCompare.loadingOffers')}</div>
       </div>
     );
   }
@@ -118,22 +120,26 @@ function CompareOffersPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Compare Offers</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          {t('offerCompare.title')}
+        </h1>
         <Button onClick={handleCompare} disabled={selectedIds.length < 2 || comparing}>
           <span className="inline-flex items-center gap-1.5">
             <GitCompareArrowsIcon className="h-4 w-4" />
-            {comparing ? 'Comparing…' : `Compare (${selectedIds.length})`}
+            {comparing
+              ? t('offerCompare.comparing')
+              : t('offerCompare.compareCount', { count: selectedIds.length })}
           </span>
         </Button>
       </div>
 
       {offers.length === 0 ? (
-        <EmptyState className="py-12" message="No offers to compare. Add offers first." />
+        <EmptyState className="py-12" message={t('offerCompare.noOffersToCompare')} />
       ) : (
         <>
           <div className="mb-6">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-              Select 2 or more offers to compare side by side.
+              {t('offerCompare.selectHint')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {offers.map((offer) => (
@@ -153,7 +159,7 @@ function CompareOffersPage() {
                       </div>
                       {offer.bonus && (
                         <div className="text-sm text-gray-600 dark:text-gray-400">
-                          +{formatSalary(offer.bonus)} bonus
+                          +{formatSalary(offer.bonus)} {t('offerCompare.bonusSuffix')}
                         </div>
                       )}
                     </div>
@@ -172,22 +178,22 @@ function CompareOffersPage() {
                 <thead className="bg-gray-50 dark:bg-gray-800">
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Company
+                      {t('offerCompare.companyHeader')}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Role
+                      {t('offerCompare.roleHeader')}
                     </th>
                     <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Base (Yearly)
+                      {t('offerCompare.baseYearlyHeader')}
                     </th>
                     <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Total Comp
+                      {t('offerCompare.totalCompHeader')}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Equity
+                      {t('offerForm.equityLabel')}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Benefits
+                      {t('offerForm.benefitsLabel')}
                     </th>
                   </tr>
                 </thead>
@@ -200,7 +206,9 @@ function CompareOffersPage() {
                       <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
                         {comp.company}
                         {index === 0 && (
-                          <span className="ml-2 text-xs text-green-600 font-normal">Best</span>
+                          <span className="ml-2 text-xs text-green-600 font-normal">
+                            {t('offerCompare.best')}
+                          </span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">

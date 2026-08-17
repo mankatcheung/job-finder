@@ -476,5 +476,17 @@
   "dashboard.viewCalendar": "查看行事曆",
   "dashboard.eventInterview": "面試",
   "dashboard.recentApplicationsTitle": "最近的求職申請",
-  "dashboard.addFirstOne": "新增第一項 →"
+  "dashboard.addFirstOne": "新增第一項 →",
+  "offerCompare.title": "比較聘書",
+  "offerCompare.comparing": "比較中…",
+  "offerCompare.compareCount": "比較（{{count}}）",
+  "offerCompare.loadingOffers": "正在載入聘書…",
+  "offerCompare.noOffersToCompare": "沒有可比較的聘書，請先新增。",
+  "offerCompare.selectHint": "選擇 2 個或以上的聘書進行並排比較。",
+  "offerCompare.bonusSuffix": "獎金",
+  "offerCompare.companyHeader": "公司",
+  "offerCompare.roleHeader": "職位",
+  "offerCompare.baseYearlyHeader": "基本薪資（年）",
+  "offerCompare.totalCompHeader": "總薪酬",
+  "offerCompare.best": "最佳"
 }

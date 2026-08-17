@@ -482,5 +482,17 @@
   "dashboard.viewCalendar": "View calendar",
   "dashboard.eventInterview": "Interview",
   "dashboard.recentApplicationsTitle": "Recent applications",
-  "dashboard.addFirstOne": "Add your first one →"
+  "dashboard.addFirstOne": "Add your first one →",
+  "offerCompare.title": "Compare Offers",
+  "offerCompare.comparing": "Comparing…",
+  "offerCompare.compareCount": "Compare ({{count}})",
+  "offerCompare.loadingOffers": "Loading offers…",
+  "offerCompare.noOffersToCompare": "No offers to compare. Add offers first.",
+  "offerCompare.selectHint": "Select 2 or more offers to compare side by side.",
+  "offerCompare.bonusSuffix": "bonus",
+  "offerCompare.companyHeader": "Company",
+  "offerCompare.roleHeader": "Role",
+  "offerCompare.baseYearlyHeader": "Base (Yearly)",
+  "offerCompare.totalCompHeader": "Total Comp",
+  "offerCompare.best": "Best"
 }
