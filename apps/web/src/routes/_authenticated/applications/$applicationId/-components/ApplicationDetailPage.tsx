@@ -5,6 +5,7 @@ import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
 import { getErrorMessage } from '#/lib/errors';
 import { ErrorState } from '#/components/ErrorState';
+import { useLocale } from '#/lib/i18n';
 import { Card, Skeleton, Textarea } from '@trakwyn/ui';
 import { StatusBadge } from '../../../-components/StatusBadge';
 import {
@@ -76,6 +77,7 @@ type Note = {
 };
 
 export function ApplicationDetailPage() {
+  const { t } = useLocale();
   const { applicationId } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -94,15 +96,27 @@ export function ApplicationDetailPage() {
   >('notes');
 
   const TABS = [
-    { id: 'notes' as const, label: 'Notes', icon: FileTextIcon },
-    { id: 'interviews' as const, label: 'Interviews', icon: CalendarIcon },
-    { id: 'contacts' as const, label: 'Contacts', icon: UsersIcon },
-    { id: 'activity' as const, label: 'Activity', icon: ActivityIcon },
-    { id: 'documents' as const, label: 'Documents', icon: UploadIcon },
-    { id: 'company briefing' as const, label: 'Company Briefing', icon: Building2Icon },
-    { id: 'cover letter' as const, label: 'Cover Letter', icon: PenLineIcon },
-    { id: 'resume match' as const, label: 'Resume Match', icon: FileTextIcon },
-    { id: 'offers' as const, label: 'Offers', icon: DollarSignIcon },
+    { id: 'notes' as const, label: t('applicationDetail.tabNotes'), icon: FileTextIcon },
+    { id: 'interviews' as const, label: t('applicationDetail.tabInterviews'), icon: CalendarIcon },
+    { id: 'contacts' as const, label: t('applicationDetail.tabContacts'), icon: UsersIcon },
+    { id: 'activity' as const, label: t('applicationDetail.tabActivity'), icon: ActivityIcon },
+    { id: 'documents' as const, label: t('applicationDetail.tabDocuments'), icon: UploadIcon },
+    {
+      id: 'company briefing' as const,
+      label: t('applicationDetail.tabCompanyBriefing'),
+      icon: Building2Icon,
+    },
+    {
+      id: 'cover letter' as const,
+      label: t('applicationDetail.tabCoverLetter'),
+      icon: PenLineIcon,
+    },
+    {
+      id: 'resume match' as const,
+      label: t('applicationDetail.tabResumeMatch'),
+      icon: FileTextIcon,
+    },
+    { id: 'offers' as const, label: t('applicationDetail.tabOffers'), icon: DollarSignIcon },
   ];
 
   const {
@@ -257,7 +271,7 @@ export function ApplicationDetailPage() {
           href="/applications"
           className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
         >
-          ← Applications
+          {t('applicationForm.backToApplications')}
         </a>
       </div>
 
@@ -276,7 +290,7 @@ export function ApplicationDetailPage() {
                   ? 'text-yellow-400 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
                   : 'text-gray-400 hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
               }`}
-              title={app.starred ? 'Unstar' : 'Star'}
+              title={t(app.starred ? 'applications.unstar' : 'applications.star')}
             >
               <StarIcon size={16} className={app.starred ? 'fill-yellow-400' : ''} />
             </button>
@@ -290,13 +304,13 @@ export function ApplicationDetailPage() {
             <button
               onClick={() => {
                 showUndoToast({
-                  message: 'Application deleted',
+                  message: t('applicationDetail.applicationDeletedToast'),
                   onExecute: () => deleteApp.mutate(),
                   onUndo: () => {},
                 });
               }}
               className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
-              title="Delete application"
+              title={t('applicationDetail.deleteApplicationTitle')}
             >
               <Trash2Icon size={16} />
             </button>
@@ -304,27 +318,36 @@ export function ApplicationDetailPage() {
         </div>
 
         <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-          {app.location && <InfoItem label="Location" value={app.location} />}
-          {app.salaryRange && <InfoItem label="Salary" value={app.salaryRange} />}
-          {app.appliedAt && (
-            <InfoItem label="Applied" value={new Date(app.appliedAt).toLocaleDateString()} />
+          {app.location && (
+            <InfoItem label={t('applicationForm.locationLabel')} value={app.location} />
           )}
-          {app.source && <InfoItem label="Source" value={app.source} />}
+          {app.salaryRange && (
+            <InfoItem label={t('applicationDetail.salaryLabel')} value={app.salaryRange} />
+          )}
+          {app.appliedAt && (
+            <InfoItem
+              label={t('applicationDetail.appliedLabel')}
+              value={new Date(app.appliedAt).toLocaleDateString()}
+            />
+          )}
+          {app.source && <InfoItem label={t('applicationForm.sourceLabel')} value={app.source} />}
           {app.followUpAt && (
             <div>
               <InfoItem
-                label="Follow up"
+                label={t('applicationDetail.followUpLabel')}
                 value={new Date(app.followUpAt).toLocaleDateString()}
                 highlight={new Date(app.followUpAt) <= new Date()}
               />
               <p className="text-xs text-gray-400 mt-0.5">
-                Email reminder will be sent 24 h before this date.
+                {t('applicationDetail.emailReminderNote')}
               </p>
             </div>
           )}
           {app.tags.length > 0 && (
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Tags</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                {t('applicationForm.tagsLabel')}
+              </p>
               <div className="flex flex-wrap gap-1.5">
                 {app.tags.map((tag) => (
                   <span
@@ -339,7 +362,7 @@ export function ApplicationDetailPage() {
           )}
           {app.jobUrl && (
             <div className="col-span-1 sm:col-span-2 md:col-span-3">
-              <dt className="text-xs text-gray-400">Job URL</dt>
+              <dt className="text-xs text-gray-400">{t('applicationForm.jobUrlLabel')}</dt>
               <a
                 href={app.jobUrl}
                 target="_blank"
@@ -352,7 +375,9 @@ export function ApplicationDetailPage() {
           )}
           {app.description && (
             <div className="col-span-1 sm:col-span-2 md:col-span-3">
-              <dt className="text-xs text-gray-400 mb-1">Description</dt>
+              <dt className="text-xs text-gray-400 mb-1">
+                {t('applicationDetail.descriptionLabel')}
+              </dt>
               <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                 {app.description}
               </p>
@@ -367,7 +392,7 @@ export function ApplicationDetailPage() {
         {/* Mobile: horizontal scrollable strip */}
         <div
           className="md:hidden flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto -mx-4 px-4"
-          aria-label="Section tabs"
+          aria-label={t('applicationDetail.sectionTabsAria')}
         >
           {TABS.map((tab) => (
             <button
@@ -388,7 +413,7 @@ export function ApplicationDetailPage() {
         {/* Desktop: vertical sidebar */}
         <nav
           className="hidden md:flex flex-col w-44 flex-shrink-0 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 p-2 h-fit sticky top-20"
-          aria-label="Section navigation"
+          aria-label={t('applicationDetail.sectionNavAria')}
         >
           {TABS.map((tab) => (
             <button
@@ -415,7 +440,7 @@ export function ApplicationDetailPage() {
                   value={noteContent}
                   onChange={(e) => setNoteContent(e.target.value)}
                   className="h-24"
-                  placeholder="Add a note…"
+                  placeholder={t('applicationDetail.addNotePlaceholder')}
                 />
                 <div className="mt-2 flex justify-end">
                   <button
@@ -423,10 +448,11 @@ export function ApplicationDetailPage() {
                       if (noteContent.trim()) createNote.mutate(noteContent.trim());
                     }}
                     disabled={!noteContent.trim() || createNote.isPending}
-                    aria-label="Add note"
+                    aria-label={t('applicationDetail.addNote')}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-medium rounded-lg"
                   >
-                    <PlusIcon size={14} /> <span className="hidden sm:inline">Add note</span>
+                    <PlusIcon size={14} />{' '}
+                    <span className="hidden sm:inline">{t('applicationDetail.addNote')}</span>
                   </button>
                 </div>
               </Card>
@@ -453,17 +479,19 @@ export function ApplicationDetailPage() {
                           onClick={() =>
                             updateNote.mutate({ id: note.id, content: editingNote.content })
                           }
-                          aria-label="Save"
+                          aria-label={t('common.save')}
                           className="flex items-center gap-1 text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg"
                         >
-                          <CheckIcon size={14} /> <span className="hidden sm:inline">Save</span>
+                          <CheckIcon size={14} />{' '}
+                          <span className="hidden sm:inline">{t('common.save')}</span>
                         </button>
                         <button
                           onClick={() => setEditingNote(null)}
-                          aria-label="Cancel"
+                          aria-label={t('common.cancel')}
                           className="flex items-center gap-1 text-xs px-3 py-1.5 text-gray-500 hover:text-gray-700"
                         >
-                          <XIcon size={14} /> <span className="hidden sm:inline">Cancel</span>
+                          <XIcon size={14} />{' '}
+                          <span className="hidden sm:inline">{t('common.cancel')}</span>
                         </button>
                       </div>
                     </>
@@ -492,7 +520,7 @@ export function ApplicationDetailPage() {
                               }),
                             );
                             showUndoToast({
-                              message: 'Note deleted',
+                              message: t('applicationDetail.noteDeletedToast'),
                               onExecute: () => deleteNote.mutate(note.id),
                               onUndo: () => qc.setQueryData(['notes', applicationId], snapshot),
                             });
@@ -531,11 +559,10 @@ export function ApplicationDetailPage() {
           {activeTab === 'offers' && (
             <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Offer comparison
+                {t('applicationDetail.offerComparisonTitle')}
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Record compensation details and compare this application with offers from other
-                applications.
+                {t('applicationDetail.offerComparisonDescription')}
               </p>
               <div className="flex flex-wrap gap-2">
                 <Link
@@ -543,14 +570,14 @@ export function ApplicationDetailPage() {
                   params={{ applicationId }}
                   className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
-                  Manage offers
+                  {t('applicationDetail.manageOffers')}
                 </Link>
                 <Link
                   to="/applications/$applicationId/offers/compare"
                   params={{ applicationId }}
                   className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                 >
-                  Compare offers
+                  {t('applicationDetail.compareOffers')}
                 </Link>
               </div>
             </div>
