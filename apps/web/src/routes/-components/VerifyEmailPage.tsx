@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearch } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import { Alert } from '@trakwyn/ui';
 
 const VERIFY_EMAIL_MUTATION = `
@@ -20,6 +21,7 @@ function extractGqlError(err: unknown): string | null {
 }
 
 export function VerifyEmailPage() {
+  const { t } = useLocale();
   const { token } = useSearch({ from: '/verify-email' });
   const [status, setStatus] = useState<Status>(token ? 'verifying' : 'error');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -35,35 +37,37 @@ export function VerifyEmailPage() {
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        setErrorMessage(extractGqlError(err) ?? 'Failed to verify email.');
+        setErrorMessage(extractGqlError(err) ?? t('verifyEmail.failed'));
         setStatus('error');
       });
 
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, t]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="w-full max-w-sm bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Verify your email</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {t('verifyEmail.title')}
+          </h1>
         </div>
 
         {status === 'verifying' && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">Verifying your email…</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t('confirmBackupEmail.verifying')}
+          </p>
         )}
 
-        {status === 'success' && <Alert tone="success">Your email has been verified.</Alert>}
+        {status === 'success' && <Alert tone="success">{t('verifyEmail.success')}</Alert>}
 
-        {status === 'error' && (
-          <Alert>{token ? errorMessage : 'This verification link is invalid.'}</Alert>
-        )}
+        {status === 'error' && <Alert>{token ? errorMessage : t('verifyEmail.invalidLink')}</Alert>}
 
         <p className="text-sm text-gray-500 dark:text-gray-400">
           <Link to="/login" className="text-blue-600 hover:underline">
-            Back to sign in
+            {t('auth.backToSignIn')}
           </Link>
         </p>
       </div>

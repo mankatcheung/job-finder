@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import { Alert } from '@trakwyn/ui';
 
 const searchSchema = z.object({ token: z.string().optional() });
@@ -20,6 +21,7 @@ export const Route = createFileRoute('/confirm-email-change')({
 type Status = 'confirming' | 'success' | 'error';
 
 function ConfirmEmailChangePage() {
+  const { t } = useLocale();
   const { token } = Route.useSearch();
   const [status, setStatus] = useState<Status>(token ? 'confirming' : 'error');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -35,41 +37,39 @@ function ConfirmEmailChangePage() {
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        setErrorMessage(extractGqlError(err) ?? 'Failed to confirm email change.');
+        setErrorMessage(extractGqlError(err) ?? t('confirmEmailChange.failed'));
         setStatus('error');
       });
 
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, t]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="w-full max-w-sm bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Confirm email change
+            {t('confirmEmailChange.title')}
           </h1>
         </div>
 
         {status === 'confirming' && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">Confirming your new email…</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t('confirmEmailChange.confirming')}
+          </p>
         )}
 
-        {status === 'success' && (
-          <Alert tone="success">
-            Your email address has been updated. Sign in again with your new email.
-          </Alert>
-        )}
+        {status === 'success' && <Alert tone="success">{t('confirmEmailChange.success')}</Alert>}
 
         {status === 'error' && (
-          <Alert>{token ? errorMessage : 'This confirmation link is invalid.'}</Alert>
+          <Alert>{token ? errorMessage : t('confirmEmailChange.invalidLink')}</Alert>
         )}
 
         <p className="text-sm text-gray-500 dark:text-gray-400">
           <a href="/login" className="text-blue-600 hover:underline">
-            Back to sign in
+            {t('auth.backToSignIn')}
           </a>
         </p>
       </div>
