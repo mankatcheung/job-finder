@@ -494,5 +494,14 @@
   "offerCompare.roleHeader": "Role",
   "offerCompare.baseYearlyHeader": "Base (Yearly)",
   "offerCompare.totalCompHeader": "Total Comp",
-  "offerCompare.best": "Best"
+  "offerCompare.best": "Best",
+  "documentDraft.newDraftTitle": "New Document Draft",
+  "documentDraft.typeLabel": "Type",
+  "documentDraft.titleLabel": "Title",
+  "documentDraft.startFromLabel": "Start from (optional)",
+  "documentDraft.startFromHelp": "Import text from an existing document, or start blank.",
+  "documentDraft.blankOption": "Blank (start from scratch)",
+  "documentDraft.createDraft": "Create Draft",
+  "documentDraft.creating": "Creating…",
+  "documentDraft.createFailed": "Failed to create draft"
 }

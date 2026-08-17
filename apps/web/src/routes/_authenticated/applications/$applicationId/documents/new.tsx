@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import { Alert, Button, FormLabel, Input, Select } from '@trakwyn/ui';
 
 const CREATE_DRAFT_MUTATION = `
@@ -37,6 +38,7 @@ export const Route = createFileRoute('/_authenticated/applications/$applicationI
 });
 
 function NewDocumentDraftPage() {
+  const { t } = useLocale();
   const { applicationId } = Route.useParams();
   const navigate = useNavigate();
   const [type, setType] = useState<'cover_letter' | 'resume'>('cover_letter');
@@ -91,7 +93,9 @@ function NewDocumentDraftPage() {
         input: {
           applicationId,
           type,
-          title: title || (type === 'cover_letter' ? 'Cover Letter' : 'Resume'),
+          title:
+            title ||
+            (type === 'cover_letter' ? t('documents.cover_letter') : t('documents.resume')),
           contentJson,
           plainText,
           sourceDocumentId: sourceDocumentId || null,
@@ -106,7 +110,7 @@ function NewDocumentDraftPage() {
         },
       });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to create draft');
+      setError(err instanceof Error ? err.message : t('documentDraft.createFailed'));
     } finally {
       setLoading(false);
     }
@@ -115,13 +119,13 @@ function NewDocumentDraftPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
-        New Document Draft
+        {t('documentDraft.newDraftTitle')}
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Type
+            {t('documentDraft.typeLabel')}
           </label>
           <div className="flex gap-3">
             <button
@@ -133,7 +137,7 @@ function NewDocumentDraftPage() {
                   : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
             >
-              Cover Letter
+              {t('documents.cover_letter')}
             </button>
             <button
               type="button"
@@ -144,33 +148,35 @@ function NewDocumentDraftPage() {
                   : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
             >
-              Resume
+              {t('documents.resume')}
             </button>
           </div>
         </div>
 
         <div>
-          <FormLabel>Title</FormLabel>
+          <FormLabel>{t('documentDraft.titleLabel')}</FormLabel>
           <Input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder={type === 'cover_letter' ? 'Cover Letter' : 'Resume'}
+            placeholder={
+              type === 'cover_letter' ? t('documents.cover_letter') : t('documents.resume')
+            }
           />
         </div>
 
         <div>
-          <FormLabel>Start from (optional)</FormLabel>
+          <FormLabel>{t('documentDraft.startFromLabel')}</FormLabel>
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-            Import text from an existing document, or start blank.
+            {t('documentDraft.startFromHelp')}
           </p>
           {loadingDocs ? (
             <Select disabled>
-              <option>Loading…</option>
+              <option>{t('common.loading')}</option>
             </Select>
           ) : (
             <Select value={sourceDocumentId} onChange={(e) => setSourceDocumentId(e.target.value)}>
-              <option value="">Blank (start from scratch)</option>
+              <option value="">{t('documentDraft.blankOption')}</option>
               {documents.map((doc) => (
                 <option key={doc.id} value={doc.id}>
                   {doc.name} ({doc.documentType})
@@ -190,10 +196,10 @@ function NewDocumentDraftPage() {
               navigate({ to: '/applications/$applicationId', params: { applicationId } })
             }
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={loading || !title.trim()}>
-            {loading ? 'Creating…' : 'Create Draft'}
+            {loading ? t('documentDraft.creating') : t('documentDraft.createDraft')}
           </Button>
         </div>
       </form>

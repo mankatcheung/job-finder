@@ -488,5 +488,14 @@
   "offerCompare.roleHeader": "職位",
   "offerCompare.baseYearlyHeader": "基本薪酬（年）",
   "offerCompare.totalCompHeader": "總薪酬",
-  "offerCompare.best": "最佳"
+  "offerCompare.best": "最佳",
+  "documentDraft.newDraftTitle": "新增文件草稿",
+  "documentDraft.typeLabel": "類型",
+  "documentDraft.titleLabel": "標題",
+  "documentDraft.startFromLabel": "起始內容（選填）",
+  "documentDraft.startFromHelp": "從現有文件匯入文字，或從空白開始。",
+  "documentDraft.blankOption": "空白（從頭開始）",
+  "documentDraft.createDraft": "建立草稿",
+  "documentDraft.creating": "建立中…",
+  "documentDraft.createFailed": "建立草稿失敗"
 }
