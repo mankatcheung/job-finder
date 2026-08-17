@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocale } from '#/lib/i18n';
 import { Button, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
 
 interface OfferFormData {
@@ -29,14 +30,10 @@ interface OfferFormProps {
 }
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF', 'HKD', 'TWD', 'CNY'];
-const PERIODS = [
-  { value: 'yearly', label: 'Yearly' },
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'hourly', label: 'Hourly' },
-];
+const PERIODS = ['yearly', 'monthly', 'weekly', 'hourly'];
 
 export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFormProps) {
+  const { t } = useLocale();
   const [formData, setFormData] = useState<OfferFormData>({
     baseSalary: initialData?.baseSalary ?? 0,
     bonus: initialData?.bonus ?? null,
@@ -57,7 +54,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <FormLabel>Base Salary *</FormLabel>
+          <FormLabel>{t('offerForm.baseSalaryLabel')}</FormLabel>
           <Input
             type="number"
             value={formData.baseSalary}
@@ -67,7 +64,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
           />
         </div>
         <div>
-          <FormLabel>Bonus</FormLabel>
+          <FormLabel>{t('offerForm.bonusLabel')}</FormLabel>
           <Input
             type="number"
             value={formData.bonus ?? ''}
@@ -81,7 +78,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <FormLabel>Currency</FormLabel>
+          <FormLabel>{t('offerForm.currencyLabel')}</FormLabel>
           <Select
             value={formData.currency}
             onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
@@ -94,14 +91,14 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
           </Select>
         </div>
         <div>
-          <FormLabel>Period</FormLabel>
+          <FormLabel>{t('offerForm.periodLabel')}</FormLabel>
           <Select
             value={formData.period}
             onChange={(e) => setFormData({ ...formData, period: e.target.value })}
           >
             {PERIODS.map((p) => (
-              <option key={p.value} value={p.value}>
-                {p.label}
+              <option key={p} value={p}>
+                {t(`offerForm.${p}`)}
               </option>
             ))}
           </Select>
@@ -109,27 +106,27 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
       </div>
 
       <div>
-        <FormLabel>Equity</FormLabel>
+        <FormLabel>{t('offerForm.equityLabel')}</FormLabel>
         <Input
           type="text"
           value={formData.equity}
           onChange={(e) => setFormData({ ...formData, equity: e.target.value })}
-          placeholder="e.g., 1000 RSUs over 4 years"
+          placeholder={t('offerForm.equityPlaceholder')}
         />
       </div>
 
       <div>
-        <FormLabel>Benefits</FormLabel>
+        <FormLabel>{t('offerForm.benefitsLabel')}</FormLabel>
         <Textarea
           value={formData.benefits}
           onChange={(e) => setFormData({ ...formData, benefits: e.target.value })}
-          placeholder="e.g., Health insurance, 401k match, unlimited PTO"
+          placeholder={t('offerForm.benefitsPlaceholder')}
           rows={2}
         />
       </div>
 
       <div>
-        <FormLabel>Cost of Living Adjustment (%)</FormLabel>
+        <FormLabel>{t('offerForm.costOfLivingLabel')}</FormLabel>
         <Input
           type="number"
           value={formData.costOfLivingAdjustment ?? ''}
@@ -143,7 +140,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
       </div>
 
       <div>
-        <FormLabel>Notes</FormLabel>
+        <FormLabel>{t('offerForm.notesLabel')}</FormLabel>
         <Textarea
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -153,10 +150,10 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
 
       <div className="flex gap-3 justify-end">
         <Button type="button" variant="secondary" onClick={onCancel}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="submit" disabled={loading || formData.baseSalary <= 0}>
-          {loading ? 'Saving…' : 'Save Offer'}
+          {loading ? t('applicationForm.saving') : t('offerForm.saveOffer')}
         </Button>
       </div>
     </form>

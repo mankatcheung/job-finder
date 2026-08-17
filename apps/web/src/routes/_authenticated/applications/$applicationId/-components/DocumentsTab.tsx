@@ -5,6 +5,7 @@ import { put as putBlob } from '@vercel/blob/client';
 import { CheckIcon, ExternalLinkIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
+import { useLocale } from '#/lib/i18n';
 import { Button, Card, FormLabel, Input, Select } from '@trakwyn/ui';
 import { DocumentPreviewModal, isPreviewableMimeType } from './DocumentPreviewModal';
 
@@ -67,13 +68,6 @@ type PendingUpload = {
   sizeBytes: number;
 };
 
-const DOC_TYPE_LABELS: Record<string, string> = {
-  resume: 'Resume',
-  cover_letter: 'Cover Letter',
-  portfolio: 'Portfolio',
-  other: 'Other',
-};
-
 const DOC_TYPE_BADGE: Record<string, string> = {
   resume: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   cover_letter: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
@@ -81,6 +75,7 @@ const DOC_TYPE_BADGE: Record<string, string> = {
 };
 
 export function DocumentsTab({ applicationId }: { applicationId: string }) {
+  const { t } = useLocale();
   const qc = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -168,7 +163,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
       setDocType('other');
       setDocVersion('');
     } catch {
-      setUploadError('Upload failed. Please try again.');
+      setUploadError(t('documents.uploadFailedError'));
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -193,7 +188,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
       qc.invalidateQueries({ queryKey: ['documents', applicationId] });
       setPendingUpload(null);
     } catch {
-      setUploadError('Failed to save document. Please try again.');
+      setUploadError(t('documents.saveFailedError'));
     } finally {
       setConfirming(false);
     }
@@ -210,7 +205,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
           params={{ applicationId }}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
         >
-          <PlusIcon size={14} /> <span className="hidden sm:inline">New Draft</span>
+          <PlusIcon size={14} /> <span className="hidden sm:inline">{t('documents.newDraft')}</span>
         </Link>
       </div>
 
@@ -230,7 +225,9 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full font-medium ${draft.type === 'cover_letter' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}`}
                   >
-                    {draft.type === 'cover_letter' ? 'Cover Letter' : 'Resume'}
+                    {draft.type === 'cover_letter'
+                      ? t('documents.cover_letter')
+                      : t('documents.resume')}
                   </span>
                   <span className="text-xs text-gray-400">
                     {new Date(draft.updatedAt).toLocaleDateString()}
@@ -250,7 +247,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
                     }),
                   );
                   showUndoToast({
-                    message: 'Draft deleted',
+                    message: t('documents.draftDeletedToast'),
                     onExecute: () => deleteDraft.mutate(draft.id),
                     onUndo: () => qc.setQueryData(['documentDrafts', applicationId], snapshot),
                   });
@@ -275,11 +272,13 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
             />
             <div className="text-sm text-gray-500 dark:text-gray-400">
               {uploading ? (
-                <span>Uploading…</span>
+                <span>{t('documents.uploading')}</span>
               ) : (
                 <>
-                  <span className="text-blue-600 font-medium hover:underline">Click to upload</span>{' '}
-                  a document
+                  <span className="text-blue-600 font-medium hover:underline">
+                    {t('documents.clickToUpload')}
+                  </span>{' '}
+                  {t('documents.uploadPromptSuffix')}
                 </>
               )}
             </div>
@@ -291,29 +290,30 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
       {pendingUpload && (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-blue-200 dark:border-blue-700 p-4 space-y-3">
           <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            Uploaded:{' '}
+            {t('documents.uploaded')}{' '}
             <span className="font-normal text-gray-600 dark:text-gray-400">
               {pendingUpload.name}
             </span>
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <FormLabel size="xs">Document type</FormLabel>
+              <FormLabel size="xs">{t('documents.documentTypeLabel')}</FormLabel>
               <Select value={docType} onChange={(e) => setDocType(e.target.value)}>
-                <option value="other">Other</option>
-                <option value="resume">Resume</option>
-                <option value="cover_letter">Cover Letter</option>
-                <option value="portfolio">Portfolio</option>
+                <option value="other">{t('documents.other')}</option>
+                <option value="resume">{t('documents.resume')}</option>
+                <option value="cover_letter">{t('documents.cover_letter')}</option>
+                <option value="portfolio">{t('documents.portfolio')}</option>
               </Select>
             </div>
             <div>
               <FormLabel size="xs">
-                Version <span className="font-normal">(optional)</span>
+                {t('documents.versionLabel')}{' '}
+                <span className="font-normal">({t('common.optional')})</span>
               </FormLabel>
               <Input
                 value={docVersion}
                 onChange={(e) => setDocVersion(e.target.value)}
-                placeholder="e.g. v2"
+                placeholder={t('documents.versionPlaceholder')}
               />
             </div>
           </div>
@@ -322,12 +322,12 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
               size="sm"
               onClick={handleConfirm}
               disabled={confirming}
-              aria-label="Confirm upload"
+              aria-label={t('documents.confirmUpload')}
             >
               <span className="flex items-center gap-1">
                 <CheckIcon size={14} />{' '}
                 <span className="hidden sm:inline">
-                  {confirming ? 'Saving…' : 'Confirm upload'}
+                  {confirming ? t('applicationForm.saving') : t('documents.confirmUpload')}
                 </span>
               </span>
             </Button>
@@ -335,10 +335,10 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
               variant="ghost"
               size="sm"
               onClick={() => setPendingUpload(null)}
-              aria-label="Cancel"
+              aria-label={t('common.cancel')}
             >
               <span className="flex items-center gap-1">
-                <XIcon size={14} /> <span className="hidden sm:inline">Cancel</span>
+                <XIcon size={14} /> <span className="hidden sm:inline">{t('common.cancel')}</span>
               </span>
             </Button>
           </div>
@@ -372,7 +372,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full font-medium ${DOC_TYPE_BADGE[doc.documentType] ?? ''}`}
                 >
-                  {DOC_TYPE_LABELS[doc.documentType] ?? doc.documentType}
+                  {t(`documents.${doc.documentType}`, { defaultValue: doc.documentType })}
                 </span>
               )}
               {doc.version && <span className="text-xs text-gray-400">{doc.version}</span>}
@@ -387,7 +387,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
               target="_blank"
               rel="noopener noreferrer"
               className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
-              title="Open in new tab"
+              title={t('documents.openInNewTab')}
             >
               <ExternalLinkIcon size={14} />
             </a>
@@ -404,7 +404,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
                   }),
                 );
                 showUndoToast({
-                  message: 'Document deleted',
+                  message: t('documents.documentDeletedToast'),
                   onExecute: () => deleteDoc.mutate(doc.id),
                   onUndo: () => qc.setQueryData(['documents', applicationId], snapshot),
                 });
