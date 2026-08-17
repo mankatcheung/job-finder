@@ -4,6 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { CopyIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
+import { useLocale } from '#/lib/i18n';
 import { Button, Card, FormLabel, Spinner, Textarea } from '@trakwyn/ui';
 
 const GENERATE_COVER_LETTER = `
@@ -13,6 +14,7 @@ const GENERATE_COVER_LETTER = `
 `;
 
 export function CoverLetterTab({ applicationId }: { applicationId: string }) {
+  const { t } = useLocale();
   const [resumeText, setResumeText] = useState('');
   const [coverLetter, setCoverLetter] = useState('');
   const [copied, setCopied] = useState(false);
@@ -40,16 +42,16 @@ export function CoverLetterTab({ applicationId }: { applicationId: string }) {
       <Card className="p-4 space-y-3">
         <div>
           <FormLabel>
-            Your resume / background{' '}
+            {t('coverLetter.resumeBackgroundLabel')}{' '}
             <span className="font-normal text-gray-400">
-              (optional — paste for a tailored letter)
+              ({t('coverLetter.optionalTailoredNote')})
             </span>
           </FormLabel>
           <Textarea
             value={resumeText}
             onChange={(e) => setResumeText(e.target.value)}
             rows={6}
-            placeholder="Paste your resume or relevant experience here…"
+            placeholder={t('coverLetter.pastePlaceholder')}
           />
         </div>
         <Button onClick={() => generate.mutate()} disabled={generate.isPending}>
@@ -57,10 +59,15 @@ export function CoverLetterTab({ applicationId }: { applicationId: string }) {
             {generate.isPending ? (
               <>
                 <Spinner tone="white" />
-                Generating…
+                {t('coverLetter.generating')}
               </>
             ) : (
-              <>✨ {coverLetter ? 'Regenerate' : 'Generate cover letter'}</>
+              <>
+                ✨{' '}
+                {coverLetter
+                  ? t('companyBriefing.regenerate')
+                  : t('coverLetter.generateCoverLetter')}
+              </>
             )}
           </span>
         </Button>
@@ -68,11 +75,11 @@ export function CoverLetterTab({ applicationId }: { applicationId: string }) {
           <p className="text-sm text-red-600 dark:text-red-400">
             {getGqlErrorCode(generate.error) === AI_NOT_CONFIGURED_CODE ? (
               <>
-                Add your AI API key in{' '}
+                {t('resumeMatch.addApiKeyPrefix')}{' '}
                 <Link to="/settings/profile" className="underline">
-                  Account settings
+                  {t('resumeMatch.accountSettingsLinkText')}
                 </Link>{' '}
-                to use this feature.
+                {t('resumeMatch.addApiKeySuffix')}
               </>
             ) : (
               (generate.error as Error).message
@@ -85,12 +92,19 @@ export function CoverLetterTab({ applicationId }: { applicationId: string }) {
         <Card className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Generated cover letter
+              {t('coverLetter.generatedTitle')}
             </h3>
-            <Button variant="secondary" size="sm" onClick={handleCopy} aria-label="Copy">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleCopy}
+              aria-label={t('common.copy')}
+            >
               <span className="flex items-center gap-1">
                 <CopyIcon size={14} />{' '}
-                <span className="hidden sm:inline">{copied ? '✓ Copied' : 'Copy'}</span>
+                <span className="hidden sm:inline">
+                  {copied ? t('companyBriefing.copied') : t('common.copy')}
+                </span>
               </span>
             </Button>
           </div>
