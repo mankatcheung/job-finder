@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
+import { useLocale } from '#/lib/i18n';
 import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
 import {
   EXPORT_USER_DATA,
@@ -18,6 +19,7 @@ import {
 import { useStepUpReauth, STEP_UP_CANCELLED } from './useStepUpReauth';
 
 export function SettingsDataPage() {
+  const { t } = useLocale();
   const navigate = useNavigate();
   const { withStepUp, dialog: stepUpDialog } = useStepUpReauth();
 
@@ -56,7 +58,7 @@ export function SettingsDataPage() {
       });
       setImportResult(res.importUserData);
     } catch (err) {
-      setImportError(extractGqlError(err) ?? 'Failed to import data.');
+      setImportError(extractGqlError(err) ?? t('data.importFailed'));
     } finally {
       setImporting(false);
     }
@@ -72,7 +74,7 @@ export function SettingsDataPage() {
     } catch (err) {
       if (err instanceof Error && err.message === STEP_UP_CANCELLED) return;
       deleteForm.setError('root', {
-        message: extractGqlError(err) ?? 'Failed to delete account.',
+        message: extractGqlError(err) ?? t('data.deleteAccountFailed'),
       });
     }
   };
@@ -84,19 +86,18 @@ export function SettingsDataPage() {
       <section className="space-y-4">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            Export your data
+            {t('data.exportTitle')}
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Download all your applications, notes, and document metadata as a JSON file.
-          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('data.exportDescription')}</p>
         </div>
         <button
           type="button"
           onClick={onExport}
-          aria-label="Download export"
+          aria-label={t('data.downloadExport')}
           className="flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-sm font-medium rounded-lg transition-colors"
         >
-          <DownloadIcon size={14} /> <span className="hidden sm:inline">Download export</span>
+          <DownloadIcon size={14} />{' '}
+          <span className="hidden sm:inline">{t('data.downloadExport')}</span>
         </button>
       </section>
 
@@ -106,17 +107,14 @@ export function SettingsDataPage() {
       <section className="space-y-4">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            Import your data
+            {t('data.importTitle')}
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Upload a JSON export file to recreate your applications and notes. Documents can&apos;t
-            be restored from an export and will be skipped.
-          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('data.importDescription')}</p>
         </div>
         <label className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-sm font-medium rounded-lg transition-colors cursor-pointer">
           <UploadIcon size={14} />{' '}
           <span className="hidden sm:inline">
-            {importing ? 'Importing…' : 'Choose file to import'}
+            {importing ? t('data.importing') : t('data.chooseFileToImport')}
           </span>
           <input
             type="file"
@@ -129,13 +127,12 @@ export function SettingsDataPage() {
         {importError && <Alert>{importError}</Alert>}
         {importResult && (
           <p className="text-sm text-green-600">
-            Imported {importResult.applicationsImported} application
-            {importResult.applicationsImported === 1 ? '' : 's'} and {importResult.notesImported}{' '}
-            note{importResult.notesImported === 1 ? '' : 's'}.
+            {t('data.importedApplications', { count: importResult.applicationsImported })}{' '}
+            {t('data.andNotes', { count: importResult.notesImported })}
             {importResult.applicationsSkipped > 0 &&
-              ` Skipped ${importResult.applicationsSkipped} invalid application${importResult.applicationsSkipped === 1 ? '' : 's'}.`}
+              ` ${t('data.skippedApplications', { count: importResult.applicationsSkipped })}`}
             {importResult.documentsSkipped > 0 &&
-              ` Skipped ${importResult.documentsSkipped} document${importResult.documentsSkipped === 1 ? '' : 's'} (not supported).`}
+              ` ${t('data.skippedDocuments', { count: importResult.documentsSkipped })}`}
           </p>
         )}
       </section>
@@ -145,14 +142,14 @@ export function SettingsDataPage() {
       {/* ── Danger zone ── */}
       <section className="space-y-4">
         <div>
-          <h2 className="text-base font-semibold text-red-600">Danger zone</h2>
+          <h2 className="text-base font-semibold text-red-600">{t('data.dangerZoneTitle')}</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Permanently delete your account and all associated data. This cannot be undone.
+            {t('data.dangerZoneDescription')}
           </p>
         </div>
         <form onSubmit={deleteForm.handleSubmit(onDeleteAccount)} className="space-y-3">
           <div>
-            <FormLabel>Confirm your password</FormLabel>
+            <FormLabel>{t('data.confirmPasswordLabel')}</FormLabel>
             <Input
               type="password"
               {...deleteForm.register('password')}
@@ -169,7 +166,7 @@ export function SettingsDataPage() {
             <Alert>{deleteForm.formState.errors.root.message}</Alert>
           )}
           <Button type="submit" variant="destructive" disabled={deleteForm.formState.isSubmitting}>
-            {deleteForm.formState.isSubmitting ? 'Deleting…' : 'Delete my account'}
+            {deleteForm.formState.isSubmitting ? t('data.deleting') : t('data.deleteMyAccount')}
           </Button>
         </form>
       </section>
