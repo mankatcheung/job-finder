@@ -469,5 +469,18 @@
   "data.deleting": "Deleting…",
   "data.deleteMyAccount": "Delete my account",
   "data.importFailed": "Failed to import data.",
-  "data.deleteAccountFailed": "Failed to delete account."
+  "data.deleteAccountFailed": "Failed to delete account.",
+  "dashboard.title": "Dashboard",
+  "dashboard.newApplication": "New Application",
+  "dashboard.statTotal": "Total",
+  "dashboard.statFollowUpDue": "Follow-up due",
+  "dashboard.weeklyGoalTitle": "Weekly application goal",
+  "dashboard.weeklyGoalProgress": "{{current}} of {{goal}} applications this week",
+  "dashboard.streakWeeks_one": "{{count}} week streak",
+  "dashboard.streakWeeks_other": "{{count}} weeks streak",
+  "dashboard.upcomingTitle": "Upcoming",
+  "dashboard.viewCalendar": "View calendar",
+  "dashboard.eventInterview": "Interview",
+  "dashboard.recentApplicationsTitle": "Recent applications",
+  "dashboard.addFirstOne": "Add your first one →"
 }

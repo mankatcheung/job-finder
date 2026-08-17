@@ -464,5 +464,17 @@
   "data.deleting": "删除中…",
   "data.deleteMyAccount": "删除我的账户",
   "data.importFailed": "导入数据失败。",
-  "data.deleteAccountFailed": "删除账户失败。"
+  "data.deleteAccountFailed": "删除账户失败。",
+  "dashboard.title": "仪表盘",
+  "dashboard.newApplication": "新建求职申请",
+  "dashboard.statTotal": "总数",
+  "dashboard.statFollowUpDue": "待跟进",
+  "dashboard.weeklyGoalTitle": "每周求职申请目标",
+  "dashboard.weeklyGoalProgress": "本周已申请 {{current}} / {{goal}} 个",
+  "dashboard.streakWeeks_other": "连续 {{count}} 周达标",
+  "dashboard.upcomingTitle": "即将到来",
+  "dashboard.viewCalendar": "查看日历",
+  "dashboard.eventInterview": "面试",
+  "dashboard.recentApplicationsTitle": "最近的求职申请",
+  "dashboard.addFirstOne": "添加第一个 →"
 }

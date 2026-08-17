@@ -464,5 +464,17 @@
   "data.deleting": "刪除中…",
   "data.deleteMyAccount": "刪除我的帳戶",
   "data.importFailed": "匯入資料失敗。",
-  "data.deleteAccountFailed": "刪除帳戶失敗。"
+  "data.deleteAccountFailed": "刪除帳戶失敗。",
+  "dashboard.title": "主頁",
+  "dashboard.newApplication": "新增求職申請",
+  "dashboard.statTotal": "總數",
+  "dashboard.statFollowUpDue": "待跟進",
+  "dashboard.weeklyGoalTitle": "每週求職申請目標",
+  "dashboard.weeklyGoalProgress": "本週已申請 {{current}} / {{goal}} 項",
+  "dashboard.streakWeeks_other": "連續 {{count}} 週達標",
+  "dashboard.upcomingTitle": "即將到來",
+  "dashboard.viewCalendar": "查看日曆",
+  "dashboard.eventInterview": "面試",
+  "dashboard.recentApplicationsTitle": "最近嘅求職申請",
+  "dashboard.addFirstOne": "新增第一項 →"
 }
