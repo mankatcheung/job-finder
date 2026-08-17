@@ -2,8 +2,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { CookieOptions, IHttpResponse } from '#src/http/ports/IHttpResponse.js';
 import { ENV, NODE_ENV } from '#src/constants.js';
 
-function fakeReply(): { reply: IHttpResponse; cookies: Map<string, CookieOptions> } {
+function fakeReply(): {
+  reply: IHttpResponse;
+  cookies: Map<string, CookieOptions>;
+  cleared: Map<string, Pick<CookieOptions, 'path' | 'domain'>>;
+} {
   const cookies = new Map<string, CookieOptions>();
+  const cleared = new Map<string, Pick<CookieOptions, 'path' | 'domain'>>();
   const reply: IHttpResponse = {
     status: () => reply,
     send: () => {},
@@ -11,9 +16,11 @@ function fakeReply(): { reply: IHttpResponse; cookies: Map<string, CookieOptions
     setCookie: (name, _value, options) => {
       cookies.set(name, options ?? {});
     },
-    clearCookie: () => {},
+    clearCookie: (name, options) => {
+      cleared.set(name, options ?? {});
+    },
   };
-  return { reply, cookies };
+  return { reply, cookies, cleared };
 }
 
 describe('setAuthCookies sameSite policy', () => {
@@ -47,5 +54,46 @@ describe('setAuthCookies sameSite policy', () => {
     expect(cookies.get('trakwyn_refresh_token')).toMatchObject({ sameSite: 'none', secure: true });
     expect(cookies.get('trakwyn_access_token')).toMatchObject({ sameSite: 'none', secure: true });
     expect(cookies.get('trakwyn_logged_in')).toMatchObject({ sameSite: 'none', secure: true });
+  });
+});
+
+describe('setAuthCookies / clearAuthCookies domain policy', () => {
+  const originalCookieDomain = process.env[ENV.COOKIE_DOMAIN];
+
+  afterEach(() => {
+    if (originalCookieDomain === undefined) delete process.env[ENV.COOKIE_DOMAIN];
+    else process.env[ENV.COOKIE_DOMAIN] = originalCookieDomain;
+  });
+
+  it('omits domain when COOKIE_DOMAIN is unset, so cookies stay host-only', async () => {
+    delete process.env[ENV.COOKIE_DOMAIN];
+    vi.resetModules();
+    const { setAuthCookies, clearAuthCookies } =
+      await import('#src/http/schema/types/AuthPayloadType.js');
+    const { reply, cookies, cleared } = fakeReply();
+
+    setAuthCookies(reply, 'access', 'refresh');
+    clearAuthCookies(reply);
+
+    expect(cookies.get('trakwyn_logged_in')?.domain).toBeUndefined();
+    expect(cleared.get('trakwyn_logged_in')?.domain).toBeUndefined();
+  });
+
+  it('shares cookies across subdomains via COOKIE_DOMAIN, using the same value to clear them', async () => {
+    process.env[ENV.COOKIE_DOMAIN] = '.trakwyn.com';
+    vi.resetModules();
+    const { setAuthCookies, clearAuthCookies } =
+      await import('#src/http/schema/types/AuthPayloadType.js');
+    const { reply, cookies, cleared } = fakeReply();
+
+    setAuthCookies(reply, 'access', 'refresh');
+    clearAuthCookies(reply);
+
+    expect(cookies.get('trakwyn_access_token')).toMatchObject({ domain: '.trakwyn.com' });
+    expect(cookies.get('trakwyn_refresh_token')).toMatchObject({ domain: '.trakwyn.com' });
+    expect(cookies.get('trakwyn_logged_in')).toMatchObject({ domain: '.trakwyn.com' });
+    expect(cleared.get('trakwyn_access_token')).toMatchObject({ domain: '.trakwyn.com' });
+    expect(cleared.get('trakwyn_refresh_token')).toMatchObject({ domain: '.trakwyn.com' });
+    expect(cleared.get('trakwyn_logged_in')).toMatchObject({ domain: '.trakwyn.com' });
   });
 });

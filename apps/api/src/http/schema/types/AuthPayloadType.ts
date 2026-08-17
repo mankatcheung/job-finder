@@ -25,6 +25,13 @@ UploadUrlPayloadRef.implement({
 
 const isProduction = process.env[ENV.NODE_ENV] === NODE_ENV.PRODUCTION;
 
+// Web and API are deployed on separate subdomains (e.g. www.trakwyn.com /
+// api.trakwyn.com) — without an explicit Domain, cookies default to
+// host-only on api.trakwyn.com, invisible to document.cookie on
+// www.trakwyn.com. COOKIE_DOMAIN (e.g. ".trakwyn.com") shares them across
+// both. Leave unset in dev (host-only on localhost is fine there).
+const cookieDomain = process.env[ENV.COOKIE_DOMAIN];
+
 // The web app and API are deployed on separate domains, so the refresh
 // cookie must be sent cross-site on the fetch to POST /graphql that retries
 // it — that requires SameSite=None, which browsers only honor alongside
@@ -33,6 +40,7 @@ const COOKIE_BASE = {
   sameSite: isProduction ? 'none' : COOKIE_SAME_SITE,
   path: COOKIE_PATH,
   secure: isProduction,
+  ...(cookieDomain ? { domain: cookieDomain } : {}),
 } as const;
 
 export function setAuthCookies(
@@ -58,7 +66,11 @@ export function setAuthCookies(
 }
 
 export function clearAuthCookies(reply: IHttpResponse): void {
-  reply.clearCookie(COOKIES.ACCESS_TOKEN, { path: COOKIE_PATH });
-  reply.clearCookie(COOKIES.REFRESH_TOKEN, { path: COOKIE_PATH });
-  reply.clearCookie(COOKIES.LOGGED_IN, { path: COOKIE_PATH });
+  // Must match the Domain the cookie was set with, or the browser treats
+  // this as clearing a different (non-existent) cookie and leaves the
+  // original in place.
+  const clearOptions = { path: COOKIE_PATH, ...(cookieDomain ? { domain: cookieDomain } : {}) };
+  reply.clearCookie(COOKIES.ACCESS_TOKEN, clearOptions);
+  reply.clearCookie(COOKIES.REFRESH_TOKEN, clearOptions);
+  reply.clearCookie(COOKIES.LOGGED_IN, clearOptions);
 }
