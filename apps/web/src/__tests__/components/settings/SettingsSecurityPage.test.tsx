@@ -2,10 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const { mockNavigate, mockGqlRequest, mockSetAccessToken, mockPutBlob } = vi.hoisted(() => ({
+const { mockNavigate, mockGqlRequest, mockPutBlob } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockGqlRequest: vi.fn(),
-  mockSetAccessToken: vi.fn(),
   mockPutBlob: vi.fn(),
 }));
 
@@ -25,7 +24,6 @@ vi.mock('@tanstack/react-start/server', () => ({
 
 vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
-  setAccessToken: mockSetAccessToken,
 }));
 
 vi.mock('#/lib/queryClient', () => ({
@@ -474,9 +472,6 @@ describe('SettingsSecurityPage', () => {
           password: 'mypassword',
           code: undefined,
         });
-      });
-      await waitFor(() => {
-        expect(mockSetAccessToken).toHaveBeenCalledWith('new-access-token');
       });
       await waitFor(() => {
         expect(screen.queryByText("Confirm it's you")).not.toBeInTheDocument();

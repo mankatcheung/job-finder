@@ -2,10 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-const { mockNavigate, mockGqlRequest, mockSetAccessToken } = vi.hoisted(() => ({
+const { mockNavigate, mockGqlRequest } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockGqlRequest: vi.fn(),
-  mockSetAccessToken: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-router', () => ({
@@ -27,8 +26,7 @@ vi.mock('@tanstack/react-start/server', () => ({
 
 vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
-  setAccessToken: mockSetAccessToken,
-  hydrateSession: vi.fn().mockResolvedValue(false),
+  hasSessionCookie: vi.fn().mockReturnValue(false),
 }));
 
 vi.mock('#/lib/queryClient', () => ({
@@ -126,17 +124,6 @@ describe('RegisterPage', () => {
       expect(screen.getByText('Check your email')).toBeInTheDocument();
     });
     expect(screen.getByText(/test@example.com/)).toBeInTheDocument();
-  });
-
-  it('stores the returned access token before navigating', async () => {
-    mockGqlRequest.mockResolvedValue({ register: 'access-token' });
-    render(<RegisterPage />);
-    fillForm('test@example.com', 'password123', 'password123');
-    fireEvent.click(screen.getByRole('button', { name: /create account/i }));
-
-    await waitFor(() => {
-      expect(mockSetAccessToken).toHaveBeenCalledWith('access-token');
-    });
   });
 
   it('shows API error on registration failure', async () => {

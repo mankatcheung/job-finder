@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, Outlet, useChildMatches, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { gqlClient, setAccessToken } from '#/graphql/client';
+import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { useHotkeys, getKeyModifier } from '#/hooks/useHotkeys';
 import { CommandPalette } from '#/components/CommandPalette';
@@ -86,7 +86,6 @@ export function AuthenticatedLayout() {
 
   const handleLogout = async () => {
     await gqlClient.request(LOGOUT_MUTATION);
-    setAccessToken(null);
     queryClient.clear();
     await navigate({ to: '/login' });
   };

@@ -2,10 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const { mockNavigate, mockGqlRequest, mockSetAccessToken } = vi.hoisted(() => ({
+const { mockNavigate, mockGqlRequest } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockGqlRequest: vi.fn().mockResolvedValue({ me: { avatarUrl: null } }),
-  mockSetAccessToken: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-router', () => ({
@@ -31,8 +30,7 @@ vi.mock('@tanstack/react-start/server', () => ({
 
 vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
-  setAccessToken: mockSetAccessToken,
-  hydrateSession: vi.fn().mockResolvedValue(true),
+  hasSessionCookie: vi.fn().mockReturnValue(true),
 }));
 
 vi.mock('#/lib/queryClient', () => ({

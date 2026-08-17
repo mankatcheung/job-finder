@@ -2,10 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-const { mockNavigate, mockGqlRequest, mockSetAccessToken, mockUseSearch } = vi.hoisted(() => ({
+const { mockNavigate, mockGqlRequest, mockUseSearch } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockGqlRequest: vi.fn(),
-  mockSetAccessToken: vi.fn(),
   mockUseSearch: vi.fn().mockReturnValue({}),
 }));
 
@@ -28,8 +27,7 @@ vi.mock('@tanstack/react-start/server', () => ({
 
 vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
-  setAccessToken: mockSetAccessToken,
-  hydrateSession: vi.fn().mockResolvedValue(false),
+  hasSessionCookie: vi.fn().mockReturnValue(false),
 }));
 
 vi.mock('#/lib/queryClient', () => ({
@@ -120,16 +118,6 @@ describe('LoginPage', () => {
     });
   });
 
-  it('stores the returned access token before navigating', async () => {
-    mockGqlRequest.mockResolvedValue(noTotpResponse);
-    render(<LoginPage />);
-    await fillCredentials('test@example.com', 'password123');
-
-    await waitFor(() => {
-      expect(mockSetAccessToken).toHaveBeenCalledWith('access-token');
-    });
-  });
-
   it('displays API error message on login failure', async () => {
     mockGqlRequest.mockRejectedValue({
       response: {
@@ -187,7 +175,6 @@ describe('LoginPage', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith({ to: '/dashboard' });
       });
-      expect(mockSetAccessToken).toHaveBeenCalledWith('totp-access-token');
     });
 
     it('shows an error message when the code is invalid', async () => {

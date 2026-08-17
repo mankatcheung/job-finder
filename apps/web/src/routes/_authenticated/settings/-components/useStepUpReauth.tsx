@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { gqlClient, setAccessToken } from '#/graphql/client';
+import { gqlClient } from '#/graphql/client';
 import { Alert, Button, FormLabel, Input, Modal } from '@trakwyn/ui';
 import {
   REAUTHENTICATE,
@@ -80,7 +80,6 @@ function StepUpReauthDialog({
         setTotpRequired(true);
         return;
       }
-      if (res.reauthenticate.accessToken) setAccessToken(res.reauthenticate.accessToken);
       onSuccess();
     } catch (err) {
       form.setError('root', { message: extractGqlError(err) ?? 'Verification failed.' });

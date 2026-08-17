@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { gqlClient, setAccessToken } from '#/graphql/client';
+import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 import { LogoMark } from '#/components/LogoMark';
@@ -41,11 +41,10 @@ export function RegisterPage() {
 
   const onSubmit = async ({ email, password }: FormValues) => {
     try {
-      const res = await gqlClient.request<{ register: string }>(REGISTER_MUTATION, {
+      await gqlClient.request<{ register: string }>(REGISTER_MUTATION, {
         email,
         password,
       });
-      setAccessToken(res.register);
       await queryClient.resetQueries();
       setRegisteredEmail(email);
     } catch (err: unknown) {
