@@ -11,6 +11,7 @@ import { ChatDockProvider } from '#/lib/chatDock';
 import { ChatDockFooter } from '../-chat-dock-footer';
 import { ChatDockFloatingWindow } from '../-chat-dock-floating-window';
 import { NotificationInboxButton } from '../-notification-inbox';
+import { useLocale } from '#/lib/i18n';
 import {
   BarChart2Icon,
   BriefcaseIcon,
@@ -32,23 +33,24 @@ const LOGOUT_MUTATION = `mutation { logout }`;
 const AVATAR_QUERY = `query AccountAvatar { me { avatarUrl } }`;
 
 const SETTINGS_NAV = [
-  { to: '/settings/profile', label: 'Profile', icon: UserIcon },
-  { to: '/settings/experience', label: 'Experience', icon: BriefcaseIcon },
-  { to: '/settings/security', label: 'Security', icon: ShieldIcon },
-  { to: '/settings/integrations', label: 'Integrations', icon: PlugIcon },
-  { to: '/settings/notifications', label: 'Notifications', icon: BellIcon },
-  { to: '/settings/data', label: 'Data', icon: DatabaseIcon },
+  { to: '/settings/profile', labelKey: 'settings.profile', icon: UserIcon },
+  { to: '/settings/experience', labelKey: 'settings.experience', icon: BriefcaseIcon },
+  { to: '/settings/security', labelKey: 'settings.security', icon: ShieldIcon },
+  { to: '/settings/integrations', labelKey: 'settings.integrations', icon: PlugIcon },
+  { to: '/settings/notifications', labelKey: 'settings.notifications', icon: BellIcon },
+  { to: '/settings/data', labelKey: 'settings.data', icon: DatabaseIcon },
 ] as const;
 
 const MAIN_NAV = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboardIcon },
-  { to: '/applications', label: 'Applications', icon: BriefcaseIcon },
-  { to: '/calendar', label: 'Calendar', icon: CalendarIcon },
-  { to: '/analytics', label: 'Analytics', icon: BarChart2Icon },
-  { to: '/assistant', label: 'Assistant', icon: MessageCircleIcon },
+  { to: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboardIcon },
+  { to: '/applications', labelKey: 'nav.applications', icon: BriefcaseIcon },
+  { to: '/calendar', labelKey: 'nav.calendar', icon: CalendarIcon },
+  { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart2Icon },
+  { to: '/assistant', labelKey: 'nav.assistant', icon: MessageCircleIcon },
 ] as const;
 
 export function AuthenticatedLayout() {
+  const { t } = useLocale();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   // Keyed by the immediate child route (dashboard/applications/settings/…)
@@ -164,7 +166,7 @@ export function AuthenticatedLayout() {
                   key={item.to}
                   to={item.to}
                   icon={<item.icon size={18} />}
-                  label={item.label}
+                  label={t(item.labelKey)}
                   active={pathname.startsWith(item.to)}
                   staggerIndex={i}
                 />
@@ -173,7 +175,7 @@ export function AuthenticatedLayout() {
               <div className="pt-3 mt-3 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
                   <AccountAvatarIcon avatarUrl={avatarUrl} size={18} />
-                  Settings
+                  {t('nav.settings')}
                 </div>
                 <div className="ml-2 space-y-0.5">
                   {SETTINGS_NAV.map((item, i) => (
@@ -188,7 +190,7 @@ export function AuthenticatedLayout() {
                       style={{ animationDelay: `${(MAIN_NAV.length + i) * 50}ms` }}
                     >
                       <item.icon size={14} />
-                      {item.label}
+                      {t(item.labelKey)}
                     </Link>
                   ))}
                 </div>
@@ -201,7 +203,7 @@ export function AuthenticatedLayout() {
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 <LogOutIcon size={18} />
-                Sign out
+                {t('nav.signOut')}
               </button>
             </div>
           </aside>
@@ -243,7 +245,7 @@ export function AuthenticatedLayout() {
                 key={item.to}
                 to={item.to}
                 icon={<item.icon size={18} />}
-                label={item.label}
+                label={t(item.labelKey)}
                 active={pathname.startsWith(item.to)}
                 staggerIndex={i}
               />
@@ -258,7 +260,7 @@ export function AuthenticatedLayout() {
               <NavItem
                 to="/settings/profile"
                 icon={<AccountAvatarIcon avatarUrl={avatarUrl} size={18} />}
-                label="Settings"
+                label={t('nav.settings')}
                 active={pathname.startsWith('/settings')}
                 staggerDelay={MAIN_NAV.length * 50}
               />
@@ -273,7 +275,7 @@ export function AuthenticatedLayout() {
               title="Show keyboard shortcuts"
             >
               <KeyboardIcon size={18} />
-              Shortcuts
+              {t('nav.shortcuts')}
               <kbd className="ml-auto text-[10px] text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded font-mono">
                 {getKeyModifier()}+/
               </kbd>
@@ -287,7 +289,7 @@ export function AuthenticatedLayout() {
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 <LogOutIcon size={18} />
-                Sign out
+                {t('nav.signOut')}
               </button>
             </div>
           </div>
@@ -309,25 +311,25 @@ export function AuthenticatedLayout() {
           <BottomNavItem
             to="/dashboard"
             icon={<LayoutDashboardIcon size={20} />}
-            label="Dashboard"
+            label={t('nav.dashboard')}
             active={pathname.startsWith('/dashboard')}
           />
           <BottomNavItem
             to="/applications"
             icon={<BriefcaseIcon size={20} />}
-            label="Apps"
+            label={t('nav.appsShort')}
             active={pathname.startsWith('/applications')}
           />
           <BottomNavItem
             to="/calendar"
             icon={<CalendarIcon size={20} />}
-            label="Calendar"
+            label={t('nav.calendar')}
             active={pathname.startsWith('/calendar')}
           />
           <BottomNavItem
             to="/assistant"
             icon={<MessageCircleIcon size={20} />}
-            label="Assistant"
+            label={t('nav.assistant')}
             active={pathname.startsWith('/assistant')}
           />
         </nav>

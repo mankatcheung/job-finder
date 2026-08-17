@@ -7,6 +7,7 @@ import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 import { LogoMark } from '#/components/LogoMark';
+import { useLocale } from '#/lib/i18n';
 import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
 
 const schema = z
@@ -28,6 +29,7 @@ const REGISTER_MUTATION = `
 `;
 
 export function RegisterPage() {
+  const { t } = useLocale();
   const {
     register,
     handleSubmit,
@@ -79,21 +81,21 @@ export function RegisterPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                Check your email
+                {t('auth.checkEmail')}
               </h1>
               <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                We sent a verification link to{' '}
+                {t('auth.verificationSentPrefix')}{' '}
                 <span className="font-medium text-gray-900 dark:text-gray-100">
                   {registeredEmail}
                 </span>
-                . Click the link to verify your account.
+                {t('auth.verificationSentSuffix')}
               </p>
             </div>
             <Link
               to="/login"
               className="inline-block w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors text-center"
             >
-              Back to sign in
+              {t('auth.backToSignIn')}
             </Link>
           </div>
         </div>
@@ -110,18 +112,20 @@ export function RegisterPage() {
         </Link>
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Create account</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {t('auth.createAccount')}
+            </h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Already have an account?{' '}
+              {t('auth.alreadyHaveAccount')}{' '}
               <Link to="/login" className="text-blue-600 underline">
-                Sign in
+                {t('auth.signIn')}
               </Link>
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t('auth.email')}</FormLabel>
               <Input
                 type="email"
                 {...register('email')}
@@ -132,7 +136,7 @@ export function RegisterPage() {
             </div>
 
             <div>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t('auth.password')}</FormLabel>
               <Input
                 type="password"
                 {...register('password')}
@@ -145,7 +149,7 @@ export function RegisterPage() {
             </div>
 
             <div>
-              <FormLabel>Confirm password</FormLabel>
+              <FormLabel>{t('auth.confirmPassword')}</FormLabel>
               <Input
                 type="password"
                 {...register('confirmPassword')}
@@ -160,11 +164,11 @@ export function RegisterPage() {
             {errors.root && <Alert>{errors.root.message}</Alert>}
 
             <Button type="submit" disabled={isSubmitting} fullWidth>
-              {isSubmitting ? 'Creating account…' : 'Create account'}
+              {isSubmitting ? t('auth.creatingAccount') : t('auth.createAccount')}
             </Button>
           </form>
 
-          <OAuthButtons label="Sign up" />
+          <OAuthButtons label={t('auth.signUp')} />
         </div>
       </div>
     </main>

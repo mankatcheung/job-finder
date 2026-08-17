@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import { useLocale } from '#/lib/i18n';
 import {
   SearchIcon,
   BriefcaseIcon,
@@ -18,6 +19,7 @@ interface CommandItem {
 }
 
 export function CommandPalette() {
+  const { t } = useLocale();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -28,37 +30,37 @@ export function CommandPalette() {
     () => [
       {
         id: 'dashboard',
-        label: 'Go to Dashboard',
+        label: t('commands.dashboard'),
         icon: <LayoutDashboardIcon size={16} />,
         action: () => navigate({ to: '/dashboard' }),
       },
       {
         id: 'applications',
-        label: 'Go to Applications',
+        label: t('commands.applications'),
         icon: <BriefcaseIcon size={16} />,
         action: () => navigate({ to: '/applications' }),
       },
       {
         id: 'new-application',
-        label: 'New Application',
+        label: t('commands.newApplication'),
         shortcut: '⌘N',
         icon: <PlusIcon size={16} />,
         action: () => navigate({ to: '/applications/new' }),
       },
       {
         id: 'analytics',
-        label: 'Go to Analytics',
+        label: t('commands.analytics'),
         icon: <BarChart2Icon size={16} />,
         action: () => navigate({ to: '/analytics' }),
       },
       {
         id: 'account',
-        label: 'Go to Account',
+        label: t('commands.account'),
         icon: <UserIcon size={16} />,
         action: () => navigate({ to: '/account' }),
       },
     ],
-    [navigate],
+    [navigate, t],
   );
 
   const filtered = useMemo(() => {
@@ -114,7 +116,7 @@ export function CommandPalette() {
           <input
             ref={inputRef}
             type="text"
-            placeholder="Type a command..."
+            placeholder={t('commands.placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -126,7 +128,9 @@ export function CommandPalette() {
         </div>
         <ul className="max-h-64 overflow-auto py-2">
           {filtered.length === 0 && (
-            <li className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">No results</li>
+            <li className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+              {t('commands.noResults')}
+            </li>
           )}
           {filtered.map((cmd, i) => (
             <li

@@ -8,6 +8,7 @@ import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 import { getErrorMessage } from '#/lib/errors';
 import { LogoMark } from '#/components/LogoMark';
+import { useLocale } from '#/lib/i18n';
 import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
 
 const schema = z.object({
@@ -41,6 +42,7 @@ const LOGIN_WITH_TOTP_MUTATION = `
 `;
 
 export function LoginPage() {
+  const { t } = useLocale();
   const navigate = useNavigate();
   const { oauthError } = useSearch({ strict: false }) as { oauthError?: string };
   const [pendingCredentials, setPendingCredentials] = useState<FormValues | null>(null);
@@ -83,11 +85,13 @@ export function LoginPage() {
         </Link>
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Sign in</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {t('auth.signIn')}
+            </h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Don&apos;t have an account?{' '}
+              {t('auth.noAccount')}{' '}
               <Link to="/register" className="text-blue-600 underline">
-                Register
+                {t('auth.register')}
               </Link>
             </p>
           </div>
@@ -96,7 +100,7 @@ export function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t('auth.email')}</FormLabel>
               <Input
                 type="email"
                 {...register('email')}
@@ -109,10 +113,10 @@ export function LoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Password
+                  {t('auth.password')}
                 </label>
                 <Link to="/forgot-password" className="text-xs text-blue-600 hover:underline">
-                  Forgot password?
+                  {t('auth.forgotPassword')}
                 </Link>
               </div>
               <Input
@@ -130,11 +134,11 @@ export function LoginPage() {
               <Alert>
                 {errors.root.message?.includes('register') ? (
                   <>
-                    No account found with this email.{' '}
+                    {t('auth.noAccountFound')}{' '}
                     <Link to="/register" className="underline font-medium hover:text-red-700">
-                      Register
+                      {t('auth.register')}
                     </Link>{' '}
-                    to create one.
+                    {t('auth.createOne')}
                   </>
                 ) : (
                   (errors.root.message ?? '')
@@ -143,11 +147,11 @@ export function LoginPage() {
             )}
 
             <Button type="submit" disabled={isSubmitting} fullWidth>
-              {isSubmitting ? 'Signing in…' : 'Sign in'}
+              {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
             </Button>
           </form>
 
-          <OAuthButtons label="Sign in" />
+          <OAuthButtons label={t('auth.signIn')} />
         </div>
       </div>
     </main>
