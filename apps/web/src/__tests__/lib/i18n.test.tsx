@@ -32,4 +32,25 @@ describe('i18n', () => {
     expect(screen.getByText(/zh-CN\|仪表盘\|/)).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('zh-CN');
   });
+
+  it('substitutes interpolation values and picks the plural form from count', () => {
+    window.history.replaceState({}, '', '/?locale=en');
+    function InterpolationProbe() {
+      const { t } = useLocale();
+      return (
+        <output>
+          {t('applications.selectCompany', { company: 'Acme' })}|
+          {t('applications.deleted', { count: 1 })}|{t('applications.deleted', { count: 3 })}
+        </output>
+      );
+    }
+    render(
+      <LocaleProvider>
+        <InterpolationProbe />
+      </LocaleProvider>,
+    );
+    expect(
+      screen.getByText('Select Acme|1 application deleted|3 applications deleted'),
+    ).toBeInTheDocument();
+  });
 });

@@ -66,16 +66,16 @@ describe('KanbanBoard', () => {
     render(<KanbanBoard />, { wrapper: Wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText('draft')).toBeInTheDocument();
+      expect(screen.getByText('Draft')).toBeInTheDocument();
     });
     for (const status of [
-      'draft',
-      'applied',
-      'interviewing',
-      'offered',
-      'accepted',
-      'rejected',
-      'withdrawn',
+      'Draft',
+      'Applied',
+      'Interviewing',
+      'Offered',
+      'Accepted',
+      'Rejected',
+      'Withdrawn',
     ]) {
       expect(screen.getByText(status)).toBeInTheDocument();
     }

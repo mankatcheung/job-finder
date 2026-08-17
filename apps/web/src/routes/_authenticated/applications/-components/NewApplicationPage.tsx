@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { getErrorMessage } from '#/lib/errors';
+import { useLocale } from '#/lib/i18n';
 import { StarIcon, XIcon } from 'lucide-react';
 import { Alert, Button, Checkbox, FormLabel, Input, Textarea } from '@trakwyn/ui';
 import { JdImportPanel } from './JdImportPanel';
@@ -48,6 +49,7 @@ function Field({
 }
 
 export function NewApplicationPage() {
+  const { t } = useLocale();
   const navigate = useNavigate();
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
@@ -96,10 +98,10 @@ export function NewApplicationPage() {
           href="/applications"
           className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
         >
-          ← Applications
+          {t('applicationForm.backToApplications')}
         </a>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">
-          New application
+          {t('applicationForm.newTitle')}
         </h1>
       </div>
 
@@ -118,15 +120,15 @@ export function NewApplicationPage() {
         className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 space-y-4"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Company *" error={errors.company?.message}>
+          <Field label={t('applicationForm.companyLabel')} error={errors.company?.message}>
             <Input {...register('company')} invalid={!!errors.company} placeholder="Acme Corp" />
           </Field>
-          <Field label="Role *" error={errors.role?.message}>
+          <Field label={t('applicationForm.roleLabel')} error={errors.role?.message}>
             <Input {...register('role')} invalid={!!errors.role} placeholder="Senior Engineer" />
           </Field>
         </div>
 
-        <Field label="Job URL" error={errors.jobUrl?.message}>
+        <Field label={t('applicationForm.jobUrlLabel')} error={errors.jobUrl?.message}>
           <Input
             {...register('jobUrl')}
             invalid={!!errors.jobUrl}
@@ -136,15 +138,15 @@ export function NewApplicationPage() {
         </Field>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Location">
+          <Field label={t('applicationForm.locationLabel')}>
             <Input {...register('location')} placeholder="Remote / San Francisco" />
           </Field>
-          <Field label="Salary range">
+          <Field label={t('applicationForm.salaryRangeLabel')}>
             <Input {...register('salaryRange')} placeholder="$120k–$160k" />
           </Field>
         </div>
 
-        <Field label="Description / Notes">
+        <Field label={t('applicationForm.descriptionLabel')}>
           <Textarea
             {...register('description')}
             className="h-28"
@@ -153,15 +155,15 @@ export function NewApplicationPage() {
         </Field>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Source">
+          <Field label={t('applicationForm.sourceLabel')}>
             <Input {...register('source')} placeholder="LinkedIn, referral, Indeed…" />
           </Field>
-          <Field label="Follow-up date">
+          <Field label={t('applicationForm.followUpDateLabel')}>
             <Input {...register('followUpAt')} type="date" />
           </Field>
         </div>
 
-        <Field label="Tags">
+        <Field label={t('applicationForm.tagsLabel')}>
           <div className="space-y-2">
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
@@ -193,7 +195,7 @@ export function NewApplicationPage() {
                   setTagInput('');
                 }
               }}
-              placeholder="Type a tag and press Enter…"
+              placeholder={t('applicationForm.tagPlaceholder')}
             />
           </div>
         </Field>
@@ -204,7 +206,8 @@ export function NewApplicationPage() {
             htmlFor="starred-new"
             className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none"
           >
-            <StarIcon size={14} className="text-yellow-400" /> Star this application
+            <StarIcon size={14} className="text-yellow-400" />{' '}
+            {t('applicationForm.starThisApplication')}
           </label>
         </div>
 
@@ -212,13 +215,13 @@ export function NewApplicationPage() {
 
         <div className="flex gap-3 pt-2">
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving…' : 'Save application'}
+            {isSubmitting ? t('applicationForm.saving') : t('applicationForm.saveApplication')}
           </Button>
           <a
             href="/applications"
             className="px-5 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
           >
-            Cancel
+            {t('common.cancel')}
           </a>
         </div>
       </form>

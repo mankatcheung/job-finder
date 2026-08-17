@@ -17,6 +17,7 @@ import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { StatusBadge } from '../-components/StatusBadge';
 import { ErrorState } from '#/components/ErrorState';
 import { ListIcon, PlusIcon, StarIcon } from 'lucide-react';
+import { useLocale } from '#/lib/i18n';
 import { boardApplicationsQueryOptions, type BoardApplication } from './-board-queries';
 import { Skeleton } from '@trakwyn/ui';
 
@@ -49,6 +50,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export function KanbanBoard() {
+  const { t } = useLocale();
   const qc = useQueryClient();
   const [activeApp, setActiveApp] = useState<Application | null>(null);
 
@@ -129,23 +131,25 @@ export function KanbanBoard() {
   return (
     <div className="p-4 sm:p-6 flex flex-col h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Board</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          {t('applications.board')}
+        </h1>
         <div className="flex items-center gap-2">
           <Link
             to="/applications"
-            aria-label="Switch to list view"
+            aria-label={t('applications.switchToListView')}
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg"
           >
             <ListIcon size={13} />
-            <span className="hidden sm:inline">List</span>
+            <span className="hidden sm:inline">{t('applications.list')}</span>
           </Link>
           <Link
             to="/applications/new"
-            aria-label="New application"
+            aria-label={t('applications.newApplicationAria')}
             className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
           >
             <PlusIcon size={15} />
-            <span className="hidden sm:inline">+ New</span>
+            <span className="hidden sm:inline">{t('applications.newShort')}</span>
           </Link>
         </div>
       </div>
@@ -164,6 +168,7 @@ export function KanbanBoard() {
 }
 
 function Column({ status, apps }: { status: string; apps: Application[] }) {
+  const { t } = useLocale();
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
@@ -173,7 +178,7 @@ function Column({ status, apps }: { status: string; apps: Application[] }) {
     >
       <div className="flex items-center justify-between px-3 py-2.5">
         <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 capitalize">
-          {status}
+          {t(`status.${status}`)}
         </span>
         <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded-full">
           {apps.length}
@@ -200,6 +205,7 @@ function DraggableCard({ app }: { app: Application }) {
 }
 
 function AppCard({ app, isDragging }: { app: Application; isDragging?: boolean }) {
+  const { t } = useLocale();
   return (
     <Link
       to="/applications/$applicationId"
@@ -219,7 +225,7 @@ function AppCard({ app, isDragging }: { app: Application; isDragging?: boolean }
         <StatusBadge status={app.status as ApplicationStatus} />
         {app.likelyGhosted && (
           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
-            Likely ghosted
+            {t('applications.likelyGhosted')}
           </span>
         )}
       </div>

@@ -74,10 +74,13 @@ function writeLocaleToUrl(locale: Locale): void {
   window.history.replaceState(window.history.state, '', url);
 }
 
+/** i18next interpolation values, e.g. `{{count}}`/`{{term}}` placeholders — also drives plural-form selection when `count` is present. */
+type TranslateOptions = Record<string, string | number>;
+
 interface LocaleContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (key: string) => string;
+  t: (key: string, options?: TranslateOptions) => string;
   formatDate: (value: Date | string | number, options?: Intl.DateTimeFormatOptions) => string;
   formatNumber: (value: number, options?: Intl.NumberFormatOptions) => string;
 }
@@ -107,7 +110,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
         writeLocaleToUrl(next);
         void i18next.changeLanguage(next);
       },
-      t: (key) => String(i18next.getFixedT(locale)(key)),
+      t: (key, options) => String(i18next.getFixedT(locale)(key, options)),
       formatDate: (valueToFormat, options) =>
         new Intl.DateTimeFormat(locale, options).format(
           typeof valueToFormat === 'string' ? new Date(valueToFormat) : valueToFormat,
@@ -148,7 +151,7 @@ export function useLocale(): LocaleContextValue {
   return {
     locale,
     setLocale: (next) => void i18n.changeLanguage(next),
-    t: (key) => String(t(key)),
+    t: (key, options) => String(t(key, options)),
     formatDate: (valueToFormat, options) =>
       new Intl.DateTimeFormat(locale, options).format(
         typeof valueToFormat === 'string' ? new Date(valueToFormat) : valueToFormat,

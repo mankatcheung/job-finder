@@ -3,6 +3,7 @@ import { useInfiniteQuery, useQueryClient, type InfiniteData } from '@tanstack/r
 import { useState, useEffect, useMemo } from 'react';
 import { showUndoToast } from '#/lib/undoToast';
 import { ErrorState } from '#/components/ErrorState';
+import { useLocale } from '#/lib/i18n';
 import { Card, Checkbox, EmptyState, Skeleton, Spinner } from '@trakwyn/ui';
 import { StatusBadge } from '../../-components/StatusBadge';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
@@ -30,6 +31,7 @@ import {
 } from '../index';
 
 function ApplicationsPage() {
+  const { t } = useLocale();
   const { status, starred, likelyGhosted } = Route.useSearch();
   const [searchInput, setSearchInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -85,23 +87,25 @@ function ApplicationsPage() {
   return (
     <div className="p-4 sm:p-8 max-w-5xl mx-auto pb-24">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Applications</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          {t('applications.title')}
+        </h1>
         <div className="flex items-center gap-2">
           <Link
             to="/applications/board"
-            aria-label="Switch to board view"
+            aria-label={t('applications.switchToBoardView')}
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors"
           >
             <KanbanIcon size={15} />
-            <span className="hidden sm:inline">Board</span>
+            <span className="hidden sm:inline">{t('applications.board')}</span>
           </Link>
           <Link
             to="/applications/new"
-            aria-label="New application"
+            aria-label={t('applications.newApplicationAria')}
             className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
           >
             <PlusIcon size={15} />
-            <span className="hidden sm:inline">New</span>
+            <span className="hidden sm:inline">{t('applications.new')}</span>
           </Link>
         </div>
       </div>
@@ -114,7 +118,7 @@ function ApplicationsPage() {
         <input
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search company, role, location…"
+          placeholder={t('applications.searchPlaceholder')}
           className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         {searchInput && (
@@ -136,13 +140,13 @@ function ApplicationsPage() {
             else params.delete('status');
             window.location.search = params.toString();
           }}
-          aria-label="Filter by status"
+          aria-label={t('applications.filterByStatus')}
           className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 capitalize"
         >
-          <option value="">All statuses</option>
+          <option value="">{t('applications.allStatuses')}</option>
           {APPLICATION_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {t(`status.${s}`)}
             </option>
           ))}
         </select>
@@ -156,14 +160,14 @@ function ApplicationsPage() {
           }`}
         >
           <StarIcon size={11} className={starred ? 'fill-white' : ''} />
-          Starred
+          {t('applications.starred')}
         </Link>
         <Link
           to="/applications"
           search={likelyGhosted ? {} : { likelyGhosted: true }}
           className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${likelyGhosted ? 'bg-amber-500 text-white border-amber-500' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-amber-400'}`}
         >
-          Likely ghosted
+          {t('applications.likelyGhosted')}
         </Link>
       </div>
 
@@ -180,17 +184,13 @@ function ApplicationsPage() {
           className="py-16"
           icon={<BriefcaseIcon size={40} />}
           message={
-            <>
-              No applications
-              {searchTerm
-                ? ` matching "${searchTerm}"`
-                : status
-                  ? ` with status "${status}"`
-                  : likelyGhosted
-                    ? ' likely ghosted'
-                    : ''}{' '}
-              yet.
-            </>
+            searchTerm
+              ? t('applications.noApplicationsMatching', { term: searchTerm })
+              : status
+                ? t('applications.noApplicationsWithStatus', { status: t(`status.${status}`) })
+                : likelyGhosted
+                  ? t('applications.noApplicationsGhosted')
+                  : t('applications.noApplicationsYet')
           }
         />
       ) : (
@@ -199,9 +199,11 @@ function ApplicationsPage() {
             <Checkbox
               checked={allSelected}
               onChange={toggleAll}
-              aria-label={allSelected ? 'Deselect all' : 'Select all'}
+              aria-label={t(allSelected ? 'applications.deselectAll' : 'applications.selectAll')}
             />
-            {selectedCount > 0 ? `${selectedCount} of ${apps.length} selected` : 'Select all'}
+            {selectedCount > 0
+              ? t('applications.selectedOfTotal', { count: selectedCount, total: apps.length })
+              : t('applications.selectAll')}
           </label>
 
           {apps.map((app) => (
@@ -213,7 +215,7 @@ function ApplicationsPage() {
                 className="shrink-0"
                 checked={selectedIds.has(app.id)}
                 onChange={() => toggleOne(app.id)}
-                aria-label={`Select ${app.company}`}
+                aria-label={t('applications.selectCompany', { company: app.company })}
               />
               <Link
                 to="/applications/$applicationId"
@@ -256,7 +258,7 @@ function ApplicationsPage() {
                   <StatusBadge status={app.status} />
                   {app.likelyGhosted && (
                     <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
-                      Likely ghosted
+                      {t('applications.likelyGhosted')}
                     </span>
                   )}
                 </div>
@@ -308,6 +310,7 @@ function BulkActionBar({
   likelyGhosted: boolean | undefined;
   searchTerm: string;
 }) {
+  const { t } = useLocale();
   const qc = useQueryClient();
   const [tagInput, setTagInput] = useState('');
   const ids = [...selectedIds];
@@ -341,7 +344,7 @@ function BulkActionBar({
       };
     });
     showUndoToast({
-      message: `${ids.length} application${ids.length === 1 ? '' : 's'} deleted`,
+      message: t('applications.deleted', { count: ids.length }),
       onExecute: () => {
         bulk.bulkDelete(ids);
         onClear();
@@ -356,7 +359,9 @@ function BulkActionBar({
   return (
     <div className="fixed bottom-16 lg:bottom-4 inset-x-0 z-40 flex justify-center px-4">
       <div className="flex flex-wrap items-center gap-2 px-4 py-3 bg-gray-900 dark:bg-gray-700 text-white rounded-xl shadow-lg max-w-full">
-        <span className="text-sm font-medium pr-1">{ids.length} selected</span>
+        <span className="text-sm font-medium pr-1">
+          {t('applications.selectedCount', { count: ids.length })}
+        </span>
 
         <select
           value=""
@@ -366,10 +371,10 @@ function BulkActionBar({
           }}
           className="text-sm bg-gray-800 dark:bg-gray-600 border border-gray-700 dark:border-gray-500 rounded-lg px-2 py-1.5 disabled:opacity-60"
         >
-          <option value="">Change status…</option>
+          <option value="">{t('applications.changeStatusPlaceholder')}</option>
           {APPLICATION_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
+              {t(`status.${s}`)}
             </option>
           ))}
         </select>
@@ -384,7 +389,7 @@ function BulkActionBar({
                 onAddTag();
               }
             }}
-            placeholder="Add tag…"
+            placeholder={t('applications.addTagPlaceholder')}
             disabled={bulk.isPending}
             className="w-24 text-sm bg-gray-800 dark:bg-gray-600 border border-gray-700 dark:border-gray-500 rounded-lg px-2 py-1.5 placeholder-gray-400 disabled:opacity-60"
           />
@@ -392,7 +397,7 @@ function BulkActionBar({
             type="button"
             onClick={onAddTag}
             disabled={bulk.isPending || !tagInput.trim()}
-            aria-label="Add tag to selected"
+            aria-label={t('applications.addTagToSelected')}
             className="p-1.5 hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-60"
           >
             <TagIcon size={16} />
@@ -403,34 +408,35 @@ function BulkActionBar({
           type="button"
           onClick={() => bulk.bulkSetStarred(ids, true)}
           disabled={bulk.isPending}
-          aria-label="Star selected"
+          aria-label={t('applications.starSelected')}
           className="flex items-center gap-1 px-2 py-1.5 text-sm hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-60"
         >
-          <StarIcon size={14} /> <span className="hidden sm:inline">Star</span>
+          <StarIcon size={14} /> <span className="hidden sm:inline">{t('applications.star')}</span>
         </button>
         <button
           type="button"
           onClick={() => bulk.bulkSetStarred(ids, false)}
           disabled={bulk.isPending}
-          aria-label="Unstar selected"
+          aria-label={t('applications.unstarSelected')}
           className="flex items-center gap-1 px-2 py-1.5 text-sm hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-60"
         >
-          <StarOffIcon size={14} /> <span className="hidden sm:inline">Unstar</span>
+          <StarOffIcon size={14} />{' '}
+          <span className="hidden sm:inline">{t('applications.unstar')}</span>
         </button>
         <button
           type="button"
           onClick={onDelete}
           disabled={bulk.isPending}
-          aria-label="Delete selected"
+          aria-label={t('applications.deleteSelected')}
           className="flex items-center gap-1 px-2 py-1.5 text-sm text-red-300 hover:bg-red-900/40 rounded-lg transition-colors disabled:opacity-60"
         >
-          <Trash2Icon size={14} /> <span className="hidden sm:inline">Delete</span>
+          <Trash2Icon size={14} /> <span className="hidden sm:inline">{t('common.delete')}</span>
         </button>
 
         <button
           type="button"
           onClick={onClear}
-          aria-label="Clear selection"
+          aria-label={t('applications.clearSelection')}
           className="p-1.5 hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-colors ml-1"
         >
           <XIcon size={16} />
