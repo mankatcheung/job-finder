@@ -36,7 +36,11 @@ export function EmptyState({
 
   return (
     <div className={classes} {...rest}>
-      {icon && <div className="mx-auto mb-3 text-gray-300 dark:text-gray-600">{icon}</div>}
+      {icon && (
+        <div className="flex justify-center mx-auto mb-3 text-gray-300 dark:text-gray-600">
+          {icon}
+        </div>
+      )}
       <p>{message}</p>
       {action}
     </div>
