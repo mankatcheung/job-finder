@@ -6,12 +6,12 @@ The project is a monorepo with a GraphQL API, a web app, a browser extension for
 
 ## Apps
 
-| App | Path | Description |
-|---|---|---|
-| API | `apps/api` | Fastify + Mercurius + Pothos GraphQL server, following Clean Architecture. Owns auth, data, and all business logic. |
-| Web | `apps/web` | TanStack Start (SSR React) frontend — the main UI for managing applications. |
+| App       | Path             | Description                                                                                                                  |
+| --------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| API       | `apps/api`       | Fastify + Mercurius + Pothos GraphQL server, following Clean Architecture. Owns auth, data, and all business logic.          |
+| Web       | `apps/web`       | TanStack Start (SSR React) frontend — the main UI for managing applications.                                                 |
 | Extension | `apps/extension` | Browser extension ("Trakwyn Clipper") that saves job postings from LinkedIn, Indeed, and Glassdoor straight to your account. |
-| CLI | `apps/cli` | `tw` command-line tool for authenticating and managing applications from the terminal. |
+| CLI       | `apps/cli`       | `tw` command-line tool for authenticating and managing applications from the terminal.                                       |
 
 ## Features
 
