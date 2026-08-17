@@ -1,10 +1,10 @@
 {
-  "name": "@job-finder/cli",
+  "name": "@trakwyn/cli",
   "version": "0.0.1",
   "private": true,
   "type": "module",
   "bin": {
-    "jf": "./dist/index.js"
+    "tw": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json",

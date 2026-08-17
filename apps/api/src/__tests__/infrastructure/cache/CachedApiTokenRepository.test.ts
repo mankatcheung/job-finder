@@ -80,6 +80,28 @@ describe('CachedApiTokenRepository', () => {
     });
   });
 
+  describe('findById', () => {
+    it('fetches from inner on first call and caches on second', async () => {
+      const { repo, inner } = makeRepo();
+      vi.mocked(inner.findById).mockResolvedValue(token);
+
+      const result = await repo.findById('token-1');
+      const cached = await repo.findById('token-1');
+      expect(result).toEqual(token);
+      expect(cached).toEqual(token);
+      expect(inner.findById).toHaveBeenCalledOnce();
+    });
+
+    it('caches null when the token is not found', async () => {
+      const { repo, inner } = makeRepo();
+      vi.mocked(inner.findById).mockResolvedValue(null);
+
+      await repo.findById('missing');
+      await repo.findById('missing');
+      expect(inner.findById).toHaveBeenCalledOnce();
+    });
+  });
+
   describe('updateLastUsed', () => {
     it('delegates to inner without invalidating the findByTokenHash cache', async () => {
       const { repo, inner } = makeRepo();
@@ -119,19 +141,20 @@ describe('CachedApiTokenRepository', () => {
   });
 
   describe('delete', () => {
-    it('delegates to inner and invalidates hash + list caches when metadata is known', async () => {
+    it('looks up the token via its own findById, then invalidates byId, hash, and list caches', async () => {
       const { repo, inner } = makeRepo();
       const entry = { token, userEmail: 'jane@example.com' };
+      vi.mocked(inner.findById).mockResolvedValue(token);
       vi.mocked(inner.findByTokenHash).mockResolvedValue(entry);
       vi.mocked(inner.findAllByUserId).mockResolvedValue([token]);
       vi.mocked(inner.delete).mockResolvedValue(undefined);
 
-      // Populate caches (which also records id → {userId, tokenHash} metadata)
       await repo.findByTokenHash('hashed-value');
       await repo.findAllByUserId('user-1');
 
-      await repo.delete('token-1');
+      await repo.delete(token.id);
 
+      expect(inner.findById).toHaveBeenCalledWith(token.id);
       vi.mocked(inner.findByTokenHash).mockResolvedValue(null);
       vi.mocked(inner.findAllByUserId).mockResolvedValue([]);
       await repo.findByTokenHash('hashed-value');
@@ -140,8 +163,36 @@ describe('CachedApiTokenRepository', () => {
       expect(inner.findAllByUserId).toHaveBeenCalledTimes(2);
     });
 
-    it('still deletes from inner even when metadata is unknown', async () => {
+    it('invalidates hash + list caches from a second repo instance that never read the token locally (simulates a different serverless instance sharing the same Redis-backed cache)', async () => {
+      const inner = makeApiTokenRepository();
+      const cache = new MemoryCache(60_000);
+      const repoA = new CachedApiTokenRepository({ drizzleApiTokenRepository: inner, cache });
+      const repoB = new CachedApiTokenRepository({ drizzleApiTokenRepository: inner, cache });
+
+      const entry = { token, userEmail: 'jane@example.com' };
+      vi.mocked(inner.findByTokenHash).mockResolvedValue(entry);
+      vi.mocked(inner.findAllByUserId).mockResolvedValue([token]);
+      vi.mocked(inner.findById).mockResolvedValue(token);
+      vi.mocked(inner.delete).mockResolvedValue(undefined);
+
+      // repoA warms the hash + list caches, as if an earlier request landed on a different instance
+      await repoA.findByTokenHash('hashed-value');
+      await repoA.findAllByUserId('user-1');
+
+      // repoB has no local state whatsoever, yet must still invalidate correctly
+      await repoB.delete(token.id);
+
+      vi.mocked(inner.findByTokenHash).mockResolvedValue(null);
+      vi.mocked(inner.findAllByUserId).mockResolvedValue([]);
+      await repoA.findByTokenHash('hashed-value');
+      await repoA.findAllByUserId('user-1');
+      expect(inner.findByTokenHash).toHaveBeenCalledTimes(2);
+      expect(inner.findAllByUserId).toHaveBeenCalledTimes(2);
+    });
+
+    it('still deletes from inner even when the token is not found', async () => {
       const { repo, inner } = makeRepo();
+      vi.mocked(inner.findById).mockResolvedValue(null);
       vi.mocked(inner.delete).mockResolvedValue(undefined);
 
       await repo.delete('unknown-id');

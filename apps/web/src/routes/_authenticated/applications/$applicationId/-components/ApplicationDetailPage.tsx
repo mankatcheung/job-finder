@@ -5,7 +5,7 @@ import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
 import { getErrorMessage } from '#/lib/errors';
 import { ErrorState } from '#/components/ErrorState';
-import { Card, Skeleton, Textarea } from '@job-finder/ui';
+import { Card, Skeleton, Textarea } from '@trakwyn/ui';
 import { StatusBadge } from '../../../-components/StatusBadge';
 import {
   ActivityIcon,

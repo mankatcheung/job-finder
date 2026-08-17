@@ -63,7 +63,7 @@ export class ChatWithAssistantUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: ChatWithAssistantInput): Promise<string> {
-    if (!this.deps.chatRateLimiter.consume(`chat:${input.userId}`)) {
+    if (!(await this.deps.chatRateLimiter.consume(`chat:${input.userId}`))) {
       throw Object.assign(new Error('Too many messages — please wait a moment and try again'), {
         code: ERROR_CODES.RATE_LIMITED,
       });

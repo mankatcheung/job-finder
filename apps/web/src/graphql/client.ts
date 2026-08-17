@@ -7,11 +7,11 @@ const API_URL = import.meta.env.VITE_API_URL ?? DEFAULT_API_URL;
 const REFRESH_MUTATION = `mutation { refreshToken }`;
 
 // Non-HttpOnly hint cookie the API sets alongside the real HttpOnly
-// jf_access_token/jf_refresh_token cookies (apps/api's setAuthCookies()) —
+// trakwyn_access_token/trakwyn_refresh_token cookies (apps/api's setAuthCookies()) —
 // must match COOKIES.LOGGED_IN there. The web app can never read the real
 // tokens (by design), so this is how it knows a session likely exists
 // without a network round-trip.
-const LOGGED_IN_COOKIE = 'jf_logged_in';
+const LOGGED_IN_COOKIE = 'trakwyn_logged_in';
 
 /**
  * Synchronous, no network call: used by route beforeLoad guards to decide

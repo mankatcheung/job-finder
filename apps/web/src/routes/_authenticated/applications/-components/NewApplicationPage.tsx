@@ -7,7 +7,7 @@ import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { getErrorMessage } from '#/lib/errors';
 import { StarIcon, XIcon } from 'lucide-react';
-import { Alert, Button, Checkbox, FormLabel, Input, Textarea } from '@job-finder/ui';
+import { Alert, Button, Checkbox, FormLabel, Input, Textarea } from '@trakwyn/ui';
 import { JdImportPanel } from './JdImportPanel';
 
 const schema = z.object({

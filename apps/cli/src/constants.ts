@@ -10,7 +10,7 @@ export const DEFAULT_API_URL = 'http://localhost:3001/graphql';
 
 /** On-disk config location under the user's home directory. */
 export const CONFIG = {
-  DIR_NAME: '.job-finder',
+  DIR_NAME: '.trakwyn',
   FILE_NAME: 'config.json',
   /** Owner read/write only — the file holds an API key. */
   FILE_MODE: 0o600,
@@ -26,5 +26,5 @@ export const AUTH_HEADER = {
   BEARER_PREFIX: 'Bearer ',
 } as const;
 
-/** Prefix every API token (`jfat_...`) starts with. */
-export const API_TOKEN_PREFIX = 'jfat_';
+/** Prefix every API token (`trakwyn_...`) starts with. */
+export const API_TOKEN_PREFIX = 'trakwyn_';

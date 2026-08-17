@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
-import { Alert } from '@job-finder/ui';
+import { Alert } from '@trakwyn/ui';
 
 const searchSchema = z.object({ token: z.string().optional() });
 

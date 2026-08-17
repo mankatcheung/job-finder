@@ -84,7 +84,7 @@ export function registerAuthCommands(program: Command): void {
     .action(async () => {
       const apiKey = getApiKey();
       if (!apiKey) {
-        console.log(chalk.gray('No API key set. Run: jf auth set-key'));
+        console.log(chalk.gray('No API key set. Run: tw auth set-key'));
         return;
       }
 

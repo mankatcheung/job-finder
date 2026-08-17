@@ -1,6 +1,6 @@
 import { AlertTriangleIcon, RefreshCwIcon } from 'lucide-react';
 import { getErrorMessage } from '#/lib/errors';
-import { Button } from '@job-finder/ui';
+import { Button } from '@trakwyn/ui';
 
 interface ErrorStateProps {
   error: unknown;

@@ -69,10 +69,10 @@ export const NODE_ENV = {
 
 /** Auth cookie names. */
 export const COOKIES = {
-  ACCESS_TOKEN: 'jf_access_token',
-  REFRESH_TOKEN: 'jf_refresh_token',
+  ACCESS_TOKEN: 'trakwyn_access_token',
+  REFRESH_TOKEN: 'trakwyn_refresh_token',
   /** Non-HttpOnly hint cookie the web app reads to know a session exists. */
-  LOGGED_IN: 'jf_logged_in',
+  LOGGED_IN: 'trakwyn_logged_in',
 } as const;
 
 /** Shared cookie options. */
@@ -113,9 +113,9 @@ export const REAUTH = {
   FRESHNESS_WINDOW_MS: 15 * 60 * 1000, // 15 minutes
 } as const;
 
-/** API-token (`jfat_...`) settings. */
+/** API-token (`trakwyn_...`) settings. */
 export const API_TOKEN = {
-  PREFIX: 'jfat_',
+  PREFIX: 'trakwyn_',
   /** Number of random bytes hex-encoded into the token body. */
   RANDOM_BYTES: 24,
 } as const;
@@ -146,7 +146,7 @@ export const API_TOKEN_SCOPE = {
 
 /** TOTP (RFC 6238) two-factor authentication settings. */
 export const TOTP_CONFIG = {
-  ISSUER: 'Job Finder',
+  ISSUER: 'Trakwyn',
   /** Accept codes from the adjacent time step to absorb minor clock drift. */
   EPOCH_TOLERANCE_S: 30,
 } as const;
@@ -182,6 +182,10 @@ export const RATE_LIMIT = {
     WINDOW_MS: 60 * 60 * 1000, // 1 hour
   },
   REQUEST_ADD_BACKUP_EMAIL: {
+    MAX_ATTEMPTS: 3,
+    WINDOW_MS: 60 * 60 * 1000, // 1 hour
+  },
+  REMOVE_BACKUP_EMAIL: {
     MAX_ATTEMPTS: 3,
     WINDOW_MS: 60 * 60 * 1000, // 1 hour
   },
@@ -238,7 +242,7 @@ export const AUTH_HEADER = {
 export const MCP = {
   JSONRPC_VERSION: '2.0',
   PROTOCOL_VERSION: '2024-11-05',
-  SERVER_NAME: 'job-finder-mcp',
+  SERVER_NAME: 'trakwyn-mcp',
   SERVER_VERSION: '1.0.0',
 } as const;
 
@@ -354,14 +358,14 @@ export const AXIOM = {
   DATASET_HEADER: 'X-Axiom-Dataset',
   /** Metrics use a distinct dataset (and header) from logs/traces — Axiom requires a Metrics-type dataset. */
   METRICS_DATASET_HEADER: 'X-Axiom-Metrics-Dataset',
-  SERVICE_NAME: 'job-finder-api',
+  SERVICE_NAME: 'trakwyn-api',
 } as const;
 
 /** Email provider (Brevo) defaults. */
 export const EMAIL = {
   BREVO_API_URL: 'https://api.brevo.com/v3/smtp/email',
-  DEFAULT_FROM_EMAIL: 'noreply@jobfinder.app',
-  DEFAULT_FROM_NAME: 'Job Finder',
+  DEFAULT_FROM_EMAIL: 'noreply@trakwyn.app',
+  DEFAULT_FROM_NAME: 'Trakwyn',
 } as const;
 
 /** `STORAGE_PROVIDER` values. */
@@ -373,6 +377,17 @@ export const STORAGE_PROVIDER = {
 /** Cache configuration, shared by MemoryCache and RedisCache. */
 export const CACHE = {
   DEFAULT_TTL_MS: 5 * 60 * 1000, // 5 minutes
+  // MemoryCache (local dev/tests) hard cap on live entries: exceeding it
+  // evicts the least-recently-used entry so a warm/long-lived instance never
+  // grows unbounded (JEF-130). Production uses RedisCache, which bounds its
+  // own memory via Redis eviction.
+  MEMORY_MAX_ENTRIES: 10_000,
+  // Per-repository reverse-index maps (Cached*Repository): cap so the
+  // id→owner mappings used to bust list caches on delete()/update() don't
+  // grow monotonically with distinct ids seen (JEF-130). Evicted ids just
+  // miss the list-cache bust for that delete; the stale entry still expires
+  // via the normal TTL.
+  REVERSE_INDEX_MAX_ENTRIES: 10_000,
   // Stampede protection (RedisCache.getOrSet): how long a populate-lock is
   // held before self-expiring (covers a crash mid-fetch), and how long a
   // concurrent miss polls for the lock-holder's result before giving up and
@@ -380,6 +395,11 @@ export const CACHE = {
   STAMPEDE_LOCK_TTL_MS: 10_000,
   STAMPEDE_POLL_INTERVAL_MS: 50,
   STAMPEDE_MAX_POLL_ATTEMPTS: 20, // ~1s of waiting
+  // Circuit breaker (RedisCache): consecutive failures before short-circuiting
+  // further calls, and how long to wait before letting one trial call through
+  // to check whether Redis has recovered.
+  CIRCUIT_FAILURE_THRESHOLD: 5,
+  CIRCUIT_COOLDOWN_MS: 30_000,
 } as const;
 
 /** `CACHE_PROVIDER` values. */
@@ -404,6 +424,7 @@ export const CACHE_KEYS = {
   roundList: (applicationId: string) => `rounds:list:${applicationId}`,
   contactById: (id: string) => `contacts:byId:${id}`,
   contactList: (applicationId: string) => `contacts:list:${applicationId}`,
+  apiTokenById: (id: string) => `tokens:byId:${id}`,
   apiTokenByHash: (tokenHash: string) => `tokens:byHash:${tokenHash}`,
   apiTokenList: (userId: string) => `tokens:list:${userId}`,
   notificationUnreadCount: (userId: string) => `notifications:unreadCount:${userId}`,

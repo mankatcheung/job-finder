@@ -1,4 +1,5 @@
 import { NodeSDK } from '@opentelemetry/sdk-node';
+import { BatchSpanProcessor } from '@opentelemetry/sdk-trace';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-proto';
@@ -29,6 +30,30 @@ export const isObservabilityEnabled = Boolean(
 );
 
 let sdk: NodeSDK | undefined;
+let spanProcessor: BatchSpanProcessor | undefined;
+let metricReader: PeriodicExportingMetricReader | undefined;
+
+/**
+ * Awaitably flushes all buffered spans and metrics to their Axiom exporters.
+ *
+ * Vercel freezes the serverless function shortly after the HTTP response is
+ * sent, so a `BatchSpanProcessor` relying on its own ~5s export timer (or the
+ * default 60s metric collection interval) almost never gets to export before
+ * the process is frozen. This is the primary export path: it's awaited in a
+ * Fastify `onResponse` hook in buildApp(), which runs after each response is
+ * written to the client but while the invocation is still alive. Combined with
+ * the near-0 scheduled delay on the span processor, no buffered telemetry
+ * survives a freeze. No-ops when the SDK never started.
+ */
+export async function flushObservability(): Promise<void> {
+  if (!sdk) return;
+
+  try {
+    await Promise.all([spanProcessor?.forceFlush(), metricReader?.forceFlush()]);
+  } catch (err: unknown) {
+    console.error('[observability] flush error', err);
+  }
+}
 
 /**
  * Starts the OpenTelemetry SDK, exporting traces (and, when configured,
@@ -54,25 +79,36 @@ export function startObservability(): void {
 
   const authHeader = { Authorization: `${AUTH_HEADER.BEARER_PREFIX}${token}` };
 
+  const traceExporter = new OTLPTraceExporter({
+    url: `${AXIOM.API_URL}${AXIOM.TRACES_PATH}`,
+    headers: { ...authHeader, [AXIOM.DATASET_HEADER]: dataset },
+  });
+
+  // Constructed explicitly (instead of letting NodeSDK build one from
+  // `traceExporter`) so we hold the instance and can forceFlush() it from
+  // flushObservability(). The near-0 scheduled delay is defense-in-depth for
+  // the serverless freeze window — see flushObservability()'s doc.
+  spanProcessor = new BatchSpanProcessor({
+    exporter: traceExporter,
+    scheduledDelayMillis: 0,
+  });
+
+  if (metricsDataset) {
+    metricReader = new PeriodicExportingMetricReader({
+      exporter: new OTLPMetricExporter({
+        url: `${AXIOM.API_URL}${AXIOM.METRICS_PATH}`,
+        headers: { ...authHeader, [AXIOM.METRICS_DATASET_HEADER]: metricsDataset },
+      }),
+    });
+  }
+
   sdk = new NodeSDK({
     resource: resourceFromAttributes({
       [ATTR_SERVICE_NAME]: AXIOM.SERVICE_NAME,
       [ATTR_DEPLOYMENT_ENVIRONMENT_NAME]: process.env[ENV.NODE_ENV] ?? 'development',
     }),
-    traceExporter: new OTLPTraceExporter({
-      url: `${AXIOM.API_URL}${AXIOM.TRACES_PATH}`,
-      headers: { ...authHeader, [AXIOM.DATASET_HEADER]: dataset },
-    }),
-    metricReaders: metricsDataset
-      ? [
-          new PeriodicExportingMetricReader({
-            exporter: new OTLPMetricExporter({
-              url: `${AXIOM.API_URL}${AXIOM.METRICS_PATH}`,
-              headers: { ...authHeader, [AXIOM.METRICS_DATASET_HEADER]: metricsDataset },
-            }),
-          }),
-        ]
-      : [],
+    spanProcessors: [spanProcessor],
+    metricReaders: metricReader ? [metricReader] : [],
     instrumentations: [
       getNodeAutoInstrumentations({
         // Disabled: fires on every file read/write (module loading, temp

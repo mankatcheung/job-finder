@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSearch } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
-import { Alert } from '@job-finder/ui';
+import { Alert } from '@trakwyn/ui';
 
 const SHARED_SUMMARY_QUERY = `
   query SharedSummary($token: String!) {
@@ -63,7 +63,7 @@ export function SharedSummaryPage() {
             Job search summary
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            A read-only, summary-level view shared via job-finder.
+            A read-only, summary-level view shared via Trakwyn.
           </p>
         </div>
 

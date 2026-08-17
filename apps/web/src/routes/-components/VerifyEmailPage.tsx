@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearch } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
-import { Alert } from '@job-finder/ui';
+import { Alert } from '@trakwyn/ui';
 
 const VERIFY_EMAIL_MUTATION = `
   mutation VerifyEmail($token: String!) {

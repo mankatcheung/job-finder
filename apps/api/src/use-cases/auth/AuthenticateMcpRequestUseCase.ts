@@ -10,7 +10,7 @@ interface Deps {
 }
 
 /**
- * Authenticates an MCP request's Bearer API token (`jfat_...`).
+ * Authenticates an MCP request's Bearer API token (`trakwyn_...`).
  *
  * Accepts any scope (FULL or READ) — unlike GraphQL which requires FULL.
  * Rejects JWTs and any other non-API-token credentials.

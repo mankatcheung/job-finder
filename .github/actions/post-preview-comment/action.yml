@@ -29,7 +29,7 @@ runs:
             return;
           }
 
-          const marker = '<!-- job-finder-preview-deployments -->';
+          const marker = '<!-- trakwyn-preview-deployments -->';
           const body = `${marker}
           Preview deployments for this PR:
           - Web: ${webUrl}

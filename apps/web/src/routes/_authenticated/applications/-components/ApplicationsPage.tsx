@@ -3,7 +3,7 @@ import { useInfiniteQuery, useQueryClient, type InfiniteData } from '@tanstack/r
 import { useState, useEffect, useMemo } from 'react';
 import { showUndoToast } from '#/lib/undoToast';
 import { ErrorState } from '#/components/ErrorState';
-import { Card, Checkbox, EmptyState, Skeleton, Spinner } from '@job-finder/ui';
+import { Card, Checkbox, EmptyState, Skeleton, Spinner } from '@trakwyn/ui';
 import { StatusBadge } from '../../-components/StatusBadge';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { useBulkActions } from '../-useBulkActions';

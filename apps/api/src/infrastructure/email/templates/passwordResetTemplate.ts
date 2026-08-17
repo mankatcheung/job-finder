@@ -12,7 +12,7 @@ export function buildPasswordResetHtml(resetUrl: string): string {
     <!-- Body -->
     <div style="padding:32px;">
       <p style="margin:0 0 20px;font-size:14px;color:#374151;line-height:1.5;">
-        We received a request to reset the password for your Job Finder account. Click the
+        We received a request to reset the password for your Trakwyn account. Click the
         button below to choose a new password. This link expires in 1 hour.
       </p>
       <p style="margin:0 0 28px;text-align:center;">

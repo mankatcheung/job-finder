@@ -11,6 +11,8 @@ const {
   otlpTraceExporterMock,
   otlpMetricExporterMock,
   periodicReaderMock,
+  batchSpanProcessorInstances,
+  metricReaderInstances,
   getNodeAutoInstrumentationsMock,
 } = vi.hoisted(() => ({
   nodeSDKConstructorMock: vi.fn(),
@@ -18,6 +20,15 @@ const {
   otlpTraceExporterMock: vi.fn(),
   otlpMetricExporterMock: vi.fn(),
   periodicReaderMock: vi.fn(),
+  batchSpanProcessorInstances: [] as Array<{
+    exporter: unknown;
+    config: unknown;
+    forceFlush: ReturnType<typeof vi.fn>;
+  }>,
+  metricReaderInstances: [] as Array<{
+    config: unknown;
+    forceFlush: ReturnType<typeof vi.fn>;
+  }>,
   getNodeAutoInstrumentationsMock: vi.fn().mockReturnValue(['auto-instrumentations']),
 }));
 
@@ -53,8 +64,25 @@ vi.mock('@opentelemetry/exporter-metrics-otlp-proto', () => ({
 
 vi.mock('@opentelemetry/sdk-metrics', () => ({
   PeriodicExportingMetricReader: class {
+    forceFlush: ReturnType<typeof vi.fn>;
     constructor(config: unknown) {
       periodicReaderMock(config);
+      this.forceFlush = vi.fn().mockResolvedValue(undefined);
+      metricReaderInstances.push({ config, forceFlush: this.forceFlush });
+    }
+  },
+}));
+
+vi.mock('@opentelemetry/sdk-trace', () => ({
+  BatchSpanProcessor: class {
+    forceFlush: ReturnType<typeof vi.fn>;
+    constructor(options: { exporter: unknown; scheduledDelayMillis?: number }) {
+      this.forceFlush = vi.fn().mockResolvedValue(undefined);
+      batchSpanProcessorInstances.push({
+        exporter: options.exporter,
+        config: { scheduledDelayMillis: options.scheduledDelayMillis },
+        forceFlush: this.forceFlush,
+      });
     }
   },
 }));
@@ -88,6 +116,8 @@ describe('tracing', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    batchSpanProcessorInstances.length = 0;
+    metricReaderInstances.length = 0;
     consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => undefined);
     for (const key of ENV_KEYS) delete process.env[key];
   });
@@ -236,6 +266,58 @@ describe('tracing', () => {
       expect(getNodeAutoInstrumentationsMock).toHaveBeenCalledWith({
         '@opentelemetry/instrumentation-fs': { enabled: false },
       });
+    });
+
+    it('passes the BatchSpanProcessor via spanProcessors with a near-0 scheduled delay', async () => {
+      process.env[ENV.AXIOM_TOKEN] = 'secret-token';
+      process.env[ENV.AXIOM_DATASET] = 'my-dataset';
+      const mod = await loadTracingModule();
+
+      mod.startObservability();
+
+      const [sdkConfig] = nodeSDKConstructorMock.mock.calls[0] as [
+        { spanProcessors: unknown[]; traceExporter?: unknown },
+      ];
+      expect(sdkConfig.traceExporter).toBeUndefined();
+      expect(sdkConfig.spanProcessors).toHaveLength(1);
+      const [processor] = batchSpanProcessorInstances;
+      expect(processor.exporter).toBeInstanceOf(
+        (await import('@opentelemetry/exporter-trace-otlp-proto')).OTLPTraceExporter,
+      );
+      expect(processor.config).toEqual({ scheduledDelayMillis: 0 });
+    });
+  });
+
+  describe('flushObservability', () => {
+    it('no-ops when the SDK has not started', async () => {
+      const mod = await loadTracingModule();
+      await expect(mod.flushObservability()).resolves.toBeUndefined();
+      expect(nodeSDKStartMock).not.toHaveBeenCalled();
+    });
+
+    it('awaits forceFlush on the span processor and metric reader', async () => {
+      process.env[ENV.AXIOM_TOKEN] = 'secret-token';
+      process.env[ENV.AXIOM_DATASET] = 'my-dataset';
+      process.env[ENV.AXIOM_METRICS_DATASET] = 'my-metrics-dataset';
+      const mod = await loadTracingModule();
+      mod.startObservability();
+
+      await mod.flushObservability();
+
+      expect(batchSpanProcessorInstances[0].forceFlush).toHaveBeenCalledTimes(1);
+      expect(metricReaderInstances[0].forceFlush).toHaveBeenCalledTimes(1);
+    });
+
+    it('only flushes the span processor when metrics are not configured', async () => {
+      process.env[ENV.AXIOM_TOKEN] = 'secret-token';
+      process.env[ENV.AXIOM_DATASET] = 'my-dataset';
+      const mod = await loadTracingModule();
+      mod.startObservability();
+
+      await mod.flushObservability();
+
+      expect(batchSpanProcessorInstances[0].forceFlush).toHaveBeenCalledTimes(1);
+      expect(metricReaderInstances).toHaveLength(0);
     });
   });
 });

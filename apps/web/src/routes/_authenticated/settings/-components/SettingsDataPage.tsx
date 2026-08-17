@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
-import { Alert, Button, FormLabel, Input } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
 import {
   EXPORT_USER_DATA,
   IMPORT_USER_DATA,
@@ -29,7 +29,7 @@ export function SettingsDataPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `job-finder-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `trakwyn-export-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {

@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon, MessageCircleIcon, PlusIcon, Trash2Icon } from 'lucide-react';
-import { EmptyState } from '@job-finder/ui';
+import { EmptyState } from '@trakwyn/ui';
 import {
   conversationsQueryOptions,
   deleteConversationWithUndo,

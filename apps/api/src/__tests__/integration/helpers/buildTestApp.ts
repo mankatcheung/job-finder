@@ -27,7 +27,7 @@ export interface TestApp {
  * `client.ts` module and silently keep talking to the first call's temp DB.
  */
 export async function buildTestApp(): Promise<TestApp> {
-  const dbPath = join(tmpdir(), `job-finder-integration-${randomUUID()}.db`);
+  const dbPath = join(tmpdir(), `trakwyn-integration-${randomUUID()}.db`);
   const databaseUrl = `file:${dbPath}`;
 
   // Apply the real migrations via a throwaway client before the app's own

@@ -13,7 +13,6 @@ interface Deps {
 }
 
 export class CachedInterviewRoundRepository implements IInterviewRoundRepository {
-  private readonly appIdByRoundId = new Map<string, string>();
   private readonly inner: IInterviewRoundRepository;
   private readonly cache: ICache;
 
@@ -24,11 +23,7 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
 
   async findAllByApplicationId(applicationId: string): Promise<InterviewRound[]> {
     const key = CACHE_KEYS.roundList(applicationId);
-    const result = await this.cache.getOrSet(key, () =>
-      this.inner.findAllByApplicationId(applicationId),
-    );
-    for (const r of result) this.appIdByRoundId.set(r.id, r.applicationId);
-    return result;
+    return this.cache.getOrSet(key, () => this.inner.findAllByApplicationId(applicationId));
   }
 
   // Not cached: this reads across every application for the user, which
@@ -46,14 +41,11 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
 
   async findById(id: string): Promise<InterviewRound | null> {
     const key = CACHE_KEYS.roundById(id);
-    const result = await this.cache.getOrSet(key, () => this.inner.findById(id));
-    if (result) this.appIdByRoundId.set(id, result.applicationId);
-    return result;
+    return this.cache.getOrSet(key, () => this.inner.findById(id));
   }
 
   async create(data: CreateInterviewRoundData): Promise<InterviewRound> {
     const result = await this.inner.create(data);
-    this.appIdByRoundId.set(result.id, result.applicationId);
     await this.cache.delete(CACHE_KEYS.roundList(result.applicationId));
     return result;
   }
@@ -62,19 +54,23 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
     const result = await this.inner.update(id, data);
     await this.cache.delete(CACHE_KEYS.roundById(id));
     await this.cache.delete(CACHE_KEYS.roundList(result.applicationId));
-    this.appIdByRoundId.set(id, result.applicationId);
     return result;
   }
 
   async updatePushNotificationSentAt(id: string, sentAt: Date): Promise<void> {
+    const existing = await this.findById(id);
     await this.inner.updatePushNotificationSentAt(id, sentAt);
+    await this.cache.delete(CACHE_KEYS.roundById(id));
+    if (existing) await this.cache.delete(CACHE_KEYS.roundList(existing.applicationId));
   }
 
   async delete(id: string): Promise<void> {
-    const applicationId = this.appIdByRoundId.get(id);
+    // Looked up via our own cached findById (Redis-backed in prod) rather
+    // than a process-local map, so this stays correct even when the lookup
+    // and the delete land on different serverless instances.
+    const existing = await this.findById(id);
     await this.inner.delete(id);
     await this.cache.delete(CACHE_KEYS.roundById(id));
-    this.appIdByRoundId.delete(id);
-    if (applicationId) await this.cache.delete(CACHE_KEYS.roundList(applicationId));
+    if (existing) await this.cache.delete(CACHE_KEYS.roundList(existing.applicationId));
   }
 }

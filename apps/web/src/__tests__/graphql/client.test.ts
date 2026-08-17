@@ -109,7 +109,7 @@ describe('hasSessionCookie', () => {
 
   afterEach(() => {
     // Expire every cookie set during the tests below so state doesn't leak across them.
-    for (const name of ['jf_logged_in', 'jf_logged_in_other', 'some_other_cookie']) {
+    for (const name of ['trakwyn_logged_in', 'trakwyn_logged_in_other', 'some_other_cookie']) {
       document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
     }
   });
@@ -120,20 +120,20 @@ describe('hasSessionCookie', () => {
   });
 
   it('returns true when the hint cookie is present', async () => {
-    document.cookie = 'jf_logged_in=1';
+    document.cookie = 'trakwyn_logged_in=1';
     const { hasSessionCookie } = await import('#/graphql/client');
     expect(hasSessionCookie()).toBe(true);
   });
 
   it('returns true when the hint cookie is present alongside others', async () => {
     document.cookie = 'some_other_cookie=abc';
-    document.cookie = 'jf_logged_in=1';
+    document.cookie = 'trakwyn_logged_in=1';
     const { hasSessionCookie } = await import('#/graphql/client');
     expect(hasSessionCookie()).toBe(true);
   });
 
   it('does not false-positive on a cookie name that merely starts with the same prefix', async () => {
-    document.cookie = 'jf_logged_in_other=1';
+    document.cookie = 'trakwyn_logged_in_other=1';
     const { hasSessionCookie } = await import('#/graphql/client');
     expect(hasSessionCookie()).toBe(false);
   });

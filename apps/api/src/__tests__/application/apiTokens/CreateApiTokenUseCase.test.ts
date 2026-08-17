@@ -3,7 +3,7 @@ import { CreateApiTokenUseCase } from '#src/use-cases/apiTokens/CreateApiTokenUs
 import { makeApiTokenRepository, makeApiToken } from '#src/__tests__/helpers/mocks.js';
 
 describe('CreateApiTokenUseCase', () => {
-  it('generates a token with jfat_ prefix and stores its hash', async () => {
+  it('generates a token with trakwyn_ prefix and stores its hash', async () => {
     const storedToken = makeApiToken();
     const repo = makeApiTokenRepository({ create: vi.fn().mockResolvedValue(storedToken) });
     const generateId = vi.fn().mockReturnValue('token-1');
@@ -11,7 +11,7 @@ describe('CreateApiTokenUseCase', () => {
 
     const { rawToken, token } = await useCase.execute({ userId: 'user-1', name: 'CLI' });
 
-    expect(rawToken).toMatch(/^jfat_/);
+    expect(rawToken).toMatch(/^trakwyn_/);
     expect(token.id).toBe('token-1');
     expect(repo.create).toHaveBeenCalledWith(
       expect.objectContaining({ userId: 'user-1', name: 'CLI', tokenHash: expect.any(String) }),

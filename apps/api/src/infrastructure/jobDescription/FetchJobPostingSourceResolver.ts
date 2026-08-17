@@ -9,7 +9,7 @@ export class FetchJobPostingSourceResolver implements IJobPostingSourceResolver 
 
     if (source.url?.trim()) {
       const response = await fetch(source.url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; JobFinderBot/1.0)' },
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TrakwynBot/1.0)' },
         signal: AbortSignal.timeout(10_000),
       });
       if (!response.ok) throw new Error(`Failed to fetch URL: ${response.status}`);

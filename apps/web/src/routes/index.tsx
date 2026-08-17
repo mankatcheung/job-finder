@@ -34,7 +34,7 @@ const features = [
     icon: Sparkles,
     title: 'AI assistant',
     description:
-      'Get personalized cover letters, resume match scores, and real-time answers about your applications — powered by the data you already have in Job Finder.',
+      'Get personalized cover letters, resume match scores, and real-time answers about your applications — powered by the data you already have in Trakwyn.',
   },
   {
     icon: BarChart3,
@@ -99,7 +99,7 @@ function LandingPage() {
                   strokeLinejoin="round"
                 />
               </svg>
-              <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Job Finder</span>
+              <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Trakwyn</span>
             </Link>
             <div className="hidden sm:flex items-center gap-3">
               <Link
@@ -207,7 +207,7 @@ function LandingPage() {
                 Everything you need to land your next job
               </h2>
               <p className="mt-4 text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                Job Finder combines application tracking, AI-powered tools, and analytics into one
+                Trakwyn combines application tracking, AI-powered tools, and analytics into one
                 seamless experience.
               </p>
             </div>
@@ -289,7 +289,7 @@ function LandingPage() {
                 />
               </svg>
               <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                Job Finder
+                Trakwyn
               </span>
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">

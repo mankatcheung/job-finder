@@ -3,10 +3,10 @@ import { asClass, asValue, Lifetime, type NameAndRegistrationPair } from 'awilix
 
 import { db } from '#src/infrastructure/db/client.js';
 
-import { Redis } from '@upstash/redis';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
 import { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
 import { RedisCache } from '#src/infrastructure/cache/RedisCache.js';
+import { getRedisClient } from '#src/infrastructure/cache/redisClient.js';
 import { LocalStorageProvider } from '#src/infrastructure/storage/LocalStorageProvider.js';
 import { VercelBlobStorageProvider } from '#src/infrastructure/storage/VercelBlobStorageProvider.js';
 import { JwtTokenService } from '#src/infrastructure/auth/JwtTokenService.js';
@@ -26,7 +26,7 @@ import { DocumentTextExtractor } from '#src/infrastructure/documents/DocumentTex
 import { ReactPdfDocumentRenderer } from '#src/infrastructure/pdf/ReactPdfDocumentRenderer.js';
 import { FetchJobPostingSourceResolver } from '#src/infrastructure/jobDescription/FetchJobPostingSourceResolver.js';
 
-import { CACHE_PROVIDER, ENV, STORAGE_PROVIDER } from '#src/constants.js';
+import { ENV, STORAGE_PROVIDER } from '#src/constants.js';
 import type { Cradle } from './types.js';
 
 type StorageProviderConstructor = new () => LocalStorageProvider | VercelBlobStorageProvider;
@@ -35,25 +35,9 @@ const StorageProvider: StorageProviderConstructor =
     ? VercelBlobStorageProvider
     : LocalStorageProvider;
 
-/**
- * Unlike storage (only document upload/download depend on it), the cache
- * underlies nearly every read in the app — a misconfigured Redis provider
- * would silently 500 almost every request. So this validates eagerly at
- * container-build time instead of lazily on first use.
- */
 function buildCache(): ICache {
-  if (process.env[ENV.CACHE_PROVIDER] !== CACHE_PROVIDER.REDIS) {
-    return new MemoryCache();
-  }
-
-  const url = process.env[ENV.UPSTASH_REDIS_REST_URL];
-  const token = process.env[ENV.UPSTASH_REDIS_REST_TOKEN];
-  if (!url || !token) {
-    throw new Error(
-      `${ENV.CACHE_PROVIDER}=${CACHE_PROVIDER.REDIS} requires both ${ENV.UPSTASH_REDIS_REST_URL} and ${ENV.UPSTASH_REDIS_REST_TOKEN}`,
-    );
-  }
-  return new RedisCache({ redis: new Redis({ url, token }) });
+  const redis = getRedisClient();
+  return redis ? new RedisCache({ redis }) : new MemoryCache();
 }
 
 export const infrastructure = {

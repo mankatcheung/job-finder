@@ -52,7 +52,7 @@ describe('watchForServiceWorkerUpdate', () => {
 
     expect(mockToast).toHaveBeenCalledTimes(1);
     expect(mockToast).toHaveBeenCalledWith(
-      'A new version of Job Finder is available.',
+      'A new version of Trakwyn is available.',
       expect.objectContaining({ id: 'sw-update', duration: Infinity }),
     );
   });

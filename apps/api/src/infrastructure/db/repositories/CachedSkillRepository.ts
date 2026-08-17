@@ -5,7 +5,8 @@ import type {
   UpdateSkillData,
 } from '#src/use-cases/ports/ISkillRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { BoundedMap } from '#src/infrastructure/cache/BoundedMap.js';
+import { CACHE, CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleSkillRepository: ISkillRepository;
@@ -14,7 +15,9 @@ interface Deps {
 
 export class CachedSkillRepository implements ISkillRepository {
   // Tracks which userId owns each skill so delete() can invalidate the right list.
-  private readonly userIdBySkillId = new Map<string, string>();
+  private readonly userIdBySkillId = new BoundedMap<string, string>(
+    CACHE.REVERSE_INDEX_MAX_ENTRIES,
+  );
   private readonly inner: ISkillRepository;
   private readonly cache: ICache;
 

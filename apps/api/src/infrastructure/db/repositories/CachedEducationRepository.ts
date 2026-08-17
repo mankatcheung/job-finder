@@ -5,7 +5,8 @@ import type {
   UpdateEducationData,
 } from '#src/use-cases/ports/IEducationRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { BoundedMap } from '#src/infrastructure/cache/BoundedMap.js';
+import { CACHE, CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleEducationRepository: IEducationRepository;
@@ -14,7 +15,9 @@ interface Deps {
 
 export class CachedEducationRepository implements IEducationRepository {
   // Tracks which userId owns each education entry so delete() can invalidate the right list.
-  private readonly userIdByEducationId = new Map<string, string>();
+  private readonly userIdByEducationId = new BoundedMap<string, string>(
+    CACHE.REVERSE_INDEX_MAX_ENTRIES,
+  );
   private readonly inner: IEducationRepository;
   private readonly cache: ICache;
 

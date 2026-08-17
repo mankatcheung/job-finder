@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card, EmptyState, Skeleton } from '@job-finder/ui';
+import { Card, EmptyState, Skeleton } from '@trakwyn/ui';
 import { offerAnalyticsQueryOptions } from './-offer-analytics-queries';
 
 function formatCurrency(amount: number, currency: string): string {

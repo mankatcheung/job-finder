@@ -8,7 +8,7 @@ import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 import { getErrorMessage } from '#/lib/errors';
 import { LogoMark } from '#/components/LogoMark';
-import { Alert, Button, FormLabel, Input } from '@job-finder/ui';
+import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
 
 const schema = z.object({
   email: z.string().email('Invalid email'),
@@ -79,7 +79,7 @@ export function LoginPage() {
       <div className="w-full max-w-sm space-y-6">
         <Link to="/" className="flex items-center justify-center gap-2">
           <LogoMark size={28} />
-          <span className="text-xl font-bold text-gray-900 dark:text-gray-100">Job Finder</span>
+          <span className="text-xl font-bold text-gray-900 dark:text-gray-100">Trakwyn</span>
         </Link>
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
           <div>
@@ -183,7 +183,7 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
       <div className="w-full max-w-sm space-y-6">
         <div className="flex items-center justify-center gap-2">
           <LogoMark size={28} />
-          <span className="text-xl font-bold text-gray-900 dark:text-gray-100">Job Finder</span>
+          <span className="text-xl font-bold text-gray-900 dark:text-gray-100">Trakwyn</span>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
           <div>

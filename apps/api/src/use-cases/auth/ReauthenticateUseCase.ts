@@ -50,7 +50,7 @@ export class ReauthenticateUseCase implements IReauthenticateUseCase {
       return { user, totpRequired: true };
     }
 
-    const allowed = this.deps.totpRateLimiter.consume(`totp:stepup:user:${user.id}`);
+    const allowed = await this.deps.totpRateLimiter.consume(`totp:stepup:user:${user.id}`);
     if (!allowed) {
       throw Object.assign(new Error('Too many verification attempts. Please try again later.'), {
         code: ERROR_CODES.RATE_LIMITED,

@@ -13,7 +13,7 @@ import {
   WrenchIcon,
 } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
-import { Alert, Button, FormLabel, IconButton, Input, Select, Textarea } from '@job-finder/ui';
+import { Alert, Button, FormLabel, IconButton, Input, Select, Textarea } from '@trakwyn/ui';
 
 export const Route = createFileRoute('/_authenticated/settings/experience')({
   component: SettingsExperiencePage,

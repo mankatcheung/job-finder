@@ -176,6 +176,7 @@ export const makeApiTokenRepository = (
   overrides?: Partial<IApiTokenRepository>,
 ): IApiTokenRepository => ({
   findAllByUserId: vi.fn().mockResolvedValue([]),
+  findById: vi.fn().mockResolvedValue(null),
   findByTokenHash: vi.fn().mockResolvedValue(null),
   findByIdAndUserId: vi.fn().mockResolvedValue(null),
   create: vi.fn(),
@@ -344,7 +345,7 @@ export const makeTotpBackupCode = (overrides?: Partial<TotpBackupCode>): TotpBac
 });
 
 export const makeRateLimiter = (overrides?: Partial<IRateLimiter>): IRateLimiter => ({
-  consume: vi.fn().mockReturnValue(true),
+  consume: vi.fn().mockResolvedValue(true),
   ...overrides,
 });
 

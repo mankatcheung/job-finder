@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CalendarIcon, CheckIcon, EditIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
-import { Button, Card, EmptyState, FormLabel, Input, Select, Textarea } from '@job-finder/ui';
+import { Button, Card, EmptyState, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
 const INTERVIEW_ROUNDS_QUERY = `
   query InterviewRounds($applicationId: ID!) {
     interviewRounds(applicationId: $applicationId) {
@@ -85,7 +85,7 @@ function generateIcs(rounds: InterviewRound[], company: string, role: string): s
     .map((r) =>
       [
         'BEGIN:VEVENT',
-        `UID:${r.id}@job-finder`,
+        `UID:${r.id}@trakwyn`,
         `DTSTART:${toIcsDate(r.scheduledAt!)}`,
         `DTEND:${endDate(r.scheduledAt!)}`,
         `SUMMARY:${esc(`${r.type.charAt(0).toUpperCase() + r.type.slice(1)} interview — ${role} at ${company}`)}`,
@@ -97,7 +97,7 @@ function generateIcs(rounds: InterviewRound[], company: string, role: string): s
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Job Finder//EN',
+    'PRODID:-//Trakwyn//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     ...events,

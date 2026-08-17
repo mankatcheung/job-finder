@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { OfferForm } from '../-components/OfferForm';
 import { PlusIcon, TrashIcon, PencilIcon } from 'lucide-react';
-import { EmptyState } from '@job-finder/ui';
+import { EmptyState } from '@trakwyn/ui';
 
 const OFFERS_QUERY = `
   query Offers($applicationId: ID!) {

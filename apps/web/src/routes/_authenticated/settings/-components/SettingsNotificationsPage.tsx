@@ -7,7 +7,7 @@ import {
   type NotificationPreferences,
 } from './shared';
 import { usePushNotifications } from '#/hooks/usePushNotifications';
-import { Checkbox, Select } from '@job-finder/ui';
+import { Checkbox, Select } from '@trakwyn/ui';
 
 export function SettingsNotificationsPage() {
   const qc = useQueryClient();

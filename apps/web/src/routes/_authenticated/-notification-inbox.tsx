@@ -10,7 +10,7 @@ import {
 import { gqlClient } from '#/graphql/client';
 import { useInfiniteScrollSentinel } from '#/lib/useInfiniteScrollSentinel';
 import { useHotkeys } from '#/hooks/useHotkeys';
-import { Button, Checkbox, IconButton, Spinner } from '@job-finder/ui';
+import { Button, Checkbox, IconButton, Spinner } from '@trakwyn/ui';
 import {
   BellIcon,
   XIcon,

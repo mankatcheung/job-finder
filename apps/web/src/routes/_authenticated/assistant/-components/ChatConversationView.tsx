@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { getErrorMessage } from '#/lib/errors';
-import { Button, Input, Skeleton, Spinner } from '@job-finder/ui';
+import { Button, Input, Skeleton, Spinner } from '@trakwyn/ui';
 import {
   CREATE_CONVERSATION,
   SEND_CHAT_MESSAGE,

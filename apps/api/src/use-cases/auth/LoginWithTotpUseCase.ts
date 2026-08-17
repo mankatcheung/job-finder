@@ -38,11 +38,11 @@ export class LoginWithTotpUseCase implements ILoginWithTotpUseCase {
       throw Object.assign(new Error('Invalid credentials'), { code: ERROR_CODES.UNAUTHORIZED });
     }
 
-    const allowedByEmail = this.deps.totpRateLimiter.consume(
+    const allowedByEmail = await this.deps.totpRateLimiter.consume(
       `totp:email:${input.email.toLowerCase()}`,
     );
     const allowedByIp = input.ipAddress
-      ? this.deps.totpRateLimiter.consume(`totp:ip:${input.ipAddress}`)
+      ? await this.deps.totpRateLimiter.consume(`totp:ip:${input.ipAddress}`)
       : true;
     if (!allowedByEmail || !allowedByIp) {
       throw Object.assign(new Error('Too many verification attempts. Please try again later.'), {

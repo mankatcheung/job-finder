@@ -25,7 +25,7 @@ export class UpdatePasswordUseCase implements IUpdatePasswordUseCase {
     assertValidPassword(input.newPassword);
 
     // Rate-limit by user ID to prevent brute-force attacks on password changes
-    const allowed = this.deps.updatePasswordRateLimiter.consume(
+    const allowed = await this.deps.updatePasswordRateLimiter.consume(
       `update-password:user:${input.userId}`,
     );
     if (!allowed) {
