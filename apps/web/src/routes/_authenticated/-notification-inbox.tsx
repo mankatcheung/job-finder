@@ -10,6 +10,7 @@ import {
 import { gqlClient } from '#/graphql/client';
 import { useInfiniteScrollSentinel } from '#/lib/useInfiniteScrollSentinel';
 import { useHotkeys } from '#/hooks/useHotkeys';
+import { useLocale } from '#/lib/i18n';
 import { Button, Checkbox, IconButton, Spinner } from '@trakwyn/ui';
 import {
   BellIcon,
@@ -89,16 +90,20 @@ function notificationsPageQueryOptions() {
   });
 }
 
-function timeAgo(iso: string): string {
+function timeAgo(
+  iso: string,
+  t: (key: string, options?: Record<string, number>) => string,
+): string {
   const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return t('notificationInbox.justNow');
+  if (minutes < 60) return t('notificationInbox.minutesAgo', { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
+  if (hours < 24) return t('notificationInbox.hoursAgo', { count: hours });
+  return t('notificationInbox.daysAgo', { count: Math.floor(hours / 24) });
 }
 
 export function NotificationInboxButton({ className = '' }: { className?: string }) {
+  const { t } = useLocale();
   const [isOpen, setIsOpen] = useState(false);
 
   const { data } = useQuery({
@@ -111,7 +116,11 @@ export function NotificationInboxButton({ className = '' }: { className?: string
   return (
     <>
       <IconButton
-        label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+        label={
+          unreadCount > 0
+            ? t('notificationInbox.notificationsUnreadAria', { count: unreadCount })
+            : t('notificationInbox.title')
+        }
         onClick={() => setIsOpen(true)}
         className={`relative ${className}`}
         icon={
@@ -132,6 +141,7 @@ export function NotificationInboxButton({ className = '' }: { className?: string
 }
 
 function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
+  const { t } = useLocale();
   const qc = useQueryClient();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -192,8 +202,15 @@ function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
       <div className="fixed inset-0 bg-black/40" onClick={onClose} />
       <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Notifications</h2>
-          <IconButton label="Close" icon={<XIcon size={16} />} size="sm" onClick={onClose} />
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {t('notificationInbox.title')}
+          </h2>
+          <IconButton
+            label={t('common.close')}
+            icon={<XIcon size={16} />}
+            size="sm"
+            onClick={onClose}
+          />
         </div>
 
         {items.length > 0 && (
@@ -203,9 +220,13 @@ function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
                 size="sm"
                 checked={allSelected}
                 onChange={toggleAll}
-                aria-label={allSelected ? 'Deselect all' : 'Select all'}
+                aria-label={
+                  allSelected ? t('applications.deselectAll') : t('applications.selectAll')
+                }
               />
-              {selectedCount > 0 ? `${selectedCount} selected` : 'Select all'}
+              {selectedCount > 0
+                ? t('applications.selectedCount', { count: selectedCount })
+                : t('applications.selectAll')}
             </label>
             {selectedCount > 0 && (
               <div className="flex items-center gap-3">
@@ -213,20 +234,22 @@ function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
                   variant="link"
                   size="sm"
                   onClick={() => markSelected(true)}
-                  aria-label="Mark read"
+                  aria-label={t('notificationInbox.markRead')}
                 >
                   <span className="flex items-center gap-1">
-                    <CheckCheckIcon size={14} /> <span className="hidden sm:inline">Mark read</span>
+                    <CheckCheckIcon size={14} />{' '}
+                    <span className="hidden sm:inline">{t('notificationInbox.markRead')}</span>
                   </span>
                 </Button>
                 <Button
                   variant="link"
                   size="sm"
                   onClick={() => markSelected(false)}
-                  aria-label="Mark unread"
+                  aria-label={t('notificationInbox.markUnread')}
                 >
                   <span className="flex items-center gap-1">
-                    <EyeOffIcon size={14} /> <span className="hidden sm:inline">Mark unread</span>
+                    <EyeOffIcon size={14} />{' '}
+                    <span className="hidden sm:inline">{t('notificationInbox.markUnread')}</span>
                   </span>
                 </Button>
               </div>
@@ -242,12 +265,12 @@ function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
           )}
           {isError && (
             <p className="text-sm text-red-600 px-4 py-6 text-center">
-              Failed to load notifications.
+              {t('notificationInbox.loadFailed')}
             </p>
           )}
           {!isLoading && !isError && items.length === 0 && (
             <p className="text-sm text-gray-500 dark:text-gray-400 px-4 py-8 text-center">
-              You&apos;re all caught up.
+              {t('notificationInbox.allCaughtUp')}
             </p>
           )}
           {items.map((notification) => (
@@ -262,7 +285,9 @@ function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
                 className="mt-1 shrink-0"
                 checked={selectedIds.has(notification.id)}
                 onChange={() => toggleOne(notification.id)}
-                aria-label={`Select ${notification.title}`}
+                aria-label={t('notificationInbox.selectNotificationAria', {
+                  title: notification.title,
+                })}
               />
               <button
                 type="button"
@@ -284,7 +309,7 @@ function NotificationInboxPanel({ onClose }: { onClose: () => void }) {
                     {notification.body}
                   </span>
                   <span className="block text-[11px] text-gray-400 mt-1">
-                    {timeAgo(notification.createdAt)}
+                    {timeAgo(notification.createdAt, t)}
                   </span>
                 </span>
                 {!notification.read && (

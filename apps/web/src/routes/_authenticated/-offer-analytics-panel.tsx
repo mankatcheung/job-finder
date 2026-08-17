@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useLocale } from '#/lib/i18n';
 import { Card, EmptyState, Skeleton } from '@trakwyn/ui';
 import { offerAnalyticsQueryOptions } from './-offer-analytics-queries';
 
@@ -35,6 +36,7 @@ function formatDate(iso: string): string {
  * analytics panels — this is a supplementary insight, not critical path.
  */
 export function OfferAnalyticsPanel() {
+  const { t } = useLocale();
   const { data, isLoading } = useQuery(offerAnalyticsQueryOptions);
 
   if (isLoading) {
@@ -47,25 +49,21 @@ export function OfferAnalyticsPanel() {
   return (
     <Card className="p-6">
       <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-        Compensation trends
+        {t('offerAnalytics.title')}
       </h2>
       <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
-        Offers over time, annualized for comparison across pay periods.
+        {t('offerAnalytics.description')}
       </p>
 
       {analytics.byCurrency.length === 0 ? (
-        <EmptyState
-          size="compact"
-          className="py-8"
-          message="Log an offer on an application to see compensation trends here."
-        />
+        <EmptyState size="compact" className="py-8" message={t('offerAnalytics.emptyMessage')} />
       ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
             {analytics.byCurrency.map((stat) => (
               <div key={stat.currency}>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">
-                  {stat.currency} median ({stat.count})
+                  {t('offerAnalytics.medianLabel', { currency: stat.currency, count: stat.count })}
                 </p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {formatCurrency(stat.medianYearlySalary, stat.currency)}

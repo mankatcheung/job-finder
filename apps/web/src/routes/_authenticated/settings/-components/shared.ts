@@ -480,25 +480,17 @@ export interface SecurityActivityItem {
   createdAt: string;
 }
 
-export const SECURITY_EVENT_LABEL: Record<string, string> = {
-  login: 'Signed in',
-  password_changed: 'Password changed',
-  email_changed: 'Email address changed',
-  totp_enabled: 'Two-factor authentication enabled',
-  totp_disabled: 'Two-factor authentication disabled',
-  totp_backup_codes_regenerated: 'Backup codes regenerated',
-  session_revoked: 'A session was revoked',
-  other_sessions_revoked: 'All other sessions were revoked',
-};
+/** Device-kind key for a session/security-event's user agent string — translate via `security.device.<kind>` at the call site. */
+export type DeviceKind = 'ios' | 'android' | 'mac' | 'windows' | 'linux' | 'unknown';
 
-export function describeDevice(userAgent: string | null): string {
-  if (!userAgent) return 'Unknown device';
-  if (/iPhone|iPad/.test(userAgent)) return 'iOS device';
-  if (/Android/.test(userAgent)) return 'Android device';
-  if (/Macintosh/.test(userAgent)) return 'Mac';
-  if (/Windows/.test(userAgent)) return 'Windows PC';
-  if (/Linux/.test(userAgent)) return 'Linux device';
-  return 'Unknown device';
+export function describeDevice(userAgent: string | null): DeviceKind {
+  if (!userAgent) return 'unknown';
+  if (/iPhone|iPad/.test(userAgent)) return 'ios';
+  if (/Android/.test(userAgent)) return 'android';
+  if (/Macintosh/.test(userAgent)) return 'mac';
+  if (/Windows/.test(userAgent)) return 'windows';
+  if (/Linux/.test(userAgent)) return 'linux';
+  return 'unknown';
 }
 
 export interface ImportSummary {
@@ -571,11 +563,6 @@ export type CreateShareLinkPayload = {
   name: string;
   token: string;
   createdAt: string;
-};
-
-export const OAUTH_PROVIDER_LABEL: Record<LinkedOAuthAccount['provider'], string> = {
-  google: 'Google',
-  github: 'GitHub',
 };
 
 // ── Shared styles ──────────────────────────────────────────────────────────

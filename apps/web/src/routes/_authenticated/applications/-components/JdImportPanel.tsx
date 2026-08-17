@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
+import { useLocale } from '#/lib/i18n';
 import { SparklesIcon } from 'lucide-react';
 import { Button, Input, Textarea } from '@trakwyn/ui';
 
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export function JdImportPanel({ onFill }: Props) {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<'text' | 'url'>('text');
   const [text, setText] = useState('');
@@ -53,7 +55,7 @@ export function JdImportPanel({ onFill }: Props) {
       if (getGqlErrorCode(err) === AI_NOT_CONFIGURED_CODE) {
         setAiNotConfigured(true);
       } else {
-        setError(err instanceof Error ? err.message : 'Failed to parse job description');
+        setError(err instanceof Error ? err.message : t('jdImport.parseFailed'));
       }
     } finally {
       setLoading(false);
@@ -74,7 +76,7 @@ export function JdImportPanel({ onFill }: Props) {
       >
         <SparklesIcon size={15} className="text-blue-500 shrink-0" />
         <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-          Auto-fill from job posting
+          {t('jdImport.autoFillTitle')}
         </span>
         <span className="ml-auto text-xs text-blue-400">{open ? '▲' : '▼'}</span>
       </button>
@@ -87,14 +89,14 @@ export function JdImportPanel({ onFill }: Props) {
               className={tabClass(mode === 'text')}
               onClick={() => setMode('text')}
             >
-              Paste text
+              {t('jdImport.pasteText')}
             </button>
             <button
               type="button"
               className={tabClass(mode === 'url')}
               onClick={() => setMode('url')}
             >
-              From URL
+              {t('jdImport.fromUrl')}
             </button>
           </div>
 
@@ -103,7 +105,7 @@ export function JdImportPanel({ onFill }: Props) {
               value={text}
               onChange={(e) => setText(e.target.value)}
               rows={5}
-              placeholder="Paste the job description here…"
+              placeholder={t('jdImport.pastePlaceholder')}
             />
           ) : (
             <Input
@@ -117,11 +119,11 @@ export function JdImportPanel({ onFill }: Props) {
           {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
           {aiNotConfigured && (
             <p className="text-xs text-red-600 dark:text-red-400">
-              Add your AI API key in{' '}
+              {t('resumeMatch.addApiKeyPrefix')}{' '}
               <Link to="/settings/profile" className="underline">
-                Account settings
+                {t('resumeMatch.accountSettingsLinkText')}
               </Link>{' '}
-              to use this feature.
+              {t('resumeMatch.addApiKeySuffix')}
             </p>
           )}
 
@@ -131,12 +133,14 @@ export function JdImportPanel({ onFill }: Props) {
           >
             <span className="flex items-center gap-2">
               <SparklesIcon size={13} />
-              {loading ? 'Parsing…' : filled ? 'Filled!' : 'Auto-fill fields'}
+              {loading
+                ? t('jdImport.parsing')
+                : filled
+                  ? t('jdImport.filled')
+                  : t('jdImport.autoFillFields')}
             </span>
           </Button>
-          <p className="text-xs text-blue-500 dark:text-blue-400">
-            Fields will be pre-filled — you can review and edit before saving.
-          </p>
+          <p className="text-xs text-blue-500 dark:text-blue-400">{t('jdImport.prefilledNote')}</p>
         </div>
       )}
     </div>

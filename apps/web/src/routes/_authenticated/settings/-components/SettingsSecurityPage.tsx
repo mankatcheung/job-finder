@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import {
   REQUEST_EMAIL_CHANGE,
   REQUEST_ADD_BACKUP_EMAIL,
@@ -39,14 +40,13 @@ import {
   type LinkedOAuthAccount,
   type Session,
   type SecurityActivityItem,
-  OAUTH_PROVIDER_LABEL,
-  SECURITY_EVENT_LABEL,
   describeDevice,
   extractGqlError,
 } from './shared';
 import { useStepUpReauth, STEP_UP_CANCELLED } from './useStepUpReauth';
 
 export function SettingsSecurityPage() {
+  const { t } = useLocale();
   const qc = useQueryClient();
   const { withStepUp, dialog: stepUpDialog } = useStepUpReauth();
 
@@ -59,7 +59,9 @@ export function SettingsSecurityPage() {
       emailForm.setError('root', { message: '' });
     } catch (err) {
       if (err instanceof Error && err.message === STEP_UP_CANCELLED) return;
-      emailForm.setError('root', { message: extractGqlError(err) ?? 'Failed to update email.' });
+      emailForm.setError('root', {
+        message: extractGqlError(err) ?? t('security.emailUpdateFailed'),
+      });
     }
   };
 
@@ -89,7 +91,7 @@ export function SettingsSecurityPage() {
     } catch (err) {
       if (err instanceof Error && err.message === STEP_UP_CANCELLED) return;
       backupEmailForm.setError('root', {
-        message: extractGqlError(err) ?? 'Failed to add backup email.',
+        message: extractGqlError(err) ?? t('security.addBackupEmailFailed'),
       });
     }
   };
@@ -101,7 +103,7 @@ export function SettingsSecurityPage() {
     } catch (err) {
       if (err instanceof Error && err.message === STEP_UP_CANCELLED) return;
       removeBackupEmailForm.setError('root', {
-        message: extractGqlError(err) ?? 'Failed to remove backup email.',
+        message: extractGqlError(err) ?? t('security.removeBackupEmailFailed'),
       });
     }
   };
@@ -115,7 +117,7 @@ export function SettingsSecurityPage() {
     } catch (err) {
       if (err instanceof Error && err.message === STEP_UP_CANCELLED) return;
       passwordForm.setError('root', {
-        message: extractGqlError(err) ?? 'Failed to update password.',
+        message: extractGqlError(err) ?? t('security.passwordUpdateFailed'),
       });
     }
   };
@@ -134,7 +136,7 @@ export function SettingsSecurityPage() {
       await gqlClient.request(UNLINK_OAUTH_ACCOUNT, { provider });
       await qc.invalidateQueries({ queryKey: ['linkedOAuthAccounts'] });
     } catch (err) {
-      setUnlinkError(extractGqlError(err) ?? 'Failed to unlink account.');
+      setUnlinkError(extractGqlError(err) ?? t('security.unlinkFailed'));
     }
   };
 
@@ -155,7 +157,7 @@ export function SettingsSecurityPage() {
       totpBeginForm.reset();
     } catch (err) {
       totpBeginForm.setError('root', {
-        message: extractGqlError(err) ?? 'Failed to start two-factor setup.',
+        message: extractGqlError(err) ?? t('security.startTwoFactorFailed'),
       });
     }
   };
@@ -173,7 +175,7 @@ export function SettingsSecurityPage() {
       await qc.invalidateQueries({ queryKey: ['totpEnabled'] });
     } catch (err) {
       totpConfirmForm.setError('root', {
-        message: extractGqlError(err) ?? 'Invalid code. Please try again.',
+        message: extractGqlError(err) ?? t('security.invalidCode'),
       });
     }
   };
@@ -190,7 +192,7 @@ export function SettingsSecurityPage() {
       await qc.invalidateQueries({ queryKey: ['totpEnabled'] });
     } catch (err) {
       totpDisableForm.setError('root', {
-        message: extractGqlError(err) ?? 'Failed to disable two-factor authentication.',
+        message: extractGqlError(err) ?? t('security.disableTwoFactorFailed'),
       });
     }
   };
@@ -208,7 +210,7 @@ export function SettingsSecurityPage() {
     } catch (err) {
       if (err instanceof Error && err.message === STEP_UP_CANCELLED) return;
       regenerateBackupCodesForm.setError('root', {
-        message: extractGqlError(err) ?? 'Failed to regenerate backup codes.',
+        message: extractGqlError(err) ?? t('security.regenerateBackupCodesFailed'),
       });
     }
   };
@@ -238,9 +240,9 @@ export function SettingsSecurityPage() {
       .request<{ securityActivity: SecurityActivityItem[] }>(SECURITY_ACTIVITY)
       .then((res) => setSecurityActivity(res.securityActivity))
       .catch((err) =>
-        setSecurityActivityError(extractGqlError(err) ?? 'Failed to load security activity.'),
+        setSecurityActivityError(extractGqlError(err) ?? t('security.loadSecurityActivityFailed')),
       );
-  }, []);
+  }, [t]);
 
   return (
     <div className="space-y-10">
@@ -249,16 +251,15 @@ export function SettingsSecurityPage() {
       <section className="space-y-4">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            Email address
+            {t('security.emailTitle')}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Update the email you sign in with. We&apos;ll send a confirmation link to the new
-            address before the change takes effect.
+            {t('security.emailDescription')}
           </p>
         </div>
         <form onSubmit={emailForm.handleSubmit(onUpdateEmail)} className="space-y-3">
           <div>
-            <FormLabel>Current password</FormLabel>
+            <FormLabel>{t('security.currentPasswordLabel')}</FormLabel>
             <Input
               type="password"
               {...emailForm.register('currentPassword')}
@@ -272,7 +273,7 @@ export function SettingsSecurityPage() {
             )}
           </div>
           <div>
-            <FormLabel>New email</FormLabel>
+            <FormLabel>{t('security.newEmailLabel')}</FormLabel>
             <Input
               type="email"
               {...emailForm.register('newEmail')}
@@ -289,12 +290,10 @@ export function SettingsSecurityPage() {
             <Alert>{emailForm.formState.errors.root.message}</Alert>
           )}
           {emailForm.formState.isSubmitSuccessful && !emailForm.formState.errors.root?.message && (
-            <p className="text-sm text-green-600">
-              Confirmation link sent. Check the new address&apos;s inbox to complete the change.
-            </p>
+            <p className="text-sm text-green-600">{t('security.emailConfirmationSent')}</p>
           )}
           <Button type="submit" disabled={emailForm.formState.isSubmitting}>
-            {emailForm.formState.isSubmitting ? 'Sending…' : 'Update email'}
+            {emailForm.formState.isSubmitting ? t('security.sending') : t('security.updateEmail')}
           </Button>
         </form>
       </section>
@@ -304,10 +303,11 @@ export function SettingsSecurityPage() {
       {/* ── Backup email ── */}
       <section className="space-y-4">
         <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Backup email</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            {t('security.backupEmailTitle')}
+          </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Add a verified backup address so you can recover your account if you lose access to your
-            primary inbox.
+            {t('security.backupEmailDescription')}
           </p>
         </div>
         {backupEmail ? (
@@ -315,7 +315,7 @@ export function SettingsSecurityPage() {
             <p className="text-sm text-gray-900 dark:text-gray-100">
               {backupEmail}{' '}
               <span className={backupEmailVerified ? 'text-green-600' : 'text-amber-600'}>
-                {backupEmailVerified ? '(verified)' : '(verification pending)'}
+                {backupEmailVerified ? t('security.verified') : t('security.verificationPending')}
               </span>
             </p>
             <form
@@ -323,7 +323,7 @@ export function SettingsSecurityPage() {
               className="space-y-3"
             >
               <div>
-                <FormLabel>Current password to remove it</FormLabel>
+                <FormLabel>{t('security.currentPasswordToRemoveLabel')}</FormLabel>
                 <Input
                   type="password"
                   {...removeBackupEmailForm.register('currentPassword')}
@@ -344,14 +344,16 @@ export function SettingsSecurityPage() {
                 variant="destructive"
                 disabled={removeBackupEmailForm.formState.isSubmitting}
               >
-                {removeBackupEmailForm.formState.isSubmitting ? 'Removing…' : 'Remove backup email'}
+                {removeBackupEmailForm.formState.isSubmitting
+                  ? t('security.removing')
+                  : t('security.removeBackupEmail')}
               </Button>
             </form>
           </div>
         ) : (
           <form onSubmit={backupEmailForm.handleSubmit(onAddBackupEmail)} className="space-y-3">
             <div>
-              <FormLabel>Backup email</FormLabel>
+              <FormLabel>{t('security.backupEmailLabel')}</FormLabel>
               <Input
                 type="email"
                 {...backupEmailForm.register('backupEmail')}
@@ -365,7 +367,7 @@ export function SettingsSecurityPage() {
               )}
             </div>
             <div>
-              <FormLabel>Current password</FormLabel>
+              <FormLabel>{t('security.currentPasswordLabel')}</FormLabel>
               <Input
                 type="password"
                 {...backupEmailForm.register('currentPassword')}
@@ -382,12 +384,12 @@ export function SettingsSecurityPage() {
               <Alert>{backupEmailForm.formState.errors.root.message}</Alert>
             )}
             {backupEmailForm.formState.isSubmitSuccessful && (
-              <p className="text-sm text-green-600">
-                Check the backup inbox for a verification link.
-              </p>
+              <p className="text-sm text-green-600">{t('security.backupEmailVerificationSent')}</p>
             )}
             <Button type="submit" disabled={backupEmailForm.formState.isSubmitting}>
-              {backupEmailForm.formState.isSubmitting ? 'Sending…' : 'Add backup email'}
+              {backupEmailForm.formState.isSubmitting
+                ? t('security.sending')
+                : t('security.addBackupEmail')}
             </Button>
           </form>
         )}
@@ -398,14 +400,16 @@ export function SettingsSecurityPage() {
       {/* ── Password ── */}
       <section className="space-y-4">
         <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Password</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            {t('security.passwordTitle')}
+          </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Choose a strong password of at least 8 characters.
+            {t('security.passwordDescription')}
           </p>
         </div>
         <form onSubmit={passwordForm.handleSubmit(onUpdatePassword)} className="space-y-3">
           <div>
-            <FormLabel>Current password</FormLabel>
+            <FormLabel>{t('security.currentPasswordLabel')}</FormLabel>
             <Input
               type="password"
               {...passwordForm.register('currentPassword')}
@@ -419,7 +423,7 @@ export function SettingsSecurityPage() {
             )}
           </div>
           <div>
-            <FormLabel>New password</FormLabel>
+            <FormLabel>{t('security.newPasswordLabel')}</FormLabel>
             <Input
               type="password"
               {...passwordForm.register('newPassword')}
@@ -433,7 +437,7 @@ export function SettingsSecurityPage() {
             )}
           </div>
           <div>
-            <FormLabel>Confirm new password</FormLabel>
+            <FormLabel>{t('security.confirmNewPasswordLabel')}</FormLabel>
             <Input
               type="password"
               {...passwordForm.register('confirmPassword')}
@@ -450,10 +454,12 @@ export function SettingsSecurityPage() {
             <Alert>{passwordForm.formState.errors.root.message}</Alert>
           )}
           {passwordForm.formState.isSubmitSuccessful && !passwordForm.formState.errors.root && (
-            <p className="text-sm text-green-600">Password updated successfully.</p>
+            <p className="text-sm text-green-600">{t('security.passwordUpdated')}</p>
           )}
           <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
-            {passwordForm.formState.isSubmitting ? 'Saving…' : 'Update password'}
+            {passwordForm.formState.isSubmitting
+              ? t('applicationForm.saving')
+              : t('security.updatePassword')}
           </Button>
         </form>
       </section>
@@ -464,16 +470,17 @@ export function SettingsSecurityPage() {
       <section className="space-y-4">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            Linked accounts
+            {t('security.linkedAccountsTitle')}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Sign in faster by linking a provider to your account.
+            {t('security.linkedAccountsDescription')}
           </p>
         </div>
         {unlinkError && <Alert>{unlinkError}</Alert>}
         <div className="space-y-2">
           {(['google', 'github'] as const).map((provider) => {
             const linked = linkedAccounts.find((a) => a.provider === provider);
+            const providerLabel = t(`security.${provider}`);
             return (
               <div
                 key={provider}
@@ -481,27 +488,28 @@ export function SettingsSecurityPage() {
               >
                 <div>
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {OAUTH_PROVIDER_LABEL[provider]}
+                    {providerLabel}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {linked ? (linked.email ?? 'Linked') : 'Not linked'}
+                    {linked ? (linked.email ?? t('security.linked')) : t('security.notLinked')}
                   </p>
                 </div>
                 {linked ? (
                   <button
                     type="button"
                     onClick={() => onUnlink(provider)}
-                    aria-label={`Unlink ${OAUTH_PROVIDER_LABEL[provider]}`}
+                    aria-label={t('security.unlinkAria', { provider: providerLabel })}
                     className="flex items-center gap-1 text-sm text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
                   >
-                    <UnlinkIcon size={14} /> <span className="hidden sm:inline">Unlink</span>
+                    <UnlinkIcon size={14} />{' '}
+                    <span className="hidden sm:inline">{t('security.unlink')}</span>
                   </button>
                 ) : (
                   <a
                     href={`/auth/oauth/${provider}/start?mode=link`}
                     className="text-sm text-blue-600 hover:underline"
                   >
-                    Link
+                    {t('security.link')}
                   </a>
                 )}
               </div>
@@ -516,38 +524,40 @@ export function SettingsSecurityPage() {
       <section className="space-y-4">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            Two-factor authentication
+            {t('security.twoFactorTitle')}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Require a code from an authenticator app in addition to your password.
+            {t('security.twoFactorDescription')}
           </p>
         </div>
 
         {backupCodes ? (
           <div className="space-y-3">
-            <p className="text-sm text-green-600">Two-factor authentication is enabled.</p>
+            <p className="text-sm text-green-600">{t('security.twoFactorEnabled')}</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Save these backup codes somewhere safe. Each one can be used once to sign in if you
-              lose access to your authenticator app — they won&apos;t be shown again.
+              {t('security.backupCodesSaveNote')}
             </p>
             <ul className="grid grid-cols-2 gap-2 font-mono text-sm bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
               {backupCodes.map((code) => (
                 <li key={code}>{code}</li>
               ))}
             </ul>
-            <Button onClick={() => setBackupCodes(null)} aria-label="I've saved these codes">
+            <Button
+              onClick={() => setBackupCodes(null)}
+              aria-label={t('security.savedCodesConfirm')}
+            >
               <span className="flex items-center gap-1.5">
                 <CheckIcon size={14} />{' '}
-                <span className="hidden sm:inline">I&apos;ve saved these codes</span>
+                <span className="hidden sm:inline">{t('security.savedCodesConfirm')}</span>
               </span>
             </Button>
           </div>
         ) : totpEnabled ? (
           <>
             <form onSubmit={totpDisableForm.handleSubmit(onDisableTotp)} className="space-y-3">
-              <p className="text-sm text-green-600">Two-factor authentication is enabled.</p>
+              <p className="text-sm text-green-600">{t('security.twoFactorEnabled')}</p>
               <div>
-                <FormLabel>Confirm your password to disable</FormLabel>
+                <FormLabel>{t('security.confirmPasswordToDisableLabel')}</FormLabel>
                 <Input
                   type="password"
                   {...totpDisableForm.register('password')}
@@ -568,7 +578,9 @@ export function SettingsSecurityPage() {
                 variant="destructive"
                 disabled={totpDisableForm.formState.isSubmitting}
               >
-                {totpDisableForm.formState.isSubmitting ? 'Disabling…' : 'Disable 2FA'}
+                {totpDisableForm.formState.isSubmitting
+                  ? t('security.disabling')
+                  : t('security.disable2fa')}
               </Button>
             </form>
             <form
@@ -577,14 +589,14 @@ export function SettingsSecurityPage() {
             >
               <div>
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  Regenerate backup codes
+                  {t('security.regenerateBackupCodesTitle')}
                 </p>
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  This invalidates all existing backup codes and shows a new batch once.
+                  {t('security.regenerateBackupCodesDescription')}
                 </p>
               </div>
               <div>
-                <FormLabel>Current password</FormLabel>
+                <FormLabel>{t('security.currentPasswordLabel')}</FormLabel>
                 <Input
                   type="password"
                   {...regenerateBackupCodesForm.register('password')}
@@ -606,19 +618,19 @@ export function SettingsSecurityPage() {
                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-60 text-gray-900 text-sm font-medium rounded-lg transition-colors dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100"
               >
                 {regenerateBackupCodesForm.formState.isSubmitting
-                  ? 'Regenerating…'
-                  : 'Regenerate backup codes'}
+                  ? t('security.regenerating')
+                  : t('security.regenerateBackupCodes')}
               </button>
             </form>
           </>
         ) : totpSetup ? (
           <div className="space-y-3">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Scan this QR code with your authenticator app, or enter the key manually.
+              {t('security.scanQrCodeNote')}
             </p>
             <img
               src={totpSetup.qrCodeDataUrl}
-              alt="Two-factor authentication QR code"
+              alt={t('security.qrCodeAlt')}
               className="w-40 h-40 rounded-lg border border-gray-200 dark:border-gray-700"
             />
             <p className="text-xs font-mono text-gray-500 dark:text-gray-400 break-all">
@@ -626,7 +638,7 @@ export function SettingsSecurityPage() {
             </p>
             <form onSubmit={totpConfirmForm.handleSubmit(onConfirmTotpSetup)} className="space-y-3">
               <div>
-                <FormLabel>Enter the code from your app</FormLabel>
+                <FormLabel>{t('security.enterCodeLabel')}</FormLabel>
                 <Input
                   type="text"
                   inputMode="numeric"
@@ -644,14 +656,16 @@ export function SettingsSecurityPage() {
                 <Alert>{totpConfirmForm.formState.errors.root.message}</Alert>
               )}
               <Button type="submit" disabled={totpConfirmForm.formState.isSubmitting}>
-                {totpConfirmForm.formState.isSubmitting ? 'Confirming…' : 'Confirm'}
+                {totpConfirmForm.formState.isSubmitting
+                  ? t('security.confirming')
+                  : t('security.confirm')}
               </Button>
             </form>
           </div>
         ) : (
           <form onSubmit={totpBeginForm.handleSubmit(onBeginTotpSetup)} className="space-y-3">
             <div>
-              <FormLabel>Confirm your password to enable 2FA</FormLabel>
+              <FormLabel>{t('security.confirmPasswordToEnableLabel')}</FormLabel>
               <Input
                 type="password"
                 {...totpBeginForm.register('password')}
@@ -668,7 +682,9 @@ export function SettingsSecurityPage() {
               <Alert>{totpBeginForm.formState.errors.root.message}</Alert>
             )}
             <Button type="submit" disabled={totpBeginForm.formState.isSubmitting}>
-              {totpBeginForm.formState.isSubmitting ? 'Starting…' : 'Enable 2FA'}
+              {totpBeginForm.formState.isSubmitting
+                ? t('security.starting')
+                : t('security.enable2fa')}
             </Button>
           </form>
         )}
@@ -681,21 +697,21 @@ export function SettingsSecurityPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-              Active sessions
+              {t('security.activeSessionsTitle')}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Devices currently signed in to your account.
+              {t('security.activeSessionsDescription')}
             </p>
           </div>
           {sessions.length > 1 && (
             <button
               type="button"
               onClick={onRevokeOtherSessions}
-              aria-label="Sign out other sessions"
+              aria-label={t('security.signOutOtherSessions')}
               className="shrink-0 flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-xs font-medium rounded-lg transition-colors"
             >
               <LogOutIcon size={14} />{' '}
-              <span className="hidden sm:inline">Sign out other sessions</span>
+              <span className="hidden sm:inline">{t('security.signOutOtherSessions')}</span>
             </button>
           )}
         </div>
@@ -707,14 +723,16 @@ export function SettingsSecurityPage() {
             >
               <div className="min-w-0">
                 <p className="text-sm text-gray-900 dark:text-gray-100 truncate">
-                  {session.deviceLabel ?? session.userAgent ?? 'Unknown device'}
+                  {session.deviceLabel ?? session.userAgent ?? t('security.unknownDevice')}
                   {session.current && (
-                    <span className="ml-2 text-xs text-green-600 font-medium">This device</span>
+                    <span className="ml-2 text-xs text-green-600 font-medium">
+                      {t('security.thisDevice')}
+                    </span>
                   )}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {session.location ? `${session.location} · ` : ''}
-                  {session.ipAddress ?? 'Unknown IP'} · Last active{' '}
+                  {session.ipAddress ?? t('security.unknownIp')} · {t('security.lastActive')}{' '}
                   {new Date(session.lastUsedAt).toLocaleString()}
                 </p>
               </div>
@@ -722,10 +740,11 @@ export function SettingsSecurityPage() {
                 <button
                   type="button"
                   onClick={() => onRevokeSession(session.id)}
-                  aria-label="Revoke session"
+                  aria-label={t('security.revokeSessionAria')}
                   className="shrink-0 flex items-center gap-1 text-xs text-red-600 hover:underline"
                 >
-                  <BanIcon size={14} /> <span className="hidden sm:inline">Revoke</span>
+                  <BanIcon size={14} />{' '}
+                  <span className="hidden sm:inline">{t('security.revoke')}</span>
                 </button>
               )}
             </li>
@@ -739,29 +758,30 @@ export function SettingsSecurityPage() {
       <section className="space-y-4">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            Security activity
+            {t('security.securityActivityTitle')}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            A record of sign-ins and account security changes: password and email updates,
-            two-factor authentication, and session revocations.
+            {t('security.securityActivityDescription')}
           </p>
         </div>
         {securityActivityError && <Alert>{securityActivityError}</Alert>}
         {!securityActivityError && securityActivity === null && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</p>
         )}
         {!securityActivityError && securityActivity?.length === 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">No security activity yet.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t('security.noSecurityActivityYet')}
+          </p>
         )}
         {!securityActivityError && securityActivity && securityActivity.length > 0 && (
           <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
             {securityActivity.map((event) => (
               <li key={event.id} className="px-3 py-2 text-sm">
                 <p className="text-gray-900 dark:text-gray-100">
-                  {SECURITY_EVENT_LABEL[event.eventType] ?? event.eventType}
+                  {t(`security.event.${event.eventType}`, { defaultValue: event.eventType })}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {describeDevice(event.userAgent)}
+                  {t(`security.device.${describeDevice(event.userAgent)}`)}
                   {event.ipAddress ? ` · ${event.ipAddress}` : ''}
                   {' · '}
                   {new Date(event.createdAt).toLocaleString()}

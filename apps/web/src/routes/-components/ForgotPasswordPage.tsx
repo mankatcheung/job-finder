@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
 
 const schema = z.object({
@@ -24,6 +25,7 @@ const REQUEST_BACKUP_EMAIL_RECOVERY_MUTATION = `
 `;
 
 export function ForgotPasswordPage() {
+  const { t } = useLocale();
   const [recoveryMode, setRecoveryMode] = useState<'primary' | 'backup'>('primary');
   const {
     register,
@@ -48,23 +50,21 @@ export function ForgotPasswordPage() {
       <div className="w-full max-w-sm bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Forgot your password?
+            {t('forgotPassword.title')}
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {recoveryMode === 'backup'
-              ? 'Use your verified backup email to recover access.'
-              : 'Enter your email and we&apos;ll send you a link to reset it.'}
+              ? t('forgotPassword.backupDescription')
+              : t('forgotPassword.primaryDescription')}
           </p>
         </div>
 
         {isSubmitSuccessful ? (
-          <Alert tone="success">
-            If an account exists for that email, we&apos;ve sent a recovery link. Check your inbox.
-          </Alert>
+          <Alert tone="success">{t('forgotPassword.successMessage')}</Alert>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <FormLabel htmlFor="email">Email</FormLabel>
+              <FormLabel htmlFor="email">{t('auth.email')}</FormLabel>
               <Input
                 id="email"
                 type="email"
@@ -77,10 +77,10 @@ export function ForgotPasswordPage() {
 
             <Button type="submit" disabled={isSubmitting} fullWidth>
               {isSubmitting
-                ? 'Sending…'
+                ? t('security.sending')
                 : recoveryMode === 'backup'
-                  ? 'Send recovery link'
-                  : 'Send reset link'}
+                  ? t('forgotPassword.sendRecoveryLink')
+                  : t('forgotPassword.sendResetLink')}
             </Button>
           </form>
         )}
@@ -90,13 +90,13 @@ export function ForgotPasswordPage() {
           onClick={() => setRecoveryMode((mode) => (mode === 'primary' ? 'backup' : 'primary'))}
         >
           {recoveryMode === 'primary'
-            ? 'Lost access to your primary email? Use a backup email.'
-            : 'Use your primary email instead'}
+            ? t('forgotPassword.useBackupEmail')
+            : t('forgotPassword.usePrimaryEmail')}
         </Button>
 
         <p className="text-sm text-gray-500 dark:text-gray-400">
           <Link to="/login" className="text-blue-600 hover:underline">
-            Back to sign in
+            {t('auth.backToSignIn')}
           </Link>
         </p>
       </div>

@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import { Alert, Button, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
 import {
   LLM_API_KEYS_QUERY,
@@ -33,6 +34,7 @@ import {
 } from './shared';
 
 export function SettingsIntegrationsPage() {
+  const { t } = useLocale();
   const qc = useQueryClient();
 
   // AI API keys
@@ -83,7 +85,7 @@ export function SettingsIntegrationsPage() {
       await qc.invalidateQueries({ queryKey: ['llmApiKeys'] });
     } catch (err) {
       llmApiKeyForm.setError('root', {
-        message: extractGqlError(err) ?? 'Failed to save API key.',
+        message: extractGqlError(err) ?? t('integrations.saveApiKeyFailed'),
       });
     }
   };
@@ -97,7 +99,7 @@ export function SettingsIntegrationsPage() {
       await gqlClient.request(DELETE_LLM_API_KEY, { provider });
       await qc.invalidateQueries({ queryKey: ['llmApiKeys'] });
     } catch (err) {
-      setLlmKeyListError(extractGqlError(err) ?? 'Failed to remove API key.');
+      setLlmKeyListError(extractGqlError(err) ?? t('integrations.removeApiKeyFailed'));
     } finally {
       setRemovingProvider(null);
     }
@@ -111,7 +113,7 @@ export function SettingsIntegrationsPage() {
       await gqlClient.request(SET_DEFAULT_LLM_PROVIDER, { provider });
       await qc.invalidateQueries({ queryKey: ['llmApiKeys'] });
     } catch (err) {
-      setLlmKeyListError(extractGqlError(err) ?? 'Failed to set default provider.');
+      setLlmKeyListError(extractGqlError(err) ?? t('integrations.setDefaultProviderFailed'));
     } finally {
       setSettingDefaultProvider(null);
     }
@@ -130,7 +132,7 @@ export function SettingsIntegrationsPage() {
       await qc.invalidateQueries({ queryKey: ['llmApiKeys'] });
     } catch (err) {
       customAiPromptForm.setError('root', {
-        message: extractGqlError(err) ?? 'Failed to update custom instructions.',
+        message: extractGqlError(err) ?? t('integrations.updateCustomInstructionsFailed'),
       });
     }
   };
@@ -161,7 +163,7 @@ export function SettingsIntegrationsPage() {
       setApiTokenName('');
       await qc.invalidateQueries({ queryKey: ['apiTokens'] });
     } catch (err) {
-      setApiTokenError(extractGqlError(err) ?? 'Failed to create token.');
+      setApiTokenError(extractGqlError(err) ?? t('integrations.createTokenFailed'));
     } finally {
       setCreatingApiToken(false);
     }
@@ -174,7 +176,7 @@ export function SettingsIntegrationsPage() {
       await gqlClient.request(DELETE_API_TOKEN, { id });
       await qc.invalidateQueries({ queryKey: ['apiTokens'] });
     } catch (err) {
-      setApiTokenError(extractGqlError(err) ?? 'Failed to delete token.');
+      setApiTokenError(extractGqlError(err) ?? t('integrations.deleteTokenFailed'));
     } finally {
       setDeletingApiTokenId(null);
     }
@@ -209,7 +211,7 @@ export function SettingsIntegrationsPage() {
       setShareLinkName('');
       await qc.invalidateQueries({ queryKey: ['shareLinks'] });
     } catch (err) {
-      setShareLinkError(extractGqlError(err) ?? 'Failed to create share link.');
+      setShareLinkError(extractGqlError(err) ?? t('integrations.createShareLinkFailed'));
     } finally {
       setCreatingShareLink(false);
     }
@@ -222,7 +224,7 @@ export function SettingsIntegrationsPage() {
       await gqlClient.request(DELETE_SHARE_LINK, { id });
       await qc.invalidateQueries({ queryKey: ['shareLinks'] });
     } catch (err) {
-      setShareLinkError(extractGqlError(err) ?? 'Failed to delete share link.');
+      setShareLinkError(extractGqlError(err) ?? t('integrations.deleteShareLinkFailed'));
     } finally {
       setDeletingShareLinkId(null);
     }
@@ -233,13 +235,11 @@ export function SettingsIntegrationsPage() {
       {/* ── AI features ── */}
       <section className="space-y-4">
         <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">AI features</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            {t('integrations.aiFeaturesTitle')}
+          </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Add your own API key from one or more providers to enable the assistant chatbot, cover
-            letter generation, and job description auto-fill. Trakwyn doesn&apos;t provide a shared
-            key — these features stay off until you add one. Automatic features (cover letters, job
-            description parsing, resume match) use your default provider below; the assistant
-            chatbot lets you choose the provider and model per conversation.
+            {t('integrations.aiFeaturesDescription')}
           </p>
         </div>
 
@@ -258,7 +258,9 @@ export function SettingsIntegrationsPage() {
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {LLM_PROVIDER_LABEL[key.provider] ?? key.provider}
                       {isDefault && (
-                        <span className="ml-2 text-xs font-normal text-green-600">Default</span>
+                        <span className="ml-2 text-xs font-normal text-green-600">
+                          {t('integrations.default')}
+                        </span>
                       )}
                     </p>
                     {(key.model || key.baseUrl) && (
@@ -274,12 +276,14 @@ export function SettingsIntegrationsPage() {
                         size="sm"
                         onClick={() => onSetDefaultProvider(key.provider)}
                         disabled={settingDefaultProvider === key.provider}
-                        aria-label="Make default"
+                        aria-label={t('integrations.makeDefault')}
                       >
                         <span className="flex items-center gap-1">
                           <StarIcon size={14} />{' '}
                           <span className="hidden sm:inline">
-                            {settingDefaultProvider === key.provider ? 'Setting…' : 'Make default'}
+                            {settingDefaultProvider === key.provider
+                              ? t('integrations.settingDefault')
+                              : t('integrations.makeDefault')}
                           </span>
                         </span>
                       </Button>
@@ -288,12 +292,14 @@ export function SettingsIntegrationsPage() {
                       type="button"
                       onClick={() => onRemoveLlmApiKey(key.provider)}
                       disabled={removingProvider === key.provider}
-                      aria-label="Remove"
+                      aria-label={t('integrations.remove')}
                       className="flex items-center gap-1 text-xs text-red-600 hover:underline disabled:opacity-60"
                     >
                       <Trash2Icon size={14} />{' '}
                       <span className="hidden sm:inline">
-                        {removingProvider === key.provider ? 'Removing…' : 'Remove'}
+                        {removingProvider === key.provider
+                          ? t('integrations.removing')
+                          : t('integrations.remove')}
                       </span>
                     </button>
                   </div>
@@ -306,7 +312,7 @@ export function SettingsIntegrationsPage() {
         {availableProviderOptions.length > 0 ? (
           <form onSubmit={llmApiKeyForm.handleSubmit(onSaveLlmApiKey)} className="space-y-3">
             <div>
-              <FormLabel>Provider</FormLabel>
+              <FormLabel>{t('integrations.providerLabel')}</FormLabel>
               <Select {...llmApiKeyForm.register('provider')}>
                 {availableProviderOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -316,7 +322,7 @@ export function SettingsIntegrationsPage() {
               </Select>
             </div>
             <div>
-              <FormLabel>API key</FormLabel>
+              <FormLabel>{t('integrations.apiKeyLabel')}</FormLabel>
               <Input
                 type="password"
                 {...llmApiKeyForm.register('apiKey')}
@@ -332,7 +338,7 @@ export function SettingsIntegrationsPage() {
             {isCustomLlmProvider ? (
               <>
                 <div>
-                  <FormLabel>Base URL</FormLabel>
+                  <FormLabel>{t('integrations.baseUrlLabel')}</FormLabel>
                   <Input
                     type="url"
                     {...llmApiKeyForm.register('baseUrl')}
@@ -346,7 +352,7 @@ export function SettingsIntegrationsPage() {
                   )}
                 </div>
                 <div>
-                  <FormLabel>Model</FormLabel>
+                  <FormLabel>{t('integrations.modelLabel')}</FormLabel>
                   <Input
                     type="text"
                     {...llmApiKeyForm.register('model')}
@@ -363,15 +369,15 @@ export function SettingsIntegrationsPage() {
             ) : (
               <div>
                 <FormLabel>
-                  Model{' '}
+                  {t('integrations.modelLabel')}{' '}
                   <span className="font-normal text-gray-400">
-                    (optional — leave blank to use the provider default)
+                    ({t('integrations.modelOptionalNote')})
                   </span>
                 </FormLabel>
                 <Input
                   type="text"
                   {...llmApiKeyForm.register('model')}
-                  placeholder="Provider default"
+                  placeholder={t('integrations.providerDefaultPlaceholder')}
                 />
               </div>
             )}
@@ -379,12 +385,14 @@ export function SettingsIntegrationsPage() {
               <Alert>{llmApiKeyForm.formState.errors.root.message}</Alert>
             )}
             <Button type="submit" disabled={llmApiKeyForm.formState.isSubmitting}>
-              {llmApiKeyForm.formState.isSubmitting ? 'Saving…' : 'Add key'}
+              {llmApiKeyForm.formState.isSubmitting
+                ? t('applicationForm.saving')
+                : t('integrations.addKey')}
             </Button>
           </form>
         ) : (
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            You&apos;ve configured every available provider.
+            {t('integrations.allProvidersConfigured')}
           </p>
         )}
 
@@ -393,16 +401,14 @@ export function SettingsIntegrationsPage() {
           className="space-y-3"
         >
           <div>
-            <FormLabel>Custom instructions</FormLabel>
+            <FormLabel>{t('integrations.customInstructionsLabel')}</FormLabel>
             <Textarea
               {...customAiPromptForm.register('customAiPrompt')}
               invalid={!!customAiPromptForm.formState.errors.customAiPrompt}
               rows={3}
               placeholder="e.g. Keep cover letters under 200 words and write in a casual tone."
             />
-            <p className="mt-1 text-xs text-gray-400">
-              Added to the prompt for AI-generated text (cover letters, the assistant chatbot).
-            </p>
+            <p className="mt-1 text-xs text-gray-400">{t('integrations.customInstructionsHelp')}</p>
             {customAiPromptForm.formState.errors.customAiPrompt && (
               <p className="mt-1 text-xs text-red-600">
                 {customAiPromptForm.formState.errors.customAiPrompt.message}
@@ -414,10 +420,14 @@ export function SettingsIntegrationsPage() {
           )}
           {customAiPromptForm.formState.isSubmitSuccessful &&
             !customAiPromptForm.formState.errors.root?.message && (
-              <p className="text-sm text-green-600">Custom instructions updated successfully.</p>
+              <p className="text-sm text-green-600">
+                {t('integrations.customInstructionsUpdated')}
+              </p>
             )}
           <Button type="submit" disabled={customAiPromptForm.formState.isSubmitting}>
-            {customAiPromptForm.formState.isSubmitting ? 'Saving…' : 'Save instructions'}
+            {customAiPromptForm.formState.isSubmitting
+              ? t('applicationForm.saving')
+              : t('integrations.saveInstructions')}
           </Button>
         </form>
       </section>
@@ -427,18 +437,17 @@ export function SettingsIntegrationsPage() {
       {/* ── API tokens ── */}
       <section className="space-y-4">
         <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">API tokens</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            {t('integrations.apiTokensTitle')}
+          </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Generate tokens to access the API programmatically. Keep your tokens secret — they grant
-            full access to your account.
+            {t('integrations.apiTokensDescription')}
           </p>
         </div>
 
         {newApiToken && (
           <div className="space-y-3">
-            <p className="text-sm text-green-600">
-              Token created successfully. Copy it now — it won&apos;t be shown again.
-            </p>
+            <p className="text-sm text-green-600">{t('integrations.tokenCreatedNote')}</p>
             <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
               <code className="flex-1 text-sm font-mono text-gray-900 dark:text-gray-100 break-all">
                 {newApiToken.token}
@@ -448,17 +457,18 @@ export function SettingsIntegrationsPage() {
                 onClick={() => {
                   navigator.clipboard.writeText(newApiToken.token);
                 }}
-                aria-label="Copy token"
+                aria-label={t('integrations.copyTokenAria')}
                 className="shrink-0"
               >
                 <span className="flex items-center gap-1">
-                  <CopyIcon size={14} /> <span className="hidden sm:inline">Copy</span>
+                  <CopyIcon size={14} />{' '}
+                  <span className="hidden sm:inline">{t('common.copy')}</span>
                 </span>
               </Button>
             </div>
-            <Button onClick={() => setNewApiToken(null)} aria-label="Done">
+            <Button onClick={() => setNewApiToken(null)} aria-label={t('common.done')}>
               <span className="flex items-center gap-1.5">
-                <CheckIcon size={14} /> <span className="hidden sm:inline">Done</span>
+                <CheckIcon size={14} /> <span className="hidden sm:inline">{t('common.done')}</span>
               </span>
             </Button>
           </div>
@@ -469,7 +479,7 @@ export function SettingsIntegrationsPage() {
             {apiTokenError && <Alert>{apiTokenError}</Alert>}
             <div className="flex items-end gap-3">
               <div className="flex-1">
-                <FormLabel>Token name</FormLabel>
+                <FormLabel>{t('integrations.tokenNameLabel')}</FormLabel>
                 <Input
                   type="text"
                   value={apiTokenName}
@@ -481,7 +491,7 @@ export function SettingsIntegrationsPage() {
                 onClick={onCreateApiToken}
                 disabled={creatingApiToken || !apiTokenName.trim()}
               >
-                {creatingApiToken ? 'Creating…' : 'Create token'}
+                {creatingApiToken ? t('integrations.creating') : t('integrations.createToken')}
               </Button>
             </div>
           </>
@@ -496,21 +506,25 @@ export function SettingsIntegrationsPage() {
                     {token.name}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Created {new Date(token.createdAt).toLocaleDateString()}
+                    {t('integrations.createdOn', {
+                      date: new Date(token.createdAt).toLocaleDateString(),
+                    })}
                     {token.lastUsedAt &&
-                      ` · Last used ${new Date(token.lastUsedAt).toLocaleDateString()}`}
+                      ` · ${t('integrations.lastUsedSuffix', { date: new Date(token.lastUsedAt).toLocaleDateString() })}`}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => onDeleteApiToken(token.id)}
                   disabled={deletingApiTokenId === token.id}
-                  aria-label="Revoke token"
+                  aria-label={t('integrations.revokeTokenAria')}
                   className="shrink-0 flex items-center gap-1 text-xs text-red-600 hover:underline disabled:opacity-60"
                 >
                   <Trash2Icon size={14} />{' '}
                   <span className="hidden sm:inline">
-                    {deletingApiTokenId === token.id ? 'Deleting…' : 'Revoke'}
+                    {deletingApiTokenId === token.id
+                      ? t('integrations.deleting')
+                      : t('integrations.revoke')}
                   </span>
                 </button>
               </li>
@@ -524,20 +538,17 @@ export function SettingsIntegrationsPage() {
       {/* ── Share links ── */}
       <section className="space-y-4">
         <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Share links</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            {t('integrations.shareLinksTitle')}
+          </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Generate a read-only link to share a summary of your job search — status counts and
-            recent activity only, never company names, notes, contacts, or documents. Useful for
-            keeping a mentor or accountability partner in the loop without giving full account
-            access.
+            {t('integrations.shareLinksDescription')}
           </p>
         </div>
 
         {newShareLink && (
           <div className="space-y-3">
-            <p className="text-sm text-green-600">
-              Share link created successfully. Copy it now — the link won&apos;t be shown again.
-            </p>
+            <p className="text-sm text-green-600">{t('integrations.shareLinkCreatedNote')}</p>
             <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
               <code className="flex-1 text-sm font-mono text-gray-900 dark:text-gray-100 break-all">
                 {shareUrl(newShareLink.token)}
@@ -547,17 +558,18 @@ export function SettingsIntegrationsPage() {
                 onClick={() => {
                   navigator.clipboard.writeText(shareUrl(newShareLink.token));
                 }}
-                aria-label="Copy link"
+                aria-label={t('integrations.copyLinkAria')}
                 className="shrink-0"
               >
                 <span className="flex items-center gap-1">
-                  <CopyIcon size={14} /> <span className="hidden sm:inline">Copy</span>
+                  <CopyIcon size={14} />{' '}
+                  <span className="hidden sm:inline">{t('common.copy')}</span>
                 </span>
               </Button>
             </div>
-            <Button onClick={() => setNewShareLink(null)} aria-label="Done">
+            <Button onClick={() => setNewShareLink(null)} aria-label={t('common.done')}>
               <span className="flex items-center gap-1.5">
-                <CheckIcon size={14} /> <span className="hidden sm:inline">Done</span>
+                <CheckIcon size={14} /> <span className="hidden sm:inline">{t('common.done')}</span>
               </span>
             </Button>
           </div>
@@ -568,7 +580,7 @@ export function SettingsIntegrationsPage() {
             {shareLinkError && <Alert>{shareLinkError}</Alert>}
             <div className="flex items-end gap-3">
               <div className="flex-1">
-                <FormLabel>Link name</FormLabel>
+                <FormLabel>{t('integrations.linkNameLabel')}</FormLabel>
                 <Input
                   type="text"
                   value={shareLinkName}
@@ -580,7 +592,7 @@ export function SettingsIntegrationsPage() {
                 onClick={onCreateShareLink}
                 disabled={creatingShareLink || !shareLinkName.trim()}
               >
-                {creatingShareLink ? 'Creating…' : 'Create link'}
+                {creatingShareLink ? t('integrations.creating') : t('integrations.createLink')}
               </Button>
             </div>
           </>
@@ -595,21 +607,25 @@ export function SettingsIntegrationsPage() {
                     {link.name}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Created {new Date(link.createdAt).toLocaleDateString()}
+                    {t('integrations.createdOn', {
+                      date: new Date(link.createdAt).toLocaleDateString(),
+                    })}
                     {link.lastUsedAt &&
-                      ` · Last viewed ${new Date(link.lastUsedAt).toLocaleDateString()}`}
+                      ` · ${t('integrations.lastViewedSuffix', { date: new Date(link.lastUsedAt).toLocaleDateString() })}`}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => onDeleteShareLink(link.id)}
                   disabled={deletingShareLinkId === link.id}
-                  aria-label="Revoke share link"
+                  aria-label={t('integrations.revokeShareLinkAria')}
                   className="shrink-0 flex items-center gap-1 text-xs text-red-600 hover:underline disabled:opacity-60"
                 >
                   <Trash2Icon size={14} />{' '}
                   <span className="hidden sm:inline">
-                    {deletingShareLinkId === link.id ? 'Deleting…' : 'Revoke'}
+                    {deletingShareLinkId === link.id
+                      ? t('integrations.deleting')
+                      : t('integrations.revoke')}
                   </span>
                 </button>
               </li>

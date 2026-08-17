@@ -5,6 +5,7 @@ import { ChevronDownIcon, Maximize2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { IconButton } from '@trakwyn/ui';
 import { useChatDock } from '#/lib/chatDock';
+import { useLocale } from '#/lib/i18n';
 import { conversationsQueryOptions } from '#/routes/_authenticated/assistant/-shared';
 import {
   LLM_API_KEYS_QUERY,
@@ -20,6 +21,7 @@ import { ChatConversationView } from '#/routes/_authenticated/assistant/-compone
  * page the user is working on rather than block it.
  */
 export function ChatDockFloatingWindow() {
+  const { t } = useLocale();
   const dock = useChatDock();
   const navigate = useNavigate();
 
@@ -40,7 +42,9 @@ export function ChatDockFloatingWindow() {
   const activeConversation = isNew
     ? undefined
     : conversationsData?.conversations.find((c) => c.id === dock.expanded);
-  const title = isNew ? 'New conversation' : (activeConversation?.title ?? 'New conversation');
+  const title = isNew
+    ? t('assistant.newConversation')
+    : (activeConversation?.title ?? t('assistant.newConversation'));
 
   const onMaximize = () => {
     if (isNew) return;
@@ -60,19 +64,19 @@ export function ChatDockFloatingWindow() {
             type="button"
             onClick={onMaximize}
             disabled={isNew}
-            aria-label="Maximize"
-            title={isNew ? 'Send a message first to open the full page' : 'Open full page'}
+            aria-label={t('chatDock.maximizeAria')}
+            title={isNew ? t('chatDock.sendMessageFirst') : t('chatDock.openFullPage')}
             className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed rounded transition-colors"
           >
             <Maximize2Icon size={14} />
           </button>
           <IconButton
-            label="Minimize"
+            label={t('chatDock.minimizeAria')}
             icon={<ChevronDownIcon size={16} />}
             onClick={dock.minimize}
           />
           <IconButton
-            label="Close"
+            label={t('common.close')}
             icon={<XIcon size={14} />}
             variant="danger"
             onClick={dock.closeExpanded}
@@ -82,11 +86,11 @@ export function ChatDockFloatingWindow() {
 
       {llmApiKeys.length === 0 ? (
         <p className="flex-1 flex items-center justify-center text-center text-xs text-gray-400 dark:text-gray-500 px-4">
-          Add an AI API key in{' '}
+          {t('assistant.addApiKeyPrefix')}{' '}
           <Link to="/settings/integrations" className="underline mx-1">
-            Settings
+            {t('assistant.settingsLinkText')}
           </Link>{' '}
-          to use the assistant.
+          {t('assistant.addApiKeySuffix')}
         </p>
       ) : (
         <ChatConversationView

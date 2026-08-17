@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import { DocumentDraftEditor } from '../-components/DocumentDraftEditor';
 import { DownloadIcon, TrashIcon, ArrowLeftIcon } from 'lucide-react';
 import { Alert, Button, IconButton } from '@trakwyn/ui';
@@ -53,6 +54,7 @@ export const Route = createFileRoute(
 });
 
 function DocumentDraftEditPage() {
+  const { t } = useLocale();
   const { applicationId, draftId } = Route.useParams();
   const navigate = useNavigate();
   const [draft, setDraft] = useState<{
@@ -72,9 +74,11 @@ function DocumentDraftEditPage() {
     gqlClient
       .request<{ documentDraft: typeof draft }>(DRAFT_QUERY, { id: draftId })
       .then((res) => setDraft(res.documentDraft))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load draft'))
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : t('documentDraftEdit.loadFailed')),
+      )
       .finally(() => setLoading(false));
-  }, [draftId]);
+  }, [draftId, t]);
 
   const handleUpdate = async (contentJson: string, plainText: string) => {
     if (!draft) return;
@@ -99,26 +103,28 @@ function DocumentDraftEditPage() {
       await gqlClient.request(EXPORT_PDF_MUTATION, { draftId: draft.id });
       await navigate({ to: '/applications/$applicationId', params: { applicationId } });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to export PDF');
+      setError(err instanceof Error ? err.message : t('documentDraftEdit.exportFailed'));
     } finally {
       setExporting(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!draft || !confirm('Delete this draft?')) return;
+    if (!draft || !confirm(t('documentDraftEdit.deleteConfirm'))) return;
     try {
       await gqlClient.request(DELETE_DRAFT_MUTATION, { id: draft.id });
       await navigate({ to: '/applications/$applicationId', params: { applicationId } });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete draft');
+      setError(err instanceof Error ? err.message : t('documentDraftEdit.deleteFailed'));
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="text-sm text-gray-500 dark:text-gray-400">Loading draft…</div>
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          {t('documentDraftEdit.loadingDraft')}
+        </div>
       </div>
     );
   }
@@ -126,7 +132,7 @@ function DocumentDraftEditPage() {
   if (!draft) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="text-sm text-red-600">Draft not found</div>
+        <div className="text-sm text-red-600">{t('documentDraftEdit.draftNotFound')}</div>
       </div>
     );
   }
@@ -136,7 +142,7 @@ function DocumentDraftEditPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <IconButton
-            label="Back"
+            label={t('documentDraftEdit.backAria')}
             icon={<ArrowLeftIcon className="h-5 w-5" />}
             onClick={() =>
               navigate({ to: '/applications/$applicationId', params: { applicationId } })
@@ -145,9 +151,13 @@ function DocumentDraftEditPage() {
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{draft.title}</h1>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {draft.type === 'cover_letter' ? 'Cover Letter' : 'Resume'}
-              {lastSaved && <span className="ml-2">· Saved {lastSaved.toLocaleTimeString()}</span>}
-              {saving && <span className="ml-2 text-blue-600">Saving…</span>}
+              {draft.type === 'cover_letter' ? t('documents.cover_letter') : t('documents.resume')}
+              {lastSaved && (
+                <span className="ml-2">
+                  · {t('documentDraftEdit.savedAt', { time: lastSaved.toLocaleTimeString() })}
+                </span>
+              )}
+              {saving && <span className="ml-2 text-blue-600">{t('applicationForm.saving')}</span>}
             </p>
           </div>
         </div>
@@ -155,11 +165,11 @@ function DocumentDraftEditPage() {
           <Button onClick={handleExportPdf} disabled={exporting}>
             <span className="inline-flex items-center gap-1.5">
               <DownloadIcon className="h-4 w-4" />
-              {exporting ? 'Exporting…' : 'Export PDF'}
+              {exporting ? t('documentDraftEdit.exporting') : t('documentDraftEdit.exportPdf')}
             </span>
           </Button>
           <IconButton
-            label="Delete"
+            label={t('common.delete')}
             icon={<TrashIcon className="h-4 w-4" />}
             variant="danger"
             onClick={handleDelete}

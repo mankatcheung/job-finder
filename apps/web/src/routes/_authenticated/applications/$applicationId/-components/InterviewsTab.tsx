@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CalendarIcon, CheckIcon, EditIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
+import { useLocale } from '#/lib/i18n';
 import { Button, Card, EmptyState, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
 const INTERVIEW_ROUNDS_QUERY = `
   query InterviewRounds($applicationId: ID!) {
@@ -124,6 +125,7 @@ export function InterviewsTab({
   company: string;
   role: string;
 }) {
+  const { t } = useLocale();
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingRound, setEditingRound] = useState<InterviewRound | null>(null);
@@ -276,31 +278,31 @@ export function InterviewsTab({
     <Card className="p-4 space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <FormLabel size="xs">Type</FormLabel>
+          <FormLabel size="xs">{t('interviews.typeLabel')}</FormLabel>
           <Select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-            {ROUND_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t.charAt(0).toUpperCase() + t.slice(1)}
+            {ROUND_TYPES.map((roundType) => (
+              <option key={roundType} value={roundType}>
+                {t(`interviews.${roundType}`)}
               </option>
             ))}
           </Select>
         </div>
         <div>
-          <FormLabel size="xs">Outcome</FormLabel>
+          <FormLabel size="xs">{t('interviews.outcomeLabel')}</FormLabel>
           <Select
             value={form.outcome}
             onChange={(e) => setForm({ ...form, outcome: e.target.value })}
           >
-            {ROUND_OUTCOMES.map((o) => (
-              <option key={o} value={o}>
-                {o.charAt(0).toUpperCase() + o.slice(1)}
+            {ROUND_OUTCOMES.map((outcome) => (
+              <option key={outcome} value={outcome}>
+                {t(`interviews.${outcome}`)}
               </option>
             ))}
           </Select>
         </div>
       </div>
       <div>
-        <FormLabel size="xs">Scheduled at</FormLabel>
+        <FormLabel size="xs">{t('interviews.scheduledAtLabel')}</FormLabel>
         <Input
           type="datetime-local"
           value={form.scheduledAt}
@@ -308,28 +310,28 @@ export function InterviewsTab({
         />
       </div>
       <div>
-        <FormLabel size="xs">Interviewer</FormLabel>
+        <FormLabel size="xs">{t('interviews.interviewerLabel')}</FormLabel>
         <Input
           value={form.interviewerName}
           onChange={(e) => setForm({ ...form, interviewerName: e.target.value })}
-          placeholder="Name or team"
+          placeholder={t('interviews.interviewerPlaceholder')}
         />
       </div>
       <div>
-        <FormLabel size="xs">Notes</FormLabel>
+        <FormLabel size="xs">{t('interviews.notesLabel')}</FormLabel>
         <Textarea
           value={form.notes}
           onChange={(e) => setForm({ ...form, notes: e.target.value })}
           className="h-20"
-          placeholder="How did it go?"
+          placeholder={t('interviews.notesPlaceholder')}
         />
       </div>
       <div className="flex gap-2 justify-end">
         <Button size="sm" onClick={onSubmit} disabled={submitting}>
-          {submitting ? 'Saving…' : 'Save'}
+          {submitting ? t('applicationForm.saving') : t('common.save')}
         </Button>
         <Button variant="ghost" size="sm" onClick={onCancel}>
-          Cancel
+          {t('common.cancel')}
         </Button>
       </div>
     </Card>
@@ -347,7 +349,7 @@ export function InterviewsTab({
             }}
           >
             <span className="flex items-center gap-1.5">
-              <PlusIcon size={14} /> Add interview round
+              <PlusIcon size={14} /> {t('interviews.addInterviewRound')}
             </span>
           </Button>
           {rounds.some((r) => r.scheduledAt) && (
@@ -357,7 +359,7 @@ export function InterviewsTab({
               onClick={() => downloadIcs(generateIcs(rounds, company, role), company, role)}
             >
               <span className="flex items-center gap-1.5">
-                <CalendarIcon size={14} /> Export to Calendar
+                <CalendarIcon size={14} /> {t('interviews.exportToCalendar')}
               </span>
             </Button>
           )}
@@ -373,7 +375,11 @@ export function InterviewsTab({
       )}
 
       {rounds.length === 0 && !showForm && (
-        <EmptyState size="compact" className="py-4" message="No interview rounds yet." />
+        <EmptyState
+          size="compact"
+          className="py-4"
+          message={t('interviews.noInterviewRoundsYet')}
+        />
       )}
 
       {rounds.map((round) => (
@@ -390,16 +396,18 @@ export function InterviewsTab({
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-900 dark:text-gray-100 capitalize">
-                      {round.type}
+                      {t(`interviews.${round.type}`, { defaultValue: round.type })}
                     </span>
                     <span
                       className={`text-xs px-2 py-0.5 rounded-full capitalize font-medium ${OUTCOME_STYLES[round.outcome] ?? OUTCOME_STYLES.pending}`}
                     >
-                      {round.outcome}
+                      {t(`interviews.${round.outcome}`, { defaultValue: round.outcome })}
                     </span>
                   </div>
                   {round.interviewerName && (
-                    <p className="text-xs text-gray-500">with {round.interviewerName}</p>
+                    <p className="text-xs text-gray-500">
+                      {t('interviews.withInterviewer', { name: round.interviewerName })}
+                    </p>
                   )}
                   {round.scheduledAt && (
                     <p className="text-xs text-gray-400 flex items-center gap-1">
@@ -435,7 +443,7 @@ export function InterviewsTab({
                         }),
                       );
                       showUndoToast({
-                        message: 'Interview round deleted',
+                        message: t('interviews.interviewRoundDeletedToast'),
                         onExecute: () => deleteRound.mutate(round.id),
                         onUndo: () => qc.setQueryData(['interviewRounds', applicationId], snapshot),
                       });

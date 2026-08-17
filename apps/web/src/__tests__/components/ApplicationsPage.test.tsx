@@ -124,7 +124,7 @@ describe('ApplicationsPage', () => {
     render(<ApplicationsPage />, { wrapper: Wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText(/No applications with status "applied"/)).toBeInTheDocument();
+      expect(screen.getByText(/No applications with status "Applied"/)).toBeInTheDocument();
     });
   });
 

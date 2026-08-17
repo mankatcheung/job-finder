@@ -59,9 +59,9 @@ describe('InterviewsTab', () => {
     render(<InterviewsTab {...baseProps} />, { wrapper: Wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText('technical')).toBeInTheDocument();
+      expect(screen.getByText('Technical')).toBeInTheDocument();
     });
-    expect(screen.getByText('pending')).toBeInTheDocument();
+    expect(screen.getByText('Pending')).toBeInTheDocument();
     expect(screen.getByText('with Alex Kim')).toBeInTheDocument();
   });
 
@@ -70,7 +70,7 @@ describe('InterviewsTab', () => {
     render(<InterviewsTab {...baseProps} />, { wrapper: Wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText('technical')).toBeInTheDocument();
+      expect(screen.getByText('Technical')).toBeInTheDocument();
     });
     expect(screen.queryByText('Export to Calendar')).not.toBeInTheDocument();
   });
@@ -111,10 +111,10 @@ describe('InterviewsTab', () => {
     render(<InterviewsTab {...baseProps} />, { wrapper: Wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText('technical')).toBeInTheDocument();
+      expect(screen.getByText('Technical')).toBeInTheDocument();
     });
 
-    const card = screen.getByText('technical').closest('div[class*="bg-white"]') as HTMLElement;
+    const card = screen.getByText('Technical').closest('div[class*="bg-white"]') as HTMLElement;
     fireEvent.click(within(card).getAllByRole('button')[1]);
 
     await waitFor(() => {

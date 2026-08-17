@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { gqlClient } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
 
 const schema = z
@@ -31,6 +32,7 @@ function extractGqlError(err: unknown): string | null {
 }
 
 export function ResetPasswordPage() {
+  const { t } = useLocale();
   const { token } = useSearch({ from: '/reset-password' });
   const {
     register,
@@ -46,7 +48,7 @@ export function ResetPasswordPage() {
     try {
       await gqlClient.request(RESET_PASSWORD_MUTATION, { token, newPassword: data.newPassword });
     } catch (err: unknown) {
-      const msg = extractGqlError(err) ?? 'Failed to reset password. Please try again.';
+      const msg = extractGqlError(err) ?? t('resetPassword.resetFailed');
       setError('root', { message: msg });
     }
   };
@@ -56,18 +58,18 @@ export function ResetPasswordPage() {
       <div className="w-full max-w-sm bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Reset your password
+            {t('resetPassword.title')}
           </h1>
         </div>
 
         {!token ? (
-          <Alert>This reset link is invalid. Please request a new one.</Alert>
+          <Alert>{t('resetPassword.invalidLink')}</Alert>
         ) : isSubmitSuccessful ? (
-          <Alert tone="success">Your password has been reset.</Alert>
+          <Alert tone="success">{t('resetPassword.success')}</Alert>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <FormLabel>New password</FormLabel>
+              <FormLabel>{t('security.newPasswordLabel')}</FormLabel>
               <Input
                 type="password"
                 {...register('newPassword')}
@@ -80,7 +82,7 @@ export function ResetPasswordPage() {
             </div>
 
             <div>
-              <FormLabel>Confirm new password</FormLabel>
+              <FormLabel>{t('security.confirmNewPasswordLabel')}</FormLabel>
               <Input
                 type="password"
                 {...register('confirmPassword')}
@@ -95,14 +97,14 @@ export function ResetPasswordPage() {
             {errors.root && <Alert>{errors.root.message}</Alert>}
 
             <Button type="submit" disabled={isSubmitting} fullWidth>
-              {isSubmitting ? 'Resetting…' : 'Reset password'}
+              {isSubmitting ? t('resetPassword.resetting') : t('resetPassword.resetPassword')}
             </Button>
           </form>
         )}
 
         <p className="text-sm text-gray-500 dark:text-gray-400">
           <Link to="/login" className="text-blue-600 hover:underline">
-            Back to sign in
+            {t('auth.backToSignIn')}
           </Link>
         </p>
       </div>

@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ErrorState } from '#/components/ErrorState';
+import { useLocale } from '#/lib/i18n';
 import { Card, EmptyState, ProgressBar, Skeleton } from '@trakwyn/ui';
 import {
   AlertCircleIcon,
@@ -26,13 +27,13 @@ const UPCOMING_EVENT_ICON: Record<CalendarEventKind, React.ReactNode> = {
   applied: <FileTextIcon size={13} className="text-blue-500 shrink-0" />,
 };
 
-const UPCOMING_EVENT_LABEL: Record<CalendarEventKind, string> = {
-  interview: 'Interview',
-  followUp: 'Follow up',
-  applied: 'Applied',
-};
-
 export function DashboardPage() {
+  const { t } = useLocale();
+  const UPCOMING_EVENT_LABEL: Record<CalendarEventKind, string> = {
+    interview: t('dashboard.eventInterview'),
+    followUp: t('applicationDetail.followUpLabel'),
+    applied: t('status.applied'),
+  };
   const { data, isLoading, isError, error, refetch } = useQuery(applicationsQueryOptions);
   const { data: calendarData } = useQuery(calendarEventsQueryOptions);
   const { data: goalData } = useQuery(weeklyApplicationGoalQueryOptions);
@@ -53,22 +54,32 @@ export function DashboardPage() {
     .slice(0, 5);
 
   const statItems = [
-    { label: 'Total', value: counts.total, icon: <BriefcaseIcon size={20} />, color: 'blue' },
-    { label: 'Applied', value: counts.applied, icon: <FileTextIcon size={20} />, color: 'indigo' },
     {
-      label: 'Interviewing',
+      label: t('dashboard.statTotal'),
+      value: counts.total,
+      icon: <BriefcaseIcon size={20} />,
+      color: 'blue',
+    },
+    {
+      label: t('status.applied'),
+      value: counts.applied,
+      icon: <FileTextIcon size={20} />,
+      color: 'indigo',
+    },
+    {
+      label: t('status.interviewing'),
       value: counts.interviewing,
       icon: <ClockIcon size={20} />,
       color: 'yellow',
     },
     {
-      label: 'Offered',
+      label: t('status.offered'),
       value: counts.offered,
       icon: <CheckCircleIcon size={20} />,
       color: 'green',
     },
     {
-      label: 'Follow-up due',
+      label: t('dashboard.statFollowUpDue'),
       value: counts.overdue,
       icon: <AlertCircleIcon size={20} />,
       color: 'orange',
@@ -78,13 +89,15 @@ export function DashboardPage() {
   return (
     <div className="p-4 sm:p-8 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6 sm:mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          {t('dashboard.title')}
+        </h1>
         <Link
           to="/applications/new"
           className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
         >
           <PlusIcon size={15} />
-          <span className="hidden sm:inline">New Application</span>
+          <span className="hidden sm:inline">{t('dashboard.newApplication')}</span>
         </Link>
       </div>
 
@@ -105,14 +118,17 @@ export function DashboardPage() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Weekly application goal
+                {t('dashboard.weeklyGoalTitle')}
               </h2>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                {goal.currentWeekCount} of {goal.weeklyApplicationGoal} applications this week
+                {t('dashboard.weeklyGoalProgress', {
+                  current: goal.currentWeekCount,
+                  goal: goal.weeklyApplicationGoal,
+                })}
               </p>
             </div>
             <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">
-              {goal.streakWeeks} week{goal.streakWeeks === 1 ? '' : 's'} streak
+              {t('dashboard.streakWeeks', { count: goal.streakWeeks })}
             </p>
           </div>
           <ProgressBar
@@ -126,9 +142,11 @@ export function DashboardPage() {
       {upcomingEvents.length > 0 && (
         <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Upcoming</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              {t('dashboard.upcomingTitle')}
+            </h2>
             <Link to="/calendar" className="text-sm text-blue-600 hover:underline shrink-0">
-              View calendar
+              {t('dashboard.viewCalendar')}
             </Link>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:overflow-x-auto sm:pb-1">
@@ -161,7 +179,7 @@ export function DashboardPage() {
 
       <div>
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          Recent applications
+          {t('dashboard.recentApplicationsTitle')}
         </h2>
         {isLoading ? (
           <div className="space-y-3">
@@ -175,13 +193,13 @@ export function DashboardPage() {
           <EmptyState
             className="py-12"
             icon={<BriefcaseIcon size={40} />}
-            message="No applications yet."
+            message={t('applications.noApplicationsYet')}
             action={
               <Link
                 to="/applications/new"
                 className="mt-2 inline-block text-blue-600 hover:underline text-sm"
               >
-                Add your first one →
+                {t('dashboard.addFirstOne')}
               </Link>
             }
           />

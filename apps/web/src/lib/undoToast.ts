@@ -1,4 +1,5 @@
 import { toast } from 'sonner';
+import i18next from 'i18next';
 
 type UndoToastOptions = {
   message: string;
@@ -20,7 +21,7 @@ export function showUndoToast({ message, duration = 5000, onExecute, onUndo }: U
   toast(message, {
     duration,
     action: {
-      label: 'Undo',
+      label: i18next.t('common.undo'),
       onClick: () => {
         clearTimeout(timer);
         activeTimers = activeTimers.filter((t) => t !== timer);

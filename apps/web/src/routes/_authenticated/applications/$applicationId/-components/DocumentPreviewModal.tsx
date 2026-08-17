@@ -1,4 +1,5 @@
 import { XIcon, ExternalLinkIcon } from 'lucide-react';
+import { useLocale } from '#/lib/i18n';
 import { IconButton, Modal } from '@trakwyn/ui';
 
 const PREVIEWABLE_MIME_TYPES = ['application/pdf', 'image/png', 'image/jpeg'];
@@ -19,6 +20,7 @@ interface DocumentPreviewModalProps {
 }
 
 export function DocumentPreviewModal({ document: doc, onClose }: DocumentPreviewModalProps) {
+  const { t } = useLocale();
   if (!doc) return null;
 
   const isPdf = doc.mimeType === 'application/pdf';
@@ -37,11 +39,11 @@ export function DocumentPreviewModal({ document: doc, onClose }: DocumentPreview
               target="_blank"
               rel="noopener noreferrer"
               className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
-              title="Open in new tab"
+              title={t('documents.openInNewTab')}
             >
               <ExternalLinkIcon size={16} />
             </a>
-            <IconButton label="Close" icon={<XIcon size={16} />} onClick={onClose} />
+            <IconButton label={t('common.close')} icon={<XIcon size={16} />} onClick={onClose} />
           </div>
         </div>
         <div className="flex-1 min-h-0 bg-gray-50 dark:bg-gray-900 overflow-auto">
@@ -54,7 +56,7 @@ export function DocumentPreviewModal({ document: doc, onClose }: DocumentPreview
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-center p-6">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Preview isn&apos;t available for this file type.
+                {t('documentPreview.noPreviewAvailable')}
               </p>
               <a
                 href={doc.url}
@@ -62,7 +64,7 @@ export function DocumentPreviewModal({ document: doc, onClose }: DocumentPreview
                 rel="noopener noreferrer"
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
               >
-                Open {doc.name}
+                {t('documentPreview.openDocument', { name: doc.name })}
               </a>
             </div>
           )}

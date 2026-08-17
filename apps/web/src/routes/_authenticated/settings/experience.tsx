@@ -13,6 +13,7 @@ import {
   WrenchIcon,
 } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import { Alert, Button, FormLabel, IconButton, Input, Select, Textarea } from '@trakwyn/ui';
 
 export const Route = createFileRoute('/_authenticated/settings/experience')({
@@ -240,6 +241,7 @@ type Skill = {
 // ── Component ────────────────────────────────────────────────────────────
 
 function SettingsExperiencePage() {
+  const { t } = useLocale();
   const qc = useQueryClient();
 
   // Queries
@@ -438,10 +440,10 @@ function SettingsExperiencePage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <BriefcaseIcon size={18} /> Work Experience
+              <BriefcaseIcon size={18} /> {t('experience.workExperienceTitle')}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Your professional background for AI-generated content.
+              {t('experience.workExperienceDescription')}
             </p>
           </div>
           <Button
@@ -453,13 +455,15 @@ function SettingsExperiencePage() {
             }}
           >
             <span className="flex items-center gap-1.5">
-              <PlusIcon size={14} /> <span className="hidden sm:inline">Add</span>
+              <PlusIcon size={14} /> <span className="hidden sm:inline">{t('common.add')}</span>
             </span>
           </Button>
         </div>
 
         {workExperiences.length === 0 && !weFormOpen && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">No work experiences added yet.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t('experience.noWorkExperiencesYet')}
+          </p>
         )}
 
         {workExperiences.map((we) => (
@@ -469,13 +473,14 @@ function SettingsExperiencePage() {
           >
             <div className="min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {we.title} at {we.company}
+                {t('experience.titleAtCompany', { title: we.title, company: we.company })}
               </p>
               {we.location && (
                 <p className="text-xs text-gray-500 dark:text-gray-400">{we.location}</p>
               )}
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {we.startDate.slice(0, 10)} – {we.endDate ? we.endDate.slice(0, 10) : 'Present'}
+                {we.startDate.slice(0, 10)} –{' '}
+                {we.endDate ? we.endDate.slice(0, 10) : t('experience.present')}
               </p>
               {we.description && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
@@ -485,7 +490,7 @@ function SettingsExperiencePage() {
             </div>
             <div className="flex items-center gap-1 shrink-0">
               <IconButton
-                label="Edit"
+                label={t('common.edit')}
                 icon={<PencilIcon size={14} />}
                 onClick={() => {
                   setWeEditing(we);
@@ -493,7 +498,7 @@ function SettingsExperiencePage() {
                 }}
               />
               <IconButton
-                label="Delete"
+                label={t('common.delete')}
                 icon={<Trash2Icon size={14} />}
                 variant="danger"
                 onClick={() => deleteWe.mutate(we.id)}
@@ -511,7 +516,7 @@ function SettingsExperiencePage() {
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <FormLabel>Company *</FormLabel>
+                <FormLabel>{t('experience.companyLabel')}</FormLabel>
                 <Input
                   {...weForm.register('company')}
                   invalid={!!weForm.formState.errors.company}
@@ -524,7 +529,7 @@ function SettingsExperiencePage() {
                 )}
               </div>
               <div>
-                <FormLabel>Title *</FormLabel>
+                <FormLabel>{t('experience.titleLabel')}</FormLabel>
                 <Input
                   {...weForm.register('title')}
                   invalid={!!weForm.formState.errors.title}
@@ -537,11 +542,11 @@ function SettingsExperiencePage() {
                 )}
               </div>
               <div>
-                <FormLabel>Location</FormLabel>
+                <FormLabel>{t('experience.locationLabel')}</FormLabel>
                 <Input {...weForm.register('location')} placeholder="San Francisco, CA" />
               </div>
               <div>
-                <FormLabel>Start Date *</FormLabel>
+                <FormLabel>{t('experience.startDateLabel')}</FormLabel>
                 <Input
                   type="date"
                   {...weForm.register('startDate')}
@@ -554,16 +559,16 @@ function SettingsExperiencePage() {
                 )}
               </div>
               <div>
-                <FormLabel>End Date</FormLabel>
+                <FormLabel>{t('experience.endDateLabel')}</FormLabel>
                 <Input type="date" {...weForm.register('endDate')} />
               </div>
             </div>
             <div>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t('experience.descriptionLabel')}</FormLabel>
               <Textarea
                 {...weForm.register('description')}
                 rows={3}
-                placeholder="Key responsibilities and achievements..."
+                placeholder={t('experience.workDescriptionPlaceholder')}
               />
             </div>
             {weForm.formState.errors.root?.message && (
@@ -571,7 +576,11 @@ function SettingsExperiencePage() {
             )}
             <div className="flex items-center gap-2">
               <Button type="submit" disabled={weForm.formState.isSubmitting}>
-                {weForm.formState.isSubmitting ? 'Saving…' : weEditing ? 'Update' : 'Add'}
+                {weForm.formState.isSubmitting
+                  ? t('applicationForm.saving')
+                  : weEditing
+                    ? t('experience.update')
+                    : t('common.add')}
               </Button>
               <Button
                 variant="ghost"
@@ -581,7 +590,7 @@ function SettingsExperiencePage() {
                   weForm.reset();
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
             </div>
           </form>
@@ -595,10 +604,10 @@ function SettingsExperiencePage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <GraduationCapIcon size={18} /> Education
+              <GraduationCapIcon size={18} /> {t('experience.educationTitle')}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Academic background for AI-generated content.
+              {t('experience.educationDescription')}
             </p>
           </div>
           <Button
@@ -610,14 +619,14 @@ function SettingsExperiencePage() {
             }}
           >
             <span className="flex items-center gap-1.5">
-              <PlusIcon size={14} /> <span className="hidden sm:inline">Add</span>
+              <PlusIcon size={14} /> <span className="hidden sm:inline">{t('common.add')}</span>
             </span>
           </Button>
         </div>
 
         {educations.length === 0 && !eduFormOpen && (
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            No education entries added yet.
+            {t('experience.noEducationYet')}
           </p>
         )}
 
@@ -630,10 +639,11 @@ function SettingsExperiencePage() {
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {edu.institution}
                 {edu.degree && ` — ${edu.degree}`}
-                {edu.field && ` in ${edu.field}`}
+                {edu.field && ` ${t('experience.inField', { field: edu.field })}`}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {edu.startDate.slice(0, 10)} – {edu.endDate ? edu.endDate.slice(0, 10) : 'Present'}
+                {edu.startDate.slice(0, 10)} –{' '}
+                {edu.endDate ? edu.endDate.slice(0, 10) : t('experience.present')}
               </p>
               {edu.description && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
@@ -643,7 +653,7 @@ function SettingsExperiencePage() {
             </div>
             <div className="flex items-center gap-1 shrink-0">
               <IconButton
-                label="Edit"
+                label={t('common.edit')}
                 icon={<PencilIcon size={14} />}
                 onClick={() => {
                   setEduEditing(edu);
@@ -651,7 +661,7 @@ function SettingsExperiencePage() {
                 }}
               />
               <IconButton
-                label="Delete"
+                label={t('common.delete')}
                 icon={<Trash2Icon size={14} />}
                 variant="danger"
                 onClick={() => deleteEdu.mutate(edu.id)}
@@ -669,7 +679,7 @@ function SettingsExperiencePage() {
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <FormLabel>Institution *</FormLabel>
+                <FormLabel>{t('experience.institutionLabel')}</FormLabel>
                 <Input
                   {...eduForm.register('institution')}
                   invalid={!!eduForm.formState.errors.institution}
@@ -682,15 +692,15 @@ function SettingsExperiencePage() {
                 )}
               </div>
               <div>
-                <FormLabel>Degree</FormLabel>
+                <FormLabel>{t('experience.degreeLabel')}</FormLabel>
                 <Input {...eduForm.register('degree')} placeholder="B.S." />
               </div>
               <div>
-                <FormLabel>Field</FormLabel>
+                <FormLabel>{t('experience.fieldLabel')}</FormLabel>
                 <Input {...eduForm.register('field')} placeholder="Computer Science" />
               </div>
               <div>
-                <FormLabel>Start Date *</FormLabel>
+                <FormLabel>{t('experience.startDateLabel')}</FormLabel>
                 <Input
                   type="date"
                   {...eduForm.register('startDate')}
@@ -703,16 +713,16 @@ function SettingsExperiencePage() {
                 )}
               </div>
               <div>
-                <FormLabel>End Date</FormLabel>
+                <FormLabel>{t('experience.endDateLabel')}</FormLabel>
                 <Input type="date" {...eduForm.register('endDate')} />
               </div>
             </div>
             <div>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t('experience.descriptionLabel')}</FormLabel>
               <Textarea
                 {...eduForm.register('description')}
                 rows={3}
-                placeholder="Notable coursework, activities..."
+                placeholder={t('experience.educationDescriptionPlaceholder')}
               />
             </div>
             {eduForm.formState.errors.root?.message && (
@@ -720,7 +730,11 @@ function SettingsExperiencePage() {
             )}
             <div className="flex items-center gap-2">
               <Button type="submit" disabled={eduForm.formState.isSubmitting}>
-                {eduForm.formState.isSubmitting ? 'Saving…' : eduEditing ? 'Update' : 'Add'}
+                {eduForm.formState.isSubmitting
+                  ? t('applicationForm.saving')
+                  : eduEditing
+                    ? t('experience.update')
+                    : t('common.add')}
               </Button>
               <Button
                 variant="ghost"
@@ -730,7 +744,7 @@ function SettingsExperiencePage() {
                   eduForm.reset();
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
             </div>
           </form>
@@ -744,10 +758,10 @@ function SettingsExperiencePage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <WrenchIcon size={18} /> Skills
+              <WrenchIcon size={18} /> {t('experience.skillsTitle')}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Technical and soft skills for AI-generated content.
+              {t('experience.skillsDescription')}
             </p>
           </div>
           <Button
@@ -759,13 +773,13 @@ function SettingsExperiencePage() {
             }}
           >
             <span className="flex items-center gap-1.5">
-              <PlusIcon size={14} /> <span className="hidden sm:inline">Add</span>
+              <PlusIcon size={14} /> <span className="hidden sm:inline">{t('common.add')}</span>
             </span>
           </Button>
         </div>
 
         {skills.length === 0 && !skillFormOpen && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">No skills added yet.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('experience.noSkillsYet')}</p>
         )}
 
         {skills.length > 0 && (
@@ -778,11 +792,11 @@ function SettingsExperiencePage() {
                 <span className="text-gray-900 dark:text-gray-100">{skill.name}</span>
                 {skill.proficiency && (
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    · {skill.proficiency}
+                    · {t(`experience.${skill.proficiency}`, { defaultValue: skill.proficiency })}
                   </span>
                 )}
                 <IconButton
-                  label="Edit"
+                  label={t('common.edit')}
                   icon={<PencilIcon size={12} />}
                   size="sm"
                   className="opacity-0 group-hover:opacity-100 transition-opacity"
@@ -792,7 +806,7 @@ function SettingsExperiencePage() {
                   }}
                 />
                 <IconButton
-                  label="Delete"
+                  label={t('common.delete')}
                   icon={<Trash2Icon size={12} />}
                   variant="danger"
                   size="sm"
@@ -813,7 +827,7 @@ function SettingsExperiencePage() {
           >
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <FormLabel>Skill *</FormLabel>
+                <FormLabel>{t('experience.skillLabel')}</FormLabel>
                 <Input
                   {...skillForm.register('name')}
                   invalid={!!skillForm.formState.errors.name}
@@ -826,17 +840,17 @@ function SettingsExperiencePage() {
                 )}
               </div>
               <div>
-                <FormLabel>Category</FormLabel>
+                <FormLabel>{t('experience.categoryLabel')}</FormLabel>
                 <Input {...skillForm.register('category')} placeholder="Language" />
               </div>
               <div>
-                <FormLabel>Proficiency</FormLabel>
+                <FormLabel>{t('experience.proficiencyLabel')}</FormLabel>
                 <Select {...skillForm.register('proficiency')}>
-                  <option value="">Select…</option>
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                  <option value="expert">Expert</option>
+                  <option value="">{t('experience.selectPlaceholder')}</option>
+                  <option value="beginner">{t('experience.beginner')}</option>
+                  <option value="intermediate">{t('experience.intermediate')}</option>
+                  <option value="advanced">{t('experience.advanced')}</option>
+                  <option value="expert">{t('experience.expert')}</option>
                 </Select>
               </div>
             </div>
@@ -845,7 +859,11 @@ function SettingsExperiencePage() {
             )}
             <div className="flex items-center gap-2">
               <Button type="submit" disabled={skillForm.formState.isSubmitting}>
-                {skillForm.formState.isSubmitting ? 'Saving…' : skillEditing ? 'Update' : 'Add'}
+                {skillForm.formState.isSubmitting
+                  ? t('applicationForm.saving')
+                  : skillEditing
+                    ? t('experience.update')
+                    : t('common.add')}
               </Button>
               <Button
                 variant="ghost"
@@ -855,7 +873,7 @@ function SettingsExperiencePage() {
                   skillForm.reset();
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
             </div>
           </form>

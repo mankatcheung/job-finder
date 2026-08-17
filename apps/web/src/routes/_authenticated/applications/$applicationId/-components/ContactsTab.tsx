@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CheckIcon, EditIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
+import { useLocale } from '#/lib/i18n';
 import { Button, Card, EmptyState, FormLabel, Input, Textarea } from '@trakwyn/ui';
 const CONTACTS_QUERY = `
   query Contacts($applicationId: ID!) {
@@ -63,6 +64,7 @@ function contactToForm(c: Contact): ContactFormState {
 }
 
 export function ContactsTab({ applicationId }: { applicationId: string }) {
+  const { t } = useLocale();
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
@@ -185,7 +187,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
     <Card className="p-4 space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <FormLabel size="xs">Name *</FormLabel>
+          <FormLabel size="xs">{t('contacts.nameLabel')}</FormLabel>
           <Input
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -193,7 +195,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
           />
         </div>
         <div>
-          <FormLabel size="xs">Role</FormLabel>
+          <FormLabel size="xs">{t('contacts.roleLabel')}</FormLabel>
           <Input
             value={form.role}
             onChange={(e) => setForm({ ...form, role: e.target.value })}
@@ -201,7 +203,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
           />
         </div>
         <div>
-          <FormLabel size="xs">Email</FormLabel>
+          <FormLabel size="xs">{t('contacts.emailLabel')}</FormLabel>
           <Input
             type="email"
             value={form.email}
@@ -210,7 +212,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
           />
         </div>
         <div>
-          <FormLabel size="xs">Phone</FormLabel>
+          <FormLabel size="xs">{t('contacts.phoneLabel')}</FormLabel>
           <Input
             value={form.phone}
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -219,7 +221,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
         </div>
       </div>
       <div>
-        <FormLabel size="xs">LinkedIn URL</FormLabel>
+        <FormLabel size="xs">{t('contacts.linkedinUrlLabel')}</FormLabel>
         <Input
           value={form.linkedinUrl}
           onChange={(e) => setForm({ ...form, linkedinUrl: e.target.value })}
@@ -227,12 +229,12 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
         />
       </div>
       <div>
-        <FormLabel size="xs">Notes</FormLabel>
+        <FormLabel size="xs">{t('contacts.notesLabel')}</FormLabel>
         <Textarea
           value={form.notes}
           onChange={(e) => setForm({ ...form, notes: e.target.value })}
           className="h-20"
-          placeholder="How did you meet? Any details…"
+          placeholder={t('contacts.notesPlaceholder')}
         />
       </div>
       <div className="flex gap-2 justify-end">
@@ -240,16 +242,18 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
           size="sm"
           onClick={onSubmit}
           disabled={!form.name.trim() || submitting}
-          aria-label="Save"
+          aria-label={t('common.save')}
         >
           <span className="flex items-center gap-1">
             <CheckIcon size={14} />{' '}
-            <span className="hidden sm:inline">{submitting ? 'Saving…' : 'Save'}</span>
+            <span className="hidden sm:inline">
+              {submitting ? t('applicationForm.saving') : t('common.save')}
+            </span>
           </span>
         </Button>
-        <Button variant="ghost" size="sm" onClick={onCancel} aria-label="Cancel">
+        <Button variant="ghost" size="sm" onClick={onCancel} aria-label={t('common.cancel')}>
           <span className="flex items-center gap-1">
-            <XIcon size={14} /> <span className="hidden sm:inline">Cancel</span>
+            <XIcon size={14} /> <span className="hidden sm:inline">{t('common.cancel')}</span>
           </span>
         </Button>
       </div>
@@ -265,10 +269,11 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
             setShowForm(true);
             setForm(emptyContactForm());
           }}
-          aria-label="Add contact"
+          aria-label={t('contacts.addContact')}
         >
           <span className="flex items-center gap-1.5">
-            <PlusIcon size={14} /> <span className="hidden sm:inline">Add contact</span>
+            <PlusIcon size={14} />{' '}
+            <span className="hidden sm:inline">{t('contacts.addContact')}</span>
           </span>
         </Button>
       )}
@@ -284,7 +289,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
       )}
 
       {contacts.length === 0 && !showForm && (
-        <EmptyState size="compact" className="py-4" message="No contacts yet." />
+        <EmptyState size="compact" className="py-4" message={t('contacts.noContactsYet')} />
       )}
 
       {contacts.map((contact) => (
@@ -325,7 +330,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
                       rel="noopener noreferrer"
                       className="hover:text-blue-600 hover:underline"
                     >
-                      LinkedIn
+                      {t('contacts.linkedinLinkText')}
                     </a>
                   )}
                 </div>
@@ -358,7 +363,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
                       }),
                     );
                     showUndoToast({
-                      message: 'Contact deleted',
+                      message: t('contacts.contactDeletedToast'),
                       onExecute: () => deleteContact.mutate(contact.id),
                       onUndo: () => qc.setQueryData(['contacts', applicationId], snapshot),
                     });

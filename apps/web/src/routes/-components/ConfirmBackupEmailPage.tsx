@@ -1,6 +1,7 @@
 import { Link, useSearch } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { gqlClient } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import { Alert } from '@trakwyn/ui';
 
 const CONFIRM_BACKUP_EMAIL = `
@@ -10,6 +11,7 @@ const CONFIRM_BACKUP_EMAIL = `
 `;
 
 export function ConfirmBackupEmailPage() {
+  const { t } = useLocale();
   const { token } = useSearch({ from: '/confirm-backup-email' });
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
     token ? 'loading' : 'error',
@@ -26,20 +28,16 @@ export function ConfirmBackupEmailPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="w-full max-w-sm bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Verify backup email</h1>
-        {status === 'loading' && <p className="text-sm text-gray-500">Verifying your email…</p>}
-        {status === 'success' && (
-          <Alert tone="success">
-            Your backup email is verified and can now be used for account recovery.
-          </Alert>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          {t('confirmBackupEmail.title')}
+        </h1>
+        {status === 'loading' && (
+          <p className="text-sm text-gray-500">{t('confirmBackupEmail.verifying')}</p>
         )}
-        {status === 'error' && (
-          <Alert>
-            This verification link is invalid or expired. Request a new one from Security settings.
-          </Alert>
-        )}
+        {status === 'success' && <Alert tone="success">{t('confirmBackupEmail.success')}</Alert>}
+        {status === 'error' && <Alert>{t('confirmBackupEmail.error')}</Alert>}
         <Link to="/login" className="text-sm text-blue-600 hover:underline">
-          Back to sign in
+          {t('auth.backToSignIn')}
         </Link>
       </div>
     </div>

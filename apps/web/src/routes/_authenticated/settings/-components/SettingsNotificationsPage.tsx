@@ -7,9 +7,11 @@ import {
   type NotificationPreferences,
 } from './shared';
 import { usePushNotifications } from '#/hooks/usePushNotifications';
+import { useLocale } from '#/lib/i18n';
 import { Checkbox, Select } from '@trakwyn/ui';
 
 export function SettingsNotificationsPage() {
+  const { t } = useLocale();
   const qc = useQueryClient();
   const push = usePushNotifications();
 
@@ -43,15 +45,15 @@ export function SettingsNotificationsPage() {
       if (!success) {
         toast.error(
           push.isPermissionDenied
-            ? 'Notification permission was denied. Reset it in your browser settings.'
-            : 'Could not enable push notifications. Check your browser settings.',
+            ? t('notifications.permissionDeniedToast')
+            : t('notifications.enableFailedToast'),
         );
         return;
       }
-      toast.success('Push notifications enabled');
+      toast.success(t('notifications.enabledToast'));
     } else {
       await push.disable();
-      toast.success('Push notifications disabled');
+      toast.success(t('notifications.disabledToast'));
     }
     await gqlClient.request(UPDATE_NOTIFICATION_PREFERENCES, {
       pushNotificationsEnabled: checked,
@@ -70,10 +72,10 @@ export function SettingsNotificationsPage() {
       <section className="space-y-4">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            Notification preferences
+            {t('notifications.title')}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Choose which emails you want to receive.
+            {t('notifications.chooseEmails')}
           </p>
         </div>
         {prefs && (
@@ -83,7 +85,7 @@ export function SettingsNotificationsPage() {
                 htmlFor="digest-frequency"
                 className="block text-sm font-medium text-gray-900 dark:text-gray-100"
               >
-                Job search digest
+                {t('notifications.digestLabel')}
               </label>
               <Select
                 id="digest-frequency"
@@ -95,12 +97,12 @@ export function SettingsNotificationsPage() {
                 }
                 className="mt-1 max-w-xs"
               >
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="off">Off</option>
+                <option value="daily">{t('notifications.daily')}</option>
+                <option value="weekly">{t('notifications.weekly')}</option>
+                <option value="off">{t('notifications.off')}</option>
               </Select>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Daily summarizes the last 24 hours; weekly summarizes the last 7 days.
+                {t('notifications.digestHelp')}
               </p>
             </div>
             <label className="flex items-center gap-3 text-sm text-gray-900 dark:text-gray-100">
@@ -108,14 +110,14 @@ export function SettingsNotificationsPage() {
                 checked={prefs.followUpRemindersEnabled}
                 onChange={(e) => onToggleFollowUpReminders(e.target.checked)}
               />
-              Follow-up reminder emails
+              {t('notifications.followUpReminderEmails')}
             </label>
             <div>
               <label
                 htmlFor="weekly-application-goal"
                 className="block text-sm font-medium text-gray-900 dark:text-gray-100"
               >
-                Weekly application goal
+                {t('notifications.weeklyGoalLabel')}
               </label>
               <input
                 id="weekly-application-goal"
@@ -127,7 +129,7 @@ export function SettingsNotificationsPage() {
                 className="mt-1 block w-28 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               />
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Used for dashboard progress and your weekly digest.
+                {t('notifications.weeklyGoalHelp')}
               </p>
             </div>
           </div>
@@ -137,11 +139,10 @@ export function SettingsNotificationsPage() {
       <section className="space-y-4">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            Browser push notifications
+            {t('notifications.pushTitle')}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Get notified on your device about upcoming interviews and follow-ups, even when you are
-            not on this page.
+            {t('notifications.pushDescription')}
           </p>
         </div>
         {push.isSupported ? (
@@ -152,14 +153,14 @@ export function SettingsNotificationsPage() {
               onChange={(e) => onTogglePushNotifications(e.target.checked)}
             />
             {push.isPermissionDenied
-              ? 'Push notifications blocked — reset in browser settings'
+              ? t('notifications.pushBlocked')
               : push.isBusy
-                ? 'Setting up...'
-                : 'Push notifications for interviews & follow-ups'}
+                ? t('notifications.settingUp')
+                : t('notifications.pushLabel')}
           </label>
         ) : (
           <p className="text-sm text-gray-400 dark:text-gray-500">
-            Push notifications are not supported in this browser.
+            {t('notifications.pushUnsupported')}
           </p>
         )}
       </section>

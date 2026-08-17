@@ -1,8 +1,11 @@
+import { useLocale } from '#/lib/i18n';
+
 interface OAuthButtonsProps {
   label: string;
 }
 
 export function OAuthButtons({ label }: OAuthButtonsProps) {
+  const { t } = useLocale();
   return (
     <div className="space-y-3">
       <div className="relative">
@@ -11,7 +14,7 @@ export function OAuthButtons({ label }: OAuthButtonsProps) {
         </div>
         <div className="relative flex justify-center text-xs">
           <span className="bg-white dark:bg-gray-800 px-2 text-gray-500 dark:text-gray-400">
-            or
+            {t('common.or')}
           </span>
         </div>
       </div>
@@ -20,13 +23,13 @@ export function OAuthButtons({ label }: OAuthButtonsProps) {
         href="/auth/oauth/google/start"
         className="flex w-full items-center justify-center gap-2 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
       >
-        {label} with Google
+        {label} {t('common.withGoogle')}
       </a>
       <a
         href="/auth/oauth/github/start"
         className="flex w-full items-center justify-center gap-2 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
       >
-        {label} with GitHub
+        {label} {t('common.withGitHub')}
       </a>
     </div>
   );

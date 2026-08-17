@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { MessageCircleIcon, XIcon } from 'lucide-react';
 import { useChatDock } from '#/lib/chatDock';
+import { useLocale } from '#/lib/i18n';
 import { conversationsQueryOptions } from '#/routes/_authenticated/assistant/-shared';
 import { ChatDockConversationPicker } from './-chat-dock-picker';
 
@@ -12,6 +13,7 @@ import { ChatDockConversationPicker } from './-chat-dock-picker';
  * without leaving the page they're on.
  */
 export function ChatDockFooter() {
+  const { t } = useLocale();
   const dock = useChatDock();
   const [pickerOpen, setPickerOpen] = useState(false);
   const { data } = useQuery(conversationsQueryOptions);
@@ -28,11 +30,11 @@ export function ChatDockFooter() {
         <button
           type="button"
           onClick={() => setPickerOpen((v) => !v)}
-          aria-label="Chat with Assistant"
+          aria-label={t('chatDock.chatWithAssistant')}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
           <MessageCircleIcon size={16} />
-          Chat with Assistant
+          {t('chatDock.chatWithAssistant')}
         </button>
 
         {pickerOpen && (
@@ -59,7 +61,7 @@ export function ChatDockFooter() {
               }`}
             >
               <span className="max-w-[10rem] truncate">
-                {titleById.get(id) ?? 'New conversation'}
+                {titleById.get(id) ?? t('assistant.newConversation')}
               </span>
               <button
                 type="button"
@@ -67,7 +69,7 @@ export function ChatDockFooter() {
                   e.stopPropagation();
                   dock.closeSection(id);
                 }}
-                aria-label="Close conversation"
+                aria-label={t('chatDock.closeConversationAria')}
                 className="p-0.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded"
               >
                 <XIcon size={12} />

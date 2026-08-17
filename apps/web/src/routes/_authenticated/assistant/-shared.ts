@@ -138,11 +138,14 @@ export function deleteConversationWithUndo(
   });
 }
 
-export function timeAgo(iso: string): string {
+export function timeAgo(
+  iso: string,
+  t: (key: string, options?: Record<string, number>) => string,
+): string {
   const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return t('notificationInbox.justNow');
+  if (minutes < 60) return t('notificationInbox.minutesAgo', { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
+  if (hours < 24) return t('notificationInbox.hoursAgo', { count: hours });
+  return t('notificationInbox.daysAgo', { count: Math.floor(hours / 24) });
 }

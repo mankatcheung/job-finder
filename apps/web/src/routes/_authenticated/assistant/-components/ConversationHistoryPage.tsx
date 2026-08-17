@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon, MessageCircleIcon, PlusIcon, Trash2Icon } from 'lucide-react';
+import { useLocale } from '#/lib/i18n';
 import { EmptyState } from '@trakwyn/ui';
 import {
   conversationsQueryOptions,
@@ -10,6 +11,7 @@ import {
 import { LLM_PROVIDER_LABEL } from '#/routes/_authenticated/settings/-components/shared';
 
 export function ConversationHistoryPage() {
+  const { t } = useLocale();
   const qc = useQueryClient();
   const { data } = useQuery(conversationsQueryOptions);
   const conversations = data?.conversations ?? [];
@@ -20,22 +22,22 @@ export function ConversationHistoryPage() {
         <div className="flex items-center gap-2">
           <Link
             to="/assistant"
-            aria-label="Back to assistant"
+            aria-label={t('conversationHistory.backAria')}
             className="p-2 -ml-2 text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-lg transition-colors"
           >
             <ArrowLeftIcon size={18} />
           </Link>
           <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 min-w-0 truncate">
-            Conversation history
+            {t('assistant.conversationHistory')}
           </h1>
         </div>
         <Link
           to="/assistant"
-          aria-label="New conversation"
+          aria-label={t('assistant.newConversation')}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
         >
           <PlusIcon size={14} />
-          <span className="hidden sm:inline">New conversation</span>
+          <span className="hidden sm:inline">{t('assistant.newConversation')}</span>
         </Link>
       </div>
 
@@ -43,10 +45,10 @@ export function ConversationHistoryPage() {
         <EmptyState
           className="py-16"
           icon={<MessageCircleIcon size={28} />}
-          message={<span className="text-sm">No conversations yet.</span>}
+          message={<span className="text-sm">{t('conversationHistory.noConversationsYet')}</span>}
           action={
             <Link to="/assistant" className="text-sm text-blue-600 dark:text-blue-400 underline">
-              Start one
+              {t('conversationHistory.startOne')}
             </Link>
           }
         />
@@ -66,10 +68,10 @@ export function ConversationHistoryPage() {
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                    {c.title ?? 'New conversation'}
+                    {c.title ?? t('assistant.newConversation')}
                   </p>
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                    {timeAgo(c.updatedAt)}
+                    {timeAgo(c.updatedAt, t)}
                     {c.llmProvider
                       ? ` · ${LLM_PROVIDER_LABEL[c.llmProvider] ?? c.llmProvider}`
                       : ''}
@@ -79,7 +81,9 @@ export function ConversationHistoryPage() {
               <button
                 type="button"
                 onClick={() => deleteConversationWithUndo(qc, c.id)}
-                aria-label={`Delete ${c.title ?? 'New conversation'}`}
+                aria-label={t('conversationHistory.deleteAria', {
+                  title: c.title ?? t('assistant.newConversation'),
+                })}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
               >
                 <Trash2Icon size={14} />

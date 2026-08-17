@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import { OfferForm } from '../-components/OfferForm';
 import { PlusIcon, TrashIcon, PencilIcon } from 'lucide-react';
 import { EmptyState } from '@trakwyn/ui';
@@ -66,6 +67,7 @@ export const Route = createFileRoute('/_authenticated/applications/$applicationI
 });
 
 function OffersPage() {
+  const { t } = useLocale();
   const { applicationId } = Route.useParams();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,7 +135,7 @@ function OffersPage() {
   };
 
   const handleDelete = async (offerId: string) => {
-    if (!confirm('Delete this offer?')) return;
+    if (!confirm(t('offers.deleteConfirm'))) return;
     try {
       await gqlClient.request(DELETE_OFFER_MUTATION, { id: offerId });
       setOffers(offers.filter((o) => o.id !== offerId));
@@ -158,7 +160,7 @@ function OffersPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="text-sm text-gray-500">Loading offers…</div>
+        <div className="text-sm text-gray-500">{t('offerCompare.loadingOffers')}</div>
       </div>
     );
   }
@@ -166,7 +168,7 @@ function OffersPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Offers</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('offers.title')}</h1>
         <button
           onClick={() => {
             setShowForm(true);
@@ -175,14 +177,14 @@ function OffersPage() {
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
         >
           <PlusIcon className="h-4 w-4" />
-          Add Offer
+          {t('offers.addOffer')}
         </button>
       </div>
 
       {(showForm || editingOffer) && (
         <div className="mb-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
           <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-            {editingOffer ? 'Edit Offer' : 'New Offer'}
+            {editingOffer ? t('offers.editOffer') : t('offers.newOffer')}
           </h2>
           <OfferForm
             initialData={editingOffer ?? undefined}
@@ -197,10 +199,7 @@ function OffersPage() {
       )}
 
       {offers.length === 0 && !showForm ? (
-        <EmptyState
-          className="py-12"
-          message="No offers yet. Add an offer to start comparing compensation packages."
-        />
+        <EmptyState className="py-12" message={t('offers.noOffersYet')} />
       ) : (
         <div className="space-y-4">
           {offers.map((offer) => (
@@ -215,17 +214,18 @@ function OffersPage() {
                   </div>
                   {offer.bonus && (
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      + {formatSalary(offer.bonus, offer.currency, offer.period)} bonus
+                      + {formatSalary(offer.bonus, offer.currency, offer.period)}{' '}
+                      {t('offerCompare.bonusSuffix')}
                     </div>
                   )}
                   {offer.equity && (
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Equity: {offer.equity}
+                      {t('offers.equityLabel', { equity: offer.equity })}
                     </div>
                   )}
                   {offer.benefits && (
                     <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      Benefits: {offer.benefits}
+                      {t('offers.benefitsLabel', { benefits: offer.benefits })}
                     </div>
                   )}
                   {offer.notes && (

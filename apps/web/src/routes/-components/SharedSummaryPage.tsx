@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSearch } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import { Alert } from '@trakwyn/ui';
 
 const SHARED_SUMMARY_QUERY = `
@@ -33,17 +34,8 @@ interface SharedSummary {
   generatedAt: string;
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  draft: 'Draft',
-  applied: 'Applied',
-  interviewing: 'Interviewing',
-  offered: 'Offered',
-  accepted: 'Accepted',
-  rejected: 'Rejected',
-  withdrawn: 'Withdrawn',
-};
-
 export function SharedSummaryPage() {
+  const { t } = useLocale();
   const { token } = useSearch({ from: '/share' });
 
   const { data, isLoading } = useQuery({
@@ -60,34 +52,40 @@ export function SharedSummaryPage() {
       <div className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Job search summary
+            {t('sharedSummary.title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            A read-only, summary-level view shared via Trakwyn.
+            {t('sharedSummary.description')}
           </p>
         </div>
 
         {!token ? (
-          <Alert>This link is missing a token.</Alert>
+          <Alert>{t('sharedSummary.missingToken')}</Alert>
         ) : isLoading ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</p>
         ) : !summary ? (
-          <Alert>This link is invalid or has been revoked.</Alert>
+          <Alert>{t('sharedSummary.invalidOrRevoked')}</Alert>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-4">
-              <SummaryStat label="Applications" value={summary.totalApplications} />
-              <SummaryStat label="Interviews" value={summary.totalInterviews} />
-              <SummaryStat label="Upcoming interviews" value={summary.upcomingInterviews} />
+              <SummaryStat label={t('applications.title')} value={summary.totalApplications} />
               <SummaryStat
-                label="Updated in the last 7 days"
+                label={t('applicationDetail.tabInterviews')}
+                value={summary.totalInterviews}
+              />
+              <SummaryStat
+                label={t('sharedSummary.upcomingInterviews')}
+                value={summary.upcomingInterviews}
+              />
+              <SummaryStat
+                label={t('sharedSummary.updatedLast7Days')}
                 value={summary.applicationsUpdatedLast7Days}
               />
             </div>
 
             <div>
               <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                By status
+                {t('sharedSummary.byStatus')}
               </h2>
               <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
                 {summary.statusCounts.map((sc) => (
@@ -96,7 +94,7 @@ export function SharedSummaryPage() {
                     className="flex items-center justify-between px-3 py-2 text-sm"
                   >
                     <span className="text-gray-700 dark:text-gray-300">
-                      {STATUS_LABEL[sc.status] ?? sc.status}
+                      {t(`status.${sc.status}`, { defaultValue: sc.status })}
                     </span>
                     <span className="font-medium text-gray-900 dark:text-gray-100">{sc.count}</span>
                   </li>
@@ -105,7 +103,9 @@ export function SharedSummaryPage() {
             </div>
 
             <p className="text-xs text-gray-400">
-              Generated {new Date(summary.generatedAt).toLocaleString()}
+              {t('sharedSummary.generatedAt', {
+                date: new Date(summary.generatedAt).toLocaleString(),
+              })}
             </p>
           </>
         )}
