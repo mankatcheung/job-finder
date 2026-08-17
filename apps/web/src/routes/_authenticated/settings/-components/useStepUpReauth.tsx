@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
+import { useLocale } from '#/lib/i18n';
 import { Alert, Button, FormLabel, Input, Modal } from '@trakwyn/ui';
 import {
   REAUTHENTICATE,
@@ -67,6 +68,7 @@ function StepUpReauthDialog({
   onSuccess: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useLocale();
   const form = useForm<ReauthForm>({ resolver: zodResolver(reauthSchema) });
   const [totpRequired, setTotpRequired] = useState(false);
 
@@ -82,7 +84,9 @@ function StepUpReauthDialog({
       }
       onSuccess();
     } catch (err) {
-      form.setError('root', { message: extractGqlError(err) ?? 'Verification failed.' });
+      form.setError('root', {
+        message: extractGqlError(err) ?? t('stepUpReauth.verificationFailed'),
+      });
     }
   };
 
@@ -91,16 +95,15 @@ function StepUpReauthDialog({
       <div className="p-6 space-y-4">
         <div>
           <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            Confirm it&apos;s you
+            {t('stepUpReauth.title')}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Your session has been idle a while — please verify your identity again before
-            continuing.
+            {t('stepUpReauth.description')}
           </p>
         </div>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
           <div>
-            <FormLabel>Password</FormLabel>
+            <FormLabel>{t('auth.password')}</FormLabel>
             <Input
               type="password"
               {...form.register('password')}
@@ -114,7 +117,7 @@ function StepUpReauthDialog({
           </div>
           {totpRequired && (
             <div>
-              <FormLabel>Two-factor code</FormLabel>
+              <FormLabel>{t('stepUpReauth.twoFactorCodeLabel')}</FormLabel>
               <Input
                 type="text"
                 inputMode="numeric"
@@ -131,14 +134,14 @@ function StepUpReauthDialog({
           {form.formState.errors.root && <Alert>{form.formState.errors.root.message}</Alert>}
           <div className="flex gap-2 justify-end pt-2">
             <Button variant="link" onClick={onCancel}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting
-                ? 'Verifying…'
+                ? t('auth.verifying')
                 : totpRequired
-                  ? 'Verify code'
-                  : 'Confirm'}
+                  ? t('stepUpReauth.verifyCode')
+                  : t('security.confirm')}
             </Button>
           </div>
         </form>

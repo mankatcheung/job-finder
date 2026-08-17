@@ -4,6 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { getErrorMessage } from '#/lib/errors';
+import { useLocale } from '#/lib/i18n';
 import { Button, Input, Skeleton, Spinner } from '@trakwyn/ui';
 import {
   CREATE_CONVERSATION,
@@ -16,14 +17,8 @@ import {
   type ConversationsResult,
 } from '#/routes/_authenticated/assistant/-shared';
 
-const LOADING_MESSAGES = [
-  'Thinking…',
-  'Looking into your applications…',
-  'Checking the details…',
-  'Almost there…',
-];
-
 const LOADING_MESSAGE_INTERVAL_MS = 3000;
+const LOADING_MESSAGE_COUNT = 4;
 
 function tempMessageId(): string {
   return `optimistic-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -59,6 +54,13 @@ export function ChatConversationView({
   suggestedQuestions,
   compact = false,
 }: ChatConversationViewProps) {
+  const { t } = useLocale();
+  const LOADING_MESSAGES = [
+    t('chat.loadingThinking'),
+    t('chat.loadingLookingApplications'),
+    t('chat.loadingCheckingDetails'),
+    t('chat.loadingAlmostThere'),
+  ];
   const qc = useQueryClient();
   const [input, setInput] = useState('');
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
@@ -93,7 +95,7 @@ export function ChatConversationView({
       return;
     }
     const id = setInterval(() => {
-      setLoadingMessageIndex((i) => (i + 1) % LOADING_MESSAGES.length);
+      setLoadingMessageIndex((i) => (i + 1) % LOADING_MESSAGE_COUNT);
     }, LOADING_MESSAGE_INTERVAL_MS);
     return () => clearInterval(id);
   }, [send.isPending]);
@@ -168,9 +170,7 @@ export function ChatConversationView({
           <>
             {messages.length === 0 && (
               <div className="space-y-3">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Ask about your applications, contacts, or interview rounds.
-                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('chat.emptyPrompt')}</p>
                 {suggestedQuestions && suggestedQuestions.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {suggestedQuestions.map((q) => (
@@ -220,11 +220,11 @@ export function ChatConversationView({
           <p className="text-sm text-red-600 dark:text-red-400">
             {getGqlErrorCode(send.error) === AI_NOT_CONFIGURED_CODE ? (
               <>
-                Add your AI API key in{' '}
+                {t('resumeMatch.addApiKeyPrefix')}{' '}
                 <Link to="/settings/profile" className="underline">
-                  Account settings
+                  {t('resumeMatch.accountSettingsLinkText')}
                 </Link>{' '}
-                to use this feature.
+                {t('resumeMatch.addApiKeySuffix')}
               </>
             ) : (
               getErrorMessage(send.error)
@@ -242,11 +242,11 @@ export function ChatConversationView({
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask a question…"
+          placeholder={t('chat.inputPlaceholder')}
           className="flex-1"
         />
         <Button type="submit" disabled={send.isPending || !input.trim()}>
-          Send
+          {t('chat.send')}
         </Button>
       </form>
     </div>
