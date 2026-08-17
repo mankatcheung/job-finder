@@ -523,5 +523,19 @@
   "profile.saveProfile": "Save profile",
   "profile.updateProfileFailed": "Failed to update profile.",
   "profile.uploadPhotoFailed": "Failed to upload photo.",
-  "profile.removePhotoFailed": "Failed to remove photo."
+  "profile.removePhotoFailed": "Failed to remove photo.",
+  "interviewAnalytics.title": "Interview round outcomes",
+  "interviewAnalytics.description": "Pass rate by round type, and how many rounds it typically takes to reach an outcome.",
+  "interviewAnalytics.emptyMessage": "Log outcomes on your interview rounds to see pass rates here.",
+  "interviewAnalytics.passedOfDecided": "{{passed}}/{{decided}} passed",
+  "interviewAnalytics.smallSample": "small sample",
+  "interviewAnalytics.roundsBeforeOffer": "Rounds before an offer",
+  "interviewAnalytics.median": "median",
+  "interviewAnalytics.offersCount_one": "{{count}} offer",
+  "interviewAnalytics.offersCount_other": "{{count}} offers",
+  "interviewAnalytics.noOffersYet": "No offers yet",
+  "interviewAnalytics.roundsBeforeRejection": "Rounds before a rejection",
+  "interviewAnalytics.rejectionsCount_one": "{{count}} rejection",
+  "interviewAnalytics.rejectionsCount_other": "{{count}} rejections",
+  "interviewAnalytics.noRejectionsYet": "No rejections yet"
 }

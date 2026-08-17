@@ -1,14 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
+import { useLocale } from '#/lib/i18n';
 import { Card, EmptyState, Skeleton } from '@trakwyn/ui';
 import { interviewRoundAnalyticsQueryOptions } from './-interview-round-analytics-queries';
-
-const TYPE_LABEL: Record<string, string> = {
-  phone: 'Phone',
-  technical: 'Technical',
-  onsite: 'Onsite',
-  hr: 'HR',
-  other: 'Other',
-};
 
 // Below this many decided (passed+failed) rounds, a pass rate is more noise
 // than signal — flagged rather than hidden, mirroring JEF-58's
@@ -29,6 +22,7 @@ function formatRounds(n: number | null): string {
  * analytics panels — this is a supplementary insight, not critical path.
  */
 export function InterviewRoundAnalyticsPanel() {
+  const { t } = useLocale();
   const { data, isLoading } = useQuery(interviewRoundAnalyticsQueryOptions);
 
   if (isLoading) {
@@ -41,17 +35,17 @@ export function InterviewRoundAnalyticsPanel() {
   return (
     <Card className="p-6">
       <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-        Interview round outcomes
+        {t('interviewAnalytics.title')}
       </h2>
       <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
-        Pass rate by round type, and how many rounds it typically takes to reach an outcome.
+        {t('interviewAnalytics.description')}
       </p>
 
       {analytics.byType.length === 0 ? (
         <EmptyState
           size="compact"
           className="py-8"
-          message="Log outcomes on your interview rounds to see pass rates here."
+          message={t('interviewAnalytics.emptyMessage')}
         />
       ) : (
         <div className="space-y-3 mb-6">
@@ -65,10 +59,10 @@ export function InterviewRoundAnalyticsPanel() {
                 className="flex items-center gap-3 py-2 border-b border-gray-100 dark:border-gray-700 last:border-0"
               >
                 <span className="w-20 shrink-0 text-sm text-gray-900 dark:text-gray-100">
-                  {TYPE_LABEL[stat.type] ?? stat.type}
+                  {t(`interviews.${stat.type}`, { defaultValue: stat.type })}
                 </span>
                 <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
-                  {stat.passed}/{decided} passed
+                  {t('interviewAnalytics.passedOfDecided', { passed: stat.passed, decided })}
                 </span>
                 <div className="flex-1 h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
                   <div className="h-full bg-green-500" style={{ width: `${passRate}%` }} />
@@ -78,7 +72,7 @@ export function InterviewRoundAnalyticsPanel() {
                 </span>
                 {smallSample && (
                   <span className="shrink-0 text-[10px] text-gray-400 dark:text-gray-500">
-                    small sample
+                    {t('interviewAnalytics.smallSample')}
                   </span>
                 )}
               </div>
@@ -89,27 +83,37 @@ export function InterviewRoundAnalyticsPanel() {
 
       <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100 dark:border-gray-700">
         <div>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Rounds before an offer</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">
+            {t('interviewAnalytics.roundsBeforeOffer')}
+          </p>
           <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {formatRounds(analytics.roundsToOffer.median)}{' '}
-            <span className="text-xs font-normal text-gray-400">median</span>
+            <span className="text-xs font-normal text-gray-400">
+              {t('interviewAnalytics.median')}
+            </span>
           </p>
           <p className="text-[10px] text-gray-400 dark:text-gray-500">
             {analytics.roundsToOffer.sampleSize > 0
-              ? `${analytics.roundsToOffer.sampleSize} offer${analytics.roundsToOffer.sampleSize === 1 ? '' : 's'}`
-              : 'No offers yet'}
+              ? t('interviewAnalytics.offersCount', { count: analytics.roundsToOffer.sampleSize })
+              : t('interviewAnalytics.noOffersYet')}
           </p>
         </div>
         <div>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Rounds before a rejection</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">
+            {t('interviewAnalytics.roundsBeforeRejection')}
+          </p>
           <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {formatRounds(analytics.roundsToRejection.median)}{' '}
-            <span className="text-xs font-normal text-gray-400">median</span>
+            <span className="text-xs font-normal text-gray-400">
+              {t('interviewAnalytics.median')}
+            </span>
           </p>
           <p className="text-[10px] text-gray-400 dark:text-gray-500">
             {analytics.roundsToRejection.sampleSize > 0
-              ? `${analytics.roundsToRejection.sampleSize} rejection${analytics.roundsToRejection.sampleSize === 1 ? '' : 's'}`
-              : 'No rejections yet'}
+              ? t('interviewAnalytics.rejectionsCount', {
+                  count: analytics.roundsToRejection.sampleSize,
+                })
+              : t('interviewAnalytics.noRejectionsYet')}
           </p>
         </div>
       </div>

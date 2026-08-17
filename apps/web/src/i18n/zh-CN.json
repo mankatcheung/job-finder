@@ -517,5 +517,17 @@
   "profile.saveProfile": "保存个人资料",
   "profile.updateProfileFailed": "更新个人资料失败。",
   "profile.uploadPhotoFailed": "上传头像失败。",
-  "profile.removePhotoFailed": "移除头像失败。"
+  "profile.removePhotoFailed": "移除头像失败。",
+  "interviewAnalytics.title": "面试轮次结果",
+  "interviewAnalytics.description": "按轮次类型显示通过率，以及通常需要多少轮才能得出结果。",
+  "interviewAnalytics.emptyMessage": "记录面试轮次的结果后，即可在此查看通过率。",
+  "interviewAnalytics.passedOfDecided": "{{passed}}/{{decided}} 通过",
+  "interviewAnalytics.smallSample": "样本量较小",
+  "interviewAnalytics.roundsBeforeOffer": "获得录用前的轮次数",
+  "interviewAnalytics.median": "中位数",
+  "interviewAnalytics.offersCount_other": "{{count}} 个录用通知",
+  "interviewAnalytics.noOffersYet": "暂无录用通知",
+  "interviewAnalytics.roundsBeforeRejection": "被拒绝前的轮次数",
+  "interviewAnalytics.rejectionsCount_other": "{{count}} 次拒绝",
+  "interviewAnalytics.noRejectionsYet": "暂无拒绝记录"
 }

@@ -517,5 +517,17 @@
   "profile.saveProfile": "儲存個人資料",
   "profile.updateProfileFailed": "更新個人資料失敗。",
   "profile.uploadPhotoFailed": "上傳頭像失敗。",
-  "profile.removePhotoFailed": "移除頭像失敗。"
+  "profile.removePhotoFailed": "移除頭像失敗。",
+  "interviewAnalytics.title": "面試輪次結果",
+  "interviewAnalytics.description": "按輪次類型顯示通過率，以及通常需要多少輪才能得出結果。",
+  "interviewAnalytics.emptyMessage": "記錄面試輪次的結果後，即可在此查看通過率。",
+  "interviewAnalytics.passedOfDecided": "{{passed}}/{{decided}} 通過",
+  "interviewAnalytics.smallSample": "樣本量較小",
+  "interviewAnalytics.roundsBeforeOffer": "獲得聘書前的輪次數",
+  "interviewAnalytics.median": "中位數",
+  "interviewAnalytics.offersCount_other": "{{count}} 份聘書",
+  "interviewAnalytics.noOffersYet": "暫無聘書",
+  "interviewAnalytics.roundsBeforeRejection": "被拒絕前的輪次數",
+  "interviewAnalytics.rejectionsCount_other": "{{count}} 次拒絕",
+  "interviewAnalytics.noRejectionsYet": "暫無拒絕記錄"
 }
