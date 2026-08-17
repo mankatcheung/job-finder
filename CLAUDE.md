@@ -110,7 +110,7 @@ cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 ```
 
-Key API env vars: `DATABASE_URL` must be an absolute path for local SQLite (e.g. `file:/absolute/path/to/job-finder/apps/api/local.db`). `JWT_SECRET` and `JWT_REFRESH_SECRET` must be set.
+Key API env vars: `DATABASE_URL` must be an absolute path for local SQLite (e.g. `file:/absolute/path/to/trakwyn/apps/api/local.db`). `JWT_SECRET` and `JWT_REFRESH_SECRET` must be set.
 
 ## Key Conventions
 
