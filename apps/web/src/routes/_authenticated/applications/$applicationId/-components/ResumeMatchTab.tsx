@@ -5,6 +5,7 @@ import { EyeIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { getErrorMessage } from '#/lib/errors';
+import { useLocale } from '#/lib/i18n';
 import { DocumentPreviewModal, isPreviewableMimeType } from './DocumentPreviewModal';
 import { DOCUMENTS_QUERY, type Document } from './DocumentsTab';
 import { SCORE_COLORS, scoreColor } from './HealthScorePanel';
@@ -31,6 +32,7 @@ type ResumeMatchScoreResult = {
 };
 
 export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
+  const { t } = useLocale();
   const [resumeText, setResumeText] = useState('');
   const [overridePaste, setOverridePaste] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -64,17 +66,19 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
         {usingUploadedResume && resumeDoc ? (
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              Using your uploaded resume — <span className="font-medium">{resumeDoc.name}</span>
+              {t('resumeMatch.usingUploadedResumePrefix')}{' '}
+              <span className="font-medium">{resumeDoc.name}</span>
             </p>
             <div className="flex items-center gap-3 shrink-0">
               {isPreviewableMimeType(resumeDoc.mimeType) && (
                 <button
                   type="button"
                   onClick={() => setPreviewOpen(true)}
-                  aria-label="Preview"
+                  aria-label={t('resumeMatch.preview')}
                   className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
                 >
-                  <EyeIcon size={14} /> <span className="hidden sm:inline">Preview</span>
+                  <EyeIcon size={14} />{' '}
+                  <span className="hidden sm:inline">{t('resumeMatch.preview')}</span>
                 </button>
               )}
               <button
@@ -82,18 +86,18 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
                 onClick={() => setOverridePaste(true)}
                 className="text-xs text-blue-600 hover:underline"
               >
-                Paste different text instead
+                {t('resumeMatch.pasteDifferentText')}
               </button>
             </div>
           </div>
         ) : (
           <div>
-            <FormLabel>Your resume</FormLabel>
+            <FormLabel>{t('resumeMatch.yourResumeLabel')}</FormLabel>
             <Textarea
               value={resumeText}
               onChange={(e) => setResumeText(e.target.value)}
               rows={6}
-              placeholder="Paste your resume text here…"
+              placeholder={t('resumeMatch.pasteResumePlaceholder')}
             />
             {resumeDoc && (
               <button
@@ -101,7 +105,7 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
                 onClick={() => setOverridePaste(false)}
                 className="mt-1 text-xs text-blue-600 hover:underline"
               >
-                Use uploaded resume ({resumeDoc.name}) instead
+                {t('resumeMatch.useUploadedResumeInstead', { name: resumeDoc.name })}
               </button>
             )}
           </div>
@@ -115,10 +119,10 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
           {compute.isPending ? (
             <>
               <Spinner tone="white" />
-              Checking match…
+              {t('resumeMatch.checkingMatch')}
             </>
           ) : (
-            <>🎯 {result ? 'Check again' : 'Check match'}</>
+            <>🎯 {result ? t('resumeMatch.checkAgain') : t('resumeMatch.checkMatch')}</>
           )}
         </button>
 
@@ -126,11 +130,11 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
           <p className="text-sm text-red-600 dark:text-red-400">
             {getGqlErrorCode(compute.error) === AI_NOT_CONFIGURED_CODE ? (
               <>
-                Add your AI API key in{' '}
+                {t('resumeMatch.addApiKeyPrefix')}{' '}
                 <Link to="/settings/profile" className="underline">
-                  Account settings
+                  {t('resumeMatch.accountSettingsLinkText')}
                 </Link>{' '}
-                to use this feature.
+                {t('resumeMatch.addApiKeySuffix')}
               </>
             ) : (
               getErrorMessage(compute.error)
@@ -180,7 +184,9 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
               </text>
             </svg>
             <div>
-              <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Resume match</p>
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                {t('resumeMatch.resumeMatchTitle')}
+              </p>
               <span
                 className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${color.badge}`}
               >
@@ -196,7 +202,7 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
           {result.matchedKeywords.length > 0 && (
             <div>
               <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-                Matched keywords
+                {t('resumeMatch.matchedKeywords')}
               </h4>
               <div className="flex flex-wrap gap-1.5">
                 {result.matchedKeywords.map((kw) => (
@@ -214,7 +220,7 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
           {result.missingKeywords.length > 0 && (
             <div>
               <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-                Missing keywords
+                {t('resumeMatch.missingKeywords')}
               </h4>
               <div className="flex flex-wrap gap-1.5">
                 {result.missingKeywords.map((kw) => (
