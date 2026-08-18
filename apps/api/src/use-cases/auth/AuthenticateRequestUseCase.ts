@@ -1,5 +1,6 @@
 import { API_TOKEN, API_TOKEN_SCOPE } from '#src/constants.js';
 import type { ITokenService } from '#src/use-cases/ports/ITokenService.js';
+import type { ISessionBlocklist } from '#src/use-cases/ports/ISessionBlocklist.js';
 import type { ValidateApiTokenUseCase } from '#src/use-cases/apiTokens/ValidateApiTokenUseCase.js';
 
 export interface AuthenticateRequestResult {
@@ -13,6 +14,7 @@ export interface AuthenticateRequestResult {
 interface Deps {
   tokenService: ITokenService;
   validateApiTokenUseCase: ValidateApiTokenUseCase;
+  sessionBlocklist: ISessionBlocklist;
 }
 
 /**
@@ -21,6 +23,11 @@ interface Deps {
  *
  * Only FULL-scoped API tokens are accepted; READ-scoped tokens are MCP-only.
  * Returns null for any invalid, expired, or insufficiently-scoped token.
+ *
+ * A valid JWT signature is necessary but not sufficient: its session may have
+ * been revoked (logout, "sign out other sessions", password reset,
+ * refresh-token reuse) since it was issued, so the `sid` is also checked
+ * against the revocation blocklist (JEF-164).
  */
 export class AuthenticateRequestUseCase {
   constructor(private readonly deps: Deps) {}
@@ -39,10 +46,21 @@ export class AuthenticateRequestUseCase {
     }
 
     // JWT path
+    let claims: AuthenticateRequestResult;
     try {
-      return this.deps.tokenService.verifyAccess(rawToken);
+      claims = this.deps.tokenService.verifyAccess(rawToken);
     } catch {
       return null;
     }
+
+    // Deliberately outside the try/catch above: the blocklist fails open
+    // internally (a backing-store outage resolves to "not revoked"), so an
+    // exception escaping here would be a genuine bug worth surfacing rather
+    // than something to silently swallow as "invalid token".
+    if (claims.sid && (await this.deps.sessionBlocklist.isRevoked(claims.sid))) {
+      return null;
+    }
+
+    return claims;
   }
 }

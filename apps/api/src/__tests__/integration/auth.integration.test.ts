@@ -33,6 +33,12 @@ const REFRESH_TOKEN_MUTATION = `
   }
 `;
 
+const LOGOUT_MUTATION = `
+  mutation Logout {
+    logout
+  }
+`;
+
 interface GraphQLResponse<T> {
   data: T | null;
   errors?: Array<{ message: string; extensions?: { code?: string } }>;
@@ -173,6 +179,53 @@ describe('auth integration', () => {
       expect(cookie, `expected ${name} to be cleared`).toBeDefined();
       expect(cookie!.value).toBe('');
     }
+  });
+
+  it('rejects an access token immediately after logout, instead of honouring it until its natural expiry (JEF-164)', async () => {
+    const email = `${randomUUID()}@example.com`;
+    const password = 'correct-horse-4';
+
+    const registerRes = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      payload: { query: REGISTER_MUTATION, variables: { email, password } },
+    });
+    const accessToken = (registerRes.json() as GraphQLResponse<{ register: string }>).data!
+      .register;
+
+    // The token works before logout.
+    const beforeRes = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      headers: { authorization: `Bearer ${accessToken}` },
+      payload: { query: ME_QUERY },
+    });
+    expect((beforeRes.json() as GraphQLResponse<{ me: { email: string } }>).data!.me.email).toBe(
+      email,
+    );
+
+    const logoutRes = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      headers: { authorization: `Bearer ${accessToken}` },
+      payload: { query: LOGOUT_MUTATION },
+    });
+    expect((logoutRes.json() as GraphQLResponse<{ logout: boolean }>).data).toEqual({
+      logout: true,
+    });
+
+    // Replaying the *same* still-unexpired, still-correctly-signed token —
+    // as someone holding a stolen copy would, ignoring the cleared cookie.
+    // Before JEF-164 this kept working for up to another 15 minutes.
+    const afterRes = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      headers: { authorization: `Bearer ${accessToken}` },
+      payload: { query: ME_QUERY },
+    });
+    const afterBody = afterRes.json() as GraphQLResponse<{ me: null }>;
+    expect(afterBody.data).toEqual({ me: null });
+    expect(afterBody.errors?.[0]?.extensions?.code).toBe('UNAUTHORIZED');
   });
 
   it('clears auth cookies when the presented refresh token is invalid, so the client stops believing a dead session is alive', async () => {

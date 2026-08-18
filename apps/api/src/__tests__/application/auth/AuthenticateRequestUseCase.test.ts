@@ -2,12 +2,21 @@ import { describe, it, expect, vi } from 'vitest';
 import { AuthenticateRequestUseCase } from '#src/use-cases/auth/AuthenticateRequestUseCase.js';
 import type { ITokenService } from '#src/use-cases/ports/ITokenService.js';
 import type { ValidateApiTokenUseCase } from '#src/use-cases/apiTokens/ValidateApiTokenUseCase.js';
+import type { ISessionBlocklist } from '#src/use-cases/ports/ISessionBlocklist.js';
 
 function makeTokenService(overrides?: Partial<ITokenService>): ITokenService {
   return {
     sign: vi.fn(),
     verifyRefresh: vi.fn(),
     verifyAccess: vi.fn(),
+    ...overrides,
+  };
+}
+
+function makeSessionBlocklist(overrides?: Partial<ISessionBlocklist>): ISessionBlocklist {
+  return {
+    revoke: vi.fn(),
+    isRevoked: vi.fn().mockResolvedValue(false),
     ...overrides,
   };
 }
@@ -28,7 +37,11 @@ describe('AuthenticateRequestUseCase', () => {
         .mockReturnValue({ sub: 'user-1', email: 'user@example.com', sid: 'session-1' }),
     });
     const validateApiTokenUseCase = makeValidateApiTokenUseCase();
-    const useCase = new AuthenticateRequestUseCase({ tokenService, validateApiTokenUseCase });
+    const useCase = new AuthenticateRequestUseCase({
+      tokenService,
+      validateApiTokenUseCase,
+      sessionBlocklist: makeSessionBlocklist(),
+    });
 
     const result = await useCase.execute('valid.jwt.token');
 
@@ -44,7 +57,11 @@ describe('AuthenticateRequestUseCase', () => {
       }),
     });
     const validateApiTokenUseCase = makeValidateApiTokenUseCase();
-    const useCase = new AuthenticateRequestUseCase({ tokenService, validateApiTokenUseCase });
+    const useCase = new AuthenticateRequestUseCase({
+      tokenService,
+      validateApiTokenUseCase,
+      sessionBlocklist: makeSessionBlocklist(),
+    });
 
     const result = await useCase.execute('expired.jwt.token');
 
@@ -56,7 +73,11 @@ describe('AuthenticateRequestUseCase', () => {
     const validateApiTokenUseCase = makeValidateApiTokenUseCase(
       vi.fn().mockResolvedValue({ sub: 'user-1', email: 'user@example.com', scope: 'full' }),
     );
-    const useCase = new AuthenticateRequestUseCase({ tokenService, validateApiTokenUseCase });
+    const useCase = new AuthenticateRequestUseCase({
+      tokenService,
+      validateApiTokenUseCase,
+      sessionBlocklist: makeSessionBlocklist(),
+    });
 
     const result = await useCase.execute('trakwyn_abc123');
 
@@ -70,7 +91,11 @@ describe('AuthenticateRequestUseCase', () => {
     const validateApiTokenUseCase = makeValidateApiTokenUseCase(
       vi.fn().mockResolvedValue({ sub: 'user-1', email: 'user@example.com', scope: 'read' }),
     );
-    const useCase = new AuthenticateRequestUseCase({ tokenService, validateApiTokenUseCase });
+    const useCase = new AuthenticateRequestUseCase({
+      tokenService,
+      validateApiTokenUseCase,
+      sessionBlocklist: makeSessionBlocklist(),
+    });
 
     const result = await useCase.execute('trakwyn_readonly');
 
@@ -80,7 +105,11 @@ describe('AuthenticateRequestUseCase', () => {
   it('returns null when the API token is not found', async () => {
     const tokenService = makeTokenService();
     const validateApiTokenUseCase = makeValidateApiTokenUseCase(vi.fn().mockResolvedValue(null));
-    const useCase = new AuthenticateRequestUseCase({ tokenService, validateApiTokenUseCase });
+    const useCase = new AuthenticateRequestUseCase({
+      tokenService,
+      validateApiTokenUseCase,
+      sessionBlocklist: makeSessionBlocklist(),
+    });
 
     const result = await useCase.execute('trakwyn_unknown');
 
@@ -92,10 +121,84 @@ describe('AuthenticateRequestUseCase', () => {
     const validateApiTokenUseCase = makeValidateApiTokenUseCase(
       vi.fn().mockRejectedValue(new Error('db error')),
     );
-    const useCase = new AuthenticateRequestUseCase({ tokenService, validateApiTokenUseCase });
+    const useCase = new AuthenticateRequestUseCase({
+      tokenService,
+      validateApiTokenUseCase,
+      sessionBlocklist: makeSessionBlocklist(),
+    });
 
     const result = await useCase.execute('trakwyn_broken');
 
     expect(result).toBeNull();
+  });
+
+  describe('revoked-session blocklist (JEF-164)', () => {
+    const validClaims = { sub: 'user-1', email: 'user@example.com', sid: 'session-1' };
+
+    it('rejects a still-unexpired, correctly-signed JWT whose session has been revoked', async () => {
+      const tokenService = makeTokenService({
+        verifyAccess: vi.fn().mockReturnValue(validClaims),
+      });
+      const sessionBlocklist = makeSessionBlocklist({
+        isRevoked: vi.fn().mockResolvedValue(true),
+      });
+      const useCase = new AuthenticateRequestUseCase({
+        tokenService,
+        validateApiTokenUseCase: makeValidateApiTokenUseCase(),
+        sessionBlocklist,
+      });
+
+      const result = await useCase.execute('valid.but.revoked');
+
+      expect(result).toBeNull();
+      expect(sessionBlocklist.isRevoked).toHaveBeenCalledWith('session-1');
+    });
+
+    it('still authenticates when the blocklist check reports not-revoked', async () => {
+      const sessionBlocklist = makeSessionBlocklist({
+        isRevoked: vi.fn().mockResolvedValue(false),
+      });
+      const useCase = new AuthenticateRequestUseCase({
+        tokenService: makeTokenService({ verifyAccess: vi.fn().mockReturnValue(validClaims) }),
+        validateApiTokenUseCase: makeValidateApiTokenUseCase(),
+        sessionBlocklist,
+      });
+
+      const result = await useCase.execute('valid.jwt.token');
+
+      expect(result).toEqual(validClaims);
+    });
+
+    it('skips the blocklist entirely for API tokens, which have no session', async () => {
+      const sessionBlocklist = makeSessionBlocklist();
+      const useCase = new AuthenticateRequestUseCase({
+        tokenService: makeTokenService(),
+        validateApiTokenUseCase: makeValidateApiTokenUseCase(
+          vi.fn().mockResolvedValue({ sub: 'user-1', email: 'user@example.com', scope: 'full' }),
+        ),
+        sessionBlocklist,
+      });
+
+      const result = await useCase.execute('trakwyn_abc123');
+
+      expect(result).toEqual({ sub: 'user-1', email: 'user@example.com' });
+      expect(sessionBlocklist.isRevoked).not.toHaveBeenCalled();
+    });
+
+    it('authenticates a sid-less JWT without consulting the blocklist', async () => {
+      const sessionBlocklist = makeSessionBlocklist();
+      const useCase = new AuthenticateRequestUseCase({
+        tokenService: makeTokenService({
+          verifyAccess: vi.fn().mockReturnValue({ sub: 'user-1', email: 'user@example.com' }),
+        }),
+        validateApiTokenUseCase: makeValidateApiTokenUseCase(),
+        sessionBlocklist,
+      });
+
+      const result = await useCase.execute('legacy.jwt.token');
+
+      expect(result).toEqual({ sub: 'user-1', email: 'user@example.com' });
+      expect(sessionBlocklist.isRevoked).not.toHaveBeenCalled();
+    });
   });
 });

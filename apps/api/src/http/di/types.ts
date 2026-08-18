@@ -25,6 +25,8 @@ import type { DrizzlePasswordResetTokenRepository } from '#src/infrastructure/db
 import type { DrizzleLoginEventRepository } from '#src/infrastructure/db/repositories/DrizzleLoginEventRepository.js';
 import type { DrizzleSecurityEventRepository } from '#src/infrastructure/db/repositories/DrizzleSecurityEventRepository.js';
 import type { DrizzleSessionRepository } from '#src/infrastructure/db/repositories/DrizzleSessionRepository.js';
+import type { BlocklistingSessionRepository } from '#src/infrastructure/db/repositories/BlocklistingSessionRepository.js';
+import type { ISessionBlocklist } from '#src/use-cases/ports/ISessionBlocklist.js';
 import type { DrizzleWorkExperienceRepository } from '#src/infrastructure/db/repositories/DrizzleWorkExperienceRepository.js';
 import type { DrizzleEducationRepository } from '#src/infrastructure/db/repositories/DrizzleEducationRepository.js';
 import type { DrizzleSkillRepository } from '#src/infrastructure/db/repositories/DrizzleSkillRepository.js';
@@ -243,6 +245,7 @@ export interface Cradle {
   logger: ILogger;
   tokenService: JwtTokenService;
   cache: ICache;
+  sessionBlocklist: ISessionBlocklist;
   passwordResetRateLimiter: IRateLimiter;
 
   // Raw repositories (used internally by the cached decorators)
@@ -279,7 +282,8 @@ export interface Cradle {
   messageRepository: DrizzleMessageRepository;
   conversationRepository: DrizzleConversationRepository;
   llmApiKeyRepository: ILlmApiKeyRepository;
-  sessionRepository: DrizzleSessionRepository;
+  drizzleSessionRepository: DrizzleSessionRepository;
+  sessionRepository: BlocklistingSessionRepository;
   offerRepository: DrizzleOfferRepository;
   emailVerificationTokenRepository: DrizzleEmailVerificationTokenRepository;
   totpBackupCodeRepository: DrizzleTotpBackupCodeRepository;

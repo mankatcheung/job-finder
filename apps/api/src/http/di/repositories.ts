@@ -24,6 +24,7 @@ import { DrizzlePasswordResetTokenRepository } from '#src/infrastructure/db/repo
 import { DrizzleLoginEventRepository } from '#src/infrastructure/db/repositories/DrizzleLoginEventRepository.js';
 import { DrizzleSecurityEventRepository } from '#src/infrastructure/db/repositories/DrizzleSecurityEventRepository.js';
 import { DrizzleSessionRepository } from '#src/infrastructure/db/repositories/DrizzleSessionRepository.js';
+import { BlocklistingSessionRepository } from '#src/infrastructure/db/repositories/BlocklistingSessionRepository.js';
 import { DrizzleWorkExperienceRepository } from '#src/infrastructure/db/repositories/DrizzleWorkExperienceRepository.js';
 import { DrizzleEducationRepository } from '#src/infrastructure/db/repositories/DrizzleEducationRepository.js';
 import { DrizzleSkillRepository } from '#src/infrastructure/db/repositories/DrizzleSkillRepository.js';
@@ -107,7 +108,12 @@ export const repositories = {
     lifetime: Lifetime.SINGLETON,
   }),
   llmApiKeyRepository: asClass(DrizzleLlmApiKeyRepository, { lifetime: Lifetime.SINGLETON }),
-  sessionRepository: asClass(DrizzleSessionRepository, { lifetime: Lifetime.SINGLETON }),
+  drizzleSessionRepository: asClass(DrizzleSessionRepository, { lifetime: Lifetime.SINGLETON }),
+  // Decorates the Drizzle repository so every revocation path also
+  // blocklists the affected session ids (JEF-164) — see
+  // BlocklistingSessionRepository. Same inner/outer registration shape the
+  // Cached*Repository decorators use.
+  sessionRepository: asClass(BlocklistingSessionRepository, { lifetime: Lifetime.SINGLETON }),
   emailVerificationTokenRepository: asClass(DrizzleEmailVerificationTokenRepository, {
     lifetime: Lifetime.SINGLETON,
   }),
