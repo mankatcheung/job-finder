@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
 import { useLocale } from '#/lib/i18n';
 import { API_ORIGIN } from '#/lib/apiOrigin';
+import { OAuthProviderLogo } from '#/components/OAuthProviderLogo';
 import {
   REQUEST_EMAIL_CHANGE,
   REQUEST_ADD_BACKUP_EMAIL,
@@ -499,13 +500,16 @@ export function SettingsSecurityPage() {
                 key={provider}
                 className="flex items-center justify-between px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg"
               >
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {providerLabel}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {linked ? (linked.email ?? t('security.linked')) : t('security.notLinked')}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <OAuthProviderLogo provider={provider} className="h-5 w-5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {providerLabel}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {linked ? (linked.email ?? t('security.linked')) : t('security.notLinked')}
+                    </p>
+                  </div>
                 </div>
                 {linked ? (
                   <button

@@ -618,5 +618,17 @@ describe('SettingsSecurityPage', () => {
         ).toBeInTheDocument();
       });
     });
+
+    it('renders the Google and GitHub logos next to each provider row', async () => {
+      render(<SettingsSecurityPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+
+      const rows = screen
+        .getAllByRole('link', { name: /^link$/i })
+        .map((l) => l.closest('div')!.parentElement!);
+      expect(rows).toHaveLength(2);
+      const logos = document.querySelectorAll('svg[aria-hidden="true"]');
+      expect(logos.length).toBeGreaterThanOrEqual(2);
+    });
   });
 });
