@@ -29,7 +29,31 @@ const config = defineConfig(({ command }) => ({
     // Restricted to `build`: nitro also resolves 'vercel' to its 'vercel-dev'
     // alias for `vite dev`, emulating the Vercel runtime locally — skipped
     // here so `pnpm dev` runs as a plain local dev server instead.
-    ...(command === 'build' ? [nitro({ preset: 'vercel' })] : []),
+    ...(command === 'build'
+      ? [
+          nitro({
+            preset: 'vercel',
+            // Prerender the landing page at build time (JEF-169) so it's
+            // emitted as .vercel/output/static/index.html. The Vercel route
+            // config puts `handle: filesystem` ahead of the `/(.*) ->
+            // /__server` fallback, so that file is served straight from the
+            // edge — the serverless function is never invoked for `/`.
+            //
+            // Measured before this (JEF-168): the document returned
+            // `x-vercel-cache: MISS` on every request with
+            // `cache-control: max-age=0, must-revalidate`, so every
+            // anonymous visit invoked the function and paid a London->
+            // Virginia hop. Warm TTFB ~150 ms, one cold start at 1.18 s.
+            //
+            // The prerendered HTML is still the same empty shell, because
+            // `/` sets `ssr: false` — TanStack Start skips server rendering
+            // for it even at build time. This buys the TTFB and cold-start
+            // win, not a content/SEO win; see the JEF-169 follow-up note for
+            // what rendering real content would additionally require.
+            routeRules: { '/': { prerender: true } },
+          }),
+        ]
+      : []),
     viteReact(),
   ],
   server: {
