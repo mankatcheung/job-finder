@@ -44,7 +44,12 @@ export async function buildTestApp(): Promise<TestApp> {
   const { buildApp } = await import('#src/http/buildApp.js');
   // Logger disabled — buildApp() otherwise logs every request at 'info',
   // which is just noise across dozens of requests per integration test file.
-  const app = await buildApp(Fastify({ logger: false }));
+  // trustProxy mirrors index.ts's production Fastify instance (this helper
+  // deliberately doesn't import index.ts itself — it has side-effecting
+  // top-level fastify.listen()) — needed so tests can exercise
+  // X-Forwarded-Proto-dependent behavior like oauth.routes.ts's
+  // redirect_uri construction.
+  const app = await buildApp(Fastify({ logger: false, trustProxy: true }));
   await app.ready();
 
   return {
