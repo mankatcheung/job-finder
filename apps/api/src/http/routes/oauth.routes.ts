@@ -104,8 +104,12 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
         const redirectUri = callbackUrl(req, provider);
 
         if (parsedState.mode === 'link') {
+          // The linked-accounts UI lives at /settings/security, not
+          // /account (which just redirects to /settings/profile, dropping
+          // this query string) — land there directly so the feedback
+          // params below actually get seen.
           if (!parsedState.userId) {
-            res.redirect(`${webAppOrigin}/account?oauthError=missing_user`);
+            res.redirect(`${webAppOrigin}/settings/security?oauthError=missing_user`);
             return;
           }
           try {
@@ -116,10 +120,12 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
               code,
               redirectUri,
             });
-            res.redirect(`${webAppOrigin}/account?oauthLinked=${provider}`);
+            res.redirect(`${webAppOrigin}/settings/security?oauthLinked=${provider}`);
           } catch (err) {
             const message = err instanceof Error ? err.message : 'link_failed';
-            res.redirect(`${webAppOrigin}/account?oauthError=${encodeURIComponent(message)}`);
+            res.redirect(
+              `${webAppOrigin}/settings/security?oauthError=${encodeURIComponent(message)}`,
+            );
           }
           return;
         }

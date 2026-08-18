@@ -282,6 +282,7 @@
   "security.unlinkFailed": "取消关联账户失败。",
   "security.google": "Google",
   "security.github": "GitHub",
+  "security.linkSucceeded": "{{provider}} 账户已成功关联。",
   "security.twoFactorTitle": "双重身份验证",
   "security.twoFactorDescription": "登录时除密码外还需要身份验证器应用提供的验证码。",
   "security.twoFactorEnabled": "双重身份验证已启用。",

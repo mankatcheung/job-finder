@@ -1,23 +1,9 @@
 import { useLocale } from '#/lib/i18n';
-import { DEFAULT_API_URL } from '#/constants';
+import { API_ORIGIN } from '#/lib/apiOrigin';
 
 interface OAuthButtonsProps {
   label: string;
 }
-
-// Mirrors the API_URL resolution in graphql/client.ts (not imported from
-// there directly — that module is fully mocked in several component tests
-// without an API_URL export, and this is a one-line computation not worth
-// coupling to that mock surface for).
-//
-// In dev, this resolves to the relative "/graphql" (proxied to the API by
-// Vite — see vite.config.ts), so API_ORIGIN is "" and the hrefs below stay
-// relative, which the same dev proxy also covers for "/auth". In
-// production, web and api are on different subdomains with no such proxy,
-// so VITE_API_URL is an absolute URL there and this must be too, or these
-// links 404 against the web app's own origin instead of reaching the API.
-const API_URL = import.meta.env.VITE_API_URL ?? DEFAULT_API_URL;
-const API_ORIGIN = API_URL.replace(/\/graphql$/, '');
 
 export function OAuthButtons({ label }: OAuthButtonsProps) {
   const { t } = useLocale();

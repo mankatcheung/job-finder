@@ -283,6 +283,7 @@
   "security.unlinkFailed": "Failed to unlink account.",
   "security.google": "Google",
   "security.github": "GitHub",
+  "security.linkSucceeded": "{{provider}} account linked successfully.",
   "security.twoFactorTitle": "Two-factor authentication",
   "security.twoFactorDescription": "Require a code from an authenticator app in addition to your password.",
   "security.twoFactorEnabled": "Two-factor authentication is enabled.",

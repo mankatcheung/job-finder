@@ -3,9 +3,11 @@ import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSearch } from '@tanstack/react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
 import { useLocale } from '#/lib/i18n';
+import { API_ORIGIN } from '#/lib/apiOrigin';
 import {
   REQUEST_EMAIL_CHANGE,
   REQUEST_ADD_BACKUP_EMAIL,
@@ -130,6 +132,11 @@ export function SettingsSecurityPage() {
   });
   const linkedAccounts = linkedAccountsData?.linkedOAuthAccounts ?? [];
   const [unlinkError, setUnlinkError] = useState<string | null>(null);
+  // Feedback for a completed OAuth link attempt — the API redirects back
+  // here with one of these after the provider callback (oauth.routes.ts).
+  const { oauthLinked, oauthError: linkOauthError } = useSearch({
+    from: '/_authenticated/settings/security',
+  });
   const onUnlink = async (provider: LinkedOAuthAccount['provider']) => {
     setUnlinkError(null);
     try {
@@ -477,6 +484,12 @@ export function SettingsSecurityPage() {
           </p>
         </div>
         {unlinkError && <Alert>{unlinkError}</Alert>}
+        {oauthLinked && (
+          <Alert tone="success">
+            {t('security.linkSucceeded', { provider: t(`security.${oauthLinked}`) })}
+          </Alert>
+        )}
+        {linkOauthError && <Alert>{linkOauthError}</Alert>}
         <div className="space-y-2">
           {(['google', 'github'] as const).map((provider) => {
             const linked = linkedAccounts.find((a) => a.provider === provider);
@@ -506,7 +519,7 @@ export function SettingsSecurityPage() {
                   </button>
                 ) : (
                   <a
-                    href={`/auth/oauth/${provider}/start?mode=link`}
+                    href={`${API_ORIGIN}/auth/oauth/${provider}/start?mode=link`}
                     className="text-sm text-blue-600 hover:underline"
                   >
                     {t('security.link')}
