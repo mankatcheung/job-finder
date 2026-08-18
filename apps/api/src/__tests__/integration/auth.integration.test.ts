@@ -160,4 +160,36 @@ describe('auth integration', () => {
     expect(body.data).toEqual({ refreshToken: null });
     expect(body.errors?.[0]?.extensions?.code).toBe('UNAUTHORIZED');
   });
+
+  it('clears auth cookies (including the client-readable trakwyn_logged_in hint) when refreshToken is called with no refresh cookie', async () => {
+    const res = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      payload: { query: REFRESH_TOKEN_MUTATION },
+    });
+
+    for (const name of ['trakwyn_access_token', 'trakwyn_refresh_token', 'trakwyn_logged_in']) {
+      const cookie = res.cookies.find((c) => c.name === name);
+      expect(cookie, `expected ${name} to be cleared`).toBeDefined();
+      expect(cookie!.value).toBe('');
+    }
+  });
+
+  it('clears auth cookies when the presented refresh token is invalid, so the client stops believing a dead session is alive', async () => {
+    const res = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      cookies: { trakwyn_refresh_token: 'not-a-real-token' },
+      payload: { query: REFRESH_TOKEN_MUTATION },
+    });
+    const body = res.json() as GraphQLResponse<{ refreshToken: null }>;
+    expect(body.data).toEqual({ refreshToken: null });
+    expect(body.errors?.[0]?.extensions?.code).toBe('UNAUTHORIZED');
+
+    for (const name of ['trakwyn_access_token', 'trakwyn_refresh_token', 'trakwyn_logged_in']) {
+      const cookie = res.cookies.find((c) => c.name === name);
+      expect(cookie, `expected ${name} to be cleared`).toBeDefined();
+      expect(cookie!.value).toBe('');
+    }
+  });
 });
