@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { OAuthButtons } from '#/components/OAuthButtons';
 
@@ -24,5 +24,30 @@ describe('OAuthButtons', () => {
     render(<OAuthButtons label="Continue" />);
     expect(screen.getByRole('link', { name: /continue with google/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /continue with github/i })).toBeInTheDocument();
+  });
+});
+
+describe('OAuthButtons — with an absolute VITE_API_URL (production shape)', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('points at the API origin instead of a relative path, so the link works cross-subdomain', async () => {
+    // API_ORIGIN is computed once at module load, from import.meta.env —
+    // stub before importing, and reset modules so it re-evaluates.
+    vi.stubEnv('VITE_API_URL', 'https://api.trakwyn.com/graphql');
+    vi.resetModules();
+    const { OAuthButtons: OAuthButtonsWithProdEnv } = await import('#/components/OAuthButtons');
+
+    render(<OAuthButtonsWithProdEnv label="Log in" />);
+
+    expect(screen.getByRole('link', { name: /log in with google/i })).toHaveAttribute(
+      'href',
+      'https://api.trakwyn.com/auth/oauth/google/start',
+    );
+    expect(screen.getByRole('link', { name: /log in with github/i })).toHaveAttribute(
+      'href',
+      'https://api.trakwyn.com/auth/oauth/github/start',
+    );
   });
 });
