@@ -2,15 +2,17 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const { mockNavigate, mockGqlRequest, mockPutBlob } = vi.hoisted(() => ({
+const { mockNavigate, mockGqlRequest, mockPutBlob, mockUseSearch } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockGqlRequest: vi.fn(),
   mockPutBlob: vi.fn(),
+  mockUseSearch: vi.fn().mockReturnValue({}),
 }));
 
 vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => (opts: object) => ({ ...opts, useSearch: () => ({}) }),
   useNavigate: () => mockNavigate,
+  useSearch: mockUseSearch,
   redirect: vi.fn(),
 }));
 
@@ -74,6 +76,7 @@ describe('SettingsSecurityPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGqlRequest.mockResolvedValue(defaultResponse);
+    mockUseSearch.mockReturnValue({});
   });
 
   afterEach(() => {
@@ -591,6 +594,28 @@ describe('SettingsSecurityPage', () => {
         expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('UnlinkOAuthAccount'), {
           provider: 'google',
         });
+      });
+    });
+
+    it('shows a success message when redirected back with ?oauthLinked=<provider>', async () => {
+      mockUseSearch.mockReturnValue({ oauthLinked: 'github' });
+      render(<SettingsSecurityPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('GitHub account linked successfully.')).toBeInTheDocument();
+      });
+    });
+
+    it('shows the raw error message when redirected back with ?oauthError=<message>', async () => {
+      mockUseSearch.mockReturnValue({
+        oauthError: 'This account is already linked to another user',
+      });
+      render(<SettingsSecurityPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('This account is already linked to another user'),
+        ).toBeInTheDocument();
       });
     });
   });
