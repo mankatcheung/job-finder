@@ -4,6 +4,7 @@ import {
 } from '#src/infrastructure/cache/CircuitBreaker.js';
 import type { IRedisClient } from '#src/infrastructure/cache/IRedisClient.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
+import { otelMetrics, type IMetrics } from '#src/infrastructure/observability/metrics.js';
 
 const KEY_PREFIX = 'ratelimit:';
 
@@ -12,6 +13,7 @@ interface Deps {
   maxAttempts: number;
   windowMs: number;
   breaker?: CircuitBreaker;
+  metrics?: IMetrics;
 }
 
 /**
@@ -40,19 +42,21 @@ export class RedisRateLimiter implements IRateLimiter {
   private readonly windowMs: number;
   private readonly breaker: CircuitBreaker;
 
-  constructor({
-    redis,
-    maxAttempts,
-    windowMs,
-    breaker = new CircuitBreaker({
-      onStateChange: (from, to) =>
-        console.warn(`[rate-limit] Redis circuit breaker ${from} -> ${to}`),
-    }),
-  }: Deps) {
+  private readonly metrics: IMetrics;
+
+  constructor({ redis, maxAttempts, windowMs, breaker, metrics = otelMetrics }: Deps) {
     this.redis = redis;
     this.maxAttempts = maxAttempts;
     this.windowMs = windowMs;
-    this.breaker = breaker;
+    this.metrics = metrics;
+    this.breaker =
+      breaker ??
+      new CircuitBreaker({
+        onStateChange: (from, to) => {
+          console.warn(`[rate-limit] Redis circuit breaker ${from} -> ${to}`);
+          metrics.recordCircuitTransition('rate_limit', from, to);
+        },
+      });
   }
 
   async consume(key: string): Promise<boolean> {
@@ -60,6 +64,10 @@ export class RedisRateLimiter implements IRateLimiter {
       const count = await this.breaker.execute(() => this.increment(key));
       return count <= this.maxAttempts;
     } catch (err) {
+      this.metrics.recordFailOpen(
+        'rate_limit',
+        err instanceof CircuitBreakerOpenError ? 'circuit_open' : 'error',
+      );
       if (!(err instanceof CircuitBreakerOpenError)) {
         console.error('[rate-limit] Redis error in consume — failing open (request allowed)', err);
       }

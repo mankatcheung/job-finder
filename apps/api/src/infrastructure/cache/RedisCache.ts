@@ -2,6 +2,7 @@ import { CACHE } from '#src/constants.js';
 import { CircuitBreaker, CircuitBreakerOpenError } from './CircuitBreaker.js';
 import type { ICache } from './ICache.js';
 import type { IRedisClient } from './IRedisClient.js';
+import { otelMetrics, type IMetrics } from '#src/infrastructure/observability/metrics.js';
 
 /**
  * Cached values are wrapped in `{ v }` rather than stored raw. Upstash's GET
@@ -20,6 +21,7 @@ interface Deps {
   pollIntervalMs?: number;
   maxPollAttempts?: number;
   breaker?: CircuitBreaker;
+  metrics?: IMetrics;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -87,21 +89,29 @@ export class RedisCache implements ICache {
   private readonly pollIntervalMs: number;
   private readonly maxPollAttempts: number;
   private readonly breaker: CircuitBreaker;
+  private readonly metrics: IMetrics;
 
   constructor({
     redis,
     lockTtlMs = CACHE.STAMPEDE_LOCK_TTL_MS,
     pollIntervalMs = CACHE.STAMPEDE_POLL_INTERVAL_MS,
     maxPollAttempts = CACHE.STAMPEDE_MAX_POLL_ATTEMPTS,
-    breaker = new CircuitBreaker({
-      onStateChange: (from, to) => console.warn(`[cache] Redis circuit breaker ${from} -> ${to}`),
-    }),
+    breaker,
+    metrics = otelMetrics,
   }: Deps) {
     this.redis = redis;
     this.lockTtlMs = lockTtlMs;
     this.pollIntervalMs = pollIntervalMs;
     this.maxPollAttempts = maxPollAttempts;
-    this.breaker = breaker;
+    this.metrics = metrics;
+    this.breaker =
+      breaker ??
+      new CircuitBreaker({
+        onStateChange: (from, to) => {
+          console.warn(`[cache] Redis circuit breaker ${from} -> ${to}`);
+          metrics.recordCircuitTransition('cache', from, to);
+        },
+      });
   }
 
   async getOrSet<T>(
@@ -112,6 +122,10 @@ export class RedisCache implements ICache {
     try {
       return await this.getOrSetViaRedis(key, fetch, ttlMs);
     } catch (err) {
+      this.metrics.recordFailOpen(
+        'cache',
+        err instanceof CircuitBreakerOpenError ? 'circuit_open' : 'error',
+      );
       if (!(err instanceof CircuitBreakerOpenError)) {
         console.error('[cache] Redis error in getOrSet — falling back to a direct fetch', err);
       }
@@ -170,6 +184,10 @@ export class RedisCache implements ICache {
     try {
       await this.breaker.execute(() => this.redis.del(key));
     } catch (err) {
+      this.metrics.recordFailOpen(
+        'cache',
+        err instanceof CircuitBreakerOpenError ? 'circuit_open' : 'error',
+      );
       if (!(err instanceof CircuitBreakerOpenError)) {
         console.error('[cache] Redis error while deleting a cache key — invalidation skipped', err);
       }
@@ -194,6 +212,10 @@ export class RedisCache implements ICache {
         cursor = next;
       } while (cursor !== '0');
     } catch (err) {
+      this.metrics.recordFailOpen(
+        'cache',
+        err instanceof CircuitBreakerOpenError ? 'circuit_open' : 'error',
+      );
       if (!(err instanceof CircuitBreakerOpenError)) {
         console.error(
           '[cache] Redis error while deleting cache keys by prefix — invalidation skipped',

@@ -6,6 +6,7 @@ import { db } from '#src/infrastructure/db/client.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
 import { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
 import { RedisCache } from '#src/infrastructure/cache/RedisCache.js';
+import { InstrumentedCache } from '#src/infrastructure/cache/InstrumentedCache.js';
 import { getRedisClient } from '#src/infrastructure/cache/redisClient.js';
 import type { ISessionBlocklist } from '#src/use-cases/ports/ISessionBlocklist.js';
 import { MemorySessionBlocklist } from '#src/infrastructure/sessionBlocklist/MemorySessionBlocklist.js';
@@ -40,7 +41,10 @@ const StorageProvider: StorageProviderConstructor =
 
 function buildCache(): ICache {
   const redis = getRedisClient();
-  return redis ? new RedisCache({ redis }) : new MemoryCache();
+  const inner = redis ? new RedisCache({ redis }) : new MemoryCache();
+  // Hit/miss counters are recorded at the port boundary so both
+  // implementations are measured identically (JEF-129).
+  return new InstrumentedCache({ inner });
 }
 
 /**

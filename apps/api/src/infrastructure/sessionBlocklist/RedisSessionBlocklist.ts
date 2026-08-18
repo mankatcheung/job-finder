@@ -4,12 +4,14 @@ import {
 } from '#src/infrastructure/cache/CircuitBreaker.js';
 import type { IRedisClient } from '#src/infrastructure/cache/IRedisClient.js';
 import { SESSION_BLOCKLIST } from '#src/constants.js';
+import { otelMetrics, type IMetrics } from '#src/infrastructure/observability/metrics.js';
 import type { ISessionBlocklist } from '#src/use-cases/ports/ISessionBlocklist.js';
 
 interface Deps {
   redis: IRedisClient;
   ttlMs?: number;
   breaker?: CircuitBreaker;
+  metrics?: IMetrics;
 }
 
 /**
@@ -38,17 +40,20 @@ export class RedisSessionBlocklist implements ISessionBlocklist {
   private readonly ttlMs: number;
   private readonly breaker: CircuitBreaker;
 
-  constructor({
-    redis,
-    ttlMs = SESSION_BLOCKLIST.TTL_MS,
-    breaker = new CircuitBreaker({
-      onStateChange: (from, to) =>
-        console.warn(`[session-blocklist] Redis circuit breaker ${from} -> ${to}`),
-    }),
-  }: Deps) {
+  private readonly metrics: IMetrics;
+
+  constructor({ redis, ttlMs = SESSION_BLOCKLIST.TTL_MS, breaker, metrics = otelMetrics }: Deps) {
     this.redis = redis;
     this.ttlMs = ttlMs;
-    this.breaker = breaker;
+    this.metrics = metrics;
+    this.breaker =
+      breaker ??
+      new CircuitBreaker({
+        onStateChange: (from, to) => {
+          console.warn(`[session-blocklist] Redis circuit breaker ${from} -> ${to}`);
+          metrics.recordCircuitTransition('session_blocklist', from, to);
+        },
+      });
   }
 
   private key(sessionId: string): string {
@@ -59,6 +64,10 @@ export class RedisSessionBlocklist implements ISessionBlocklist {
     try {
       await this.breaker.execute(() => this.redis.set(this.key(sessionId), 1, { px: this.ttlMs }));
     } catch (err) {
+      this.metrics.recordFailOpen(
+        'session_blocklist',
+        err instanceof CircuitBreakerOpenError ? 'circuit_open' : 'error',
+      );
       if (!(err instanceof CircuitBreakerOpenError)) {
         console.error(
           '[session-blocklist] Redis error while blocklisting a revoked session — its access tokens stay valid until they expire',
@@ -73,6 +82,10 @@ export class RedisSessionBlocklist implements ISessionBlocklist {
       const hit = await this.breaker.execute(() => this.redis.get<unknown>(this.key(sessionId)));
       return hit !== null;
     } catch (err) {
+      this.metrics.recordFailOpen(
+        'session_blocklist',
+        err instanceof CircuitBreakerOpenError ? 'circuit_open' : 'error',
+      );
       if (!(err instanceof CircuitBreakerOpenError)) {
         console.error(
           '[session-blocklist] Redis error in isRevoked — failing open (request allowed)',
