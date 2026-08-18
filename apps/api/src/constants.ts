@@ -92,6 +92,29 @@ export const JWT_EXPIRY = {
   REFRESH: '7d',
 } as const;
 
+/**
+ * Revoked-session blocklist (JEF-164). Access-token verification is
+ * otherwise fully stateless — signature and expiry only — so a revoked
+ * session's already-issued access tokens would keep working until their own
+ * natural expiry. Blocklisting the session id closes that window.
+ */
+export const SESSION_BLOCKLIST = {
+  /**
+   * How long a revoked session id stays blocklisted. Bounded to the access
+   * token's own lifetime: past that, every access token the session ever
+   * issued has expired on its own, so the entry has nothing left to block.
+   * Keyed by `sid` rather than per-token, so one entry covers all of them.
+   */
+  TTL_MS: COOKIE_MAX_AGE_S.ACCESS_TOKEN * 1000,
+  KEY_PREFIX: 'revoked-session:',
+  /**
+   * MemorySessionBlocklist (local dev/tests) hard cap on live entries —
+   * same unbounded-growth guard as MemoryCache's (JEF-130). Entries also
+   * self-expire after TTL_MS; this only bounds a pathological burst.
+   */
+  MEMORY_MAX_ENTRIES: 10_000,
+} as const;
+
 /** Session (device/refresh-token tracking) settings. */
 export const SESSION = {
   /** How long a session stays active without a refresh, in milliseconds — mirrors the refresh JWT's lifetime and slides forward on each refresh. */

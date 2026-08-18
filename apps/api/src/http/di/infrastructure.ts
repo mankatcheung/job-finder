@@ -7,6 +7,9 @@ import type { ICache } from '#src/infrastructure/cache/ICache.js';
 import { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
 import { RedisCache } from '#src/infrastructure/cache/RedisCache.js';
 import { getRedisClient } from '#src/infrastructure/cache/redisClient.js';
+import type { ISessionBlocklist } from '#src/use-cases/ports/ISessionBlocklist.js';
+import { MemorySessionBlocklist } from '#src/infrastructure/sessionBlocklist/MemorySessionBlocklist.js';
+import { RedisSessionBlocklist } from '#src/infrastructure/sessionBlocklist/RedisSessionBlocklist.js';
 import { LocalStorageProvider } from '#src/infrastructure/storage/LocalStorageProvider.js';
 import { VercelBlobStorageProvider } from '#src/infrastructure/storage/VercelBlobStorageProvider.js';
 import { JwtTokenService } from '#src/infrastructure/auth/JwtTokenService.js';
@@ -40,6 +43,18 @@ function buildCache(): ICache {
   return redis ? new RedisCache({ redis }) : new MemoryCache();
 }
 
+/**
+ * Selected by the same CACHE_PROVIDER toggle as the cache and rate limiter,
+ * reusing the one shared Redis client. In-memory is dev/test-only: a
+ * per-instance blocklist can't see a revocation that happened on another
+ * serverless instance, which is exactly the case this needs to cover in
+ * production (JEF-164).
+ */
+function buildSessionBlocklist(): ISessionBlocklist {
+  const redis = getRedisClient();
+  return redis ? new RedisSessionBlocklist({ redis }) : new MemorySessionBlocklist();
+}
+
 export const infrastructure = {
   db: asValue(db),
   storageProvider: asClass(StorageProvider, { lifetime: Lifetime.SINGLETON }),
@@ -49,6 +64,7 @@ export const infrastructure = {
   ),
   tokenService: asClass(JwtTokenService, { lifetime: Lifetime.SINGLETON }),
   cache: asValue(buildCache()),
+  sessionBlocklist: asValue(buildSessionBlocklist()),
   transactionManager: asClass(DrizzleTransactionManager, { lifetime: Lifetime.SINGLETON }),
   totpProvider: asClass(TotpProvider, { lifetime: Lifetime.SINGLETON }),
   googleOAuthProvider: asClass(GoogleOAuthProvider, { lifetime: Lifetime.SINGLETON }),
