@@ -385,6 +385,20 @@ export const AXIOM = {
   SERVICE_NAME: 'trakwyn-api',
 } as const;
 
+/**
+ * OpenTelemetry metric names (JEF-129). Dot-separated per OTel naming
+ * convention, and prefixed so they're distinguishable from the metrics the
+ * auto-instrumentations emit.
+ */
+export const METRICS = {
+  CACHE_HITS: 'trakwyn.cache.hits',
+  CACHE_MISSES: 'trakwyn.cache.misses',
+  /** Redis call degraded gracefully rather than failing the request — attributes: component, reason. */
+  REDIS_FAIL_OPEN: 'trakwyn.redis.fail_open',
+  /** Circuit breaker state change — attributes: component, from, to. */
+  CIRCUIT_TRANSITIONS: 'trakwyn.redis.circuit_transitions',
+} as const;
+
 /** Email provider (Brevo) defaults. */
 export const EMAIL = {
   BREVO_API_URL: 'https://api.brevo.com/v3/smtp/email',
