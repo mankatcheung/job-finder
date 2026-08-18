@@ -20,6 +20,16 @@ const fastify = Fastify({
   logger: {
     level: process.env[ENV.NODE_ENV] === NODE_ENV.PRODUCTION ? 'warn' : 'info',
   },
+  // Vercel's edge terminates TLS and forwards to this function over what
+  // Node sees as a plain connection, setting X-Forwarded-Proto/-Host to
+  // record the original request. Without trustProxy, Fastify's
+  // request.protocol ignores those and falls back to the raw socket's
+  // encryption state — always 'http' here — so oauth.routes.ts's
+  // callbackUrl() built redirect_uri as http://api.trakwyn.com/... instead
+  // of https://..., which GitHub/Google reject outright ("redirect_uri is
+  // not associated with this application") since it must match the
+  // registered callback URL exactly, scheme included.
+  trustProxy: true,
 });
 
 await buildApp(fastify);
