@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { LocaleProvider, useLocale } from '#/lib/i18n';
 
@@ -22,15 +22,58 @@ describe('i18n', () => {
     expect(screen.getByText(/\|Dashboard\|/)).toBeInTheDocument();
   });
 
-  it('uses a URL locale and updates document language', () => {
+  it('uses a URL locale and updates document language', async () => {
     window.history.replaceState({}, '', '/?locale=zh-CN');
     render(
       <LocaleProvider>
         <Probe />
       </LocaleProvider>,
     );
-    expect(screen.getByText(/zh-CN\|仪表盘\|/)).toBeInTheDocument();
+    // Non-English bundles load on demand (JEF-167), so the translated string
+    // appears a tick after mount rather than synchronously.
+    expect(await screen.findByText(/zh-CN\|仪表盘\|/)).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('zh-CN');
+  });
+
+  it('renders the English fallback before a lazily-loaded bundle arrives, then swaps', async () => {
+    window.history.replaceState({}, '', '/?locale=zh-TW');
+    render(
+      <LocaleProvider>
+        <Probe />
+      </LocaleProvider>,
+    );
+
+    // The locale itself is correct immediately — only the strings lag.
+    expect(screen.getByText(/^zh-TW\|/)).toBeInTheDocument();
+    expect(await screen.findByText(/zh-TW\|儀表板\|/)).toBeInTheDocument();
+  });
+
+  it('loads the target bundle before switching, so setLocale never flashes English', async () => {
+    window.history.replaceState({}, '', '/?locale=en');
+    function SwitchProbe() {
+      const { locale, setLocale, t } = useLocale();
+      return (
+        <>
+          <output>
+            {locale}|{t('nav.dashboard')}
+          </output>
+          {/* eslint-disable-next-line i18next/no-literal-string -- test fixture label, not user-facing copy */}
+          <button onClick={() => setLocale('zh-CN')}>switch</button>
+        </>
+      );
+    }
+    render(
+      <LocaleProvider>
+        <SwitchProbe />
+      </LocaleProvider>,
+    );
+    expect(screen.getByText(/^en\|Dashboard$/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'switch' }));
+
+    // Goes straight to the translated string — never an intermediate
+    // "zh-CN|Dashboard" state.
+    expect(await screen.findByText(/^zh-CN\|仪表盘$/)).toBeInTheDocument();
   });
 
   it('substitutes interpolation values and picks the plural form from count', () => {
