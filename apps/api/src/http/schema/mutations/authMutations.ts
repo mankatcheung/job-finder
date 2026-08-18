@@ -109,14 +109,32 @@ builder.mutationField('refreshToken', (t) =>
   t.string({
     resolve: async (_root, _args, ctx) => {
       const refreshTokenCookie = ctx.request.cookies[COOKIES.REFRESH_TOKEN];
-      if (!refreshTokenCookie)
+      if (!refreshTokenCookie) {
+        // No cookie to act on, but trakwyn_logged_in may still be lingering
+        // (e.g. cleared manually, or a pre-existing inconsistent state) —
+        // clear it too so the client's session check converges to "logged
+        // out" instead of endlessly believing a session that isn't there.
+        clearAuthCookies(ctx.reply);
         throw new GraphQLError('No refresh token', {
           extensions: { code: ERROR_CODES.UNAUTHORIZED },
         });
+      }
       const { authResolver } = ctx.diScope.cradle;
-      const tokens = await authResolver.refreshToken(refreshTokenCookie);
-      setAuthCookies(ctx.reply, tokens.accessToken, tokens.refreshToken);
-      return tokens.accessToken;
+      try {
+        const tokens = await authResolver.refreshToken(refreshTokenCookie);
+        setAuthCookies(ctx.reply, tokens.accessToken, tokens.refreshToken);
+        return tokens.accessToken;
+      } catch (err) {
+        // A dead session (expired, revoked, or reuse-detected) must not
+        // leave the non-HttpOnly trakwyn_logged_in hint cookie behind —
+        // otherwise the web app's client-side session check keeps
+        // believing it's authenticated, redirects away from /login back
+        // to a protected route, that route's data fetch fails the same
+        // way, and it bounces between the two indefinitely until the
+        // cookie's own 7-day lifetime runs out.
+        clearAuthCookies(ctx.reply);
+        throw fromCodedError(err);
+      }
     },
   }),
 );
