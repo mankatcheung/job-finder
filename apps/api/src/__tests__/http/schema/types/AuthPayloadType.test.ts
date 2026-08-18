@@ -5,10 +5,10 @@ import { ENV, NODE_ENV } from '#src/constants.js';
 function fakeReply(): {
   reply: IHttpResponse;
   cookies: Map<string, CookieOptions>;
-  cleared: Map<string, Pick<CookieOptions, 'path' | 'domain'>>;
+  cleared: Map<string, Array<Pick<CookieOptions, 'path' | 'domain'>>>;
 } {
   const cookies = new Map<string, CookieOptions>();
-  const cleared = new Map<string, Pick<CookieOptions, 'path' | 'domain'>>();
+  const cleared = new Map<string, Array<Pick<CookieOptions, 'path' | 'domain'>>>();
   const reply: IHttpResponse = {
     status: () => reply,
     send: () => {},
@@ -17,7 +17,7 @@ function fakeReply(): {
       cookies.set(name, options ?? {});
     },
     clearCookie: (name, options) => {
-      cleared.set(name, options ?? {});
+      cleared.set(name, [...(cleared.get(name) ?? []), options ?? {}]);
     },
   };
   return { reply, cookies, cleared };
@@ -76,7 +76,7 @@ describe('setAuthCookies / clearAuthCookies domain policy', () => {
     clearAuthCookies(reply);
 
     expect(cookies.get('trakwyn_logged_in')?.domain).toBeUndefined();
-    expect(cleared.get('trakwyn_logged_in')?.domain).toBeUndefined();
+    expect(cleared.get('trakwyn_logged_in')).toEqual([{ path: '/' }]);
   });
 
   it('shares cookies across subdomains via COOKIE_DOMAIN, using the same value to clear them', async () => {
@@ -92,8 +92,35 @@ describe('setAuthCookies / clearAuthCookies domain policy', () => {
     expect(cookies.get('trakwyn_access_token')).toMatchObject({ domain: '.trakwyn.com' });
     expect(cookies.get('trakwyn_refresh_token')).toMatchObject({ domain: '.trakwyn.com' });
     expect(cookies.get('trakwyn_logged_in')).toMatchObject({ domain: '.trakwyn.com' });
-    expect(cleared.get('trakwyn_access_token')).toMatchObject({ domain: '.trakwyn.com' });
-    expect(cleared.get('trakwyn_refresh_token')).toMatchObject({ domain: '.trakwyn.com' });
-    expect(cleared.get('trakwyn_logged_in')).toMatchObject({ domain: '.trakwyn.com' });
+    // Domain-scoped clear from clearAuthCookies() itself, plus the
+    // host-only legacy-cookie cleanup below — both, not either/or.
+    for (const name of ['trakwyn_access_token', 'trakwyn_refresh_token', 'trakwyn_logged_in']) {
+      expect(cleared.get(name)).toContainEqual({ path: '/', domain: '.trakwyn.com' });
+      expect(cleared.get(name)).toContainEqual({ path: '/' });
+    }
+  });
+
+  it('setAuthCookies also clears legacy host-only cookies when COOKIE_DOMAIN is set, so a pre-migration session self-heals on its next refresh', async () => {
+    process.env[ENV.COOKIE_DOMAIN] = '.trakwyn.com';
+    vi.resetModules();
+    const { setAuthCookies } = await import('#src/http/schema/types/AuthPayloadType.js');
+    const { reply, cleared } = fakeReply();
+
+    setAuthCookies(reply, 'access', 'refresh');
+
+    for (const name of ['trakwyn_access_token', 'trakwyn_refresh_token', 'trakwyn_logged_in']) {
+      expect(cleared.get(name)).toEqual([{ path: '/' }]);
+    }
+  });
+
+  it('setAuthCookies does not attempt a host-only clear when COOKIE_DOMAIN is unset (nothing legacy to clean up)', async () => {
+    delete process.env[ENV.COOKIE_DOMAIN];
+    vi.resetModules();
+    const { setAuthCookies } = await import('#src/http/schema/types/AuthPayloadType.js');
+    const { reply, cleared } = fakeReply();
+
+    setAuthCookies(reply, 'access', 'refresh');
+
+    expect(cleared.size).toBe(0);
   });
 });

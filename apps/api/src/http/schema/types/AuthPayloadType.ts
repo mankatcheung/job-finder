@@ -43,6 +43,22 @@ const COOKIE_BASE = {
   ...(cookieDomain ? { domain: cookieDomain } : {}),
 } as const;
 
+const COOKIE_NAMES = [COOKIES.ACCESS_TOKEN, COOKIES.REFRESH_TOKEN, COOKIES.LOGGED_IN];
+
+// A browser that authenticated before COOKIE_DOMAIN was set (or before it
+// existed at all) may still be holding host-only cookies from that time —
+// a later Domain-scoped Set-Cookie does NOT overwrite those, since
+// (name, domain, path) is the cookie's identity to the browser, not just
+// name. Left alone, both coexist indefinitely and get sent together on
+// every request to the API, and the server has no reliable way to tell
+// which one it received. Issue a clearing Set-Cookie for the host-only
+// variant alongside every domain-scoped set/clear so any pre-migration
+// leftover self-heals on the next auth operation instead of requiring a
+// manual browser cookie clear.
+function clearLegacyHostOnlyCookies(reply: IHttpResponse): void {
+  for (const name of COOKIE_NAMES) reply.clearCookie(name, { path: COOKIE_PATH });
+}
+
 export function setAuthCookies(
   reply: IHttpResponse,
   accessToken: string,
@@ -63,6 +79,7 @@ export function setAuthCookies(
     httpOnly: false,
     maxAge: COOKIE_MAX_AGE_S.REFRESH_TOKEN,
   });
+  if (cookieDomain) clearLegacyHostOnlyCookies(reply);
 }
 
 export function clearAuthCookies(reply: IHttpResponse): void {
@@ -73,4 +90,5 @@ export function clearAuthCookies(reply: IHttpResponse): void {
   reply.clearCookie(COOKIES.ACCESS_TOKEN, clearOptions);
   reply.clearCookie(COOKIES.REFRESH_TOKEN, clearOptions);
   reply.clearCookie(COOKIES.LOGGED_IN, clearOptions);
+  if (cookieDomain) clearLegacyHostOnlyCookies(reply);
 }
