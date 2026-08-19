@@ -4,6 +4,14 @@ import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplication
 import type { IGetNotesUseCase } from '#src/use-cases/notes/IGetNotesUseCase.js';
 import type { IGetContactsUseCase } from '#src/use-cases/contacts/IGetContactsUseCase.js';
 import type { IGetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
+import type { IGetDocumentsUseCase } from '#src/use-cases/documents/IGetDocumentsUseCase.js';
+import type { IGetOffersUseCase } from '#src/use-cases/offers/IGetOffersUseCase.js';
+import type { IGetActivityLogsUseCase } from '#src/use-cases/activityLogs/IGetActivityLogsUseCase.js';
+import type { GetCalendarEventsUseCase } from '#src/use-cases/calendar/GetCalendarEventsUseCase.js';
+import type { GetResponseTimeAnalyticsUseCase } from '#src/use-cases/activityLogs/GetResponseTimeAnalyticsUseCase.js';
+import type { GetApplicationChannelAnalyticsUseCase } from '#src/use-cases/application/GetApplicationChannelAnalyticsUseCase.js';
+import type { GetInterviewRoundAnalyticsUseCase } from '#src/use-cases/interviewRounds/GetInterviewRoundAnalyticsUseCase.js';
+import type { GetOfferAnalyticsUseCase } from '#src/use-cases/offers/GetOfferAnalyticsUseCase.js';
 import type { IWorkExperienceRepository } from '#src/use-cases/ports/IWorkExperienceRepository.js';
 import type { IEducationRepository } from '#src/use-cases/ports/IEducationRepository.js';
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
@@ -54,6 +62,14 @@ interface Deps {
   getNotesUseCase: IGetNotesUseCase;
   getContactsUseCase: IGetContactsUseCase;
   getInterviewRoundsUseCase: IGetInterviewRoundsUseCase;
+  getDocumentsUseCase: IGetDocumentsUseCase;
+  getOffersUseCase: IGetOffersUseCase;
+  getActivityLogsUseCase: IGetActivityLogsUseCase;
+  getCalendarEventsUseCase: GetCalendarEventsUseCase;
+  getResponseTimeAnalyticsUseCase: GetResponseTimeAnalyticsUseCase;
+  getApplicationChannelAnalyticsUseCase: GetApplicationChannelAnalyticsUseCase;
+  getInterviewRoundAnalyticsUseCase: GetInterviewRoundAnalyticsUseCase;
+  getOfferAnalyticsUseCase: GetOfferAnalyticsUseCase;
   workExperienceRepository: IWorkExperienceRepository;
   educationRepository: IEducationRepository;
   skillRepository: ISkillRepository;
@@ -146,6 +162,59 @@ export const MCP_TOOLS = [
   {
     name: 'list_skills',
     description: 'List all skills for the authenticated user',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
+  {
+    name: 'list_documents',
+    description:
+      'List documents (resumes, cover letters, offer letters) attached to a job application',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        applicationId: { type: 'string', description: 'The application ID' },
+      },
+      required: ['applicationId'],
+    },
+  },
+  {
+    name: 'list_offers',
+    description: 'List offers received for a job application, including compensation details',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        applicationId: { type: 'string', description: 'The application ID' },
+      },
+      required: ['applicationId'],
+    },
+  },
+  {
+    name: 'list_activity',
+    description:
+      'List the activity/audit log for a job application — status changes and other events over time',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        applicationId: { type: 'string', description: 'The application ID' },
+      },
+      required: ['applicationId'],
+    },
+  },
+  {
+    name: 'list_calendar_events',
+    description:
+      'List upcoming and past calendar events for the authenticated user — scheduled interviews and application follow-up dates',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
+  {
+    name: 'get_analytics',
+    description:
+      'Aggregate job-search statistics for the authenticated user: response times, which application channels perform best, interview-round progression, and offer figures. Use this for questions like "how is my search going?" — it returns compact summaries rather than raw records.',
     inputSchema: {
       type: 'object',
       properties: {},
@@ -265,6 +334,49 @@ export class McpController {
         case 'list_skills':
           result = await this.deps.skillRepository.findAllByUserId(userId);
           break;
+        case 'list_documents':
+          if (!toStr(args.applicationId)) {
+            return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'applicationId is required');
+          }
+          result = await this.deps.getDocumentsUseCase.execute({
+            applicationId: toStr(args.applicationId)!,
+            userId,
+          });
+          break;
+        case 'list_offers':
+          if (!toStr(args.applicationId)) {
+            return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'applicationId is required');
+          }
+          result = await this.deps.getOffersUseCase.execute({
+            applicationId: toStr(args.applicationId)!,
+            userId,
+          });
+          break;
+        case 'list_activity':
+          if (!toStr(args.applicationId)) {
+            return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'applicationId is required');
+          }
+          result = await this.deps.getActivityLogsUseCase.execute({
+            applicationId: toStr(args.applicationId)!,
+            userId,
+          });
+          break;
+        case 'list_calendar_events':
+          result = await this.deps.getCalendarEventsUseCase.execute({ userId });
+          break;
+        case 'get_analytics': {
+          // Fetched together: each is a compact aggregate, and "how is my
+          // search going?" wants all four. Splitting into four tools would
+          // cost more in advertised schema than it saves in payload.
+          const [responseTime, channels, interviewRounds, offers] = await Promise.all([
+            this.deps.getResponseTimeAnalyticsUseCase.execute({ userId }),
+            this.deps.getApplicationChannelAnalyticsUseCase.execute({ userId }),
+            this.deps.getInterviewRoundAnalyticsUseCase.execute({ userId }),
+            this.deps.getOfferAnalyticsUseCase.execute({ userId }),
+          ]);
+          result = { responseTime, channels, interviewRounds, offers };
+          break;
+        }
         default:
           return this.error(id, JSON_RPC_ERROR.METHOD_NOT_FOUND, `Unknown tool: ${toolName}`);
       }
