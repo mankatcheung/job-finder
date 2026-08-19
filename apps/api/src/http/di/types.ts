@@ -316,6 +316,10 @@ export interface Cradle {
   requestAddBackupEmailRateLimiter: IRateLimiter;
   removeBackupEmailRateLimiter: IRateLimiter;
   backupEmailRecoveryRateLimiter: IRateLimiter;
+  mcpOAuthRegistrationRateLimiter: IRateLimiter;
+  mcpOAuthAuthorizationRateLimiter: IRateLimiter;
+  mcpOAuthTokenRateLimiter: IRateLimiter;
+  mcpOAuthRevocationRateLimiter: IRateLimiter;
   totpProvider: ITotpProvider;
   oauthAccountRepository: DrizzleOAuthAccountRepository;
   googleOAuthProvider: IOAuthProvider;

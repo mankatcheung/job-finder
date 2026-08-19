@@ -217,6 +217,22 @@ export const RATE_LIMIT = {
     MAX_ATTEMPTS: 5,
     WINDOW_MS: 15 * 60 * 1000, // 15 minutes
   },
+  MCP_OAUTH_REGISTRATION: {
+    MAX_ATTEMPTS: 10,
+    WINDOW_MS: 15 * 60 * 1000,
+  },
+  MCP_OAUTH_AUTHORIZATION: {
+    MAX_ATTEMPTS: 20,
+    WINDOW_MS: 5 * 60 * 1000,
+  },
+  MCP_OAUTH_TOKEN: {
+    MAX_ATTEMPTS: 20,
+    WINDOW_MS: 5 * 60 * 1000,
+  },
+  MCP_OAUTH_REVOCATION: {
+    MAX_ATTEMPTS: 20,
+    WINDOW_MS: 5 * 60 * 1000,
+  },
   // Single-shot AI mutations (cover letter / JD parsing / resume match) — more
   // generous than CHAT_MESSAGE since each is a discrete action rather than a
   // back-and-forth conversation, but previously had zero protection against a

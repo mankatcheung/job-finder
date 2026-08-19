@@ -9,11 +9,13 @@ interface Deps {
 export class RevokeMcpOAuthAccessTokenUseCase {
   constructor(private readonly deps: Deps) {}
 
-  async execute(rawToken: string): Promise<void> {
-    if (!rawToken.startsWith(MCP_OAUTH.ACCESS_TOKEN_PREFIX)) return;
+  async execute(rawToken: string): Promise<string | null> {
+    if (!rawToken.startsWith(MCP_OAUTH.ACCESS_TOKEN_PREFIX)) return null;
     const token = await this.deps.mcpOAuthTokenRepository.findByTokenHash(
       createHash('sha256').update(rawToken).digest('hex'),
     );
-    if (token) await this.deps.mcpOAuthTokenRepository.revoke(token.id);
+    if (!token) return null;
+    await this.deps.mcpOAuthTokenRepository.revoke(token.id);
+    return token.userId;
   }
 }

@@ -1,6 +1,8 @@
 import type { IHttpRequest } from '#src/http/ports/IHttpRequest.js';
 import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
 import type { Cradle } from '#src/http/container.js';
+import type { IHttpResponse } from '#src/http/ports/IHttpResponse.js';
+import type { SecurityEventType } from '#src/domain/securityEvent/SecurityEvent.js';
 import { COOKIES, MCP, MCP_OAUTH } from '#src/constants.js';
 
 function requestOrigin(request: IHttpRequest): string {
@@ -46,6 +48,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
       method: 'POST',
       path: MCP_OAUTH.REGISTER,
       handler: async (req, res) => {
+        if (!(await allowRequest(_getCradle().mcpOAuthRegistrationRateLimiter, req, res))) return;
         const body = asRecord(req.body);
         const name = typeof body.client_name === 'string' ? body.client_name : '';
         const redirectUris = Array.isArray(body.redirect_uris)
@@ -74,6 +77,15 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
       path: MCP_OAUTH.AUTHORIZE,
       handler: async (req, res) => {
         const request = authorizationRequest(req);
+        if (
+          !(await allowRequest(
+            _getCradle().mcpOAuthAuthorizationRateLimiter,
+            req,
+            res,
+            request.clientId,
+          ))
+        )
+          return;
         const validation = await validateAuthorizationRequest(_getCradle(), request);
         if (validation.error) {
           res.status(400).send({ error: validation.error });
@@ -96,6 +108,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
       method: 'GET',
       path: MCP_OAUTH.AUTHORIZE_APPROVE,
       handler: async (req, res) => {
+        if (!(await allowRequest(_getCradle().mcpOAuthAuthorizationRateLimiter, req, res))) return;
         const userId = authenticatedUserId(_getCradle(), req);
         if (!userId) {
           res.status(401).send({ error: 'login_required' });
@@ -116,6 +129,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
       method: 'POST',
       path: MCP_OAUTH.AUTHORIZE_APPROVE,
       handler: async (req, res) => {
+        if (!(await allowRequest(_getCradle().mcpOAuthAuthorizationRateLimiter, req, res))) return;
         const userId = authenticatedUserId(_getCradle(), req);
         if (!userId) {
           res.status(401).send({ error: 'login_required' });
@@ -143,6 +157,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
             scope: request.scope,
             codeChallenge: request.codeChallenge,
           });
+          await recordSecurityEvent(_getCradle(), userId, 'mcp_oauth_authorized', req);
           res.send({ redirect_to: buildCodeRedirect(request, result.rawCode) });
         } catch {
           res.status(500).send({ error: 'server_error' });
@@ -153,6 +168,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
       method: 'POST',
       path: MCP_OAUTH.TOKEN,
       handler: async (req, res) => {
+        if (!(await allowRequest(_getCradle().mcpOAuthTokenRateLimiter, req, res))) return;
         const body = asRecord(req.body);
         if (body.grant_type === 'refresh_token') {
           const result = await _getCradle().rotateMcpOAuthRefreshTokenUseCase.execute({
@@ -163,6 +179,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
             res.status(400).send({ error: 'invalid_grant' });
             return;
           }
+          await recordSecurityEvent(_getCradle(), result.userId, 'mcp_oauth_token_issued', req);
           res.send({
             access_token: result.accessToken,
             refresh_token: result.refreshToken,
@@ -188,6 +205,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
           return;
         }
 
+        await recordSecurityEvent(_getCradle(), result.token.userId, 'mcp_oauth_token_issued', req);
         res.send({
           access_token: result.accessToken,
           refresh_token: result.refreshToken,
@@ -201,8 +219,14 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
       method: 'POST',
       path: MCP_OAUTH.REVOKE,
       handler: async (req, res) => {
+        if (!(await allowRequest(_getCradle().mcpOAuthRevocationRateLimiter, req, res))) return;
         const body = asRecord(req.body);
-        await _getCradle().revokeMcpOAuthAccessTokenUseCase.execute(stringValue(body.token));
+        const userId = await _getCradle().revokeMcpOAuthAccessTokenUseCase.execute(
+          stringValue(body.token),
+        );
+        if (userId) {
+          await recordSecurityEvent(_getCradle(), userId, 'mcp_oauth_token_revoked', req);
+        }
         res.status(200).send({});
       },
     },
@@ -298,4 +322,32 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 function stringValue(value: unknown): string {
   return typeof value === 'string' ? value : '';
+}
+
+async function allowRequest(
+  limiter: Cradle['mcpOAuthTokenRateLimiter'],
+  request: IHttpRequest,
+  response: IHttpResponse,
+  suffix = '',
+): Promise<boolean> {
+  const key = `mcp-oauth:${request.ip ?? request.headers['user-agent'] ?? 'unknown'}:${suffix}`;
+  if (await limiter.consume(key)) return true;
+  response.status(429).send({ error: 'rate_limited' });
+  return false;
+}
+
+async function recordSecurityEvent(
+  cradle: Cradle,
+  userId: string | undefined,
+  eventType: SecurityEventType,
+  request: IHttpRequest,
+): Promise<void> {
+  if (!userId) return;
+  await cradle.securityEventRepository.create({
+    id: cradle.generateId(),
+    userId,
+    eventType,
+    ipAddress: request.ip,
+    userAgent: stringValue(request.headers['user-agent']) || null,
+  });
 }

@@ -4,14 +4,14 @@ import { RevokeMcpOAuthAccessTokenUseCase } from '#src/use-cases/mcpOAuth/Revoke
 describe('RevokeMcpOAuthAccessTokenUseCase', () => {
   it('revokes a known MCP OAuth access token without exposing whether it exists', async () => {
     const repository = {
-      findByTokenHash: vi.fn().mockResolvedValue({ id: 'token-1' }),
+      findByTokenHash: vi.fn().mockResolvedValue({ id: 'token-1', userId: 'user-1' }),
       revoke: vi.fn().mockResolvedValue(undefined),
     };
     const useCase = new RevokeMcpOAuthAccessTokenUseCase({
       mcpOAuthTokenRepository: repository as never,
     });
 
-    await expect(useCase.execute('trakwyn_mcp_token')).resolves.toBeUndefined();
+    await expect(useCase.execute('trakwyn_mcp_token')).resolves.toBe('user-1');
     expect(repository.revoke).toHaveBeenCalledWith('token-1');
   });
 
