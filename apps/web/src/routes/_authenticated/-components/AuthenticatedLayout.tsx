@@ -197,9 +197,10 @@ export function AuthenticatedLayout() {
               </div>
             </nav>
 
-            <div className="px-3 py-4 border-t border-gray-200 dark:border-gray-700 space-y-1 bg-white dark:bg-gray-800">
+            <div className="mt-auto px-3 py-4 border-t border-gray-200 dark:border-gray-700 space-y-1 bg-white dark:bg-gray-800">
               <button
                 onClick={handleLogout}
+                data-testid="mobile-sidebar-logout"
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 <LogOutIcon size={18} />
@@ -224,17 +225,7 @@ export function AuthenticatedLayout() {
               Trakwyn
             </span>
           </div>
-          <div className="flex items-center gap-1">
-            <NotificationInboxButton />
-            <button
-              onClick={handleLogout}
-              aria-label={t('nav.signOut')}
-              data-testid="mobile-header-logout"
-              className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 rounded-lg transition-colors"
-            >
-              <LogOutIcon size={18} />
-            </button>
-          </div>
+          <NotificationInboxButton />
         </header>
 
         {/* Desktop sidebar */}
@@ -275,7 +266,7 @@ export function AuthenticatedLayout() {
             </div>
           </div>
 
-          <div className="shrink-0 px-3 py-4 border-t border-gray-200 dark:border-gray-700 space-y-1">
+          <div className="mt-auto shrink-0 px-3 py-4 border-t border-gray-200 dark:border-gray-700 space-y-1">
             <button
               onClick={() => setShortcutsOpen(true)}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors sidebar-entrance-item"
