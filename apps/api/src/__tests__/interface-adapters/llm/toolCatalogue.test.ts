@@ -49,6 +49,18 @@ describe('tool catalogue (JEF-177)', () => {
     expect(defs[defs.length - 1].cacheBreakpoint).toBe(true);
   });
 
+  it('does not restate the scope requirement in write-tool descriptions (JEF-178)', () => {
+    // Neither audience can act on it: a read-only token never sees write
+    // tools (tools/list filters them out) and a full-access token can call
+    // them anyway. Ten repetitions cost 330 bytes of the model's context to
+    // inform nobody.
+    const offenders = TOOL_CATALOGUE.filter((t) => /full[- ]access token/i.test(t.description)).map(
+      (t) => t.name,
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
   it('has a unique name per tool', () => {
     const names = TOOL_CATALOGUE.map((t) => t.name);
     expect(new Set(names).size).toBe(names.length);
