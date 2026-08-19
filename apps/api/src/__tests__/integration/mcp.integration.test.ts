@@ -268,6 +268,90 @@ describe('mcp integration', () => {
     };
   }
 
+  it('accepts the space-delimited scope list a real client sends', async () => {
+    const clientId = await registerClient();
+    const params = await authorizationParams(clientId);
+
+    // `scope` is a list (RFC 6749 s3.3), and a client that reads our
+    // advertised `scopes_supported` asks for everything in it. mcp-remote and
+    // Claude's connector both send exactly this.
+    const res = await testApp.app.inject({
+      remoteAddress: clientIp,
+      method: 'GET',
+      url: `/oauth/authorize?${new URLSearchParams({ ...params, scope: 'read full' }).toString()}`,
+    });
+
+    expect(res.statusCode).toBe(302);
+    const location = new URL(res.headers.location as string);
+    expect(location.searchParams.get('error')).toBeNull();
+    // Both requested, so the higher one is granted — and the consent screen is
+    // told the resolved scope, not the raw list, so the user sees what they
+    // would actually be approving.
+    expect(location.searchParams.get('scope')).toBe('full');
+  });
+
+  it.each([
+    ['read full', 'full'],
+    ['full read', 'full'],
+    ['read', 'read'],
+    ['full', 'full'],
+    ['  read   full  ', 'full'],
+  ])('resolves scope %j to %j', async (requested, granted) => {
+    const clientId = await registerClient();
+    const params = await authorizationParams(clientId);
+
+    const res = await testApp.app.inject({
+      remoteAddress: clientIp,
+      method: 'GET',
+      url: `/oauth/authorize?${new URLSearchParams({ ...params, scope: requested }).toString()}`,
+    });
+
+    expect(res.statusCode).toBe(302);
+    expect(new URL(res.headers.location as string).searchParams.get('scope')).toBe(granted);
+  });
+
+  it.each(['', 'write', 'read write', 'READ'])(
+    'refuses the unsupported scope %j back to the client',
+    async (scope) => {
+      const clientId = await registerClient();
+      const params = await authorizationParams(clientId);
+
+      const res = await testApp.app.inject({
+        remoteAddress: clientIp,
+        method: 'GET',
+        url: `/oauth/authorize?${new URLSearchParams({ ...params, scope }).toString()}`,
+      });
+
+      expect(res.statusCode).toBe(302);
+      const location = new URL(res.headers.location as string);
+      // Reported to the client's registered redirect_uri, which is validated
+      // by this point, rather than rendered at the user.
+      expect(location.origin + location.pathname).toBe(REDIRECT_URI);
+      expect(location.searchParams.get('error')).toBe('invalid_scope');
+    },
+  );
+
+  it('issues a full-scope grant end to end when both scopes are requested', async () => {
+    const clientId = await registerClient();
+    const cookie = await registerAndGetCookie();
+    const params = { ...(await authorizationParams(clientId)), scope: 'full' };
+
+    const res = await exchange(clientId, await approve(cookie, params));
+
+    expect(res.statusCode).toBe(200);
+    const token = res.json() as { access_token: string; scope: string };
+    // Echoed back so the client learns what it got (RFC 6749 s5.1).
+    expect(token.scope).toBe('full');
+
+    const called = await mcpInject(token.access_token, {
+      jsonrpc: '2.0',
+      id: 108,
+      method: 'tools/call',
+      params: { name: 'create_application', arguments: { company: 'Acme', role: 'Dev' } },
+    });
+    expect((called.json() as JsonRpcResponse).error).toBeUndefined();
+  });
+
   it('registers an MCP client and exchanges a PKCE authorization code', async () => {
     const grant = await grantOAuthToken('read');
 

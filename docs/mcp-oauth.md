@@ -99,7 +99,7 @@ GET /oauth/authorize
       ?client_id=…
       &redirect_uri=…
       &response_type=code
-      &scope=read|full
+      &scope=read full
       &code_challenge=…
       &code_challenge_method=S256
       &state=…
@@ -108,6 +108,26 @@ GET /oauth/authorize
 The API validates this and **renders nothing**. It redirects to the web app's
 own `/oauth/authorize` carrying the same parameters. The consent UI lives with
 the rest of the product's UI; the authorization server stays an API.
+
+### Scope is a list, not a value
+
+`scope` is space-delimited (RFC 6749 §3.3), and a client that reads the
+advertised `scopes_supported` is entitled to ask for everything in it —
+`mcp-remote` and Claude's connector both send `scope=read full`.
+
+Ours are privilege _levels_ rather than independent capabilities, so a request
+naming both resolves to the higher one:
+
+| Requested                  | Granted         |
+| -------------------------- | --------------- |
+| `read`                     | `read`          |
+| `full`                     | `full`          |
+| `read full` (either order) | `full`          |
+| anything else, or empty    | `invalid_scope` |
+
+The **resolved** scope is what travels on to the consent screen, so the user
+reads what would actually be granted rather than the raw request, and it is
+what the token response echoes back so the client learns what it got.
 
 Error reporting here is deliberately two-tiered:
 
