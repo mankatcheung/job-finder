@@ -6,6 +6,11 @@ export const SECURITY_EVENT_TYPES = [
   'totp_backup_codes_regenerated',
   'session_revoked',
   'other_sessions_revoked',
+  'mcp_oauth_authorized',
+  'mcp_oauth_token_issued',
+  'mcp_oauth_refresh_reuse_detected',
+  'mcp_oauth_code_reuse_detected',
+  'mcp_oauth_token_revoked',
 ] as const;
 
 export type SecurityEventType = (typeof SECURITY_EVENT_TYPES)[number];

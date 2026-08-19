@@ -33,6 +33,8 @@ export const ENV = {
   NODE_ENV: 'NODE_ENV',
   PORT: 'PORT',
   CORS_ORIGIN: 'CORS_ORIGIN',
+  /** This API's own public origin, used as the OAuth issuer. */
+  API_ORIGIN: 'API_ORIGIN',
   COOKIE_DOMAIN: 'COOKIE_DOMAIN',
   JWT_SECRET: 'JWT_SECRET',
   JWT_REFRESH_SECRET: 'JWT_REFRESH_SECRET',
@@ -217,6 +219,22 @@ export const RATE_LIMIT = {
     MAX_ATTEMPTS: 5,
     WINDOW_MS: 15 * 60 * 1000, // 15 minutes
   },
+  MCP_OAUTH_REGISTRATION: {
+    MAX_ATTEMPTS: 10,
+    WINDOW_MS: 15 * 60 * 1000,
+  },
+  MCP_OAUTH_AUTHORIZATION: {
+    MAX_ATTEMPTS: 20,
+    WINDOW_MS: 5 * 60 * 1000,
+  },
+  MCP_OAUTH_TOKEN: {
+    MAX_ATTEMPTS: 20,
+    WINDOW_MS: 5 * 60 * 1000,
+  },
+  MCP_OAUTH_REVOCATION: {
+    MAX_ATTEMPTS: 20,
+    WINDOW_MS: 5 * 60 * 1000,
+  },
   // Single-shot AI mutations (cover letter / JD parsing / resume match) — more
   // generous than CHAT_MESSAGE since each is a discrete action rather than a
   // back-and-forth conversation, but previously had zero protection against a
@@ -268,6 +286,32 @@ export const MCP = {
   PROTOCOL_VERSION: '2024-11-05',
   SERVER_NAME: 'trakwyn-mcp',
   SERVER_VERSION: '1.0.0',
+  SCOPES: ['read', 'full'] as const,
+} as const;
+
+/** OAuth endpoints used by MCP clients and protected-resource discovery. */
+export const MCP_OAUTH = {
+  PROTECTED_RESOURCE_METADATA: '/.well-known/oauth-protected-resource',
+  AUTHORIZATION_SERVER_METADATA: '/.well-known/oauth-authorization-server',
+  AUTHORIZE: '/oauth/authorize',
+  AUTHORIZE_APPROVE: '/oauth/authorize/approve',
+  REGISTER: '/oauth/register',
+  TOKEN: '/oauth/token',
+  REVOKE: '/oauth/revoke',
+  RESOURCE: '/mcp',
+  CLIENT_ID_PREFIX: 'trakwyn_mcp_client_',
+  CLIENT_ID_RANDOM_BYTES: 16,
+  AUTHORIZATION_CODE_PREFIX: 'trakwyn_mcp_code_',
+  AUTHORIZATION_CODE_RANDOM_BYTES: 32,
+  AUTHORIZATION_CODE_TTL_MS: 5 * 60 * 1000,
+  REFRESH_TOKEN_PREFIX: 'trakwyn_mcp_refresh_',
+  REFRESH_TOKEN_RANDOM_BYTES: 32,
+  REFRESH_TOKEN_TTL_MS: 30 * 24 * 60 * 60 * 1000,
+  ACCESS_TOKEN_PREFIX: 'trakwyn_mcp_',
+  ACCESS_TOKEN_RANDOM_BYTES: 32,
+  ACCESS_TOKEN_TTL_MS: 60 * 60 * 1000,
+  /** How long a rendered consent screen stays submittable. */
+  CONSENT_TOKEN_TTL_MS: 10 * 60 * 1000,
 } as const;
 
 /**

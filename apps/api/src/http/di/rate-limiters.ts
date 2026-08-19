@@ -94,4 +94,25 @@ export const rateLimiters = {
       RATE_LIMIT.BACKUP_EMAIL_RECOVERY.WINDOW_MS,
     ),
   ),
+  mcpOAuthRegistrationRateLimiter: asValue(
+    buildRateLimiter(
+      RATE_LIMIT.MCP_OAUTH_REGISTRATION.MAX_ATTEMPTS,
+      RATE_LIMIT.MCP_OAUTH_REGISTRATION.WINDOW_MS,
+    ),
+  ),
+  mcpOAuthAuthorizationRateLimiter: asValue(
+    buildRateLimiter(
+      RATE_LIMIT.MCP_OAUTH_AUTHORIZATION.MAX_ATTEMPTS,
+      RATE_LIMIT.MCP_OAUTH_AUTHORIZATION.WINDOW_MS,
+    ),
+  ),
+  mcpOAuthTokenRateLimiter: asValue(
+    buildRateLimiter(RATE_LIMIT.MCP_OAUTH_TOKEN.MAX_ATTEMPTS, RATE_LIMIT.MCP_OAUTH_TOKEN.WINDOW_MS),
+  ),
+  mcpOAuthRevocationRateLimiter: asValue(
+    buildRateLimiter(
+      RATE_LIMIT.MCP_OAUTH_REVOCATION.MAX_ATTEMPTS,
+      RATE_LIMIT.MCP_OAUTH_REVOCATION.WINDOW_MS,
+    ),
+  ),
 } satisfies NameAndRegistrationPair<Cradle>;

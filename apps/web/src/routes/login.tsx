@@ -3,7 +3,10 @@ import { hasSessionCookie } from '#/graphql/client';
 import { z } from 'zod';
 import { LoginPage } from './-components/LoginPage';
 
-const searchSchema = z.object({ oauthError: z.string().optional() });
+const searchSchema = z.object({
+  oauthError: z.string().optional(),
+  returnTo: z.string().optional(),
+});
 
 export const Route = createFileRoute('/login')({
   validateSearch: searchSchema,

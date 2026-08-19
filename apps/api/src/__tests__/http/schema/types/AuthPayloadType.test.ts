@@ -11,6 +11,7 @@ function fakeReply(): {
   const cleared = new Map<string, Array<Pick<CookieOptions, 'path' | 'domain'>>>();
   const reply: IHttpResponse = {
     status: () => reply,
+    header: () => reply,
     send: () => {},
     redirect: () => {},
     setCookie: (name, _value, options) => {

@@ -37,12 +37,16 @@ import type { DrizzleTotpBackupCodeRepository } from '#src/infrastructure/db/rep
 import type { DrizzleBackupEmailVerificationTokenRepository } from '#src/infrastructure/db/repositories/DrizzleBackupEmailVerificationTokenRepository.js';
 import type { DrizzleOAuthAccountRepository } from '#src/infrastructure/db/repositories/DrizzleOAuthAccountRepository.js';
 import type { DrizzleApiTokenRepository } from '#src/infrastructure/db/repositories/DrizzleApiTokenRepository.js';
+import type { DrizzleMcpOAuthTokenRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthTokenRepository.js';
+import type { DrizzleMcpOAuthClientRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthClientRepository.js';
+import type { DrizzleMcpOAuthAuthorizationCodeRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthAuthorizationCodeRepository.js';
 import type { DrizzleShareLinkRepository } from '#src/infrastructure/db/repositories/DrizzleShareLinkRepository.js';
 import type { DrizzleNotificationRepository } from '#src/infrastructure/db/repositories/DrizzleNotificationRepository.js';
 import type { DrizzleOfferRepository } from '#src/infrastructure/db/repositories/DrizzleOfferRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import type { ITotpProvider } from '#src/use-cases/ports/ITotpProvider.js';
 import type { OAuthProviderRegistry } from '#src/infrastructure/auth/OAuthProviderRegistry.js';
+import type { McpOAuthConsentService } from '#src/infrastructure/auth/McpOAuthConsentService.js';
 import type { OAuthStateService } from '#src/infrastructure/auth/OAuthStateService.js';
 import type { IOAuthProvider } from '#src/use-cases/ports/IOAuthProvider.js';
 import type { LoginOrSignupWithOAuthUseCase } from '#src/use-cases/oauth/LoginOrSignupWithOAuthUseCase.js';
@@ -93,6 +97,15 @@ import type { McpController } from '#src/interface-adapters/mcp/McpController.js
 
 import type { AuthenticateRequestUseCase } from '#src/use-cases/auth/AuthenticateRequestUseCase.js';
 import type { AuthenticateMcpRequestUseCase } from '#src/use-cases/auth/AuthenticateMcpRequestUseCase.js';
+import type { ValidateMcpOAuthAccessTokenUseCase } from '#src/use-cases/mcpOAuth/ValidateMcpOAuthAccessTokenUseCase.js';
+import type { CreateMcpOAuthAccessTokenUseCase } from '#src/use-cases/mcpOAuth/CreateMcpOAuthAccessTokenUseCase.js';
+import type { RegisterMcpOAuthClientUseCase } from '#src/use-cases/mcpOAuth/RegisterMcpOAuthClientUseCase.js';
+import type { CreateMcpOAuthAuthorizationCodeUseCase } from '#src/use-cases/mcpOAuth/CreateMcpOAuthAuthorizationCodeUseCase.js';
+import type { ExchangeMcpOAuthAuthorizationCodeUseCase } from '#src/use-cases/mcpOAuth/ExchangeMcpOAuthAuthorizationCodeUseCase.js';
+import type { RevokeMcpOAuthGrantUseCase } from '#src/use-cases/mcpOAuth/RevokeMcpOAuthGrantUseCase.js';
+import type { DrizzleMcpOAuthRefreshTokenRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthRefreshTokenRepository.js';
+import type { CreateMcpOAuthRefreshTokenUseCase } from '#src/use-cases/mcpOAuth/CreateMcpOAuthRefreshTokenUseCase.js';
+import type { RotateMcpOAuthRefreshTokenUseCase } from '#src/use-cases/mcpOAuth/RotateMcpOAuthRefreshTokenUseCase.js';
 import type { RegisterUseCase } from '#src/use-cases/auth/RegisterUseCase.js';
 import type { LoginUseCase } from '#src/use-cases/auth/LoginUseCase.js';
 import type { LoginWithTotpUseCase } from '#src/use-cases/auth/LoginWithTotpUseCase.js';
@@ -242,6 +255,7 @@ export interface Cradle {
   db: typeof db;
   storageProvider: LocalStorageProvider | VercelBlobStorageProvider;
   generateId: () => string;
+  now: () => Date;
   webAppOrigin: string;
   logger: ILogger;
   tokenService: JwtTokenService;
@@ -259,6 +273,10 @@ export interface Cradle {
   drizzleEducationRepository: DrizzleEducationRepository;
   drizzleWorkExperienceRepository: DrizzleWorkExperienceRepository;
   drizzleApiTokenRepository: DrizzleApiTokenRepository;
+  mcpOAuthTokenRepository: DrizzleMcpOAuthTokenRepository;
+  mcpOAuthClientRepository: DrizzleMcpOAuthClientRepository;
+  mcpOAuthAuthorizationCodeRepository: DrizzleMcpOAuthAuthorizationCodeRepository;
+  mcpOAuthRefreshTokenRepository: DrizzleMcpOAuthRefreshTokenRepository;
   drizzleContactRepository: DrizzleContactRepository;
   drizzleNotificationRepository: DrizzleNotificationRepository;
 
@@ -300,12 +318,17 @@ export interface Cradle {
   requestAddBackupEmailRateLimiter: IRateLimiter;
   removeBackupEmailRateLimiter: IRateLimiter;
   backupEmailRecoveryRateLimiter: IRateLimiter;
+  mcpOAuthRegistrationRateLimiter: IRateLimiter;
+  mcpOAuthAuthorizationRateLimiter: IRateLimiter;
+  mcpOAuthTokenRateLimiter: IRateLimiter;
+  mcpOAuthRevocationRateLimiter: IRateLimiter;
   totpProvider: ITotpProvider;
   oauthAccountRepository: DrizzleOAuthAccountRepository;
   googleOAuthProvider: IOAuthProvider;
   gitHubOAuthProvider: IOAuthProvider;
   oauthProviderRegistry: OAuthProviderRegistry;
   oauthStateService: OAuthStateService;
+  mcpOAuthConsentService: McpOAuthConsentService;
 
   applicationMapper: ApplicationMapper;
   apiTokenMapper: ApiTokenMapper;
@@ -359,6 +382,14 @@ export interface Cradle {
 
   authenticateRequestUseCase: AuthenticateRequestUseCase;
   authenticateMcpRequestUseCase: AuthenticateMcpRequestUseCase;
+  validateMcpOAuthAccessTokenUseCase: ValidateMcpOAuthAccessTokenUseCase;
+  createMcpOAuthAccessTokenUseCase: CreateMcpOAuthAccessTokenUseCase;
+  registerMcpOAuthClientUseCase: RegisterMcpOAuthClientUseCase;
+  createMcpOAuthAuthorizationCodeUseCase: CreateMcpOAuthAuthorizationCodeUseCase;
+  exchangeMcpOAuthAuthorizationCodeUseCase: ExchangeMcpOAuthAuthorizationCodeUseCase;
+  revokeMcpOAuthGrantUseCase: RevokeMcpOAuthGrantUseCase;
+  createMcpOAuthRefreshTokenUseCase: CreateMcpOAuthRefreshTokenUseCase;
+  rotateMcpOAuthRefreshTokenUseCase: RotateMcpOAuthRefreshTokenUseCase;
   registerUseCase: RegisterUseCase;
   loginUseCase: LoginUseCase;
   loginWithTotpUseCase: LoginWithTotpUseCase;

@@ -2,6 +2,7 @@ import { asClass, Lifetime, type NameAndRegistrationPair } from 'awilix';
 
 import { AuthenticateRequestUseCase } from '#src/use-cases/auth/AuthenticateRequestUseCase.js';
 import { AuthenticateMcpRequestUseCase } from '#src/use-cases/auth/AuthenticateMcpRequestUseCase.js';
+import { ValidateMcpOAuthAccessTokenUseCase } from '#src/use-cases/mcpOAuth/ValidateMcpOAuthAccessTokenUseCase.js';
 import { RegisterUseCase } from '#src/use-cases/auth/RegisterUseCase.js';
 import { LoginUseCase } from '#src/use-cases/auth/LoginUseCase.js';
 import { LoginWithTotpUseCase } from '#src/use-cases/auth/LoginWithTotpUseCase.js';
@@ -19,6 +20,9 @@ export const auth = {
     lifetime: Lifetime.TRANSIENT,
   }),
   authenticateMcpRequestUseCase: asClass(AuthenticateMcpRequestUseCase, {
+    lifetime: Lifetime.TRANSIENT,
+  }),
+  validateMcpOAuthAccessTokenUseCase: asClass(ValidateMcpOAuthAccessTokenUseCase, {
     lifetime: Lifetime.TRANSIENT,
   }),
   registerUseCase: asClass(RegisterUseCase, { lifetime: Lifetime.TRANSIENT }),

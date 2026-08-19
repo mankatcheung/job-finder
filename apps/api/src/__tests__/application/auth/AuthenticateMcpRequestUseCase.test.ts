@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { AuthenticateMcpRequestUseCase } from '#src/use-cases/auth/AuthenticateMcpRequestUseCase.js';
 import type { ValidateApiTokenUseCase } from '#src/use-cases/apiTokens/ValidateApiTokenUseCase.js';
+import type { ValidateMcpOAuthAccessTokenUseCase } from '#src/use-cases/mcpOAuth/ValidateMcpOAuthAccessTokenUseCase.js';
 
 function makeValidateApiTokenUseCase(
   execute?: ValidateApiTokenUseCase['execute'],
@@ -8,6 +9,14 @@ function makeValidateApiTokenUseCase(
   return {
     execute: execute ?? vi.fn().mockResolvedValue(null),
   } as unknown as ValidateApiTokenUseCase;
+}
+
+function makeValidateMcpOAuthAccessTokenUseCase(
+  execute?: ValidateMcpOAuthAccessTokenUseCase['execute'],
+): ValidateMcpOAuthAccessTokenUseCase {
+  return {
+    execute: execute ?? vi.fn().mockResolvedValue(null),
+  } as unknown as ValidateMcpOAuthAccessTokenUseCase;
 }
 
 describe('AuthenticateMcpRequestUseCase', () => {
@@ -64,5 +73,51 @@ describe('AuthenticateMcpRequestUseCase', () => {
     const result = await useCase.execute('trakwyn_broken');
 
     expect(result).toBeNull();
+  });
+
+  it.each(['read', 'full'] as const)(
+    'carries a %s OAuth grant through to the caller that gates write tools',
+    async (scope) => {
+      const validateApiTokenUseCase = makeValidateApiTokenUseCase();
+      const validateMcpOAuthAccessTokenUseCase = makeValidateMcpOAuthAccessTokenUseCase(
+        vi.fn().mockResolvedValue({ sub: 'user-1', scope }),
+      );
+      const useCase = new AuthenticateMcpRequestUseCase({
+        validateApiTokenUseCase,
+        validateMcpOAuthAccessTokenUseCase,
+      });
+
+      // Dropping the scope here is what would silently turn a `read` consent
+      // into full write access, since the tool gate has nothing else to go on.
+      await expect(useCase.execute('trakwyn_mcp_access')).resolves.toEqual({
+        sub: 'user-1',
+        scope,
+      });
+      expect(validateApiTokenUseCase.execute).not.toHaveBeenCalled();
+      expect(validateMcpOAuthAccessTokenUseCase.execute).toHaveBeenCalledWith('trakwyn_mcp_access');
+    },
+  );
+
+  it('sends an OAuth token to the OAuth validator, never to the API-token one', async () => {
+    const validateApiTokenUseCase = makeValidateApiTokenUseCase();
+    const useCase = new AuthenticateMcpRequestUseCase({
+      validateApiTokenUseCase,
+      validateMcpOAuthAccessTokenUseCase: makeValidateMcpOAuthAccessTokenUseCase(
+        vi.fn().mockResolvedValue(null),
+      ),
+    });
+
+    // `trakwyn_mcp_` extends `trakwyn_`, so checking the API-token prefix first
+    // would route every OAuth token to the wrong validator.
+    await expect(useCase.execute('trakwyn_mcp_access')).resolves.toBeNull();
+    expect(validateApiTokenUseCase.execute).not.toHaveBeenCalled();
+  });
+
+  it('rejects an OAuth token when no OAuth validator is wired in', async () => {
+    const useCase = new AuthenticateMcpRequestUseCase({
+      validateApiTokenUseCase: makeValidateApiTokenUseCase(),
+    });
+
+    await expect(useCase.execute('trakwyn_mcp_access')).resolves.toBeNull();
   });
 });

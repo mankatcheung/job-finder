@@ -48,6 +48,109 @@ export const apiToken = sqliteTable(
   (table) => [index('ApiToken_userId_idx').on(table.userId)],
 );
 
+export const mcpOAuthAccessToken = sqliteTable(
+  'McpOAuthAccessToken',
+  {
+    id: text('id').primaryKey(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    clientId: text('clientId').notNull(),
+    /**
+     * The grant this token was minted under — shared by the authorization code,
+     * every access token, and every refresh token descended from one consent.
+     * Revocation is grant-wide, so cutting off a client cannot leave a live
+     * access token behind (RFC 7009 s2.1).
+     */
+    familyId: text('familyId').notNull(),
+    tokenHash: text('tokenHash').notNull().unique(),
+    scope: text('scope').notNull(),
+    audience: text('audience').notNull(),
+    expiresAt: integer('expiresAt', { mode: 'timestamp_ms' }).notNull(),
+    revokedAt: integer('revokedAt', { mode: 'timestamp_ms' }),
+    lastUsedAt: integer('lastUsedAt', { mode: 'timestamp_ms' }),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('McpOAuthAccessToken_userId_idx').on(table.userId),
+    index('McpOAuthAccessToken_clientId_idx').on(table.clientId),
+    index('McpOAuthAccessToken_familyId_idx').on(table.familyId),
+    index('McpOAuthAccessToken_expiresAt_idx').on(table.expiresAt),
+  ],
+);
+
+export const mcpOAuthClient = sqliteTable(
+  'McpOAuthClient',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    redirectUris: text('redirectUris').notNull(),
+    revokedAt: integer('revokedAt', { mode: 'timestamp_ms' }),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [index('McpOAuthClient_createdAt_idx').on(table.createdAt)],
+);
+
+export const mcpOAuthAuthorizationCode = sqliteTable(
+  'McpOAuthAuthorizationCode',
+  {
+    id: text('id').primaryKey(),
+    codeHash: text('codeHash').notNull().unique(),
+    /** Grant id, minted with the code and inherited by every token it yields. */
+    familyId: text('familyId').notNull(),
+    clientId: text('clientId')
+      .notNull()
+      .references(() => mcpOAuthClient.id, { onDelete: 'cascade' }),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    redirectUri: text('redirectUri').notNull(),
+    scope: text('scope').notNull(),
+    codeChallenge: text('codeChallenge').notNull(),
+    codeChallengeMethod: text('codeChallengeMethod').notNull(),
+    expiresAt: integer('expiresAt', { mode: 'timestamp_ms' }).notNull(),
+    consumedAt: integer('consumedAt', { mode: 'timestamp_ms' }),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('McpOAuthAuthorizationCode_clientId_idx').on(table.clientId),
+    index('McpOAuthAuthorizationCode_familyId_idx').on(table.familyId),
+    index('McpOAuthAuthorizationCode_userId_idx').on(table.userId),
+    index('McpOAuthAuthorizationCode_expiresAt_idx').on(table.expiresAt),
+  ],
+);
+
+export const mcpOAuthRefreshToken = sqliteTable(
+  'McpOAuthRefreshToken',
+  {
+    id: text('id').primaryKey(),
+    tokenHash: text('tokenHash').notNull().unique(),
+    familyId: text('familyId').notNull(),
+    clientId: text('clientId').notNull(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    scope: text('scope').notNull(),
+    expiresAt: integer('expiresAt', { mode: 'timestamp_ms' }).notNull(),
+    usedAt: integer('usedAt', { mode: 'timestamp_ms' }),
+    revokedAt: integer('revokedAt', { mode: 'timestamp_ms' }),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('McpOAuthRefreshToken_familyId_idx').on(table.familyId),
+    index('McpOAuthRefreshToken_userId_idx').on(table.userId),
+    index('McpOAuthRefreshToken_expiresAt_idx').on(table.expiresAt),
+  ],
+);
+
 export const shareLink = sqliteTable(
   'ShareLink',
   {

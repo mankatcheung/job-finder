@@ -6,6 +6,7 @@ export interface OAuthState {
   provider: OAuthProviderName;
   mode: 'login' | 'link';
   userId?: string;
+  returnTo?: string;
   nonce: string;
   exp: number;
 }
@@ -25,11 +26,17 @@ export class OAuthStateService {
     return process.env[ENV.JWT_SECRET] ?? '';
   }
 
-  issue(provider: OAuthProviderName, mode: 'login' | 'link', userId?: string): string {
+  issue(
+    provider: OAuthProviderName,
+    mode: 'login' | 'link',
+    userId?: string,
+    returnTo?: string,
+  ): string {
     const payload: OAuthState = {
       provider,
       mode,
       userId,
+      returnTo,
       nonce: randomBytes(16).toString('hex'),
       exp: Date.now() + OAUTH.STATE_TTL_MS,
     };

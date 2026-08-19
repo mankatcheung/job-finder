@@ -41,6 +41,41 @@ The API ships a [Model Context Protocol](https://modelcontextprotocol.io) server
 
 The endpoint is `POST https://api.trakwyn.com/mcp`, authenticated with `Authorization: Bearer <token>`.
 
+### OAuth clients
+
+MCP clients can use OAuth instead of manually-created API tokens.
+[docs/mcp-oauth.md](docs/mcp-oauth.md) walks through the whole flow and the
+reasoning behind it; the summary is below.
+
+The OAuth discovery documents are available at:
+
+- `GET https://api.trakwyn.com/.well-known/oauth-protected-resource`
+- `GET https://api.trakwyn.com/.well-known/oauth-authorization-server`
+
+The authorization server supports dynamic public-client registration, the
+authorization-code flow with PKCE (`S256`), rotating refresh tokens, and token
+revocation. Redirect URIs must be exact HTTPS URLs, or loopback HTTP URLs for
+local clients. The authorization flow uses the existing Trakwyn browser
+session and displays an explicit MCP consent screen before issuing a code.
+
+The consent screen asks for one of the same two scopes an API token can have,
+and it means the same thing: a `read` grant reaches the read-only tools and
+nothing else, exactly as a read-only API token does.
+
+Revoking is grant-wide. `POST /oauth/revoke` accepts either an access token or
+a refresh token, and either one takes down every credential issued from that
+consent — so a client cannot "revoke" and then quietly refresh its way back in.
+The same happens automatically if an authorization code or a rotated refresh
+token is ever replayed, since that means the credential leaked.
+
+Existing `trakwyn_...` API tokens remain supported for scripts and clients that
+do not implement OAuth.
+
+**Deploy prerequisite:** set `API_ORIGIN` to this API's own public origin (e.g.
+`https://api.trakwyn.com`). It is what the discovery documents advertise as the
+issuer and endpoint URLs; without it they fall back to the request's `Host`
+header, which a caller controls.
+
 Verify it works:
 
 ```bash

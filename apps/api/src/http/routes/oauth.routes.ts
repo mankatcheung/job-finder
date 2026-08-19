@@ -57,7 +57,8 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
           return;
         }
 
-        const state = oauthStateService.issue(provider, mode, userId);
+        const returnTo = mode === 'login' ? safeReturnTo(req.query.returnTo) : undefined;
+        const state = oauthStateService.issue(provider, mode, userId, returnTo);
         const authorizationUrl = oauthProviderRegistry
           .get(provider)
           .getAuthorizationUrl(state, callbackUrl(req, provider));
@@ -152,7 +153,7 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
             Date.now(),
           );
           setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
-          res.redirect(webAppOrigin);
+          res.redirect(returnToUrl(webAppOrigin, parsedState.returnTo));
         } catch (err) {
           const message = err instanceof Error ? err.message : 'login_failed';
           res.redirect(`${webAppOrigin}/login?oauthError=${encodeURIComponent(message)}`);
@@ -160,4 +161,14 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
       },
     },
   ];
+}
+
+function safeReturnTo(value: string | string[] | undefined): string | undefined {
+  if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//'))
+    return undefined;
+  return value;
+}
+
+function returnToUrl(webAppOrigin: string, returnTo: string | undefined): string {
+  return returnTo ? `${webAppOrigin}${returnTo}` : webAppOrigin;
 }

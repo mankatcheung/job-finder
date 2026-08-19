@@ -4,10 +4,12 @@ import { OAuthProviderLogo } from '#/components/OAuthProviderLogo';
 
 interface OAuthButtonsProps {
   label: string;
+  returnTo?: string;
 }
 
-export function OAuthButtons({ label }: OAuthButtonsProps) {
+export function OAuthButtons({ label, returnTo }: OAuthButtonsProps) {
   const { t } = useLocale();
+  const returnToQuery = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '';
   return (
     <div className="space-y-3">
       <div className="relative">
@@ -22,14 +24,14 @@ export function OAuthButtons({ label }: OAuthButtonsProps) {
       </div>
 
       <a
-        href={`${API_ORIGIN}/auth/oauth/google/start`}
+        href={`${API_ORIGIN}/auth/oauth/google/start${returnToQuery}`}
         className="flex w-full items-center justify-center gap-2 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
       >
         <OAuthProviderLogo provider="google" />
         {label} {t('common.withGoogle')}
       </a>
       <a
-        href={`${API_ORIGIN}/auth/oauth/github/start`}
+        href={`${API_ORIGIN}/auth/oauth/github/start${returnToQuery}`}
         className="flex w-full items-center justify-center gap-2 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
       >
         <OAuthProviderLogo provider="github" />
