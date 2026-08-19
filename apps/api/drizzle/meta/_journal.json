@@ -134,6 +134,13 @@
       "when": 1787142593114,
       "tag": "0018_overrated_demogoblin",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1787147516381,
+      "tag": "0019_blue_nighthawk",
+      "breakpoints": true
     }
   ]
 }

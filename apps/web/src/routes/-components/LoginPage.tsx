@@ -44,7 +44,11 @@ const LOGIN_WITH_TOTP_MUTATION = `
 export function LoginPage() {
   const { t } = useLocale();
   const navigate = useNavigate();
-  const { oauthError } = useSearch({ strict: false }) as { oauthError?: string };
+  const { oauthError, returnTo } = useSearch({ strict: false }) as {
+    oauthError?: string;
+    returnTo?: string;
+  };
+  const destination = safeReturnTo(returnTo);
   const [pendingCredentials, setPendingCredentials] = useState<FormValues | null>(null);
 
   const {
@@ -66,14 +70,20 @@ export function LoginPage() {
         return;
       }
       await queryClient.resetQueries();
-      await navigate({ to: '/dashboard' });
+      await navigate({ to: destination as '/dashboard' });
     } catch (err: unknown) {
       setError('root', { message: getErrorMessage(err) });
     }
   };
 
   if (pendingCredentials) {
-    return <TotpStep credentials={pendingCredentials} onBack={() => setPendingCredentials(null)} />;
+    return (
+      <TotpStep
+        credentials={pendingCredentials}
+        destination={destination}
+        onBack={() => setPendingCredentials(null)}
+      />
+    );
   }
 
   return (
@@ -151,14 +161,22 @@ export function LoginPage() {
             </Button>
           </form>
 
-          <OAuthButtons label={t('auth.signIn')} />
+          <OAuthButtons label={t('auth.signIn')} returnTo={returnTo} />
         </div>
       </div>
     </main>
   );
 }
 
-function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: () => void }) {
+function TotpStep({
+  credentials,
+  destination,
+  onBack,
+}: {
+  credentials: FormValues;
+  destination: string;
+  onBack: () => void;
+}) {
   const { t } = useLocale();
   const navigate = useNavigate();
   const {
@@ -177,7 +195,7 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
         code: data.code,
       });
       await queryClient.resetQueries();
-      await navigate({ to: '/dashboard' });
+      await navigate({ to: destination as '/dashboard' });
     } catch (err: unknown) {
       setError('root', { message: getErrorMessage(err) });
     }
@@ -241,4 +259,8 @@ function TotpStep({ credentials, onBack }: { credentials: FormValues; onBack: ()
       </div>
     </main>
   );
+}
+
+function safeReturnTo(value: string | undefined): string {
+  return value && value.startsWith('/') && !value.startsWith('//') ? value : '/dashboard';
 }

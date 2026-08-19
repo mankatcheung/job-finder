@@ -14,7 +14,7 @@ describe('CreateMcpOAuthAccessTokenUseCase', () => {
     } as unknown as IMcpOAuthTokenRepository;
     const now = new Date('2026-08-19T12:00:00.000Z');
     const useCase = new CreateMcpOAuthAccessTokenUseCase({
-      repository,
+      mcpOAuthTokenRepository: repository,
       generateId: () => 'token-1',
       now: () => now,
     });

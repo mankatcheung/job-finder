@@ -26,7 +26,10 @@ describe('ValidateMcpOAuthAccessTokenUseCase', () => {
 
   it('returns the subject and scope for a valid OAuth access token', async () => {
     const repository = makeRepository(validToken);
-    const useCase = new ValidateMcpOAuthAccessTokenUseCase({ repository, now: () => now });
+    const useCase = new ValidateMcpOAuthAccessTokenUseCase({
+      mcpOAuthTokenRepository: repository,
+      now: () => now,
+    });
 
     await expect(useCase.execute('trakwyn_mcp_valid')).resolves.toEqual({
       sub: 'user-1',
@@ -42,7 +45,10 @@ describe('ValidateMcpOAuthAccessTokenUseCase', () => {
     ['revoked token', { ...validToken, revokedAt: now }],
   ])('rejects a %s', async (_reason, token) => {
     const repository = makeRepository(token);
-    const useCase = new ValidateMcpOAuthAccessTokenUseCase({ repository, now: () => now });
+    const useCase = new ValidateMcpOAuthAccessTokenUseCase({
+      mcpOAuthTokenRepository: repository,
+      now: () => now,
+    });
 
     await expect(useCase.execute('trakwyn_mcp_invalid')).resolves.toBeNull();
     expect(repository.updateLastUsed).not.toHaveBeenCalled();
@@ -50,7 +56,10 @@ describe('ValidateMcpOAuthAccessTokenUseCase', () => {
 
   it('rejects credentials that are not MCP OAuth access tokens without querying storage', async () => {
     const repository = makeRepository(validToken);
-    const useCase = new ValidateMcpOAuthAccessTokenUseCase({ repository, now: () => now });
+    const useCase = new ValidateMcpOAuthAccessTokenUseCase({
+      mcpOAuthTokenRepository: repository,
+      now: () => now,
+    });
 
     await expect(useCase.execute('trakwyn_regular_api_token')).resolves.toBeNull();
     expect(repository.findByTokenHash).not.toHaveBeenCalled();

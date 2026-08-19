@@ -72,6 +72,32 @@ const SCHEMA_STATEMENTS = [
   `CREATE INDEX "McpOAuthAccessToken_userId_idx" ON "McpOAuthAccessToken"("userId")`,
   `CREATE INDEX "McpOAuthAccessToken_clientId_idx" ON "McpOAuthAccessToken"("clientId")`,
   `CREATE INDEX "McpOAuthAccessToken_expiresAt_idx" ON "McpOAuthAccessToken"("expiresAt")`,
+  `CREATE TABLE "McpOAuthClient" (
+    "id" TEXT PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "redirectUris" TEXT NOT NULL,
+    "revokedAt" INTEGER,
+    "createdAt" INTEGER NOT NULL
+  )`,
+  `CREATE INDEX "McpOAuthClient_createdAt_idx" ON "McpOAuthClient"("createdAt")`,
+  `CREATE TABLE "McpOAuthAuthorizationCode" (
+    "id" TEXT PRIMARY KEY,
+    "codeHash" TEXT NOT NULL UNIQUE,
+    "clientId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "redirectUri" TEXT NOT NULL,
+    "scope" TEXT NOT NULL,
+    "codeChallenge" TEXT NOT NULL,
+    "codeChallengeMethod" TEXT NOT NULL,
+    "expiresAt" INTEGER NOT NULL,
+    "consumedAt" INTEGER,
+    "createdAt" INTEGER NOT NULL,
+    FOREIGN KEY ("clientId") REFERENCES "McpOAuthClient"("id") ON DELETE CASCADE,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "McpOAuthAuthorizationCode_clientId_idx" ON "McpOAuthAuthorizationCode"("clientId")`,
+  `CREATE INDEX "McpOAuthAuthorizationCode_userId_idx" ON "McpOAuthAuthorizationCode"("userId")`,
+  `CREATE INDEX "McpOAuthAuthorizationCode_expiresAt_idx" ON "McpOAuthAuthorizationCode"("expiresAt")`,
   `CREATE TABLE "ShareLink" (
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,

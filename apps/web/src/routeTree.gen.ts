@@ -24,6 +24,7 @@ import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar';
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard';
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route';
+import { Route as OauthAuthorizeRouteImport } from './routes/oauth/authorize';
 import { Route as AuthenticatedApplicationsIndexRouteImport } from './routes/_authenticated/applications/index';
 import { Route as AuthenticatedApplicationsBoardRouteImport } from './routes/_authenticated/applications/board';
 import { Route as AuthenticatedApplicationsNewRouteImport } from './routes/_authenticated/applications/new';
@@ -118,6 +119,11 @@ const AuthenticatedSettingsRouteRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any);
+const OauthAuthorizeRoute = OauthAuthorizeRouteImport.update({
+  id: '/oauth/authorize',
+  path: '/oauth/authorize',
+  getParentRoute: () => rootRouteImport,
+} as any);
 const AuthenticatedApplicationsIndexRoute =
   AuthenticatedApplicationsIndexRouteImport.update({
     id: '/applications/',
@@ -242,6 +248,7 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AuthenticatedAnalyticsRoute;
   '/calendar': typeof AuthenticatedCalendarRoute;
   '/dashboard': typeof AuthenticatedDashboardRoute;
+  '/oauth/authorize': typeof OauthAuthorizeRoute;
   '/applications/board': typeof AuthenticatedApplicationsBoardRoute;
   '/applications/new': typeof AuthenticatedApplicationsNewRoute;
   '/assistant/history': typeof AuthenticatedAssistantHistoryRoute;
@@ -275,6 +282,7 @@ export interface FileRoutesByTo {
   '/analytics': typeof AuthenticatedAnalyticsRoute;
   '/calendar': typeof AuthenticatedCalendarRoute;
   '/dashboard': typeof AuthenticatedDashboardRoute;
+  '/oauth/authorize': typeof OauthAuthorizeRoute;
   '/applications/board': typeof AuthenticatedApplicationsBoardRoute;
   '/applications/new': typeof AuthenticatedApplicationsNewRoute;
   '/assistant/history': typeof AuthenticatedAssistantHistoryRoute;
@@ -311,6 +319,7 @@ export interface FileRoutesById {
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute;
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute;
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute;
+  '/oauth/authorize': typeof OauthAuthorizeRoute;
   '/_authenticated/applications/board': typeof AuthenticatedApplicationsBoardRoute;
   '/_authenticated/applications/new': typeof AuthenticatedApplicationsNewRoute;
   '/_authenticated/assistant/history': typeof AuthenticatedAssistantHistoryRoute;
@@ -347,6 +356,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/calendar'
     | '/dashboard'
+    | '/oauth/authorize'
     | '/applications/board'
     | '/applications/new'
     | '/assistant/history'
@@ -380,6 +390,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/calendar'
     | '/dashboard'
+    | '/oauth/authorize'
     | '/applications/board'
     | '/applications/new'
     | '/assistant/history'
@@ -415,6 +426,7 @@ export interface FileRouteTypes {
     | '/_authenticated/analytics'
     | '/_authenticated/calendar'
     | '/_authenticated/dashboard'
+    | '/oauth/authorize'
     | '/_authenticated/applications/board'
     | '/_authenticated/applications/new'
     | '/_authenticated/assistant/history'
@@ -446,6 +458,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute;
   ShareRoute: typeof ShareRoute;
   VerifyEmailRoute: typeof VerifyEmailRoute;
+  OauthAuthorizeRoute: typeof OauthAuthorizeRoute;
 }
 
 declare module '@tanstack/react-router' {
@@ -554,6 +567,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings';
       preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport;
       parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    '/oauth/authorize': {
+      id: '/oauth/authorize';
+      path: '/oauth/authorize';
+      fullPath: '/oauth/authorize';
+      preLoaderRoute: typeof OauthAuthorizeRouteImport;
+      parentRoute: typeof rootRouteImport;
     };
     '/_authenticated/applications/': {
       id: '/_authenticated/applications/';
@@ -770,6 +790,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   ShareRoute: ShareRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  OauthAuthorizeRoute: OauthAuthorizeRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

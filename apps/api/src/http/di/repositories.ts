@@ -36,6 +36,8 @@ import { DrizzleBackupEmailVerificationTokenRepository } from '#src/infrastructu
 import { DrizzleOAuthAccountRepository } from '#src/infrastructure/db/repositories/DrizzleOAuthAccountRepository.js';
 import { DrizzleApiTokenRepository } from '#src/infrastructure/db/repositories/DrizzleApiTokenRepository.js';
 import { DrizzleMcpOAuthTokenRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthTokenRepository.js';
+import { DrizzleMcpOAuthClientRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthClientRepository.js';
+import { DrizzleMcpOAuthAuthorizationCodeRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthAuthorizationCodeRepository.js';
 import { DrizzleShareLinkRepository } from '#src/infrastructure/db/repositories/DrizzleShareLinkRepository.js';
 import { DrizzleNotificationRepository } from '#src/infrastructure/db/repositories/DrizzleNotificationRepository.js';
 import { DrizzleLlmApiKeyRepository } from '#src/infrastructure/db/repositories/DrizzleLlmApiKeyRepository.js';
@@ -65,6 +67,12 @@ export const repositories = {
     lifetime: Lifetime.SINGLETON,
   }),
   mcpOAuthTokenRepository: asClass(DrizzleMcpOAuthTokenRepository, {
+    lifetime: Lifetime.SINGLETON,
+  }),
+  mcpOAuthClientRepository: asClass(DrizzleMcpOAuthClientRepository, {
+    lifetime: Lifetime.SINGLETON,
+  }),
+  mcpOAuthAuthorizationCodeRepository: asClass(DrizzleMcpOAuthAuthorizationCodeRepository, {
     lifetime: Lifetime.SINGLETON,
   }),
   drizzleNotificationRepository: asClass(DrizzleNotificationRepository, {

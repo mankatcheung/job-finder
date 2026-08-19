@@ -63,6 +63,7 @@ export const infrastructure = {
   db: asValue(db),
   storageProvider: asClass(StorageProvider, { lifetime: Lifetime.SINGLETON }),
   generateId: asValue(() => nanoid()),
+  now: asValue(() => new Date()),
   webAppOrigin: asValue(
     process.env[ENV.CORS_ORIGIN]?.split(',')[0]?.trim() ?? 'http://localhost:3000',
   ),

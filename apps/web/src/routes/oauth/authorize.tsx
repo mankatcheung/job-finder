@@ -1,0 +1,123 @@
+import { useEffect, useState } from 'react';
+import { createFileRoute, Link, useSearch } from '@tanstack/react-router';
+import { z } from 'zod';
+import { API_ORIGIN } from '#/lib/apiOrigin';
+import { useLocale } from '#/lib/i18n';
+import { Button } from '@trakwyn/ui';
+
+const searchSchema = z.object({
+  client_id: z.string(),
+  redirect_uri: z.string(),
+  response_type: z.literal('code'),
+  scope: z.enum(['read', 'full']),
+  code_challenge: z.string(),
+  code_challenge_method: z.literal('S256'),
+  state: z.string().optional(),
+});
+
+export const Route = createFileRoute('/oauth/authorize')({
+  validateSearch: searchSchema,
+  ssr: false,
+  component: McpAuthorizePage,
+});
+
+function McpAuthorizePage() {
+  const { t } = useLocale();
+  const search = useSearch({ from: '/oauth/authorize' });
+  const [clientName, setClientName] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const query = new URLSearchParams(search);
+    fetch(`${API_ORIGIN}/oauth/authorize/approve?${query.toString()}`, {
+      credentials: 'include',
+    })
+      .then(async (response) => {
+        const body = (await response.json()) as { client_name?: string; error?: string };
+        if (response.status === 401) {
+          setError('Sign in to Trakwyn before authorizing this MCP client.');
+          return;
+        }
+        if (!response.ok || !body.client_name) {
+          setError(body.error ?? 'This authorization request is invalid.');
+          return;
+        }
+        setClientName(body.client_name);
+      })
+      .catch(() => setError('Unable to load the authorization request.'));
+  }, [search]);
+
+  const submit = async (approved: boolean) => {
+    setSubmitting(true);
+    try {
+      const response = await fetch(`${API_ORIGIN}/oauth/authorize/approve`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...search, approved }),
+      });
+      const body = (await response.json()) as { redirect_to?: string; error?: string };
+      if (!response.ok || !body.redirect_to) {
+        setError(body.error ?? 'Unable to complete authorization.');
+        return;
+      }
+      window.location.assign(body.redirect_to);
+    } catch {
+      setError('Unable to complete authorization.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const loginReturnTo = `/oauth/authorize?${new URLSearchParams(search).toString()}`;
+
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+      <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-sm dark:bg-gray-800">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          {t('mcp.authorizeTitle', { defaultValue: 'Authorize MCP access' })}
+        </h1>
+        {error ? (
+          <div className="mt-4 space-y-4">
+            <p className="text-sm text-red-600">{error}</p>
+            {error.startsWith('Sign in') && (
+              <Link
+                to="/login"
+                search={{ returnTo: loginReturnTo }}
+                className="text-sm text-blue-600 underline"
+              >
+                {t('auth.signIn', { defaultValue: 'Sign in' })}
+              </Link>
+            )}
+          </div>
+        ) : clientName ? (
+          <div className="mt-5 space-y-5">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              <strong>{clientName}</strong>{' '}
+              {t('mcp.authorizationRequest', {
+                defaultValue: 'is requesting access to your Trakwyn data.',
+              })}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {t('mcp.requestedScope', { defaultValue: 'Requested scope:' })}{' '}
+              <strong>{search.scope}</strong>
+            </p>
+            <div className="flex gap-3">
+              <Button onClick={() => submit(false)} disabled={submitting} variant="secondary">
+                {t('common.cancel', { defaultValue: 'Deny' })}
+              </Button>
+              <Button onClick={() => submit(true)} disabled={submitting}>
+                {t('mcp.allowAccess', { defaultValue: 'Allow access' })}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+            {t('common.loading', { defaultValue: 'Loading authorization request...' })}
+          </p>
+        )}
+      </div>
+    </main>
+  );
+}

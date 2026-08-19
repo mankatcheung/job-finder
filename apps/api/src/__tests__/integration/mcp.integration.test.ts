@@ -52,6 +52,21 @@ describe('mcp integration', () => {
     return body.data!.register;
   }
 
+  async function registerAndGetCookie(): Promise<string> {
+    const email = `${randomUUID()}@example.com`;
+    const res = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      payload: { query: REGISTER_MUTATION, variables: { email, password: 'correct-horse-1' } },
+    });
+    const setCookie = res.headers['set-cookie'];
+    const accessCookie = Array.isArray(setCookie)
+      ? setCookie.find((cookie) => cookie.startsWith('trakwyn_access_token='))
+      : setCookie;
+    if (!accessCookie) throw new Error('Registration did not set an access cookie');
+    return accessCookie.split(';', 1)[0];
+  }
+
   async function createApiToken(accessToken: string): Promise<string> {
     const res = await testApp.app.inject({
       method: 'POST',
@@ -134,11 +149,86 @@ describe('mcp integration', () => {
       authorization_endpoint: 'https://api.example.com/oauth/authorize',
       token_endpoint: 'https://api.example.com/oauth/token',
       revocation_endpoint: 'https://api.example.com/oauth/revoke',
+      registration_endpoint: 'https://api.example.com/oauth/register',
       response_types_supported: ['code'],
-      grant_types_supported: ['authorization_code', 'refresh_token'],
+      grant_types_supported: ['authorization_code'],
       code_challenge_methods_supported: ['S256'],
       scopes_supported: ['read', 'full'],
     });
+  });
+
+  it('registers an MCP client and exchanges a PKCE authorization code', async () => {
+    const clientRes = await testApp.app.inject({
+      method: 'POST',
+      url: '/oauth/register',
+      payload: {
+        client_name: 'Test MCP Client',
+        redirect_uris: ['http://localhost:6274/oauth/callback'],
+      },
+    });
+    expect(clientRes.statusCode).toBe(201);
+    const client = clientRes.json() as { client_id: string };
+    const cookie = await registerAndGetCookie();
+    const codeVerifier = 'test-code-verifier';
+    const { createHash } = await import('node:crypto');
+    const codeChallenge = createHash('sha256').update(codeVerifier).digest('base64url');
+
+    const approvalRes = await testApp.app.inject({
+      method: 'POST',
+      url: '/oauth/authorize/approve',
+      headers: { cookie },
+      payload: {
+        client_id: client.client_id,
+        redirect_uri: 'http://localhost:6274/oauth/callback',
+        response_type: 'code',
+        scope: 'read',
+        code_challenge: codeChallenge,
+        code_challenge_method: 'S256',
+        state: 'state-1',
+        approved: true,
+      },
+    });
+    expect(approvalRes.statusCode).toBe(200);
+    const redirectTo = (approvalRes.json() as { redirect_to: string }).redirect_to;
+    const authorizationCode = new URL(redirectTo).searchParams.get('code');
+    expect(authorizationCode).toBeTruthy();
+
+    const tokenRes = await testApp.app.inject({
+      method: 'POST',
+      url: '/oauth/token',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      payload: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code: authorizationCode!,
+        client_id: client.client_id,
+        redirect_uri: 'http://localhost:6274/oauth/callback',
+        code_verifier: codeVerifier,
+      }).toString(),
+    });
+    expect(tokenRes.statusCode).toBe(200);
+    const token = tokenRes.json() as { access_token: string; token_type: string; scope: string };
+    expect(token).toMatchObject({ token_type: 'Bearer', scope: 'read' });
+
+    const mcpRes = await mcpInject(token.access_token, {
+      jsonrpc: '2.0',
+      id: 100,
+      method: 'tools/list',
+    });
+    expect(mcpRes.statusCode).toBe(200);
+
+    const revokeRes = await testApp.app.inject({
+      method: 'POST',
+      url: '/oauth/revoke',
+      payload: { token: token.access_token },
+    });
+    expect(revokeRes.statusCode).toBe(200);
+
+    const revokedMcpRes = await mcpInject(token.access_token, {
+      jsonrpc: '2.0',
+      id: 101,
+      method: 'tools/list',
+    });
+    expect(revokedMcpRes.statusCode).toBe(401);
   });
 
   it('rejects a bearer credential that is not an API token (e.g. a JWT)', async () => {

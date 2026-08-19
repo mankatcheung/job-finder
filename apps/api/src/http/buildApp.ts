@@ -57,6 +57,13 @@ export async function buildApp(fastify: FastifyInstance): Promise<FastifyInstanc
 
   await fastify.register(corsPlugin);
   await fastify.register(cookie);
+  fastify.addContentTypeParser(
+    'application/x-www-form-urlencoded',
+    { parseAs: 'string' },
+    (_request, body, done) => {
+      done(null, Object.fromEntries(new URLSearchParams(String(body))));
+    },
+  );
 
   const container = buildContainer();
   container.register({ logger: asValue(new PinoLogger(fastify.log)) });

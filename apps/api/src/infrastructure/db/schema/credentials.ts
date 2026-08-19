@@ -73,6 +73,48 @@ export const mcpOAuthAccessToken = sqliteTable(
   ],
 );
 
+export const mcpOAuthClient = sqliteTable(
+  'McpOAuthClient',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    redirectUris: text('redirectUris').notNull(),
+    revokedAt: integer('revokedAt', { mode: 'timestamp_ms' }),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [index('McpOAuthClient_createdAt_idx').on(table.createdAt)],
+);
+
+export const mcpOAuthAuthorizationCode = sqliteTable(
+  'McpOAuthAuthorizationCode',
+  {
+    id: text('id').primaryKey(),
+    codeHash: text('codeHash').notNull().unique(),
+    clientId: text('clientId')
+      .notNull()
+      .references(() => mcpOAuthClient.id, { onDelete: 'cascade' }),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    redirectUri: text('redirectUri').notNull(),
+    scope: text('scope').notNull(),
+    codeChallenge: text('codeChallenge').notNull(),
+    codeChallengeMethod: text('codeChallengeMethod').notNull(),
+    expiresAt: integer('expiresAt', { mode: 'timestamp_ms' }).notNull(),
+    consumedAt: integer('consumedAt', { mode: 'timestamp_ms' }),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('McpOAuthAuthorizationCode_clientId_idx').on(table.clientId),
+    index('McpOAuthAuthorizationCode_userId_idx').on(table.userId),
+    index('McpOAuthAuthorizationCode_expiresAt_idx').on(table.expiresAt),
+  ],
+);
+
 export const shareLink = sqliteTable(
   'ShareLink',
   {
