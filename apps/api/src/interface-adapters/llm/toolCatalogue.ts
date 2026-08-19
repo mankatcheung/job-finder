@@ -19,6 +19,12 @@ import type { LLMToolDefinition } from '#src/use-cases/ports/ILLMProvider.js';
  * `access` is internal metadata, not part of MCP's wire format: it drives
  * scope gating (a `read` token may not call a `write` tool) and the
  * per-surface selections below. Adapters strip it before advertising.
+ *
+ * Descriptions deliberately don't restate that a write tool needs a
+ * full-access token (JEF-178). Nobody it could inform ever reads it: a
+ * read-only token never sees these tools, since `tools/list` filters them
+ * out, and a full-access token can call them regardless. It was 340 bytes of
+ * context spent on ten repetitions of something neither audience needed.
  */
 export const TOOL_CATALOGUE = [
   {
@@ -180,8 +186,7 @@ export const TOOL_CATALOGUE = [
   {
     access: 'write',
     name: 'create_application',
-    description:
-      'Create a new job application. Requires a full-access token; a read-only token is refused.',
+    description: 'Create a new job application.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -204,7 +209,7 @@ export const TOOL_CATALOGUE = [
     access: 'write',
     name: 'update_application',
     description:
-      'Update fields on an existing job application. Only the fields provided are changed. Requires a full-access token.',
+      'Update fields on an existing job application. Only the fields provided are changed.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -227,7 +232,7 @@ export const TOOL_CATALOGUE = [
   {
     access: 'write',
     name: 'create_note',
-    description: 'Add a note to a job application. Requires a full-access token.',
+    description: 'Add a note to a job application.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -240,7 +245,7 @@ export const TOOL_CATALOGUE = [
   {
     access: 'write',
     name: 'create_interview_round',
-    description: 'Record an interview round for a job application. Requires a full-access token.',
+    description: 'Record an interview round for a job application.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -259,7 +264,7 @@ export const TOOL_CATALOGUE = [
   {
     access: 'write',
     name: 'create_skill',
-    description: 'Add a skill to the user profile. Requires a full-access token.',
+    description: 'Add a skill to the user profile.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -273,8 +278,7 @@ export const TOOL_CATALOGUE = [
   {
     access: 'write',
     name: 'update_skill',
-    description:
-      'Update an existing skill. Only the fields provided are changed. Requires a full-access token.',
+    description: 'Update an existing skill. Only the fields provided are changed.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -289,7 +293,7 @@ export const TOOL_CATALOGUE = [
   {
     access: 'write',
     name: 'create_education',
-    description: 'Add an education entry to the user profile. Requires a full-access token.',
+    description: 'Add an education entry to the user profile.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -306,8 +310,7 @@ export const TOOL_CATALOGUE = [
   {
     access: 'write',
     name: 'update_education',
-    description:
-      'Update an existing education entry. Only the fields provided are changed. Requires a full-access token.',
+    description: 'Update an existing education entry. Only the fields provided are changed.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -325,7 +328,7 @@ export const TOOL_CATALOGUE = [
   {
     access: 'write',
     name: 'create_work_experience',
-    description: 'Add a work experience entry to the user profile. Requires a full-access token.',
+    description: 'Add a work experience entry to the user profile.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -342,8 +345,7 @@ export const TOOL_CATALOGUE = [
   {
     access: 'write',
     name: 'update_work_experience',
-    description:
-      'Update an existing work experience entry. Only the fields provided are changed. Requires a full-access token.',
+    description: 'Update an existing work experience entry. Only the fields provided are changed.',
     inputSchema: {
       type: 'object',
       properties: {
