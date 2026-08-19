@@ -98,6 +98,19 @@ describe('mcp integration', () => {
     await testApp.cleanup();
   });
 
+  it.each(['GET', 'DELETE'] as const)(
+    'answers %s /mcp with 405 and an Allow header, not 404',
+    async (method) => {
+      const res = await testApp.app.inject({ method, url: ROUTES.MCP });
+
+      // 404 would read as "no such endpoint" and can make a strict client
+      // abandon the server before it ever sees the 401 that starts OAuth
+      // discovery. 405 says the endpoint is real, just not that way.
+      expect(res.statusCode).toBe(405);
+      expect(res.headers.allow).toBe('POST');
+    },
+  );
+
   it('rejects a request with no Authorization header', async () => {
     const res = await mcpInject(null, { jsonrpc: '2.0', id: 1, method: 'tools/list' });
 

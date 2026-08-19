@@ -1,12 +1,20 @@
+import type { IHttpRequest } from '#src/http/ports/IHttpRequest.js';
+import type { IHttpResponse } from '#src/http/ports/IHttpResponse.js';
 import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
 import type { Cradle } from '#src/http/container.js';
 import { AUTH_HEADER, ROUTES } from '#src/constants.js';
 import { protectedResourceMetadataUrl } from './mcpOAuth.routes.js';
 
 /**
- * MCP transport. Authenticates the Bearer API token via
+ * MCP transport. Authenticates the Bearer credential via
  * AuthenticateMcpRequestUseCase, then hands the JSON-RPC body to the
  * McpController (interface adapter) which owns all protocol logic.
+ *
+ * POST is the only method that carries messages: there is no server-initiated
+ * SSE stream and no session handling, so this is a subset of MCP's Streamable
+ * HTTP transport. GET and DELETE are still registered — see below — because
+ * the difference between "not supported here" and "no such endpoint" is what
+ * lets a client keep going instead of giving up on the server entirely.
  */
 export function mcpRoutes(getCradle: () => Cradle): RouteDefinition[] {
   return [
@@ -52,5 +60,21 @@ export function mcpRoutes(getCradle: () => Cradle): RouteDefinition[] {
         res.status(status ?? 200).send(body);
       },
     },
+    // A client opens the server-to-client stream with GET, and terminates a
+    // session with DELETE. Neither exists here, and the spec is specific about
+    // how to say so: 405 with an Allow header, not 404. Fastify's default for
+    // an unregistered method is 404, which reads as "this endpoint is not
+    // here" — enough for a strict client to abandon the server before it ever
+    // reaches the 401 that starts OAuth discovery.
+    ...(['GET', 'DELETE'] as const).map((method) => ({
+      method,
+      path: ROUTES.MCP,
+      handler: (_req: IHttpRequest, res: IHttpResponse) => {
+        res
+          .status(405)
+          .header('Allow', 'POST')
+          .send({ error: 'Only POST is supported on this endpoint' });
+      },
+    })),
   ];
 }

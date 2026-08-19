@@ -82,14 +82,21 @@ export async function buildApp(fastify: FastifyInstance): Promise<FastifyInstanc
     ...mcpOAuthMetadataRoutes(() => container.cradle),
   ]);
 
-  fastify.route({
-    method: 'POST',
-    url: ROUTES.MCP,
-    handler: async (request, reply) => {
-      const [route] = mcpRoutes(() => diScopeOf(request).cradle);
-      await route.handler(toHttpRequest(request), toHttpResponse(reply));
-    },
-  });
+  // Registered here rather than through registerRoutes because MCP resolves
+  // its dependencies from a per-request DI scope. Every definition is wired,
+  // not just the first: the GET/DELETE handlers exist to answer 405 rather
+  // than let Fastify answer 404, and a hardcoded `[route]` would silently drop
+  // them.
+  for (const { method, path } of mcpRoutes(() => container.cradle)) {
+    fastify.route({
+      method,
+      url: path,
+      handler: async (request, reply) => {
+        const route = mcpRoutes(() => diScopeOf(request).cradle).find((r) => r.method === method)!;
+        await route.handler(toHttpRequest(request), toHttpResponse(reply));
+      },
+    });
+  }
   fastify.route({
     method: 'GET',
     url: ROUTES.OAUTH_START,
