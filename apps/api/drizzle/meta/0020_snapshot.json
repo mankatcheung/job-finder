@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "7a519336-d047-480e-b0bd-00a00c0b81ab",
-  "prevId": "e7b559d6-45e2-4593-a4c9-bf132dcc1862",
+  "id": "11292ecc-813e-4192-a3fa-f5b6656c0264",
+  "prevId": "8831831e-b7e9-40ae-8c2f-71d7eba58a0e",
   "tables": {
     "User": {
       "name": "User",
@@ -1066,6 +1066,295 @@
         "McpOAuthAccessToken_userId_User_id_fk": {
           "name": "McpOAuthAccessToken_userId_User_id_fk",
           "tableFrom": "McpOAuthAccessToken",
+          "tableTo": "User",
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "McpOAuthAuthorizationCode": {
+      "name": "McpOAuthAuthorizationCode",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "codeHash": {
+          "name": "codeHash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "clientId": {
+          "name": "clientId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "redirectUri": {
+          "name": "redirectUri",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "scope": {
+          "name": "scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "codeChallenge": {
+          "name": "codeChallenge",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "codeChallengeMethod": {
+          "name": "codeChallengeMethod",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "consumedAt": {
+          "name": "consumedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "McpOAuthAuthorizationCode_codeHash_unique": {
+          "name": "McpOAuthAuthorizationCode_codeHash_unique",
+          "columns": ["codeHash"],
+          "isUnique": true
+        },
+        "McpOAuthAuthorizationCode_clientId_idx": {
+          "name": "McpOAuthAuthorizationCode_clientId_idx",
+          "columns": ["clientId"],
+          "isUnique": false
+        },
+        "McpOAuthAuthorizationCode_userId_idx": {
+          "name": "McpOAuthAuthorizationCode_userId_idx",
+          "columns": ["userId"],
+          "isUnique": false
+        },
+        "McpOAuthAuthorizationCode_expiresAt_idx": {
+          "name": "McpOAuthAuthorizationCode_expiresAt_idx",
+          "columns": ["expiresAt"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "McpOAuthAuthorizationCode_clientId_McpOAuthClient_id_fk": {
+          "name": "McpOAuthAuthorizationCode_clientId_McpOAuthClient_id_fk",
+          "tableFrom": "McpOAuthAuthorizationCode",
+          "tableTo": "McpOAuthClient",
+          "columnsFrom": ["clientId"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "McpOAuthAuthorizationCode_userId_User_id_fk": {
+          "name": "McpOAuthAuthorizationCode_userId_User_id_fk",
+          "tableFrom": "McpOAuthAuthorizationCode",
+          "tableTo": "User",
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "McpOAuthClient": {
+      "name": "McpOAuthClient",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "redirectUris": {
+          "name": "redirectUris",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "revokedAt": {
+          "name": "revokedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "McpOAuthClient_createdAt_idx": {
+          "name": "McpOAuthClient_createdAt_idx",
+          "columns": ["createdAt"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "McpOAuthRefreshToken": {
+      "name": "McpOAuthRefreshToken",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tokenHash": {
+          "name": "tokenHash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "familyId": {
+          "name": "familyId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "clientId": {
+          "name": "clientId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "scope": {
+          "name": "scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "usedAt": {
+          "name": "usedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "revokedAt": {
+          "name": "revokedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "McpOAuthRefreshToken_tokenHash_unique": {
+          "name": "McpOAuthRefreshToken_tokenHash_unique",
+          "columns": ["tokenHash"],
+          "isUnique": true
+        },
+        "McpOAuthRefreshToken_familyId_idx": {
+          "name": "McpOAuthRefreshToken_familyId_idx",
+          "columns": ["familyId"],
+          "isUnique": false
+        },
+        "McpOAuthRefreshToken_userId_idx": {
+          "name": "McpOAuthRefreshToken_userId_idx",
+          "columns": ["userId"],
+          "isUnique": false
+        },
+        "McpOAuthRefreshToken_expiresAt_idx": {
+          "name": "McpOAuthRefreshToken_expiresAt_idx",
+          "columns": ["expiresAt"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "McpOAuthRefreshToken_userId_User_id_fk": {
+          "name": "McpOAuthRefreshToken_userId_User_id_fk",
+          "tableFrom": "McpOAuthRefreshToken",
           "tableTo": "User",
           "columnsFrom": ["userId"],
           "columnsTo": ["id"],

@@ -1,3 +1,19 @@
+--> Adds the grant id (`familyId`) to the two MCP OAuth tables that lacked it,
+--> so one consent is one revocable unit across codes, access tokens, and
+--> refresh tokens.
+--> 
+--> Written by hand rather than generated: drizzle-kit emits
+--> `ALTER TABLE ... ADD COLUMN ... NOT NULL`, which SQLite refuses outright
+--> when no default is supplied — even against an empty table. A default is
+--> not an option either, since an empty grant id would silently group
+--> unrelated tokens into one revocable family.
+--> 
+--> Dropping is safe here and nowhere near as alarming as it looks: both
+--> tables were created two migrations ago by this same unshipped feature, so
+--> the only rows that can exist are from a PR preview database. Nothing has
+--> ever issued an MCP OAuth token outside of CI.
+DROP TABLE IF EXISTS `McpOAuthAuthorizationCode`;--> statement-breakpoint
+DROP TABLE IF EXISTS `McpOAuthAccessToken`;--> statement-breakpoint
 CREATE TABLE `McpOAuthAccessToken` (
 	`id` text PRIMARY KEY NOT NULL,
 	`userId` text NOT NULL,
@@ -39,31 +55,4 @@ CREATE UNIQUE INDEX `McpOAuthAuthorizationCode_codeHash_unique` ON `McpOAuthAuth
 CREATE INDEX `McpOAuthAuthorizationCode_clientId_idx` ON `McpOAuthAuthorizationCode` (`clientId`);--> statement-breakpoint
 CREATE INDEX `McpOAuthAuthorizationCode_familyId_idx` ON `McpOAuthAuthorizationCode` (`familyId`);--> statement-breakpoint
 CREATE INDEX `McpOAuthAuthorizationCode_userId_idx` ON `McpOAuthAuthorizationCode` (`userId`);--> statement-breakpoint
-CREATE INDEX `McpOAuthAuthorizationCode_expiresAt_idx` ON `McpOAuthAuthorizationCode` (`expiresAt`);--> statement-breakpoint
-CREATE TABLE `McpOAuthClient` (
-	`id` text PRIMARY KEY NOT NULL,
-	`name` text NOT NULL,
-	`redirectUris` text NOT NULL,
-	`revokedAt` integer,
-	`createdAt` integer NOT NULL
-);
---> statement-breakpoint
-CREATE INDEX `McpOAuthClient_createdAt_idx` ON `McpOAuthClient` (`createdAt`);--> statement-breakpoint
-CREATE TABLE `McpOAuthRefreshToken` (
-	`id` text PRIMARY KEY NOT NULL,
-	`tokenHash` text NOT NULL,
-	`familyId` text NOT NULL,
-	`clientId` text NOT NULL,
-	`userId` text NOT NULL,
-	`scope` text NOT NULL,
-	`expiresAt` integer NOT NULL,
-	`usedAt` integer,
-	`revokedAt` integer,
-	`createdAt` integer NOT NULL,
-	FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON UPDATE no action ON DELETE cascade
-);
---> statement-breakpoint
-CREATE UNIQUE INDEX `McpOAuthRefreshToken_tokenHash_unique` ON `McpOAuthRefreshToken` (`tokenHash`);--> statement-breakpoint
-CREATE INDEX `McpOAuthRefreshToken_familyId_idx` ON `McpOAuthRefreshToken` (`familyId`);--> statement-breakpoint
-CREATE INDEX `McpOAuthRefreshToken_userId_idx` ON `McpOAuthRefreshToken` (`userId`);--> statement-breakpoint
-CREATE INDEX `McpOAuthRefreshToken_expiresAt_idx` ON `McpOAuthRefreshToken` (`expiresAt`);
+CREATE INDEX `McpOAuthAuthorizationCode_expiresAt_idx` ON `McpOAuthAuthorizationCode` (`expiresAt`);
