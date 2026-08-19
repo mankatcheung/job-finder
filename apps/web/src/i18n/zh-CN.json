@@ -392,6 +392,8 @@
   "integrations.scopeFull": "完全访问",
   "integrations.scopeReadHelp": "可读取你的数据。适用于 MCP 客户端，无法进行任何修改。",
   "integrations.scopeFullHelp": "可读取并修改账户中的所有内容，包括删除数据。",
+  "integrations.mcpHint": "只读令牌也可通过 MCP 与 AI 助理搭配使用。",
+  "integrations.mcpHintLink": "连接方法",
   "integrations.tokenCreatedNote": "令牌已成功创建。请立即复制——它不会再次显示。",
   "integrations.copyTokenAria": "复制令牌",
   "integrations.copyLinkAria": "复制链接",
