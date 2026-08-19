@@ -78,6 +78,7 @@
   "auth.verificationSentPrefix": "我们已将验证链接发送至",
   "auth.verificationSentSuffix": "。请点击链接以验证您的账户。",
   "landing.signIn": "登录",
+  "landing.goDashboard": "前往仪表板",
   "landing.getStarted": "开始使用",
   "landing.startFree": "免费开始",
   "landing.heroTitleLine1": "你的求职之旅，",
