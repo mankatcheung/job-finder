@@ -33,6 +33,8 @@ export const ENV = {
   NODE_ENV: 'NODE_ENV',
   PORT: 'PORT',
   CORS_ORIGIN: 'CORS_ORIGIN',
+  /** This API's own public origin, used as the OAuth issuer. */
+  API_ORIGIN: 'API_ORIGIN',
   COOKIE_DOMAIN: 'COOKIE_DOMAIN',
   JWT_SECRET: 'JWT_SECRET',
   JWT_REFRESH_SECRET: 'JWT_REFRESH_SECRET',
@@ -308,6 +310,8 @@ export const MCP_OAUTH = {
   ACCESS_TOKEN_PREFIX: 'trakwyn_mcp_',
   ACCESS_TOKEN_RANDOM_BYTES: 32,
   ACCESS_TOKEN_TTL_MS: 60 * 60 * 1000,
+  /** How long a rendered consent screen stays submittable. */
+  CONSENT_TOKEN_TTL_MS: 10 * 60 * 1000,
 } as const;
 
 /**

@@ -19,7 +19,12 @@ describe('CreateMcpOAuthAccessTokenUseCase', () => {
       now: () => now,
     });
 
-    const result = await useCase.execute({ userId: 'user-1', clientId: 'client-1', scope: 'read' });
+    const result = await useCase.execute({
+      userId: 'user-1',
+      clientId: 'client-1',
+      familyId: 'grant-1',
+      scope: 'read',
+    });
 
     expect(result.rawToken).toMatch(/^trakwyn_mcp_[a-f0-9]{64}$/);
     expect(result.token).toMatchObject({

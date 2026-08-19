@@ -26,6 +26,7 @@ describe('DrizzleMcpOAuthTokenRepository', () => {
       id: 'token-1',
       userId: 'user-1',
       clientId: 'client-1',
+      familyId: 'grant-1',
       tokenHash,
       scope: 'read',
       audience: '/mcp',
@@ -36,6 +37,7 @@ describe('DrizzleMcpOAuthTokenRepository', () => {
       id: 'token-1',
       userId: 'user-1',
       clientId: 'client-1',
+      familyId: 'grant-1',
       scope: 'read',
       audience: '/mcp',
     });
@@ -47,6 +49,7 @@ describe('DrizzleMcpOAuthTokenRepository', () => {
       id: 'token-1',
       userId: 'user-1',
       clientId: 'client-1',
+      familyId: 'grant-1',
       tokenHash,
       scope: 'full',
       audience: '/mcp',
@@ -59,5 +62,36 @@ describe('DrizzleMcpOAuthTokenRepository', () => {
     const token = await repository.findByTokenHash(tokenHash);
     expect(token?.lastUsedAt).toBeInstanceOf(Date);
     expect(token?.revokedAt).toBeInstanceOf(Date);
+  });
+
+  it('revokes every live token in a grant, preserving earlier revocation times', async () => {
+    const hashes = ['a', 'b', 'c'].map((seed) =>
+      createHash('sha256').update(`trakwyn_mcp_${seed}`).digest('hex'),
+    );
+    await Promise.all(
+      hashes.map((tokenHash, index) =>
+        repository.create({
+          id: `token-${index}`,
+          userId: 'user-1',
+          // The third token belongs to a different grant and must survive.
+          clientId: 'client-1',
+          familyId: index === 2 ? 'grant-2' : 'grant-1',
+          tokenHash,
+          scope: 'read',
+          audience: '/mcp',
+          expiresAt: new Date('2026-08-19T13:00:00.000Z'),
+        }),
+      ),
+    );
+    const alreadyRevoked = new Date('2026-08-19T10:00:00.000Z');
+    await repository.revokeFamily('grant-1', alreadyRevoked);
+
+    const later = new Date('2026-08-19T12:00:00.000Z');
+    await repository.revokeFamily('grant-1', later);
+
+    const [first, , other] = await Promise.all(hashes.map((h) => repository.findByTokenHash(h)));
+    // Re-revoking keeps the original timestamp so the audit trail stays honest.
+    expect(first?.revokedAt).toEqual(alreadyRevoked);
+    expect(other?.revokedAt).toBeNull();
   });
 });

@@ -60,6 +60,7 @@ const SCHEMA_STATEMENTS = [
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,
     "clientId" TEXT NOT NULL,
+    "familyId" TEXT NOT NULL,
     "tokenHash" TEXT NOT NULL UNIQUE,
     "scope" TEXT NOT NULL,
     "audience" TEXT NOT NULL,
@@ -71,6 +72,7 @@ const SCHEMA_STATEMENTS = [
   )`,
   `CREATE INDEX "McpOAuthAccessToken_userId_idx" ON "McpOAuthAccessToken"("userId")`,
   `CREATE INDEX "McpOAuthAccessToken_clientId_idx" ON "McpOAuthAccessToken"("clientId")`,
+  `CREATE INDEX "McpOAuthAccessToken_familyId_idx" ON "McpOAuthAccessToken"("familyId")`,
   `CREATE INDEX "McpOAuthAccessToken_expiresAt_idx" ON "McpOAuthAccessToken"("expiresAt")`,
   `CREATE TABLE "McpOAuthClient" (
     "id" TEXT PRIMARY KEY,
@@ -83,6 +85,7 @@ const SCHEMA_STATEMENTS = [
   `CREATE TABLE "McpOAuthAuthorizationCode" (
     "id" TEXT PRIMARY KEY,
     "codeHash" TEXT NOT NULL UNIQUE,
+    "familyId" TEXT NOT NULL,
     "clientId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "redirectUri" TEXT NOT NULL,
@@ -96,6 +99,7 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "McpOAuthAuthorizationCode_clientId_idx" ON "McpOAuthAuthorizationCode"("clientId")`,
+  `CREATE INDEX "McpOAuthAuthorizationCode_familyId_idx" ON "McpOAuthAuthorizationCode"("familyId")`,
   `CREATE INDEX "McpOAuthAuthorizationCode_userId_idx" ON "McpOAuthAuthorizationCode"("userId")`,
   `CREATE INDEX "McpOAuthAuthorizationCode_expiresAt_idx" ON "McpOAuthAuthorizationCode"("expiresAt")`,
   `CREATE TABLE "McpOAuthRefreshToken" (

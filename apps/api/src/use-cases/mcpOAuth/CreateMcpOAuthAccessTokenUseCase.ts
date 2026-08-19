@@ -15,6 +15,8 @@ interface Deps {
 export interface CreateMcpOAuthAccessTokenInput {
   userId: string;
   clientId: string;
+  /** The grant this token belongs to; see McpOAuthAccessToken.familyId. */
+  familyId: string;
   scope: McpOAuthScope;
 }
 
@@ -34,6 +36,7 @@ export class CreateMcpOAuthAccessTokenUseCase {
       id: this.deps.generateId(),
       userId: input.userId,
       clientId: input.clientId,
+      familyId: input.familyId,
       tokenHash: createHash('sha256').update(rawToken).digest('hex'),
       scope: input.scope,
       audience: MCP_OAUTH.RESOURCE,

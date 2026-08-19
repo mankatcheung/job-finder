@@ -15,6 +15,7 @@ describe('ValidateMcpOAuthAccessTokenUseCase', () => {
     id: 'token-1',
     userId: 'user-1',
     clientId: 'client-1',
+    familyId: 'grant-1',
     tokenHash: 'hash',
     scope: 'read',
     audience: '/mcp',
@@ -63,5 +64,40 @@ describe('ValidateMcpOAuthAccessTokenUseCase', () => {
 
     await expect(useCase.execute('trakwyn_regular_api_token')).resolves.toBeNull();
     expect(repository.findByTokenHash).not.toHaveBeenCalled();
+  });
+
+  it('refuses an expired access token', async () => {
+    const repository = makeRepository({
+      ...validToken,
+      expiresAt: new Date('2026-08-19T11:59:59.000Z'),
+    });
+    const useCase = new ValidateMcpOAuthAccessTokenUseCase({
+      mcpOAuthTokenRepository: repository,
+      now: () => now,
+    });
+
+    expect(await useCase.execute('trakwyn_mcp_abc')).toBeNull();
+    expect(repository.updateLastUsed).not.toHaveBeenCalled();
+  });
+
+  it('refuses a revoked access token', async () => {
+    const repository = makeRepository({ ...validToken, revokedAt: now });
+    const useCase = new ValidateMcpOAuthAccessTokenUseCase({
+      mcpOAuthTokenRepository: repository,
+      now: () => now,
+    });
+
+    // This is what makes revocation immediate rather than "within the hour".
+    expect(await useCase.execute('trakwyn_mcp_abc')).toBeNull();
+  });
+
+  it('refuses a token minted for a different audience', async () => {
+    const repository = makeRepository({ ...validToken, audience: '/graphql' });
+    const useCase = new ValidateMcpOAuthAccessTokenUseCase({
+      mcpOAuthTokenRepository: repository,
+      now: () => now,
+    });
+
+    expect(await useCase.execute('trakwyn_mcp_abc')).toBeNull();
   });
 });

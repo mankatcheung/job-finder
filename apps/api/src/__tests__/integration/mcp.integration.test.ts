@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { ROUTES } from '#src/constants.js';
 import { buildTestApp, type TestApp } from './helpers/buildTestApp.js';
@@ -157,109 +157,403 @@ describe('mcp integration', () => {
     });
   });
 
-  it('registers an MCP client and exchanges a PKCE authorization code', async () => {
-    const clientRes = await testApp.app.inject({
+  // The consent endpoints only accept the web app's exact Origin; the global
+  // CORS policy is deliberately not what guards them.
+  const WEB_ORIGIN = 'http://localhost:3000';
+  const REDIRECT_URI = 'http://localhost:6274/oauth/callback';
+  // RFC 7636 requires 43-128 characters.
+  const CODE_VERIFIER = 'test-code-verifier-padded-to-the-minimum-len';
+
+  // The OAuth endpoints are rate-limited per client IP, so each test speaks
+  // from its own address rather than sharing one bucket with every other test.
+  let clientIp = '';
+  let ipCounter = 0;
+  beforeEach(() => {
+    ipCounter += 1;
+    clientIp = `10.0.0.${ipCounter}`;
+  });
+
+  async function registerClient(): Promise<string> {
+    const res = await testApp.app.inject({
+      remoteAddress: clientIp,
       method: 'POST',
       url: '/oauth/register',
-      payload: {
-        client_name: 'Test MCP Client',
-        redirect_uris: ['http://localhost:6274/oauth/callback'],
-      },
+      payload: { client_name: 'Test MCP Client', redirect_uris: [REDIRECT_URI] },
     });
-    expect(clientRes.statusCode).toBe(201);
-    const client = clientRes.json() as { client_id: string };
-    const cookie = await registerAndGetCookie();
-    const codeVerifier = 'test-code-verifier';
-    const { createHash } = await import('node:crypto');
-    const codeChallenge = createHash('sha256').update(codeVerifier).digest('base64url');
+    expect(res.statusCode).toBe(201);
+    return (res.json() as { client_id: string }).client_id;
+  }
 
-    const approvalRes = await testApp.app.inject({
+  async function authorizationParams(clientId: string, scope: 'read' | 'full' = 'read') {
+    const { createHash } = await import('node:crypto');
+    return {
+      client_id: clientId,
+      redirect_uri: REDIRECT_URI,
+      response_type: 'code',
+      scope,
+      code_challenge: createHash('sha256').update(CODE_VERIFIER).digest('base64url'),
+      code_challenge_method: 'S256',
+      state: 'state-1',
+    };
+  }
+
+  /** Renders the consent screen, which is the only source of a consent token. */
+  async function consentToken(cookie: string, params: Record<string, string>): Promise<string> {
+    const res = await testApp.app.inject({
+      remoteAddress: clientIp,
+      method: 'GET',
+      url: `/oauth/authorize/approve?${new URLSearchParams(params).toString()}`,
+      headers: { cookie, origin: WEB_ORIGIN },
+    });
+    expect(res.statusCode).toBe(200);
+    return (res.json() as { consent_token: string }).consent_token;
+  }
+
+  async function approve(cookie: string, params: Record<string, string>): Promise<string> {
+    const res = await testApp.app.inject({
+      remoteAddress: clientIp,
       method: 'POST',
       url: '/oauth/authorize/approve',
-      headers: { cookie },
-      payload: {
-        client_id: client.client_id,
-        redirect_uri: 'http://localhost:6274/oauth/callback',
-        response_type: 'code',
-        scope: 'read',
-        code_challenge: codeChallenge,
-        code_challenge_method: 'S256',
-        state: 'state-1',
-        approved: true,
-      },
+      headers: { cookie, origin: WEB_ORIGIN },
+      payload: { ...params, approved: true, consent_token: await consentToken(cookie, params) },
     });
-    expect(approvalRes.statusCode).toBe(200);
-    const redirectTo = (approvalRes.json() as { redirect_to: string }).redirect_to;
-    const authorizationCode = new URL(redirectTo).searchParams.get('code');
-    expect(authorizationCode).toBeTruthy();
+    expect(res.statusCode).toBe(200);
+    const code = new URL((res.json() as { redirect_to: string }).redirect_to).searchParams.get(
+      'code',
+    );
+    expect(code).toBeTruthy();
+    return code!;
+  }
 
-    const tokenRes = await testApp.app.inject({
+  async function exchange(clientId: string, code: string) {
+    return testApp.app.inject({
+      remoteAddress: clientIp,
       method: 'POST',
       url: '/oauth/token',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       payload: new URLSearchParams({
         grant_type: 'authorization_code',
-        code: authorizationCode!,
-        client_id: client.client_id,
-        redirect_uri: 'http://localhost:6274/oauth/callback',
-        code_verifier: codeVerifier,
+        code,
+        client_id: clientId,
+        redirect_uri: REDIRECT_URI,
+        code_verifier: CODE_VERIFIER,
       }).toString(),
     });
-    expect(tokenRes.statusCode).toBe(200);
-    const token = tokenRes.json() as {
-      access_token: string;
-      refresh_token: string;
-      token_type: string;
-      scope: string;
-    };
-    expect(token).toMatchObject({ token_type: 'Bearer', scope: 'read' });
-    expect(token.refresh_token).toMatch(/^trakwyn_mcp_refresh_/);
+  }
 
-    const mcpRes = await mcpInject(token.access_token, {
+  async function grantOAuthToken(scope: 'read' | 'full' = 'read') {
+    const clientId = await registerClient();
+    const cookie = await registerAndGetCookie();
+    const params = await authorizationParams(clientId, scope);
+    const res = await exchange(clientId, await approve(cookie, params));
+    expect(res.statusCode).toBe(200);
+    return {
+      clientId,
+      cookie,
+      params,
+      ...(res.json() as { access_token: string; refresh_token: string; scope: string }),
+    };
+  }
+
+  it('registers an MCP client and exchanges a PKCE authorization code', async () => {
+    const grant = await grantOAuthToken('read');
+
+    expect(grant.scope).toBe('read');
+    expect(grant.refresh_token).toMatch(/^trakwyn_mcp_refresh_/);
+    const mcpRes = await mcpInject(grant.access_token, {
       jsonrpc: '2.0',
       id: 100,
       method: 'tools/list',
     });
     expect(mcpRes.statusCode).toBe(200);
+  });
+
+  it('never lets a token response be cached', async () => {
+    const clientId = await registerClient();
+    const cookie = await registerAndGetCookie();
+    const params = await authorizationParams(clientId);
+
+    const res = await exchange(clientId, await approve(cookie, params));
+
+    expect(res.headers['cache-control']).toBe('no-store');
+  });
+
+  it('refuses a consent POST from another origin, so a cross-site page cannot mint a code', async () => {
+    const clientId = await registerClient();
+    const cookie = await registerAndGetCookie();
+    const params = await authorizationParams(clientId);
+    const token = await consentToken(cookie, params);
+
+    // The session cookie is SameSite=None in production, so the browser would
+    // attach it here. Origin is what stops the request.
+    const res = await testApp.app.inject({
+      remoteAddress: clientIp,
+      method: 'POST',
+      url: '/oauth/authorize/approve',
+      headers: { cookie, origin: 'https://attacker.vercel.app' },
+      payload: { ...params, approved: true, consent_token: token },
+    });
+
+    expect(res.statusCode).toBe(403);
+    expect(res.json()).toEqual({ error: 'invalid_request' });
+  });
+
+  it('refuses a consent POST with no Origin header at all', async () => {
+    const clientId = await registerClient();
+    const cookie = await registerAndGetCookie();
+    const params = await authorizationParams(clientId);
+
+    const res = await testApp.app.inject({
+      remoteAddress: clientIp,
+      method: 'POST',
+      url: '/oauth/authorize/approve',
+      headers: { cookie },
+      payload: { ...params, approved: true },
+    });
+
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('refuses a consent POST with no consent token, even from the right origin', async () => {
+    const clientId = await registerClient();
+    const cookie = await registerAndGetCookie();
+    const params = await authorizationParams(clientId);
+
+    const res = await testApp.app.inject({
+      remoteAddress: clientIp,
+      method: 'POST',
+      url: '/oauth/authorize/approve',
+      headers: { cookie, origin: WEB_ORIGIN },
+      payload: { ...params, approved: true },
+    });
+
+    // `approved: true` on its own is not consent.
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toEqual({ error: 'invalid_request' });
+  });
+
+  it('refuses a consent token minted for a different client', async () => {
+    const cookie = await registerAndGetCookie();
+    const honestParams = await authorizationParams(await registerClient());
+    const attackerParams = await authorizationParams(await registerClient());
+    const tokenForHonestClient = await consentToken(cookie, honestParams);
+
+    const res = await testApp.app.inject({
+      remoteAddress: clientIp,
+      method: 'POST',
+      url: '/oauth/authorize/approve',
+      headers: { cookie, origin: WEB_ORIGIN },
+      payload: { ...attackerParams, approved: true, consent_token: tokenForHonestClient },
+    });
+
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('refuses to render a consent screen for a signed-out visitor', async () => {
+    const params = await authorizationParams(await registerClient());
+
+    const res = await testApp.app.inject({
+      remoteAddress: clientIp,
+      method: 'GET',
+      url: `/oauth/authorize/approve?${new URLSearchParams(params).toString()}`,
+      headers: { origin: WEB_ORIGIN },
+    });
+
+    expect(res.statusCode).toBe(401);
+    expect(res.json()).toEqual({ error: 'login_required' });
+  });
+
+  it('refuses to authorize on a session that has been logged out (JEF-164)', async () => {
+    const clientId = await registerClient();
+    const cookie = await registerAndGetCookie();
+    const params = await authorizationParams(clientId);
+    await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      headers: { cookie },
+      payload: { query: 'mutation { logout }' },
+    });
+
+    const res = await testApp.app.inject({
+      remoteAddress: clientIp,
+      method: 'GET',
+      url: `/oauth/authorize/approve?${new URLSearchParams(params).toString()}`,
+      headers: { cookie, origin: WEB_ORIGIN },
+    });
+
+    // The JWT itself is still within its 15 minutes; the blocklist is what
+    // stops a dead session from buying a 30-day refresh token.
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('rejects a replayed authorization code and revokes what the first exchange produced', async () => {
+    const clientId = await registerClient();
+    const cookie = await registerAndGetCookie();
+    const params = await authorizationParams(clientId);
+    const code = await approve(cookie, params);
+    const first = await exchange(clientId, code);
+    expect(first.statusCode).toBe(200);
+    const issued = first.json() as { access_token: string };
+
+    const replay = await exchange(clientId, code);
+
+    expect(replay.statusCode).toBe(400);
+    // The code leaked, so the tokens it already produced are suspect too.
+    const afterReplay = await mcpInject(issued.access_token, {
+      jsonrpc: '2.0',
+      id: 102,
+      method: 'tools/list',
+    });
+    expect(afterReplay.statusCode).toBe(401);
+  });
+
+  it('rejects an exchange whose code_verifier does not match the challenge', async () => {
+    const clientId = await registerClient();
+    const cookie = await registerAndGetCookie();
+    const params = await authorizationParams(clientId);
+    const code = await approve(cookie, params);
+
+    const res = await testApp.app.inject({
+      remoteAddress: clientIp,
+      method: 'POST',
+      url: '/oauth/token',
+      payload: {
+        grant_type: 'authorization_code',
+        code,
+        client_id: clientId,
+        redirect_uri: REDIRECT_URI,
+        code_verifier: 'a-different-verifier-of-a-permissible-length',
+      },
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toEqual({ error: 'invalid_grant' });
+  });
+
+  it('rotates refresh tokens and burns the family when an old one is replayed', async () => {
+    const grant = await grantOAuthToken();
 
     const refreshedRes = await testApp.app.inject({
+      remoteAddress: clientIp,
       method: 'POST',
       url: '/oauth/token',
       payload: {
         grant_type: 'refresh_token',
-        refresh_token: token.refresh_token,
-        client_id: client.client_id,
+        refresh_token: grant.refresh_token,
+        client_id: grant.clientId,
       },
     });
     expect(refreshedRes.statusCode).toBe(200);
     const refreshed = refreshedRes.json() as { access_token: string; refresh_token: string };
-    expect(refreshed.access_token).not.toBe(token.access_token);
-    expect(refreshed.refresh_token).not.toBe(token.refresh_token);
+    expect(refreshed.refresh_token).not.toBe(grant.refresh_token);
 
     const reusedRes = await testApp.app.inject({
+      remoteAddress: clientIp,
       method: 'POST',
       url: '/oauth/token',
       payload: {
         grant_type: 'refresh_token',
-        refresh_token: token.refresh_token,
-        client_id: client.client_id,
+        refresh_token: grant.refresh_token,
+        client_id: grant.clientId,
       },
     });
+
     expect(reusedRes.statusCode).toBe(400);
+    // The access token handed out moments ago dies with the family, rather
+    // than staying usable for the rest of its hour.
+    const afterBurn = await mcpInject(refreshed.access_token, {
+      jsonrpc: '2.0',
+      id: 103,
+      method: 'tools/list',
+    });
+    expect(afterBurn.statusCode).toBe(401);
+  });
+
+  it('revokes the whole grant when handed an access token', async () => {
+    const grant = await grantOAuthToken();
 
     const revokeRes = await testApp.app.inject({
+      remoteAddress: clientIp,
       method: 'POST',
       url: '/oauth/revoke',
-      payload: { token: token.access_token },
+      payload: { token: grant.access_token },
     });
     expect(revokeRes.statusCode).toBe(200);
 
-    const revokedMcpRes = await mcpInject(token.access_token, {
+    const revokedMcpRes = await mcpInject(grant.access_token, {
       jsonrpc: '2.0',
       id: 101,
       method: 'tools/list',
     });
     expect(revokedMcpRes.statusCode).toBe(401);
+    // The refresh token must go too, or "revoked" lasts until the next refresh.
+    const refreshRes = await testApp.app.inject({
+      remoteAddress: clientIp,
+      method: 'POST',
+      url: '/oauth/token',
+      payload: {
+        grant_type: 'refresh_token',
+        refresh_token: grant.refresh_token,
+        client_id: grant.clientId,
+      },
+    });
+    expect(refreshRes.statusCode).toBe(400);
+  });
+
+  it('accepts a refresh token at the revocation endpoint (RFC 7009)', async () => {
+    const grant = await grantOAuthToken();
+
+    const revokeRes = await testApp.app.inject({
+      remoteAddress: clientIp,
+      method: 'POST',
+      url: '/oauth/revoke',
+      payload: { token: grant.refresh_token },
+    });
+    expect(revokeRes.statusCode).toBe(200);
+
+    // A 200 that revoked nothing would be worse than an error: the client
+    // believes it disconnected while the credential stays live for 30 days.
+    const stillWorks = await mcpInject(grant.access_token, {
+      jsonrpc: '2.0',
+      id: 104,
+      method: 'tools/list',
+    });
+    expect(stillWorks.statusCode).toBe(401);
+  });
+
+  it('gates write tools on the scope the user consented to, not merely on being authenticated', async () => {
+    const readGrant = await grantOAuthToken('read');
+
+    const listed = await mcpInject(readGrant.access_token, {
+      jsonrpc: '2.0',
+      id: 105,
+      method: 'tools/list',
+    });
+    const tools = (listed.json() as { result: { tools: Array<{ name: string }> } }).result.tools;
+    expect(tools.map((tool) => tool.name)).not.toContain('create_application');
+
+    const called = await mcpInject(readGrant.access_token, {
+      jsonrpc: '2.0',
+      id: 106,
+      method: 'tools/call',
+      params: { name: 'create_application', arguments: { company: 'Acme', role: 'Dev' } },
+    });
+
+    // Consenting to `read` must buy exactly what a read-only API token buys.
+    expect((called.json() as JsonRpcResponse).error?.message).toMatch(/read-only/i);
+  });
+
+  it('lets a full-scope grant call a write tool', async () => {
+    const fullGrant = await grantOAuthToken('full');
+
+    const called = await mcpInject(fullGrant.access_token, {
+      jsonrpc: '2.0',
+      id: 107,
+      method: 'tools/call',
+      params: { name: 'create_application', arguments: { company: 'Acme', role: 'Dev' } },
+    });
+
+    expect((called.json() as JsonRpcResponse).error).toBeUndefined();
   });
 
   it('rejects a bearer credential that is not an API token (e.g. a JWT)', async () => {

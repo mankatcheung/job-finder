@@ -4,11 +4,13 @@ import type { CreateMcpOAuthAccessTokenUseCase } from './CreateMcpOAuthAccessTok
 import type { CreateMcpOAuthRefreshTokenUseCase } from './CreateMcpOAuthRefreshTokenUseCase.js';
 import type { IMcpOAuthClientRepository } from '#src/use-cases/ports/IMcpOAuthClientRepository.js';
 import type { IMcpOAuthRefreshTokenRepository } from '#src/use-cases/ports/IMcpOAuthRefreshTokenRepository.js';
+import type { IMcpOAuthTokenRepository } from '#src/use-cases/ports/IMcpOAuthTokenRepository.js';
 import type { ISecurityEventRepository } from '#src/use-cases/ports/ISecurityEventRepository.js';
 
 interface Deps {
   mcpOAuthRefreshTokenRepository: IMcpOAuthRefreshTokenRepository;
   mcpOAuthClientRepository: IMcpOAuthClientRepository;
+  mcpOAuthTokenRepository: IMcpOAuthTokenRepository;
   createMcpOAuthAccessTokenUseCase: Pick<CreateMcpOAuthAccessTokenUseCase, 'execute'>;
   createMcpOAuthRefreshTokenUseCase: Pick<CreateMcpOAuthRefreshTokenUseCase, 'execute'>;
   securityEventRepository: ISecurityEventRepository;
@@ -43,20 +45,19 @@ export class RotateMcpOAuthRefreshTokenUseCase {
     const now = this.deps.now();
     if (token.revokedAt || token.expiresAt.getTime() <= now.getTime()) return null;
     if (token.usedAt) {
-      await this.deps.mcpOAuthRefreshTokenRepository.revokeFamily(token.familyId, now);
-      await this.recordReuse(token.userId);
+      await this.burnFamily(token.familyId, token.userId, now);
       return null;
     }
 
     if (!(await this.deps.mcpOAuthRefreshTokenRepository.markUsed(token.id, now))) {
-      await this.deps.mcpOAuthRefreshTokenRepository.revokeFamily(token.familyId, now);
-      await this.recordReuse(token.userId);
+      await this.burnFamily(token.familyId, token.userId, now);
       return null;
     }
 
     const accessToken = await this.deps.createMcpOAuthAccessTokenUseCase.execute({
       userId: token.userId,
       clientId: token.clientId,
+      familyId: token.familyId,
       scope: token.scope,
     });
     const refreshToken = await this.deps.createMcpOAuthRefreshTokenUseCase.execute({
@@ -71,6 +72,18 @@ export class RotateMcpOAuthRefreshTokenUseCase {
       refreshToken: refreshToken.rawToken,
       accessTokenExpiresAt: accessToken.token.expiresAt,
     };
+  }
+
+  /**
+   * Reuse means the family is compromised, so every credential descended from
+   * that one consent goes — refresh tokens *and* the access tokens already
+   * issued from them. Revoking only the refresh side would leave the attacker
+   * a live access token for the rest of its hour.
+   */
+  private async burnFamily(familyId: string, userId: string, now: Date): Promise<void> {
+    await this.deps.mcpOAuthRefreshTokenRepository.revokeFamily(familyId, now);
+    await this.deps.mcpOAuthTokenRepository.revokeFamily(familyId, now);
+    await this.recordReuse(userId);
   }
 
   private async recordReuse(userId: string): Promise<void> {

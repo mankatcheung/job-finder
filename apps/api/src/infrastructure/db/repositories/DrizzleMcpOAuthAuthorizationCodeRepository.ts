@@ -48,6 +48,7 @@ export class DrizzleMcpOAuthAuthorizationCodeRepository implements IMcpOAuthAuth
     return {
       id: row.id,
       codeHash: row.codeHash,
+      familyId: row.familyId,
       clientId: row.clientId,
       userId: row.userId,
       redirectUri: row.redirectUri,

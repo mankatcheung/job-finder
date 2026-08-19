@@ -56,6 +56,13 @@ export const mcpOAuthAccessToken = sqliteTable(
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
     clientId: text('clientId').notNull(),
+    /**
+     * The grant this token was minted under — shared by the authorization code,
+     * every access token, and every refresh token descended from one consent.
+     * Revocation is grant-wide, so cutting off a client cannot leave a live
+     * access token behind (RFC 7009 s2.1).
+     */
+    familyId: text('familyId').notNull(),
     tokenHash: text('tokenHash').notNull().unique(),
     scope: text('scope').notNull(),
     audience: text('audience').notNull(),
@@ -69,6 +76,7 @@ export const mcpOAuthAccessToken = sqliteTable(
   (table) => [
     index('McpOAuthAccessToken_userId_idx').on(table.userId),
     index('McpOAuthAccessToken_clientId_idx').on(table.clientId),
+    index('McpOAuthAccessToken_familyId_idx').on(table.familyId),
     index('McpOAuthAccessToken_expiresAt_idx').on(table.expiresAt),
   ],
 );
@@ -92,6 +100,8 @@ export const mcpOAuthAuthorizationCode = sqliteTable(
   {
     id: text('id').primaryKey(),
     codeHash: text('codeHash').notNull().unique(),
+    /** Grant id, minted with the code and inherited by every token it yields. */
+    familyId: text('familyId').notNull(),
     clientId: text('clientId')
       .notNull()
       .references(() => mcpOAuthClient.id, { onDelete: 'cascade' }),
@@ -110,6 +120,7 @@ export const mcpOAuthAuthorizationCode = sqliteTable(
   },
   (table) => [
     index('McpOAuthAuthorizationCode_clientId_idx').on(table.clientId),
+    index('McpOAuthAuthorizationCode_familyId_idx').on(table.familyId),
     index('McpOAuthAuthorizationCode_userId_idx').on(table.userId),
     index('McpOAuthAuthorizationCode_expiresAt_idx').on(table.expiresAt),
   ],

@@ -35,6 +35,10 @@ export class CreateMcpOAuthAuthorizationCodeUseCase {
     const code = await this.deps.mcpOAuthAuthorizationCodeRepository.create({
       id: this.deps.generateId(),
       codeHash: createHash('sha256').update(rawCode).digest('hex'),
+      // The grant id is minted here, with the user's consent, and inherited by
+      // every token descended from this code — so one revocation reaches all
+      // of them and a replayed code can revoke what the first use produced.
+      familyId: this.deps.generateId(),
       clientId: input.clientId,
       userId: input.userId,
       redirectUri: input.redirectUri,

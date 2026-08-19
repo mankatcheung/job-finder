@@ -46,7 +46,9 @@ export class DrizzleMcpOAuthRefreshTokenRepository implements IMcpOAuthRefreshTo
     await this.db
       .update(mcpOAuthRefreshToken)
       .set({ revokedAt })
-      .where(eq(mcpOAuthRefreshToken.familyId, familyId));
+      .where(
+        and(eq(mcpOAuthRefreshToken.familyId, familyId), isNull(mcpOAuthRefreshToken.revokedAt)),
+      );
   }
 
   private toEntity(row: typeof mcpOAuthRefreshToken.$inferSelect): McpOAuthRefreshToken {

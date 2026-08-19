@@ -3,6 +3,7 @@ import type { McpOAuthAuthorizationCode } from '#src/domain/mcpOAuth/McpOAuthAut
 export interface CreateMcpOAuthAuthorizationCodeData {
   id: string;
   codeHash: string;
+  familyId: string;
   clientId: string;
   userId: string;
   redirectUri: string;

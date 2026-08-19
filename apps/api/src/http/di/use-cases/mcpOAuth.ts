@@ -4,7 +4,7 @@ import { CreateMcpOAuthAccessTokenUseCase } from '#src/use-cases/mcpOAuth/Create
 import { RegisterMcpOAuthClientUseCase } from '#src/use-cases/mcpOAuth/RegisterMcpOAuthClientUseCase.js';
 import { CreateMcpOAuthAuthorizationCodeUseCase } from '#src/use-cases/mcpOAuth/CreateMcpOAuthAuthorizationCodeUseCase.js';
 import { ExchangeMcpOAuthAuthorizationCodeUseCase } from '#src/use-cases/mcpOAuth/ExchangeMcpOAuthAuthorizationCodeUseCase.js';
-import { RevokeMcpOAuthAccessTokenUseCase } from '#src/use-cases/mcpOAuth/RevokeMcpOAuthAccessTokenUseCase.js';
+import { RevokeMcpOAuthGrantUseCase } from '#src/use-cases/mcpOAuth/RevokeMcpOAuthGrantUseCase.js';
 import { CreateMcpOAuthRefreshTokenUseCase } from '#src/use-cases/mcpOAuth/CreateMcpOAuthRefreshTokenUseCase.js';
 import { RotateMcpOAuthRefreshTokenUseCase } from '#src/use-cases/mcpOAuth/RotateMcpOAuthRefreshTokenUseCase.js';
 
@@ -23,7 +23,7 @@ export const mcpOAuth = {
   exchangeMcpOAuthAuthorizationCodeUseCase: asClass(ExchangeMcpOAuthAuthorizationCodeUseCase, {
     lifetime: Lifetime.TRANSIENT,
   }),
-  revokeMcpOAuthAccessTokenUseCase: asClass(RevokeMcpOAuthAccessTokenUseCase, {
+  revokeMcpOAuthGrantUseCase: asClass(RevokeMcpOAuthGrantUseCase, {
     lifetime: Lifetime.TRANSIENT,
   }),
   createMcpOAuthRefreshTokenUseCase: asClass(CreateMcpOAuthRefreshTokenUseCase, {

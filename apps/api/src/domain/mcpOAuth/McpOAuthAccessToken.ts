@@ -4,6 +4,8 @@ export interface McpOAuthAccessToken {
   id: string;
   userId: string;
   clientId: string;
+  /** Grant id shared with the authorization code and refresh tokens. */
+  familyId: string;
   tokenHash: string;
   scope: McpOAuthScope;
   audience: string;

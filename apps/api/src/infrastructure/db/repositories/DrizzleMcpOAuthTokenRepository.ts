@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
 import { mcpOAuthAccessToken } from '../schema.js';
 import { getClient } from '../transactionContext.js';
@@ -50,11 +50,25 @@ export class DrizzleMcpOAuthTokenRepository implements IMcpOAuthTokenRepository 
       .where(eq(mcpOAuthAccessToken.id, id));
   }
 
+  /**
+   * Grant-wide revocation. Only touches rows that are still live so an
+   * already-revoked token keeps its original `revokedAt` for the audit trail.
+   */
+  async revokeFamily(familyId: string, revokedAt: Date): Promise<void> {
+    await this.db
+      .update(mcpOAuthAccessToken)
+      .set({ revokedAt })
+      .where(
+        and(eq(mcpOAuthAccessToken.familyId, familyId), isNull(mcpOAuthAccessToken.revokedAt)),
+      );
+  }
+
   private toEntity(row: typeof mcpOAuthAccessToken.$inferSelect): McpOAuthAccessToken {
     return {
       id: row.id,
       userId: row.userId,
       clientId: row.clientId,
+      familyId: row.familyId,
       tokenHash: row.tokenHash,
       scope: row.scope as McpOAuthScope,
       audience: row.audience,

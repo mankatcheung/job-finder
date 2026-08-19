@@ -18,6 +18,7 @@ import { TotpProvider } from '#src/infrastructure/auth/TotpProvider.js';
 import { GoogleOAuthProvider } from '#src/infrastructure/auth/GoogleOAuthProvider.js';
 import { GitHubOAuthProvider } from '#src/infrastructure/auth/GitHubOAuthProvider.js';
 import { OAuthProviderRegistry } from '#src/infrastructure/auth/OAuthProviderRegistry.js';
+import { McpOAuthConsentService } from '#src/infrastructure/auth/McpOAuthConsentService.js';
 import { OAuthStateService } from '#src/infrastructure/auth/OAuthStateService.js';
 import { BrevoEmailService } from '#src/infrastructure/email/BrevoEmailService.js';
 import { DeviceLabelService } from '#src/infrastructure/device/DeviceLabelService.js';
@@ -76,6 +77,7 @@ export const infrastructure = {
   gitHubOAuthProvider: asClass(GitHubOAuthProvider, { lifetime: Lifetime.SINGLETON }),
   oauthProviderRegistry: asClass(OAuthProviderRegistry, { lifetime: Lifetime.SINGLETON }),
   oauthStateService: asClass(OAuthStateService, { lifetime: Lifetime.SINGLETON }),
+  mcpOAuthConsentService: asClass(McpOAuthConsentService, { lifetime: Lifetime.SINGLETON }),
   emailService: asClass(BrevoEmailService, { lifetime: Lifetime.SINGLETON }),
   deviceLabeler: asClass(DeviceLabelService, { lifetime: Lifetime.SINGLETON }),
   ipLocationResolver: asClass(IpLocationService, { lifetime: Lifetime.SINGLETON }),

@@ -23,6 +23,7 @@ describe('RotateMcpOAuthRefreshTokenUseCase', () => {
       revokeFamily: vi.fn().mockResolvedValue(undefined),
     };
     const mcpOAuthClientRepository = { findById: vi.fn() };
+    const mcpOAuthTokenRepository = { revokeFamily: vi.fn().mockResolvedValue(undefined) };
     const createMcpOAuthAccessTokenUseCase = {
       execute: vi.fn().mockResolvedValue({
         rawToken: 'trakwyn_mcp_access_2',
@@ -37,6 +38,7 @@ describe('RotateMcpOAuthRefreshTokenUseCase', () => {
       useCase: new RotateMcpOAuthRefreshTokenUseCase({
         mcpOAuthRefreshTokenRepository: mcpOAuthRefreshTokenRepository as never,
         mcpOAuthClientRepository: mcpOAuthClientRepository as never,
+        mcpOAuthTokenRepository: mcpOAuthTokenRepository as never,
         createMcpOAuthAccessTokenUseCase,
         createMcpOAuthRefreshTokenUseCase,
         securityEventRepository: securityEventRepository as never,
@@ -44,6 +46,7 @@ describe('RotateMcpOAuthRefreshTokenUseCase', () => {
         now: () => now,
       }),
       mcpOAuthRefreshTokenRepository,
+      mcpOAuthTokenRepository,
       createMcpOAuthAccessTokenUseCase,
       createMcpOAuthRefreshTokenUseCase,
       securityEventRepository,
@@ -83,5 +86,57 @@ describe('RotateMcpOAuthRefreshTokenUseCase', () => {
         eventType: 'mcp_oauth_refresh_reuse_detected',
       }),
     );
+  });
+
+  it('kills the access tokens too when a family is burned for reuse', async () => {
+    const deps = makeUseCase({ ...baseToken, usedAt: new Date('2026-08-19T11:00:00.000Z') });
+
+    const result = await deps.useCase.execute({
+      refreshToken: 'trakwyn_mcp_refresh_1',
+      clientId: 'client-1',
+    });
+
+    expect(result).toBeNull();
+    // Revoking only the refresh side would leave whoever replayed the token a
+    // live access token for the rest of its hour.
+    expect(deps.mcpOAuthRefreshTokenRepository.revokeFamily).toHaveBeenCalledWith('family-1', now);
+    expect(deps.mcpOAuthTokenRepository.revokeFamily).toHaveBeenCalledWith('family-1', now);
+  });
+
+  it('refuses a refresh token presented by a different client', async () => {
+    const deps = makeUseCase();
+
+    const result = await deps.useCase.execute({
+      refreshToken: 'trakwyn_mcp_refresh_1',
+      clientId: 'client-2',
+    });
+
+    expect(result).toBeNull();
+    expect(deps.mcpOAuthRefreshTokenRepository.markUsed).not.toHaveBeenCalled();
+  });
+
+  it('refuses an expired refresh token', async () => {
+    const deps = makeUseCase({ ...baseToken, expiresAt: new Date('2026-08-19T11:59:59.000Z') });
+
+    expect(
+      await deps.useCase.execute({ refreshToken: 'trakwyn_mcp_refresh_1', clientId: 'client-1' }),
+    ).toBeNull();
+  });
+
+  it('refuses a refresh token whose family was already revoked', async () => {
+    const deps = makeUseCase({ ...baseToken, revokedAt: now });
+
+    expect(
+      await deps.useCase.execute({ refreshToken: 'trakwyn_mcp_refresh_1', clientId: 'client-1' }),
+    ).toBeNull();
+  });
+
+  it('does not query storage for a credential that is not a refresh token', async () => {
+    const deps = makeUseCase();
+
+    expect(
+      await deps.useCase.execute({ refreshToken: 'trakwyn_mcp_access', clientId: 'client-1' }),
+    ).toBeNull();
+    expect(deps.mcpOAuthRefreshTokenRepository.findByTokenHash).not.toHaveBeenCalled();
   });
 });

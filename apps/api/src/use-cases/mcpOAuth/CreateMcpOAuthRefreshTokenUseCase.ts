@@ -14,7 +14,10 @@ export interface CreateMcpOAuthRefreshTokenInput {
   userId: string;
   clientId: string;
   scope: McpOAuthScope;
-  familyId?: string;
+  /** The grant this token belongs to. Required: the grant id is minted with
+   * the authorization code, never here, so a refresh token can never start a
+   * family that its own access tokens are not part of. */
+  familyId: string;
 }
 
 export interface CreateMcpOAuthRefreshTokenOutput {
@@ -32,7 +35,7 @@ export class CreateMcpOAuthRefreshTokenUseCase {
     const token = await this.deps.mcpOAuthRefreshTokenRepository.create({
       id: this.deps.generateId(),
       tokenHash: createHash('sha256').update(rawToken).digest('hex'),
-      familyId: input.familyId ?? this.deps.generateId(),
+      familyId: input.familyId,
       clientId: input.clientId,
       userId: input.userId,
       scope: input.scope,

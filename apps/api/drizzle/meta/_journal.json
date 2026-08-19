@@ -131,22 +131,8 @@
     {
       "idx": 18,
       "version": "6",
-      "when": 1787142593114,
-      "tag": "0018_overrated_demogoblin",
-      "breakpoints": true
-    },
-    {
-      "idx": 19,
-      "version": "6",
-      "when": 1787147516381,
-      "tag": "0019_blue_nighthawk",
-      "breakpoints": true
-    },
-    {
-      "idx": 20,
-      "version": "6",
-      "when": 1787149312800,
-      "tag": "0020_careless_blob",
+      "when": 1787172019953,
+      "tag": "0018_colorful_psylocke",
       "breakpoints": true
     }
   ]
