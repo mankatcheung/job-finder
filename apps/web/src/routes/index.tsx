@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createFileRoute, Link, redirect } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { hasSessionCookie } from '#/graphql/client';
 import { useLocale } from '#/lib/i18n';
 import {
@@ -15,12 +15,8 @@ import {
 export const Route = createFileRoute('/')({
   // The API and web app are on separate domains, so there is no cookie the
   // server can ever see — the auth check can only run client-side. ssr:
-  // false forces TanStack Start's hydrate() to call beforeLoad again on the
-  // client instead of trusting an SSR-computed (and here undecidable) result.
+  // false keeps the browser-only session hint out of the server render.
   ssr: false,
-  beforeLoad: () => {
-    if (hasSessionCookie()) throw redirect({ to: '/dashboard' });
-  },
   component: LandingPage,
 });
 
@@ -51,9 +47,12 @@ const features = [
 
 const stepKeys = ['landing.step1', 'landing.step2', 'landing.step3', 'landing.step4'] as const;
 
-function LandingPage() {
+export function LandingPage() {
   const { t } = useLocale();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isLoggedIn = hasSessionCookie();
+  const authLink: '/dashboard' | '/login' = isLoggedIn ? '/dashboard' : '/login';
+  const authLabel = isLoggedIn ? t('landing.goDashboard') : t('landing.signIn');
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -86,10 +85,10 @@ function LandingPage() {
             </Link>
             <div className="hidden sm:flex items-center gap-3">
               <Link
-                to="/login"
+                to={authLink}
                 className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
               >
-                {t('landing.signIn')}
+                {authLabel}
               </Link>
               <Link
                 to="/register"
@@ -133,11 +132,11 @@ function LandingPage() {
           {mobileMenuOpen && (
             <div className="sm:hidden pb-4 space-y-2">
               <Link
-                to="/login"
+                to={authLink}
                 className="block rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                {t('landing.signIn')}
+                {authLabel}
               </Link>
               <Link
                 to="/register"
@@ -172,10 +171,10 @@ function LandingPage() {
                 {t('landing.startFree')}
               </Link>
               <Link
-                to="/login"
+                to={authLink}
                 className="rounded-lg border border-gray-300 dark:border-gray-600 px-6 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
-                {t('landing.signIn')}
+                {authLabel}
               </Link>
             </div>
           </div>
@@ -275,10 +274,10 @@ function LandingPage() {
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
               <Link
-                to="/login"
+                to={authLink}
                 className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
               >
-                {t('landing.signIn')}
+                {authLabel}
               </Link>
               <Link
                 to="/register"

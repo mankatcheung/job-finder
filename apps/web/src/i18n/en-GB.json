@@ -78,6 +78,7 @@
   "auth.verificationSentPrefix": "We sent a verification link to",
   "auth.verificationSentSuffix": ". Click the link to verify your account.",
   "landing.signIn": "Sign in",
+  "landing.goDashboard": "Go to dashboard",
   "landing.getStarted": "Get started",
   "landing.startFree": "Start for free",
   "landing.heroTitleLine1": "Your job search,",
