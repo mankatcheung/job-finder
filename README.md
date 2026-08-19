@@ -29,14 +29,14 @@ The project is a monorepo with a GraphQL API, a web app, a browser extension for
 
 ## MCP server
 
-The API ships a [Model Context Protocol](https://modelcontextprotocol.io) server, so an AI assistant can read your job-search data and answer questions about it.
+The API ships a [Model Context Protocol](https://modelcontextprotocol.io) server, so an AI assistant can read your job-search data, answer questions about it, and — with a full-access token — log applications and notes for you.
 
-**It is read-only.** There are no tools that create, update, or delete anything.
+**Most tools are read-only, and a read-only token can only reach those.** A few tools create or update data; they require a full-access token and are refused outright for a read-only one. **Nothing deletes** — there are no delete tools at all.
 
 ### Connecting
 
 1. In the web app, go to **Settings → Integrations → API tokens**.
-2. Create a token with **Read-only** access. That's all the MCP server needs — a read-only token is rejected by the GraphQL API, so it can't be used to change anything even if it leaks.
+2. Create a token with **Read-only** access if you only want the assistant to _read_ your data — it's refused by both the GraphQL API and the MCP write tools, so it can't change anything even if it leaks. Choose **Full access** only if you want the assistant to be able to create and update records too.
 3. Copy the token (`trakwyn_…`) — it's shown only once.
 
 The endpoint is `POST https://api.trakwyn.com/mcp`, authenticated with `Authorization: Bearer <token>`.

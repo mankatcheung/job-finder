@@ -1,6 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { MCP_TOOLS } from '#src/interface-adapters/mcp/McpController.js';
-import { ChatWithAssistantUseCase } from '#src/use-cases/chat/ChatWithAssistantUseCase.js';
+import {
+  CHAT_TOOLS,
+  ChatWithAssistantUseCase,
+} from '#src/use-cases/chat/ChatWithAssistantUseCase.js';
 import {
   makeRateLimiter,
   makeLLMProviderFactory,
@@ -346,12 +349,20 @@ describe('ChatWithAssistantUseCase', () => {
   });
 
   describe('tool catalogue / handler parity (JEF-174)', () => {
+    it('never offers the LLM a write tool (JEF-176)', () => {
+      // MCP gained write tools gated on a full-access API token. Chat is
+      // session-authenticated with no scope to gate on, so it must not
+      // inherit them just because the catalogue is shared.
+      expect(CHAT_TOOLS.every((t) => t.access === 'read')).toBe(true);
+      expect(CHAT_TOOLS.length).toBeLessThan(MCP_TOOLS.length);
+    });
+
     // ChatWithAssistantUseCase advertises MCP_TOOLS to the LLM but dispatches
     // through its own switch. Those two drifted apart once MCP gained tools
     // the chat switch didn't handle, and the model was offered capabilities
     // that answered "Unknown tool". This walks every advertised tool and
     // fails if any is unhandled — the check that would have caught it.
-    it.each(MCP_TOOLS.map((t) => [t.name] as const))(
+    it.each(CHAT_TOOLS.map((t) => [t.name] as const))(
       '%s is advertised to the LLM and has a handler',
       async (toolName) => {
         const llmProvider = makeToolCallingProvider(
