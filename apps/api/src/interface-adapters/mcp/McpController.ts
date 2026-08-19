@@ -1,5 +1,5 @@
 import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
-import type { IGetApplicationsUseCase } from '#src/use-cases/jobs/IGetApplicationsUseCase.js';
+import type { IGetApplicationsPageUseCase } from '#src/use-cases/jobs/IGetApplicationsPageUseCase.js';
 import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplicationUseCase.js';
 import type { IGetNotesUseCase } from '#src/use-cases/notes/IGetNotesUseCase.js';
 import type { IGetContactsUseCase } from '#src/use-cases/contacts/IGetContactsUseCase.js';
@@ -7,7 +7,24 @@ import type { IGetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/
 import type { IWorkExperienceRepository } from '#src/use-cases/ports/IWorkExperienceRepository.js';
 import type { IEducationRepository } from '#src/use-cases/ports/IEducationRepository.js';
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
-import { ERROR_CODES, JSON_RPC_ERROR, MCP } from '#src/constants.js';
+import { ERROR_CODES, JSON_RPC_ERROR, MCP, PAGINATION } from '#src/constants.js';
+
+/**
+ * Tool arguments arrive straight off a JSON-RPC payload, so a numeric field
+ * may show up as a number, a numeric string, or something unusable. Coerce
+ * leniently and fall back to `undefined` for anything that isn't a positive
+ * integer — the use case then applies its own default and clamps to
+ * PAGINATION.MAX_LIMIT, so a bad value degrades to the default page rather
+ * than erroring or being silently honoured.
+ */
+function toStr(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
+function toPositiveInt(value: unknown): number | undefined {
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isInteger(n) && n > 0 ? n : undefined;
+}
 
 /** HTTP status for a malformed JSON-RPC envelope (matches Fastify `reply.code`). */
 const HTTP_BAD_REQUEST = 400;
@@ -32,7 +49,7 @@ export interface McpResult {
 }
 
 interface Deps {
-  getApplicationsUseCase: IGetApplicationsUseCase;
+  getApplicationsPageUseCase: IGetApplicationsPageUseCase;
   getApplicationUseCase: IGetApplicationUseCase;
   getNotesUseCase: IGetNotesUseCase;
   getContactsUseCase: IGetContactsUseCase;
@@ -46,13 +63,22 @@ interface Deps {
 export const MCP_TOOLS = [
   {
     name: 'list_applications',
-    description: 'List all job applications for the authenticated user',
+    description:
+      'List job applications for the authenticated user, newest first. Returns one page; pass the returned nextCursor to fetch the next.',
     inputSchema: {
       type: 'object',
       properties: {
         status: {
           type: 'string',
           description: 'Filter by status (e.g. draft, applied, interviewing, offer, rejected)',
+        },
+        limit: {
+          type: 'number',
+          description: `Applications per page (1-${PAGINATION.MAX_LIMIT}, default ${PAGINATION.DEFAULT_LIMIT})`,
+        },
+        cursor: {
+          type: 'string',
+          description: 'nextCursor from a previous call, to fetch the following page',
         },
       },
     },
@@ -178,51 +204,55 @@ export class McpController {
     userId: string,
   ): Promise<unknown> {
     const toolName = (params as { name?: string } | undefined)?.name;
-    const args = (params as { arguments?: Record<string, string> } | undefined)?.arguments ?? {};
+    // Not Record<string, string>: JSON-RPC arguments are arbitrary JSON, and
+    // `limit` legitimately arrives as a number. Narrow per field below.
+    const args = (params as { arguments?: Record<string, unknown> } | undefined)?.arguments ?? {};
 
     try {
       let result: unknown;
 
       switch (toolName) {
         case 'list_applications':
-          result = await this.deps.getApplicationsUseCase.execute({
+          result = await this.deps.getApplicationsPageUseCase.execute({
             userId,
-            status: args.status as ApplicationStatus | undefined,
+            status: toStr(args.status) as ApplicationStatus | undefined,
+            cursor: toStr(args.cursor),
+            limit: toPositiveInt(args.limit),
           });
           break;
         case 'get_application':
-          if (!args.applicationId) {
+          if (!toStr(args.applicationId)) {
             return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'applicationId is required');
           }
           result = await this.deps.getApplicationUseCase.execute({
-            applicationId: args.applicationId,
+            applicationId: toStr(args.applicationId)!,
             userId,
           });
           break;
         case 'list_notes':
-          if (!args.applicationId) {
+          if (!toStr(args.applicationId)) {
             return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'applicationId is required');
           }
           result = await this.deps.getNotesUseCase.execute({
-            applicationId: args.applicationId,
+            applicationId: toStr(args.applicationId)!,
             userId,
           });
           break;
         case 'list_contacts':
-          if (!args.applicationId) {
+          if (!toStr(args.applicationId)) {
             return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'applicationId is required');
           }
           result = await this.deps.getContactsUseCase.execute({
-            applicationId: args.applicationId,
+            applicationId: toStr(args.applicationId)!,
             userId,
           });
           break;
         case 'list_interview_rounds':
-          if (!args.applicationId) {
+          if (!toStr(args.applicationId)) {
             return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'applicationId is required');
           }
           result = await this.deps.getInterviewRoundsUseCase.execute({
-            applicationId: args.applicationId,
+            applicationId: toStr(args.applicationId)!,
             userId,
           });
           break;
@@ -250,7 +280,10 @@ export class McpController {
   }
 
   private text(data: unknown) {
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    // Compact, not pretty-printed: this goes straight into an LLM's context
+    // window, where two-space indentation on every line of a page of results
+    // is pure token cost with no reader to benefit from it.
+    return { content: [{ type: 'text', text: JSON.stringify(data) }] };
   }
 
   private error(id: McpRequest['id'], code: number, message: string) {

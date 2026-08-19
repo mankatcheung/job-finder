@@ -165,10 +165,54 @@ describe('mcp integration', () => {
       result: { content: Array<{ type: string; text: string }> };
     };
     expect(body.id).toBe(7);
-    const applications = JSON.parse(body.result.content[0].text) as Array<{ company: string }>;
-    expect(applications).toEqual(
+    // list_applications returns a page envelope (JEF-172), not a bare array,
+    // so a client can follow nextCursor rather than receiving everything.
+    const page = JSON.parse(body.result.content[0].text) as {
+      items: Array<{ company: string }>;
+      hasNextPage: boolean;
+      nextCursor: string | null;
+    };
+    expect(page.items).toEqual(
       expect.arrayContaining([expect.objectContaining({ company: 'Acme Corp' })]),
     );
+    expect(page).toMatchObject({ hasNextPage: false, nextCursor: null });
+  });
+
+  it('bounds list_applications by limit and hands back a usable cursor', async () => {
+    const accessToken = await registerAndGetAccessToken();
+    const apiToken = await createApiToken(accessToken);
+
+    for (const company of ['Acme', 'Globex', 'Initech']) {
+      await testApp.app.inject({
+        method: 'POST',
+        url: '/graphql',
+        headers: { authorization: `Bearer ${accessToken}` },
+        payload: {
+          query: CREATE_APPLICATION_MUTATION,
+          variables: { input: { company, role: 'Engineer', status: 'applied' } },
+        },
+      });
+    }
+
+    const res = await mcpInject(apiToken, {
+      jsonrpc: '2.0',
+      id: 8,
+      method: 'tools/call',
+      params: { name: 'list_applications', arguments: { limit: 2 } },
+    });
+
+    const body = res.json() as JsonRpcResponse & {
+      result: { content: Array<{ text: string }> };
+    };
+    const page = JSON.parse(body.result.content[0].text) as {
+      items: unknown[];
+      hasNextPage: boolean;
+      nextCursor: string | null;
+    };
+
+    expect(page.items).toHaveLength(2);
+    expect(page.hasNextPage).toBe(true);
+    expect(page.nextCursor).toEqual(expect.any(String));
   });
 
   it('returns an INVALID_PARAMS error for get_application with no applicationId', async () => {
