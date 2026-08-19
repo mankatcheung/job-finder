@@ -343,6 +343,8 @@ Worth knowing before pointing a strict client at this:
   bound to the request; the `Origin` check is what stops cross-site
   submission, so replay by the legitimate browser is harmless.
 - **`/mcp` is POST-only JSON-RPC** — no `GET`/SSE endpoint and no session
-  handling, i.e. a subset of MCP's Streamable HTTP transport.
+  handling, i.e. a subset of MCP's Streamable HTTP transport. `GET` and
+  `DELETE` answer `405` with `Allow: POST`, so a client learns the endpoint is
+  real but offers no stream rather than reading a `404` as "no server here".
 - **No pruning** of expired codes or tokens yet, though `expiresAt` is indexed
   on all three tables.
