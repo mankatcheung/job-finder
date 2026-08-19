@@ -27,7 +27,6 @@ import type {
   LLMToolCall,
   LLMToolDefinition,
 } from '#src/use-cases/ports/ILLMProvider.js';
-import { MCP_TOOLS } from '#src/interface-adapters/mcp/McpController.js';
 import { CHAT, ERROR_CODES } from '#src/constants.js';
 
 export interface ChatWithAssistantInput {
@@ -37,6 +36,13 @@ export interface ChatWithAssistantInput {
 }
 
 interface Deps {
+  /**
+   * The tools this surface offers the model, injected rather than imported:
+   * the catalogue is an adapter-layer contract, and which subset chat gets
+   * is a composition decision (see `http/di`) — chat is session-authenticated
+   * with no token scope, so it receives read tools only (JEF-177).
+   */
+  chatTools: LLMToolDefinition[];
   llmProviderFactory: ILLMProviderFactory;
   getApplicationsPageUseCase: IGetApplicationsPageUseCase;
   getApplicationUseCase: IGetApplicationUseCase;
@@ -79,21 +85,6 @@ function toPositiveInt(value: unknown): number | undefined {
   const n = typeof value === 'number' ? value : Number(value);
   return Number.isInteger(n) && n > 0 ? n : undefined;
 }
-
-// Read tools only. The catalogue is shared with the MCP server, which gained
-// write tools in JEF-176 — but those are gated on a full-access API token,
-// and chat has no token scope to gate on (it's session-authenticated).
-// Offering them here would hand every chat user mutation powers as a side
-// effect of an MCP change, which is a product decision, not a default.
-// JEF-177 covers splitting the catalogue properly.
-export const CHAT_TOOLS = MCP_TOOLS.filter((t) => t.access === 'read');
-
-const TOOLS: LLMToolDefinition[] = CHAT_TOOLS.map((t, i, arr) => ({
-  name: t.name,
-  description: t.description,
-  parameters: t.inputSchema,
-  ...(i === arr.length - 1 ? { cacheBreakpoint: true } : {}),
-}));
 
 export class ChatWithAssistantUseCase {
   constructor(private readonly deps: Deps) {}
@@ -191,7 +182,7 @@ export class ChatWithAssistantUseCase {
     }
 
     for (let i = 0; i < CHAT.MAX_TOOL_ITERATIONS; i++) {
-      const result = await llmProvider.completeWithTools(messages, TOOLS);
+      const result = await llmProvider.completeWithTools(messages, this.deps.chatTools);
 
       if (result.toolCalls.length === 0) {
         return result.content?.trim() || "I don't have a response for that.";

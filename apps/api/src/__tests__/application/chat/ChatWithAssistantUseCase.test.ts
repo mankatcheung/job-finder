@@ -1,9 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { MCP_TOOLS } from '#src/interface-adapters/mcp/McpController.js';
 import {
   CHAT_TOOLS,
-  ChatWithAssistantUseCase,
-} from '#src/use-cases/chat/ChatWithAssistantUseCase.js';
+  MCP_TOOLS,
+  toLlmToolDefinitions,
+} from '#src/interface-adapters/llm/toolCatalogue.js';
+import { ChatWithAssistantUseCase } from '#src/use-cases/chat/ChatWithAssistantUseCase.js';
 import {
   makeRateLimiter,
   makeLLMProviderFactory,
@@ -23,6 +24,8 @@ function stubUseCase(result: unknown = []) {
 function makeDeps(overrides?: Record<string, unknown>) {
   return {
     llmProviderFactory: makeLLMProviderFactory(),
+    // Mirrors the `chatTools` registration in http/di: read tools only.
+    chatTools: toLlmToolDefinitions(CHAT_TOOLS),
     getApplicationsPageUseCase: stubUseCase({ items: [], hasNextPage: false, nextCursor: null }),
     getApplicationUseCase: stubUseCase({ id: 'app-1' }),
     getNotesUseCase: stubUseCase([]),
