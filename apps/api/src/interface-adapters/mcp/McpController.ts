@@ -1,10 +1,21 @@
 import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
+import type { InterviewRoundType } from '#src/domain/interviewRound/InterviewRound.js';
 import type { IGetApplicationsPageUseCase } from '#src/use-cases/jobs/IGetApplicationsPageUseCase.js';
 import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplicationUseCase.js';
 import type { IGetNotesUseCase } from '#src/use-cases/notes/IGetNotesUseCase.js';
 import type { IGetContactsUseCase } from '#src/use-cases/contacts/IGetContactsUseCase.js';
 import type { IGetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
 import type { IGetDocumentsUseCase } from '#src/use-cases/documents/IGetDocumentsUseCase.js';
+import type { ICreateApplicationUseCase } from '#src/use-cases/jobs/ICreateApplicationUseCase.js';
+import type { IUpdateApplicationUseCase } from '#src/use-cases/jobs/IUpdateApplicationUseCase.js';
+import type { ICreateNoteUseCase } from '#src/use-cases/notes/ICreateNoteUseCase.js';
+import type { ICreateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/ICreateInterviewRoundUseCase.js';
+import type { ICreateSkillUseCase } from '#src/use-cases/skill/ICreateSkillUseCase.js';
+import type { IUpdateSkillUseCase } from '#src/use-cases/skill/IUpdateSkillUseCase.js';
+import type { ICreateEducationUseCase } from '#src/use-cases/education/ICreateEducationUseCase.js';
+import type { IUpdateEducationUseCase } from '#src/use-cases/education/IUpdateEducationUseCase.js';
+import type { ICreateWorkExperienceUseCase } from '#src/use-cases/workExperience/ICreateWorkExperienceUseCase.js';
+import type { IUpdateWorkExperienceUseCase } from '#src/use-cases/workExperience/IUpdateWorkExperienceUseCase.js';
 import type { IGetOffersUseCase } from '#src/use-cases/offers/IGetOffersUseCase.js';
 import type { IGetActivityLogsUseCase } from '#src/use-cases/activityLogs/IGetActivityLogsUseCase.js';
 import type { GetCalendarEventsUseCase } from '#src/use-cases/calendar/GetCalendarEventsUseCase.js';
@@ -15,7 +26,13 @@ import type { GetOfferAnalyticsUseCase } from '#src/use-cases/offers/GetOfferAna
 import type { IWorkExperienceRepository } from '#src/use-cases/ports/IWorkExperienceRepository.js';
 import type { IEducationRepository } from '#src/use-cases/ports/IEducationRepository.js';
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
-import { ERROR_CODES, JSON_RPC_ERROR, MCP, PAGINATION } from '#src/constants.js';
+import { API_TOKEN_SCOPE, ERROR_CODES, JSON_RPC_ERROR, MCP } from '#src/constants.js';
+import type { ApiTokenScope } from '#src/domain/apiToken/ApiToken.js';
+import { MCP_TOOLS } from '#src/interface-adapters/llm/toolCatalogue.js';
+
+// Re-exported for convenience: this adapter is where MCP's catalogue is
+// consumed, even though it's no longer where it's defined (JEF-177).
+export { MCP_TOOLS };
 
 /**
  * Tool arguments arrive straight off a JSON-RPC payload, so a numeric field
@@ -27,6 +44,25 @@ import { ERROR_CODES, JSON_RPC_ERROR, MCP, PAGINATION } from '#src/constants.js'
  */
 function toStr(value: unknown): string | undefined {
   return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
+/**
+ * Strips the internal `access` tag — it's this server's metadata for scope
+ * gating, not part of MCP's tool shape, so it never goes over the wire.
+ */
+function advertise(tools: readonly (typeof MCP_TOOLS)[number][]) {
+  return tools.map(({ name, description, inputSchema }) => ({ name, description, inputSchema }));
+}
+
+/**
+ * Models emit dates as strings of varying quality. Anything that isn't a
+ * real date becomes undefined rather than an Invalid Date, which would
+ * otherwise reach the DB as NaN and be far harder to diagnose.
+ */
+function toDate(value: unknown): Date | undefined {
+  if (typeof value !== 'string' || value.length === 0) return undefined;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? undefined : d;
 }
 
 function toPositiveInt(value: unknown): number | undefined {
@@ -70,157 +106,20 @@ interface Deps {
   getApplicationChannelAnalyticsUseCase: GetApplicationChannelAnalyticsUseCase;
   getInterviewRoundAnalyticsUseCase: GetInterviewRoundAnalyticsUseCase;
   getOfferAnalyticsUseCase: GetOfferAnalyticsUseCase;
+  createApplicationUseCase: ICreateApplicationUseCase;
+  updateApplicationUseCase: IUpdateApplicationUseCase;
+  createNoteUseCase: ICreateNoteUseCase;
+  createInterviewRoundUseCase: ICreateInterviewRoundUseCase;
+  createSkillUseCase: ICreateSkillUseCase;
+  updateSkillUseCase: IUpdateSkillUseCase;
+  createEducationUseCase: ICreateEducationUseCase;
+  updateEducationUseCase: IUpdateEducationUseCase;
+  createWorkExperienceUseCase: ICreateWorkExperienceUseCase;
+  updateWorkExperienceUseCase: IUpdateWorkExperienceUseCase;
   workExperienceRepository: IWorkExperienceRepository;
   educationRepository: IEducationRepository;
   skillRepository: ISkillRepository;
 }
-
-/** Advertised tool catalogue (returned verbatim by `tools/list`). */
-export const MCP_TOOLS = [
-  {
-    name: 'list_applications',
-    description:
-      'List job applications for the authenticated user, newest first. Returns one page; pass the returned nextCursor to fetch the next.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        status: {
-          type: 'string',
-          description: 'Filter by status (e.g. draft, applied, interviewing, offer, rejected)',
-        },
-        limit: {
-          type: 'number',
-          description: `Applications per page (1-${PAGINATION.MAX_LIMIT}, default ${PAGINATION.DEFAULT_LIMIT})`,
-        },
-        cursor: {
-          type: 'string',
-          description: 'nextCursor from a previous call, to fetch the following page',
-        },
-      },
-    },
-  },
-  {
-    name: 'get_application',
-    description: 'Get a specific job application by ID',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        applicationId: { type: 'string', description: 'The application ID' },
-      },
-      required: ['applicationId'],
-    },
-  },
-  {
-    name: 'list_notes',
-    description: 'List notes for a job application',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        applicationId: { type: 'string', description: 'The application ID' },
-      },
-      required: ['applicationId'],
-    },
-  },
-  {
-    name: 'list_contacts',
-    description: 'List contacts associated with a job application',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        applicationId: { type: 'string', description: 'The application ID' },
-      },
-      required: ['applicationId'],
-    },
-  },
-  {
-    name: 'list_interview_rounds',
-    description: 'List interview rounds for a job application',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        applicationId: { type: 'string', description: 'The application ID' },
-      },
-      required: ['applicationId'],
-    },
-  },
-  {
-    name: 'list_work_experiences',
-    description: 'List all work experiences for the authenticated user',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-    },
-  },
-  {
-    name: 'list_educations',
-    description: 'List all education entries for the authenticated user',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-    },
-  },
-  {
-    name: 'list_skills',
-    description: 'List all skills for the authenticated user',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-    },
-  },
-  {
-    name: 'list_documents',
-    description:
-      'List documents (resumes, cover letters, offer letters) attached to a job application',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        applicationId: { type: 'string', description: 'The application ID' },
-      },
-      required: ['applicationId'],
-    },
-  },
-  {
-    name: 'list_offers',
-    description: 'List offers received for a job application, including compensation details',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        applicationId: { type: 'string', description: 'The application ID' },
-      },
-      required: ['applicationId'],
-    },
-  },
-  {
-    name: 'list_activity',
-    description:
-      'List the activity/audit log for a job application — status changes and other events over time',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        applicationId: { type: 'string', description: 'The application ID' },
-      },
-      required: ['applicationId'],
-    },
-  },
-  {
-    name: 'list_calendar_events',
-    description:
-      'List upcoming and past calendar events for the authenticated user — scheduled interviews and application follow-up dates',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-    },
-  },
-  {
-    name: 'get_analytics',
-    description:
-      'Aggregate job-search statistics for the authenticated user: response times, which application channels perform best, interview-round progression, and offer figures. Use this for questions like "how is my search going?" — it returns compact summaries rather than raw records.',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-    },
-  },
-] as const;
 
 /**
  * Translates MCP JSON-RPC requests into use-case calls. This is the interface
@@ -230,7 +129,7 @@ export const MCP_TOOLS = [
 export class McpController {
   constructor(private readonly deps: Deps) {}
 
-  async handle(rawBody: unknown, userId: string): Promise<McpResult> {
+  async handle(rawBody: unknown, userId: string, scope: ApiTokenScope): Promise<McpResult> {
     const body = rawBody as McpRequest | null | undefined;
 
     if (!body || body.jsonrpc !== MCP.JSONRPC_VERSION || !body.method) {
@@ -257,11 +156,16 @@ export class McpController {
     }
 
     if (method === 'tools/list') {
-      return { body: { jsonrpc: MCP.JSONRPC_VERSION, id, result: { tools: MCP_TOOLS } } };
+      // A read-only token isn't shown write tools at all. Enforcement still
+      // happens in tools/call — hiding them is a convenience for the model,
+      // not the security boundary.
+      const visible =
+        scope === API_TOKEN_SCOPE.FULL ? MCP_TOOLS : MCP_TOOLS.filter((t) => t.access === 'read');
+      return { body: { jsonrpc: MCP.JSONRPC_VERSION, id, result: { tools: advertise(visible) } } };
     }
 
     if (method === 'tools/call') {
-      return { body: await this.callTool(id, params, userId) };
+      return { body: await this.callTool(id, params, userId, scope) };
     }
 
     return { body: this.error(id, JSON_RPC_ERROR.METHOD_NOT_FOUND, `Method not found: ${method}`) };
@@ -271,8 +175,23 @@ export class McpController {
     id: McpRequest['id'],
     params: McpRequest['params'],
     userId: string,
+    scope: ApiTokenScope,
   ): Promise<unknown> {
     const toolName = (params as { name?: string } | undefined)?.name;
+
+    // The security boundary. tools/list already hides write tools from a
+    // read-only token, but a client can call anything it likes regardless,
+    // so refusal has to happen here — otherwise a token the UI and README
+    // both describe as unable to change anything could mutate data (JEF-170).
+    const tool = MCP_TOOLS.find((t) => t.name === toolName);
+    if (tool?.access === 'write' && scope !== API_TOKEN_SCOPE.FULL) {
+      return this.error(
+        id,
+        JSON_RPC_ERROR.INVALID_PARAMS,
+        `Tool "${toolName}" requires a full-access API token; this token is read-only`,
+      );
+    }
+
     // Not Record<string, string>: JSON-RPC arguments are arbitrary JSON, and
     // `limit` legitimately arrives as a number. Narrow per field below.
     const args = (params as { arguments?: Record<string, unknown> } | undefined)?.arguments ?? {};
@@ -375,6 +294,175 @@ export class McpController {
             this.deps.getOfferAnalyticsUseCase.execute({ userId }),
           ]);
           result = { responseTime, channels, interviewRounds, offers };
+          break;
+        }
+        case 'create_application': {
+          const company = toStr(args.company);
+          const role = toStr(args.role);
+          if (!company || !role) {
+            return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'company and role are required');
+          }
+          result = await this.deps.createApplicationUseCase.execute({
+            userId,
+            company,
+            role,
+            status: toStr(args.status) as ApplicationStatus | undefined,
+            jobUrl: toStr(args.jobUrl),
+            location: toStr(args.location),
+            salaryRange: toStr(args.salaryRange),
+            description: toStr(args.description),
+            source: toStr(args.source),
+          });
+          break;
+        }
+        case 'update_application': {
+          const applicationId = toStr(args.applicationId);
+          if (!applicationId) {
+            return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'applicationId is required');
+          }
+          result = await this.deps.updateApplicationUseCase.execute({
+            userId,
+            applicationId,
+            company: toStr(args.company),
+            role: toStr(args.role),
+            status: toStr(args.status) as ApplicationStatus | undefined,
+            jobUrl: toStr(args.jobUrl),
+            location: toStr(args.location),
+            salaryRange: toStr(args.salaryRange),
+            description: toStr(args.description),
+            source: toStr(args.source),
+          });
+          break;
+        }
+        case 'create_note': {
+          const applicationId = toStr(args.applicationId);
+          const content = toStr(args.content);
+          if (!applicationId || !content) {
+            return this.error(
+              id,
+              JSON_RPC_ERROR.INVALID_PARAMS,
+              'applicationId and content are required',
+            );
+          }
+          result = await this.deps.createNoteUseCase.execute({ userId, applicationId, content });
+          break;
+        }
+        case 'create_interview_round': {
+          const applicationId = toStr(args.applicationId);
+          if (!applicationId) {
+            return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'applicationId is required');
+          }
+          result = await this.deps.createInterviewRoundUseCase.execute({
+            userId,
+            applicationId,
+            type: toStr(args.type) as InterviewRoundType | undefined,
+            scheduledAt: toDate(args.scheduledAt),
+            interviewerName: toStr(args.interviewerName),
+            notes: toStr(args.notes),
+          });
+          break;
+        }
+        case 'create_skill': {
+          const name = toStr(args.name);
+          if (!name) return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'name is required');
+          result = await this.deps.createSkillUseCase.execute({
+            userId,
+            name,
+            category: toStr(args.category),
+            proficiency: toStr(args.proficiency),
+          });
+          break;
+        }
+        case 'update_skill': {
+          const skillId = toStr(args.skillId);
+          if (!skillId) return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'skillId is required');
+          result = await this.deps.updateSkillUseCase.execute({
+            id: skillId,
+            userId,
+            name: toStr(args.name),
+            category: toStr(args.category),
+            proficiency: toStr(args.proficiency),
+          });
+          break;
+        }
+        case 'create_education': {
+          const institution = toStr(args.institution);
+          // startDate is required by the use case, so an unparseable one has
+          // to be refused rather than dropped — toDate() yields undefined for
+          // junk, which would otherwise fail confusingly further down.
+          const startDate = toDate(args.startDate);
+          if (!institution || !startDate) {
+            return this.error(
+              id,
+              JSON_RPC_ERROR.INVALID_PARAMS,
+              'institution and a valid ISO 8601 startDate are required',
+            );
+          }
+          result = await this.deps.createEducationUseCase.execute({
+            userId,
+            institution,
+            startDate,
+            degree: toStr(args.degree),
+            field: toStr(args.field),
+            endDate: toDate(args.endDate),
+            description: toStr(args.description),
+          });
+          break;
+        }
+        case 'update_education': {
+          const educationId = toStr(args.educationId);
+          if (!educationId) {
+            return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'educationId is required');
+          }
+          result = await this.deps.updateEducationUseCase.execute({
+            id: educationId,
+            userId,
+            institution: toStr(args.institution),
+            degree: toStr(args.degree),
+            field: toStr(args.field),
+            startDate: toDate(args.startDate),
+            endDate: toDate(args.endDate),
+            description: toStr(args.description),
+          });
+          break;
+        }
+        case 'create_work_experience': {
+          const company = toStr(args.company);
+          const title = toStr(args.title);
+          const startDate = toDate(args.startDate);
+          if (!company || !title || !startDate) {
+            return this.error(
+              id,
+              JSON_RPC_ERROR.INVALID_PARAMS,
+              'company, title and a valid ISO 8601 startDate are required',
+            );
+          }
+          result = await this.deps.createWorkExperienceUseCase.execute({
+            userId,
+            company,
+            title,
+            startDate,
+            location: toStr(args.location),
+            endDate: toDate(args.endDate),
+            description: toStr(args.description),
+          });
+          break;
+        }
+        case 'update_work_experience': {
+          const workExperienceId = toStr(args.workExperienceId);
+          if (!workExperienceId) {
+            return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'workExperienceId is required');
+          }
+          result = await this.deps.updateWorkExperienceUseCase.execute({
+            id: workExperienceId,
+            userId,
+            company: toStr(args.company),
+            title: toStr(args.title),
+            location: toStr(args.location),
+            startDate: toDate(args.startDate),
+            endDate: toDate(args.endDate),
+            description: toStr(args.description),
+          });
           break;
         }
         default:

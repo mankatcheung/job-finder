@@ -1,4 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
+import {
+  CHAT_TOOLS,
+  MCP_TOOLS,
+  toLlmToolDefinitions,
+} from '#src/interface-adapters/llm/toolCatalogue.js';
 import { ChatWithAssistantUseCase } from '#src/use-cases/chat/ChatWithAssistantUseCase.js';
 import {
   makeRateLimiter,
@@ -19,11 +24,21 @@ function stubUseCase(result: unknown = []) {
 function makeDeps(overrides?: Record<string, unknown>) {
   return {
     llmProviderFactory: makeLLMProviderFactory(),
-    getApplicationsUseCase: stubUseCase([]),
+    // Mirrors the `chatTools` registration in http/di: read tools only.
+    chatTools: toLlmToolDefinitions(CHAT_TOOLS),
+    getApplicationsPageUseCase: stubUseCase({ items: [], hasNextPage: false, nextCursor: null }),
     getApplicationUseCase: stubUseCase({ id: 'app-1' }),
     getNotesUseCase: stubUseCase([]),
     getContactsUseCase: stubUseCase([]),
     getInterviewRoundsUseCase: stubUseCase([]),
+    getDocumentsUseCase: stubUseCase([]),
+    getOffersUseCase: stubUseCase([]),
+    getActivityLogsUseCase: stubUseCase([]),
+    getCalendarEventsUseCase: stubUseCase([]),
+    getResponseTimeAnalyticsUseCase: stubUseCase({}),
+    getApplicationChannelAnalyticsUseCase: stubUseCase({}),
+    getInterviewRoundAnalyticsUseCase: stubUseCase({}),
+    getOfferAnalyticsUseCase: stubUseCase({}),
     chatRateLimiter: makeRateLimiter(),
     messageRepository: makeMessageRepository(),
     conversationRepository: makeConversationRepository({
@@ -336,8 +351,63 @@ describe('ChatWithAssistantUseCase', () => {
     expect(conversationRepository.updateTitle).not.toHaveBeenCalled();
   });
 
+  describe('tool catalogue / handler parity (JEF-174)', () => {
+    it('never offers the LLM a write tool (JEF-176)', () => {
+      // MCP gained write tools gated on a full-access API token. Chat is
+      // session-authenticated with no scope to gate on, so it must not
+      // inherit them just because the catalogue is shared.
+      expect(CHAT_TOOLS.every((t) => t.access === 'read')).toBe(true);
+      expect(CHAT_TOOLS.length).toBeLessThan(MCP_TOOLS.length);
+    });
+
+    // ChatWithAssistantUseCase advertises MCP_TOOLS to the LLM but dispatches
+    // through its own switch. Those two drifted apart once MCP gained tools
+    // the chat switch didn't handle, and the model was offered capabilities
+    // that answered "Unknown tool". This walks every advertised tool and
+    // fails if any is unhandled — the check that would have caught it.
+    it.each(CHAT_TOOLS.map((t) => [t.name] as const))(
+      '%s is advertised to the LLM and has a handler',
+      async (toolName) => {
+        const llmProvider = makeToolCallingProvider(
+          {
+            content: null,
+            toolCalls: [{ id: 'call_1', name: toolName, arguments: { applicationId: 'app-1' } }],
+          },
+          { content: 'done', toolCalls: [] },
+        );
+        const deps = makeDeps({
+          llmProviderFactory: makeLLMProviderFactory({
+            forUser: vi.fn().mockResolvedValue(llmProvider),
+          }),
+        });
+
+        await new ChatWithAssistantUseCase(deps as never).execute({
+          ...baseInput,
+          message: 'go',
+        });
+
+        const [secondCallMessages] = vi.mocked(llmProvider.completeWithTools).mock.calls[1];
+        const toolResult = secondCallMessages.find((m) => m.role === 'tool');
+        expect(toolResult?.content, `${toolName} is advertised but unhandled`).not.toMatch(
+          /Unknown tool/,
+        );
+      },
+    );
+
+    it('tells the model that list_applications is paginated', () => {
+      // Without this the model reads the first page and reports it as the
+      // whole picture — a silent wrong answer rather than an error.
+      const prompt = MCP_TOOLS.find((t) => t.name === 'list_applications')!.description;
+      expect(`${prompt}`).toMatch(/page|cursor/i);
+    });
+  });
+
   it('dispatches a list_applications tool call and feeds the result back to the LLM', async () => {
-    const applications = [{ id: 'app-1', company: 'Acme' }];
+    const applications = {
+      items: [{ id: 'app-1', company: 'Acme' }],
+      hasNextPage: false,
+      nextCursor: null,
+    };
     const llmProvider = makeToolCallingProvider(
       {
         content: null,
@@ -345,12 +415,12 @@ describe('ChatWithAssistantUseCase', () => {
       },
       { content: 'You have 1 application at Acme.', toolCalls: [] },
     );
-    const getApplicationsUseCase = stubUseCase(applications);
+    const getApplicationsPageUseCase = stubUseCase(applications);
     const deps = makeDeps({
       llmProviderFactory: makeLLMProviderFactory({
         forUser: vi.fn().mockResolvedValue(llmProvider),
       }),
-      getApplicationsUseCase,
+      getApplicationsPageUseCase,
     });
 
     const result = await new ChatWithAssistantUseCase(deps as never).execute({
@@ -359,9 +429,11 @@ describe('ChatWithAssistantUseCase', () => {
     });
 
     expect(result).toBe('You have 1 application at Acme.');
-    expect(getApplicationsUseCase.execute).toHaveBeenCalledWith({
+    expect(getApplicationsPageUseCase.execute).toHaveBeenCalledWith({
       userId: 'user-1',
       status: 'applied',
+      cursor: undefined,
+      limit: undefined,
     });
 
     const [secondCallMessages] = vi.mocked(llmProvider.completeWithTools).mock.calls[1];
@@ -479,7 +551,7 @@ describe('ChatWithAssistantUseCase', () => {
     );
     // Resolve the second tool call before the first to prove the results are
     // matched back up by call id/order, not by completion order.
-    const getApplicationsUseCase = {
+    const getApplicationsPageUseCase = {
       execute: vi.fn(() => new Promise((resolve) => setTimeout(() => resolve(applications), 10))),
     };
     const getApplicationUseCase = { execute: vi.fn().mockResolvedValue(application) };
@@ -487,7 +559,7 @@ describe('ChatWithAssistantUseCase', () => {
       llmProviderFactory: makeLLMProviderFactory({
         forUser: vi.fn().mockResolvedValue(llmProvider),
       }),
-      getApplicationsUseCase,
+      getApplicationsPageUseCase,
       getApplicationUseCase,
     });
 
@@ -497,9 +569,11 @@ describe('ChatWithAssistantUseCase', () => {
     });
 
     expect(result).toBe('Summary.');
-    expect(getApplicationsUseCase.execute).toHaveBeenCalledWith({
+    expect(getApplicationsPageUseCase.execute).toHaveBeenCalledWith({
       userId: 'user-1',
       status: undefined,
+      cursor: undefined,
+      limit: undefined,
     });
     expect(getApplicationUseCase.execute).toHaveBeenCalledWith({
       userId: 'user-1',

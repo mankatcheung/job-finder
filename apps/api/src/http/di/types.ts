@@ -226,6 +226,7 @@ import type { ListSessionsUseCase } from '#src/use-cases/sessions/ListSessionsUs
 import type { RevokeSessionUseCase } from '#src/use-cases/sessions/RevokeSessionUseCase.js';
 import type { RevokeOtherSessionsUseCase } from '#src/use-cases/sessions/RevokeOtherSessionsUseCase.js';
 import type { ChatWithAssistantUseCase } from '#src/use-cases/chat/ChatWithAssistantUseCase.js';
+import type { LLMToolDefinition } from '#src/use-cases/ports/ILLMProvider.js';
 import type { CreateWorkExperienceUseCase } from '#src/use-cases/workExperience/CreateWorkExperienceUseCase.js';
 import type { UpdateWorkExperienceUseCase } from '#src/use-cases/workExperience/UpdateWorkExperienceUseCase.js';
 import type { DeleteWorkExperienceUseCase } from '#src/use-cases/workExperience/DeleteWorkExperienceUseCase.js';
@@ -492,6 +493,7 @@ export interface Cradle {
   generateCoverLetterUseCase: GenerateCoverLetterUseCase;
   generateCompanyBriefingUseCase: GenerateCompanyBriefingUseCase;
   computeHealthScoreUseCase: ComputeHealthScoreUseCase;
+  chatTools: LLMToolDefinition[];
   chatWithAssistantUseCase: ChatWithAssistantUseCase;
   computeResumeMatchScoreUseCase: ComputeResumeMatchScoreUseCase;
   getApplicationChannelAnalyticsUseCase: GetApplicationChannelAnalyticsUseCase;

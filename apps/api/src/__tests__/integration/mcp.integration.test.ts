@@ -10,8 +10,8 @@ const REGISTER_MUTATION = `
 `;
 
 const CREATE_API_TOKEN_MUTATION = `
-  mutation CreateApiToken($name: String!) {
-    createApiToken(name: $name) {
+  mutation CreateApiToken($name: String!, $scope: ApiTokenScope) {
+    createApiToken(name: $name, scope: $scope) {
       token
     }
   }
@@ -67,14 +67,14 @@ describe('mcp integration', () => {
     return accessCookie.split(';', 1)[0];
   }
 
-  async function createApiToken(accessToken: string): Promise<string> {
+  async function createApiToken(accessToken: string, scope?: 'read' | 'full'): Promise<string> {
     const res = await testApp.app.inject({
       method: 'POST',
       url: '/graphql',
       headers: { authorization: `Bearer ${accessToken}` },
       payload: {
         query: CREATE_API_TOKEN_MUTATION,
-        variables: { name: 'MCP integration test token' },
+        variables: { name: 'MCP integration test token', scope },
       },
     });
     const body = res.json() as GraphQLResponse<{ createApiToken: { token: string } }>;
@@ -374,6 +374,88 @@ describe('mcp integration', () => {
     expect(page.items).toHaveLength(2);
     expect(page.hasNextPage).toBe(true);
     expect(page.nextCursor).toEqual(expect.any(String));
+  });
+
+  describe('write tools and token scope (JEF-176)', () => {
+    it('refuses a write tool for a genuinely read-scoped token, end to end', async () => {
+      const accessToken = await registerAndGetAccessToken();
+      const readToken = await createApiToken(accessToken, 'read');
+
+      const res = await mcpInject(readToken, {
+        jsonrpc: '2.0',
+        id: 20,
+        method: 'tools/call',
+        params: {
+          name: 'create_application',
+          arguments: { company: 'Acme', role: 'Engineer' },
+        },
+      });
+
+      const body = res.json() as JsonRpcResponse;
+      expect(body.error?.message).toMatch(/read-only/);
+
+      // And nothing was created: the read token can still list, and sees none.
+      const listRes = await mcpInject(readToken, {
+        jsonrpc: '2.0',
+        id: 21,
+        method: 'tools/call',
+        params: { name: 'list_applications', arguments: {} },
+      });
+      const listBody = listRes.json() as JsonRpcResponse & {
+        result: { content: Array<{ text: string }> };
+      };
+      const page = JSON.parse(listBody.result.content[0].text) as { items: unknown[] };
+      expect(page.items).toHaveLength(0);
+    });
+
+    it('allows a write tool for a full-scoped token and actually persists', async () => {
+      const accessToken = await registerAndGetAccessToken();
+      const fullToken = await createApiToken(accessToken, 'full');
+
+      const res = await mcpInject(fullToken, {
+        jsonrpc: '2.0',
+        id: 22,
+        method: 'tools/call',
+        params: {
+          name: 'create_application',
+          arguments: { company: 'Globex', role: 'Staff Engineer' },
+        },
+      });
+      const body = res.json() as JsonRpcResponse;
+      expect(body.error).toBeUndefined();
+
+      const listRes = await mcpInject(fullToken, {
+        jsonrpc: '2.0',
+        id: 23,
+        method: 'tools/call',
+        params: { name: 'list_applications', arguments: {} },
+      });
+      const listBody = listRes.json() as JsonRpcResponse & {
+        result: { content: Array<{ text: string }> };
+      };
+      const page = JSON.parse(listBody.result.content[0].text) as {
+        items: Array<{ company: string }>;
+      };
+      expect(page.items).toEqual(
+        expect.arrayContaining([expect.objectContaining({ company: 'Globex' })]),
+      );
+    });
+
+    it('hides write tools from a read token in tools/list', async () => {
+      const accessToken = await registerAndGetAccessToken();
+      const readToken = await createApiToken(accessToken, 'read');
+
+      const res = await mcpInject(readToken, { jsonrpc: '2.0', id: 24, method: 'tools/list' });
+      const body = res.json() as JsonRpcResponse & {
+        result: { tools: Array<{ name: string }> };
+      };
+      const names = body.result.tools.map((t) => t.name);
+
+      expect(names).toContain('list_applications');
+      expect(names).not.toContain('create_application');
+      // `access` is internal and must not leak over the wire.
+      expect(body.result.tools.every((t) => !('access' in t))).toBe(true);
+    });
   });
 
   it('returns an INVALID_PARAMS error for get_application with no applicationId', async () => {

@@ -44,7 +44,11 @@ export function mcpRoutes(getCradle: () => Cradle): RouteDefinition[] {
           return;
         }
 
-        const { status, body } = await mcpController.handle(req.body, authResult.sub);
+        const { status, body } = await mcpController.handle(
+          req.body,
+          authResult.sub,
+          authResult.scope,
+        );
         res.status(status ?? 200).send(body);
       },
     },
