@@ -1,5 +1,6 @@
-import { API_TOKEN } from '#src/constants.js';
+import { API_TOKEN, MCP_OAUTH } from '#src/constants.js';
 import type { ValidateApiTokenUseCase } from '#src/use-cases/apiTokens/ValidateApiTokenUseCase.js';
+import type { ValidateMcpOAuthAccessTokenUseCase } from '#src/use-cases/mcpOAuth/ValidateMcpOAuthAccessTokenUseCase.js';
 
 export interface AuthenticateMcpRequestResult {
   sub: string;
@@ -7,6 +8,7 @@ export interface AuthenticateMcpRequestResult {
 
 interface Deps {
   validateApiTokenUseCase: ValidateApiTokenUseCase;
+  validateMcpOAuthAccessTokenUseCase?: ValidateMcpOAuthAccessTokenUseCase;
 }
 
 /**
@@ -20,6 +22,16 @@ export class AuthenticateMcpRequestUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(rawToken: string): Promise<AuthenticateMcpRequestResult | null> {
+    if (rawToken.startsWith(MCP_OAUTH.ACCESS_TOKEN_PREFIX)) {
+      if (!this.deps.validateMcpOAuthAccessTokenUseCase) return null;
+      try {
+        const result = await this.deps.validateMcpOAuthAccessTokenUseCase.execute(rawToken);
+        return result ? { sub: result.sub } : null;
+      } catch {
+        return null;
+      }
+    }
+
     if (!rawToken.startsWith(API_TOKEN.PREFIX)) return null;
 
     try {

@@ -19,6 +19,7 @@ import { profile } from './profile.js';
 import { offers } from './offers.js';
 import { analytics } from './analytics.js';
 import { llm } from './llm.js';
+import { mcpOAuth } from './mcpOAuth.js';
 
 import type { Cradle } from '../types.js';
 
@@ -42,4 +43,5 @@ export const useCases = {
   ...offers,
   ...analytics,
   ...llm,
+  ...mcpOAuth,
 } satisfies NameAndRegistrationPair<Cradle>;

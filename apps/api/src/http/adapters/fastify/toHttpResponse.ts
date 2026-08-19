@@ -7,6 +7,10 @@ export function toHttpResponse(reply: FastifyReply): IHttpResponse {
       reply.status(code);
       return wrapper;
     },
+    header(name, value) {
+      reply.header(name, value);
+      return wrapper;
+    },
     send(body) {
       reply.send(body);
     },

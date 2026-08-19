@@ -48,6 +48,31 @@ export const apiToken = sqliteTable(
   (table) => [index('ApiToken_userId_idx').on(table.userId)],
 );
 
+export const mcpOAuthAccessToken = sqliteTable(
+  'McpOAuthAccessToken',
+  {
+    id: text('id').primaryKey(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    clientId: text('clientId').notNull(),
+    tokenHash: text('tokenHash').notNull().unique(),
+    scope: text('scope').notNull(),
+    audience: text('audience').notNull(),
+    expiresAt: integer('expiresAt', { mode: 'timestamp_ms' }).notNull(),
+    revokedAt: integer('revokedAt', { mode: 'timestamp_ms' }),
+    lastUsedAt: integer('lastUsedAt', { mode: 'timestamp_ms' }),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('McpOAuthAccessToken_userId_idx').on(table.userId),
+    index('McpOAuthAccessToken_clientId_idx').on(table.clientId),
+    index('McpOAuthAccessToken_expiresAt_idx').on(table.expiresAt),
+  ],
+);
+
 export const shareLink = sqliteTable(
   'ShareLink',
   {

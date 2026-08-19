@@ -1,6 +1,7 @@
 import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
 import type { Cradle } from '#src/http/container.js';
 import { AUTH_HEADER, ROUTES } from '#src/constants.js';
+import { protectedResourceMetadataUrl } from './mcpOAuth.routes.js';
 
 /**
  * MCP transport. Authenticates the Bearer API token via
@@ -20,14 +21,26 @@ export function mcpRoutes(getCradle: () => Cradle): RouteDefinition[] {
             : null;
 
         if (!rawToken) {
-          res.status(401).send({ error: 'Missing Authorization header' });
+          res
+            .status(401)
+            .header(
+              'WWW-Authenticate',
+              `Bearer resource_metadata="${protectedResourceMetadataUrl(req)}"`,
+            )
+            .send({ error: 'Missing Authorization header' });
           return;
         }
 
         const { authenticateMcpRequestUseCase, mcpController } = getCradle();
         const authResult = await authenticateMcpRequestUseCase.execute(rawToken);
         if (!authResult) {
-          res.status(401).send({ error: 'Invalid or expired API token' });
+          res
+            .status(401)
+            .header(
+              'WWW-Authenticate',
+              `Bearer resource_metadata="${protectedResourceMetadataUrl(req)}"`,
+            )
+            .send({ error: 'Invalid or expired API token' });
           return;
         }
 

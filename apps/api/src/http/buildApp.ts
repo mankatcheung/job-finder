@@ -16,6 +16,7 @@ import { digestRoutes } from '#src/http/routes/digest.routes.js';
 import { healthRoutes } from '#src/http/routes/health.routes.js';
 import { mcpRoutes } from '#src/http/routes/mcp.routes.js';
 import { oauthRoutes } from '#src/http/routes/oauth.routes.js';
+import { mcpOAuthMetadataRoutes } from '#src/http/routes/mcpOAuth.routes.js';
 import { buildContainer } from '#src/http/container.js';
 import { schema } from '#src/http/schema/index.js';
 import { formatError } from '#src/http/errors/formatError.js';
@@ -71,6 +72,7 @@ export async function buildApp(fastify: FastifyInstance): Promise<FastifyInstanc
     ...remindersRoutes(() => container.cradle),
     ...pushNotificationsRoutes(() => container.cradle),
     ...digestRoutes(() => container.cradle),
+    ...mcpOAuthMetadataRoutes(() => container.cradle),
   ]);
 
   fastify.route({

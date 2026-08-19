@@ -9,6 +9,7 @@ export interface CookieOptions {
 
 export interface IHttpResponse {
   status(code: number): IHttpResponse;
+  header(name: string, value: string): IHttpResponse;
   send(body?: unknown): void;
   redirect(url: string): void;
   setCookie(name: string, value: string, options?: CookieOptions): void;

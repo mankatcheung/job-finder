@@ -56,6 +56,22 @@ const SCHEMA_STATEMENTS = [
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
   )`,
   `CREATE INDEX "ApiToken_userId_idx" ON "ApiToken"("userId")`,
+  `CREATE TABLE "McpOAuthAccessToken" (
+    "id" TEXT PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "clientId" TEXT NOT NULL,
+    "tokenHash" TEXT NOT NULL UNIQUE,
+    "scope" TEXT NOT NULL,
+    "audience" TEXT NOT NULL,
+    "expiresAt" INTEGER NOT NULL,
+    "revokedAt" INTEGER,
+    "lastUsedAt" INTEGER,
+    "createdAt" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "McpOAuthAccessToken_userId_idx" ON "McpOAuthAccessToken"("userId")`,
+  `CREATE INDEX "McpOAuthAccessToken_clientId_idx" ON "McpOAuthAccessToken"("clientId")`,
+  `CREATE INDEX "McpOAuthAccessToken_expiresAt_idx" ON "McpOAuthAccessToken"("expiresAt")`,
   `CREATE TABLE "ShareLink" (
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,

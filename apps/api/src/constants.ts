@@ -268,6 +268,20 @@ export const MCP = {
   PROTOCOL_VERSION: '2024-11-05',
   SERVER_NAME: 'trakwyn-mcp',
   SERVER_VERSION: '1.0.0',
+  SCOPES: ['read', 'full'] as const,
+} as const;
+
+/** OAuth endpoints used by MCP clients and protected-resource discovery. */
+export const MCP_OAUTH = {
+  PROTECTED_RESOURCE_METADATA: '/.well-known/oauth-protected-resource',
+  AUTHORIZATION_SERVER_METADATA: '/.well-known/oauth-authorization-server',
+  AUTHORIZE: '/oauth/authorize',
+  TOKEN: '/oauth/token',
+  REVOKE: '/oauth/revoke',
+  RESOURCE: '/mcp',
+  ACCESS_TOKEN_PREFIX: 'trakwyn_mcp_',
+  ACCESS_TOKEN_RANDOM_BYTES: 32,
+  ACCESS_TOKEN_TTL_MS: 60 * 60 * 1000,
 } as const;
 
 /**

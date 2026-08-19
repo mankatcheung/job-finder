@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { AuthenticateMcpRequestUseCase } from '#src/use-cases/auth/AuthenticateMcpRequestUseCase.js';
 import type { ValidateApiTokenUseCase } from '#src/use-cases/apiTokens/ValidateApiTokenUseCase.js';
+import type { ValidateMcpOAuthAccessTokenUseCase } from '#src/use-cases/mcpOAuth/ValidateMcpOAuthAccessTokenUseCase.js';
 
 function makeValidateApiTokenUseCase(
   execute?: ValidateApiTokenUseCase['execute'],
@@ -8,6 +9,14 @@ function makeValidateApiTokenUseCase(
   return {
     execute: execute ?? vi.fn().mockResolvedValue(null),
   } as unknown as ValidateApiTokenUseCase;
+}
+
+function makeValidateMcpOAuthAccessTokenUseCase(
+  execute?: ValidateMcpOAuthAccessTokenUseCase['execute'],
+): ValidateMcpOAuthAccessTokenUseCase {
+  return {
+    execute: execute ?? vi.fn().mockResolvedValue(null),
+  } as unknown as ValidateMcpOAuthAccessTokenUseCase;
 }
 
 describe('AuthenticateMcpRequestUseCase', () => {
@@ -62,5 +71,20 @@ describe('AuthenticateMcpRequestUseCase', () => {
     const result = await useCase.execute('trakwyn_broken');
 
     expect(result).toBeNull();
+  });
+
+  it('returns the user id for a valid MCP OAuth access token', async () => {
+    const validateApiTokenUseCase = makeValidateApiTokenUseCase();
+    const validateMcpOAuthAccessTokenUseCase = makeValidateMcpOAuthAccessTokenUseCase(
+      vi.fn().mockResolvedValue({ sub: 'user-1', scope: 'read' }),
+    );
+    const useCase = new AuthenticateMcpRequestUseCase({
+      validateApiTokenUseCase,
+      validateMcpOAuthAccessTokenUseCase,
+    });
+
+    await expect(useCase.execute('trakwyn_mcp_access')).resolves.toEqual({ sub: 'user-1' });
+    expect(validateApiTokenUseCase.execute).not.toHaveBeenCalled();
+    expect(validateMcpOAuthAccessTokenUseCase.execute).toHaveBeenCalledWith('trakwyn_mcp_access');
   });
 });

@@ -37,6 +37,7 @@ import type { DrizzleTotpBackupCodeRepository } from '#src/infrastructure/db/rep
 import type { DrizzleBackupEmailVerificationTokenRepository } from '#src/infrastructure/db/repositories/DrizzleBackupEmailVerificationTokenRepository.js';
 import type { DrizzleOAuthAccountRepository } from '#src/infrastructure/db/repositories/DrizzleOAuthAccountRepository.js';
 import type { DrizzleApiTokenRepository } from '#src/infrastructure/db/repositories/DrizzleApiTokenRepository.js';
+import type { DrizzleMcpOAuthTokenRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthTokenRepository.js';
 import type { DrizzleShareLinkRepository } from '#src/infrastructure/db/repositories/DrizzleShareLinkRepository.js';
 import type { DrizzleNotificationRepository } from '#src/infrastructure/db/repositories/DrizzleNotificationRepository.js';
 import type { DrizzleOfferRepository } from '#src/infrastructure/db/repositories/DrizzleOfferRepository.js';
@@ -93,6 +94,8 @@ import type { McpController } from '#src/interface-adapters/mcp/McpController.js
 
 import type { AuthenticateRequestUseCase } from '#src/use-cases/auth/AuthenticateRequestUseCase.js';
 import type { AuthenticateMcpRequestUseCase } from '#src/use-cases/auth/AuthenticateMcpRequestUseCase.js';
+import type { ValidateMcpOAuthAccessTokenUseCase } from '#src/use-cases/mcpOAuth/ValidateMcpOAuthAccessTokenUseCase.js';
+import type { CreateMcpOAuthAccessTokenUseCase } from '#src/use-cases/mcpOAuth/CreateMcpOAuthAccessTokenUseCase.js';
 import type { RegisterUseCase } from '#src/use-cases/auth/RegisterUseCase.js';
 import type { LoginUseCase } from '#src/use-cases/auth/LoginUseCase.js';
 import type { LoginWithTotpUseCase } from '#src/use-cases/auth/LoginWithTotpUseCase.js';
@@ -258,6 +261,7 @@ export interface Cradle {
   drizzleEducationRepository: DrizzleEducationRepository;
   drizzleWorkExperienceRepository: DrizzleWorkExperienceRepository;
   drizzleApiTokenRepository: DrizzleApiTokenRepository;
+  mcpOAuthTokenRepository: DrizzleMcpOAuthTokenRepository;
   drizzleContactRepository: DrizzleContactRepository;
   drizzleNotificationRepository: DrizzleNotificationRepository;
 
@@ -358,6 +362,8 @@ export interface Cradle {
 
   authenticateRequestUseCase: AuthenticateRequestUseCase;
   authenticateMcpRequestUseCase: AuthenticateMcpRequestUseCase;
+  validateMcpOAuthAccessTokenUseCase: ValidateMcpOAuthAccessTokenUseCase;
+  createMcpOAuthAccessTokenUseCase: CreateMcpOAuthAccessTokenUseCase;
   registerUseCase: RegisterUseCase;
   loginUseCase: LoginUseCase;
   loginWithTotpUseCase: LoginWithTotpUseCase;

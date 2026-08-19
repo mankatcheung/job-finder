@@ -88,6 +88,10 @@ describe('mcp integration', () => {
 
     expect(res.statusCode).toBe(401);
     expect(res.json()).toEqual({ error: expect.stringContaining('Missing') });
+    expect(res.headers['www-authenticate']).toContain('Bearer');
+    expect(res.headers['www-authenticate']).toMatch(
+      /resource_metadata="http:\/\/localhost:\d+\/.well-known\/oauth-protected-resource"/,
+    );
   });
 
   it('rejects a request with an invalid/unknown API token', async () => {
@@ -99,6 +103,42 @@ describe('mcp integration', () => {
 
     expect(res.statusCode).toBe(401);
     expect(res.json()).toEqual({ error: expect.stringContaining('Invalid') });
+  });
+
+  it('publishes protected-resource metadata for MCP clients', async () => {
+    const res = await testApp.app.inject({
+      method: 'GET',
+      url: '/.well-known/oauth-protected-resource',
+      headers: { host: 'api.example.com', 'x-forwarded-proto': 'https' },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({
+      resource: 'https://api.example.com/mcp',
+      authorization_servers: ['https://api.example.com'],
+      scopes_supported: ['read', 'full'],
+      bearer_methods_supported: ['header'],
+    });
+  });
+
+  it('publishes authorization-server metadata for MCP clients', async () => {
+    const res = await testApp.app.inject({
+      method: 'GET',
+      url: '/.well-known/oauth-authorization-server',
+      headers: { host: 'api.example.com', 'x-forwarded-proto': 'https' },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({
+      issuer: 'https://api.example.com',
+      authorization_endpoint: 'https://api.example.com/oauth/authorize',
+      token_endpoint: 'https://api.example.com/oauth/token',
+      revocation_endpoint: 'https://api.example.com/oauth/revoke',
+      response_types_supported: ['code'],
+      grant_types_supported: ['authorization_code', 'refresh_token'],
+      code_challenge_methods_supported: ['S256'],
+      scopes_supported: ['read', 'full'],
+    });
   });
 
   it('rejects a bearer credential that is not an API token (e.g. a JWT)', async () => {
