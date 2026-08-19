@@ -392,6 +392,8 @@
   "integrations.scopeFull": "完全存取",
   "integrations.scopeReadHelp": "可讀取你的資料。適用於 MCP 用戶端，無法進行任何修改。",
   "integrations.scopeFullHelp": "可讀取並修改帳戶中的所有內容，包括刪除資料。",
+  "integrations.mcpHint": "唯讀權杖亦可透過 MCP 與 AI 助理搭配使用。",
+  "integrations.mcpHintLink": "連接方法",
   "integrations.tokenCreatedNote": "權杖已成功建立。請立即複製——它不會再次顯示。",
   "integrations.copyTokenAria": "複製權杖",
   "integrations.copyLinkAria": "複製連結",
