@@ -226,6 +226,14 @@ export function AuthenticatedLayout() {
           </div>
           <div className="flex items-center gap-1">
             <NotificationInboxButton />
+            <button
+              onClick={handleLogout}
+              aria-label={t('nav.signOut')}
+              data-testid="mobile-header-logout"
+              className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 rounded-lg transition-colors"
+            >
+              <LogOutIcon size={18} />
+            </button>
           </div>
         </header>
 
