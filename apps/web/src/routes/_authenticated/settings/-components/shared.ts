@@ -535,10 +535,13 @@ export type LinkedOAuthAccount = {
   createdAt: string;
 };
 
+/** Mirrors the API's `ApiTokenScope` enum (`API_TOKEN_SCOPE` in apps/api/src/constants.ts). */
+export type ApiTokenScope = 'read' | 'full';
+
 export type ApiToken = {
   id: string;
   name: string;
-  scope: string;
+  scope: ApiTokenScope;
   lastUsedAt: string | null;
   createdAt: string;
 };

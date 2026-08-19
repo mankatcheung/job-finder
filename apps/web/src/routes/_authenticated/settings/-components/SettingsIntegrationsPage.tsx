@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
 import { useLocale } from '#/lib/i18n';
-import { Alert, Button, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
+import { Alert, Badge, Button, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
 import {
   LLM_API_KEYS_QUERY,
   SAVE_LLM_API_KEY,
@@ -25,6 +25,7 @@ import {
   type CustomAiPromptForm,
   type LlmApiKey,
   type ApiToken,
+  type ApiTokenScope,
   type CreateApiTokenPayload,
   type ShareLink,
   type CreateShareLinkPayload,
@@ -145,6 +146,10 @@ export function SettingsIntegrationsPage() {
   const apiTokens = apiTokensData?.apiTokens ?? [];
   const [newApiToken, setNewApiToken] = useState<CreateApiTokenPayload | null>(null);
   const [apiTokenName, setApiTokenName] = useState('');
+  // Defaults to read-only: it's what the MCP server needs (POST /mcp accepts
+  // either scope), and full read+write access to the GraphQL API should be a
+  // deliberate choice rather than what you get by not choosing (JEF-170).
+  const [apiTokenScope, setApiTokenScope] = useState<ApiTokenScope>('read');
   const [creatingApiToken, setCreatingApiToken] = useState(false);
   const [apiTokenError, setApiTokenError] = useState<string | null>(null);
 
@@ -157,10 +162,12 @@ export function SettingsIntegrationsPage() {
         CREATE_API_TOKEN,
         {
           name: apiTokenName.trim(),
+          scope: apiTokenScope,
         },
       );
       setNewApiToken(res.createApiToken);
       setApiTokenName('');
+      setApiTokenScope('read');
       await qc.invalidateQueries({ queryKey: ['apiTokens'] });
     } catch (err) {
       setApiTokenError(extractGqlError(err) ?? t('integrations.createTokenFailed'));
@@ -477,7 +484,7 @@ export function SettingsIntegrationsPage() {
         {!newApiToken && (
           <>
             {apiTokenError && <Alert>{apiTokenError}</Alert>}
-            <div className="flex items-end gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-3">
               <div className="flex-1">
                 <FormLabel>{t('integrations.tokenNameLabel')}</FormLabel>
                 <Input
@@ -487,6 +494,17 @@ export function SettingsIntegrationsPage() {
                   placeholder="e.g. CI pipeline"
                 />
               </div>
+              <div className="sm:w-56">
+                <FormLabel>{t('integrations.tokenScopeLabel')}</FormLabel>
+                <Select
+                  value={apiTokenScope}
+                  onChange={(e) => setApiTokenScope(e.target.value as ApiTokenScope)}
+                  aria-label={t('integrations.tokenScopeLabel')}
+                >
+                  <option value="read">{t('integrations.scopeRead')}</option>
+                  <option value="full">{t('integrations.scopeFull')}</option>
+                </Select>
+              </div>
               <Button
                 onClick={onCreateApiToken}
                 disabled={creatingApiToken || !apiTokenName.trim()}
@@ -494,6 +512,11 @@ export function SettingsIntegrationsPage() {
                 {creatingApiToken ? t('integrations.creating') : t('integrations.createToken')}
               </Button>
             </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {apiTokenScope === 'read'
+                ? t('integrations.scopeReadHelp')
+                : t('integrations.scopeFullHelp')}
+            </p>
           </>
         )}
 
@@ -502,8 +525,13 @@ export function SettingsIntegrationsPage() {
             {apiTokens.map((token) => (
               <li key={token.id} className="flex items-center justify-between gap-4 px-3 py-2">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {token.name}
+                  <p className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <span className="truncate">{token.name}</span>
+                    <Badge tone={token.scope === 'read' ? 'gray' : 'yellow'}>
+                      {token.scope === 'read'
+                        ? t('integrations.scopeRead')
+                        : t('integrations.scopeFull')}
+                    </Badge>
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     {t('integrations.createdOn', {
