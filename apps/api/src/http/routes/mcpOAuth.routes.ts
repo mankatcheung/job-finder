@@ -36,7 +36,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
           revocation_endpoint: `${origin}${MCP_OAUTH.REVOKE}`,
           registration_endpoint: `${origin}${MCP_OAUTH.REGISTER}`,
           response_types_supported: ['code'],
-          grant_types_supported: ['authorization_code'],
+          grant_types_supported: ['authorization_code', 'refresh_token'],
           code_challenge_methods_supported: ['S256'],
           scopes_supported: [...MCP.SCOPES],
         });
@@ -154,6 +154,24 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
       path: MCP_OAUTH.TOKEN,
       handler: async (req, res) => {
         const body = asRecord(req.body);
+        if (body.grant_type === 'refresh_token') {
+          const result = await _getCradle().rotateMcpOAuthRefreshTokenUseCase.execute({
+            refreshToken: stringValue(body.refresh_token),
+            clientId: stringValue(body.client_id),
+          });
+          if (!result) {
+            res.status(400).send({ error: 'invalid_grant' });
+            return;
+          }
+          res.send({
+            access_token: result.accessToken,
+            refresh_token: result.refreshToken,
+            token_type: 'Bearer',
+            expires_in: Math.floor((result.accessTokenExpiresAt.getTime() - Date.now()) / 1000),
+          });
+          return;
+        }
+
         if (body.grant_type !== 'authorization_code') {
           res.status(400).send({ error: 'unsupported_grant_type' });
           return;
@@ -172,6 +190,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
 
         res.send({
           access_token: result.accessToken,
+          refresh_token: result.refreshToken,
           token_type: 'Bearer',
           expires_in: Math.floor((result.token.expiresAt.getTime() - Date.now()) / 1000),
           scope: result.token.scope,

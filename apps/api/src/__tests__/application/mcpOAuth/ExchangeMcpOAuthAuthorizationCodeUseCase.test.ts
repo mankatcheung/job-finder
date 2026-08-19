@@ -41,17 +41,22 @@ describe('ExchangeMcpOAuthAuthorizationCodeUseCase', () => {
         token: { id: 'token-1', userId: 'user-1', scope: 'read', expiresAt: code.expiresAt },
       }),
     };
+    const createMcpOAuthRefreshTokenUseCase = {
+      execute: vi.fn().mockResolvedValue({ rawToken: 'trakwyn_mcp_refresh_token' }),
+    };
     return {
       useCase: new ExchangeMcpOAuthAuthorizationCodeUseCase({
         mcpOAuthAuthorizationCodeRepository: authorizationCodeRepository as never,
         mcpOAuthClientRepository: clientRepository as never,
         createMcpOAuthAccessTokenUseCase,
+        createMcpOAuthRefreshTokenUseCase,
         now: () => now,
         ...overrides,
       }),
       authorizationCodeRepository,
       clientRepository,
       createMcpOAuthAccessTokenUseCase,
+      createMcpOAuthRefreshTokenUseCase,
     };
   }
 
@@ -65,6 +70,7 @@ describe('ExchangeMcpOAuthAuthorizationCodeUseCase', () => {
     });
 
     expect(result?.accessToken).toBe('trakwyn_mcp_access');
+    expect(result?.refreshToken).toBe('trakwyn_mcp_refresh_token');
     expect(deps.authorizationCodeRepository.consume).toHaveBeenCalledWith('code-1', now);
     expect(deps.createMcpOAuthAccessTokenUseCase.execute).toHaveBeenCalledWith({
       userId: 'user-1',

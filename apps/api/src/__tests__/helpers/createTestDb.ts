@@ -98,6 +98,22 @@ const SCHEMA_STATEMENTS = [
   `CREATE INDEX "McpOAuthAuthorizationCode_clientId_idx" ON "McpOAuthAuthorizationCode"("clientId")`,
   `CREATE INDEX "McpOAuthAuthorizationCode_userId_idx" ON "McpOAuthAuthorizationCode"("userId")`,
   `CREATE INDEX "McpOAuthAuthorizationCode_expiresAt_idx" ON "McpOAuthAuthorizationCode"("expiresAt")`,
+  `CREATE TABLE "McpOAuthRefreshToken" (
+    "id" TEXT PRIMARY KEY,
+    "tokenHash" TEXT NOT NULL UNIQUE,
+    "familyId" TEXT NOT NULL,
+    "clientId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "scope" TEXT NOT NULL,
+    "expiresAt" INTEGER NOT NULL,
+    "usedAt" INTEGER,
+    "revokedAt" INTEGER,
+    "createdAt" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+  )`,
+  `CREATE INDEX "McpOAuthRefreshToken_familyId_idx" ON "McpOAuthRefreshToken"("familyId")`,
+  `CREATE INDEX "McpOAuthRefreshToken_userId_idx" ON "McpOAuthRefreshToken"("userId")`,
+  `CREATE INDEX "McpOAuthRefreshToken_expiresAt_idx" ON "McpOAuthRefreshToken"("expiresAt")`,
   `CREATE TABLE "ShareLink" (
     "id" TEXT PRIMARY KEY,
     "userId" TEXT NOT NULL,

@@ -151,7 +151,7 @@ describe('mcp integration', () => {
       revocation_endpoint: 'https://api.example.com/oauth/revoke',
       registration_endpoint: 'https://api.example.com/oauth/register',
       response_types_supported: ['code'],
-      grant_types_supported: ['authorization_code'],
+      grant_types_supported: ['authorization_code', 'refresh_token'],
       code_challenge_methods_supported: ['S256'],
       scopes_supported: ['read', 'full'],
     });
@@ -206,8 +206,14 @@ describe('mcp integration', () => {
       }).toString(),
     });
     expect(tokenRes.statusCode).toBe(200);
-    const token = tokenRes.json() as { access_token: string; token_type: string; scope: string };
+    const token = tokenRes.json() as {
+      access_token: string;
+      refresh_token: string;
+      token_type: string;
+      scope: string;
+    };
     expect(token).toMatchObject({ token_type: 'Bearer', scope: 'read' });
+    expect(token.refresh_token).toMatch(/^trakwyn_mcp_refresh_/);
 
     const mcpRes = await mcpInject(token.access_token, {
       jsonrpc: '2.0',
@@ -215,6 +221,31 @@ describe('mcp integration', () => {
       method: 'tools/list',
     });
     expect(mcpRes.statusCode).toBe(200);
+
+    const refreshedRes = await testApp.app.inject({
+      method: 'POST',
+      url: '/oauth/token',
+      payload: {
+        grant_type: 'refresh_token',
+        refresh_token: token.refresh_token,
+        client_id: client.client_id,
+      },
+    });
+    expect(refreshedRes.statusCode).toBe(200);
+    const refreshed = refreshedRes.json() as { access_token: string; refresh_token: string };
+    expect(refreshed.access_token).not.toBe(token.access_token);
+    expect(refreshed.refresh_token).not.toBe(token.refresh_token);
+
+    const reusedRes = await testApp.app.inject({
+      method: 'POST',
+      url: '/oauth/token',
+      payload: {
+        grant_type: 'refresh_token',
+        refresh_token: token.refresh_token,
+        client_id: client.client_id,
+      },
+    });
+    expect(reusedRes.statusCode).toBe(400);
 
     const revokeRes = await testApp.app.inject({
       method: 'POST',

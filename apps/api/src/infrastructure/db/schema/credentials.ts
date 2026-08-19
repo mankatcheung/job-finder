@@ -115,6 +115,31 @@ export const mcpOAuthAuthorizationCode = sqliteTable(
   ],
 );
 
+export const mcpOAuthRefreshToken = sqliteTable(
+  'McpOAuthRefreshToken',
+  {
+    id: text('id').primaryKey(),
+    tokenHash: text('tokenHash').notNull().unique(),
+    familyId: text('familyId').notNull(),
+    clientId: text('clientId').notNull(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    scope: text('scope').notNull(),
+    expiresAt: integer('expiresAt', { mode: 'timestamp_ms' }).notNull(),
+    usedAt: integer('usedAt', { mode: 'timestamp_ms' }),
+    revokedAt: integer('revokedAt', { mode: 'timestamp_ms' }),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('McpOAuthRefreshToken_familyId_idx').on(table.familyId),
+    index('McpOAuthRefreshToken_userId_idx').on(table.userId),
+    index('McpOAuthRefreshToken_expiresAt_idx').on(table.expiresAt),
+  ],
+);
+
 export const shareLink = sqliteTable(
   'ShareLink',
   {

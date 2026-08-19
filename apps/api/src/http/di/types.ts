@@ -102,6 +102,9 @@ import type { RegisterMcpOAuthClientUseCase } from '#src/use-cases/mcpOAuth/Regi
 import type { CreateMcpOAuthAuthorizationCodeUseCase } from '#src/use-cases/mcpOAuth/CreateMcpOAuthAuthorizationCodeUseCase.js';
 import type { ExchangeMcpOAuthAuthorizationCodeUseCase } from '#src/use-cases/mcpOAuth/ExchangeMcpOAuthAuthorizationCodeUseCase.js';
 import type { RevokeMcpOAuthAccessTokenUseCase } from '#src/use-cases/mcpOAuth/RevokeMcpOAuthAccessTokenUseCase.js';
+import type { DrizzleMcpOAuthRefreshTokenRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthRefreshTokenRepository.js';
+import type { CreateMcpOAuthRefreshTokenUseCase } from '#src/use-cases/mcpOAuth/CreateMcpOAuthRefreshTokenUseCase.js';
+import type { RotateMcpOAuthRefreshTokenUseCase } from '#src/use-cases/mcpOAuth/RotateMcpOAuthRefreshTokenUseCase.js';
 import type { RegisterUseCase } from '#src/use-cases/auth/RegisterUseCase.js';
 import type { LoginUseCase } from '#src/use-cases/auth/LoginUseCase.js';
 import type { LoginWithTotpUseCase } from '#src/use-cases/auth/LoginWithTotpUseCase.js';
@@ -271,6 +274,7 @@ export interface Cradle {
   mcpOAuthTokenRepository: DrizzleMcpOAuthTokenRepository;
   mcpOAuthClientRepository: DrizzleMcpOAuthClientRepository;
   mcpOAuthAuthorizationCodeRepository: DrizzleMcpOAuthAuthorizationCodeRepository;
+  mcpOAuthRefreshTokenRepository: DrizzleMcpOAuthRefreshTokenRepository;
   drizzleContactRepository: DrizzleContactRepository;
   drizzleNotificationRepository: DrizzleNotificationRepository;
 
@@ -377,6 +381,8 @@ export interface Cradle {
   createMcpOAuthAuthorizationCodeUseCase: CreateMcpOAuthAuthorizationCodeUseCase;
   exchangeMcpOAuthAuthorizationCodeUseCase: ExchangeMcpOAuthAuthorizationCodeUseCase;
   revokeMcpOAuthAccessTokenUseCase: RevokeMcpOAuthAccessTokenUseCase;
+  createMcpOAuthRefreshTokenUseCase: CreateMcpOAuthRefreshTokenUseCase;
+  rotateMcpOAuthRefreshTokenUseCase: RotateMcpOAuthRefreshTokenUseCase;
   registerUseCase: RegisterUseCase;
   loginUseCase: LoginUseCase;
   loginWithTotpUseCase: LoginWithTotpUseCase;

@@ -5,6 +5,8 @@ import { RegisterMcpOAuthClientUseCase } from '#src/use-cases/mcpOAuth/RegisterM
 import { CreateMcpOAuthAuthorizationCodeUseCase } from '#src/use-cases/mcpOAuth/CreateMcpOAuthAuthorizationCodeUseCase.js';
 import { ExchangeMcpOAuthAuthorizationCodeUseCase } from '#src/use-cases/mcpOAuth/ExchangeMcpOAuthAuthorizationCodeUseCase.js';
 import { RevokeMcpOAuthAccessTokenUseCase } from '#src/use-cases/mcpOAuth/RevokeMcpOAuthAccessTokenUseCase.js';
+import { CreateMcpOAuthRefreshTokenUseCase } from '#src/use-cases/mcpOAuth/CreateMcpOAuthRefreshTokenUseCase.js';
+import { RotateMcpOAuthRefreshTokenUseCase } from '#src/use-cases/mcpOAuth/RotateMcpOAuthRefreshTokenUseCase.js';
 
 import type { Cradle } from '../types.js';
 
@@ -22,6 +24,12 @@ export const mcpOAuth = {
     lifetime: Lifetime.TRANSIENT,
   }),
   revokeMcpOAuthAccessTokenUseCase: asClass(RevokeMcpOAuthAccessTokenUseCase, {
+    lifetime: Lifetime.TRANSIENT,
+  }),
+  createMcpOAuthRefreshTokenUseCase: asClass(CreateMcpOAuthRefreshTokenUseCase, {
+    lifetime: Lifetime.TRANSIENT,
+  }),
+  rotateMcpOAuthRefreshTokenUseCase: asClass(RotateMcpOAuthRefreshTokenUseCase, {
     lifetime: Lifetime.TRANSIENT,
   }),
 } satisfies NameAndRegistrationPair<Cradle>;

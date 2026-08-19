@@ -41,6 +41,23 @@ The API ships a [Model Context Protocol](https://modelcontextprotocol.io) server
 
 The endpoint is `POST https://api.trakwyn.com/mcp`, authenticated with `Authorization: Bearer <token>`.
 
+### OAuth clients
+
+MCP clients can use OAuth instead of manually-created API tokens. The OAuth
+discovery documents are available at:
+
+- `GET https://api.trakwyn.com/.well-known/oauth-protected-resource`
+- `GET https://api.trakwyn.com/.well-known/oauth-authorization-server`
+
+The authorization server supports dynamic public-client registration, the
+authorization-code flow with PKCE (`S256`), rotating refresh tokens, and token
+revocation. Redirect URIs must be exact HTTPS URLs, or loopback HTTP URLs for
+local clients. The authorization flow uses the existing Trakwyn browser
+session and displays an explicit MCP consent screen before issuing a code.
+
+Existing `trakwyn_...` API tokens remain supported for scripts and clients that
+do not implement OAuth.
+
 Verify it works:
 
 ```bash

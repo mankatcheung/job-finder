@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { MCP_OAUTH } from '#src/constants.js';
 import type { CreateMcpOAuthAccessTokenUseCase } from './CreateMcpOAuthAccessTokenUseCase.js';
+import type { CreateMcpOAuthRefreshTokenUseCase } from './CreateMcpOAuthRefreshTokenUseCase.js';
 import type { McpOAuthAccessToken } from '#src/domain/mcpOAuth/McpOAuthAccessToken.js';
 import type { IMcpOAuthAuthorizationCodeRepository } from '#src/use-cases/ports/IMcpOAuthAuthorizationCodeRepository.js';
 import type { IMcpOAuthClientRepository } from '#src/use-cases/ports/IMcpOAuthClientRepository.js';
@@ -9,6 +10,7 @@ interface Deps {
   mcpOAuthAuthorizationCodeRepository: IMcpOAuthAuthorizationCodeRepository;
   mcpOAuthClientRepository: IMcpOAuthClientRepository;
   createMcpOAuthAccessTokenUseCase: Pick<CreateMcpOAuthAccessTokenUseCase, 'execute'>;
+  createMcpOAuthRefreshTokenUseCase: Pick<CreateMcpOAuthRefreshTokenUseCase, 'execute'>;
   now: () => Date;
 }
 
@@ -21,6 +23,7 @@ export interface ExchangeMcpOAuthAuthorizationCodeInput {
 
 export interface ExchangeMcpOAuthAuthorizationCodeOutput {
   accessToken: string;
+  refreshToken: string;
   token: McpOAuthAccessToken;
 }
 
@@ -62,7 +65,12 @@ export class ExchangeMcpOAuthAuthorizationCodeUseCase {
       clientId: code.clientId,
       scope: code.scope,
     });
-    return { accessToken: token.rawToken, token: token.token };
+    const refreshToken = await this.deps.createMcpOAuthRefreshTokenUseCase.execute({
+      userId: code.userId,
+      clientId: code.clientId,
+      scope: code.scope,
+    });
+    return { accessToken: token.rawToken, refreshToken: refreshToken.rawToken, token: token.token };
   }
 }
 
