@@ -229,7 +229,7 @@ export function AuthenticatedLayout() {
         </header>
 
         {/* Desktop sidebar */}
-        <aside className="hidden lg:flex lg:h-screen w-60 flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col sidebar-desktop-entrance">
+        <aside className="hidden lg:flex lg:h-screen w-60 shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col sidebar-desktop-entrance">
           <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between sidebar-entrance-item">
             <span className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100">
               <LogoMark size={22} />

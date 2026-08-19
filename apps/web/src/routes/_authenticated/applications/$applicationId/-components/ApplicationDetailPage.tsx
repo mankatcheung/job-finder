@@ -398,7 +398,7 @@ export function ApplicationDetailPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 flex-shrink-0 px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              className={`flex items-center gap-1.5 shrink-0 px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
                 activeTab === tab.id
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400'
@@ -412,7 +412,7 @@ export function ApplicationDetailPage() {
 
         {/* Desktop: vertical sidebar */}
         <nav
-          className="hidden md:flex flex-col w-44 flex-shrink-0 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 p-2 h-fit sticky top-20"
+          className="hidden md:flex flex-col w-44 shrink-0 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 p-2 h-fit sticky top-20"
           aria-label={t('applicationDetail.sectionNavAria')}
         >
           {TABS.map((tab) => (
