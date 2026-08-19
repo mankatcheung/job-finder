@@ -113,7 +113,7 @@ export function KanbanBoard() {
       <div className="p-4 sm:p-6 flex flex-col h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
         <div className="flex gap-3 overflow-x-auto pb-4 flex-1">
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="flex-shrink-0 w-60 h-96 rounded-xl" />
+            <Skeleton key={i} className="shrink-0 w-60 h-96 rounded-xl" />
           ))}
         </div>
       </div>
@@ -174,7 +174,7 @@ function Column({ status, apps }: { status: string; apps: Application[] }) {
   return (
     <div
       ref={setNodeRef}
-      className={`flex-shrink-0 w-60 rounded-xl border-t-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 ${STATUS_COLORS[status] ?? 'border-t-gray-400'} transition-colors ${isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+      className={`shrink-0 w-60 rounded-xl border-t-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 ${STATUS_COLORS[status] ?? 'border-t-gray-400'} transition-colors ${isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
     >
       <div className="flex items-center justify-between px-3 py-2.5">
         <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 capitalize">
