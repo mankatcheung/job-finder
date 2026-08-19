@@ -6,6 +6,14 @@ import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplication
 import type { IGetNotesUseCase } from '#src/use-cases/notes/IGetNotesUseCase.js';
 import type { IGetContactsUseCase } from '#src/use-cases/contacts/IGetContactsUseCase.js';
 import type { IGetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
+import type { IGetDocumentsUseCase } from '#src/use-cases/documents/IGetDocumentsUseCase.js';
+import type { IGetOffersUseCase } from '#src/use-cases/offers/IGetOffersUseCase.js';
+import type { IGetActivityLogsUseCase } from '#src/use-cases/activityLogs/IGetActivityLogsUseCase.js';
+import type { GetCalendarEventsUseCase } from '#src/use-cases/calendar/GetCalendarEventsUseCase.js';
+import type { GetResponseTimeAnalyticsUseCase } from '#src/use-cases/activityLogs/GetResponseTimeAnalyticsUseCase.js';
+import type { GetApplicationChannelAnalyticsUseCase } from '#src/use-cases/application/GetApplicationChannelAnalyticsUseCase.js';
+import type { GetInterviewRoundAnalyticsUseCase } from '#src/use-cases/interviewRounds/GetInterviewRoundAnalyticsUseCase.js';
+import type { GetOfferAnalyticsUseCase } from '#src/use-cases/offers/GetOfferAnalyticsUseCase.js';
 import {
   makeWorkExperienceRepository,
   makeEducationRepository,
@@ -20,6 +28,22 @@ const makeDeps = () => ({
   getNotesUseCase: { execute: vi.fn() } as IGetNotesUseCase,
   getContactsUseCase: { execute: vi.fn() } as IGetContactsUseCase,
   getInterviewRoundsUseCase: { execute: vi.fn() } as IGetInterviewRoundsUseCase,
+  getDocumentsUseCase: { execute: vi.fn() } as IGetDocumentsUseCase,
+  getOffersUseCase: { execute: vi.fn() } as IGetOffersUseCase,
+  getActivityLogsUseCase: { execute: vi.fn() } as IGetActivityLogsUseCase,
+  // Concrete classes (no I-interface exists for these) — only `execute` is
+  // exercised here, so a minimal stand-in is enough.
+  getCalendarEventsUseCase: { execute: vi.fn() } as unknown as GetCalendarEventsUseCase,
+  getResponseTimeAnalyticsUseCase: {
+    execute: vi.fn(),
+  } as unknown as GetResponseTimeAnalyticsUseCase,
+  getApplicationChannelAnalyticsUseCase: {
+    execute: vi.fn(),
+  } as unknown as GetApplicationChannelAnalyticsUseCase,
+  getInterviewRoundAnalyticsUseCase: {
+    execute: vi.fn(),
+  } as unknown as GetInterviewRoundAnalyticsUseCase,
+  getOfferAnalyticsUseCase: { execute: vi.fn() } as unknown as GetOfferAnalyticsUseCase,
   workExperienceRepository: makeWorkExperienceRepository(),
   educationRepository: makeEducationRepository(),
   skillRepository: makeSkillRepository(),
@@ -186,6 +210,107 @@ describe('McpController', () => {
         expect(Object.keys(tool!.inputSchema.properties)).toEqual(
           expect.arrayContaining(['status', 'limit', 'cursor']),
         );
+      });
+    });
+
+    describe('new tools (JEF-173)', () => {
+      it.each([
+        ['list_documents', 'getDocumentsUseCase'],
+        ['list_offers', 'getOffersUseCase'],
+        ['list_activity', 'getActivityLogsUseCase'],
+      ] as const)('%s calls %s scoped to the user and application', async (tool, dep) => {
+        const payload = [{ id: 'x1' }];
+        vi.mocked(deps[dep].execute).mockResolvedValue(payload as never);
+
+        const { body } = await controller.handle(
+          rpc('tools/call', { name: tool, arguments: { applicationId: 'app-1' } }),
+          USER_ID,
+        );
+
+        expect(deps[dep].execute).toHaveBeenCalledWith({
+          userId: USER_ID,
+          applicationId: 'app-1',
+        });
+        expect(body).toMatchObject({
+          result: { content: [{ type: 'text', text: JSON.stringify(payload) }] },
+        });
+      });
+
+      it.each([['list_documents'], ['list_offers'], ['list_activity']])(
+        '%s rejects a missing applicationId rather than leaking every record',
+        async (tool) => {
+          const { body } = await controller.handle(
+            rpc('tools/call', { name: tool, arguments: {} }),
+            USER_ID,
+          );
+
+          expect(body).toMatchObject({
+            error: { code: JSON_RPC_ERROR.INVALID_PARAMS },
+          });
+        },
+      );
+
+      it('list_calendar_events is scoped to the user and needs no arguments', async () => {
+        const events = [{ id: 'e1' }];
+        vi.mocked(deps.getCalendarEventsUseCase.execute).mockResolvedValue(events as never);
+
+        const { body } = await controller.handle(
+          rpc('tools/call', { name: 'list_calendar_events', arguments: {} }),
+          USER_ID,
+        );
+
+        expect(deps.getCalendarEventsUseCase.execute).toHaveBeenCalledWith({ userId: USER_ID });
+        expect(body).toMatchObject({
+          result: { content: [{ type: 'text', text: JSON.stringify(events) }] },
+        });
+      });
+
+      it('get_analytics combines all four aggregates under named keys', async () => {
+        vi.mocked(deps.getResponseTimeAnalyticsUseCase.execute).mockResolvedValue({
+          a: 1,
+        } as never);
+        vi.mocked(deps.getApplicationChannelAnalyticsUseCase.execute).mockResolvedValue({
+          b: 2,
+        } as never);
+        vi.mocked(deps.getInterviewRoundAnalyticsUseCase.execute).mockResolvedValue({
+          c: 3,
+        } as never);
+        vi.mocked(deps.getOfferAnalyticsUseCase.execute).mockResolvedValue({ d: 4 } as never);
+
+        const { body } = await controller.handle(
+          rpc('tools/call', { name: 'get_analytics', arguments: {} }),
+          USER_ID,
+        );
+
+        const text = (body as { result: { content: Array<{ text: string }> } }).result.content[0]
+          .text;
+        expect(JSON.parse(text)).toEqual({
+          responseTime: { a: 1 },
+          channels: { b: 2 },
+          interviewRounds: { c: 3 },
+          offers: { d: 4 },
+        });
+        for (const dep of [
+          'getResponseTimeAnalyticsUseCase',
+          'getApplicationChannelAnalyticsUseCase',
+          'getInterviewRoundAnalyticsUseCase',
+          'getOfferAnalyticsUseCase',
+        ] as const) {
+          expect(deps[dep].execute).toHaveBeenCalledWith({ userId: USER_ID });
+        }
+      });
+
+      it('every advertised tool has a handler — a catalogue entry with no case fails at call time', async () => {
+        for (const tool of MCP_TOOLS) {
+          const { body } = await controller.handle(
+            rpc('tools/call', { name: tool.name, arguments: { applicationId: 'app-1' } }),
+            USER_ID,
+          );
+          // A handled tool either succeeds or fails for its own reasons;
+          // only "Unknown tool" means the catalogue and the switch disagree.
+          const message = (body as { error?: { message?: string } }).error?.message ?? '';
+          expect(message, `${tool.name} is advertised but unhandled`).not.toMatch(/Unknown tool/);
+        }
       });
     });
 

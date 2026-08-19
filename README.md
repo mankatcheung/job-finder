@@ -73,16 +73,23 @@ claude mcp add --transport http trakwyn https://api.trakwyn.com/mcp \
 
 All are scoped to the authenticated user — a token can never read another account's data.
 
-| Tool                    | Arguments           |
-| ----------------------- | ------------------- |
-| `list_applications`     | `status` (optional) |
-| `get_application`       | `applicationId`     |
-| `list_notes`            | `applicationId`     |
-| `list_contacts`         | `applicationId`     |
-| `list_interview_rounds` | `applicationId`     |
-| `list_work_experiences` | —                   |
-| `list_educations`       | —                   |
-| `list_skills`           | —                   |
+`list_applications` is paginated: it returns `{ items, hasNextPage, nextCursor }`. Pass the returned `nextCursor` back to fetch the following page. Everything else returns its records directly.
+
+| Tool                    | Arguments                                  |
+| ----------------------- | ------------------------------------------ |
+| `list_applications`     | `status`, `limit`, `cursor` (all optional) |
+| `get_application`       | `applicationId`                            |
+| `list_notes`            | `applicationId`                            |
+| `list_contacts`         | `applicationId`                            |
+| `list_interview_rounds` | `applicationId`                            |
+| `list_work_experiences` | —                                          |
+| `list_educations`       | —                                          |
+| `list_skills`           | —                                          |
+| `list_documents`        | `applicationId`                            |
+| `list_offers`           | `applicationId`                            |
+| `list_activity`         | `applicationId`                            |
+| `list_calendar_events`  | —                                          |
+| `get_analytics`         | —                                          |
 
 Server identifies as `trakwyn-mcp` v1.0.0, MCP protocol `2024-11-05`. Supported methods: `initialize`, `tools/list`, `tools/call`.
 
