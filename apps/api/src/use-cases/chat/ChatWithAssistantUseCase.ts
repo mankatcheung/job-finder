@@ -80,7 +80,15 @@ function toPositiveInt(value: unknown): number | undefined {
   return Number.isInteger(n) && n > 0 ? n : undefined;
 }
 
-const TOOLS: LLMToolDefinition[] = MCP_TOOLS.map((t, i, arr) => ({
+// Read tools only. The catalogue is shared with the MCP server, which gained
+// write tools in JEF-176 — but those are gated on a full-access API token,
+// and chat has no token scope to gate on (it's session-authenticated).
+// Offering them here would hand every chat user mutation powers as a side
+// effect of an MCP change, which is a product decision, not a default.
+// JEF-177 covers splitting the catalogue properly.
+export const CHAT_TOOLS = MCP_TOOLS.filter((t) => t.access === 'read');
+
+const TOOLS: LLMToolDefinition[] = CHAT_TOOLS.map((t, i, arr) => ({
   name: t.name,
   description: t.description,
   parameters: t.inputSchema,

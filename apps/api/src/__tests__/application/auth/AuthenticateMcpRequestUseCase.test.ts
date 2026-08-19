@@ -11,7 +11,7 @@ function makeValidateApiTokenUseCase(
 }
 
 describe('AuthenticateMcpRequestUseCase', () => {
-  it('returns user id for a valid FULL-scope API token', async () => {
+  it('returns user id and scope for a valid FULL-scope API token', async () => {
     const validateApiTokenUseCase = makeValidateApiTokenUseCase(
       vi.fn().mockResolvedValue({ sub: 'user-1', email: 'user@example.com', scope: 'full' }),
     );
@@ -19,11 +19,13 @@ describe('AuthenticateMcpRequestUseCase', () => {
 
     const result = await useCase.execute('trakwyn_abc123');
 
-    expect(result).toEqual({ sub: 'user-1' });
+    // The scope is carried through, not discarded: McpController needs it to
+    // refuse write tools for read-only tokens (JEF-176).
+    expect(result).toEqual({ sub: 'user-1', scope: 'full' });
     expect(validateApiTokenUseCase.execute).toHaveBeenCalledWith('trakwyn_abc123');
   });
 
-  it('returns user id for a READ-scope API token (MCP accepts any scope)', async () => {
+  it('returns user id and scope for a READ-scope API token (MCP accepts any scope)', async () => {
     const validateApiTokenUseCase = makeValidateApiTokenUseCase(
       vi.fn().mockResolvedValue({ sub: 'user-1', email: 'user@example.com', scope: 'read' }),
     );
@@ -31,7 +33,7 @@ describe('AuthenticateMcpRequestUseCase', () => {
 
     const result = await useCase.execute('trakwyn_readonly');
 
-    expect(result).toEqual({ sub: 'user-1' });
+    expect(result).toEqual({ sub: 'user-1', scope: 'read' });
   });
 
   it('returns null for a JWT (MCP only accepts API tokens)', async () => {
