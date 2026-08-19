@@ -25,7 +25,7 @@ export function ChatDockFooter() {
   };
 
   return (
-    <footer className="hidden lg:flex fixed bottom-0 inset-x-0 z-40 h-12 items-center gap-2 px-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+    <footer className="hidden lg:flex fixed bottom-0 left-60 right-0 z-40 h-12 items-center gap-2 px-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
       <div className="relative shrink-0">
         <button
           type="button"
