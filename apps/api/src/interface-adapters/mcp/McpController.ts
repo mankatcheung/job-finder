@@ -10,6 +10,12 @@ import type { ICreateApplicationUseCase } from '#src/use-cases/jobs/ICreateAppli
 import type { IUpdateApplicationUseCase } from '#src/use-cases/jobs/IUpdateApplicationUseCase.js';
 import type { ICreateNoteUseCase } from '#src/use-cases/notes/ICreateNoteUseCase.js';
 import type { ICreateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/ICreateInterviewRoundUseCase.js';
+import type { ICreateSkillUseCase } from '#src/use-cases/skill/ICreateSkillUseCase.js';
+import type { IUpdateSkillUseCase } from '#src/use-cases/skill/IUpdateSkillUseCase.js';
+import type { ICreateEducationUseCase } from '#src/use-cases/education/ICreateEducationUseCase.js';
+import type { IUpdateEducationUseCase } from '#src/use-cases/education/IUpdateEducationUseCase.js';
+import type { ICreateWorkExperienceUseCase } from '#src/use-cases/workExperience/ICreateWorkExperienceUseCase.js';
+import type { IUpdateWorkExperienceUseCase } from '#src/use-cases/workExperience/IUpdateWorkExperienceUseCase.js';
 import type { IGetOffersUseCase } from '#src/use-cases/offers/IGetOffersUseCase.js';
 import type { IGetActivityLogsUseCase } from '#src/use-cases/activityLogs/IGetActivityLogsUseCase.js';
 import type { GetCalendarEventsUseCase } from '#src/use-cases/calendar/GetCalendarEventsUseCase.js';
@@ -99,6 +105,12 @@ interface Deps {
   updateApplicationUseCase: IUpdateApplicationUseCase;
   createNoteUseCase: ICreateNoteUseCase;
   createInterviewRoundUseCase: ICreateInterviewRoundUseCase;
+  createSkillUseCase: ICreateSkillUseCase;
+  updateSkillUseCase: IUpdateSkillUseCase;
+  createEducationUseCase: ICreateEducationUseCase;
+  updateEducationUseCase: IUpdateEducationUseCase;
+  createWorkExperienceUseCase: ICreateWorkExperienceUseCase;
+  updateWorkExperienceUseCase: IUpdateWorkExperienceUseCase;
   workExperienceRepository: IWorkExperienceRepository;
   educationRepository: IEducationRepository;
   skillRepository: ISkillRepository;
@@ -346,6 +358,111 @@ export const MCP_TOOLS = [
       required: ['applicationId'],
     },
   },
+  {
+    access: 'write',
+    name: 'create_skill',
+    description: 'Add a skill to the user profile. Requires a full-access token.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Skill name, e.g. TypeScript' },
+        category: { type: 'string', description: 'Grouping, e.g. Languages' },
+        proficiency: { type: 'string', description: 'e.g. beginner, intermediate, expert' },
+      },
+      required: ['name'],
+    },
+  },
+  {
+    access: 'write',
+    name: 'update_skill',
+    description:
+      'Update an existing skill. Only the fields provided are changed. Requires a full-access token.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        skillId: { type: 'string', description: 'The skill ID (from list_skills)' },
+        name: { type: 'string' },
+        category: { type: 'string' },
+        proficiency: { type: 'string' },
+      },
+      required: ['skillId'],
+    },
+  },
+  {
+    access: 'write',
+    name: 'create_education',
+    description: 'Add an education entry to the user profile. Requires a full-access token.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        institution: { type: 'string', description: 'School or university name' },
+        startDate: { type: 'string', description: 'ISO 8601 date the study began (required)' },
+        degree: { type: 'string' },
+        field: { type: 'string', description: 'Field of study' },
+        endDate: { type: 'string', description: 'ISO 8601 date; omit if ongoing' },
+        description: { type: 'string' },
+      },
+      required: ['institution', 'startDate'],
+    },
+  },
+  {
+    access: 'write',
+    name: 'update_education',
+    description:
+      'Update an existing education entry. Only the fields provided are changed. Requires a full-access token.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        educationId: { type: 'string', description: 'The education ID (from list_educations)' },
+        institution: { type: 'string' },
+        degree: { type: 'string' },
+        field: { type: 'string' },
+        startDate: { type: 'string', description: 'ISO 8601 date' },
+        endDate: { type: 'string', description: 'ISO 8601 date' },
+        description: { type: 'string' },
+      },
+      required: ['educationId'],
+    },
+  },
+  {
+    access: 'write',
+    name: 'create_work_experience',
+    description: 'Add a work experience entry to the user profile. Requires a full-access token.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        company: { type: 'string' },
+        title: { type: 'string', description: 'Job title' },
+        startDate: { type: 'string', description: 'ISO 8601 date the role began (required)' },
+        location: { type: 'string' },
+        endDate: { type: 'string', description: 'ISO 8601 date; omit if current' },
+        description: { type: 'string' },
+      },
+      required: ['company', 'title', 'startDate'],
+    },
+  },
+  {
+    access: 'write',
+    name: 'update_work_experience',
+    description:
+      'Update an existing work experience entry. Only the fields provided are changed. Requires a full-access token.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        workExperienceId: {
+          type: 'string',
+          description: 'The work experience ID (from list_work_experiences)',
+        },
+        company: { type: 'string' },
+        title: { type: 'string' },
+        location: { type: 'string' },
+        startDate: { type: 'string', description: 'ISO 8601 date' },
+        endDate: { type: 'string', description: 'ISO 8601 date' },
+        description: { type: 'string' },
+      },
+      required: ['workExperienceId'],
+    },
+  },
 ] as const;
 
 /**
@@ -586,6 +703,109 @@ export class McpController {
             scheduledAt: toDate(args.scheduledAt),
             interviewerName: toStr(args.interviewerName),
             notes: toStr(args.notes),
+          });
+          break;
+        }
+        case 'create_skill': {
+          const name = toStr(args.name);
+          if (!name) return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'name is required');
+          result = await this.deps.createSkillUseCase.execute({
+            userId,
+            name,
+            category: toStr(args.category),
+            proficiency: toStr(args.proficiency),
+          });
+          break;
+        }
+        case 'update_skill': {
+          const skillId = toStr(args.skillId);
+          if (!skillId) return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'skillId is required');
+          result = await this.deps.updateSkillUseCase.execute({
+            id: skillId,
+            userId,
+            name: toStr(args.name),
+            category: toStr(args.category),
+            proficiency: toStr(args.proficiency),
+          });
+          break;
+        }
+        case 'create_education': {
+          const institution = toStr(args.institution);
+          // startDate is required by the use case, so an unparseable one has
+          // to be refused rather than dropped — toDate() yields undefined for
+          // junk, which would otherwise fail confusingly further down.
+          const startDate = toDate(args.startDate);
+          if (!institution || !startDate) {
+            return this.error(
+              id,
+              JSON_RPC_ERROR.INVALID_PARAMS,
+              'institution and a valid ISO 8601 startDate are required',
+            );
+          }
+          result = await this.deps.createEducationUseCase.execute({
+            userId,
+            institution,
+            startDate,
+            degree: toStr(args.degree),
+            field: toStr(args.field),
+            endDate: toDate(args.endDate),
+            description: toStr(args.description),
+          });
+          break;
+        }
+        case 'update_education': {
+          const educationId = toStr(args.educationId);
+          if (!educationId) {
+            return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'educationId is required');
+          }
+          result = await this.deps.updateEducationUseCase.execute({
+            id: educationId,
+            userId,
+            institution: toStr(args.institution),
+            degree: toStr(args.degree),
+            field: toStr(args.field),
+            startDate: toDate(args.startDate),
+            endDate: toDate(args.endDate),
+            description: toStr(args.description),
+          });
+          break;
+        }
+        case 'create_work_experience': {
+          const company = toStr(args.company);
+          const title = toStr(args.title);
+          const startDate = toDate(args.startDate);
+          if (!company || !title || !startDate) {
+            return this.error(
+              id,
+              JSON_RPC_ERROR.INVALID_PARAMS,
+              'company, title and a valid ISO 8601 startDate are required',
+            );
+          }
+          result = await this.deps.createWorkExperienceUseCase.execute({
+            userId,
+            company,
+            title,
+            startDate,
+            location: toStr(args.location),
+            endDate: toDate(args.endDate),
+            description: toStr(args.description),
+          });
+          break;
+        }
+        case 'update_work_experience': {
+          const workExperienceId = toStr(args.workExperienceId);
+          if (!workExperienceId) {
+            return this.error(id, JSON_RPC_ERROR.INVALID_PARAMS, 'workExperienceId is required');
+          }
+          result = await this.deps.updateWorkExperienceUseCase.execute({
+            id: workExperienceId,
+            userId,
+            company: toStr(args.company),
+            title: toStr(args.title),
+            location: toStr(args.location),
+            startDate: toDate(args.startDate),
+            endDate: toDate(args.endDate),
+            description: toStr(args.description),
           });
           break;
         }

@@ -11,6 +11,12 @@ import type { ICreateApplicationUseCase } from '#src/use-cases/jobs/ICreateAppli
 import type { IUpdateApplicationUseCase } from '#src/use-cases/jobs/IUpdateApplicationUseCase.js';
 import type { ICreateNoteUseCase } from '#src/use-cases/notes/ICreateNoteUseCase.js';
 import type { ICreateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/ICreateInterviewRoundUseCase.js';
+import type { ICreateSkillUseCase } from '#src/use-cases/skill/ICreateSkillUseCase.js';
+import type { IUpdateSkillUseCase } from '#src/use-cases/skill/IUpdateSkillUseCase.js';
+import type { ICreateEducationUseCase } from '#src/use-cases/education/ICreateEducationUseCase.js';
+import type { IUpdateEducationUseCase } from '#src/use-cases/education/IUpdateEducationUseCase.js';
+import type { ICreateWorkExperienceUseCase } from '#src/use-cases/workExperience/ICreateWorkExperienceUseCase.js';
+import type { IUpdateWorkExperienceUseCase } from '#src/use-cases/workExperience/IUpdateWorkExperienceUseCase.js';
 import type { IGetOffersUseCase } from '#src/use-cases/offers/IGetOffersUseCase.js';
 import type { IGetActivityLogsUseCase } from '#src/use-cases/activityLogs/IGetActivityLogsUseCase.js';
 import type { GetCalendarEventsUseCase } from '#src/use-cases/calendar/GetCalendarEventsUseCase.js';
@@ -52,6 +58,12 @@ const makeDeps = () => ({
   updateApplicationUseCase: { execute: vi.fn() } as IUpdateApplicationUseCase,
   createNoteUseCase: { execute: vi.fn() } as ICreateNoteUseCase,
   createInterviewRoundUseCase: { execute: vi.fn() } as ICreateInterviewRoundUseCase,
+  createSkillUseCase: { execute: vi.fn() } as ICreateSkillUseCase,
+  updateSkillUseCase: { execute: vi.fn() } as IUpdateSkillUseCase,
+  createEducationUseCase: { execute: vi.fn() } as ICreateEducationUseCase,
+  updateEducationUseCase: { execute: vi.fn() } as IUpdateEducationUseCase,
+  createWorkExperienceUseCase: { execute: vi.fn() } as ICreateWorkExperienceUseCase,
+  updateWorkExperienceUseCase: { execute: vi.fn() } as IUpdateWorkExperienceUseCase,
   workExperienceRepository: makeWorkExperienceRepository(),
   educationRepository: makeEducationRepository(),
   skillRepository: makeSkillRepository(),
@@ -372,6 +384,88 @@ describe('McpController', () => {
         expect(deps.createInterviewRoundUseCase.execute).toHaveBeenLastCalledWith(
           expect.objectContaining({ scheduledAt: undefined }),
         );
+      });
+    });
+
+    describe('profile write tools (JEF-176)', () => {
+      it('create_skill requires a name', async () => {
+        const { body } = await controller.handle(
+          rpc('tools/call', { name: 'create_skill', arguments: {} }),
+          USER_ID,
+          'full',
+        );
+        expect(body).toMatchObject({ error: { code: JSON_RPC_ERROR.INVALID_PARAMS } });
+      });
+
+      it("update_skill maps skillId onto the use case's id field", async () => {
+        vi.mocked(deps.updateSkillUseCase.execute).mockResolvedValue({} as never);
+
+        await controller.handle(
+          rpc('tools/call', {
+            name: 'update_skill',
+            arguments: { skillId: 'skill-1', proficiency: 'expert' },
+          }),
+          USER_ID,
+          'full',
+        );
+
+        expect(deps.updateSkillUseCase.execute).toHaveBeenCalledWith(
+          expect.objectContaining({ id: 'skill-1', userId: USER_ID, proficiency: 'expert' }),
+        );
+      });
+
+      it.each([
+        ['create_education', 'createEducationUseCase', { institution: 'MIT' }],
+        [
+          'create_work_experience',
+          'createWorkExperienceUseCase',
+          { company: 'Acme', title: 'Engineer' },
+        ],
+      ] as const)(
+        '%s refuses an unparseable startDate rather than dropping a required field',
+        async (tool, dep, args) => {
+          const { body } = await controller.handle(
+            rpc('tools/call', { name: tool, arguments: { ...args, startDate: 'last autumn' } }),
+            USER_ID,
+            'full',
+          );
+
+          expect(body).toMatchObject({ error: { code: JSON_RPC_ERROR.INVALID_PARAMS } });
+          expect(deps[dep].execute).not.toHaveBeenCalled();
+        },
+      );
+
+      it.each([
+        ['create_education', 'createEducationUseCase', { institution: 'MIT' }],
+        [
+          'create_work_experience',
+          'createWorkExperienceUseCase',
+          { company: 'Acme', title: 'Engineer' },
+        ],
+      ] as const)('%s passes a valid startDate through as a Date', async (tool, dep, args) => {
+        vi.mocked(deps[dep].execute).mockResolvedValue({} as never);
+
+        await controller.handle(
+          rpc('tools/call', {
+            name: tool,
+            arguments: { ...args, startDate: '2020-09-01T00:00:00.000Z' },
+          }),
+          USER_ID,
+          'full',
+        );
+
+        expect(deps[dep].execute).toHaveBeenCalledWith(
+          expect.objectContaining({ startDate: new Date('2020-09-01T00:00:00.000Z') }),
+        );
+      });
+
+      it('update_work_experience requires workExperienceId', async () => {
+        const { body } = await controller.handle(
+          rpc('tools/call', { name: 'update_work_experience', arguments: { company: 'Acme' } }),
+          USER_ID,
+          'full',
+        );
+        expect(body).toMatchObject({ error: { code: JSON_RPC_ERROR.INVALID_PARAMS } });
       });
     });
 
