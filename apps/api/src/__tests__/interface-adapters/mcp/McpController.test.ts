@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { McpController, MCP_TOOLS } from '#src/interface-adapters/mcp/McpController.js';
 import { ERROR_CODES, JSON_RPC_ERROR, MCP } from '#src/constants.js';
-import type { IGetApplicationsUseCase } from '#src/use-cases/jobs/IGetApplicationsUseCase.js';
+import type { IGetApplicationsPageUseCase } from '#src/use-cases/jobs/IGetApplicationsPageUseCase.js';
 import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplicationUseCase.js';
 import type { IGetNotesUseCase } from '#src/use-cases/notes/IGetNotesUseCase.js';
 import type { IGetContactsUseCase } from '#src/use-cases/contacts/IGetContactsUseCase.js';
@@ -15,7 +15,7 @@ import {
 const USER_ID = 'user-1';
 
 const makeDeps = () => ({
-  getApplicationsUseCase: { execute: vi.fn() } as IGetApplicationsUseCase,
+  getApplicationsPageUseCase: { execute: vi.fn() } as IGetApplicationsPageUseCase,
   getApplicationUseCase: { execute: vi.fn() } as IGetApplicationUseCase,
   getNotesUseCase: { execute: vi.fn() } as IGetNotesUseCase,
   getContactsUseCase: { execute: vi.fn() } as IGetContactsUseCase,
@@ -95,21 +95,97 @@ describe('McpController', () => {
   });
 
   describe('tools/call', () => {
-    it('calls list_applications scoped to the user and wraps the result as text', async () => {
-      const apps = [{ id: 'a1' }];
-      vi.mocked(deps.getApplicationsUseCase.execute).mockResolvedValue(apps as never);
+    it('calls list_applications scoped to the user and wraps the result as compact text', async () => {
+      const page = { items: [{ id: 'a1' }], hasNextPage: false, nextCursor: null };
+      vi.mocked(deps.getApplicationsPageUseCase.execute).mockResolvedValue(page as never);
 
       const { body } = await controller.handle(
         rpc('tools/call', { name: 'list_applications', arguments: { status: 'applied' } }),
         USER_ID,
       );
 
-      expect(deps.getApplicationsUseCase.execute).toHaveBeenCalledWith({
+      expect(deps.getApplicationsPageUseCase.execute).toHaveBeenCalledWith({
         userId: USER_ID,
         status: 'applied',
+        cursor: undefined,
+        limit: undefined,
       });
+      // Compact, not pretty-printed — this lands in an LLM context window.
       expect(body).toMatchObject({
-        result: { content: [{ type: 'text', text: JSON.stringify(apps, null, 2) }] },
+        result: { content: [{ type: 'text', text: JSON.stringify(page) }] },
+      });
+    });
+
+    describe('list_applications pagination (JEF-172)', () => {
+      beforeEach(() => {
+        vi.mocked(deps.getApplicationsPageUseCase.execute).mockResolvedValue({
+          items: [],
+          hasNextPage: false,
+          nextCursor: null,
+        } as never);
+      });
+
+      it('passes limit and cursor through to the paginated use case', async () => {
+        await controller.handle(
+          rpc('tools/call', {
+            name: 'list_applications',
+            arguments: { limit: 5, cursor: 'app-42' },
+          }),
+          USER_ID,
+        );
+
+        expect(deps.getApplicationsPageUseCase.execute).toHaveBeenCalledWith(
+          expect.objectContaining({ limit: 5, cursor: 'app-42' }),
+        );
+      });
+
+      it('accepts a numeric string limit, since JSON-RPC arguments are untyped', async () => {
+        await controller.handle(
+          rpc('tools/call', { name: 'list_applications', arguments: { limit: '5' } }),
+          USER_ID,
+        );
+
+        expect(deps.getApplicationsPageUseCase.execute).toHaveBeenCalledWith(
+          expect.objectContaining({ limit: 5 }),
+        );
+      });
+
+      it.each([['abc'], [0], [-1], [2.5], [null]])(
+        'falls back to the use case default for an unusable limit (%s)',
+        async (limit) => {
+          await controller.handle(
+            rpc('tools/call', { name: 'list_applications', arguments: { limit } }),
+            USER_ID,
+          );
+
+          expect(deps.getApplicationsPageUseCase.execute).toHaveBeenCalledWith(
+            expect.objectContaining({ limit: undefined }),
+          );
+        },
+      );
+
+      it('returns the page envelope so a client can follow nextCursor', async () => {
+        vi.mocked(deps.getApplicationsPageUseCase.execute).mockResolvedValue({
+          items: [{ id: 'a1' }],
+          hasNextPage: true,
+          nextCursor: 'a1',
+        } as never);
+
+        const { body } = await controller.handle(
+          rpc('tools/call', { name: 'list_applications', arguments: {} }),
+          USER_ID,
+        );
+
+        const text = (body as { result: { content: Array<{ text: string }> } }).result.content[0]
+          .text;
+        expect(JSON.parse(text)).toMatchObject({ hasNextPage: true, nextCursor: 'a1' });
+      });
+
+      it('advertises limit and cursor in the tool schema', () => {
+        const tool = MCP_TOOLS.find((t) => t.name === 'list_applications');
+        expect(Object.keys(tool!.inputSchema.properties)).toEqual(
+          expect.arrayContaining(['status', 'limit', 'cursor']),
+        );
       });
     });
 
@@ -192,7 +268,7 @@ describe('McpController', () => {
 
       expect(deps.workExperienceRepository.findAllByUserId).toHaveBeenCalledWith(USER_ID);
       expect(body).toMatchObject({
-        result: { content: [{ type: 'text', text: JSON.stringify(experiences, null, 2) }] },
+        result: { content: [{ type: 'text', text: JSON.stringify(experiences) }] },
       });
     });
 
@@ -207,7 +283,7 @@ describe('McpController', () => {
 
       expect(deps.educationRepository.findAllByUserId).toHaveBeenCalledWith(USER_ID);
       expect(body).toMatchObject({
-        result: { content: [{ type: 'text', text: JSON.stringify(educations, null, 2) }] },
+        result: { content: [{ type: 'text', text: JSON.stringify(educations) }] },
       });
     });
 
@@ -222,7 +298,7 @@ describe('McpController', () => {
 
       expect(deps.skillRepository.findAllByUserId).toHaveBeenCalledWith(USER_ID);
       expect(body).toMatchObject({
-        result: { content: [{ type: 'text', text: JSON.stringify(skills, null, 2) }] },
+        result: { content: [{ type: 'text', text: JSON.stringify(skills) }] },
       });
     });
   });
