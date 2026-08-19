@@ -43,8 +43,11 @@ The endpoint is `POST https://api.trakwyn.com/mcp`, authenticated with `Authoriz
 
 ### OAuth clients
 
-MCP clients can use OAuth instead of manually-created API tokens. The OAuth
-discovery documents are available at:
+MCP clients can use OAuth instead of manually-created API tokens.
+[docs/mcp-oauth.md](docs/mcp-oauth.md) walks through the whole flow and the
+reasoning behind it; the summary is below.
+
+The OAuth discovery documents are available at:
 
 - `GET https://api.trakwyn.com/.well-known/oauth-protected-resource`
 - `GET https://api.trakwyn.com/.well-known/oauth-authorization-server`
