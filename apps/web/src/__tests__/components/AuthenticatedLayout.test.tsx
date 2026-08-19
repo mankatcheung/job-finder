@@ -76,6 +76,7 @@ describe('AuthenticatedLayout', () => {
     const signOutBtns = screen.getAllByRole('button', { name: /sign out/i });
     expect(signOutBtns.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByTestId('mobile-header-logout')).toBeInTheDocument();
+    expect(screen.getByTestId('desktop-sidebar-logout')).toBeInTheDocument();
   });
 
   it('calls logout mutation and navigates to /login on sign out', async () => {
