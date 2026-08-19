@@ -4,6 +4,7 @@ import type { Cradle } from '#src/http/container.js';
 import type { IHttpResponse } from '#src/http/ports/IHttpResponse.js';
 import type { SecurityEventType } from '#src/domain/securityEvent/SecurityEvent.js';
 import type { McpConsentSubject } from '#src/infrastructure/auth/McpOAuthConsentService.js';
+import type { McpOAuthScope } from '#src/domain/mcpOAuth/McpOAuthAccessToken.js';
 import { COOKIES, ENV, MCP, MCP_OAUTH } from '#src/constants.js';
 
 /**
@@ -100,7 +101,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
         )
           return;
         const validation = await validateAuthorizationRequest(_getCradle(), request);
-        if (validation.error) {
+        if (!validation.ok) {
           // Only once the client and its redirect URI are known-good may an
           // error travel back to the client; before that, reporting to an
           // unverified redirect_uri would make this endpoint an open redirect
@@ -113,11 +114,13 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
           return;
         }
 
+        // The resolved scope, not what was asked for: the consent screen shows
+        // what would actually be granted.
         const query = new URLSearchParams({
           client_id: request.clientId,
           redirect_uri: request.redirectUri,
           response_type: request.responseType,
-          scope: request.scope,
+          scope: validation.scope,
           state: request.state ?? '',
           code_challenge: request.codeChallenge,
           code_challenge_method: request.codeChallengeMethod,
@@ -139,15 +142,17 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
 
         const request = authorizationRequest(req);
         const validation = await validateAuthorizationRequest(_getCradle(), request);
-        if (validation.error) {
+        if (!validation.ok) {
           res.status(400).send({ error: validation.error });
           return;
         }
 
         noStore(res).send({
-          client_name: validation.client!.name,
-          scope: request.scope,
-          consent_token: _getCradle().mcpOAuthConsentService.issue(consentSubject(userId, request)),
+          client_name: validation.client.name,
+          scope: validation.scope,
+          consent_token: _getCradle().mcpOAuthConsentService.issue(
+            consentSubject(userId, request, validation.scope),
+          ),
         });
       },
     },
@@ -166,7 +171,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
         const body = asRecord(req.body);
         const request = authorizationRequest(body);
         const validation = await validateAuthorizationRequest(_getCradle(), request);
-        if (validation.error) {
+        if (!validation.ok) {
           res.status(400).send({ error: validation.error });
           return;
         }
@@ -176,7 +181,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
         if (
           !_getCradle().mcpOAuthConsentService.verify(
             stringValue(body.consent_token),
-            consentSubject(userId, request),
+            consentSubject(userId, request, validation.scope),
           )
         ) {
           res.status(400).send({ error: 'invalid_request' });
@@ -193,7 +198,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
             clientId: request.clientId,
             userId,
             redirectUri: request.redirectUri,
-            scope: request.scope,
+            scope: validation.scope,
             codeChallenge: request.codeChallenge,
           });
           await recordSecurityEvent(_getCradle(), userId, 'mcp_oauth_authorized', req);
@@ -282,7 +287,11 @@ interface AuthorizationRequest {
   clientId: string;
   redirectUri: string;
   responseType: string;
-  scope: 'read' | 'full';
+  /**
+   * The effective scope, already resolved from the space-delimited request.
+   * Null when the request named something we do not offer.
+   */
+  scope: McpOAuthScope | null;
   codeChallenge: string;
   codeChallengeMethod: string;
   state?: string;
@@ -295,58 +304,91 @@ function authorizationRequest(input: IHttpRequest | Record<string, unknown>): Au
     }
     return stringValue(input[key]);
   };
-  const scope = value('scope');
   return {
     clientId: value('client_id'),
     redirectUri: value('redirect_uri'),
     responseType: value('response_type'),
-    scope: scope as AuthorizationRequest['scope'],
+    scope: resolveScope(value('scope')),
     codeChallenge: value('code_challenge'),
     codeChallengeMethod: value('code_challenge_method'),
     state: value('state') || undefined,
   };
 }
 
-function consentSubject(userId: string, request: AuthorizationRequest): McpConsentSubject {
+/**
+ * `scope` is a space-delimited list (RFC 6749 s3.3), not a single value, and a
+ * client that reads our `scopes_supported` is entitled to ask for everything
+ * in it — `mcp-remote` and Claude's connector both request "read full".
+ *
+ * Ours are privilege levels rather than independent capabilities, so a request
+ * naming both resolves to the higher one: asking for read *and* full is asking
+ * for full. The granted scope is what the consent screen displays and what the
+ * token response echoes back, so the user sees what they are approving and the
+ * client learns what it actually got.
+ *
+ * Returns null for an empty list or any scope we do not offer, which the
+ * caller reports as `invalid_scope`.
+ */
+function resolveScope(requested: string): McpOAuthScope | null {
+  const names = requested.split(/\s+/).filter(Boolean);
+  if (names.length === 0) return null;
+  if (names.some((name) => name !== 'read' && name !== 'full')) return null;
+  return names.includes('full') ? 'full' : 'read';
+}
+
+function consentSubject(
+  userId: string,
+  request: AuthorizationRequest,
+  scope: McpOAuthScope,
+): McpConsentSubject {
   return {
     userId,
     clientId: request.clientId,
     redirectUri: request.redirectUri,
-    scope: request.scope,
+    scope,
     codeChallenge: request.codeChallenge,
   };
 }
 
+/**
+ * Either the request is good and carries the client plus the scope actually
+ * granted, or it failed. A discriminated result rather than optional fields,
+ * so a caller cannot read the scope without having checked for the error.
+ */
+type AuthorizationValidation =
+  | { ok: true; client: { name: string; redirectUris: string[] }; scope: McpOAuthScope }
+  | {
+      ok: false;
+      error: string;
+      /** Whether the error may be reported to redirect_uri rather than inline. */
+      redirectable?: boolean;
+    };
+
 async function validateAuthorizationRequest(
   cradle: Cradle,
   request: AuthorizationRequest,
-): Promise<{
-  client?: { name: string; redirectUris: string[] };
-  error?: string;
-  /** Whether the error may be reported to redirect_uri rather than inline. */
-  redirectable?: boolean;
-}> {
+): Promise<AuthorizationValidation> {
   if (!request.clientId || !request.redirectUri) {
-    return { error: 'invalid_request' };
+    return { ok: false, error: 'invalid_request' };
   }
 
   const client = await cradle.mcpOAuthClientRepository.findById(request.clientId);
   if (!client || client.revokedAt || !client.redirectUris.includes(request.redirectUri)) {
-    return { error: 'invalid_client' };
+    return { ok: false, error: 'invalid_client' };
   }
 
   // Past this point the redirect target is a URI this client registered, so
   // errors can safely be handed back to it.
   if (request.responseType !== 'code') {
-    return { error: 'unsupported_response_type', redirectable: true };
+    return { ok: false, error: 'unsupported_response_type', redirectable: true };
   }
   if (!request.codeChallenge || request.codeChallengeMethod !== 'S256') {
-    return { error: 'invalid_request', redirectable: true };
+    return { ok: false, error: 'invalid_request', redirectable: true };
   }
-  if (request.scope !== 'read' && request.scope !== 'full') {
-    return { error: 'invalid_scope', redirectable: true };
+  if (!request.scope) {
+    return { ok: false, error: 'invalid_scope', redirectable: true };
   }
-  return { client };
+  return { ok: true, client, scope: request.scope };
 }
 
 /**
