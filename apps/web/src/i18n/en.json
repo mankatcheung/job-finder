@@ -393,6 +393,8 @@
   "integrations.scopeFull": "Full access",
   "integrations.scopeReadHelp": "Can read your data. Works with MCP clients and cannot make any changes.",
   "integrations.scopeFullHelp": "Can read and change everything in your account, including deleting data.",
+  "integrations.mcpHint": "A read-only token also works with an AI assistant via MCP.",
+  "integrations.mcpHintLink": "How to connect",
   "integrations.tokenCreatedNote": "Token created successfully. Copy it now — it won't be shown again.",
   "integrations.copyTokenAria": "Copy token",
   "integrations.copyLinkAria": "Copy link",

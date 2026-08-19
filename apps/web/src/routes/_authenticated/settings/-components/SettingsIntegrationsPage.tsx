@@ -450,6 +450,17 @@ export function SettingsIntegrationsPage() {
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {t('integrations.apiTokensDescription')}
           </p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {t('integrations.mcpHint')}{' '}
+            <a
+              href="https://github.com/mankatcheung/trakwyn#mcp-server"
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              {t('integrations.mcpHintLink')}
+            </a>
+          </p>
         </div>
 
         {newApiToken && (

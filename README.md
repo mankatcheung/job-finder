@@ -25,6 +25,68 @@ The project is a monorepo with a GraphQL API, a web app, a browser extension for
 - **Share links** — share a read-only summary of your job search progress via a public link.
 - **Weekly digest** — scheduled email summary of your job search activity.
 - **Localization** — web app available in 5 locales (i18next).
+- **MCP server** — expose your job-search data read-only to an AI assistant ([details below](#mcp-server)).
+
+## MCP server
+
+The API ships a [Model Context Protocol](https://modelcontextprotocol.io) server, so an AI assistant can read your job-search data and answer questions about it.
+
+**It is read-only.** There are no tools that create, update, or delete anything.
+
+### Connecting
+
+1. In the web app, go to **Settings → Integrations → API tokens**.
+2. Create a token with **Read-only** access. That's all the MCP server needs — a read-only token is rejected by the GraphQL API, so it can't be used to change anything even if it leaks.
+3. Copy the token (`trakwyn_…`) — it's shown only once.
+
+The endpoint is `POST https://api.trakwyn.com/mcp`, authenticated with `Authorization: Bearer <token>`.
+
+Verify it works:
+
+```bash
+curl -s https://api.trakwyn.com/mcp \
+  -H "Authorization: Bearer trakwyn_your_token_here" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+You should get a JSON-RPC response listing the tools below. To fetch data:
+
+```bash
+curl -s https://api.trakwyn.com/mcp \
+  -H "Authorization: Bearer trakwyn_your_token_here" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call",
+       "params":{"name":"list_applications","arguments":{"status":"interviewing"}}}'
+```
+
+For Claude Code:
+
+```bash
+claude mcp add --transport http trakwyn https://api.trakwyn.com/mcp \
+  --header "Authorization: Bearer trakwyn_your_token_here"
+```
+
+> **Transport caveat:** this endpoint is plain JSON-RPC over `POST` — there is no `GET`/SSE endpoint and no session management, so it implements only the subset of MCP's Streamable HTTP transport that request/response tooling needs. The `curl` calls above are covered by integration tests and are known to work. Clients that require SSE or session negotiation may not connect; if yours doesn't, that's the likely reason.
+
+### Tools
+
+All are scoped to the authenticated user — a token can never read another account's data.
+
+| Tool                    | Arguments           |
+| ----------------------- | ------------------- |
+| `list_applications`     | `status` (optional) |
+| `get_application`       | `applicationId`     |
+| `list_notes`            | `applicationId`     |
+| `list_contacts`         | `applicationId`     |
+| `list_interview_rounds` | `applicationId`     |
+| `list_work_experiences` | —                   |
+| `list_educations`       | —                   |
+| `list_skills`           | —                   |
+
+Server identifies as `trakwyn-mcp` v1.0.0, MCP protocol `2024-11-05`. Supported methods: `initialize`, `tools/list`, `tools/call`.
+
+For local development the endpoint is `http://localhost:3001/mcp`.
 
 ## Prerequisites
 
