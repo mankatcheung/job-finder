@@ -484,6 +484,15 @@ export const CACHE = {
   // to check whether Redis has recovered.
   CIRCUIT_FAILURE_THRESHOLD: 5,
   CIRCUIT_COOLDOWN_MS: 30_000,
+  // Bearer credentials are cached far more briefly than the 5-minute default.
+  // A cached row carries its own revokedAt, so revocation is only dangerous in
+  // the gap between the DB write and the cache delete — this is the ceiling on
+  // that gap if the delete is ever missed, not the mechanism that closes it.
+  TOKEN_TTL_MS: 60 * 1000,
+  // How long between writes of a token's lastUsedAt. It feeds a "last used"
+  // column in settings, where a minute of granularity is indistinguishable
+  // from none, and the write was previously happening on every request.
+  TOKEN_LAST_USED_TTL_MS: 60 * 1000,
 } as const;
 
 /** `CACHE_PROVIDER` values. */
@@ -511,6 +520,9 @@ export const CACHE_KEYS = {
   apiTokenById: (id: string) => `tokens:byId:${id}`,
   apiTokenByHash: (tokenHash: string) => `tokens:byHash:${tokenHash}`,
   apiTokenList: (userId: string) => `tokens:list:${userId}`,
+  apiTokenLastUsed: (id: string) => `tokens:lastUsedWritten:${id}`,
+  mcpOAuthTokenByHash: (tokenHash: string) => `mcpTokens:byHash:${tokenHash}`,
+  mcpOAuthTokenLastUsed: (id: string) => `mcpTokens:lastUsedWritten:${id}`,
   notificationUnreadCount: (userId: string) => `notifications:unreadCount:${userId}`,
   userById: (id: string) => `users:byId:${id}`,
   userByEmail: (email: string) => `users:byEmail:${email}`,

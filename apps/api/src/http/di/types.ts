@@ -38,6 +38,7 @@ import type { DrizzleBackupEmailVerificationTokenRepository } from '#src/infrast
 import type { DrizzleOAuthAccountRepository } from '#src/infrastructure/db/repositories/DrizzleOAuthAccountRepository.js';
 import type { DrizzleApiTokenRepository } from '#src/infrastructure/db/repositories/DrizzleApiTokenRepository.js';
 import type { DrizzleMcpOAuthTokenRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthTokenRepository.js';
+import type { CachedMcpOAuthTokenRepository } from '#src/infrastructure/db/repositories/CachedMcpOAuthTokenRepository.js';
 import type { DrizzleMcpOAuthClientRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthClientRepository.js';
 import type { DrizzleMcpOAuthAuthorizationCodeRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthAuthorizationCodeRepository.js';
 import type { DrizzleShareLinkRepository } from '#src/infrastructure/db/repositories/DrizzleShareLinkRepository.js';
@@ -278,7 +279,8 @@ export interface Cradle {
   drizzleEducationRepository: DrizzleEducationRepository;
   drizzleWorkExperienceRepository: DrizzleWorkExperienceRepository;
   drizzleApiTokenRepository: DrizzleApiTokenRepository;
-  mcpOAuthTokenRepository: DrizzleMcpOAuthTokenRepository;
+  drizzleMcpOAuthTokenRepository: DrizzleMcpOAuthTokenRepository;
+  mcpOAuthTokenRepository: CachedMcpOAuthTokenRepository;
   mcpOAuthClientRepository: DrizzleMcpOAuthClientRepository;
   mcpOAuthAuthorizationCodeRepository: DrizzleMcpOAuthAuthorizationCodeRepository;
   mcpOAuthRefreshTokenRepository: DrizzleMcpOAuthRefreshTokenRepository;
