@@ -1,3 +1,4 @@
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IEducationRepository } from '#src/use-cases/ports/IEducationRepository.js';
 import type {
   IUpdateEducationUseCase,
@@ -15,7 +16,7 @@ export class UpdateEducationUseCase implements IUpdateEducationUseCase {
   async execute(input: UpdateEducationInput): Promise<UpdateEducationOutput> {
     const existing = await this.deps.educationRepository.findById(input.id);
     if (!existing || existing.userId !== input.userId) {
-      throw new Error('Education not found');
+      throw new NotFoundError('Education not found');
     }
     return this.deps.educationRepository.update(input.id, {
       ...(input.institution !== undefined ? { institution: input.institution } : {}),

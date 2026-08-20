@@ -1,7 +1,7 @@
 import type { Offer } from '#src/domain/offer/Offer.js';
 import type { IOfferRepository } from '#src/use-cases/ports/IOfferRepository.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
-import { NotFoundError } from '#src/http/errors/AppError.js';
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { ICreateOfferUseCase, CreateOfferInput } from './ICreateOfferUseCase.js';
 
 interface Deps {

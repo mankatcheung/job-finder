@@ -4,7 +4,7 @@ import type {
   UpdateDocumentDraftContentData,
 } from '#src/use-cases/ports/IDocumentDraftRepository.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
-import { NotFoundError, ForbiddenError } from '#src/http/errors/AppError.js';
+import { NotFoundError, ForbiddenError } from '#src/use-cases/errors/DomainError.js';
 
 export interface UpdateDocumentDraftContentCommand {
   userId: string;

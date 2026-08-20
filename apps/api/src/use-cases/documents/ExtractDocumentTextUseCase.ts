@@ -2,7 +2,7 @@ import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentReposito
 import type { IDocumentTextExtractor } from '#src/use-cases/ports/IDocumentTextExtractor.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
-import { NotFoundError, ForbiddenError } from '#src/http/errors/AppError.js';
+import { NotFoundError, ForbiddenError } from '#src/use-cases/errors/DomainError.js';
 
 export interface ExtractDocumentTextQuery {
   userId: string;
