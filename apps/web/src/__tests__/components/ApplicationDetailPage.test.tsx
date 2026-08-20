@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -527,5 +527,89 @@ describe('ApplicationDetailPage', () => {
       );
     });
     expect(mockNavigate).toHaveBeenCalledWith({ to: '/applications' });
+  });
+});
+
+describe('ApplicationDetailPage — trashed application', () => {
+  const trashedApp = {
+    ...mockApp,
+    deletedAt: '2026-08-15T12:00:00.000Z',
+    purgeAt: '2026-09-14T12:00:00.000Z',
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date('2026-08-20T12:00:00.000Z'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('renders the read-only Trash view instead of the editable detail page', async () => {
+    mockGqlRequest.mockResolvedValue({ application: trashedApp });
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+
+    await waitFor(() =>
+      expect(screen.getByText('This application is in Trash')).toBeInTheDocument(),
+    );
+    expect(screen.getByText('Deletes in 25 days')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Restore' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Delete forever' })).toBeInTheDocument();
+    // The editable surface is gone: no note composer, no tab strip.
+    expect(screen.queryByPlaceholderText(/note/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('Interviews')).not.toBeInTheDocument();
+  });
+
+  it('does not fetch the panels that would 404 for a trashed application', async () => {
+    mockGqlRequest.mockResolvedValue({ application: trashedApp });
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+
+    await waitFor(() =>
+      expect(screen.getByText('This application is in Trash')).toBeInTheDocument(),
+    );
+    // Notes and the health score both resolve through the trash-filtered
+    // findById on the server, so firing them would only produce NOT_FOUND.
+    const queries = mockGqlRequest.mock.calls.map(([query]) => String(query));
+    expect(queries.some((q) => q.includes('query Notes'))).toBe(false);
+    expect(queries.some((q) => q.includes('ApplicationHealthScore'))).toBe(false);
+  });
+
+  it('restores from the banner', async () => {
+    mockGqlRequest.mockImplementation((query: string) => {
+      if (query.includes('RestoreApplication'))
+        return Promise.resolve({ restoreApplication: true });
+      return Promise.resolve({ application: trashedApp });
+    });
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Restore' })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Restore' }));
+
+    await waitFor(() =>
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RestoreApplication'), {
+        id: 'app-test-id',
+      }),
+    );
+  });
+
+  it('permanently deletes from the banner and returns to Trash', async () => {
+    mockGqlRequest.mockImplementation((query: string) => {
+      if (query.includes('PermanentlyDeleteApplication'))
+        return Promise.resolve({ permanentlyDeleteApplication: true });
+      return Promise.resolve({ application: trashedApp });
+    });
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Delete forever' })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Delete forever' }));
+
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: '/applications/trash' }));
   });
 });

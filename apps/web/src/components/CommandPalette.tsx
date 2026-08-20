@@ -8,6 +8,7 @@ import {
   BarChart2Icon,
   UserIcon,
   PlusIcon,
+  TrashIcon,
 } from 'lucide-react';
 
 interface CommandItem {
@@ -46,6 +47,12 @@ export function CommandPalette() {
         shortcut: '⌘N',
         icon: <PlusIcon size={16} />,
         action: () => navigate({ to: '/applications/new' }),
+      },
+      {
+        id: 'trash',
+        label: t('commands.trash'),
+        icon: <TrashIcon size={16} />,
+        action: () => navigate({ to: '/applications/trash' }),
       },
       {
         id: 'analytics',

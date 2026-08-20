@@ -18,6 +18,7 @@ import {
   StarOffIcon,
   TagIcon,
   Trash2Icon,
+  TrashIcon,
   XIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -91,6 +92,14 @@ function ApplicationsPage() {
           {t('applications.title')}
         </h1>
         <div className="flex items-center gap-2">
+          <Link
+            to="/applications/trash"
+            aria-label={t('trash.title')}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors"
+          >
+            <TrashIcon size={15} />
+            <span className="hidden sm:inline">{t('trash.title')}</span>
+          </Link>
           <Link
             to="/applications/board"
             aria-label={t('applications.switchToBoardView')}

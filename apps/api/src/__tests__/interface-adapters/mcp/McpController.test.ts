@@ -603,6 +603,22 @@ describe('McpController', () => {
       });
     });
 
+    it('does not read past the trash filter for get_application', async () => {
+      // The GraphQL query opts into includeTrashed so the web app can render a
+      // read-only Trash preview. MCP has no such view: a trashed application
+      // must stay invisible to tools, so the call must omit the flag.
+      vi.mocked(deps.getApplicationUseCase.execute).mockResolvedValue({ id: 'a1' } as never);
+
+      await controller.handle(
+        rpc('tools/call', { name: 'get_application', arguments: { applicationId: 'a1' } }),
+        USER_ID,
+        'full',
+      );
+
+      const [input] = vi.mocked(deps.getApplicationUseCase.execute).mock.calls[0]!;
+      expect(input.includeTrashed).toBeUndefined();
+    });
+
     it('returns METHOD_NOT_FOUND for an unknown tool', async () => {
       const { body } = await controller.handle(
         rpc('tools/call', { name: 'nope', arguments: {} }),

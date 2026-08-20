@@ -28,6 +28,7 @@ import { Route as OauthAuthorizeRouteImport } from './routes/oauth/authorize';
 import { Route as AuthenticatedApplicationsIndexRouteImport } from './routes/_authenticated/applications/index';
 import { Route as AuthenticatedApplicationsBoardRouteImport } from './routes/_authenticated/applications/board';
 import { Route as AuthenticatedApplicationsNewRouteImport } from './routes/_authenticated/applications/new';
+import { Route as AuthenticatedApplicationsTrashRouteImport } from './routes/_authenticated/applications/trash';
 import { Route as AuthenticatedAssistantIndexRouteImport } from './routes/_authenticated/assistant/index';
 import { Route as AuthenticatedAssistantHistoryRouteImport } from './routes/_authenticated/assistant/history';
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index';
@@ -142,6 +143,12 @@ const AuthenticatedApplicationsNewRoute =
     path: '/applications/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any);
+const AuthenticatedApplicationsTrashRoute =
+  AuthenticatedApplicationsTrashRouteImport.update({
+    id: '/applications/trash',
+    path: '/applications/trash',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any);
 const AuthenticatedAssistantIndexRoute =
   AuthenticatedAssistantIndexRouteImport.update({
     id: '/assistant/',
@@ -251,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/oauth/authorize': typeof OauthAuthorizeRoute;
   '/applications/board': typeof AuthenticatedApplicationsBoardRoute;
   '/applications/new': typeof AuthenticatedApplicationsNewRoute;
+  '/applications/trash': typeof AuthenticatedApplicationsTrashRoute;
   '/assistant/history': typeof AuthenticatedAssistantHistoryRoute;
   '/settings/data': typeof AuthenticatedSettingsDataRoute;
   '/settings/experience': typeof AuthenticatedSettingsExperienceRoute;
@@ -285,6 +293,7 @@ export interface FileRoutesByTo {
   '/oauth/authorize': typeof OauthAuthorizeRoute;
   '/applications/board': typeof AuthenticatedApplicationsBoardRoute;
   '/applications/new': typeof AuthenticatedApplicationsNewRoute;
+  '/applications/trash': typeof AuthenticatedApplicationsTrashRoute;
   '/assistant/history': typeof AuthenticatedAssistantHistoryRoute;
   '/settings/data': typeof AuthenticatedSettingsDataRoute;
   '/settings/experience': typeof AuthenticatedSettingsExperienceRoute;
@@ -322,6 +331,7 @@ export interface FileRoutesById {
   '/oauth/authorize': typeof OauthAuthorizeRoute;
   '/_authenticated/applications/board': typeof AuthenticatedApplicationsBoardRoute;
   '/_authenticated/applications/new': typeof AuthenticatedApplicationsNewRoute;
+  '/_authenticated/applications/trash': typeof AuthenticatedApplicationsTrashRoute;
   '/_authenticated/assistant/history': typeof AuthenticatedAssistantHistoryRoute;
   '/_authenticated/settings/data': typeof AuthenticatedSettingsDataRoute;
   '/_authenticated/settings/experience': typeof AuthenticatedSettingsExperienceRoute;
@@ -359,6 +369,7 @@ export interface FileRouteTypes {
     | '/oauth/authorize'
     | '/applications/board'
     | '/applications/new'
+    | '/applications/trash'
     | '/assistant/history'
     | '/settings/data'
     | '/settings/experience'
@@ -393,6 +404,7 @@ export interface FileRouteTypes {
     | '/oauth/authorize'
     | '/applications/board'
     | '/applications/new'
+    | '/applications/trash'
     | '/assistant/history'
     | '/settings/data'
     | '/settings/experience'
@@ -429,6 +441,7 @@ export interface FileRouteTypes {
     | '/oauth/authorize'
     | '/_authenticated/applications/board'
     | '/_authenticated/applications/new'
+    | '/_authenticated/applications/trash'
     | '/_authenticated/assistant/history'
     | '/_authenticated/settings/data'
     | '/_authenticated/settings/experience'
@@ -596,6 +609,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApplicationsNewRouteImport;
       parentRoute: typeof AuthenticatedRouteRoute;
     };
+    '/_authenticated/applications/trash': {
+      id: '/_authenticated/applications/trash';
+      path: '/applications/trash';
+      fullPath: '/applications/trash';
+      preLoaderRoute: typeof AuthenticatedApplicationsTrashRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
     '/_authenticated/assistant/': {
       id: '/_authenticated/assistant/';
       path: '/assistant';
@@ -740,6 +760,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute;
   AuthenticatedApplicationsBoardRoute: typeof AuthenticatedApplicationsBoardRoute;
   AuthenticatedApplicationsNewRoute: typeof AuthenticatedApplicationsNewRoute;
+  AuthenticatedApplicationsTrashRoute: typeof AuthenticatedApplicationsTrashRoute;
   AuthenticatedAssistantHistoryRoute: typeof AuthenticatedAssistantHistoryRoute;
   AuthenticatedApplicationsIndexRoute: typeof AuthenticatedApplicationsIndexRoute;
   AuthenticatedAssistantIndexRoute: typeof AuthenticatedAssistantIndexRoute;
@@ -759,6 +780,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedApplicationsBoardRoute: AuthenticatedApplicationsBoardRoute,
   AuthenticatedApplicationsNewRoute: AuthenticatedApplicationsNewRoute,
+  AuthenticatedApplicationsTrashRoute: AuthenticatedApplicationsTrashRoute,
   AuthenticatedAssistantHistoryRoute: AuthenticatedAssistantHistoryRoute,
   AuthenticatedApplicationsIndexRoute: AuthenticatedApplicationsIndexRoute,
   AuthenticatedAssistantIndexRoute: AuthenticatedAssistantIndexRoute,

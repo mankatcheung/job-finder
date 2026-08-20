@@ -101,6 +101,7 @@ describe('ApplicationResolver', () => {
     expect(deps.getApplicationUseCase.execute).toHaveBeenCalledWith({
       userId: 'user-1',
       applicationId: 'app-1',
+      includeTrashed: true,
     });
     expect(result.id).toBe('app-1');
   });

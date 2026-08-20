@@ -4,7 +4,7 @@ import { gqlClient } from '#/graphql/client';
 const APPLICATION_QUERY = `
   query Application($id: ID!) {
     application(id: $id) {
-      id company role status jobUrl location salaryRange description appliedAt starred source followUpAt tags createdAt updatedAt
+      id company role status jobUrl location salaryRange description appliedAt starred source followUpAt tags createdAt updatedAt deletedAt purgeAt
     }
   }
 `;
@@ -25,6 +25,10 @@ export type Application = {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  /** Set when the application is in Trash; the detail page then renders read-only. */
+  deletedAt?: string | null;
+  /** deletedAt + the server's retention window — what the countdown targets. */
+  purgeAt?: string | null;
 };
 
 // Shared between the detail page and edit page — both fetch the exact same

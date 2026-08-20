@@ -96,7 +96,14 @@ export class ApplicationResolver {
   }
 
   async getApplication(userId: string, id: string): Promise<ApplicationDTO> {
-    const app = await this.deps.getApplicationUseCase.execute({ userId, applicationId: id });
+    // includeTrashed: the web app renders a trashed application read-only (with
+    // restore / delete-permanently) rather than 404ing an old link. `deletedAt`
+    // is on the DTO, so the client can tell the two states apart.
+    const app = await this.deps.getApplicationUseCase.execute({
+      userId,
+      applicationId: id,
+      includeTrashed: true,
+    });
     return this.deps.applicationMapper.toDTO(app);
   }
 
