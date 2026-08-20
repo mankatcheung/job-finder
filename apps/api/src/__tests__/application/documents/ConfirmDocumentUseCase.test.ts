@@ -5,6 +5,7 @@ import {
   makeDocumentRepository,
   makeApplication,
   makeDocument,
+  makeStorageProvider,
 } from '#src/__tests__/helpers/mocks.js';
 
 describe('ConfirmDocumentUseCase', () => {
@@ -47,7 +48,7 @@ describe('ConfirmDocumentUseCase', () => {
       .execute({
         userId: 'user-1',
         applicationId: 'app-1',
-        storageKey: 'key',
+        storageKey: 'users/user-1/applications/app-1/upload.pdf',
         name: 'file.pdf',
         mimeType: 'application/pdf',
         sizeBytes: 1000,
@@ -198,6 +199,39 @@ describe('ConfirmDocumentUseCase', () => {
     expect(result.version).toBe('v2');
     expect(documentRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({ documentType: 'resume', version: 'v2' }),
+    );
+  });
+
+  it('propagates a document quota error from the atomic repository reservation', async () => {
+    const documentRepository = makeDocumentRepository({
+      create: vi
+        .fn()
+        .mockRejectedValue(
+          Object.assign(new Error('document limit reached'), { code: 'QUOTA_EXCEEDED' }),
+        ),
+    });
+    const storageProvider = makeStorageProvider({ delete: vi.fn().mockResolvedValue(undefined) });
+    const useCase = new ConfirmDocumentUseCase({
+      applicationRepository: makeApplicationRepository({
+        findById: vi.fn().mockResolvedValue(makeApplication()),
+      }),
+      documentRepository,
+      storageProvider,
+      generateId: vi.fn().mockReturnValue('doc-1'),
+    });
+
+    await expect(
+      useCase.execute({
+        userId: 'user-1',
+        applicationId: 'app-1',
+        storageKey: 'users/user-1/applications/app-1/upload.pdf',
+        name: 'resume.pdf',
+        mimeType: 'application/pdf',
+        sizeBytes: 1000,
+      }),
+    ).rejects.toMatchObject({ code: 'QUOTA_EXCEEDED' });
+    expect(storageProvider.delete).toHaveBeenCalledWith(
+      'users/user-1/applications/app-1/upload.pdf',
     );
   });
 });

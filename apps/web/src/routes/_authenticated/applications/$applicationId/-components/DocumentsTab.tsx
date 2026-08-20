@@ -5,6 +5,7 @@ import { put as putBlob } from '@vercel/blob/client';
 import { CheckIcon, ExternalLinkIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
+import { getErrorMessage } from '#/lib/errors';
 import { useLocale } from '#/lib/i18n';
 import { Button, Card, FormLabel, Input, Select } from '@trakwyn/ui';
 import { DocumentPreviewModal, isPreviewableMimeType } from './DocumentPreviewModal';
@@ -124,8 +125,8 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
       });
       setDocType('other');
       setDocVersion('');
-    } catch {
-      setUploadError(t('documents.uploadFailedError'));
+    } catch (err) {
+      setUploadError(getErrorMessage(err));
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -149,8 +150,8 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
       });
       qc.invalidateQueries({ queryKey: ['documents', applicationId] });
       setPendingUpload(null);
-    } catch {
-      setUploadError(t('documents.saveFailedError'));
+    } catch (err) {
+      setUploadError(getErrorMessage(err));
     } finally {
       setConfirming(false);
     }

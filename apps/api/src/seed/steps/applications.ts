@@ -1,7 +1,9 @@
 import { nanoid } from 'nanoid';
+import { eq } from 'drizzle-orm';
 import type { DrizzleDb } from '../../infrastructure/db/client.js';
 import {
   jobApplication,
+  user,
   applicationTag,
   note,
   activityLog,
@@ -127,4 +129,9 @@ export async function seedApplications(db: DrizzleDb, userId: string, now: Date)
 
     console.log(`  Created application: ${app.company} — ${app.role} (${app.status})`);
   }
+
+  await db
+    .update(user)
+    .set({ applicationCount: applications.length, updatedAt: now })
+    .where(eq(user.id, userId));
 }

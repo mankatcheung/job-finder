@@ -107,4 +107,32 @@ describe('ExportDocumentDraftToPdfUseCase', () => {
       sourceDraftId: 'draft-1',
     });
   });
+
+  it('deletes the rendered PDF when document creation is rejected', async () => {
+    const storageProvider = makeStorageProvider();
+    const documentRepository = makeDocumentRepository({
+      create: vi
+        .fn()
+        .mockRejectedValue(
+          Object.assign(new Error('document limit reached'), { code: 'QUOTA_EXCEEDED' }),
+        ),
+    });
+    const useCase = new ExportDocumentDraftToPdfUseCase({
+      documentDraftRepository: makeDocumentDraftRepository({
+        findById: vi.fn().mockResolvedValue(makeDocumentDraft()),
+      }),
+      documentRepository,
+      applicationRepository: makeApplicationRepository({
+        findById: vi.fn().mockResolvedValue(makeApplication()),
+      }),
+      storageProvider,
+      pdfRenderer: makePdfRenderer({ render: vi.fn().mockResolvedValue(Buffer.from('pdf')) }),
+      generateId,
+    });
+
+    await expect(useCase.execute({ userId: 'user-1', draftId: 'draft-1' })).rejects.toMatchObject({
+      code: 'QUOTA_EXCEEDED',
+    });
+    expect(storageProvider.delete).toHaveBeenCalledWith('documents/app-1/test-doc-id.pdf');
+  });
 });

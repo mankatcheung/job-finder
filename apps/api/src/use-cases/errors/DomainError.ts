@@ -45,6 +45,13 @@ export class ConflictError extends DomainError {
   }
 }
 
+/** The requested resource quota has been reached. */
+export class QuotaExceededError extends DomainError {
+  constructor(message: string) {
+    super(message, ERROR_CODES.QUOTA_EXCEEDED);
+  }
+}
+
 /** The caller is not authenticated, or their credential no longer stands. */
 export class UnauthorizedError extends DomainError {
   constructor(message = 'Unauthorized') {

@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { DrizzleApplicationRepository } from '#src/infrastructure/db/repositories/DrizzleApplicationRepository.js';
 import { createTestDb, type TestDb } from '#src/__tests__/helpers/createTestDb.js';
 import { user, jobApplication } from '#src/infrastructure/db/schema.js';
+import { CONTENT_LIMITS } from '#src/constants.js';
 
 const BASE_APP = {
   id: 'app-1',
@@ -30,6 +31,7 @@ describe('DrizzleApplicationRepository', () => {
 
   beforeEach(async () => {
     await db.db.delete(jobApplication);
+    await db.db.update(user).set({ applicationCount: 0 }).where(eq(user.id, 'u1'));
   });
 
   describe('create', () => {
@@ -46,6 +48,37 @@ describe('DrizzleApplicationRepository', () => {
       expect(app.createdAt).toBeInstanceOf(Date);
       expect(app.updatedAt).toBeInstanceOf(Date);
     });
+
+    it('rejects creation at the per-user application limit without inserting a row', async () => {
+      await db.db
+        .update(user)
+        .set({ applicationCount: CONTENT_LIMITS.APPLICATIONS_PER_USER })
+        .where(eq(user.id, 'u1'));
+
+      await expect(repo.create(BASE_APP)).rejects.toMatchObject({ code: 'QUOTA_EXCEEDED' });
+      expect(await db.db.select().from(jobApplication)).toHaveLength(0);
+    });
+  });
+
+  describe('delete', () => {
+    it('frees an application quota slot after permanent deletion', async () => {
+      await repo.create(BASE_APP);
+      expect((await db.db.select({ count: user.applicationCount }).from(user))[0].count).toBe(1);
+
+      await repo.delete('app-1');
+
+      expect((await db.db.select({ count: user.applicationCount }).from(user))[0].count).toBe(0);
+    });
+  });
+
+  it('keeps a trashed application counted until permanent deletion', async () => {
+    await repo.create(BASE_APP);
+    await repo.softDelete('app-1', new Date());
+
+    expect((await db.db.select({ count: user.applicationCount }).from(user))[0].count).toBe(1);
+
+    await repo.restore('app-1');
+    expect((await db.db.select({ count: user.applicationCount }).from(user))[0].count).toBe(1);
   });
 
   describe('findById', () => {

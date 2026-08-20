@@ -1,4 +1,4 @@
-import { ValidationError } from '#src/use-cases/errors/DomainError.js';
+import { QuotaExceededError, ValidationError } from '#src/use-cases/errors/DomainError.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
 import {
@@ -71,17 +71,26 @@ export class ImportUserDataUseCase implements IImportUserDataUseCase {
         continue;
       }
 
-      const app = await this.deps.applicationRepository.create({
-        id: this.deps.generateId(),
-        userId,
-        company: entry.company,
-        role: entry.role,
-        status: asStatus(entry.status),
-        jobUrl: asNullableString(entry.jobUrl),
-        location: asNullableString(entry.location),
-        salaryRange: asNullableString(entry.salaryRange),
-        description: asNullableString(entry.description),
-      });
+      let app;
+      try {
+        app = await this.deps.applicationRepository.create({
+          id: this.deps.generateId(),
+          userId,
+          company: entry.company,
+          role: entry.role,
+          status: asStatus(entry.status),
+          jobUrl: asNullableString(entry.jobUrl),
+          location: asNullableString(entry.location),
+          salaryRange: asNullableString(entry.salaryRange),
+          description: asNullableString(entry.description),
+        });
+      } catch (error) {
+        if (error instanceof QuotaExceededError) {
+          summary.applicationsSkipped++;
+          continue;
+        }
+        throw error;
+      }
 
       const appliedAt = asDate(entry.appliedAt);
       if (appliedAt) {

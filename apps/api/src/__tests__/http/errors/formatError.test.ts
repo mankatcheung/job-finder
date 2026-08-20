@@ -92,6 +92,20 @@ describe('formatError', () => {
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 
+  it('maps a QUOTA_EXCEEDED-coded error to a client-safe conflict', () => {
+    const original = Object.assign(new Error('You have reached the maximum of 50 applications'), {
+      code: ERROR_CODES.QUOTA_EXCEEDED,
+    });
+    const wrapper = new GraphQLError('wrapped', { originalError: original });
+
+    const result = formatError(wrapper);
+
+    expect(result.message).toBe('You have reached the maximum of 50 applications');
+    expect(result.extensions.code).toBe(ERROR_CODES.QUOTA_EXCEEDED);
+    expect(result.extensions.statusCode).toBe(409);
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+  });
+
   it('logs and returns a generic 500 error for an uncoded error, without leaking its message', () => {
     const original = new Error('TypeError: cannot read property x of undefined at db.ts:42');
     const wrapper = new GraphQLError('wrapped', { originalError: original });

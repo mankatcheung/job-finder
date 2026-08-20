@@ -24,6 +24,12 @@ export class ConflictError extends AppError {
   }
 }
 
+export class QuotaExceededError extends AppError {
+  constructor(message = 'Resource quota exceeded') {
+    super(message, 409, ERROR_CODES.QUOTA_EXCEEDED);
+  }
+}
+
 export class UnauthorizedError extends AppError {
   constructor(message = 'Unauthorized') {
     super(message, 401, ERROR_CODES.UNAUTHORIZED);
@@ -93,6 +99,8 @@ export function fromCodedError(err: unknown): AppError {
         return new UserNotFoundError(err.message);
       case ERROR_CODES.CONFLICT:
         return new ConflictError(err.message);
+      case ERROR_CODES.QUOTA_EXCEEDED:
+        return new QuotaExceededError(err.message);
       case ERROR_CODES.UNAUTHORIZED:
         return new UnauthorizedError(err.message);
       case ERROR_CODES.FORBIDDEN:
