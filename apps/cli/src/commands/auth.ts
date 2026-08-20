@@ -36,7 +36,7 @@ export function registerAuthCommands(program: Command): void {
 
   auth
     .command('set-key')
-    .description('Set your Job Finder API key (generate one at Settings → API Tokens)')
+    .description('Set your Trakwyn API key (generate one at Settings → API Tokens)')
     .option('--key <key>', `API key (${API_TOKEN_PREFIX}…)`)
     .action(async (opts: { key?: string }) => {
       try {

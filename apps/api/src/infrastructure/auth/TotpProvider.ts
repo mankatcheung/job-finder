@@ -10,6 +10,20 @@ const ALGORITHM = 'aes-256-gcm';
 const IV_BYTES = 12;
 const AUTH_TAG_BYTES = 16;
 const KEY_LENGTH = 32;
+/**
+ * Key-derivation salt, NOT a label — do not rename it.
+ *
+ * It is an input to scryptSync below, so changing the string changes the
+ * derived AES key and every value already encrypted with the old one stops
+ * decrypting. The pre-rebrand name is deliberate dead weight: it is load-
+ * bearing precisely because it is arbitrary.
+ *
+ * Renaming it locks every user with 2FA enabled out of their account:
+ * their stored TOTP secret no longer decrypts, so no code ever verifies.
+ *
+ * Rotating it would mean decrypting everything with the old salt and
+ * re-encrypting with the new one, in a migration, before any deploy uses it.
+ */
 const SCRYPT_SALT = 'job-finder-totp-secret';
 
 export class TotpProvider implements ITotpProvider {
