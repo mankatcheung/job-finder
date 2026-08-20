@@ -123,6 +123,7 @@ Key API env vars: `DATABASE_URL` must be an absolute path for local SQLite (e.g.
 - **IDs** are `nanoid()` strings, not auto-increment integers.
 - **Domain entities** are plain TypeScript objects/classes with no Drizzle or framework imports. Mappers bridge Drizzle rows ↔ domain.
 - **Adding a new feature** follows the layer order: domain entity → port interface → use case → Drizzle repository implementation → Pothos type/resolver → GraphQL mutation/query → register in the matching `http/di/` module → add `.graphql` file in web → run codegen → build UI.
+- **The layering is enforced, not just described:** `__tests__/architecture/dependencyRule.test.ts` fails if `domain/` reaches outward, if `use-cases/` imports `interface-adapters`/`infrastructure`/`http`, if `interface-adapters/` imports `infrastructure`/`http`, or if a framework (Drizzle, Fastify, GraphQL, Pothos, libsql, web-push) appears in `domain/` or `use-cases/`. It carries a short list of pre-existing violations, each tagged with the ticket that clears it — and fails if an entry stops violating, so a fix cannot leave its exemption behind.
 - **Pothos schema:** Each resource has its type file (`http/schema/types/`), query file (`queries/`), and mutation file (`mutations/`). All are imported and composed in `http/schema/index.ts`.
 
 ## Workflow
