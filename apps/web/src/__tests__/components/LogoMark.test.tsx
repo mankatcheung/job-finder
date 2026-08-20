@@ -35,11 +35,43 @@ describe('LogoMark', () => {
     expect(svg).toHaveAttribute('aria-hidden', 'true');
   });
 
-  it('contains the brand blue rectangles and checkmark path', () => {
+  it('draws two chevrons that inherit their colour', () => {
     const { container } = render(<LogoMark />);
-    const rects = container.querySelectorAll('rect');
-    expect(rects.length).toBe(3);
-    const path = container.querySelector('path');
-    expect(path).toBeInTheDocument();
+    const paths = container.querySelectorAll('path');
+    expect(paths.length).toBe(2);
+    for (const path of paths) {
+      expect(path).toHaveAttribute('stroke', 'currentColor');
+    }
+  });
+
+  it('carries the brand blue in light mode and lifts it in dark mode', () => {
+    const { container } = render(<LogoMark />);
+    const svg = container.querySelector('svg');
+
+    // blue-700 on gray-900 sits too close to its own background to read, so
+    // dark mode moves to blue-400. Dropping the dark: variant would leave the
+    // mark technically visible and practically invisible.
+    expect(svg).toHaveClass('text-blue-700');
+    expect(svg).toHaveClass('dark:text-blue-400');
+  });
+
+  it('keeps its colour when a caller passes a className', () => {
+    const { container } = render(<LogoMark className="shrink-0" />);
+    const svg = container.querySelector('svg');
+
+    expect(svg).toHaveClass('shrink-0');
+    expect(svg).toHaveClass('text-blue-700');
+  });
+
+  it('gives the trailing chevron a lighter stroke than the leading one', () => {
+    const { container } = render(<LogoMark />);
+    const [trailing, leading] = container.querySelectorAll('path');
+
+    // The whole point of the mark. Two chevrons at equal weight read as a
+    // media control; unequal ones read as a position and the one before it.
+    // Equalising these would quietly turn the logo into a fast-forward icon.
+    expect(Number(trailing.getAttribute('stroke-width'))).toBeLessThan(
+      Number(leading.getAttribute('stroke-width')),
+    );
   });
 });
