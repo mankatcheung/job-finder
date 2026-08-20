@@ -1,5 +1,7 @@
+import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
 import { ActivityLogRef } from '#src/http/schema/types/ActivityLogType.js';
+import { ERROR_CODES } from '#src/constants.js';
 
 builder.queryField('activityLogs', (t) =>
   t.field({
@@ -7,7 +9,11 @@ builder.queryField('activityLogs', (t) =>
     args: {
       applicationId: t.arg.id({ required: true }),
     },
-    resolve: (_root, args, ctx) =>
-      ctx.diScope.resolve('activityLogResolver').getActivityLogs(String(args.applicationId), ctx),
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { activityLogResolver } = ctx.diScope.cradle;
+      return activityLogResolver.getActivityLogs(ctx.user.sub, String(args.applicationId));
+    },
   }),
 );
