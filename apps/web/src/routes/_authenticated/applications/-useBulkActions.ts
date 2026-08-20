@@ -8,7 +8,6 @@ const UPDATE_MUTATION = `
     updateApplication(id: $id, input: $input) { id }
   }
 `;
-const DELETE_MUTATION = `mutation BulkDeleteApplication($id: ID!) { deleteApplication(id: $id) }`;
 
 interface ApplicationTags {
   id: string;
@@ -43,6 +42,5 @@ export function useBulkActions() {
         return gqlClient.request(UPDATE_MUTATION, { id, input: { tags } });
       });
     },
-    bulkDelete: (ids: string[]) => run(ids, (id) => gqlClient.request(DELETE_MUTATION, { id })),
   };
 }

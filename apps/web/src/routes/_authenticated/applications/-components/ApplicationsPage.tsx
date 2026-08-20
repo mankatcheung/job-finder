@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useInfiniteQuery, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { useState, useEffect, useMemo } from 'react';
-import { showUndoToast } from '#/lib/undoToast';
+import { deleteApplicationsWithUndo } from '../-deleteWithUndo';
 import { ErrorState } from '#/components/ErrorState';
 import { useLocale } from '#/lib/i18n';
 import { Card, Checkbox, EmptyState, Skeleton, Spinner } from '@trakwyn/ui';
@@ -352,16 +352,12 @@ function BulkActionBar({
         })),
       };
     });
-    showUndoToast({
-      message: t('applications.deleted', { count: ids.length }),
-      onExecute: () => {
-        bulk.bulkDelete(ids);
-        onClear();
-      },
-      onUndo: () => {
-        qc.setQueryData(queryKey, snapshot);
-        toast.dismiss();
-      },
+    // The rows are already gone from the cache above; the delete goes out now
+    // rather than on a timer, and Undo restores them server-side.
+    onClear();
+    deleteApplicationsWithUndo(qc, ids, t('applications.deleted', { count: ids.length }), () => {
+      qc.setQueryData(queryKey, snapshot);
+      toast.dismiss();
     });
   };
 

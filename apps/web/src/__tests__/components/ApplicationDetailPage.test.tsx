@@ -29,9 +29,15 @@ vi.mock('#/graphql/client', () => ({
 }));
 
 vi.mock('#/lib/undoToast', () => ({
+  // Deleting a note is still deferred (notes are a hard delete with nothing to
+  // restore), so this stays.
   showUndoToast: vi.fn(({ onExecute }) => {
     onExecute();
   }),
+  // Deleting the application is not. This one does nothing on purpose: the
+  // helper has already sent the delete before it calls the toast, so a no-op
+  // here cannot make the test pass for the wrong reason.
+  showUndoableActionToast: vi.fn(),
 }));
 
 import { ApplicationDetailPage } from '#/routes/_authenticated/applications/$applicationId/-components/ApplicationDetailPage';
@@ -505,7 +511,7 @@ describe('ApplicationDetailPage', () => {
     });
   });
 
-  it('deletes the application after undo window expires', async () => {
+  it('deletes the application and leaves the page at once, without an undo window', async () => {
     mockGqlRequest.mockImplementation((query: string) => {
       if (query.includes('DeleteApplication')) return Promise.resolve({ deleteApplication: true });
       if (query.includes('Notes')) return Promise.resolve({ notes: [] });
@@ -520,13 +526,17 @@ describe('ApplicationDetailPage', () => {
     const deleteAppBtn = screen.getByTitle('Delete application');
     fireEvent.click(deleteAppBtn);
 
+    // Synchronously, in the click handler — not after the request resolves and
+    // not after a timer. This is the reported bug: the redirect used to be
+    // gated on a mutation that was itself gated on a 5s timeout.
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/applications' });
+
     await waitFor(() => {
       expect(mockGqlRequest).toHaveBeenCalledWith(
         expect.stringContaining('DeleteApplication'),
         expect.objectContaining({ id: 'app-test-id' }),
       );
     });
-    expect(mockNavigate).toHaveBeenCalledWith({ to: '/applications' });
   });
 });
 
