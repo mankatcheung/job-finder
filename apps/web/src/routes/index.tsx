@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { hasSessionCookie } from '#/graphql/client';
+import { LogoMark } from '#/components/LogoMark';
 import { useLocale } from '#/lib/i18n';
 import {
   LayoutDashboard,
@@ -61,26 +62,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
-              <svg width={24} height={24} viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                <rect x="9" y="29" width="9" height="9" rx="2" fill="#1d4ed8" opacity="0.35" />
-                <rect
-                  x="18.5"
-                  y="19.5"
-                  width="11.5"
-                  height="11.5"
-                  rx="2.5"
-                  fill="#1d4ed8"
-                  opacity="0.65"
-                />
-                <rect x="29" y="9" width="13.5" height="13.5" rx="3" fill="#1d4ed8" />
-                <path
-                  d="M32.3,16 l2.6,3 l6,-6.6"
-                  stroke="#ffffff"
-                  strokeWidth="2.1"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <LogoMark size={24} />
               <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Trakwyn</span>
             </Link>
             <div className="hidden sm:flex items-center gap-3">
@@ -248,26 +230,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
             <div className="flex items-center gap-2">
-              <svg width={20} height={20} viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                <rect x="9" y="29" width="9" height="9" rx="2" fill="#1d4ed8" opacity="0.35" />
-                <rect
-                  x="18.5"
-                  y="19.5"
-                  width="11.5"
-                  height="11.5"
-                  rx="2.5"
-                  fill="#1d4ed8"
-                  opacity="0.65"
-                />
-                <rect x="29" y="9" width="13.5" height="13.5" rx="3" fill="#1d4ed8" />
-                <path
-                  d="M32.3,16 l2.6,3 l6,-6.6"
-                  stroke="#ffffff"
-                  strokeWidth="2.1"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <LogoMark size={20} />
               <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                 Trakwyn
               </span>
