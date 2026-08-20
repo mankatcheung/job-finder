@@ -1,3 +1,4 @@
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IWorkExperienceRepository } from '#src/use-cases/ports/IWorkExperienceRepository.js';
 import type {
   IUpdateWorkExperienceUseCase,
@@ -15,7 +16,7 @@ export class UpdateWorkExperienceUseCase implements IUpdateWorkExperienceUseCase
   async execute(input: UpdateWorkExperienceInput): Promise<UpdateWorkExperienceOutput> {
     const existing = await this.deps.workExperienceRepository.findById(input.id);
     if (!existing || existing.userId !== input.userId) {
-      throw new Error('Work experience not found');
+      throw new NotFoundError('Work experience not found');
     }
     return this.deps.workExperienceRepository.update(input.id, {
       ...(input.company !== undefined ? { company: input.company } : {}),

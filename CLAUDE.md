@@ -123,6 +123,7 @@ Key API env vars: `DATABASE_URL` must be an absolute path for local SQLite (e.g.
 - **IDs** are `nanoid()` strings, not auto-increment integers.
 - **Domain entities** are plain TypeScript objects/classes with no Drizzle or framework imports. Mappers bridge Drizzle rows ↔ domain.
 - **Adding a new feature** follows the layer order: domain entity → port interface → use case → Drizzle repository implementation → Pothos type/resolver → GraphQL mutation/query → register in the matching `http/di/` module → add `.graphql` file in web → run codegen → build UI.
+- **Failing from a use case:** throw a `DomainError` subclass from `use-cases/errors/DomainError.ts` — `NotFoundError`, `ForbiddenError`, `ConflictError`. They carry a `code` and no HTTP status; `http/errors/formatError.ts` turns the code into a status at the boundary via `fromCodedError`. **Do not import `http/errors/AppError` from a use case** (that puts `404` inside a business rule), and do not `throw new Error(...)` for a condition the client should see — a plain Error has no code, so it surfaces as `INTERNAL_ERROR`/500 and gets logged as a server fault. Adding a new `DomainError` subclass means adding a matching case to `fromCodedError`, or it degrades to a 500. `AppError` stays the vocabulary for HTTP routes and resolvers, which legitimately know about status codes.
 - **Pothos schema:** Each resource has its type file (`http/schema/types/`), query file (`queries/`), and mutation file (`mutations/`). All are imported and composed in `http/schema/index.ts`.
 
 ## Workflow

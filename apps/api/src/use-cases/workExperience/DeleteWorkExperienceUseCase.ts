@@ -1,3 +1,4 @@
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IWorkExperienceRepository } from '#src/use-cases/ports/IWorkExperienceRepository.js';
 import type {
   IDeleteWorkExperienceUseCase,
@@ -14,7 +15,7 @@ export class DeleteWorkExperienceUseCase implements IDeleteWorkExperienceUseCase
   async execute(input: DeleteWorkExperienceInput): Promise<void> {
     const existing = await this.deps.workExperienceRepository.findById(input.id);
     if (!existing || existing.userId !== input.userId) {
-      throw new Error('Work experience not found');
+      throw new NotFoundError('Work experience not found');
     }
     await this.deps.workExperienceRepository.delete(input.id);
   }
