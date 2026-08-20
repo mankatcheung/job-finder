@@ -122,7 +122,9 @@ describe('ApplicationsPage', () => {
     await waitFor(() => {
       expect(screen.getByText('All statuses')).toBeInTheDocument();
     });
-    expect(screen.getByDisplayValue('All statuses')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Filter by status' })).toHaveTextContent(
+      'All statuses',
+    );
   });
 
   it('shows filtered empty state when status filter active', async () => {
@@ -381,9 +383,8 @@ describe('ApplicationsPage', () => {
       fireEvent.click(screen.getByLabelText('Select all'));
       mockMutationResult({ updateApplication: { id: '1' } });
 
-      fireEvent.change(screen.getByDisplayValue('Change status…'), {
-        target: { value: 'interviewing' },
-      });
+      fireEvent.click(screen.getByRole('button', { name: 'Change status…' }));
+      fireEvent.click(screen.getByRole('option', { name: /Interviewing/ }));
 
       await waitFor(() => {
         expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('updateApplication'), {

@@ -26,10 +26,10 @@ import { Route } from '../index';
 import {
   applicationsPageQueryKey,
   applicationsPageQueryOptions,
-  APPLICATION_STATUSES,
   type Application,
   type ApplicationsPageResult,
 } from '../index';
+import { StatusSelect } from '#/components/StatusSelect';
 
 function ApplicationsPage() {
   const { t } = useLocale();
@@ -141,24 +141,17 @@ function ApplicationsPage() {
       </div>
 
       <div className="flex items-center gap-3 mb-6">
-        <select
+        <StatusSelect
           value={status ?? ''}
-          onChange={(e) => {
+          onChange={(next) => {
             const params = new URLSearchParams(window.location.search);
-            if (e.target.value) params.set('status', e.target.value);
+            if (next) params.set('status', next);
             else params.delete('status');
             window.location.search = params.toString();
           }}
-          aria-label={t('applications.filterByStatus')}
-          className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 capitalize"
-        >
-          <option value="">{t('applications.allStatuses')}</option>
-          {APPLICATION_STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {t(`status.${s}`)}
-            </option>
-          ))}
-        </select>
+          label={t('applications.filterByStatus')}
+          placeholder={t('applications.allStatuses')}
+        />
         <Link
           to="/applications"
           search={starred ? {} : { starred: true }}
@@ -368,21 +361,17 @@ function BulkActionBar({
           {t('applications.selectedCount', { count: ids.length })}
         </span>
 
-        <select
+        <StatusSelect
           value=""
           disabled={bulk.isPending}
-          onChange={(e) => {
-            if (e.target.value) bulk.bulkUpdateStatus(ids, e.target.value as ApplicationStatus);
+          onChange={(next) => {
+            if (next) bulk.bulkUpdateStatus(ids, next as ApplicationStatus);
           }}
-          className="text-sm bg-gray-800 dark:bg-gray-600 border border-gray-700 dark:border-gray-500 rounded-lg px-2 py-1.5 disabled:opacity-60"
-        >
-          <option value="">{t('applications.changeStatusPlaceholder')}</option>
-          {APPLICATION_STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {t(`status.${s}`)}
-            </option>
-          ))}
-        </select>
+          label={t('applications.changeStatusPlaceholder')}
+          placeholder={t('applications.changeStatusPlaceholder')}
+          variant="dark"
+          resetAfterSelect
+        />
 
         <div className="flex items-center gap-1">
           <input

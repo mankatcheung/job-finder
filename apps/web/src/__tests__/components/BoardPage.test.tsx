@@ -27,6 +27,7 @@ vi.mock('#/graphql/client', () => ({
 }));
 
 import { KanbanBoard } from '#/routes/_authenticated/applications/-board-page';
+import { APPLICATION_STATUSES, STATUS_COLORS } from '#/lib/statusColors';
 
 const makeClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
@@ -176,6 +177,34 @@ describe('KanbanBoard', () => {
 
     const order = screen.getAllByText(/^(Acme|Globex)$/).map((element) => element.textContent);
     expect(order).toEqual(['Globex', 'Acme']);
+  });
+
+  it('gives every column header a status-coloured dot alongside its label', async () => {
+    mockGqlRequest.mockResolvedValue({ applications: [] });
+    render(<KanbanBoard />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('Draft')).toBeInTheDocument();
+    });
+
+    for (const status of APPLICATION_STATUSES) {
+      const dot = screen.getByTestId(`column-dot-${status}`);
+      expect(dot).toHaveClass(STATUS_COLORS[status].dot);
+      // The dot is decoration; the label still carries the meaning.
+      expect(dot).toHaveAttribute('aria-hidden', 'true');
+    }
+  });
+
+  it('tints the column heading to match its status', async () => {
+    mockGqlRequest.mockResolvedValue({ applications: [] });
+    render(<KanbanBoard />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('Interviewing')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Interviewing').className).toContain('text-purple-700');
+    expect(screen.getByText('Offered').className).toContain('text-orange-700');
   });
 
   it('links "New" to the new application route', async () => {

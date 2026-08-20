@@ -16,12 +16,30 @@ export const Default: Story = {
 export const AllTones: Story = {
   render: () => (
     <div className="flex flex-wrap items-center gap-2">
+      <Badge tone="gray">gray</Badge>
+      <Badge tone="slate">slate</Badge>
+      <Badge tone="blue">blue</Badge>
+      <Badge tone="purple">purple</Badge>
+      <Badge tone="yellow">yellow</Badge>
+      <Badge tone="orange">orange</Badge>
+      <Badge tone="green">green</Badge>
+      <Badge tone="red">red</Badge>
+      <Badge tone="emerald">emerald</Badge>
+    </div>
+  ),
+};
+
+/** The tones the application-status palette maps onto. */
+export const ApplicationStatuses: Story = {
+  render: () => (
+    <div className="flex flex-wrap items-center gap-2">
       <Badge tone="gray">draft</Badge>
       <Badge tone="blue">applied</Badge>
-      <Badge tone="yellow">interviewing</Badge>
-      <Badge tone="green">offered</Badge>
+      <Badge tone="purple">interviewing</Badge>
+      <Badge tone="orange">offered</Badge>
+      <Badge tone="green">accepted</Badge>
       <Badge tone="red">rejected</Badge>
-      <Badge tone="emerald">accepted</Badge>
+      <Badge tone="slate">withdrawn</Badge>
     </div>
   ),
 };
