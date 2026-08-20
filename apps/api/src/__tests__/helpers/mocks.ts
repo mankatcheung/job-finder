@@ -174,6 +174,7 @@ export const makeStorageProvider = (overrides?: Partial<IStorageProvider>): ISto
   getSignedUrl: vi.fn(),
   putObject: vi.fn(),
   delete: vi.fn(),
+  deleteMany: vi.fn(),
   ...overrides,
 });
 

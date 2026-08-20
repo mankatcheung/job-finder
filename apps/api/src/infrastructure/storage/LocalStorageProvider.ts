@@ -37,4 +37,11 @@ export class LocalStorageProvider implements IStorageProvider {
       // Ignore if file doesn't exist
     }
   }
+
+  async deleteMany(keys: string[]): Promise<void> {
+    // There is no batch unlink; the local provider is a dev convenience, so
+    // parallel single deletes are as batched as this gets. `delete` already
+    // swallows a missing file, so one bad key cannot fail the rest.
+    await Promise.all(keys.map((key) => this.delete(key)));
+  }
 }

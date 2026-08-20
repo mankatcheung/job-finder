@@ -35,7 +35,7 @@ export class PermanentlyDeleteApplicationUseCase implements IPermanentlyDeleteAp
     const documents = await this.deps.documentRepository.findAllByApplicationId(
       input.applicationId,
     );
-    await Promise.all(documents.map((doc) => this.deps.storageProvider.delete(doc.storageKey)));
+    await this.deps.storageProvider.deleteMany(documents.map((doc) => doc.storageKey));
 
     await this.deps.applicationRepository.delete(input.applicationId);
   }

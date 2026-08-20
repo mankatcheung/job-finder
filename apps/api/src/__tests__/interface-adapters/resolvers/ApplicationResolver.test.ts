@@ -9,6 +9,8 @@ import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplication
 import type { IListTrashedApplicationsUseCase } from '#src/use-cases/jobs/IListTrashedApplicationsUseCase.js';
 import type { IRestoreApplicationUseCase } from '#src/use-cases/jobs/IRestoreApplicationUseCase.js';
 import type { IPermanentlyDeleteApplicationUseCase } from '#src/use-cases/jobs/IPermanentlyDeleteApplicationUseCase.js';
+import type { IBulkRestoreApplicationsUseCase } from '#src/use-cases/jobs/IBulkRestoreApplicationsUseCase.js';
+import type { IEmptyTrashUseCase } from '#src/use-cases/jobs/IEmptyTrashUseCase.js';
 import type { IUpdateApplicationUseCase } from '#src/use-cases/jobs/IUpdateApplicationUseCase.js';
 import type { IDeleteApplicationUseCase } from '#src/use-cases/jobs/IDeleteApplicationUseCase.js';
 import type { IBulkUpdateApplicationsUseCase } from '#src/use-cases/jobs/IBulkUpdateApplicationsUseCase.js';
@@ -32,6 +34,8 @@ const makeDeps = (overrides?: object) => ({
   permanentlyDeleteApplicationUseCase: stub<IPermanentlyDeleteApplicationUseCase>({
     execute: vi.fn(),
   }),
+  bulkRestoreApplicationsUseCase: stub<IBulkRestoreApplicationsUseCase>({ execute: vi.fn() }),
+  emptyTrashUseCase: stub<IEmptyTrashUseCase>({ execute: vi.fn() }),
   applicationMapper: new ApplicationMapper(),
   ...overrides,
 });
@@ -215,5 +219,35 @@ describe('ApplicationResolver', () => {
       applicationId: 'app-1',
     });
     expect(result).toBe(true);
+  });
+  it('bulkRestoreApplications: passes the batch through and returns the count', async () => {
+    const deps = makeDeps({
+      bulkRestoreApplicationsUseCase: stub<IBulkRestoreApplicationsUseCase>({
+        execute: vi.fn().mockResolvedValue({ restored: 2 }),
+      }),
+    });
+
+    const resolver = new ApplicationResolver(deps);
+    const result = await resolver.bulkRestoreApplications('user-1', ['a', 'b']);
+
+    expect(deps.bulkRestoreApplicationsUseCase.execute).toHaveBeenCalledWith({
+      userId: 'user-1',
+      applicationIds: ['a', 'b'],
+    });
+    expect(result).toEqual({ restored: 2 });
+  });
+
+  it('emptyTrash: returns both counts rather than a bare success', async () => {
+    const deps = makeDeps({
+      emptyTrashUseCase: stub<IEmptyTrashUseCase>({
+        execute: vi.fn().mockResolvedValue({ deleted: 3, failed: 1 }),
+      }),
+    });
+
+    const resolver = new ApplicationResolver(deps);
+    const result = await resolver.emptyTrash('user-1');
+
+    expect(deps.emptyTrashUseCase.execute).toHaveBeenCalledWith({ userId: 'user-1' });
+    expect(result).toEqual({ deleted: 3, failed: 1 });
   });
 });

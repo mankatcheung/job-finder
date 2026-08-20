@@ -53,6 +53,17 @@ export class VercelBlobStorageProvider implements IStorageProvider {
     }
   }
 
+  async deleteMany(keys: string[]): Promise<void> {
+    if (!this.token || keys.length === 0) return;
+    try {
+      // `del` takes an array and removes the lot in one request — the whole
+      // reason this method exists rather than looping over `delete`.
+      await del(keys, { token: this.token });
+    } catch {
+      // Best-effort cleanup — matches `delete`.
+    }
+  }
+
   async putObject(key: string, data: Buffer, mimeType: string): Promise<void> {
     this.assertConfigured();
     await put(key, data, {

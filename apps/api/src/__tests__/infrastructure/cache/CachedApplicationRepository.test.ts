@@ -138,8 +138,9 @@ describe('CachedApplicationRepository', () => {
   });
 
   describe('delete', () => {
-    it('looks up the app via its own findById, then invalidates byId and list caches', async () => {
+    it('looks the app up including trashed ones, then invalidates byId and list caches', async () => {
       const { repo, inner } = makeRepo();
+      vi.mocked(inner.findByIdIncludingTrashed).mockResolvedValue(app);
       vi.mocked(inner.findById).mockResolvedValue(app);
       vi.mocked(inner.findAllByUserId).mockResolvedValue([app]);
       vi.mocked(inner.delete).mockResolvedValue(undefined);
@@ -147,12 +148,14 @@ describe('CachedApplicationRepository', () => {
       await repo.findAllByUserId('user-1');
       await repo.delete('app-1');
 
-      expect(inner.findById).toHaveBeenCalledWith('app-1');
+      expect(inner.findByIdIncludingTrashed).toHaveBeenCalledWith('app-1');
       vi.mocked(inner.findById).mockResolvedValue(null);
       vi.mocked(inner.findAllByUserId).mockResolvedValue([]);
       await repo.findById('app-1');
       await repo.findAllByUserId('user-1');
-      expect(inner.findById).toHaveBeenCalledTimes(2);
+      // Once: only the explicit read above. `delete` itself now goes through
+      // findByIdIncludingTrashed.
+      expect(inner.findById).toHaveBeenCalledTimes(1);
       expect(inner.findAllByUserId).toHaveBeenCalledTimes(2);
     });
 
@@ -163,7 +166,7 @@ describe('CachedApplicationRepository', () => {
       const repoB = new CachedApplicationRepository({ drizzleApplicationRepository: inner, cache });
 
       vi.mocked(inner.findAllByUserId).mockResolvedValue([app]);
-      vi.mocked(inner.findById).mockResolvedValue(app);
+      vi.mocked(inner.findByIdIncludingTrashed).mockResolvedValue(app);
       vi.mocked(inner.delete).mockResolvedValue(undefined);
 
       // repoA warms the list cache, as if an earlier request landed on a different instance
@@ -177,9 +180,31 @@ describe('CachedApplicationRepository', () => {
       expect(inner.findAllByUserId).toHaveBeenCalledTimes(2);
     });
 
+    it('busts the Trash list when a trashed application is destroyed', async () => {
+      // Regression: `delete` used to look the row up with `findById`, which
+      // filters trashed rows out. Permanent delete and the purge only ever act
+      // on trashed rows, so the lookup always returned null, the userId was
+      // never learned, and neither the list nor the Trash cache was cleared —
+      // an application deleted for good kept appearing in Trash until the
+      // entry expired by itself.
+      const { repo, inner } = makeRepo();
+      const trashedApp = makeApplication({ deletedAt: new Date('2026-08-01') });
+      vi.mocked(inner.findById).mockResolvedValue(null); // trashed: filtered out
+      vi.mocked(inner.findByIdIncludingTrashed).mockResolvedValue(trashedApp);
+      vi.mocked(inner.findTrashedByUserId).mockResolvedValue([trashedApp]);
+      vi.mocked(inner.delete).mockResolvedValue(undefined);
+
+      await repo.findTrashedByUserId('user-1'); // warms the Trash list cache
+      await repo.delete('app-1');
+
+      vi.mocked(inner.findTrashedByUserId).mockResolvedValue([]);
+      expect(await repo.findTrashedByUserId('user-1')).toEqual([]);
+      expect(inner.findTrashedByUserId).toHaveBeenCalledTimes(2);
+    });
+
     it('still deletes from inner even when the app is not found', async () => {
       const { repo, inner } = makeRepo();
-      vi.mocked(inner.findById).mockResolvedValue(null);
+      vi.mocked(inner.findByIdIncludingTrashed).mockResolvedValue(null);
       vi.mocked(inner.delete).mockResolvedValue(undefined);
 
       await repo.delete('unknown-id');

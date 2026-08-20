@@ -31,6 +31,7 @@ import './types/LoginResultType.js';
 import './types/TotpSetupType.js';
 import './types/LoginEventType.js';
 import './types/ImportSummaryType.js';
+import './types/TrashActionResultTypes.js';
 import './types/NotificationPreferencesType.js';
 import './types/WeeklyApplicationGoalType.js';
 import './types/NotificationType.js';

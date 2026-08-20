@@ -131,6 +131,8 @@ import type { UpdateApplicationUseCase } from '#src/use-cases/jobs/UpdateApplica
 import type { DeleteApplicationUseCase } from '#src/use-cases/jobs/DeleteApplicationUseCase.js';
 import type { BulkUpdateApplicationsUseCase } from '#src/use-cases/jobs/BulkUpdateApplicationsUseCase.js';
 import type { BulkDeleteApplicationsUseCase } from '#src/use-cases/jobs/BulkDeleteApplicationsUseCase.js';
+import type { BulkRestoreApplicationsUseCase } from '#src/use-cases/jobs/BulkRestoreApplicationsUseCase.js';
+import type { EmptyTrashUseCase } from '#src/use-cases/jobs/EmptyTrashUseCase.js';
 import type { BulkAddTagToApplicationsUseCase } from '#src/use-cases/jobs/BulkAddTagToApplicationsUseCase.js';
 import type { CreateNoteUseCase } from '#src/use-cases/notes/CreateNoteUseCase.js';
 import type { GetNotesUseCase } from '#src/use-cases/notes/GetNotesUseCase.js';
@@ -426,6 +428,8 @@ export interface Cradle {
   purgeExpiredApplicationsUseCase: PurgeExpiredApplicationsUseCase;
   bulkUpdateApplicationsUseCase: BulkUpdateApplicationsUseCase;
   bulkDeleteApplicationsUseCase: BulkDeleteApplicationsUseCase;
+  bulkRestoreApplicationsUseCase: BulkRestoreApplicationsUseCase;
+  emptyTrashUseCase: EmptyTrashUseCase;
   bulkAddTagToApplicationsUseCase: BulkAddTagToApplicationsUseCase;
   createNoteUseCase: CreateNoteUseCase;
   getNotesUseCase: GetNotesUseCase;

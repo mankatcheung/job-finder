@@ -3,6 +3,10 @@ import { builder } from '#src/http/schema/builder.js';
 import { JobApplicationRef } from '#src/http/schema/types/ApplicationType.js';
 import { ApplicationStatusEnum } from '#src/http/schema/types/enums/ApplicationStatusEnum.js';
 import {
+  BulkRestoreResultRef,
+  EmptyTrashResultRef,
+} from '#src/http/schema/types/TrashActionResultTypes.js';
+import {
   CreateApplicationInput,
   UpdateApplicationInput,
 } from '#src/http/schema/types/inputs/ApplicationInputs.js';
@@ -110,6 +114,33 @@ builder.mutationField('permanentlyDeleteApplication', (t) =>
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { applicationResolver } = ctx.diScope.cradle;
       return applicationResolver.permanentlyDeleteApplication(ctx.user.sub, String(args.id));
+    },
+  }),
+);
+
+builder.mutationField('bulkRestoreApplications', (t) =>
+  t.field({
+    type: BulkRestoreResultRef,
+    args: {
+      ids: t.arg.idList({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { applicationResolver } = ctx.diScope.cradle;
+      return applicationResolver.bulkRestoreApplications(ctx.user.sub, args.ids as string[]);
+    },
+  }),
+);
+
+builder.mutationField('emptyTrash', (t) =>
+  t.field({
+    type: EmptyTrashResultRef,
+    resolve: async (_root, _args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { applicationResolver } = ctx.diScope.cradle;
+      return applicationResolver.emptyTrash(ctx.user.sub);
     },
   }),
 );
