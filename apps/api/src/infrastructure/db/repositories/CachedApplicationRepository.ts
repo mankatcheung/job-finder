@@ -62,10 +62,13 @@ export class CachedApplicationRepository implements IApplicationRepository {
   }
 
   async delete(id: string): Promise<void> {
-    // Looked up via our own cached findById (Redis-backed in prod) rather
-    // than a process-local map, so this stays correct even when the lookup
-    // and the delete land on different serverless instances.
-    const existing = await this.findById(id);
+    // Including trashed ones, deliberately. By the time anything calls this the
+    // row is usually already soft-deleted — permanent delete and the purge are
+    // the main callers — and `findById` filters exactly those out. Using it
+    // here returned null every time, so `existing` was never set and the list
+    // and Trash caches were never busted: an application deleted for good kept
+    // being served out of the Trash list until the entry expired on its own.
+    const existing = await this.inner.findByIdIncludingTrashed(id);
     await this.inner.delete(id);
     await this.cache.delete(CACHE_KEYS.appById(id));
     if (existing) {

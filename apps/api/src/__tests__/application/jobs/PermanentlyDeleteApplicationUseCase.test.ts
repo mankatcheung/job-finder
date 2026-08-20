@@ -32,7 +32,7 @@ describe('PermanentlyDeleteApplicationUseCase', () => {
     expect(ctx.applicationRepository.findByIdIncludingTrashed).toHaveBeenCalledWith('app-1');
   });
 
-  it('deletes each document from storage before deleting the application', async () => {
+  it('deletes the documents in one storage call before deleting the application', async () => {
     const order: string[] = [];
     const ctx = makeUseCase({
       documentRepository: makeDocumentRepository({
@@ -44,8 +44,10 @@ describe('PermanentlyDeleteApplicationUseCase', () => {
           ]),
       }),
       storageProvider: makeStorageProvider({
-        delete: vi.fn().mockImplementation((key: string) => {
-          order.push(`blob:${key}`);
+        // One batched call, not one round trip per blob: emptying a large
+        // Trash runs this per application inside a serverless request.
+        deleteMany: vi.fn().mockImplementation((keys: string[]) => {
+          order.push(`blobs:${keys.join(',')}`);
           return Promise.resolve();
         }),
       }),
@@ -62,7 +64,8 @@ describe('PermanentlyDeleteApplicationUseCase', () => {
 
     // Row first would lose the storage keys to the cascade and orphan the
     // files, which nothing would ever notice.
-    expect(order).toEqual(['blob:a', 'blob:b', 'row']);
+    expect(order).toEqual(['blobs:a,b', 'row']);
+    expect(ctx.storageProvider.deleteMany).toHaveBeenCalledTimes(1);
   });
 
   it('refuses an application belonging to someone else', async () => {
@@ -77,7 +80,7 @@ describe('PermanentlyDeleteApplicationUseCase', () => {
     await expect(
       ctx.useCase.execute({ userId: 'user-1', applicationId: 'app-1' }),
     ).rejects.toBeInstanceOf(ForbiddenError);
-    expect(ctx.storageProvider.delete).not.toHaveBeenCalled();
+    expect(ctx.storageProvider.deleteMany).not.toHaveBeenCalled();
   });
 
   it('throws NOT_FOUND for an application that is not there at all', async () => {

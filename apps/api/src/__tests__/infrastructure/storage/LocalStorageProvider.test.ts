@@ -75,4 +75,29 @@ describe('LocalStorageProvider', () => {
       await expect(provider.delete('missing.pdf')).resolves.toBeUndefined();
     });
   });
+  describe('deleteMany', () => {
+    it('unlinks every key', async () => {
+      const provider = new LocalStorageProvider();
+      await provider.deleteMany(['a/one.pdf', 'b/two.pdf']);
+
+      expect(fs.unlink).toHaveBeenCalledTimes(2);
+      expect(fs.unlink).toHaveBeenCalledWith(expect.stringContaining('a/one.pdf'));
+      expect(fs.unlink).toHaveBeenCalledWith(expect.stringContaining('b/two.pdf'));
+    });
+
+    it('does not touch the filesystem for an empty batch', async () => {
+      const provider = new LocalStorageProvider();
+      await provider.deleteMany([]);
+
+      expect(fs.unlink).not.toHaveBeenCalled();
+    });
+
+    it('keeps deleting after one key fails, matching single delete being best-effort', async () => {
+      vi.mocked(fs.unlink).mockRejectedValueOnce(new Error('ENOENT'));
+      const provider = new LocalStorageProvider();
+
+      await expect(provider.deleteMany(['gone.pdf', 'here.pdf'])).resolves.toBeUndefined();
+      expect(fs.unlink).toHaveBeenCalledTimes(2);
+    });
+  });
 });

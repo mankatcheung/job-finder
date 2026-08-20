@@ -28,6 +28,18 @@ export const PERMANENTLY_DELETE_APPLICATION = `
   }
 `;
 
+export const BULK_RESTORE_APPLICATIONS = `
+  mutation BulkRestoreApplications($ids: [ID!]!) {
+    bulkRestoreApplications(ids: $ids) { restored }
+  }
+`;
+
+export const EMPTY_TRASH = `
+  mutation EmptyTrash {
+    emptyTrash { deleted failed }
+  }
+`;
+
 export type TrashedApplication = {
   id: string;
   company: string;
@@ -60,3 +72,6 @@ export function daysUntilPurge(purgeAt: string | null, now: Date = new Date()): 
   if (Number.isNaN(remaining)) return null;
   return Math.max(0, Math.ceil(remaining / (24 * 60 * 60 * 1000)));
 }
+
+export type BulkRestoreResult = { bulkRestoreApplications: { restored: number } };
+export type EmptyTrashResult = { emptyTrash: { deleted: number; failed: number } };

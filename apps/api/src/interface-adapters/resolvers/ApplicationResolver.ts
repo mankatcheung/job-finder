@@ -12,6 +12,14 @@ import type { IBulkUpdateApplicationsUseCase } from '#src/use-cases/jobs/IBulkUp
 import type { IBulkDeleteApplicationsUseCase } from '#src/use-cases/jobs/IBulkDeleteApplicationsUseCase.js';
 import type { IBulkAddTagToApplicationsUseCase } from '#src/use-cases/jobs/IBulkAddTagToApplicationsUseCase.js';
 import type {
+  IBulkRestoreApplicationsUseCase,
+  BulkRestoreApplicationsResult,
+} from '#src/use-cases/jobs/IBulkRestoreApplicationsUseCase.js';
+import type {
+  IEmptyTrashUseCase,
+  EmptyTrashResult,
+} from '#src/use-cases/jobs/IEmptyTrashUseCase.js';
+import type {
   ApplicationMapper,
   ApplicationDTO,
   ApplicationConnectionDTO,
@@ -30,6 +38,8 @@ interface Deps {
   bulkUpdateApplicationsUseCase: IBulkUpdateApplicationsUseCase;
   bulkDeleteApplicationsUseCase: IBulkDeleteApplicationsUseCase;
   bulkAddTagToApplicationsUseCase: IBulkAddTagToApplicationsUseCase;
+  bulkRestoreApplicationsUseCase: IBulkRestoreApplicationsUseCase;
+  emptyTrashUseCase: IEmptyTrashUseCase;
   applicationMapper: ApplicationMapper;
 }
 
@@ -120,6 +130,17 @@ export class ApplicationResolver {
   async permanentlyDeleteApplication(userId: string, id: string): Promise<boolean> {
     await this.deps.permanentlyDeleteApplicationUseCase.execute({ userId, applicationId: id });
     return true;
+  }
+
+  async bulkRestoreApplications(
+    userId: string,
+    ids: string[],
+  ): Promise<BulkRestoreApplicationsResult> {
+    return this.deps.bulkRestoreApplicationsUseCase.execute({ userId, applicationIds: ids });
+  }
+
+  async emptyTrash(userId: string): Promise<EmptyTrashResult> {
+    return this.deps.emptyTrashUseCase.execute({ userId });
   }
 
   async createApplication(userId: string, input: CreateInput): Promise<ApplicationDTO> {

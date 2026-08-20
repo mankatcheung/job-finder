@@ -71,6 +71,18 @@ const RESTORE_MUTATION = `
   }
 `;
 
+const BULK_RESTORE_MUTATION = `
+  mutation BulkRestoreApplications($ids: [ID!]!) {
+    bulkRestoreApplications(ids: $ids) { restored }
+  }
+`;
+
+const EMPTY_TRASH_MUTATION = `
+  mutation EmptyTrash {
+    emptyTrash { deleted failed }
+  }
+`;
+
 const PERMANENT_DELETE_MUTATION = `
   mutation PermanentlyDeleteApplication($id: ID!) {
     permanentlyDeleteApplication(id: $id)
@@ -296,5 +308,128 @@ describe('applications integration', () => {
     const getBody = getRes.json() as GraphQLResponse<{ application: null }>;
     expect(getBody.data).toEqual({ application: null });
     expect(getBody.errors?.[0]?.extensions?.code).toBe('FORBIDDEN');
+  });
+  it('restores a selection from Trash in one call', async () => {
+    const token = await registerAndLogin();
+    const ids: string[] = [];
+    for (const company of ['Acme', 'Globex', 'Initech']) {
+      const created = await authedInject(token, CREATE_APPLICATION_MUTATION, {
+        input: { company, role: 'Engineer', status: 'applied' },
+      });
+      ids.push(
+        (created.json() as GraphQLResponse<{ createApplication: { id: string } }>).data!
+          .createApplication.id,
+      );
+    }
+    for (const id of ids) await authedInject(token, DELETE_APPLICATION_MUTATION, { id });
+
+    const restored = await authedInject(token, BULK_RESTORE_MUTATION, { ids: [ids[0], ids[1]] });
+    expect(
+      (restored.json() as GraphQLResponse<{ bulkRestoreApplications: { restored: number } }>).data!
+        .bulkRestoreApplications,
+    ).toEqual({ restored: 2 });
+
+    const listed = await authedInject(token, APPLICATIONS_QUERY);
+    const live = (
+      listed.json() as GraphQLResponse<{ applications: Array<{ id: string }> }>
+    ).data!.applications.map((a) => a.id);
+    expect(live).toEqual(expect.arrayContaining([ids[0], ids[1]]));
+    expect(live).not.toContain(ids[2]);
+
+    // The one left behind is still in Trash, so a partial selection stays partial.
+    const trash = await authedInject(token, TRASHED_QUERY);
+    expect(
+      (
+        trash.json() as GraphQLResponse<{ trashedApplications: Array<{ id: string }> }>
+      ).data!.trashedApplications.map((a) => a.id),
+    ).toEqual([ids[2]]);
+  });
+
+  it("refuses a bulk restore containing someone else's application", async () => {
+    const owner = await registerAndLogin();
+    const created = await authedInject(owner, CREATE_APPLICATION_MUTATION, {
+      input: { company: 'Private', role: 'Engineer', status: 'applied' },
+    });
+    const theirs = (created.json() as GraphQLResponse<{ createApplication: { id: string } }>).data!
+      .createApplication.id;
+    await authedInject(owner, DELETE_APPLICATION_MUTATION, { id: theirs });
+
+    const attacker = await registerAndLogin();
+    const mine = await authedInject(attacker, CREATE_APPLICATION_MUTATION, {
+      input: { company: 'Mine', role: 'Engineer', status: 'applied' },
+    });
+    const mineId = (mine.json() as GraphQLResponse<{ createApplication: { id: string } }>).data!
+      .createApplication.id;
+    await authedInject(attacker, DELETE_APPLICATION_MUTATION, { id: mineId });
+
+    // Mixing one of their ids into an otherwise valid batch must not be a way
+    // to have it quietly skipped — the whole call fails.
+    const res = await authedInject(attacker, BULK_RESTORE_MUTATION, { ids: [mineId, theirs] });
+    expect((res.json() as GraphQLResponse<unknown>).errors?.[0]?.extensions?.code).toBe(
+      'FORBIDDEN',
+    );
+
+    const stillTrashed = await authedInject(owner, TRASHED_QUERY);
+    expect(
+      (
+        stillTrashed.json() as GraphQLResponse<{ trashedApplications: Array<{ id: string }> }>
+      ).data!.trashedApplications.map((a) => a.id),
+    ).toEqual([theirs]);
+  });
+
+  it('empties the whole Trash and reports the counts', async () => {
+    const token = await registerAndLogin();
+    const ids: string[] = [];
+    for (const company of ['Acme', 'Globex']) {
+      const created = await authedInject(token, CREATE_APPLICATION_MUTATION, {
+        input: { company, role: 'Engineer', status: 'applied' },
+      });
+      ids.push(
+        (created.json() as GraphQLResponse<{ createApplication: { id: string } }>).data!
+          .createApplication.id,
+      );
+    }
+    for (const id of ids) await authedInject(token, DELETE_APPLICATION_MUTATION, { id });
+
+    const emptied = await authedInject(token, EMPTY_TRASH_MUTATION);
+    expect(
+      (emptied.json() as GraphQLResponse<{ emptyTrash: { deleted: number; failed: number } }>).data!
+        .emptyTrash,
+    ).toEqual({ deleted: 2, failed: 0 });
+
+    const trash = await authedInject(token, TRASHED_QUERY);
+    expect(
+      (trash.json() as GraphQLResponse<{ trashedApplications: unknown[] }>).data!
+        .trashedApplications,
+    ).toEqual([]);
+
+    // Really gone, not merely hidden again.
+    const gone = await authedInject(token, APPLICATION_QUERY, { id: ids[0] });
+    expect((gone.json() as GraphQLResponse<unknown>).errors?.[0]?.extensions?.code).toBe(
+      'NOT_FOUND',
+    );
+  });
+
+  it("empties only the caller's Trash", async () => {
+    const owner = await registerAndLogin();
+    const created = await authedInject(owner, CREATE_APPLICATION_MUTATION, {
+      input: { company: 'Private', role: 'Engineer', status: 'applied' },
+    });
+    const theirs = (created.json() as GraphQLResponse<{ createApplication: { id: string } }>).data!
+      .createApplication.id;
+    await authedInject(owner, DELETE_APPLICATION_MUTATION, { id: theirs });
+
+    const other = await registerAndLogin();
+    const emptied = await authedInject(other, EMPTY_TRASH_MUTATION);
+    expect(
+      (emptied.json() as GraphQLResponse<{ emptyTrash: { deleted: number } }>).data!.emptyTrash,
+    ).toEqual({ deleted: 0, failed: 0 });
+
+    const stillThere = await authedInject(owner, TRASHED_QUERY);
+    expect(
+      (
+        stillThere.json() as GraphQLResponse<{ trashedApplications: Array<{ id: string }> }>
+      ).data!.trashedApplications.map((a) => a.id),
+    ).toEqual([theirs]);
   });
 });
