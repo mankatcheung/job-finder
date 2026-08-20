@@ -288,6 +288,24 @@ export const DELETE_API_TOKEN = `
   }
 `;
 
+export const MCP_OAUTH_GRANTS_QUERY = `
+  query McpOAuthGrants {
+    mcpOAuthGrants {
+      id
+      clientName
+      scope
+      authorizedAt
+      lastUsedAt
+    }
+  }
+`;
+
+export const REVOKE_MCP_OAUTH_GRANT = `
+  mutation RevokeMcpOAuthGrant($id: ID!) {
+    revokeMcpOAuthGrant(id: $id)
+  }
+`;
+
 export const SHARE_LINKS_QUERY = `
   query ShareLinks {
     shareLinks {
@@ -544,6 +562,15 @@ export type ApiToken = {
   scope: ApiTokenScope;
   lastUsedAt: string | null;
   createdAt: string;
+};
+
+/** One MCP client the user authorized over OAuth. `id` is the grant id. */
+export type McpOAuthGrant = {
+  id: string;
+  clientName: string;
+  scope: ApiTokenScope;
+  authorizedAt: string;
+  lastUsedAt: string | null;
 };
 
 export type CreateApiTokenPayload = {

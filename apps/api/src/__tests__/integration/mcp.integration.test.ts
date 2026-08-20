@@ -653,6 +653,96 @@ describe('mcp integration', () => {
     expect((called.json() as JsonRpcResponse).error).toBeUndefined();
   });
 
+  const GRANTS_QUERY = `
+    query McpOAuthGrants {
+      mcpOAuthGrants { id clientName scope authorizedAt lastUsedAt }
+    }
+  `;
+  const REVOKE_GRANT_MUTATION = `
+    mutation RevokeMcpOAuthGrant($id: ID!) { revokeMcpOAuthGrant(id: $id) }
+  `;
+
+  function graphql(cookie: string | null, query: string, variables?: Record<string, unknown>) {
+    return testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      headers: cookie ? { cookie } : undefined,
+      payload: { query, variables },
+    });
+  }
+
+  it('lists a grant to the user who authorized it, and revoking it kills the client', async () => {
+    const grant = await grantOAuthToken('full');
+
+    const listed = await graphql(grant.cookie, GRANTS_QUERY);
+    const grants = (
+      listed.json() as GraphQLResponse<{ mcpOAuthGrants: Array<Record<string, unknown>> }>
+    ).data!.mcpOAuthGrants;
+    expect(grants).toHaveLength(1);
+    expect(grants[0]).toMatchObject({ clientName: 'Test MCP Client', scope: 'full' });
+
+    const revoked = await graphql(grant.cookie, REVOKE_GRANT_MUTATION, { id: grants[0].id });
+    expect(
+      (revoked.json() as GraphQLResponse<{ revokeMcpOAuthGrant: boolean }>).data!
+        .revokeMcpOAuthGrant,
+    ).toBe(true);
+
+    // The access token stops working immediately...
+    const afterRevoke = await mcpInject(grant.access_token, {
+      jsonrpc: '2.0',
+      id: 200,
+      method: 'tools/list',
+    });
+    expect(afterRevoke.statusCode).toBe(401);
+
+    // ...and the refresh token cannot bring it back, which is the whole point.
+    const refreshed = await testApp.app.inject({
+      remoteAddress: clientIp,
+      method: 'POST',
+      url: '/oauth/token',
+      payload: {
+        grant_type: 'refresh_token',
+        refresh_token: grant.refresh_token,
+        client_id: grant.clientId,
+      },
+    });
+    expect(refreshed.statusCode).toBe(400);
+
+    // And it disappears from the list rather than lingering as revoked.
+    const relisted = await graphql(grant.cookie, GRANTS_QUERY);
+    expect(
+      (relisted.json() as GraphQLResponse<{ mcpOAuthGrants: unknown[] }>).data!.mcpOAuthGrants,
+    ).toEqual([]);
+  });
+
+  it("refuses to revoke another user's grant, and leaves it working", async () => {
+    const grant = await grantOAuthToken('read');
+    const listed = await graphql(grant.cookie, GRANTS_QUERY);
+    const grantId = (listed.json() as GraphQLResponse<{ mcpOAuthGrants: Array<{ id: string }> }>)
+      .data!.mcpOAuthGrants[0].id;
+    const attackerCookie = await registerAndGetCookie();
+
+    const res = await graphql(attackerCookie, REVOKE_GRANT_MUTATION, { id: grantId });
+
+    expect(
+      (res.json() as GraphQLResponse<{ revokeMcpOAuthGrant: boolean }>).data!.revokeMcpOAuthGrant,
+    ).toBe(false);
+    // Not merely refused — the victim's client is untouched.
+    const stillWorks = await mcpInject(grant.access_token, {
+      jsonrpc: '2.0',
+      id: 201,
+      method: 'tools/list',
+    });
+    expect(stillWorks.statusCode).toBe(200);
+  });
+
+  it('refuses to list grants without a session', async () => {
+    const res = await graphql(null, GRANTS_QUERY);
+
+    const body = res.json() as GraphQLResponse<unknown>;
+    expect(body.errors?.[0]?.extensions?.code).toBe('UNAUTHORIZED');
+  });
+
   it('rejects a bearer credential that is not an API token (e.g. a JWT)', async () => {
     const accessToken = await registerAndGetAccessToken();
 
