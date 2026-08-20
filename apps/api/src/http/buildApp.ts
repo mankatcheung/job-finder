@@ -13,6 +13,7 @@ import { diScopeOf } from '#src/http/adapters/fastify/diScope.js';
 import { remindersRoutes } from '#src/http/routes/reminders.routes.js';
 import { pushNotificationsRoutes } from '#src/http/routes/pushNotifications.routes.js';
 import { digestRoutes } from '#src/http/routes/digest.routes.js';
+import { trashPurgeRoutes } from '#src/http/routes/trashPurge.routes.js';
 import { healthRoutes } from '#src/http/routes/health.routes.js';
 import { mcpRoutes } from '#src/http/routes/mcp.routes.js';
 import { oauthRoutes } from '#src/http/routes/oauth.routes.js';
@@ -79,6 +80,7 @@ export async function buildApp(fastify: FastifyInstance): Promise<FastifyInstanc
     ...remindersRoutes(() => container.cradle),
     ...pushNotificationsRoutes(() => container.cradle),
     ...digestRoutes(() => container.cradle),
+    ...trashPurgeRoutes(() => container.cradle),
     ...mcpOAuthMetadataRoutes(() => container.cradle),
   ]);
 

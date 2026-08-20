@@ -84,6 +84,36 @@ builder.mutationField('deleteApplication', (t) =>
   }),
 );
 
+builder.mutationField('restoreApplication', (t) =>
+  t.field({
+    type: 'Boolean',
+    args: {
+      id: t.arg.id({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { applicationResolver } = ctx.diScope.cradle;
+      return applicationResolver.restoreApplication(ctx.user.sub, String(args.id));
+    },
+  }),
+);
+
+builder.mutationField('permanentlyDeleteApplication', (t) =>
+  t.field({
+    type: 'Boolean',
+    args: {
+      id: t.arg.id({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { applicationResolver } = ctx.diScope.cradle;
+      return applicationResolver.permanentlyDeleteApplication(ctx.user.sub, String(args.id));
+    },
+  }),
+);
+
 builder.mutationField('bulkUpdateApplications', (t) =>
   t.field({
     type: [JobApplicationRef],

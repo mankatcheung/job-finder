@@ -182,6 +182,7 @@ const SCHEMA_STATEMENTS = [
     "source" TEXT,
     "followUpAt" INTEGER,
     "reminderSentAt" INTEGER,
+    "deletedAt" INTEGER,
     "createdAt" INTEGER NOT NULL,
     "updatedAt" INTEGER NOT NULL,
     FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE

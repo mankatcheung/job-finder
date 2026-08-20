@@ -6,6 +6,9 @@ import type { ICreateApplicationUseCase } from '#src/use-cases/jobs/ICreateAppli
 import type { IGetApplicationsUseCase } from '#src/use-cases/jobs/IGetApplicationsUseCase.js';
 import type { IGetApplicationsPageUseCase } from '#src/use-cases/jobs/IGetApplicationsPageUseCase.js';
 import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplicationUseCase.js';
+import type { IListTrashedApplicationsUseCase } from '#src/use-cases/jobs/IListTrashedApplicationsUseCase.js';
+import type { IRestoreApplicationUseCase } from '#src/use-cases/jobs/IRestoreApplicationUseCase.js';
+import type { IPermanentlyDeleteApplicationUseCase } from '#src/use-cases/jobs/IPermanentlyDeleteApplicationUseCase.js';
 import type { IUpdateApplicationUseCase } from '#src/use-cases/jobs/IUpdateApplicationUseCase.js';
 import type { IDeleteApplicationUseCase } from '#src/use-cases/jobs/IDeleteApplicationUseCase.js';
 import type { IBulkUpdateApplicationsUseCase } from '#src/use-cases/jobs/IBulkUpdateApplicationsUseCase.js';
@@ -24,6 +27,11 @@ const makeDeps = (overrides?: object) => ({
   bulkUpdateApplicationsUseCase: stub<IBulkUpdateApplicationsUseCase>({ execute: vi.fn() }),
   bulkDeleteApplicationsUseCase: stub<IBulkDeleteApplicationsUseCase>({ execute: vi.fn() }),
   bulkAddTagToApplicationsUseCase: stub<IBulkAddTagToApplicationsUseCase>({ execute: vi.fn() }),
+  listTrashedApplicationsUseCase: stub<IListTrashedApplicationsUseCase>({ execute: vi.fn() }),
+  restoreApplicationUseCase: stub<IRestoreApplicationUseCase>({ execute: vi.fn() }),
+  permanentlyDeleteApplicationUseCase: stub<IPermanentlyDeleteApplicationUseCase>({
+    execute: vi.fn(),
+  }),
   applicationMapper: new ApplicationMapper(),
   ...overrides,
 });
@@ -93,6 +101,7 @@ describe('ApplicationResolver', () => {
     expect(deps.getApplicationUseCase.execute).toHaveBeenCalledWith({
       userId: 'user-1',
       applicationId: 'app-1',
+      includeTrashed: true,
     });
     expect(result.id).toBe('app-1');
   });

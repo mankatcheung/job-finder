@@ -1,3 +1,7 @@
+import { RestoreApplicationUseCase } from '#src/use-cases/jobs/RestoreApplicationUseCase.js';
+import { PermanentlyDeleteApplicationUseCase } from '#src/use-cases/jobs/PermanentlyDeleteApplicationUseCase.js';
+import { ListTrashedApplicationsUseCase } from '#src/use-cases/jobs/ListTrashedApplicationsUseCase.js';
+import { PurgeExpiredApplicationsUseCase } from '#src/use-cases/jobs/PurgeExpiredApplicationsUseCase.js';
 import { asClass, Lifetime, type NameAndRegistrationPair } from 'awilix';
 
 import { CreateApplicationUseCase } from '#src/use-cases/jobs/CreateApplicationUseCase.js';
@@ -34,6 +38,16 @@ export const jobs = {
     lifetime: Lifetime.TRANSIENT,
   }),
   bulkAddTagToApplicationsUseCase: asClass(BulkAddTagToApplicationsUseCase, {
+    lifetime: Lifetime.TRANSIENT,
+  }),
+  restoreApplicationUseCase: asClass(RestoreApplicationUseCase, { lifetime: Lifetime.TRANSIENT }),
+  permanentlyDeleteApplicationUseCase: asClass(PermanentlyDeleteApplicationUseCase, {
+    lifetime: Lifetime.TRANSIENT,
+  }),
+  listTrashedApplicationsUseCase: asClass(ListTrashedApplicationsUseCase, {
+    lifetime: Lifetime.TRANSIENT,
+  }),
+  purgeExpiredApplicationsUseCase: asClass(PurgeExpiredApplicationsUseCase, {
     lifetime: Lifetime.TRANSIENT,
   }),
 } satisfies NameAndRegistrationPair<Cradle>;

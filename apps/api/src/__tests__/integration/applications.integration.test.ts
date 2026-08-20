@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { buildTestApp, type TestApp } from './helpers/buildTestApp.js';
+import { TRASH } from '#src/constants.js';
 
 const REGISTER_MUTATION = `
   mutation Register($email: String!, $password: String!) {
@@ -27,6 +28,8 @@ const APPLICATION_QUERY = `
       company
       role
       status
+      deletedAt
+      purgeAt
     }
   }
 `;
@@ -53,6 +56,24 @@ const UPDATE_APPLICATION_MUTATION = `
 const DELETE_APPLICATION_MUTATION = `
   mutation DeleteApplication($id: ID!) {
     deleteApplication(id: $id)
+  }
+`;
+
+const TRASHED_QUERY = `
+  query TrashedApplications {
+    trashedApplications { id company deletedAt purgeAt }
+  }
+`;
+
+const RESTORE_MUTATION = `
+  mutation RestoreApplication($id: ID!) {
+    restoreApplication(id: $id)
+  }
+`;
+
+const PERMANENT_DELETE_MUTATION = `
+  mutation PermanentlyDeleteApplication($id: ID!) {
+    permanentlyDeleteApplication(id: $id)
   }
 `;
 
@@ -134,10 +155,117 @@ describe('applications integration', () => {
     const deleteBody = deleteRes.json() as GraphQLResponse<{ deleteApplication: boolean }>;
     expect(deleteBody.data!.deleteApplication).toBe(true);
 
+    // The detail query reads past the trash filter on purpose: a stale link to a
+    // deleted application should land on the read-only Trash view that offers
+    // restore, not a 404. `deletedAt` is what tells the client which one it got.
     const afterDeleteRes = await authedInject(token, APPLICATION_QUERY, { id: app.id });
-    const afterDeleteBody = afterDeleteRes.json() as GraphQLResponse<{ application: null }>;
-    expect(afterDeleteBody.data).toEqual({ application: null });
-    expect(afterDeleteBody.errors?.[0]?.extensions?.code).toBe('NOT_FOUND');
+    const afterDeleteBody = afterDeleteRes.json() as GraphQLResponse<{
+      application: { id: string; deletedAt: string | null };
+    }>;
+    expect(afterDeleteBody.errors).toBeUndefined();
+    expect(afterDeleteBody.data!.application).toMatchObject({ id: app.id });
+    expect(afterDeleteBody.data!.application.deletedAt).toBeTruthy();
+  });
+
+  it('deleting hides an application everywhere and restoring brings it back', async () => {
+    const token = await registerAndLogin();
+    const created = await authedInject(token, CREATE_APPLICATION_MUTATION, {
+      input: { company: 'Acme', role: 'Engineer', status: 'applied' },
+    });
+    const app = (created.json() as GraphQLResponse<{ createApplication: { id: string } }>).data!
+      .createApplication;
+
+    await authedInject(token, DELETE_APPLICATION_MUTATION, { id: app.id });
+
+    // Gone from the list...
+    const listed = await authedInject(token, APPLICATIONS_QUERY);
+    const items = (listed.json() as GraphQLResponse<{ applications: Array<{ id: string }> }>).data!
+      .applications;
+    expect(items.map((a) => a.id)).not.toContain(app.id);
+
+    // ...but present in Trash, carrying when it went there so the UI can count down.
+    const trashed = await authedInject(token, TRASHED_QUERY);
+    const inTrash = (
+      trashed.json() as GraphQLResponse<{
+        trashedApplications: Array<{
+          id: string;
+          deletedAt: string | null;
+          purgeAt: string | null;
+        }>;
+      }>
+    ).data!.trashedApplications;
+    expect(inTrash.map((a) => a.id)).toEqual([app.id]);
+    expect(inTrash[0].deletedAt).toBeTruthy();
+    // purgeAt is derived from deletedAt + the retention window, so the Trash
+    // screen counts down without shipping its own copy of the 30-day policy.
+    expect(
+      new Date(inTrash[0].purgeAt!).getTime() - new Date(inTrash[0].deletedAt!).getTime(),
+    ).toBe(TRASH.RETENTION_MS);
+
+    await authedInject(token, RESTORE_MUTATION, { id: app.id });
+
+    const relisted = await authedInject(token, APPLICATIONS_QUERY);
+    const back = (relisted.json() as GraphQLResponse<{ applications: Array<{ id: string }> }>).data!
+      .applications;
+    expect(back.map((a) => a.id)).toContain(app.id);
+    const emptyTrash = await authedInject(token, TRASHED_QUERY);
+    expect(
+      (emptyTrash.json() as GraphQLResponse<{ trashedApplications: unknown[] }>).data!
+        .trashedApplications,
+    ).toEqual([]);
+  });
+
+  it("does not let one user see or restore another's trashed application", async () => {
+    const owner = await registerAndLogin();
+    const created = await authedInject(owner, CREATE_APPLICATION_MUTATION, {
+      input: { company: 'Private', role: 'Engineer', status: 'applied' },
+    });
+    const app = (created.json() as GraphQLResponse<{ createApplication: { id: string } }>).data!
+      .createApplication;
+    await authedInject(owner, DELETE_APPLICATION_MUTATION, { id: app.id });
+
+    const attacker = await registerAndLogin();
+
+    const theirTrash = await authedInject(attacker, TRASHED_QUERY);
+    expect(
+      (theirTrash.json() as GraphQLResponse<{ trashedApplications: unknown[] }>).data!
+        .trashedApplications,
+    ).toEqual([]);
+
+    const restore = await authedInject(attacker, RESTORE_MUTATION, { id: app.id });
+    expect((restore.json() as GraphQLResponse<unknown>).errors?.[0]?.extensions?.code).toBe(
+      'FORBIDDEN',
+    );
+
+    // And the owner still has it.
+    const stillThere = await authedInject(owner, TRASHED_QUERY);
+    expect(
+      (
+        stillThere.json() as GraphQLResponse<{ trashedApplications: Array<{ id: string }> }>
+      ).data!.trashedApplications.map((a) => a.id),
+    ).toEqual([app.id]);
+  });
+
+  it('permanently deleting removes it for good', async () => {
+    const token = await registerAndLogin();
+    const created = await authedInject(token, CREATE_APPLICATION_MUTATION, {
+      input: { company: 'Acme', role: 'Engineer', status: 'applied' },
+    });
+    const app = (created.json() as GraphQLResponse<{ createApplication: { id: string } }>).data!
+      .createApplication;
+    await authedInject(token, DELETE_APPLICATION_MUTATION, { id: app.id });
+
+    await authedInject(token, PERMANENT_DELETE_MUTATION, { id: app.id });
+
+    const trashed = await authedInject(token, TRASHED_QUERY);
+    expect(
+      (trashed.json() as GraphQLResponse<{ trashedApplications: unknown[] }>).data!
+        .trashedApplications,
+    ).toEqual([]);
+    const restore = await authedInject(token, RESTORE_MUTATION, { id: app.id });
+    expect((restore.json() as GraphQLResponse<unknown>).errors?.[0]?.extensions?.code).toBe(
+      'NOT_FOUND',
+    );
   });
 
   it('rejects createApplication with no Authorization header', async () => {

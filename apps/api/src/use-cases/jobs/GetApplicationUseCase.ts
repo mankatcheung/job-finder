@@ -14,7 +14,9 @@ export class GetApplicationUseCase implements IGetApplicationUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: GetApplicationInput): Promise<GetApplicationOutput> {
-    const app = await this.deps.applicationRepository.findById(input.applicationId);
+    const app = input.includeTrashed
+      ? await this.deps.applicationRepository.findByIdIncludingTrashed(input.applicationId)
+      : await this.deps.applicationRepository.findById(input.applicationId);
     if (!app) {
       throw new NotFoundError('Application not found');
     }

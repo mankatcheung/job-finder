@@ -19,6 +19,8 @@ export interface ApplicationDTO {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  /** ISO timestamp while in Trash; null when live. */
+  deletedAt: string | null;
   likelyGhosted: boolean;
 }
 
@@ -47,6 +49,7 @@ export class ApplicationMapper {
       tags: app.tags,
       createdAt: app.createdAt.toISOString(),
       updatedAt: app.updatedAt.toISOString(),
+      deletedAt: app.deletedAt?.toISOString() ?? null,
       likelyGhosted: isLikelyGhosted(app),
     };
   }

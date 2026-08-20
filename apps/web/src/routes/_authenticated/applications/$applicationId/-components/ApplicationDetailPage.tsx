@@ -27,6 +27,7 @@ import {
 import { applicationQueryOptions, type Application } from '../-application-query';
 import type { BoardApplication } from '../../-board-queries';
 import { InfoItem } from './InfoItem';
+import { TrashedApplicationView } from './TrashedApplicationView';
 import { HealthScorePanel, type HealthScore } from './HealthScorePanel';
 import { ActivityTab } from './ActivityTab';
 import { InterviewsTab } from './InterviewsTab';
@@ -125,6 +126,20 @@ export function ApplicationDetailPage() {
     error: appError,
     refetch: refetchApp,
   } = useQuery(applicationQueryOptions(applicationId));
+
+  // Everything hanging off an application resolves through a use case that
+  // looks the application up with the trash-filtered `findById`, so once it is
+  // in Trash these would only fetch NOT_FOUND. The read-only view below needs
+  // none of them.
+  //
+  // Gated on the application having *resolved*, not merely on it not being
+  // known-trashed: firing while `appData` is still undefined would race the
+  // answer and issue exactly the requests this avoids. It costs nothing in
+  // practice — the route loader awaits `applicationQueryOptions`, so the entry
+  // is already cached on first render.
+  const isTrashed = Boolean(appData?.application.deletedAt);
+  const canLoadPanels = Boolean(appData) && !isTrashed;
+
   const {
     data: notesData,
     isError: isNotesError,
@@ -132,6 +147,7 @@ export function ApplicationDetailPage() {
   } = useQuery({
     queryKey: ['notes', applicationId],
     queryFn: () => gqlClient.request<{ notes: Note[] }>(NOTES_QUERY, { applicationId }),
+    enabled: canLoadPanels,
   });
   const { data: healthScoreData } = useQuery({
     queryKey: ['healthScore', applicationId],
@@ -139,6 +155,7 @@ export function ApplicationDetailPage() {
       gqlClient.request<{ applicationHealthScore: HealthScore }>(HEALTH_SCORE_QUERY, {
         applicationId,
       }),
+    enabled: canLoadPanels,
   });
 
   const createNote = useMutation({
@@ -263,6 +280,8 @@ export function ApplicationDetailPage() {
         <Skeleton className="h-8 w-64 rounded" />
       </div>
     );
+
+  if (app.deletedAt) return <TrashedApplicationView app={app} />;
 
   return (
     <div className="p-4 sm:p-8 max-w-3xl mx-auto">

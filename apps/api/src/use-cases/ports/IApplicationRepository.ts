@@ -61,7 +61,14 @@ export interface IApplicationRepository {
     filters: FindApplicationsPageFilters,
     pagination: FindApplicationsPagePagination,
   ): Promise<ApplicationsPage>;
+  /** Live applications only — a trashed one reads as missing. */
   findById(id: string): Promise<Application | null>;
+  /** The deliberate exception: the detail query and the Trash operations. */
+  findByIdIncludingTrashed(id: string): Promise<Application | null>;
+  findTrashedByUserId(userId: string): Promise<Application[]>;
+  findDueForPurge(deletedBefore: Date): Promise<Application[]>;
+  softDelete(id: string, deletedAt: Date): Promise<void>;
+  restore(id: string): Promise<void>;
   create(data: CreateApplicationData): Promise<Application>;
   update(id: string, data: UpdateApplicationData): Promise<Application>;
   delete(id: string): Promise<void>;
