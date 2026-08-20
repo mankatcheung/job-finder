@@ -11,6 +11,7 @@ import { THEME_INIT_SCRIPT, ThemeProvider, useTheme } from '#/lib/theme';
 import { LOCALE_INIT_SCRIPT, LocaleProvider, useLocale } from '#/lib/i18n';
 import { NavigationProgressBar } from '#/components/NavigationProgressBar';
 import { watchForServiceWorkerUpdate } from '#/lib/swUpdateToast';
+import { replayPendingOperations } from '#/lib/pendingOperations';
 
 import appCss from '../styles.css?url';
 
@@ -116,6 +117,14 @@ function LocalizedDocument({ children }: { children: React.ReactNode }) {
   // of leaving an already-open install running stale code — see
   // swUpdateToast.ts for why this needs more than just skipWaiting().
   useEffect(() => watchForServiceWorkerUpdate(), []);
+
+  // A delete waiting out its undo window lives in a setTimeout, which dies
+  // with the tab. Anything that was still pending when the page went away is
+  // sent now, so a refresh postpones the delete instead of dropping it after
+  // the UI already reported it as done — see pendingOperations.ts (JEF-191).
+  useEffect(() => {
+    void replayPendingOperations();
+  }, []);
 
   // Listen for messages from the service worker (e.g. push notification clicks)
   useEffect(() => {

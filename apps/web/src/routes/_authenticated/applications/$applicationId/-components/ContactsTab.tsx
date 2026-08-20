@@ -157,22 +157,6 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
     onSettled: () => invalidate(),
   });
 
-  const deleteContact = useMutation({
-    mutationFn: (id: string) => gqlClient.request(DELETE_CONTACT, { id }),
-    onMutate: async (id) => {
-      await qc.cancelQueries({ queryKey: ['contacts', applicationId] });
-      const prev = qc.getQueryData<{ contacts: Contact[] }>(['contacts', applicationId]);
-      qc.setQueryData<{ contacts: Contact[] }>(['contacts', applicationId], (old) => ({
-        contacts: (old?.contacts ?? []).filter((c) => c.id !== id),
-      }));
-      return { prev };
-    },
-    onError: (_err, _id, context) => {
-      if (context?.prev) qc.setQueryData(['contacts', applicationId], context.prev);
-    },
-    onSettled: () => invalidate(),
-  });
-
   const contacts = data?.contacts ?? [];
 
   const ContactForm = ({
@@ -364,8 +348,9 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
                     );
                     showUndoToast({
                       message: t('contacts.contactDeletedToast'),
-                      onExecute: () => deleteContact.mutate(contact.id),
+                      operation: { document: DELETE_CONTACT, variables: { id: contact.id } },
                       onUndo: () => qc.setQueryData(['contacts', applicationId], snapshot),
+                      onSettled: invalidate,
                     });
                   }}
                   className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"

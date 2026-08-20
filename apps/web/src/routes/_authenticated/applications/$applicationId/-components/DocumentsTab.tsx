@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { put as putBlob } from '@vercel/blob/client';
 import { CheckIcon, ExternalLinkIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
@@ -92,48 +92,10 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
         applicationId,
       }),
   });
-  const deleteDraft = useMutation({
-    mutationFn: (id: string) => gqlClient.request(DELETE_DRAFT, { id }),
-    onMutate: async (id) => {
-      await qc.cancelQueries({ queryKey: ['documentDrafts', applicationId] });
-      const prev = qc.getQueryData<{ documentDrafts: DocumentDraft[] }>([
-        'documentDrafts',
-        applicationId,
-      ]);
-      qc.setQueryData<{ documentDrafts: DocumentDraft[] }>(
-        ['documentDrafts', applicationId],
-        (old) => ({
-          documentDrafts: (old?.documentDrafts ?? []).filter((d) => d.id !== id),
-        }),
-      );
-      return { prev };
-    },
-    onError: (_err, _id, context) => {
-      if (context?.prev) qc.setQueryData(['documentDrafts', applicationId], context.prev);
-    },
-    onSettled: () => qc.invalidateQueries({ queryKey: ['documentDrafts', applicationId] }),
-  });
-
   const { data } = useQuery({
     queryKey: ['documents', applicationId],
     queryFn: () => gqlClient.request<{ documents: Document[] }>(DOCUMENTS_QUERY, { applicationId }),
   });
-  const deleteDoc = useMutation({
-    mutationFn: (id: string) => gqlClient.request(DELETE_DOCUMENT, { id }),
-    onMutate: async (id) => {
-      await qc.cancelQueries({ queryKey: ['documents', applicationId] });
-      const prev = qc.getQueryData<{ documents: Document[] }>(['documents', applicationId]);
-      qc.setQueryData<{ documents: Document[] }>(['documents', applicationId], (old) => ({
-        documents: (old?.documents ?? []).filter((d) => d.id !== id),
-      }));
-      return { prev };
-    },
-    onError: (_err, _id, context) => {
-      if (context?.prev) qc.setQueryData(['documents', applicationId], context.prev);
-    },
-    onSettled: () => qc.invalidateQueries({ queryKey: ['documents', applicationId] }),
-  });
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -248,8 +210,10 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
                   );
                   showUndoToast({
                     message: t('documents.draftDeletedToast'),
-                    onExecute: () => deleteDraft.mutate(draft.id),
+                    operation: { document: DELETE_DRAFT, variables: { id: draft.id } },
                     onUndo: () => qc.setQueryData(['documentDrafts', applicationId], snapshot),
+                    onSettled: () =>
+                      qc.invalidateQueries({ queryKey: ['documentDrafts', applicationId] }),
                   });
                 }}
                 className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded shrink-0"
@@ -405,8 +369,9 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
                 );
                 showUndoToast({
                   message: t('documents.documentDeletedToast'),
-                  onExecute: () => deleteDoc.mutate(doc.id),
+                  operation: { document: DELETE_DOCUMENT, variables: { id: doc.id } },
                   onUndo: () => qc.setQueryData(['documents', applicationId], snapshot),
+                  onSettled: () => qc.invalidateQueries({ queryKey: ['documents', applicationId] }),
                 });
               }}
               className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"

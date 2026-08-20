@@ -30,9 +30,23 @@ vi.mock('#/graphql/client', () => ({
 }));
 
 vi.mock('#/lib/undoToast', () => ({
-  showUndoToast: vi.fn(({ onExecute }) => {
-    onExecute();
-  }),
+  // Sends the operation the call site handed over, instead of running an
+  // opaque callback. The request is now described as data so it can be
+  // replayed after a refresh (JEF-191), which means this mock also checks
+  // that each call site names the right document and variables.
+  showUndoToast: vi.fn(
+    ({
+      operation,
+      onSettled,
+    }: {
+      operation: { document: string; variables?: Record<string, unknown> };
+      onSettled?: () => void;
+    }) => {
+      void Promise.resolve(mockGqlRequest(operation.document, operation.variables))
+        .catch(() => {})
+        .finally(() => onSettled?.());
+    },
+  ),
 }));
 
 import { ConversationHistoryPage } from '#/routes/_authenticated/assistant/-components/ConversationHistoryPage';
