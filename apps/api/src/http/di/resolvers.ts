@@ -12,6 +12,7 @@ import { ContactResolver } from '#src/interface-adapters/resolvers/ContactResolv
 import { LoginEventResolver } from '#src/interface-adapters/resolvers/LoginEventResolver.js';
 import { SecurityActivityResolver } from '#src/interface-adapters/resolvers/SecurityActivityResolver.js';
 import { ApiTokenResolver } from '#src/interface-adapters/resolvers/ApiTokenResolver.js';
+import { McpOAuthGrantResolver } from '#src/interface-adapters/resolvers/McpOAuthGrantResolver.js';
 import { ShareLinkResolver } from '#src/interface-adapters/resolvers/ShareLinkResolver.js';
 import { NotificationResolver } from '#src/interface-adapters/resolvers/NotificationResolver.js';
 import { SessionResolver } from '#src/interface-adapters/resolvers/SessionResolver.js';
@@ -37,6 +38,7 @@ export const resolvers = {
   loginEventResolver: asClass(LoginEventResolver, { lifetime: Lifetime.SINGLETON }),
   securityActivityResolver: asClass(SecurityActivityResolver, { lifetime: Lifetime.SINGLETON }),
   apiTokenResolver: asClass(ApiTokenResolver, { lifetime: Lifetime.SINGLETON }),
+  mcpOAuthGrantResolver: asClass(McpOAuthGrantResolver, { lifetime: Lifetime.SINGLETON }),
   shareLinkResolver: asClass(ShareLinkResolver, { lifetime: Lifetime.SINGLETON }),
   notificationResolver: asClass(NotificationResolver, { lifetime: Lifetime.SINGLETON }),
   sessionResolver: asClass(SessionResolver, { lifetime: Lifetime.SINGLETON }),

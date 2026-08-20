@@ -39,6 +39,7 @@ import { DrizzleMcpOAuthTokenRepository } from '#src/infrastructure/db/repositor
 import { DrizzleMcpOAuthClientRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthClientRepository.js';
 import { DrizzleMcpOAuthAuthorizationCodeRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthAuthorizationCodeRepository.js';
 import { DrizzleMcpOAuthRefreshTokenRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthRefreshTokenRepository.js';
+import { DrizzleMcpOAuthGrantRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthGrantRepository.js';
 import { DrizzleShareLinkRepository } from '#src/infrastructure/db/repositories/DrizzleShareLinkRepository.js';
 import { DrizzleNotificationRepository } from '#src/infrastructure/db/repositories/DrizzleNotificationRepository.js';
 import { DrizzleLlmApiKeyRepository } from '#src/infrastructure/db/repositories/DrizzleLlmApiKeyRepository.js';
@@ -77,6 +78,9 @@ export const repositories = {
     lifetime: Lifetime.SINGLETON,
   }),
   mcpOAuthRefreshTokenRepository: asClass(DrizzleMcpOAuthRefreshTokenRepository, {
+    lifetime: Lifetime.SINGLETON,
+  }),
+  mcpOAuthGrantRepository: asClass(DrizzleMcpOAuthGrantRepository, {
     lifetime: Lifetime.SINGLETON,
   }),
   drizzleNotificationRepository: asClass(DrizzleNotificationRepository, {

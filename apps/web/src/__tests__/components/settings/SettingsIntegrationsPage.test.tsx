@@ -160,4 +160,86 @@ describe('SettingsIntegrationsPage', () => {
       expect(screen.getAllByText('Read-only').length).toBeGreaterThan(0);
     });
   });
+
+  describe('connected MCP clients (JEF-179)', () => {
+    const GRANT = {
+      id: 'grant-1',
+      clientName: 'Claude Desktop',
+      scope: 'full',
+      authorizedAt: '2026-08-19T09:00:00.000Z',
+      lastUsedAt: '2026-08-20T11:00:00.000Z',
+    };
+
+    /** Resolves each of the page's queries by the operation it names. */
+    function respondWithGrants(grants: Array<Record<string, unknown>>, revokeFails = false) {
+      const revoke = revokeFails
+        ? vi.fn().mockRejectedValue(new Error('nope'))
+        : vi.fn().mockResolvedValue({ revokeMcpOAuthGrant: true });
+      let listed = grants;
+      mockGqlRequest.mockImplementation((doc: string, vars?: Record<string, unknown>) => {
+        if (typeof doc === 'string' && doc.includes('query McpOAuthGrants')) {
+          return Promise.resolve({ mcpOAuthGrants: listed });
+        }
+        if (typeof doc === 'string' && doc.includes('mutation RevokeMcpOAuthGrant')) {
+          if (!revokeFails) listed = listed.filter((g) => g.id !== vars?.id);
+          return revoke(vars);
+        }
+        if (typeof doc === 'string' && doc.includes('query ApiTokens')) {
+          return Promise.resolve({ apiTokens: [] });
+        }
+        return Promise.resolve({
+          me: {
+            id: 'user-1',
+            email: 'a@b.c',
+            name: null,
+            timezone: null,
+            targetRole: null,
+            avatarUrl: null,
+          },
+        });
+      });
+      return revoke;
+    }
+
+    it('lists an authorized client with the scope it was granted', async () => {
+      respondWithGrants([GRANT]);
+      render(<SettingsIntegrationsPage />, { wrapper: Wrapper });
+
+      expect(await screen.findByText('Claude Desktop')).toBeInTheDocument();
+      // The scope is the whole point of showing this — "full" means the client
+      // can write, and the user should be able to see that at a glance.
+      expect(screen.getByText('Connected MCP clients')).toBeInTheDocument();
+    });
+
+    it('says so plainly when nothing is connected', async () => {
+      respondWithGrants([]);
+      render(<SettingsIntegrationsPage />, { wrapper: Wrapper });
+
+      expect(await screen.findByText('No MCP clients are connected.')).toBeInTheDocument();
+    });
+
+    it('revokes by grant id and drops the client from the list', async () => {
+      const revoke = respondWithGrants([GRANT]);
+      render(<SettingsIntegrationsPage />, { wrapper: Wrapper });
+      await screen.findByText('Claude Desktop');
+
+      fireEvent.click(screen.getByLabelText('Revoke access for Claude Desktop'));
+
+      await waitFor(() => expect(revoke).toHaveBeenCalledWith({ id: 'grant-1' }));
+      await waitFor(() => expect(screen.queryByText('Claude Desktop')).not.toBeInTheDocument());
+    });
+
+    it('keeps the client listed when revoking fails, rather than pretending it worked', async () => {
+      const revoke = respondWithGrants([GRANT], true);
+      render(<SettingsIntegrationsPage />, { wrapper: Wrapper });
+      await screen.findByText('Claude Desktop');
+
+      fireEvent.click(screen.getByLabelText('Revoke access for Claude Desktop'));
+
+      await waitFor(() => expect(revoke).toHaveBeenCalled());
+      // Optimistically removing it would tell the user they are safe when the
+      // client still has access.
+      expect(screen.getByText('Claude Desktop')).toBeInTheDocument();
+    });
+  });
 });

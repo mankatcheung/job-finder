@@ -91,6 +91,7 @@ import type { ContactResolver } from '#src/interface-adapters/resolvers/ContactR
 import type { LoginEventResolver } from '#src/interface-adapters/resolvers/LoginEventResolver.js';
 import type { SecurityActivityResolver } from '#src/interface-adapters/resolvers/SecurityActivityResolver.js';
 import type { ApiTokenResolver } from '#src/interface-adapters/resolvers/ApiTokenResolver.js';
+import type { McpOAuthGrantResolver } from '#src/interface-adapters/resolvers/McpOAuthGrantResolver.js';
 import type { NotificationResolver } from '#src/interface-adapters/resolvers/NotificationResolver.js';
 import type { SessionResolver } from '#src/interface-adapters/resolvers/SessionResolver.js';
 import type { McpController } from '#src/interface-adapters/mcp/McpController.js';
@@ -104,8 +105,11 @@ import type { CreateMcpOAuthAuthorizationCodeUseCase } from '#src/use-cases/mcpO
 import type { ExchangeMcpOAuthAuthorizationCodeUseCase } from '#src/use-cases/mcpOAuth/ExchangeMcpOAuthAuthorizationCodeUseCase.js';
 import type { RevokeMcpOAuthGrantUseCase } from '#src/use-cases/mcpOAuth/RevokeMcpOAuthGrantUseCase.js';
 import type { DrizzleMcpOAuthRefreshTokenRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthRefreshTokenRepository.js';
+import type { DrizzleMcpOAuthGrantRepository } from '#src/infrastructure/db/repositories/DrizzleMcpOAuthGrantRepository.js';
 import type { CreateMcpOAuthRefreshTokenUseCase } from '#src/use-cases/mcpOAuth/CreateMcpOAuthRefreshTokenUseCase.js';
 import type { RotateMcpOAuthRefreshTokenUseCase } from '#src/use-cases/mcpOAuth/RotateMcpOAuthRefreshTokenUseCase.js';
+import type { ListMcpOAuthGrantsUseCase } from '#src/use-cases/mcpOAuth/ListMcpOAuthGrantsUseCase.js';
+import type { RevokeMcpOAuthGrantForUserUseCase } from '#src/use-cases/mcpOAuth/RevokeMcpOAuthGrantForUserUseCase.js';
 import type { RegisterUseCase } from '#src/use-cases/auth/RegisterUseCase.js';
 import type { LoginUseCase } from '#src/use-cases/auth/LoginUseCase.js';
 import type { LoginWithTotpUseCase } from '#src/use-cases/auth/LoginWithTotpUseCase.js';
@@ -178,6 +182,7 @@ import type { ListConversationsUseCase } from '#src/use-cases/conversations/List
 import type { DeleteConversationUseCase } from '#src/use-cases/conversations/DeleteConversationUseCase.js';
 import type { JwtTokenService } from '#src/infrastructure/auth/JwtTokenService.js';
 import type { ApiTokenMapper } from '#src/interface-adapters/mappers/ApiTokenMapper.js';
+import type { McpOAuthGrantMapper } from '#src/interface-adapters/mappers/McpOAuthGrantMapper.js';
 import type { CreateApiTokenUseCase } from '#src/use-cases/apiTokens/CreateApiTokenUseCase.js';
 import type { ListApiTokensUseCase } from '#src/use-cases/apiTokens/ListApiTokensUseCase.js';
 import type { DeleteApiTokenUseCase } from '#src/use-cases/apiTokens/DeleteApiTokenUseCase.js';
@@ -277,6 +282,7 @@ export interface Cradle {
   mcpOAuthClientRepository: DrizzleMcpOAuthClientRepository;
   mcpOAuthAuthorizationCodeRepository: DrizzleMcpOAuthAuthorizationCodeRepository;
   mcpOAuthRefreshTokenRepository: DrizzleMcpOAuthRefreshTokenRepository;
+  mcpOAuthGrantRepository: DrizzleMcpOAuthGrantRepository;
   drizzleContactRepository: DrizzleContactRepository;
   drizzleNotificationRepository: DrizzleNotificationRepository;
 
@@ -332,6 +338,7 @@ export interface Cradle {
 
   applicationMapper: ApplicationMapper;
   apiTokenMapper: ApiTokenMapper;
+  mcpOAuthGrantMapper: McpOAuthGrantMapper;
   shareLinkMapper: ShareLinkMapper;
   notificationMapper: NotificationMapper;
   noteMapper: NoteMapper;
@@ -365,6 +372,7 @@ export interface Cradle {
   loginEventResolver: LoginEventResolver;
   securityActivityResolver: SecurityActivityResolver;
   apiTokenResolver: ApiTokenResolver;
+  mcpOAuthGrantResolver: McpOAuthGrantResolver;
   shareLinkResolver: ShareLinkResolver;
   notificationResolver: NotificationResolver;
   sessionResolver: SessionResolver;
@@ -390,6 +398,8 @@ export interface Cradle {
   revokeMcpOAuthGrantUseCase: RevokeMcpOAuthGrantUseCase;
   createMcpOAuthRefreshTokenUseCase: CreateMcpOAuthRefreshTokenUseCase;
   rotateMcpOAuthRefreshTokenUseCase: RotateMcpOAuthRefreshTokenUseCase;
+  listMcpOAuthGrantsUseCase: ListMcpOAuthGrantsUseCase;
+  revokeMcpOAuthGrantForUserUseCase: RevokeMcpOAuthGrantForUserUseCase;
   registerUseCase: RegisterUseCase;
   loginUseCase: LoginUseCase;
   loginWithTotpUseCase: LoginWithTotpUseCase;
