@@ -169,6 +169,13 @@
       "when": 1787251853206,
       "tag": "0023_regular_the_professor",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1787258991509,
+      "tag": "0024_naive_warhawk",
+      "breakpoints": true
     }
   ]
 }

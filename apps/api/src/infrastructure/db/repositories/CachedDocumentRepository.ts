@@ -32,6 +32,10 @@ export class CachedDocumentRepository implements IDocumentRepository {
     return result;
   }
 
+  async countByApplicationId(applicationId: string): Promise<number> {
+    return this.inner.countByApplicationId(applicationId);
+  }
+
   // Not cached: this reads across every application for the user, which
   // doesn't fit the per-applicationId cache key scheme used above, and
   // invalidating it correctly would require busting it on every document

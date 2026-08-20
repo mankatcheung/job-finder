@@ -63,6 +63,11 @@ export class ExportDocumentDraftToPdfUseCase implements IExportDocumentDraftToPd
       sourceDraftId: draft.id,
     };
 
-    return this.deps.documentRepository.create(createData);
+    try {
+      return await this.deps.documentRepository.create(createData);
+    } catch (error) {
+      await this.deps.storageProvider.delete(storageKey);
+      throw error;
+    }
   }
 }

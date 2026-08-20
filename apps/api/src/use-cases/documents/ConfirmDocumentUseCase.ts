@@ -2,6 +2,7 @@ import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentRepository.js';
 import type { IActivityLogRepository } from '#src/use-cases/ports/IActivityLogRepository.js';
+import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
 import {
   assertAllowedMimeType,
   assertValidSizeBytes,
@@ -16,34 +17,54 @@ interface Deps {
   applicationRepository: IApplicationRepository;
   documentRepository: IDocumentRepository;
   activityLogRepository?: IActivityLogRepository;
+  storageProvider?: IStorageProvider;
   generateId: () => string;
+}
+
+function isOwnedUploadKey(storageKey: string, userId: string, applicationId: string): boolean {
+  const prefix = `users/${userId}/applications/${applicationId}/`;
+  return storageKey.startsWith(prefix) && !storageKey.includes('..');
 }
 
 export class ConfirmDocumentUseCase implements IConfirmDocumentUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: ConfirmDocumentInput): Promise<ConfirmDocumentOutput> {
-    assertAllowedMimeType(input.mimeType);
-    assertValidSizeBytes(input.sizeBytes);
+    let doc: ConfirmDocumentOutput;
+    try {
+      assertAllowedMimeType(input.mimeType);
+      assertValidSizeBytes(input.sizeBytes);
 
-    const app = await this.deps.applicationRepository.findById(input.applicationId);
-    if (!app) {
-      throw new NotFoundError('Application not found');
-    }
-    if (app.userId !== input.userId) {
-      throw new ForbiddenError('Forbidden');
-    }
+      const app = await this.deps.applicationRepository.findById(input.applicationId);
+      if (!app) {
+        throw new NotFoundError('Application not found');
+      }
+      if (app.userId !== input.userId) {
+        throw new ForbiddenError('Forbidden');
+      }
 
-    const doc = await this.deps.documentRepository.create({
-      id: this.deps.generateId(),
-      applicationId: input.applicationId,
-      storageKey: input.storageKey,
-      name: input.name,
-      mimeType: input.mimeType,
-      sizeBytes: input.sizeBytes,
-      documentType: input.documentType,
-      version: input.version,
-    });
+      doc = await this.deps.documentRepository.create({
+        id: this.deps.generateId(),
+        applicationId: input.applicationId,
+        storageKey: input.storageKey,
+        name: input.name,
+        mimeType: input.mimeType,
+        sizeBytes: input.sizeBytes,
+        documentType: input.documentType,
+        version: input.version,
+      });
+    } catch (error) {
+      // The client uploads directly to storage before this database step. Do
+      // not leave an orphaned blob when the quota or another write fails.
+      try {
+        if (isOwnedUploadKey(input.storageKey, input.userId, input.applicationId)) {
+          await this.deps.storageProvider?.delete(input.storageKey);
+        }
+      } catch {
+        // Preserve the original database/quota error for the client.
+      }
+      throw error;
+    }
 
     await this.deps.activityLogRepository?.append({
       id: this.deps.generateId(),

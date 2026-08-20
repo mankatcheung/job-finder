@@ -95,6 +95,7 @@ export const makeDocumentRepository = (
   overrides?: Partial<IDocumentRepository>,
 ): IDocumentRepository => ({
   findAllByApplicationId: vi.fn(),
+  countByApplicationId: vi.fn().mockResolvedValue(0),
   findAllByUserId: vi.fn(),
   findById: vi.fn(),
   create: vi.fn(),

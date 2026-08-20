@@ -3,6 +3,7 @@ import { DrizzleDocumentRepository } from '#src/infrastructure/db/repositories/D
 import { createTestDb, type TestDb } from '#src/__tests__/helpers/createTestDb.js';
 import { user, jobApplication, document } from '#src/infrastructure/db/schema.js';
 import { eq } from 'drizzle-orm';
+import { CONTENT_LIMITS } from '#src/constants.js';
 
 const BASE_DOC = {
   id: 'doc-1',
@@ -34,6 +35,10 @@ describe('DrizzleDocumentRepository', () => {
 
   beforeEach(async () => {
     await db.db.delete(document);
+    await db.db
+      .update(jobApplication)
+      .set({ documentCount: 0 })
+      .where(eq(jobApplication.id, 'app-1'));
   });
 
   describe('create', () => {
@@ -47,6 +52,25 @@ describe('DrizzleDocumentRepository', () => {
       expect(doc.sizeBytes).toBe(12345);
       expect(doc.storageKey).toBe('users/u1/applications/app-1/resume.pdf');
       expect(doc.createdAt).toBeInstanceOf(Date);
+    });
+
+    it('rejects creation at the per-application document limit', async () => {
+      await db.db
+        .update(jobApplication)
+        .set({ documentCount: CONTENT_LIMITS.DOCUMENTS_PER_APPLICATION })
+        .where(eq(jobApplication.id, 'app-1'));
+
+      await expect(repo.create(BASE_DOC)).rejects.toMatchObject({ code: 'QUOTA_EXCEEDED' });
+      expect(await db.db.select().from(document)).toHaveLength(0);
+    });
+  });
+
+  describe('countByApplicationId', () => {
+    it('returns the number of confirmed documents', async () => {
+      await repo.create(BASE_DOC);
+      await repo.create({ ...BASE_DOC, id: 'doc-2', storageKey: 'path/to/cover.pdf' });
+
+      expect(await repo.countByApplicationId('app-1')).toBe(2);
     });
   });
 
@@ -133,6 +157,15 @@ describe('DrizzleDocumentRepository', () => {
       await repo.create(BASE_DOC);
       await repo.delete('doc-1');
       expect(await repo.findById('doc-1')).toBeNull();
+    });
+
+    it('frees a document quota slot after deletion', async () => {
+      await repo.create(BASE_DOC);
+      await repo.delete('doc-1');
+
+      expect(
+        (await db.db.select({ count: jobApplication.documentCount }).from(jobApplication))[0].count,
+      ).toBe(0);
     });
   });
 });

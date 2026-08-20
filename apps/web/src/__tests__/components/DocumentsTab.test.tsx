@@ -148,4 +148,36 @@ describe('DocumentsTab', () => {
       );
     });
   });
+
+  it('shows the server quota message when an upload is rejected', async () => {
+    mockGqlRequest.mockImplementation((query: string) => {
+      if (query.includes('DocumentDrafts')) return Promise.resolve({ documentDrafts: [] });
+      if (query.includes('RequestUploadUrl')) {
+        return Promise.reject({
+          response: {
+            errors: [
+              {
+                message: 'This application already has the maximum of 10 documents',
+                extensions: { code: 'QUOTA_EXCEEDED' },
+              },
+            ],
+          },
+        });
+      }
+      return Promise.resolve({ documents: [] });
+    });
+    const { container } = render(<DocumentsTab applicationId="app-1" />, { wrapper: Wrapper });
+
+    await waitFor(() => expect(screen.getByText(/click to upload/i)).toBeInTheDocument());
+    const input = container.querySelector('input[type="file"]')!;
+    fireEvent.change(input, {
+      target: { files: [new File(['pdf'], 'resume.pdf', { type: 'application/pdf' })] },
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('This application already has the maximum of 10 documents'),
+      ).toBeInTheDocument(),
+    );
+  });
 });

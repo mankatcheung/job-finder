@@ -15,7 +15,7 @@ import {
 } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
-import { jobApplication, applicationTag } from '../schema.js';
+import { jobApplication, applicationTag, user } from '../schema.js';
 import type { Application } from '#src/domain/application/Application.js';
 import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
 import type {
@@ -27,7 +27,8 @@ import type {
   ApplicationsPage,
 } from '#src/use-cases/ports/IApplicationRepository.js';
 import { txStorage, getClient } from '../transactionContext.js';
-import { REMINDER_WINDOW_MS } from '#src/constants.js';
+import { CONTENT_LIMITS, REMINDER_WINDOW_MS } from '#src/constants.js';
+import { QuotaExceededError } from '#src/use-cases/errors/DomainError.js';
 import { LIKELY_GHOSTED_AFTER_DAYS } from '#src/use-cases/jobs/applicationStaleness.js';
 
 type AppRow = typeof jobApplication.$inferSelect & { tags: string[] };
@@ -202,6 +203,26 @@ export class DrizzleApplicationRepository implements IApplicationRepository {
     const tags = data.tags ?? [];
 
     const exec = async (client: DrizzleClient): Promise<AppRow> => {
+      const [reserved] = await client
+        .update(user)
+        .set({
+          applicationCount: sql`${user.applicationCount} + 1`,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(user.id, data.userId),
+            lt(user.applicationCount, CONTENT_LIMITS.APPLICATIONS_PER_USER),
+          ),
+        )
+        .returning({ id: user.id });
+
+      if (!reserved) {
+        throw new QuotaExceededError(
+          `You have reached the maximum of ${CONTENT_LIMITS.APPLICATIONS_PER_USER} applications`,
+        );
+      }
+
       const [app] = await client
         .insert(jobApplication)
         .values({
@@ -283,7 +304,25 @@ export class DrizzleApplicationRepository implements IApplicationRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.db.delete(jobApplication).where(eq(jobApplication.id, id));
+    const exec = async (client: DrizzleClient): Promise<void> => {
+      const [deleted] = await client
+        .delete(jobApplication)
+        .where(eq(jobApplication.id, id))
+        .returning({ userId: jobApplication.userId });
+      if (!deleted) return;
+
+      await client
+        .update(user)
+        .set({
+          applicationCount: sql`case when ${user.applicationCount} > 0 then ${user.applicationCount} - 1 else 0 end`,
+          updatedAt: new Date(),
+        })
+        .where(eq(user.id, deleted.userId));
+    };
+
+    const ambient = txStorage.getStore();
+    if (ambient) await exec(ambient);
+    else await this.database.transaction(exec);
   }
 
   async reorderBoard(

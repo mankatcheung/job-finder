@@ -19,6 +19,7 @@ export const user = sqliteTable('User', {
     .notNull()
     .default(false),
   weeklyApplicationGoal: integer('weeklyApplicationGoal').notNull().default(5),
+  applicationCount: integer('applicationCount').notNull().default(0),
   totpSecret: text('totpSecret'),
   totpEnabled: integer('totpEnabled', { mode: 'boolean' }).notNull().default(false),
   /**

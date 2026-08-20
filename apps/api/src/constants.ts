@@ -16,6 +16,7 @@ export const ERROR_CODES = {
   FORBIDDEN: 'FORBIDDEN',
   NOT_FOUND: 'NOT_FOUND',
   CONFLICT: 'CONFLICT',
+  QUOTA_EXCEEDED: 'QUOTA_EXCEEDED',
   VALIDATION: 'VALIDATION',
   RATE_LIMITED: 'RATE_LIMITED',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
@@ -653,6 +654,12 @@ export const CHAT = {
 export const PAGINATION = {
   DEFAULT_LIMIT: 20,
   MAX_LIMIT: 100,
+} as const;
+
+/** Per-user content quotas. Counters are maintained transactionally by the repositories. */
+export const CONTENT_LIMITS = {
+  APPLICATIONS_PER_USER: 50,
+  DOCUMENTS_PER_APPLICATION: 10,
 } as const;
 
 /** Named MIME type constants, for referencing specific types instead of repeating string literals. */

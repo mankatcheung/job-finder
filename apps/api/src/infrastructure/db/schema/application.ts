@@ -40,6 +40,7 @@ export const jobApplication = sqliteTable(
      * reason.
      */
     boardPosition: integer('boardPosition').notNull().default(0),
+    documentCount: integer('documentCount').notNull().default(0),
     /**
      * In Trash since. Null for a live application.
      *

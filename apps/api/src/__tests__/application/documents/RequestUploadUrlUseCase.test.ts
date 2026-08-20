@@ -3,6 +3,7 @@ import { RequestUploadUrlUseCase } from '#src/use-cases/documents/RequestUploadU
 import {
   makeApplicationRepository,
   makeStorageProvider,
+  makeDocumentRepository,
   makeApplication,
 } from '#src/__tests__/helpers/mocks.js';
 
@@ -20,6 +21,7 @@ describe('RequestUploadUrlUseCase', () => {
 
     const useCase = new RequestUploadUrlUseCase({
       applicationRepository,
+      documentRepository: makeDocumentRepository(),
       storageProvider: makeStorageProvider(),
     });
     const err = await useCase
@@ -42,6 +44,7 @@ describe('RequestUploadUrlUseCase', () => {
 
     const useCase = new RequestUploadUrlUseCase({
       applicationRepository,
+      documentRepository: makeDocumentRepository(),
       storageProvider: makeStorageProvider(),
     });
     const err = await useCase
@@ -65,7 +68,11 @@ describe('RequestUploadUrlUseCase', () => {
       getPresignedUploadUrl: vi.fn().mockResolvedValue('https://r2.example.com/upload'),
     });
 
-    const useCase = new RequestUploadUrlUseCase({ applicationRepository, storageProvider });
+    const useCase = new RequestUploadUrlUseCase({
+      applicationRepository,
+      documentRepository: makeDocumentRepository(),
+      storageProvider,
+    });
     const result = await useCase.execute({
       userId: 'user-1',
       applicationId: 'app-1',
@@ -81,6 +88,33 @@ describe('RequestUploadUrlUseCase', () => {
     );
   });
 
+  it('rejects an upload URL request when the application has reached its document limit', async () => {
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(makeApplication()),
+    });
+    const documentRepository = makeDocumentRepository({
+      countByApplicationId: vi.fn().mockResolvedValue(10),
+    });
+    const storageProvider = makeStorageProvider();
+
+    const useCase = new RequestUploadUrlUseCase({
+      applicationRepository,
+      documentRepository,
+      storageProvider,
+    });
+    const err = await useCase
+      .execute({
+        userId: 'user-1',
+        applicationId: 'app-1',
+        filename: 'resume.pdf',
+        mimeType: 'application/pdf',
+      })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('QUOTA_EXCEEDED');
+    expect(storageProvider.getPresignedUploadUrl).not.toHaveBeenCalled();
+  });
+
   it('throws VALIDATION when the mimeType is not allowed', async () => {
     const applicationRepository = makeApplicationRepository({
       findById: vi.fn().mockResolvedValue(makeApplication()),
@@ -88,6 +122,7 @@ describe('RequestUploadUrlUseCase', () => {
 
     const useCase = new RequestUploadUrlUseCase({
       applicationRepository,
+      documentRepository: makeDocumentRepository(),
       storageProvider: makeStorageProvider(),
     });
     const err = await useCase
@@ -111,7 +146,11 @@ describe('RequestUploadUrlUseCase', () => {
       getPresignedUploadUrl: vi.fn().mockResolvedValue('https://r2.example.com/upload'),
     });
 
-    const useCase = new RequestUploadUrlUseCase({ applicationRepository, storageProvider });
+    const useCase = new RequestUploadUrlUseCase({
+      applicationRepository,
+      documentRepository: makeDocumentRepository(),
+      storageProvider,
+    });
     const result = await useCase.execute({
       userId: 'user-1',
       applicationId: 'app-1',

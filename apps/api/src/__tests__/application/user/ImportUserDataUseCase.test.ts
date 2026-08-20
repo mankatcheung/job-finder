@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ImportUserDataUseCase } from '#src/use-cases/user/ImportUserDataUseCase.js';
+import { QuotaExceededError } from '#src/use-cases/errors/DomainError.js';
 import {
   makeApplicationRepository,
   makeNoteRepository,
@@ -101,6 +102,31 @@ describe('ImportUserDataUseCase', () => {
     });
     expect(summary.applicationsImported).toBe(1);
     expect(summary.applicationsSkipped).toBe(0);
+  });
+
+  it('counts applications rejected by the quota as skipped records', async () => {
+    const deps = makeDeps({
+      applicationRepository: makeApplicationRepository({
+        create: vi.fn().mockRejectedValue(new QuotaExceededError('application limit reached')),
+      }),
+    });
+
+    const summary = await new ImportUserDataUseCase(deps).execute(
+      'user-1',
+      JSON.stringify({
+        applications: [
+          { company: 'Acme', role: 'Engineer' },
+          { company: 'Globex', role: 'Engineer' },
+        ],
+      }),
+    );
+
+    expect(summary).toEqual({
+      applicationsImported: 0,
+      applicationsSkipped: 2,
+      notesImported: 0,
+      documentsSkipped: 0,
+    });
   });
 
   it('falls back to the default status when status is missing or unrecognized', async () => {
