@@ -32,3 +32,13 @@ export const UpdateApplicationInput = builder.inputType('UpdateApplicationInput'
     tags: t.stringList({ required: false }),
   }),
 });
+
+export const MoveApplicationOnBoardInput = builder.inputType('MoveApplicationOnBoardInput', {
+  fields: (t) => ({
+    applicationId: t.id({ required: true }),
+    /** The column the card ends up in — may be the one it started in. */
+    toStatus: t.field({ type: ApplicationStatusEnum, required: true }),
+    /** The destination column in full, in its new order, including applicationId. */
+    orderedIds: t.idList({ required: true }),
+  }),
+});

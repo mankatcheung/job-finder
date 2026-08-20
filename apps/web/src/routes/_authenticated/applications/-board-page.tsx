@@ -1,17 +1,27 @@
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   DndContext,
   DragOverlay,
+  KeyboardSensor,
   PointerSensor,
+  TouchSensor,
+  closestCorners,
   useSensor,
   useSensors,
-  useDraggable,
   useDroppable,
   type DragEndEvent,
+  type DragOverEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { gqlClient } from '#/graphql/client';
 import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { StatusBadge } from '../-components/StatusBadge';
@@ -19,11 +29,18 @@ import { ErrorState } from '#/components/ErrorState';
 import { ListIcon, PlusIcon, StarIcon } from 'lucide-react';
 import { useLocale } from '#/lib/i18n';
 import { boardApplicationsQueryOptions, type BoardApplication } from './-board-queries';
+import {
+  findColumnOf,
+  groupByStatus,
+  moveToColumn,
+  resolveDragEnd,
+  type BoardColumns,
+} from './-board-move';
 import { Skeleton } from '@trakwyn/ui';
 
-const UPDATE_STATUS = `
-  mutation UpdateApplicationStatus($id: ID!, $input: UpdateApplicationInput!) {
-    updateApplication(id: $id, input: $input) { id status }
+const MOVE_ON_BOARD = `
+  mutation MoveApplicationOnBoard($input: MoveApplicationOnBoardInput!) {
+    moveApplicationOnBoard(input: $input) { id status boardPosition }
   }
 `;
 
@@ -49,27 +66,55 @@ const STATUS_COLORS: Record<string, string> = {
   withdrawn: 'border-t-gray-500',
 };
 
+const QUERY_KEY = ['applications', null];
+
 export function KanbanBoard() {
   const { t } = useLocale();
   const qc = useQueryClient();
-  const [activeApp, setActiveApp] = useState<Application | null>(null);
 
   const { data, isLoading, isError, error, refetch } = useQuery(boardApplicationsQueryOptions);
 
-  const updateStatus = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      gqlClient.request(UPDATE_STATUS, { id, input: { status } }),
-    onMutate: async ({ id, status }) => {
-      await qc.cancelQueries({ queryKey: ['applications', null] });
+  const apps = useMemo(() => data?.applications ?? [], [data]);
+  const appsById = useMemo(() => new Map(apps.map((app) => [app.id, app])), [apps]);
+  const serverColumns = useMemo(() => groupByStatus(apps, STATUSES), [apps]);
 
-      const prevData = qc.getQueryData<{ applications: Application[] }>(['applications', null]);
+  // The board is driven by local state during a drag so the card can preview
+  // where it would land. Outside a drag it mirrors the query.
+  const [columns, setColumns] = useState<BoardColumns>(serverColumns);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  // The board as it was when the drag began — what tells a real move from a
+  // card picked up and put back down.
+  const beforeDrag = useRef<BoardColumns>(serverColumns);
 
-      qc.setQueryData<{ applications: Application[] }>(['applications', null], (old) => {
+  useEffect(() => {
+    // Never resync mid-drag; refetched data would yank the card out from
+    // under the pointer.
+    if (activeId) return;
+    setColumns(serverColumns);
+  }, [serverColumns, activeId]);
+
+  const moveOnBoard = useMutation({
+    mutationFn: (input: { applicationId: string; toStatus: string; orderedIds: string[] }) =>
+      gqlClient.request(MOVE_ON_BOARD, { input }),
+    onMutate: async ({ toStatus, orderedIds }) => {
+      await qc.cancelQueries({ queryKey: QUERY_KEY });
+      const prevData = qc.getQueryData<{ applications: Application[] }>(QUERY_KEY);
+
+      // Write the ranks the server is about to write, so the optimistic board
+      // and the refetched one agree and the cards do not visibly resettle.
+      const rank = new Map(orderedIds.map((id, index) => [id, index]));
+      qc.setQueryData<{ applications: Application[] }>(QUERY_KEY, (old) => {
         if (!old?.applications) return old;
         return {
           ...old,
-          applications: old.applications.map((a) =>
-            a.id === id ? { ...a, status: status as ApplicationStatus } : a,
+          applications: old.applications.map((app) =>
+            rank.has(app.id)
+              ? {
+                  ...app,
+                  status: toStatus as ApplicationStatus,
+                  boardPosition: rank.get(app.id)!,
+                }
+              : app,
           ),
         };
       });
@@ -77,36 +122,87 @@ export function KanbanBoard() {
       return { prevData };
     },
     onError: (_err, _vars, context) => {
-      if (context?.prevData) {
-        qc.setQueryData(['applications', null], context.prevData);
-      }
+      // Restoring the query data is enough — the effect above resyncs the
+      // board off it now that no drag is in flight.
+      if (context?.prevData) qc.setQueryData(QUERY_KEY, context.prevData);
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['applications'] }),
   });
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    // The board scrolls sideways on mobile; without a hold delay a drag would
+    // steal that scroll.
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
-  const apps = data?.applications ?? [];
-  const byStatus = (status: string) => apps.filter((a) => a.status === status);
+  const columnLabel = (status: string) => t(`status.${status}`);
+  const companyOf = (id: string | null) => (id ? (appsById.get(id)?.company ?? '') : '');
+
+  const announcements = {
+    onDragStart: ({ active }: { active: { id: string | number } }) =>
+      t('board.dragStart', { company: companyOf(String(active.id)) }),
+    onDragOver: ({ over }: { active: unknown; over: { id: string | number } | null }) => {
+      const column = over && findColumnOf(columns, String(over.id));
+      return column
+        ? t('board.dragOver', { company: companyOf(activeId), column: columnLabel(column) })
+        : undefined;
+    },
+    onDragEnd: ({ active, over }: { active: { id: string | number }; over: unknown }) => {
+      const company = companyOf(String(active.id));
+      const column = over
+        ? findColumnOf(columns, String((over as { id: string | number }).id))
+        : null;
+      return column
+        ? t('board.dragEnd', { company, column: columnLabel(column) })
+        : t('board.dragCancel', { company });
+    },
+    onDragCancel: ({ active }: { active: { id: string | number } }) =>
+      t('board.dragCancel', { company: companyOf(String(active.id)) }),
+  };
 
   function handleDragStart(event: DragStartEvent) {
-    const app = apps.find((a) => a.id === event.active.id);
-    setActiveApp(app ?? null);
+    beforeDrag.current = columns;
+    setActiveId(String(event.active.id));
+  }
+
+  function handleDragOver(event: DragOverEvent) {
+    const { active, over } = event;
+    if (!over) return;
+    setColumns((current) => moveToColumn(current, String(active.id), String(over.id)));
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    setActiveApp(null);
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
+    const before = beforeDrag.current;
+    setActiveId(null);
 
-    const newStatus = over.id as string;
-    if (!STATUSES.includes(newStatus as ApplicationStatus)) return;
+    if (!over) {
+      setColumns(before);
+      return;
+    }
 
-    const app = apps.find((a) => a.id === active.id);
-    if (!app || app.status === newStatus) return;
+    const move = resolveDragEnd(columns, before, String(active.id), String(over.id));
+    if (!move) {
+      setColumns(before);
+      return;
+    }
 
-    updateStatus.mutate({ id: app.id, status: newStatus });
+    setColumns(move.columns);
+    moveOnBoard.mutate({
+      applicationId: String(active.id),
+      toStatus: move.toStatus,
+      orderedIds: move.orderedIds,
+    });
   }
+
+  function handleDragCancel() {
+    setColumns(beforeDrag.current);
+    setActiveId(null);
+  }
+
+  const activeApp = activeId ? (appsById.get(activeId) ?? null) : null;
 
   if (isLoading) {
     return (
@@ -154,21 +250,41 @@ export function KanbanBoard() {
         </div>
       </div>
 
-      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext
+        sensors={sensors}
+        // Rect intersection reads badly when two columns sit side by side;
+        // corners picks the column the pointer is actually nearest.
+        collisionDetection={closestCorners}
+        accessibility={{ announcements }}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
         <div className="flex gap-3 overflow-x-auto pb-4 flex-1">
           {STATUSES.map((status) => (
-            <Column key={status} status={status} apps={byStatus(status)} />
+            <Column key={status} status={status} ids={columns[status] ?? []} appsById={appsById} />
           ))}
         </div>
 
-        <DragOverlay>{activeApp && <AppCard app={activeApp} isDragging />}</DragOverlay>
+        <DragOverlay>{activeApp && <AppCard app={activeApp} isOverlay />}</DragOverlay>
       </DndContext>
     </div>
   );
 }
 
-function Column({ status, apps }: { status: string; apps: Application[] }) {
+function Column({
+  status,
+  ids,
+  appsById,
+}: {
+  status: string;
+  ids: string[];
+  appsById: Map<string, Application>;
+}) {
   const { t } = useLocale();
+  // Kept alongside SortableContext so an empty column is still a drop target —
+  // there is no card in it to aim at.
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
@@ -181,38 +297,67 @@ function Column({ status, apps }: { status: string; apps: Application[] }) {
           {t(`status.${status}`)}
         </span>
         <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded-full">
-          {apps.length}
+          {ids.length}
         </span>
       </div>
 
-      <div className="flex flex-col gap-2 p-2 flex-1 overflow-y-auto">
-        {apps.map((app) => (
-          <DraggableCard key={app.id} app={app} />
-        ))}
-      </div>
+      <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+        <div className="flex flex-col gap-2 p-2 flex-1 overflow-y-auto">
+          {ids.map((id) => {
+            const app = appsById.get(id);
+            return app ? <SortableCard key={id} app={app} /> : null;
+          })}
+        </div>
+      </SortableContext>
     </div>
   );
 }
 
-function DraggableCard({ app }: { app: Application }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: app.id });
+function SortableCard({ app }: { app: Application }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: app.id,
+  });
+
+  // A finished drag still lands a click on the link underneath, which would
+  // navigate away from the board the user was just arranging. Latch the drag
+  // and swallow that one click.
+  const draggedRef = useRef(false);
+  useEffect(() => {
+    if (isDragging) draggedRef.current = true;
+  }, [isDragging]);
 
   return (
-    <div ref={setNodeRef} {...listeners} {...attributes} style={{ opacity: isDragging ? 0.4 : 1 }}>
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Translate.toString(transform),
+        transition,
+        opacity: isDragging ? 0.4 : 1,
+      }}
+      onClickCapture={(e) => {
+        if (draggedRef.current) {
+          e.preventDefault();
+          e.stopPropagation();
+          draggedRef.current = false;
+        }
+      }}
+      {...listeners}
+      {...attributes}
+    >
       <AppCard app={app} />
     </div>
   );
 }
 
-function AppCard({ app, isDragging }: { app: Application; isDragging?: boolean }) {
+function AppCard({ app, isOverlay }: { app: Application; isOverlay?: boolean }) {
   const { t } = useLocale();
   return (
     <Link
       to="/applications/$applicationId"
       params={{ applicationId: app.id }}
-      className={`block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 text-left hover:border-blue-300 dark:hover:border-blue-600 transition-colors ${isDragging ? 'shadow-xl rotate-1' : ''}`}
+      className={`block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 text-left hover:border-blue-300 dark:hover:border-blue-600 transition-colors ${isOverlay ? 'shadow-xl rotate-1' : ''}`}
       onClick={(e) => {
-        if (isDragging) e.preventDefault();
+        if (isOverlay) e.preventDefault();
       }}
     >
       <p className="text-xs font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">

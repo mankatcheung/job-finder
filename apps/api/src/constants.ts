@@ -597,6 +597,17 @@ export const BULK_ACTIONS = {
   MAX_IDS: 200,
 } as const;
 
+export const BOARD = {
+  /**
+   * Max cards accepted in one kanban column reorder. Deliberately not
+   * BULK_ACTIONS.MAX_IDS: that caps how much a user may act on at once,
+   * whereas this caps a column the user did not choose the size of. A drag
+   * refused because the column grew past a bulk-action limit would be a dead
+   * end with nothing the user could do about it.
+   */
+  MAX_REORDER_IDS: 500,
+} as const;
+
 /** Notification types (mirrors the Notification.type Drizzle enum) — drives which icon the inbox shows. */
 export const NOTIFICATION_TYPE = {
   INTERVIEW_REMINDER: 'interview_reminder',

@@ -742,5 +742,9 @@
   "registerPage.registrationFailed": "註冊失敗，請再試一次。",
   "documentPreview.noPreviewAvailable": "此檔案類型不支援預覽。",
   "documentPreview.openDocument": "開啟 {{name}}",
-  "healthScore.applicationHealth": "求職申請健康度"
+  "healthScore.applicationHealth": "求職申請健康度",
+  "board.dragStart": "已拿起{{company}}。使用方向鍵移動，空白鍵放下，Esc 鍵取消。",
+  "board.dragOver": "{{company}}位於「{{column}}」欄上方。",
+  "board.dragEnd": "{{company}}已放入「{{column}}」欄。",
+  "board.dragCancel": "已取消移動。{{company}}已回到原位。"
 }

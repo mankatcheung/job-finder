@@ -9,6 +9,7 @@ import {
 import {
   CreateApplicationInput,
   UpdateApplicationInput,
+  MoveApplicationOnBoardInput,
 } from '#src/http/schema/types/inputs/ApplicationInputs.js';
 import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
 import { ERROR_CODES } from '#src/constants.js';
@@ -68,6 +69,27 @@ builder.mutationField('updateApplication', (t) =>
               ? new Date(args.input.followUpAt)
               : null
             : undefined,
+      });
+    },
+  }),
+);
+
+builder.mutationField('moveApplicationOnBoard', (t) =>
+  t.field({
+    type: [JobApplicationRef],
+    description:
+      'Place a card in a kanban column. Returns the destination column in its new order.',
+    args: {
+      input: t.arg({ type: MoveApplicationOnBoardInput, required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { applicationResolver } = ctx.diScope.cradle;
+      return applicationResolver.moveApplicationOnBoard(ctx.user.sub, {
+        applicationId: String(args.input.applicationId),
+        toStatus: args.input.toStatus as ApplicationStatus,
+        orderedIds: (args.input.orderedIds as string[]).map(String),
       });
     },
   }),

@@ -1,4 +1,18 @@
-import { eq, and, or, desc, gte, lte, lt, like, isNull, isNotNull, inArray } from 'drizzle-orm';
+import {
+  eq,
+  and,
+  or,
+  asc,
+  desc,
+  gte,
+  lte,
+  lt,
+  like,
+  isNull,
+  isNotNull,
+  inArray,
+  sql,
+} from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
 import { jobApplication, applicationTag } from '../schema.js';
@@ -231,6 +245,7 @@ export class DrizzleApplicationRepository implements IApplicationRepository {
       ...(data.starred !== undefined ? { starred: data.starred } : {}),
       ...(data.source !== undefined ? { source: data.source } : {}),
       ...(data.followUpAt !== undefined ? { followUpAt: data.followUpAt } : {}),
+      ...(data.boardPosition !== undefined ? { boardPosition: data.boardPosition } : {}),
     };
 
     if (data.tags !== undefined) {
@@ -269,6 +284,60 @@ export class DrizzleApplicationRepository implements IApplicationRepository {
 
   async delete(id: string): Promise<void> {
     await this.db.delete(jobApplication).where(eq(jobApplication.id, id));
+  }
+
+  async reorderBoard(
+    userId: string,
+    status: ApplicationStatus,
+    orderedIds: string[],
+  ): Promise<Application[]> {
+    if (orderedIds.length > 0) {
+      // One statement rather than a write per card: a CASE over the id maps
+      // each row to its index in `orderedIds`.
+      const positions = sql.join(
+        orderedIds.map((id, index) => sql`when ${id} then ${index}`),
+        sql` `,
+      );
+
+      await this.db
+        .update(jobApplication)
+        .set({
+          boardPosition: sql`case ${jobApplication.id} ${positions} end`,
+          // Self-assignment, deliberately. `updatedAt` carries `$onUpdate`,
+          // which drizzle applies only to columns absent from the set — and
+          // `isLikelyGhosted` reads `updatedAt`. Letting it fire here would
+          // clear the ghosted badge from every card in the column because the
+          // user dragged one of them. The test asserting `updatedAt` survives
+          // a reorder is what keeps this honest.
+          updatedAt: sql`${jobApplication.updatedAt}`,
+        })
+        .where(
+          and(
+            inArray(jobApplication.id, orderedIds),
+            eq(jobApplication.userId, userId),
+            eq(jobApplication.status, status),
+            isNull(jobApplication.deletedAt),
+          ),
+        );
+    }
+
+    const rows = await this.db
+      .select()
+      .from(jobApplication)
+      .where(
+        and(
+          eq(jobApplication.userId, userId),
+          eq(jobApplication.status, status),
+          isNull(jobApplication.deletedAt),
+        ),
+      )
+      .orderBy(
+        asc(jobApplication.boardPosition),
+        desc(jobApplication.createdAt),
+        desc(jobApplication.id),
+      );
+    const withTags = await this.attachTags(rows);
+    return withTags.map((r) => this.toEntity(r));
   }
 
   async findDueForReminder(): Promise<Application[]> {
@@ -317,6 +386,7 @@ export class DrizzleApplicationRepository implements IApplicationRepository {
       followUpAt: row.followUpAt,
       tags: row.tags,
       reminderSentAt: row.reminderSentAt,
+      boardPosition: row.boardPosition,
       deletedAt: row.deletedAt,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,

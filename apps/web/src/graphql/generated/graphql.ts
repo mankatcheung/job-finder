@@ -48,11 +48,27 @@ export type ApiTokenScope =
   | 'full'
   | 'read';
 
+export type ApplicationChannelAnalytics = {
+  __typename?: 'ApplicationChannelAnalytics';
+  bySource?: Maybe<Array<ApplicationGroupStat>>;
+  byTag?: Maybe<Array<ApplicationGroupStat>>;
+};
+
 export type ApplicationConnection = {
   __typename?: 'ApplicationConnection';
   hasNextPage?: Maybe<Scalars['Boolean']['output']>;
   items?: Maybe<Array<JobApplication>>;
   nextCursor?: Maybe<Scalars['String']['output']>;
+};
+
+export type ApplicationGroupStat = {
+  __typename?: 'ApplicationGroupStat';
+  applicationCount?: Maybe<Scalars['Int']['output']>;
+  label?: Maybe<Scalars['String']['output']>;
+  offerCount?: Maybe<Scalars['Int']['output']>;
+  offerRate?: Maybe<Scalars['Int']['output']>;
+  respondedCount?: Maybe<Scalars['Int']['output']>;
+  responseRate?: Maybe<Scalars['Int']['output']>;
 };
 
 export type ApplicationHealthScore = {
@@ -70,6 +86,11 @@ export type ApplicationStatus =
   | 'offered'
   | 'rejected'
   | 'withdrawn';
+
+export type BulkRestoreResult = {
+  __typename?: 'BulkRestoreResult';
+  restored?: Maybe<Scalars['Int']['output']>;
+};
 
 export type CalendarEvent = {
   __typename?: 'CalendarEvent';
@@ -189,6 +210,14 @@ export type CreateOfferInput = {
   period?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CreateShareLinkPayload = {
+  __typename?: 'CreateShareLinkPayload';
+  createdAt?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  token?: Maybe<Scalars['String']['output']>;
+};
+
 export type CreateSkillInput = {
   category?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
@@ -202,6 +231,16 @@ export type CreateWorkExperienceInput = {
   location?: InputMaybe<Scalars['String']['input']>;
   startDate: Scalars['String']['input'];
   title: Scalars['String']['input'];
+};
+
+export type CurrencyGroupStat = {
+  __typename?: 'CurrencyGroupStat';
+  averageYearlySalary?: Maybe<Scalars['Float']['output']>;
+  count?: Maybe<Scalars['Int']['output']>;
+  currency?: Maybe<Scalars['String']['output']>;
+  maxYearlySalary?: Maybe<Scalars['Float']['output']>;
+  medianYearlySalary?: Maybe<Scalars['Float']['output']>;
+  minYearlySalary?: Maybe<Scalars['Float']['output']>;
 };
 
 export type DigestFrequency =
@@ -236,6 +275,15 @@ export type DocumentDraft = {
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
+export type DocumentVersionOutcome = {
+  __typename?: 'DocumentVersionOutcome';
+  applicationCount?: Maybe<Scalars['Int']['output']>;
+  documentType?: Maybe<Scalars['String']['output']>;
+  interviewCount?: Maybe<Scalars['Int']['output']>;
+  interviewRate?: Maybe<Scalars['Int']['output']>;
+  version?: Maybe<Scalars['String']['output']>;
+};
+
 export type Education = {
   __typename?: 'Education';
   createdAt?: Maybe<Scalars['String']['output']>;
@@ -248,6 +296,12 @@ export type Education = {
   startDate?: Maybe<Scalars['String']['output']>;
   updatedAt?: Maybe<Scalars['String']['output']>;
   userId?: Maybe<Scalars['ID']['output']>;
+};
+
+export type EmptyTrashResult = {
+  __typename?: 'EmptyTrashResult';
+  deleted?: Maybe<Scalars['Int']['output']>;
+  failed?: Maybe<Scalars['Int']['output']>;
 };
 
 export type ExtractDocumentTextPayload = {
@@ -286,6 +340,13 @@ export type InterviewRound = {
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
+export type InterviewRoundAnalytics = {
+  __typename?: 'InterviewRoundAnalytics';
+  byType?: Maybe<Array<InterviewRoundTypeStat>>;
+  roundsToOffer?: Maybe<RoundsToTerminalStat>;
+  roundsToRejection?: Maybe<RoundsToTerminalStat>;
+};
+
 export type InterviewRoundOutcome =
   | 'cancelled'
   | 'failed'
@@ -299,16 +360,29 @@ export type InterviewRoundType =
   | 'phone'
   | 'technical';
 
+export type InterviewRoundTypeStat = {
+  __typename?: 'InterviewRoundTypeStat';
+  cancelled?: Maybe<Scalars['Int']['output']>;
+  failed?: Maybe<Scalars['Int']['output']>;
+  passed?: Maybe<Scalars['Int']['output']>;
+  pending?: Maybe<Scalars['Int']['output']>;
+  type?: Maybe<InterviewRoundType>;
+};
+
 export type JobApplication = {
   __typename?: 'JobApplication';
   appliedAt?: Maybe<Scalars['String']['output']>;
+  boardPosition?: Maybe<Scalars['Int']['output']>;
   company?: Maybe<Scalars['String']['output']>;
   createdAt?: Maybe<Scalars['String']['output']>;
+  deletedAt?: Maybe<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   followUpAt?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   jobUrl?: Maybe<Scalars['String']['output']>;
+  likelyGhosted?: Maybe<Scalars['Boolean']['output']>;
   location?: Maybe<Scalars['String']['output']>;
+  purgeAt?: Maybe<Scalars['String']['output']>;
   role?: Maybe<Scalars['String']['output']>;
   salaryRange?: Maybe<Scalars['String']['output']>;
   source?: Maybe<Scalars['String']['output']>;
@@ -348,6 +422,15 @@ export type LoginResult = {
   totpRequired?: Maybe<Scalars['Boolean']['output']>;
 };
 
+export type McpOAuthGrant = {
+  __typename?: 'McpOAuthGrant';
+  authorizedAt?: Maybe<Scalars['String']['output']>;
+  clientName?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  lastUsedAt?: Maybe<Scalars['String']['output']>;
+  scope?: Maybe<Scalars['String']['output']>;
+};
+
 export type Message = {
   __typename?: 'Message';
   content?: Maybe<Scalars['String']['output']>;
@@ -356,11 +439,18 @@ export type Message = {
   role?: Maybe<Scalars['String']['output']>;
 };
 
+export type MoveApplicationOnBoardInput = {
+  applicationId: Scalars['ID']['input'];
+  orderedIds: Array<Scalars['ID']['input']>;
+  toStatus: ApplicationStatus;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   beginTotpSetup?: Maybe<TotpSetup>;
   bulkAddTagToApplications?: Maybe<Array<JobApplication>>;
   bulkDeleteApplications?: Maybe<Scalars['Boolean']['output']>;
+  bulkRestoreApplications?: Maybe<BulkRestoreResult>;
   bulkUpdateApplications?: Maybe<Array<JobApplication>>;
   compareOffers?: Maybe<Array<OfferComparison>>;
   computeResumeMatchScore?: Maybe<ResumeMatchScore>;
@@ -378,6 +468,7 @@ export type Mutation = {
   createInterviewRound?: Maybe<InterviewRound>;
   createNote?: Maybe<Note>;
   createOffer?: Maybe<Offer>;
+  createShareLink?: Maybe<CreateShareLinkPayload>;
   createSkill?: Maybe<Skill>;
   createWorkExperience?: Maybe<WorkExperience>;
   deleteAccount?: Maybe<Scalars['Boolean']['output']>;
@@ -392,9 +483,11 @@ export type Mutation = {
   deleteLlmApiKey?: Maybe<Scalars['Boolean']['output']>;
   deleteNote?: Maybe<Scalars['Boolean']['output']>;
   deleteOffer?: Maybe<Scalars['Boolean']['output']>;
+  deleteShareLink?: Maybe<Scalars['Boolean']['output']>;
   deleteSkill?: Maybe<Scalars['Boolean']['output']>;
   deleteWorkExperience?: Maybe<Scalars['Boolean']['output']>;
   disableTotp?: Maybe<Scalars['Boolean']['output']>;
+  emptyTrash?: Maybe<EmptyTrashResult>;
   exportDocumentDraftToPdf?: Maybe<Document>;
   extractDocumentText?: Maybe<ExtractDocumentTextPayload>;
   generateCompanyBriefing?: Maybe<Scalars['String']['output']>;
@@ -404,7 +497,10 @@ export type Mutation = {
   loginWithTotp?: Maybe<Scalars['String']['output']>;
   logout?: Maybe<Scalars['Boolean']['output']>;
   markNotificationsRead?: Maybe<Scalars['Boolean']['output']>;
+  /** Place a card in a kanban column. Returns the destination column in its new order. */
+  moveApplicationOnBoard?: Maybe<Array<JobApplication>>;
   parseJobDescription?: Maybe<ParsedJobDescription>;
+  permanentlyDeleteApplication?: Maybe<Scalars['Boolean']['output']>;
   reauthenticate?: Maybe<LoginResult>;
   refreshToken?: Maybe<Scalars['String']['output']>;
   regenerateTotpBackupCodes?: Maybe<ConfirmTotpSetupResult>;
@@ -419,6 +515,8 @@ export type Mutation = {
   requestPasswordReset?: Maybe<Scalars['Boolean']['output']>;
   requestUploadUrl?: Maybe<UploadUrlPayload>;
   resetPassword?: Maybe<Scalars['Boolean']['output']>;
+  restoreApplication?: Maybe<Scalars['Boolean']['output']>;
+  revokeMcpOAuthGrant?: Maybe<Scalars['Boolean']['output']>;
   revokeOtherSessions?: Maybe<Scalars['Boolean']['output']>;
   revokeSession?: Maybe<Scalars['Boolean']['output']>;
   saveLlmApiKey?: Maybe<Scalars['Boolean']['output']>;
@@ -454,6 +552,11 @@ export type MutationBulkAddTagToApplicationsArgs = {
 
 
 export type MutationBulkDeleteApplicationsArgs = {
+  ids: Array<Scalars['ID']['input']>;
+};
+
+
+export type MutationBulkRestoreApplicationsArgs = {
   ids: Array<Scalars['ID']['input']>;
 };
 
@@ -557,6 +660,11 @@ export type MutationCreateOfferArgs = {
 };
 
 
+export type MutationCreateShareLinkArgs = {
+  name: Scalars['String']['input'];
+};
+
+
 export type MutationCreateSkillArgs = {
   input: CreateSkillInput;
 };
@@ -627,6 +735,11 @@ export type MutationDeleteOfferArgs = {
 };
 
 
+export type MutationDeleteShareLinkArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationDeleteSkillArgs = {
   id: Scalars['ID']['input'];
 };
@@ -687,9 +800,19 @@ export type MutationMarkNotificationsReadArgs = {
 };
 
 
+export type MutationMoveApplicationOnBoardArgs = {
+  input: MoveApplicationOnBoardInput;
+};
+
+
 export type MutationParseJobDescriptionArgs = {
   text?: InputMaybe<Scalars['String']['input']>;
   url?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationPermanentlyDeleteApplicationArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -758,6 +881,16 @@ export type MutationRequestUploadUrlArgs = {
 export type MutationResetPasswordArgs = {
   newPassword: Scalars['String']['input'];
   token: Scalars['String']['input'];
+};
+
+
+export type MutationRestoreApplicationArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationRevokeMcpOAuthGrantArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -839,6 +972,7 @@ export type MutationUpdateNotificationPreferencesArgs = {
   digestFrequency?: InputMaybe<DigestFrequency>;
   followUpRemindersEnabled?: InputMaybe<Scalars['Boolean']['input']>;
   pushNotificationsEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  weeklyApplicationGoal?: InputMaybe<Scalars['Int']['input']>;
   weeklyDigestEnabled?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
@@ -910,6 +1044,7 @@ export type NotificationPreferences = {
   digestFrequency?: Maybe<Scalars['String']['output']>;
   followUpRemindersEnabled?: Maybe<Scalars['Boolean']['output']>;
   pushNotificationsEnabled?: Maybe<Scalars['Boolean']['output']>;
+  weeklyApplicationGoal?: Maybe<Scalars['Int']['output']>;
   weeklyDigestEnabled?: Maybe<Scalars['Boolean']['output']>;
 };
 
@@ -933,6 +1068,12 @@ export type Offer = {
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
+export type OfferAnalytics = {
+  __typename?: 'OfferAnalytics';
+  byCurrency?: Maybe<Array<CurrencyGroupStat>>;
+  trend?: Maybe<Array<OfferTrendPoint>>;
+};
+
 export type OfferComparison = {
   __typename?: 'OfferComparison';
   company?: Maybe<Scalars['String']['output']>;
@@ -940,6 +1081,17 @@ export type OfferComparison = {
   offer?: Maybe<Offer>;
   role?: Maybe<Scalars['String']['output']>;
   totalCompensation?: Maybe<Scalars['Int']['output']>;
+};
+
+export type OfferTrendPoint = {
+  __typename?: 'OfferTrendPoint';
+  applicationId?: Maybe<Scalars['ID']['output']>;
+  company?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['String']['output']>;
+  currency?: Maybe<Scalars['String']['output']>;
+  normalizedYearlySalary?: Maybe<Scalars['Float']['output']>;
+  offerId?: Maybe<Scalars['ID']['output']>;
+  role?: Maybe<Scalars['String']['output']>;
 };
 
 export type ParsedJobDescription = {
@@ -956,6 +1108,7 @@ export type Query = {
   activityLogs?: Maybe<Array<ActivityLog>>;
   apiTokens?: Maybe<Array<ApiToken>>;
   application?: Maybe<JobApplication>;
+  applicationChannelAnalytics?: Maybe<ApplicationChannelAnalytics>;
   applicationHealthScore?: Maybe<ApplicationHealthScore>;
   applications?: Maybe<Array<JobApplication>>;
   applicationsPage?: Maybe<ApplicationConnection>;
@@ -965,23 +1118,32 @@ export type Query = {
   conversations?: Maybe<Array<Conversation>>;
   documentDraft?: Maybe<DocumentDraft>;
   documentDrafts?: Maybe<Array<DocumentDraft>>;
+  documentVersionOutcomes?: Maybe<Array<DocumentVersionOutcome>>;
   documents?: Maybe<Array<Document>>;
   educations?: Maybe<Array<Education>>;
   exportUserData?: Maybe<Scalars['String']['output']>;
+  interviewRoundAnalytics?: Maybe<InterviewRoundAnalytics>;
   interviewRounds?: Maybe<Array<InterviewRound>>;
   linkedOAuthAccounts?: Maybe<Array<LinkedOAuthAccount>>;
   llmApiKeys?: Maybe<Array<LlmApiKey>>;
   loginHistory?: Maybe<Array<LoginEvent>>;
+  mcpOAuthGrants?: Maybe<Array<McpOAuthGrant>>;
   me?: Maybe<User>;
   notes?: Maybe<Array<Note>>;
   notificationPreferences?: Maybe<NotificationPreferences>;
   notificationsPage?: Maybe<NotificationConnection>;
+  offerAnalytics?: Maybe<OfferAnalytics>;
   offers?: Maybe<Array<Offer>>;
+  responseTimeAnalytics?: Maybe<ResponseTimeAnalytics>;
   securityActivity?: Maybe<Array<SecurityActivityItem>>;
   sessions?: Maybe<Array<Session>>;
+  shareLinks?: Maybe<Array<ShareLink>>;
+  sharedSummary?: Maybe<SharedSummary>;
   skills?: Maybe<Array<Skill>>;
   totpEnabled?: Maybe<Scalars['Boolean']['output']>;
+  trashedApplications?: Maybe<Array<JobApplication>>;
   unreadNotificationCount?: Maybe<Scalars['Int']['output']>;
+  weeklyApplicationGoal?: Maybe<WeeklyApplicationGoal>;
   workExperiences?: Maybe<Array<WorkExperience>>;
 };
 
@@ -1008,6 +1170,7 @@ export type QueryApplicationsArgs = {
 
 export type QueryApplicationsPageArgs = {
   cursor?: InputMaybe<Scalars['String']['input']>;
+  likelyGhosted?: InputMaybe<Scalars['Boolean']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
   starred?: InputMaybe<Scalars['Boolean']['input']>;
@@ -1060,10 +1223,21 @@ export type QueryOffersArgs = {
   applicationId: Scalars['ID']['input'];
 };
 
+
+export type QuerySharedSummaryArgs = {
+  token: Scalars['String']['input'];
+};
+
 export type RequestUploadUrlInput = {
   applicationId: Scalars['ID']['input'];
   filename: Scalars['String']['input'];
   mimeType: Scalars['String']['input'];
+};
+
+export type ResponseTimeAnalytics = {
+  __typename?: 'ResponseTimeAnalytics';
+  timeInStage?: Maybe<Array<StageDurationStat>>;
+  timeToFirstResponse?: Maybe<TimeToResponseStat>;
 };
 
 export type ResumeMatchScore = {
@@ -1073,6 +1247,13 @@ export type ResumeMatchScore = {
   missingKeywords?: Maybe<Array<Scalars['String']['output']>>;
   score?: Maybe<Scalars['Int']['output']>;
   summary?: Maybe<Scalars['String']['output']>;
+};
+
+export type RoundsToTerminalStat = {
+  __typename?: 'RoundsToTerminalStat';
+  average?: Maybe<Scalars['Float']['output']>;
+  median?: Maybe<Scalars['Float']['output']>;
+  sampleSize?: Maybe<Scalars['Int']['output']>;
 };
 
 export type SecurityActivityItem = {
@@ -1096,6 +1277,24 @@ export type Session = {
   userAgent?: Maybe<Scalars['String']['output']>;
 };
 
+export type ShareLink = {
+  __typename?: 'ShareLink';
+  createdAt?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  lastUsedAt?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+};
+
+export type SharedSummary = {
+  __typename?: 'SharedSummary';
+  applicationsUpdatedLast7Days?: Maybe<Scalars['Int']['output']>;
+  generatedAt?: Maybe<Scalars['String']['output']>;
+  statusCounts?: Maybe<Array<StatusCount>>;
+  totalApplications?: Maybe<Scalars['Int']['output']>;
+  totalInterviews?: Maybe<Scalars['Int']['output']>;
+  upcomingInterviews?: Maybe<Scalars['Int']['output']>;
+};
+
 export type Skill = {
   __typename?: 'Skill';
   category?: Maybe<Scalars['String']['output']>;
@@ -1104,6 +1303,27 @@ export type Skill = {
   name?: Maybe<Scalars['String']['output']>;
   proficiency?: Maybe<Scalars['String']['output']>;
   userId?: Maybe<Scalars['ID']['output']>;
+};
+
+export type StageDurationStat = {
+  __typename?: 'StageDurationStat';
+  averageDays?: Maybe<Scalars['Float']['output']>;
+  medianDays?: Maybe<Scalars['Float']['output']>;
+  sampleSize?: Maybe<Scalars['Int']['output']>;
+  status?: Maybe<ApplicationStatus>;
+};
+
+export type StatusCount = {
+  __typename?: 'StatusCount';
+  count?: Maybe<Scalars['Int']['output']>;
+  status?: Maybe<ApplicationStatus>;
+};
+
+export type TimeToResponseStat = {
+  __typename?: 'TimeToResponseStat';
+  averageDays?: Maybe<Scalars['Float']['output']>;
+  medianDays?: Maybe<Scalars['Float']['output']>;
+  sampleSize?: Maybe<Scalars['Int']['output']>;
 };
 
 export type TotpSetup = {
@@ -1196,6 +1416,14 @@ export type User = {
   name?: Maybe<Scalars['String']['output']>;
   targetRole?: Maybe<Scalars['String']['output']>;
   timezone?: Maybe<Scalars['String']['output']>;
+};
+
+export type WeeklyApplicationGoal = {
+  __typename?: 'WeeklyApplicationGoal';
+  currentWeekCount?: Maybe<Scalars['Int']['output']>;
+  currentWeekStart?: Maybe<Scalars['String']['output']>;
+  streakWeeks?: Maybe<Scalars['Int']['output']>;
+  weeklyApplicationGoal?: Maybe<Scalars['Int']['output']>;
 };
 
 export type WorkExperience = {

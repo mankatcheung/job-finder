@@ -20,6 +20,7 @@ JobApplicationRef.implement({
     source: t.exposeString('source', { nullable: true }),
     followUpAt: t.exposeString('followUpAt', { nullable: true }),
     tags: t.exposeStringList('tags'),
+    boardPosition: t.exposeInt('boardPosition'),
     createdAt: t.exposeString('createdAt'),
     updatedAt: t.exposeString('updatedAt'),
     deletedAt: t.exposeString('deletedAt', { nullable: true }),

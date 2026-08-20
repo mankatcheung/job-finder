@@ -11,6 +11,7 @@ import type { IDeleteApplicationUseCase } from '#src/use-cases/jobs/IDeleteAppli
 import type { IBulkUpdateApplicationsUseCase } from '#src/use-cases/jobs/IBulkUpdateApplicationsUseCase.js';
 import type { IBulkDeleteApplicationsUseCase } from '#src/use-cases/jobs/IBulkDeleteApplicationsUseCase.js';
 import type { IBulkAddTagToApplicationsUseCase } from '#src/use-cases/jobs/IBulkAddTagToApplicationsUseCase.js';
+import type { IMoveApplicationOnBoardUseCase } from '#src/use-cases/jobs/IMoveApplicationOnBoardUseCase.js';
 import type {
   IBulkRestoreApplicationsUseCase,
   BulkRestoreApplicationsResult,
@@ -38,6 +39,7 @@ interface Deps {
   bulkUpdateApplicationsUseCase: IBulkUpdateApplicationsUseCase;
   bulkDeleteApplicationsUseCase: IBulkDeleteApplicationsUseCase;
   bulkAddTagToApplicationsUseCase: IBulkAddTagToApplicationsUseCase;
+  moveApplicationOnBoardUseCase: IMoveApplicationOnBoardUseCase;
   bulkRestoreApplicationsUseCase: IBulkRestoreApplicationsUseCase;
   emptyTrashUseCase: IEmptyTrashUseCase;
   applicationMapper: ApplicationMapper;
@@ -155,6 +157,19 @@ export class ApplicationResolver {
       ...input,
     });
     return this.deps.applicationMapper.toDTO(app);
+  }
+
+  async moveApplicationOnBoard(
+    userId: string,
+    input: { applicationId: string; toStatus: ApplicationStatus; orderedIds: string[] },
+  ): Promise<ApplicationDTO[]> {
+    const column = await this.deps.moveApplicationOnBoardUseCase.execute({
+      userId,
+      applicationId: input.applicationId,
+      toStatus: input.toStatus,
+      orderedIds: input.orderedIds,
+    });
+    return column.map((app) => this.deps.applicationMapper.toDTO(app));
   }
 
   async deleteApplication(userId: string, id: string): Promise<boolean> {

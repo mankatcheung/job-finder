@@ -44,6 +44,7 @@ const app = (overrides: Partial<Record<string, unknown>> = {}) => ({
   starred: false,
   createdAt: '2024-01-01T00:00:00.000Z',
   likelyGhosted: false,
+  boardPosition: 0,
   ...overrides,
 });
 
@@ -126,6 +127,55 @@ describe('KanbanBoard', () => {
     await waitFor(() => {
       expect(screen.getByText('Likely ghosted')).toBeInTheDocument();
     });
+  });
+
+  it('renders cards within a column in boardPosition order', async () => {
+    mockGqlRequest.mockResolvedValue({
+      applications: [
+        app({ id: '1', company: 'Acme', status: 'applied', boardPosition: 1 }),
+        app({ id: '2', company: 'Globex', status: 'applied', boardPosition: 2 }),
+        app({ id: '3', company: 'Initech', status: 'applied', boardPosition: 0 }),
+      ],
+    });
+    render(<KanbanBoard />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('Initech')).toBeInTheDocument();
+    });
+
+    const order = screen
+      .getAllByText(/^(Acme|Globex|Initech)$/)
+      .map((element) => element.textContent);
+    expect(order).toEqual(['Initech', 'Acme', 'Globex']);
+  });
+
+  it('falls back to newest-first when positions tie', async () => {
+    // Nothing has been dragged yet, so every card still sits at 0 — the board
+    // has to look exactly as it did before ranks existed.
+    mockGqlRequest.mockResolvedValue({
+      applications: [
+        app({
+          id: '1',
+          company: 'Acme',
+          status: 'applied',
+          createdAt: '2024-01-01T00:00:00.000Z',
+        }),
+        app({
+          id: '2',
+          company: 'Globex',
+          status: 'applied',
+          createdAt: '2024-06-01T00:00:00.000Z',
+        }),
+      ],
+    });
+    render(<KanbanBoard />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('Acme')).toBeInTheDocument();
+    });
+
+    const order = screen.getAllByText(/^(Acme|Globex)$/).map((element) => element.textContent);
+    expect(order).toEqual(['Globex', 'Acme']);
   });
 
   it('links "New" to the new application route', async () => {

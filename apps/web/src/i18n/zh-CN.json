@@ -742,5 +742,9 @@
   "registerPage.registrationFailed": "注册失败，请重试。",
   "documentPreview.noPreviewAvailable": "此文件类型不支持预览。",
   "documentPreview.openDocument": "打开 {{name}}",
-  "healthScore.applicationHealth": "求职申请健康度"
+  "healthScore.applicationHealth": "求职申请健康度",
+  "board.dragStart": "已拿起{{company}}。使用方向键移动，空格键放下，Esc 键取消。",
+  "board.dragOver": "{{company}}位于“{{column}}”栏上方。",
+  "board.dragEnd": "{{company}}已放入“{{column}}”栏。",
+  "board.dragCancel": "已取消移动。{{company}}已回到原位。"
 }
