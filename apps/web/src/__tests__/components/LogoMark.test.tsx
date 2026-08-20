@@ -35,11 +35,24 @@ describe('LogoMark', () => {
     expect(svg).toHaveAttribute('aria-hidden', 'true');
   });
 
-  it('contains the brand blue rectangles and checkmark path', () => {
+  it('draws two chevrons in brand blue', () => {
     const { container } = render(<LogoMark />);
-    const rects = container.querySelectorAll('rect');
-    expect(rects.length).toBe(3);
-    const path = container.querySelector('path');
-    expect(path).toBeInTheDocument();
+    const paths = container.querySelectorAll('path');
+    expect(paths.length).toBe(2);
+    for (const path of paths) {
+      expect(path).toHaveAttribute('stroke', '#1d4ed8');
+    }
+  });
+
+  it('gives the trailing chevron a lighter stroke than the leading one', () => {
+    const { container } = render(<LogoMark />);
+    const [trailing, leading] = container.querySelectorAll('path');
+
+    // The whole point of the mark. Two chevrons at equal weight read as a
+    // media control; unequal ones read as a position and the one before it.
+    // Equalising these would quietly turn the logo into a fast-forward icon.
+    expect(Number(trailing.getAttribute('stroke-width'))).toBeLessThan(
+      Number(leading.getAttribute('stroke-width')),
+    );
   });
 });
