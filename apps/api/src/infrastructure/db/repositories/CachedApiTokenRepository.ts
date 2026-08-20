@@ -4,7 +4,7 @@ import type {
   CreateApiTokenData,
 } from '#src/use-cases/ports/IApiTokenRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { CACHE, CACHE_KEYS } from '#src/constants.js';
 
 interface Deps {
   drizzleApiTokenRepository: IApiTokenRepository;
@@ -45,11 +45,28 @@ export class CachedApiTokenRepository implements IApiTokenRepository {
     return result;
   }
 
-  // Not invalidated: fires on every single validated request, so busting
-  // findByTokenHash/findById on every call would defeat the point of caching
-  // them at all.
+  /**
+   * Not invalidated: fires on every validated request, so busting
+   * findByTokenHash/findById here would defeat the point of caching them.
+   *
+   * It is throttled instead. This used to be a database write on every request
+   * — a remote write, from a serverless function, to record that a token was
+   * used. Now the first caller in each window writes and the rest skip it,
+   * read by seeing whether `getOrSet` had to call its fetch. The field feeds a
+   * "last used" column in settings, where a minute of granularity reads the
+   * same as none.
+   */
   async updateLastUsed(id: string): Promise<void> {
-    await this.inner.updateLastUsed(id);
+    let firstInWindow = false;
+    await this.cache.getOrSet(
+      CACHE_KEYS.apiTokenLastUsed(id),
+      async () => {
+        firstInWindow = true;
+        return 1;
+      },
+      CACHE.TOKEN_LAST_USED_TTL_MS,
+    );
+    if (firstInWindow) await this.inner.updateLastUsed(id);
   }
 
   async delete(id: string): Promise<void> {

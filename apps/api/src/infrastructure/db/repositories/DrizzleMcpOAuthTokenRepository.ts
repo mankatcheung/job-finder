@@ -54,13 +54,13 @@ export class DrizzleMcpOAuthTokenRepository implements IMcpOAuthTokenRepository 
    * Grant-wide revocation. Only touches rows that are still live so an
    * already-revoked token keeps its original `revokedAt` for the audit trail.
    */
-  async revokeFamily(familyId: string, revokedAt: Date): Promise<void> {
-    await this.db
+  async revokeFamily(familyId: string, revokedAt: Date): Promise<string[]> {
+    const rows = await this.db
       .update(mcpOAuthAccessToken)
       .set({ revokedAt })
-      .where(
-        and(eq(mcpOAuthAccessToken.familyId, familyId), isNull(mcpOAuthAccessToken.revokedAt)),
-      );
+      .where(and(eq(mcpOAuthAccessToken.familyId, familyId), isNull(mcpOAuthAccessToken.revokedAt)))
+      .returning({ tokenHash: mcpOAuthAccessToken.tokenHash });
+    return rows.map((row) => row.tokenHash);
   }
 
   private toEntity(row: typeof mcpOAuthAccessToken.$inferSelect): McpOAuthAccessToken {
