@@ -3,7 +3,7 @@ import type { IInterviewRoundRepository } from '#src/use-cases/ports/IInterviewR
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IPushSubscriptionRepository } from '#src/use-cases/ports/IPushSubscriptionRepository.js';
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
-import type { WebPushService } from '#src/infrastructure/push/WebPushService.js';
+import type { IWebPushService } from '#src/use-cases/ports/IWebPushService.js';
 import type { ICreateNotificationUseCase } from '#src/use-cases/notifications/ICreateNotificationUseCase.js';
 import type { NotificationType } from '#src/domain/notification/Notification.js';
 import { REMINDER_WINDOW_MS, NOTIFICATION_TYPE } from '#src/constants.js';
@@ -14,7 +14,7 @@ interface Deps {
   userRepository: IUserRepository;
   pushSubscriptionRepository: IPushSubscriptionRepository;
   logger: ILogger;
-  webPushService: WebPushService;
+  webPushService: IWebPushService;
   createNotificationUseCase: ICreateNotificationUseCase;
 }
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { SendPushNotificationsUseCase } from '#src/use-cases/push/SendPushNotificationsUseCase.js';
-import type { WebPushService } from '#src/infrastructure/push/WebPushService.js';
+import type { IWebPushService } from '#src/use-cases/ports/IWebPushService.js';
 import {
   makeApplicationRepository,
   makeApplication,
@@ -16,8 +16,8 @@ import {
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 
-const makeWebPushService = (overrides?: Partial<WebPushService>): WebPushService =>
-  stub<WebPushService>({
+const makeWebPushService = (overrides?: Partial<IWebPushService>): IWebPushService =>
+  stub<IWebPushService>({
     send: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   });
