@@ -43,6 +43,11 @@ const makeApplicationRepository = (): IApplicationRepository => ({
   delete: vi.fn(),
   findDueForReminder: vi.fn(),
   updateReminderSentAt: vi.fn(),
+  findByIdIncludingTrashed: vi.fn(),
+  findTrashedByUserId: vi.fn(),
+  findDueForPurge: vi.fn(),
+  softDelete: vi.fn(),
+  restore: vi.fn(),
 });
 
 describe('CompareOffersUseCase', () => {

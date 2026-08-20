@@ -1,4 +1,5 @@
 import { eq, and, or, desc, gte, lte, lt, like, isNull, isNotNull, inArray } from 'drizzle-orm';
+import type { SQL } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
 import { jobApplication, applicationTag } from '../schema.js';
 import type { Application } from '#src/domain/application/Application.js';
@@ -48,7 +49,7 @@ export class DrizzleApplicationRepository implements IApplicationRepository {
     userId: string,
     filters?: { status?: ApplicationStatus },
   ): Promise<Application[]> {
-    const conditions = [eq(jobApplication.userId, userId)];
+    const conditions = [eq(jobApplication.userId, userId), isNull(jobApplication.deletedAt)];
     if (filters?.status) conditions.push(eq(jobApplication.status, filters.status));
 
     const rows = await this.db
@@ -68,7 +69,7 @@ export class DrizzleApplicationRepository implements IApplicationRepository {
     const search = filters.search?.trim();
     const { limit, cursor } = pagination;
 
-    const conditions = [eq(jobApplication.userId, userId)];
+    const conditions = [eq(jobApplication.userId, userId), isNull(jobApplication.deletedAt)];
     if (filters.status) conditions.push(eq(jobApplication.status, filters.status));
     if (filters.starred) conditions.push(eq(jobApplication.starred, true));
     if (filters.likelyGhosted) {
@@ -125,15 +126,62 @@ export class DrizzleApplicationRepository implements IApplicationRepository {
     return { items: withTags.map((r) => this.toEntity(r)), hasNextPage };
   }
 
+  /**
+   * Live applications only. Trashed ones read as missing, which is what makes
+   * the 38 use cases that gate on this refuse to act on one without any of
+   * them having to know Trash exists.
+   */
   async findById(id: string): Promise<Application | null> {
-    const [row] = await this.db
-      .select()
-      .from(jobApplication)
-      .where(eq(jobApplication.id, id))
-      .limit(1);
+    return this.findOne(and(eq(jobApplication.id, id), isNull(jobApplication.deletedAt)));
+  }
+
+  /**
+   * The deliberate exception, for the two callers that must see a trashed
+   * application: the detail query — so a link from an old email or
+   * notification lands on a read-only view with a Restore banner rather than a
+   * 404 — and the Trash operations themselves.
+   */
+  async findByIdIncludingTrashed(id: string): Promise<Application | null> {
+    return this.findOne(eq(jobApplication.id, id));
+  }
+
+  private async findOne(where: SQL | undefined): Promise<Application | null> {
+    const [row] = await this.db.select().from(jobApplication).where(where).limit(1);
     if (!row) return null;
     const [withTags] = await this.attachTags([row]);
     return this.toEntity(withTags);
+  }
+
+  async findTrashedByUserId(userId: string): Promise<Application[]> {
+    const rows = await this.db
+      .select()
+      .from(jobApplication)
+      .where(and(eq(jobApplication.userId, userId), isNotNull(jobApplication.deletedAt)))
+      .orderBy(desc(jobApplication.deletedAt), desc(jobApplication.id));
+    const withTags = await this.attachTags(rows);
+    return withTags.map((r) => this.toEntity(r));
+  }
+
+  /** Trashed longer than the retention window, so the purge job can finish the job. */
+  async findDueForPurge(deletedBefore: Date): Promise<Application[]> {
+    const rows = await this.db
+      .select()
+      .from(jobApplication)
+      .where(
+        and(isNotNull(jobApplication.deletedAt), lte(jobApplication.deletedAt, deletedBefore)),
+      );
+    const withTags = await this.attachTags(rows);
+    return withTags.map((r) => this.toEntity(r));
+  }
+
+  async softDelete(id: string, deletedAt: Date): Promise<void> {
+    await this.db.update(jobApplication).set({ deletedAt }).where(eq(jobApplication.id, id));
+  }
+
+  async restore(id: string): Promise<void> {
+    // One statement, because the children were never touched — they are hidden
+    // by their parent being hidden, not by anything having happened to them.
+    await this.db.update(jobApplication).set({ deletedAt: null }).where(eq(jobApplication.id, id));
   }
 
   async create(data: CreateApplicationData): Promise<Application> {
@@ -232,6 +280,7 @@ export class DrizzleApplicationRepository implements IApplicationRepository {
       .from(jobApplication)
       .where(
         and(
+          isNull(jobApplication.deletedAt),
           gte(jobApplication.followUpAt, now),
           lte(jobApplication.followUpAt, in24h),
           or(
@@ -268,6 +317,7 @@ export class DrizzleApplicationRepository implements IApplicationRepository {
       followUpAt: row.followUpAt,
       tags: row.tags,
       reminderSentAt: row.reminderSentAt,
+      deletedAt: row.deletedAt,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

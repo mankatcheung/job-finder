@@ -333,6 +333,7 @@ export const ROUTES = {
   HEALTH: '/health',
   MCP: '/mcp',
   DIGEST_SEND: '/admin/digest/send',
+  TRASH_PURGE: '/admin/trash/purge',
   REMINDERS_SEND: '/admin/reminders/send',
   PUSH_NOTIFICATIONS_SEND: '/admin/push-notifications/send',
   VAPID_PUBLIC_KEY: '/vapid-public-key',
@@ -505,9 +506,15 @@ export const CACHE_PROVIDER = {
  * Cache-key builders. Centralising the prefixes keeps the read paths and the
  * invalidation paths in lock-step.
  */
+/** Deleted applications sit in Trash this long before the purge job removes them. */
+export const TRASH = {
+  RETENTION_MS: 30 * 24 * 60 * 60 * 1000,
+} as const;
+
 export const CACHE_KEYS = {
   appById: (id: string) => `apps:byId:${id}`,
   appListPrefix: (userId: string) => `apps:list:${userId}:`,
+  appTrashList: (userId: string) => `apps:trash:${userId}`,
   appList: (userId: string, status: string) => `apps:list:${userId}:${status}`,
   noteById: (id: string) => `notes:byId:${id}`,
   noteList: (applicationId: string) => `notes:list:${applicationId}`,

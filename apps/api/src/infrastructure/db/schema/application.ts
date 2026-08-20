@@ -27,6 +27,15 @@ export const jobApplication = sqliteTable(
     source: text('source'),
     followUpAt: integer('followUpAt', { mode: 'timestamp_ms' }),
     reminderSentAt: integer('reminderSentAt', { mode: 'timestamp_ms' }),
+    /**
+     * In Trash since. Null for a live application.
+     *
+     * The only soft delete in this schema — everything else is a hard delete,
+     * and the children below stay untouched while this is set: they are hidden
+     * because their parent is, not because anything happened to them, which is
+     * what makes restore a single UPDATE.
+     */
+    deletedAt: integer('deletedAt', { mode: 'timestamp_ms' }),
     createdAt: integer('createdAt', { mode: 'timestamp_ms' })
       .notNull()
       .$defaultFn(() => new Date()),
@@ -38,6 +47,8 @@ export const jobApplication = sqliteTable(
   (table) => [
     index('JobApplication_userId_idx').on(table.userId),
     index('JobApplication_userId_status_idx').on(table.userId, table.status),
+    // Every list query filters on it, and the purge job scans by it.
+    index('JobApplication_deletedAt_idx').on(table.deletedAt),
   ],
 );
 

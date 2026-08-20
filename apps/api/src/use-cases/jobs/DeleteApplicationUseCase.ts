@@ -1,7 +1,5 @@
 import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
-import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentRepository.js';
-import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
 import type {
   IDeleteApplicationUseCase,
   DeleteApplicationInput,
@@ -9,27 +7,26 @@ import type {
 
 interface Deps {
   applicationRepository: IApplicationRepository;
-  documentRepository: IDocumentRepository;
-  storageProvider: IStorageProvider;
+  now: () => Date;
 }
 
+/**
+ * Moves an application to Trash. It stops being visible everywhere at once —
+ * lists, search, analytics, the reminder and digest jobs, the MCP tools —
+ * because the repository filters it out rather than each caller remembering to.
+ *
+ * Nothing is destroyed here. The documents keep their blobs and the eight
+ * child tables keep their rows, which is what lets restore be a single UPDATE.
+ * PurgeExpiredApplicationsUseCase does the destroying, thirty days later.
+ */
 export class DeleteApplicationUseCase implements IDeleteApplicationUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: DeleteApplicationInput): Promise<void> {
     const app = await this.deps.applicationRepository.findById(input.applicationId);
-    if (!app) {
-      throw new NotFoundError('Application not found');
-    }
-    if (app.userId !== input.userId) {
-      throw new ForbiddenError('Forbidden');
-    }
+    if (!app) throw new NotFoundError('Application not found');
+    if (app.userId !== input.userId) throw new ForbiddenError('Forbidden');
 
-    const documents = await this.deps.documentRepository.findAllByApplicationId(
-      input.applicationId,
-    );
-    await Promise.all(documents.map((doc) => this.deps.storageProvider.delete(doc.storageKey)));
-
-    await this.deps.applicationRepository.delete(input.applicationId);
+    await this.deps.applicationRepository.softDelete(input.applicationId, this.deps.now());
   }
 }

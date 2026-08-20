@@ -65,3 +65,15 @@ builder.queryField('application', (t) =>
     },
   }),
 );
+
+builder.queryField('trashedApplications', (t) =>
+  t.field({
+    type: [JobApplicationRef],
+    resolve: async (_root, _args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { applicationResolver } = ctx.diScope.cradle;
+      return applicationResolver.listTrashedApplications(ctx.user.sub);
+    },
+  }),
+);

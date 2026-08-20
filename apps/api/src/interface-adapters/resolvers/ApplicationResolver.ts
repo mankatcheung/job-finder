@@ -3,6 +3,9 @@ import type { ICreateApplicationUseCase } from '#src/use-cases/jobs/ICreateAppli
 import type { IGetApplicationsUseCase } from '#src/use-cases/jobs/IGetApplicationsUseCase.js';
 import type { IGetApplicationsPageUseCase } from '#src/use-cases/jobs/IGetApplicationsPageUseCase.js';
 import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplicationUseCase.js';
+import type { IListTrashedApplicationsUseCase } from '#src/use-cases/jobs/IListTrashedApplicationsUseCase.js';
+import type { IRestoreApplicationUseCase } from '#src/use-cases/jobs/IRestoreApplicationUseCase.js';
+import type { IPermanentlyDeleteApplicationUseCase } from '#src/use-cases/jobs/IPermanentlyDeleteApplicationUseCase.js';
 import type { IUpdateApplicationUseCase } from '#src/use-cases/jobs/IUpdateApplicationUseCase.js';
 import type { IDeleteApplicationUseCase } from '#src/use-cases/jobs/IDeleteApplicationUseCase.js';
 import type { IBulkUpdateApplicationsUseCase } from '#src/use-cases/jobs/IBulkUpdateApplicationsUseCase.js';
@@ -19,6 +22,9 @@ interface Deps {
   getApplicationsUseCase: IGetApplicationsUseCase;
   getApplicationsPageUseCase: IGetApplicationsPageUseCase;
   getApplicationUseCase: IGetApplicationUseCase;
+  listTrashedApplicationsUseCase: IListTrashedApplicationsUseCase;
+  restoreApplicationUseCase: IRestoreApplicationUseCase;
+  permanentlyDeleteApplicationUseCase: IPermanentlyDeleteApplicationUseCase;
   updateApplicationUseCase: IUpdateApplicationUseCase;
   deleteApplicationUseCase: IDeleteApplicationUseCase;
   bulkUpdateApplicationsUseCase: IBulkUpdateApplicationsUseCase;
@@ -92,6 +98,21 @@ export class ApplicationResolver {
   async getApplication(userId: string, id: string): Promise<ApplicationDTO> {
     const app = await this.deps.getApplicationUseCase.execute({ userId, applicationId: id });
     return this.deps.applicationMapper.toDTO(app);
+  }
+
+  async listTrashedApplications(userId: string): Promise<ApplicationDTO[]> {
+    const apps = await this.deps.listTrashedApplicationsUseCase.execute(userId);
+    return apps.map((a) => this.deps.applicationMapper.toDTO(a));
+  }
+
+  async restoreApplication(userId: string, id: string): Promise<boolean> {
+    await this.deps.restoreApplicationUseCase.execute({ userId, applicationId: id });
+    return true;
+  }
+
+  async permanentlyDeleteApplication(userId: string, id: string): Promise<boolean> {
+    await this.deps.permanentlyDeleteApplicationUseCase.execute({ userId, applicationId: id });
+    return true;
   }
 
   async createApplication(userId: string, input: CreateInput): Promise<ApplicationDTO> {

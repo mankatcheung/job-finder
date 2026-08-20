@@ -1,99 +1,60 @@
 import { describe, it, expect, vi } from 'vitest';
 import { DeleteApplicationUseCase } from '#src/use-cases/jobs/DeleteApplicationUseCase.js';
-import {
-  makeApplicationRepository,
-  makeDocumentRepository,
-  makeStorageProvider,
-  makeApplication,
-  makeDocument,
-} from '#src/__tests__/helpers/mocks.js';
+import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
+import { makeApplicationRepository, makeApplication } from '#src/__tests__/helpers/mocks.js';
+
+const NOW = new Date('2026-08-20T12:00:00.000Z');
 
 describe('DeleteApplicationUseCase', () => {
   it('throws NOT_FOUND when the application does not exist', async () => {
     const applicationRepository = makeApplicationRepository({
       findById: vi.fn().mockResolvedValue(null),
     });
-    const documentRepository = makeDocumentRepository();
-    const storageProvider = makeStorageProvider();
 
-    const useCase = new DeleteApplicationUseCase({
-      applicationRepository,
-      documentRepository,
-      storageProvider,
-    });
-    const err = await useCase
-      .execute({ userId: 'user-1', applicationId: 'app-missing' })
-      .catch((e) => e);
+    const useCase = new DeleteApplicationUseCase({ applicationRepository, now: () => NOW });
 
-    expect(err).toBeInstanceOf(Error);
-    expect((err as { code: string }).code).toBe('NOT_FOUND');
-    expect(applicationRepository.delete).not.toHaveBeenCalled();
+    await expect(
+      useCase.execute({ userId: 'user-1', applicationId: 'app-1' }),
+    ).rejects.toBeInstanceOf(NotFoundError);
+    expect(applicationRepository.softDelete).not.toHaveBeenCalled();
   });
 
   it('throws FORBIDDEN when the application belongs to another user', async () => {
     const applicationRepository = makeApplicationRepository({
-      findById: vi.fn().mockResolvedValue(makeApplication({ userId: 'other-user' })),
+      findById: vi.fn().mockResolvedValue(makeApplication({ userId: 'someone-else' })),
     });
 
-    const useCase = new DeleteApplicationUseCase({
-      applicationRepository,
-      documentRepository: makeDocumentRepository(),
-      storageProvider: makeStorageProvider(),
-    });
-    const err = await useCase.execute({ userId: 'user-1', applicationId: 'app-1' }).catch((e) => e);
+    const useCase = new DeleteApplicationUseCase({ applicationRepository, now: () => NOW });
 
-    expect(err).toBeInstanceOf(Error);
-    expect((err as { code: string }).code).toBe('FORBIDDEN');
+    await expect(
+      useCase.execute({ userId: 'user-1', applicationId: 'app-1' }),
+    ).rejects.toBeInstanceOf(ForbiddenError);
+    expect(applicationRepository.softDelete).not.toHaveBeenCalled();
+  });
+
+  it('moves it to Trash rather than deleting it', async () => {
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(makeApplication({ userId: 'user-1' })),
+    });
+
+    const useCase = new DeleteApplicationUseCase({ applicationRepository, now: () => NOW });
+    await useCase.execute({ userId: 'user-1', applicationId: 'app-1' });
+
+    expect(applicationRepository.softDelete).toHaveBeenCalledWith('app-1', NOW);
     expect(applicationRepository.delete).not.toHaveBeenCalled();
   });
 
-  it('deletes each document from storage before deleting the application', async () => {
-    const docs = [
-      makeDocument({ id: 'doc-1', storageKey: 'path/to/resume.pdf' }),
-      makeDocument({ id: 'doc-2', storageKey: 'path/to/cover.pdf' }),
-    ];
-    const applicationRepository = makeApplicationRepository({
-      findById: vi.fn().mockResolvedValue(makeApplication()),
-      delete: vi.fn().mockResolvedValue(undefined),
-    });
-    const documentRepository = makeDocumentRepository({
-      findAllByApplicationId: vi.fn().mockResolvedValue(docs),
-    });
-    const storageProvider = makeStorageProvider({
-      delete: vi.fn().mockResolvedValue(undefined),
-    });
+  it('does not touch storage — the blobs have to survive for a restore to mean anything', () => {
+    // This use case used to delete every document from storage before removing
+    // the row. That moved to PermanentlyDeleteApplicationUseCase: deleting the
+    // files here would leave a restored application pointing at nothing.
+    const deps = Object.keys(
+      new DeleteApplicationUseCase({
+        applicationRepository: makeApplicationRepository(),
+        now: () => NOW,
+      }) as unknown as Record<string, unknown>,
+    );
 
-    const useCase = new DeleteApplicationUseCase({
-      applicationRepository,
-      documentRepository,
-      storageProvider,
-    });
-    await useCase.execute({ userId: 'user-1', applicationId: 'app-1' });
-
-    expect(storageProvider.delete).toHaveBeenCalledTimes(2);
-    expect(storageProvider.delete).toHaveBeenCalledWith('path/to/resume.pdf');
-    expect(storageProvider.delete).toHaveBeenCalledWith('path/to/cover.pdf');
-    expect(applicationRepository.delete).toHaveBeenCalledWith('app-1');
-  });
-
-  it('deletes the application even when there are no documents', async () => {
-    const applicationRepository = makeApplicationRepository({
-      findById: vi.fn().mockResolvedValue(makeApplication()),
-      delete: vi.fn().mockResolvedValue(undefined),
-    });
-    const documentRepository = makeDocumentRepository({
-      findAllByApplicationId: vi.fn().mockResolvedValue([]),
-    });
-    const storageProvider = makeStorageProvider();
-
-    const useCase = new DeleteApplicationUseCase({
-      applicationRepository,
-      documentRepository,
-      storageProvider,
-    });
-    await useCase.execute({ userId: 'user-1', applicationId: 'app-1' });
-
-    expect(storageProvider.delete).not.toHaveBeenCalled();
-    expect(applicationRepository.delete).toHaveBeenCalledWith('app-1');
+    expect(deps).not.toContain('storageProvider');
   });
 });

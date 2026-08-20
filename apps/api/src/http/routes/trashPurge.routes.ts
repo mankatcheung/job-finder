@@ -1,0 +1,41 @@
+import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
+import type { Cradle } from '#src/http/container.js';
+import { ENV, ROUTES } from '#src/constants.js';
+import { isAuthorizedCronTrigger } from '#src/http/routes/cronAuth.js';
+
+/**
+ * Removes applications that have served their thirty days in Trash. Driven by
+ * Vercel Cron, alongside the digest and reminder routes it is modelled on.
+ *
+ * Reports the failure count rather than swallowing it: the use case keeps going
+ * past a failure so one unreachable blob cannot strand everything behind it,
+ * which would otherwise make a partial run indistinguishable from a clean one.
+ */
+export function trashPurgeRoutes(getCradle: () => Cradle): RouteDefinition[] {
+  return [
+    {
+      method: ['GET', 'POST'],
+      path: ROUTES.TRASH_PURGE,
+      handler: async (req, res) => {
+        if (!process.env[ENV.CRON_SECRET]) {
+          res.status(503).send({ error: 'Purge not configured (CRON_SECRET missing)' });
+          return;
+        }
+
+        if (!isAuthorizedCronTrigger(req, ENV.CRON_SECRET)) {
+          res.status(401).send({ error: 'Unauthorized' });
+          return;
+        }
+
+        const { purgeExpiredApplicationsUseCase, logger } = getCradle();
+        try {
+          const { purged, failed } = await purgeExpiredApplicationsUseCase.execute();
+          res.send({ ok: failed === 0, purged, failed });
+        } catch (err) {
+          logger.error('Trash purge failed', err);
+          res.status(500).send({ error: 'Purge failed' });
+        }
+      },
+    },
+  ];
+}

@@ -1,3 +1,7 @@
+import type { RestoreApplicationUseCase } from '#src/use-cases/jobs/RestoreApplicationUseCase.js';
+import type { PermanentlyDeleteApplicationUseCase } from '#src/use-cases/jobs/PermanentlyDeleteApplicationUseCase.js';
+import type { ListTrashedApplicationsUseCase } from '#src/use-cases/jobs/ListTrashedApplicationsUseCase.js';
+import type { PurgeExpiredApplicationsUseCase } from '#src/use-cases/jobs/PurgeExpiredApplicationsUseCase.js';
 import type { db } from '#src/infrastructure/db/client.js';
 
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
@@ -416,6 +420,10 @@ export interface Cradle {
   getApplicationUseCase: GetApplicationUseCase;
   updateApplicationUseCase: UpdateApplicationUseCase;
   deleteApplicationUseCase: DeleteApplicationUseCase;
+  restoreApplicationUseCase: RestoreApplicationUseCase;
+  permanentlyDeleteApplicationUseCase: PermanentlyDeleteApplicationUseCase;
+  listTrashedApplicationsUseCase: ListTrashedApplicationsUseCase;
+  purgeExpiredApplicationsUseCase: PurgeExpiredApplicationsUseCase;
   bulkUpdateApplicationsUseCase: BulkUpdateApplicationsUseCase;
   bulkDeleteApplicationsUseCase: BulkDeleteApplicationsUseCase;
   bulkAddTagToApplicationsUseCase: BulkAddTagToApplicationsUseCase;

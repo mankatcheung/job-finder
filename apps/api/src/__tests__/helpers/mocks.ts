@@ -82,6 +82,11 @@ export const makeApplicationRepository = (
   delete: vi.fn(),
   findDueForReminder: vi.fn().mockResolvedValue([]),
   updateReminderSentAt: vi.fn().mockResolvedValue(undefined),
+  findByIdIncludingTrashed: vi.fn(),
+  findTrashedByUserId: vi.fn().mockResolvedValue([]),
+  findDueForPurge: vi.fn().mockResolvedValue([]),
+  softDelete: vi.fn().mockResolvedValue(undefined),
+  restore: vi.fn().mockResolvedValue(undefined),
   ...overrides,
 });
 
@@ -443,6 +448,7 @@ export const makeApplication = (overrides?: Partial<Application>): Application =
   appliedAt: null,
   starred: false,
   source: null,
+  deletedAt: null,
   followUpAt: null,
   tags: [],
   reminderSentAt: null,

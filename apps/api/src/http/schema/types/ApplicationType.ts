@@ -21,6 +21,7 @@ JobApplicationRef.implement({
     tags: t.exposeStringList('tags'),
     createdAt: t.exposeString('createdAt'),
     updatedAt: t.exposeString('updatedAt'),
+    deletedAt: t.exposeString('deletedAt', { nullable: true }),
     likelyGhosted: t.exposeBoolean('likelyGhosted'),
   }),
 });
