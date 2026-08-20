@@ -1,10 +1,11 @@
+import { ValidationError } from '#src/use-cases/errors/DomainError.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
 import {
   APPLICATION_STATUSES,
   type ApplicationStatus,
 } from '#src/domain/application/ApplicationStatus.js';
-import { ERROR_CODES, DEFAULTS } from '#src/constants.js';
+import { DEFAULTS } from '#src/constants.js';
 import type {
   IImportUserDataUseCase,
   ImportSummary,
@@ -44,15 +45,12 @@ export class ImportUserDataUseCase implements IImportUserDataUseCase {
     try {
       parsed = JSON.parse(rawData);
     } catch {
-      throw Object.assign(new Error('Import file is not valid JSON'), {
-        code: ERROR_CODES.VALIDATION,
-      });
+      throw new ValidationError('Import file is not valid JSON');
     }
 
     if (!isRecord(parsed) || !Array.isArray(parsed.applications)) {
-      throw Object.assign(
-        new Error('Import file must contain an "applications" array — export your data first'),
-        { code: ERROR_CODES.VALIDATION },
+      throw new ValidationError(
+        'Import file must contain an "applications" array — export your data first',
       );
     }
 

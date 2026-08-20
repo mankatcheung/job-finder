@@ -1,7 +1,7 @@
+import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import { nanoid } from 'nanoid';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
-import { ERROR_CODES } from '#src/constants.js';
 import { assertAllowedMimeType } from '#src/use-cases/documents/documentValidation.js';
 import type {
   IRequestUploadUrlUseCase,
@@ -29,10 +29,10 @@ export class RequestUploadUrlUseCase implements IRequestUploadUrlUseCase {
 
     const app = await this.deps.applicationRepository.findById(input.applicationId);
     if (!app) {
-      throw Object.assign(new Error('Application not found'), { code: ERROR_CODES.NOT_FOUND });
+      throw new NotFoundError('Application not found');
     }
     if (app.userId !== input.userId) {
-      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+      throw new ForbiddenError('Forbidden');
     }
 
     const sanitized = sanitizeFilename(input.filename);

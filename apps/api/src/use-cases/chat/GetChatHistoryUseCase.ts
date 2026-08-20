@@ -1,7 +1,7 @@
+import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IMessageRepository } from '#src/use-cases/ports/IMessageRepository.js';
 import type { IConversationRepository } from '#src/use-cases/ports/IConversationRepository.js';
 import type { Message } from '#src/domain/message/Message.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IGetChatHistoryUseCase,
   GetChatHistoryInput,
@@ -18,10 +18,10 @@ export class GetChatHistoryUseCase implements IGetChatHistoryUseCase {
   async execute(input: GetChatHistoryInput): Promise<Message[]> {
     const conversation = await this.deps.conversationRepository.findById(input.conversationId);
     if (!conversation) {
-      throw Object.assign(new Error('Conversation not found'), { code: ERROR_CODES.NOT_FOUND });
+      throw new NotFoundError('Conversation not found');
     }
     if (conversation.userId !== input.userId) {
-      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+      throw new ForbiddenError('Forbidden');
     }
 
     return this.deps.messageRepository.findAllByConversationId(input.conversationId);

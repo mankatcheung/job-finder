@@ -1,8 +1,8 @@
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
 import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IExportUserDataUseCase,
   ExportUserDataOutput,
@@ -20,7 +20,7 @@ export class ExportUserDataUseCase implements IExportUserDataUseCase {
 
   async execute(userId: string): Promise<ExportUserDataOutput> {
     const user = await this.deps.userRepository.findById(userId);
-    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!user) throw new NotFoundError('User not found');
 
     const applications = await this.deps.applicationRepository.findAllByUserId(userId);
 

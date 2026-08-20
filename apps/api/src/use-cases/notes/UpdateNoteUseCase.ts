@@ -1,6 +1,6 @@
+import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IUpdateNoteUseCase,
   UpdateNoteInput,
@@ -18,12 +18,12 @@ export class UpdateNoteUseCase implements IUpdateNoteUseCase {
   async execute(input: UpdateNoteInput): Promise<UpdateNoteOutput> {
     const note = await this.deps.noteRepository.findById(input.noteId);
     if (!note) {
-      throw Object.assign(new Error('Note not found'), { code: ERROR_CODES.NOT_FOUND });
+      throw new NotFoundError('Note not found');
     }
 
     const app = await this.deps.applicationRepository.findById(note.applicationId);
     if (!app || app.userId !== input.userId) {
-      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+      throw new ForbiddenError('Forbidden');
     }
 
     return this.deps.noteRepository.update(input.noteId, input.content);

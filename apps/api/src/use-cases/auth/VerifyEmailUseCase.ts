@@ -1,7 +1,7 @@
+import { UnauthorizedError } from '#src/use-cases/errors/DomainError.js';
 import { createHash } from 'crypto';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IEmailVerificationTokenRepository } from '#src/use-cases/ports/IEmailVerificationTokenRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IVerifyEmailUseCase,
   VerifyEmailInput,
@@ -25,9 +25,7 @@ export class VerifyEmailUseCase implements IVerifyEmailUseCase {
       verificationToken.usedAt ||
       verificationToken.expiresAt < new Date()
     ) {
-      throw Object.assign(new Error('Invalid or expired verification link'), {
-        code: ERROR_CODES.UNAUTHORIZED,
-      });
+      throw new UnauthorizedError('Invalid or expired verification link');
     }
 
     await this.deps.userRepository.update(verificationToken.userId, {

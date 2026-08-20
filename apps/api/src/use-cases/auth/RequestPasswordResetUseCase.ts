@@ -1,9 +1,10 @@
+import { RateLimitedError } from '#src/use-cases/errors/DomainError.js';
 import { createHash, randomBytes } from 'crypto';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IPasswordResetTokenRepository } from '#src/use-cases/ports/IPasswordResetTokenRepository.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
-import { ERROR_CODES, PASSWORD_RESET_TOKEN } from '#src/constants.js';
+import { PASSWORD_RESET_TOKEN } from '#src/constants.js';
 import type {
   IRequestPasswordResetUseCase,
   RequestPasswordResetInput,
@@ -32,9 +33,7 @@ export class RequestPasswordResetUseCase implements IRequestPasswordResetUseCase
       ? await this.deps.passwordResetRateLimiter.consume(`password-reset:ip:${input.ipAddress}`)
       : true;
     if (!emailAllowed || !ipAllowed) {
-      throw Object.assign(new Error('Too many password reset requests. Try again later.'), {
-        code: ERROR_CODES.RATE_LIMITED,
-      });
+      throw new RateLimitedError('Too many password reset requests. Try again later.');
     }
 
     const user = await this.deps.userRepository.findByEmail(input.email);

@@ -1,5 +1,5 @@
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IApiTokenRepository } from '#src/use-cases/ports/IApiTokenRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 
 interface Deps {
   apiTokenRepository: IApiTokenRepository;
@@ -11,7 +11,7 @@ export class DeleteApiTokenUseCase {
   async execute(id: string, userId: string): Promise<void> {
     const token = await this.deps.apiTokenRepository.findByIdAndUserId(id, userId);
     if (!token) {
-      throw Object.assign(new Error('API token not found'), { code: ERROR_CODES.NOT_FOUND });
+      throw new NotFoundError('API token not found');
     }
     await this.deps.apiTokenRepository.delete(id);
   }

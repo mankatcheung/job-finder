@@ -1,8 +1,8 @@
+import { ConflictError, UnauthorizedError } from '#src/use-cases/errors/DomainError.js';
 import { createHash } from 'crypto';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IEmailVerificationTokenRepository } from '#src/use-cases/ports/IEmailVerificationTokenRepository.js';
 import type { ISecurityEventRepository } from '#src/use-cases/ports/ISecurityEventRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IConfirmEmailChangeUseCase,
   ConfirmEmailChangeInput,
@@ -29,16 +29,14 @@ export class ConfirmEmailChangeUseCase implements IConfirmEmailChangeUseCase {
       verificationToken.usedAt ||
       verificationToken.expiresAt < new Date()
     ) {
-      throw Object.assign(new Error('Invalid or expired confirmation link'), {
-        code: ERROR_CODES.UNAUTHORIZED,
-      });
+      throw new UnauthorizedError('Invalid or expired confirmation link');
     }
 
     // Guard against a race: someone else may have taken the new address
     // while this confirmation link was sitting unused.
     const existing = await this.deps.userRepository.findByEmail(verificationToken.newEmail);
     if (existing && existing.id !== verificationToken.userId) {
-      throw Object.assign(new Error('Email already in use'), { code: ERROR_CODES.CONFLICT });
+      throw new ConflictError('Email already in use');
     }
 
     await this.deps.userRepository.update(verificationToken.userId, {

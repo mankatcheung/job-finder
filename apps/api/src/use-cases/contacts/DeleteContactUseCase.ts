@@ -1,6 +1,6 @@
+import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IContactRepository } from '#src/use-cases/ports/IContactRepository.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IDeleteContactUseCase,
   DeleteContactInput,
@@ -16,12 +16,10 @@ export class DeleteContactUseCase implements IDeleteContactUseCase {
 
   async execute(input: DeleteContactInput): Promise<void> {
     const contact = await this.deps.contactRepository.findById(input.contactId);
-    if (!contact)
-      throw Object.assign(new Error('Contact not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!contact) throw new NotFoundError('Contact not found');
 
     const app = await this.deps.applicationRepository.findById(contact.applicationId);
-    if (!app || app.userId !== input.userId)
-      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+    if (!app || app.userId !== input.userId) throw new ForbiddenError('Forbidden');
 
     await this.deps.contactRepository.delete(input.contactId);
   }

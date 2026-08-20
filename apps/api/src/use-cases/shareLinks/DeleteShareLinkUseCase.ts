@@ -1,5 +1,5 @@
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IShareLinkRepository } from '#src/use-cases/ports/IShareLinkRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 
 interface Deps {
   shareLinkRepository: IShareLinkRepository;
@@ -11,7 +11,7 @@ export class DeleteShareLinkUseCase {
   async execute(id: string, userId: string): Promise<void> {
     const link = await this.deps.shareLinkRepository.findByIdAndUserId(id, userId);
     if (!link) {
-      throw Object.assign(new Error('Share link not found'), { code: ERROR_CODES.NOT_FOUND });
+      throw new NotFoundError('Share link not found');
     }
     await this.deps.shareLinkRepository.delete(id);
   }

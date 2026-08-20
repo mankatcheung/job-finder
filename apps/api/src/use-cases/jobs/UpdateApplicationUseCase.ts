@@ -1,7 +1,7 @@
+import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IActivityLogRepository } from '#src/use-cases/ports/IActivityLogRepository.js';
 import type { ITransactionManager } from '#src/use-cases/ports/ITransactionManager.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IUpdateApplicationUseCase,
   UpdateApplicationInput,
@@ -21,10 +21,10 @@ export class UpdateApplicationUseCase implements IUpdateApplicationUseCase {
   async execute(input: UpdateApplicationInput): Promise<UpdateApplicationOutput> {
     const app = await this.deps.applicationRepository.findById(input.applicationId);
     if (!app) {
-      throw Object.assign(new Error('Application not found'), { code: ERROR_CODES.NOT_FOUND });
+      throw new NotFoundError('Application not found');
     }
     if (app.userId !== input.userId) {
-      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+      throw new ForbiddenError('Forbidden');
     }
 
     const appliedAt = input.status === 'applied' && app.appliedAt === null ? new Date() : undefined;

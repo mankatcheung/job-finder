@@ -1,3 +1,9 @@
+import {
+  AiNotConfiguredError,
+  ForbiddenError,
+  NotFoundError,
+  RateLimitedError,
+} from '#src/use-cases/errors/DomainError.js';
 import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
 import type { Conversation } from '#src/domain/conversation/Conversation.js';
 import type { User } from '#src/domain/user/User.js';
@@ -27,7 +33,7 @@ import type {
   LLMToolCall,
   LLMToolDefinition,
 } from '#src/use-cases/ports/ILLMProvider.js';
-import { CHAT, ERROR_CODES } from '#src/constants.js';
+import { CHAT } from '#src/constants.js';
 
 export interface ChatWithAssistantInput {
   userId: string;
@@ -91,17 +97,15 @@ export class ChatWithAssistantUseCase {
 
   async execute(input: ChatWithAssistantInput): Promise<string> {
     if (!(await this.deps.chatRateLimiter.consume(`chat:${input.userId}`))) {
-      throw Object.assign(new Error('Too many messages — please wait a moment and try again'), {
-        code: ERROR_CODES.RATE_LIMITED,
-      });
+      throw new RateLimitedError('Too many messages — please wait a moment and try again');
     }
 
     const conversation = await this.deps.conversationRepository.findById(input.conversationId);
     if (!conversation) {
-      throw Object.assign(new Error('Conversation not found'), { code: ERROR_CODES.NOT_FOUND });
+      throw new NotFoundError('Conversation not found');
     }
     if (conversation.userId !== input.userId) {
-      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+      throw new ForbiddenError('Forbidden');
     }
 
     // Fetched once up front: needed both for the custom-AI-prompt system
@@ -168,9 +172,7 @@ export class ChatWithAssistantUseCase {
       conversation.llmModel,
     );
     if (!llmProvider) {
-      throw Object.assign(new Error('Add your AI API key in Settings to use this feature'), {
-        code: ERROR_CODES.AI_NOT_CONFIGURED,
-      });
+      throw new AiNotConfiguredError('Add your AI API key in Settings to use this feature');
     }
 
     if (!conversation.llmProvider && providerName) {

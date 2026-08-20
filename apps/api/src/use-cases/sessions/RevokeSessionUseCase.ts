@@ -1,6 +1,6 @@
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
 import type { ISecurityEventRepository } from '#src/use-cases/ports/ISecurityEventRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 
 interface Deps {
   sessionRepository: ISessionRepository;
@@ -19,7 +19,7 @@ export class RevokeSessionUseCase {
   ): Promise<void> {
     const session = await this.deps.sessionRepository.findByIdAndUserId(sessionId, userId);
     if (!session) {
-      throw Object.assign(new Error('Session not found'), { code: ERROR_CODES.NOT_FOUND });
+      throw new NotFoundError('Session not found');
     }
     await this.deps.sessionRepository.revoke(sessionId);
 

@@ -1,6 +1,6 @@
+import { ConflictError } from '#src/use-cases/errors/DomainError.js';
 import type { IOAuthAccountRepository } from '#src/use-cases/ports/IOAuthAccountRepository.js';
 import type { IOAuthProviderRegistry } from '#src/use-cases/ports/IOAuthProviderRegistry.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   ILinkOAuthAccountUseCase,
   LinkOAuthAccountInput,
@@ -25,9 +25,7 @@ export class LinkOAuthAccountUseCase implements ILinkOAuthAccountUseCase {
     );
     if (existing) {
       if (existing.userId === input.userId) return; // Already linked — idempotent no-op.
-      throw Object.assign(new Error('This account is already linked to another user'), {
-        code: ERROR_CODES.CONFLICT,
-      });
+      throw new ConflictError('This account is already linked to another user');
     }
 
     await this.deps.oauthAccountRepository.create({

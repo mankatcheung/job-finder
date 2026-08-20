@@ -1,6 +1,6 @@
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type { IRemoveAvatarUseCase } from '#src/use-cases/user/IRemoveAvatarUseCase.js';
 
 interface Deps {
@@ -13,7 +13,7 @@ export class RemoveAvatarUseCase implements IRemoveAvatarUseCase {
 
   async execute(userId: string): Promise<void> {
     const user = await this.deps.userRepository.findById(userId);
-    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!user) throw new NotFoundError('User not found');
 
     if (!user.avatarKey) return; // Already has no avatar — idempotent no-op.
 

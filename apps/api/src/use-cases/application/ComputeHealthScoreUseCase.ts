@@ -1,9 +1,9 @@
+import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
 import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentRepository.js';
 import type { IInterviewRoundRepository } from '#src/use-cases/ports/IInterviewRoundRepository.js';
 import type { IContactRepository } from '#src/use-cases/ports/IContactRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 
 export interface HealthScoreCriterion {
   key: string;
@@ -54,10 +54,10 @@ export class ComputeHealthScoreUseCase {
   async execute(applicationId: string, userId: string): Promise<HealthScore> {
     const app = await this.deps.applicationRepository.findById(applicationId);
     if (!app) {
-      throw Object.assign(new Error('Application not found'), { code: ERROR_CODES.NOT_FOUND });
+      throw new NotFoundError('Application not found');
     }
     if (app.userId !== userId) {
-      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+      throw new ForbiddenError('Forbidden');
     }
 
     const [notes, documents, rounds, contacts] = await Promise.all([

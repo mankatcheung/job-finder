@@ -1,10 +1,15 @@
+import {
+  AiNotConfiguredError,
+  RateLimitedError,
+  ValidationError,
+} from '#src/use-cases/errors/DomainError.js';
 import { z } from 'zod';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
 import { parseAiJson } from '#src/use-cases/shared/parseAiJson.js';
-import { ERROR_CODES, AI_PROMPT_INPUT } from '#src/constants.js';
+import { AI_PROMPT_INPUT } from '#src/constants.js';
 
 export interface ParseJobDescriptionInput {
   userId: string;
@@ -65,16 +70,12 @@ export class ParseJobDescriptionUseCase {
         `parse-job-description:user:${input.userId}`,
       ))
     ) {
-      throw Object.assign(new Error('Too many requests — please wait a moment and try again'), {
-        code: ERROR_CODES.RATE_LIMITED,
-      });
+      throw new RateLimitedError('Too many requests — please wait a moment and try again');
     }
 
     const llmProvider = await this.deps.llmProviderFactory.forUser(input.userId);
     if (!llmProvider) {
-      throw Object.assign(new Error('Add your AI API key in Settings to use this feature'), {
-        code: ERROR_CODES.AI_NOT_CONFIGURED,
-      });
+      throw new AiNotConfiguredError('Add your AI API key in Settings to use this feature');
     }
 
     const text = await this.deps.jobPostingSourceResolver.resolve({
@@ -82,9 +83,7 @@ export class ParseJobDescriptionUseCase {
       url: input.url,
     });
     if (!text.trim()) {
-      throw Object.assign(new Error('No job description content provided'), {
-        code: ERROR_CODES.VALIDATION,
-      });
+      throw new ValidationError('No job description content provided');
     }
 
     const raw = await llmProvider.complete([

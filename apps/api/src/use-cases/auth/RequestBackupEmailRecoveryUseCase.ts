@@ -1,9 +1,10 @@
+import { RateLimitedError } from '#src/use-cases/errors/DomainError.js';
 import { createHash, randomBytes } from 'crypto';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IPasswordResetTokenRepository } from '#src/use-cases/ports/IPasswordResetTokenRepository.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
-import { ERROR_CODES, PASSWORD_RESET_TOKEN } from '#src/constants.js';
+import { PASSWORD_RESET_TOKEN } from '#src/constants.js';
 import type {
   IRequestBackupEmailRecoveryUseCase,
   RequestBackupEmailRecoveryInput,
@@ -31,9 +32,7 @@ export class RequestBackupEmailRecoveryUseCase implements IRequestBackupEmailRec
         )
       : true;
     if (!emailAllowed || !ipAllowed) {
-      throw Object.assign(new Error('Too many backup email recovery requests. Try again later.'), {
-        code: ERROR_CODES.RATE_LIMITED,
-      });
+      throw new RateLimitedError('Too many backup email recovery requests. Try again later.');
     }
 
     const user = await this.deps.userRepository.findByBackupEmail(input.backupEmail);

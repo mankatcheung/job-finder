@@ -1,6 +1,6 @@
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IDeleteLlmApiKeyUseCase,
   DeleteLlmApiKeyInput,
@@ -16,7 +16,7 @@ export class DeleteLlmApiKeyUseCase implements IDeleteLlmApiKeyUseCase {
 
   async execute(input: DeleteLlmApiKeyInput): Promise<void> {
     const user = await this.deps.userRepository.findById(input.userId);
-    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!user) throw new NotFoundError('User not found');
 
     await this.deps.llmApiKeyRepository.delete(input.userId, input.provider);
 

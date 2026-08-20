@@ -1,6 +1,6 @@
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IDeleteApplicationUseCase } from '#src/use-cases/jobs/IDeleteApplicationUseCase.js';
 import { assertValidBulkIds } from '#src/use-cases/jobs/bulkValidation.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IBulkDeleteApplicationsUseCase,
   BulkDeleteApplicationsInput,
@@ -26,7 +26,7 @@ export class BulkDeleteApplicationsUseCase implements IBulkDeleteApplicationsUse
     // partial success) — treat it as an idempotent no-op, not a failure.
     const realFailure = results.find(
       (r): r is PromiseRejectedResult =>
-        r.status === 'rejected' && (r.reason as { code?: string })?.code !== ERROR_CODES.NOT_FOUND,
+        r.status === 'rejected' && !(r.reason instanceof NotFoundError),
     );
 
     if (realFailure) {

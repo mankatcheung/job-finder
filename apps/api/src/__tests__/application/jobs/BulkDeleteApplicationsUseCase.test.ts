@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { BulkDeleteApplicationsUseCase } from '#src/use-cases/jobs/BulkDeleteApplicationsUseCase.js';
 import type { IDeleteApplicationUseCase } from '#src/use-cases/jobs/IDeleteApplicationUseCase.js';
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 
@@ -49,7 +50,7 @@ describe('BulkDeleteApplicationsUseCase', () => {
     const deleteApplicationUseCase = stub<IDeleteApplicationUseCase>({
       execute: vi.fn().mockImplementation(({ applicationId }: { applicationId: string }) => {
         if (applicationId === 'app-2') {
-          return Promise.reject(Object.assign(new Error('Not found'), { code: 'NOT_FOUND' }));
+          return Promise.reject(new NotFoundError('Application not found'));
         }
         return Promise.resolve(undefined);
       }),

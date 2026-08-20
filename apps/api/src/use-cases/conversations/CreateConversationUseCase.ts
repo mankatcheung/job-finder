@@ -1,3 +1,4 @@
+import { ValidationError } from '#src/use-cases/errors/DomainError.js';
 import type { IConversationRepository } from '#src/use-cases/ports/IConversationRepository.js';
 import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
 import type { Conversation } from '#src/domain/conversation/Conversation.js';
@@ -5,7 +6,6 @@ import type {
   ICreateConversationUseCase,
   CreateConversationInput,
 } from '#src/use-cases/conversations/ICreateConversationUseCase.js';
-import { ERROR_CODES } from '#src/constants.js';
 
 interface Deps {
   conversationRepository: IConversationRepository;
@@ -23,9 +23,7 @@ export class CreateConversationUseCase implements ICreateConversationUseCase {
         input.provider,
       );
       if (!key) {
-        throw Object.assign(new Error('Add an API key for this provider first'), {
-          code: ERROR_CODES.VALIDATION,
-        });
+        throw new ValidationError('Add an API key for this provider first');
       }
     }
 

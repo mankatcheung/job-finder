@@ -1,9 +1,14 @@
+import {
+  ConflictError,
+  NotFoundError,
+  UnauthorizedError,
+} from '#src/use-cases/errors/DomainError.js';
 import { createHash, randomBytes } from 'crypto';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ITotpBackupCodeRepository } from '#src/use-cases/ports/ITotpBackupCodeRepository.js';
 import type { ITotpProvider } from '#src/use-cases/ports/ITotpProvider.js';
 import type { ISecurityEventRepository } from '#src/use-cases/ports/ISecurityEventRepository.js';
-import { ERROR_CODES, TOTP_BACKUP_CODES } from '#src/constants.js';
+import { TOTP_BACKUP_CODES } from '#src/constants.js';
 import type {
   IConfirmTotpSetupUseCase,
   ConfirmTotpSetupInput,
@@ -23,25 +28,19 @@ export class ConfirmTotpSetupUseCase implements IConfirmTotpSetupUseCase {
 
   async execute(input: ConfirmTotpSetupInput): Promise<ConfirmTotpSetupOutput> {
     const user = await this.deps.userRepository.findById(input.userId);
-    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!user) throw new NotFoundError('User not found');
 
     if (user.totpEnabled) {
-      throw Object.assign(new Error('Two-factor authentication is already enabled'), {
-        code: ERROR_CODES.CONFLICT,
-      });
+      throw new ConflictError('Two-factor authentication is already enabled');
     }
     if (!user.totpSecret) {
-      throw Object.assign(new Error('No two-factor setup in progress'), {
-        code: ERROR_CODES.CONFLICT,
-      });
+      throw new ConflictError('No two-factor setup in progress');
     }
 
     const secret = this.deps.totpProvider.decryptSecret(user.totpSecret);
     const valid = await this.deps.totpProvider.verifyCode(secret, input.code);
     if (!valid) {
-      throw Object.assign(new Error('Invalid verification code'), {
-        code: ERROR_CODES.UNAUTHORIZED,
-      });
+      throw new UnauthorizedError('Invalid verification code');
     }
 
     await this.deps.userRepository.update(input.userId, { totpEnabled: true });

@@ -1,7 +1,8 @@
+import { UnauthorizedError } from '#src/use-cases/errors/DomainError.js';
 import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 import type { Session } from '#src/domain/session/Session.js';
-import { ERROR_CODES, SESSION } from '#src/constants.js';
+import { SESSION } from '#src/constants.js';
 
 interface Deps {
   sessionRepository: ISessionRepository;
@@ -21,9 +22,7 @@ export interface RotateRefreshTokenResult {
 }
 
 function unauthorized(): never {
-  throw Object.assign(new Error('Session revoked or expired'), {
-    code: ERROR_CODES.UNAUTHORIZED,
-  });
+  throw new UnauthorizedError('Session revoked or expired');
 }
 
 export class RotateRefreshTokenUseCase {

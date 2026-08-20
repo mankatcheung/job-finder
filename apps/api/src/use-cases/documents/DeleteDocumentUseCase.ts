@@ -1,8 +1,8 @@
+import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentRepository.js';
 import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
 import type { IActivityLogRepository } from '#src/use-cases/ports/IActivityLogRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IDeleteDocumentUseCase,
   DeleteDocumentInput,
@@ -22,12 +22,12 @@ export class DeleteDocumentUseCase implements IDeleteDocumentUseCase {
   async execute(input: DeleteDocumentInput): Promise<void> {
     const doc = await this.deps.documentRepository.findById(input.documentId);
     if (!doc) {
-      throw Object.assign(new Error('Document not found'), { code: ERROR_CODES.NOT_FOUND });
+      throw new NotFoundError('Document not found');
     }
 
     const app = await this.deps.applicationRepository.findById(doc.applicationId);
     if (!app || app.userId !== input.userId) {
-      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+      throw new ForbiddenError('Forbidden');
     }
 
     await this.deps.storageProvider.delete(doc.storageKey);
