@@ -7,15 +7,7 @@ import { ApplicationsPage } from './-components/ApplicationsPage';
 
 const PAGE_SIZE = 20;
 
-const APPLICATION_STATUSES: ApplicationStatus[] = [
-  'draft',
-  'applied',
-  'interviewing',
-  'offered',
-  'accepted',
-  'rejected',
-  'withdrawn',
-];
+import { APPLICATION_STATUSES } from '#/lib/statusColors';
 
 const searchSchema = z.object({
   status: z.string().optional(),

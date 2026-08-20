@@ -36,6 +36,7 @@ import {
   resolveDragEnd,
   type BoardColumns,
 } from './-board-move';
+import { APPLICATION_STATUSES, statusColor } from '#/lib/statusColors';
 import { Skeleton } from '@trakwyn/ui';
 
 const MOVE_ON_BOARD = `
@@ -46,25 +47,7 @@ const MOVE_ON_BOARD = `
 
 type Application = BoardApplication;
 
-const STATUSES: ApplicationStatus[] = [
-  'draft',
-  'applied',
-  'interviewing',
-  'offered',
-  'accepted',
-  'rejected',
-  'withdrawn',
-];
-
-const STATUS_COLORS: Record<string, string> = {
-  draft: 'border-t-gray-400',
-  applied: 'border-t-blue-500',
-  interviewing: 'border-t-purple-500',
-  offered: 'border-t-orange-500',
-  accepted: 'border-t-green-500',
-  rejected: 'border-t-red-500',
-  withdrawn: 'border-t-gray-500',
-};
+const STATUSES = APPLICATION_STATUSES;
 
 const QUERY_KEY = ['applications', null];
 
@@ -283,6 +266,7 @@ function Column({
   appsById: Map<string, Application>;
 }) {
   const { t } = useLocale();
+  const colors = statusColor(status);
   // Kept alongside SortableContext so an empty column is still a drop target —
   // there is no card in it to aim at.
   const { setNodeRef, isOver } = useDroppable({ id: status });
@@ -290,11 +274,21 @@ function Column({
   return (
     <div
       ref={setNodeRef}
-      className={`shrink-0 w-60 rounded-xl border-t-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 ${STATUS_COLORS[status] ?? 'border-t-gray-400'} transition-colors ${isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+      className={`shrink-0 w-60 rounded-xl border-t-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 ${colors.columnBorder} transition-colors ${isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
     >
       <div className="flex items-center justify-between px-3 py-2.5">
-        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 capitalize">
-          {t(`status.${status}`)}
+        {/* Dot and tinted heading, because the 4px top rule alone is easy to
+            miss once a column is scrolled or sitting on a narrow screen. The
+            label stays, so colour is never carrying the meaning on its own. */}
+        <span className="flex items-center gap-1.5 min-w-0">
+          <span
+            className={`size-2 shrink-0 rounded-full ${colors.dot}`}
+            aria-hidden="true"
+            data-testid={`column-dot-${status}`}
+          />
+          <span className={`text-xs font-semibold capitalize truncate ${colors.columnHeading}`}>
+            {t(`status.${status}`)}
+          </span>
         </span>
         <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded-full">
           {ids.length}
