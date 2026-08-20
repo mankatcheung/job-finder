@@ -75,4 +75,27 @@ test.describe('Job applications', () => {
     await page.getByRole('link', { name: /dashboard/i }).click();
     await expect(page).toHaveURL(/dashboard/);
   });
+
+  test('restores applications after returning from the list view to the board', async ({
+    page,
+  }) => {
+    await page.getByRole('link', { name: 'Applications', exact: true }).click();
+    await page.getByRole('link', { name: /new application/i }).click();
+    await page.getByPlaceholder('Acme Corp').fill('BoardBackCo');
+    await page.getByPlaceholder('Senior Engineer').fill('Engineer');
+    await page.getByRole('button', { name: /save application/i }).click();
+
+    await page.getByRole('link', { name: 'Applications', exact: true }).click();
+    await page.locator('a[href="/applications/board"]').click();
+    await expect(page).toHaveURL(/\/applications\/board$/);
+    await expect(page.getByText('BoardBackCo')).toBeVisible();
+
+    await page.locator('a[href="/applications"]').first().click();
+    await expect(page).toHaveURL(/\/applications$/);
+    await expect(page.getByText('BoardBackCo')).toBeVisible();
+
+    await page.goBack();
+    await expect(page).toHaveURL(/\/applications\/board$/);
+    await expect(page.getByText('BoardBackCo')).toBeVisible();
+  });
 });
