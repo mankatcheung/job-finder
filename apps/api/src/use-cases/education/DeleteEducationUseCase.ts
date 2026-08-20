@@ -1,3 +1,4 @@
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IEducationRepository } from '#src/use-cases/ports/IEducationRepository.js';
 import type {
   IDeleteEducationUseCase,
@@ -14,7 +15,7 @@ export class DeleteEducationUseCase implements IDeleteEducationUseCase {
   async execute(input: DeleteEducationInput): Promise<void> {
     const existing = await this.deps.educationRepository.findById(input.id);
     if (!existing || existing.userId !== input.userId) {
-      throw new Error('Education not found');
+      throw new NotFoundError('Education not found');
     }
     await this.deps.educationRepository.delete(input.id);
   }

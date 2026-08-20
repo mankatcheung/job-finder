@@ -29,30 +29,16 @@ const FRAMEWORKS = ['drizzle-orm', 'fastify', 'graphql', '@pothos/', '@libsql/',
 const FRAMEWORK_FREE = ['domain', 'use-cases'];
 
 /**
- * Violations that predate this test, each with the change that clears it.
+ * Escape hatch for a violation that cannot be fixed immediately: the path,
+ * mapped to the ticket that clears it.
  *
- * This list may only shrink. The test below fails if an entry stops being a
- * violation, so a fix cannot leave its exemption behind — which is how a list
- * like this usually turns permanent.
+ * It may only shrink. A separate check below fails when an entry stops being
+ * a violation, so a fix cannot leave its exemption behind — which is how a
+ * list like this usually turns permanent.
  */
 const KNOWN_VIOLATIONS: Record<string, string> = {
-  // JEF-181 — importing http/errors/AppError puts an HTTP status in a business rule
-  'use-cases/documents/CreateDocumentDraftUseCase.ts': 'JEF-181',
-  'use-cases/documents/DeleteDocumentDraftUseCase.ts': 'JEF-181',
-  'use-cases/documents/ExportDocumentDraftToPdfUseCase.ts': 'JEF-181',
-  'use-cases/documents/ExtractDocumentTextUseCase.ts': 'JEF-181',
-  'use-cases/documents/GetDocumentDraftUseCase.ts': 'JEF-181',
-  'use-cases/documents/GetDocumentDraftsUseCase.ts': 'JEF-181',
-  'use-cases/documents/UpdateDocumentDraftContentUseCase.ts': 'JEF-181',
-  'use-cases/offers/CompareOffersUseCase.ts': 'JEF-181',
-  'use-cases/offers/CreateOfferUseCase.ts': 'JEF-181',
-  'use-cases/offers/DeleteOfferUseCase.ts': 'JEF-181',
-  'use-cases/offers/GetOffersUseCase.ts': 'JEF-181',
-  'use-cases/offers/UpdateOfferUseCase.ts': 'JEF-181',
-  // JEF-182 — depends on the concrete WebPushService instead of a port
-  'use-cases/push/SendPushNotificationsUseCase.ts': 'JEF-182',
-  // JEF-182 — takes a GraphQLContext, alone among twenty-one resolvers
-  'interface-adapters/resolvers/ActivityLogResolver.ts': 'JEF-182',
+  // Empty, and worth keeping that way. The fourteen this shipped with were
+  // cleared by JEF-181 and JEF-182 before it merged.
 };
 
 function sourceFiles(layer: string): string[] {

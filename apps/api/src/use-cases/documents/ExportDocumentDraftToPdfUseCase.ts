@@ -7,7 +7,7 @@ import type {
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
 import type { IPdfRenderer } from '#src/use-cases/ports/IPdfRenderer.js';
-import { NotFoundError, ForbiddenError } from '#src/http/errors/AppError.js';
+import { NotFoundError, ForbiddenError } from '#src/use-cases/errors/DomainError.js';
 
 export interface ExportDocumentDraftToPdfCommand {
   userId: string;

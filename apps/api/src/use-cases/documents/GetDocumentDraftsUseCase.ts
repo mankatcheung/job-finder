@@ -1,7 +1,7 @@
 import type { DocumentDraft } from '#src/domain/documentDraft/DocumentDraft.js';
 import type { IDocumentDraftRepository } from '#src/use-cases/ports/IDocumentDraftRepository.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
-import { NotFoundError } from '#src/http/errors/AppError.js';
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 
 export interface GetDocumentDraftsQuery {
   userId: string;

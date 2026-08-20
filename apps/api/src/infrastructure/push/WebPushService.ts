@@ -1,10 +1,15 @@
 import { ENV } from '#src/constants.js';
+import type {
+  IWebPushService,
+  PushPayload,
+  PushSubscriptionKeys,
+} from '#src/use-cases/ports/IWebPushService.js';
 
 /**
  * Thin wrapper around the Web Push API using the `web-push` library.
  * VAPID keys are read from env vars at construction time.
  */
-export class WebPushService {
+export class WebPushService implements IWebPushService {
   private readonly publicKey: string;
   private readonly privateKey: string;
   private readonly subject: string;
@@ -21,10 +26,7 @@ export class WebPushService {
     return this.publicKey;
   }
 
-  async send(
-    subscription: { endpoint: string; p256dh: string; auth: string },
-    payload: { title: string; body: string; url: string },
-  ): Promise<void> {
+  async send(subscription: PushSubscriptionKeys, payload: PushPayload): Promise<void> {
     if (!this.isConfigured) {
       throw new Error('VAPID keys not configured');
     }

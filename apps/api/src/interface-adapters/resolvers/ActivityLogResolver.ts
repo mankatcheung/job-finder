@@ -1,6 +1,4 @@
 import type { IGetActivityLogsUseCase } from '#src/use-cases/activityLogs/IGetActivityLogsUseCase.js';
-import type { GraphQLContext } from '#src/http/context.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   ActivityLogMapper,
   ActivityLogDTO,
@@ -14,13 +12,8 @@ interface Deps {
 export class ActivityLogResolver {
   constructor(private readonly deps: Deps) {}
 
-  async getActivityLogs(applicationId: string, ctx: GraphQLContext): Promise<ActivityLogDTO[]> {
-    if (!ctx.user)
-      throw Object.assign(new Error('Unauthorized'), { code: ERROR_CODES.UNAUTHORIZED });
-    const logs = await this.deps.getActivityLogsUseCase.execute({
-      applicationId,
-      userId: ctx.user.sub,
-    });
+  async getActivityLogs(userId: string, applicationId: string): Promise<ActivityLogDTO[]> {
+    const logs = await this.deps.getActivityLogsUseCase.execute({ applicationId, userId });
     return logs.map((l) => this.deps.activityLogMapper.toDTO(l));
   }
 }

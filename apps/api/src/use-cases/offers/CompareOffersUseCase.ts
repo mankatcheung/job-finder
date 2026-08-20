@@ -1,7 +1,7 @@
 import type { OfferPeriod } from '#src/domain/offer/Offer.js';
 import type { IOfferRepository } from '#src/use-cases/ports/IOfferRepository.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
-import { NotFoundError, ForbiddenError } from '#src/http/errors/AppError.js';
+import { NotFoundError, ForbiddenError } from '#src/use-cases/errors/DomainError.js';
 import type {
   ICompareOffersUseCase,
   CompareOffersInput,
