@@ -41,6 +41,7 @@ const makeApplicationRepository = (): IApplicationRepository => ({
   create: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
+  reorderBoard: vi.fn(),
   findDueForReminder: vi.fn(),
   updateReminderSentAt: vi.fn(),
   findByIdIncludingTrashed: vi.fn(),

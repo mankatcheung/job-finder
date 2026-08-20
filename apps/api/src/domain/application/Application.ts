@@ -16,6 +16,8 @@ export interface Application {
   followUpAt: Date | null;
   tags: string[];
   reminderSentAt: Date | null;
+  /** Rank within its kanban column, ascending. Scoped to (userId, status). */
+  boardPosition: number;
   /** In Trash since; null for a live application. */
   deletedAt: Date | null;
   createdAt: Date;

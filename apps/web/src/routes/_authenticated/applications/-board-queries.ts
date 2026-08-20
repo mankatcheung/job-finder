@@ -5,7 +5,7 @@ import type { ApplicationStatus } from '#/graphql/generated/graphql';
 const APPLICATIONS_QUERY = `
   query BoardApplications {
     applications {
-       id company role status location appliedAt starred createdAt likelyGhosted
+       id company role status location appliedAt starred createdAt likelyGhosted boardPosition
     }
   }
 `;
@@ -20,6 +20,8 @@ export type BoardApplication = {
   starred: boolean;
   createdAt: string;
   likelyGhosted: boolean;
+  /** Rank within its status column, ascending. */
+  boardPosition: number;
 };
 
 // Kept in its own module (no dnd-kit/component imports) so the board route's

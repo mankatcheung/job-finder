@@ -15,6 +15,7 @@ import { DeleteApplicationUseCase } from '#src/use-cases/jobs/DeleteApplicationU
 import { BulkUpdateApplicationsUseCase } from '#src/use-cases/jobs/BulkUpdateApplicationsUseCase.js';
 import { BulkDeleteApplicationsUseCase } from '#src/use-cases/jobs/BulkDeleteApplicationsUseCase.js';
 import { BulkAddTagToApplicationsUseCase } from '#src/use-cases/jobs/BulkAddTagToApplicationsUseCase.js';
+import { MoveApplicationOnBoardUseCase } from '#src/use-cases/jobs/MoveApplicationOnBoardUseCase.js';
 
 import type { Cradle } from '../types.js';
 
@@ -40,6 +41,9 @@ export const jobs = {
     lifetime: Lifetime.TRANSIENT,
   }),
   bulkAddTagToApplicationsUseCase: asClass(BulkAddTagToApplicationsUseCase, {
+    lifetime: Lifetime.TRANSIENT,
+  }),
+  moveApplicationOnBoardUseCase: asClass(MoveApplicationOnBoardUseCase, {
     lifetime: Lifetime.TRANSIENT,
   }),
   restoreApplicationUseCase: asClass(RestoreApplicationUseCase, { lifetime: Lifetime.TRANSIENT }),

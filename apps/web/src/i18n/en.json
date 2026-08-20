@@ -756,5 +756,9 @@
   "registerPage.registrationFailed": "Registration failed. Please try again.",
   "documentPreview.noPreviewAvailable": "Preview isn't available for this file type.",
   "documentPreview.openDocument": "Open {{name}}",
-  "healthScore.applicationHealth": "Application health"
+  "healthScore.applicationHealth": "Application health",
+  "board.dragStart": "Picked up {{company}}. Use the arrow keys to move it, space to drop, escape to cancel.",
+  "board.dragOver": "{{company}} is over the {{column}} column.",
+  "board.dragEnd": "{{company}} dropped in the {{column}} column.",
+  "board.dragCancel": "Move cancelled. {{company}} returned to where it was."
 }

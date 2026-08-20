@@ -16,6 +16,7 @@ import type { IDeleteApplicationUseCase } from '#src/use-cases/jobs/IDeleteAppli
 import type { IBulkUpdateApplicationsUseCase } from '#src/use-cases/jobs/IBulkUpdateApplicationsUseCase.js';
 import type { IBulkDeleteApplicationsUseCase } from '#src/use-cases/jobs/IBulkDeleteApplicationsUseCase.js';
 import type { IBulkAddTagToApplicationsUseCase } from '#src/use-cases/jobs/IBulkAddTagToApplicationsUseCase.js';
+import type { IMoveApplicationOnBoardUseCase } from '#src/use-cases/jobs/IMoveApplicationOnBoardUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 
@@ -29,6 +30,7 @@ const makeDeps = (overrides?: object) => ({
   bulkUpdateApplicationsUseCase: stub<IBulkUpdateApplicationsUseCase>({ execute: vi.fn() }),
   bulkDeleteApplicationsUseCase: stub<IBulkDeleteApplicationsUseCase>({ execute: vi.fn() }),
   bulkAddTagToApplicationsUseCase: stub<IBulkAddTagToApplicationsUseCase>({ execute: vi.fn() }),
+  moveApplicationOnBoardUseCase: stub<IMoveApplicationOnBoardUseCase>({ execute: vi.fn() }),
   listTrashedApplicationsUseCase: stub<IListTrashedApplicationsUseCase>({ execute: vi.fn() }),
   restoreApplicationUseCase: stub<IRestoreApplicationUseCase>({ execute: vi.fn() }),
   permanentlyDeleteApplicationUseCase: stub<IPermanentlyDeleteApplicationUseCase>({
@@ -249,5 +251,33 @@ describe('ApplicationResolver', () => {
 
     expect(deps.emptyTrashUseCase.execute).toHaveBeenCalledWith({ userId: 'user-1' });
     expect(result).toEqual({ deleted: 3, failed: 1 });
+  });
+
+  it('moveApplicationOnBoard: passes the move through and maps the column to DTOs', async () => {
+    const column = [
+      makeApplication({ id: 'app-2', boardPosition: 0 }),
+      makeApplication({ id: 'app-1', boardPosition: 1 }),
+    ];
+    const deps = makeDeps({
+      moveApplicationOnBoardUseCase: stub<IMoveApplicationOnBoardUseCase>({
+        execute: vi.fn().mockResolvedValue(column),
+      }),
+    });
+
+    const resolver = new ApplicationResolver(deps);
+    const result = await resolver.moveApplicationOnBoard('user-1', {
+      applicationId: 'app-1',
+      toStatus: 'interviewing',
+      orderedIds: ['app-2', 'app-1'],
+    });
+
+    expect(deps.moveApplicationOnBoardUseCase.execute).toHaveBeenCalledWith({
+      userId: 'user-1',
+      applicationId: 'app-1',
+      toStatus: 'interviewing',
+      orderedIds: ['app-2', 'app-1'],
+    });
+    expect(result.map((app) => app.id)).toEqual(['app-2', 'app-1']);
+    expect(result.map((app) => app.boardPosition)).toEqual([0, 1]);
   });
 });

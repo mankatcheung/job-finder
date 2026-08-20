@@ -28,6 +28,19 @@ export const jobApplication = sqliteTable(
     followUpAt: integer('followUpAt', { mode: 'timestamp_ms' }),
     reminderSentAt: integer('reminderSentAt', { mode: 'timestamp_ms' }),
     /**
+     * Rank within its kanban column, ascending. Scoped to (userId, status) —
+     * a card moving to another column is renumbered there, and the gap it
+     * leaves behind is harmless because only relative order is read.
+     *
+     * The default of 0 is what makes this column free to add: the board sorts
+     * on `boardPosition ASC, createdAt DESC, id DESC`, so before anything is
+     * ever dragged every row ties at 0 and falls through to exactly the order
+     * the board showed before this column existed. No backfill, and a newly
+     * created application still sorts to the top of its column for the same
+     * reason.
+     */
+    boardPosition: integer('boardPosition').notNull().default(0),
+    /**
      * In Trash since. Null for a live application.
      *
      * The only soft delete in this schema — everything else is a hard delete,

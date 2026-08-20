@@ -35,6 +35,7 @@ export interface UpdateApplicationData {
   source?: string | null;
   followUpAt?: Date | null;
   tags?: ApplicationTagData[];
+  boardPosition?: number;
 }
 
 export interface FindApplicationsPageFilters {
@@ -69,6 +70,21 @@ export interface IApplicationRepository {
   findDueForPurge(deletedBefore: Date): Promise<Application[]>;
   softDelete(id: string, deletedAt: Date): Promise<void>;
   restore(id: string): Promise<void>;
+  /**
+   * Renumber one kanban column to exactly `orderedIds`, writing 0…n-1, and
+   * return the column as it now reads.
+   *
+   * Scoped to the user's live applications in `status`: an id belonging to
+   * someone else, to another column, or to a trashed application matches no
+   * row and is silently ignored. The use case rejects those cases up front so
+   * the caller gets a real error — this scoping is the second lock, not the
+   * first.
+   */
+  reorderBoard(
+    userId: string,
+    status: ApplicationStatus,
+    orderedIds: string[],
+  ): Promise<Application[]>;
   create(data: CreateApplicationData): Promise<Application>;
   update(id: string, data: UpdateApplicationData): Promise<Application>;
   delete(id: string): Promise<void>;

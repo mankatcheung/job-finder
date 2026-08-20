@@ -61,6 +61,23 @@ export class CachedApplicationRepository implements IApplicationRepository {
     return result;
   }
 
+  /**
+   * The list cache is the whole reason this decorator exists, and a reorder
+   * changes exactly what that cache holds — the order of a column. Without
+   * busting it here the board reads its old order straight back out and the
+   * drag appears to snap undone on the next fetch.
+   */
+  async reorderBoard(
+    userId: string,
+    status: ApplicationStatus,
+    orderedIds: string[],
+  ): Promise<Application[]> {
+    const result = await this.inner.reorderBoard(userId, status, orderedIds);
+    await Promise.all(orderedIds.map((id) => this.cache.delete(CACHE_KEYS.appById(id))));
+    await this.cache.deleteByPrefix(CACHE_KEYS.appListPrefix(userId));
+    return result;
+  }
+
   async delete(id: string): Promise<void> {
     // Including trashed ones, deliberately. By the time anything calls this the
     // row is usually already soft-deleted — permanent delete and the purge are

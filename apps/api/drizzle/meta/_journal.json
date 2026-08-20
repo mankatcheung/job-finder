@@ -162,6 +162,13 @@
       "when": 1787241515295,
       "tag": "0022_eager_the_hood",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1787251853206,
+      "tag": "0023_regular_the_professor",
+      "breakpoints": true
     }
   ]
 }

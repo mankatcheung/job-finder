@@ -182,6 +182,7 @@ const SCHEMA_STATEMENTS = [
     "source" TEXT,
     "followUpAt" INTEGER,
     "reminderSentAt" INTEGER,
+    "boardPosition" INTEGER NOT NULL DEFAULT 0,
     "deletedAt" INTEGER,
     "createdAt" INTEGER NOT NULL,
     "updatedAt" INTEGER NOT NULL,

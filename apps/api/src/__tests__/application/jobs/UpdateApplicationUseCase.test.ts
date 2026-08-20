@@ -106,6 +106,38 @@ describe('UpdateApplicationUseCase', () => {
     expect(updateCall).not.toHaveProperty('appliedAt');
   });
 
+  it('resets boardPosition when the status changes, so the card lands on top of its new column', async () => {
+    const existing = makeApplication({ status: 'applied', boardPosition: 7 });
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(existing),
+      update: vi.fn().mockResolvedValue(makeApplication()),
+    });
+
+    const useCase = new UpdateApplicationUseCase({ applicationRepository, generateId: () => 'id' });
+    await useCase.execute({ userId: 'user-1', applicationId: 'app-1', status: 'interviewing' });
+
+    // Without this the card keeps rank 7 and drops to an arbitrary depth in a
+    // column it just arrived in.
+    expect(vi.mocked(applicationRepository.update).mock.calls[0][1]).toMatchObject({
+      boardPosition: 0,
+    });
+  });
+
+  it('leaves boardPosition alone when the status is unchanged', async () => {
+    const existing = makeApplication({ status: 'applied', boardPosition: 7 });
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(existing),
+      update: vi.fn().mockResolvedValue(makeApplication()),
+    });
+
+    const useCase = new UpdateApplicationUseCase({ applicationRepository, generateId: () => 'id' });
+    await useCase.execute({ userId: 'user-1', applicationId: 'app-1', company: 'Renamed' });
+
+    expect(vi.mocked(applicationRepository.update).mock.calls[0][1]).not.toHaveProperty(
+      'boardPosition',
+    );
+  });
+
   it('delegates to transactionManager.run when provided', async () => {
     const existing = makeApplication({ status: 'draft' });
     const updated = makeApplication({ status: 'applied' });

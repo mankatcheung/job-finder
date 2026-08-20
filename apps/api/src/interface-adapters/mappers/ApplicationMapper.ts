@@ -17,6 +17,8 @@ export interface ApplicationDTO {
   source: string | null;
   followUpAt: string | null;
   tags: string[];
+  /** Rank within its kanban column, ascending. */
+  boardPosition: number;
   createdAt: string;
   updatedAt: string;
   /** ISO timestamp while in Trash; null when live. */
@@ -47,6 +49,7 @@ export class ApplicationMapper {
       source: app.source,
       followUpAt: app.followUpAt?.toISOString() ?? null,
       tags: app.tags,
+      boardPosition: app.boardPosition,
       createdAt: app.createdAt.toISOString(),
       updatedAt: app.updatedAt.toISOString(),
       deletedAt: app.deletedAt?.toISOString() ?? null,

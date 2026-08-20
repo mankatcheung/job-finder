@@ -128,6 +128,7 @@ import type { GetApplicationsUseCase } from '#src/use-cases/jobs/GetApplications
 import type { GetApplicationsPageUseCase } from '#src/use-cases/jobs/GetApplicationsPageUseCase.js';
 import type { GetApplicationUseCase } from '#src/use-cases/jobs/GetApplicationUseCase.js';
 import type { UpdateApplicationUseCase } from '#src/use-cases/jobs/UpdateApplicationUseCase.js';
+import type { MoveApplicationOnBoardUseCase } from '#src/use-cases/jobs/MoveApplicationOnBoardUseCase.js';
 import type { DeleteApplicationUseCase } from '#src/use-cases/jobs/DeleteApplicationUseCase.js';
 import type { BulkUpdateApplicationsUseCase } from '#src/use-cases/jobs/BulkUpdateApplicationsUseCase.js';
 import type { BulkDeleteApplicationsUseCase } from '#src/use-cases/jobs/BulkDeleteApplicationsUseCase.js';
@@ -431,6 +432,7 @@ export interface Cradle {
   bulkRestoreApplicationsUseCase: BulkRestoreApplicationsUseCase;
   emptyTrashUseCase: EmptyTrashUseCase;
   bulkAddTagToApplicationsUseCase: BulkAddTagToApplicationsUseCase;
+  moveApplicationOnBoardUseCase: MoveApplicationOnBoardUseCase;
   createNoteUseCase: CreateNoteUseCase;
   getNotesUseCase: GetNotesUseCase;
   updateNoteUseCase: UpdateNoteUseCase;

@@ -29,6 +29,14 @@ export class UpdateApplicationUseCase implements IUpdateApplicationUseCase {
 
     const appliedAt = input.status === 'applied' && app.appliedAt === null ? new Date() : undefined;
 
+    // A card that changes column keeps whatever rank it held in the old one,
+    // which would drop it at an arbitrary depth in the new column. Resetting
+    // to 0 puts it on top, matching where a newly created application lands.
+    // A board drag sets the real index straight after this, so the 0 only
+    // survives for status changes made somewhere else — the detail page, a
+    // bulk action, the MCP tools.
+    const changesColumn = input.status !== undefined && input.status !== app.status;
+
     const tags =
       input.tags === undefined
         ? undefined
@@ -48,6 +56,7 @@ export class UpdateApplicationUseCase implements IUpdateApplicationUseCase {
         followUpAt: input.followUpAt,
         tags,
         ...(appliedAt !== undefined ? { appliedAt } : {}),
+        ...(changesColumn ? { boardPosition: 0 } : {}),
       });
 
       if (this.deps.activityLogRepository && this.deps.generateId) {
