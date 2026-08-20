@@ -5,3 +5,10 @@
    class on the root, not OS `prefers-color-scheme`, so previews rendered
    outside the app (e.g. in claude.ai/design) must use the same selector. */
 @custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+}
