@@ -88,14 +88,12 @@ export class CreateSessionUseCase {
     const user = await this.deps.userRepository.findById(userId);
     if (!user?.email) return;
 
-    await this.deps.emailService.sendNewDeviceLoginAlert(
-      user.email,
-      deviceLabel,
-      location,
-      ipAddress,
-      new Date(),
-    );
-
+    // The in-app notification goes first, and the email is allowed to fail on
+    // its own. They carry the same warning by two routes, and the email is the
+    // fragile one — a third-party API, and a template that now refuses to
+    // build a link it cannot trust. Sending it first meant any of that took
+    // the notification down with it, leaving a user with a suspicious sign-in
+    // and no warning at all.
     await this.deps.createNotificationUseCase.execute({
       userId,
       type: NOTIFICATION_TYPE.SECURITY_ALERT,
@@ -103,5 +101,13 @@ export class CreateSessionUseCase {
       body: location ? `${deviceLabel} signed in from ${location}` : `${deviceLabel} signed in`,
       url: '/settings/security',
     });
+
+    await this.deps.emailService.sendNewDeviceLoginAlert(
+      user.email,
+      deviceLabel,
+      location,
+      ipAddress,
+      new Date(),
+    );
   }
 }

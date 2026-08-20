@@ -33,6 +33,8 @@ export const ENV = {
   NODE_ENV: 'NODE_ENV',
   PORT: 'PORT',
   CORS_ORIGIN: 'CORS_ORIGIN',
+  /** The web app's public origin, used to build links in outbound email. */
+  WEB_APP_ORIGIN: 'WEB_APP_ORIGIN',
   /** This API's own public origin, used as the OAuth issuer. */
   API_ORIGIN: 'API_ORIGIN',
   COOKIE_DOMAIN: 'COOKIE_DOMAIN',

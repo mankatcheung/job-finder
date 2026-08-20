@@ -151,6 +151,32 @@ describe('CreateSessionUseCase', () => {
       );
     });
 
+    it('still persists the notification when the alert email fails', async () => {
+      const sessionRepository = makeSessionRepository({
+        create: vi.fn().mockResolvedValue(makeSession()),
+        findDistinctUserAgentsByUserId: vi.fn().mockResolvedValue(['Old Browser/1.0']),
+      });
+      const userRepository = makeUserRepository({
+        findById: vi.fn().mockResolvedValue(makeUser({ email: 'user@example.com' })),
+      });
+      const createNotificationUseCase = makeCreateNotificationUseCase();
+      const emailService = makeEmailService({
+        // Brevo down, or WEB_APP_ORIGIN unset so the template refuses to build
+        // a link it cannot trust — either way the email is the fragile half.
+        sendNewDeviceLoginAlert: vi.fn().mockRejectedValue(new Error('email is down')),
+      });
+
+      await new CreateSessionUseCase(
+        makeDeps({ sessionRepository, userRepository, createNotificationUseCase, emailService }),
+      ).execute({ userId: 'user-1', userAgent: 'New Browser/2.0', ipAddress: '10.0.0.1' });
+
+      // The two carry the same warning by different routes. Losing both would
+      // leave a user with a suspicious sign-in and no warning at all.
+      expect(createNotificationUseCase.execute).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: 'user-1', type: 'security_alert' }),
+      );
+    });
+
     it('includes the location in the notification body when known', async () => {
       const sessionRepository = makeSessionRepository({
         create: vi.fn().mockResolvedValue(makeSession()),
