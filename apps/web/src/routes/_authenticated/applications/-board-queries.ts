@@ -28,4 +28,7 @@ export type BoardApplication = {
 export const boardApplicationsQueryOptions = queryOptions({
   queryKey: ['applications', null],
   queryFn: () => gqlClient.request<{ applications: BoardApplication[] }>(APPLICATIONS_QUERY),
+  // A board route restored from browser history can otherwise reuse a stale
+  // snapshot from before the list view was visited.
+  refetchOnMount: 'always',
 });

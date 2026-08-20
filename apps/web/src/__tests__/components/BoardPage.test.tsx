@@ -96,6 +96,27 @@ describe('KanbanBoard', () => {
     expect(screen.getByText('Globex')).toBeInTheDocument();
   });
 
+  it('refetches applications when the board is remounted', async () => {
+    mockGqlRequest.mockResolvedValue({ applications: [app()] });
+    const client = makeClient();
+    const view = render(
+      <QueryClientProvider client={client}>
+        <KanbanBoard />
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByText('Acme')).toBeInTheDocument());
+    view.unmount();
+
+    render(
+      <QueryClientProvider client={client}>
+        <KanbanBoard />
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => expect(mockGqlRequest).toHaveBeenCalledTimes(2));
+  });
+
   it('shows the "Likely ghosted" badge for a flagged application', async () => {
     mockGqlRequest.mockResolvedValue({
       applications: [app({ id: '1', likelyGhosted: true })],
