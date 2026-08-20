@@ -1,6 +1,6 @@
+import { NotFoundError, ValidationError } from '#src/use-cases/errors/DomainError.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IOAuthAccountRepository } from '#src/use-cases/ports/IOAuthAccountRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IUnlinkOAuthAccountUseCase,
   UnlinkOAuthAccountInput,
@@ -20,14 +20,12 @@ export class UnlinkOAuthAccountUseCase implements IUnlinkOAuthAccountUseCase {
     if (!target) return; // Already unlinked — idempotent no-op.
 
     const user = await this.deps.userRepository.findById(input.userId);
-    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!user) throw new NotFoundError('User not found');
 
     // If this is the only way to sign in (no password, no other linked
     // provider), removing it would lock the user out entirely.
     if (user.passwordHash === null && links.length === 1) {
-      throw Object.assign(new Error('Set a password before unlinking your only sign-in method'), {
-        code: ERROR_CODES.VALIDATION,
-      });
+      throw new ValidationError('Set a password before unlinking your only sign-in method');
     }
 
     await this.deps.oauthAccountRepository.delete(target.id);

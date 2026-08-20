@@ -1,9 +1,9 @@
+import { RateLimitedError, UnauthorizedError } from '#src/use-cases/errors/DomainError.js';
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ITotpBackupCodeRepository } from '#src/use-cases/ports/ITotpBackupCodeRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import type { ITotpProvider } from '#src/use-cases/ports/ITotpProvider.js';
-import { ERROR_CODES } from '#src/constants.js';
 import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
 import { verifyTotpOrBackupCode } from '#src/use-cases/auth/verifyTotpOrBackupCode.js';
 import type {
@@ -33,13 +33,13 @@ export class ReauthenticateUseCase implements IReauthenticateUseCase {
   async execute(input: ReauthenticateInput): Promise<ReauthenticateOutput> {
     const user = await this.deps.userRepository.findById(input.userId);
     if (!user) {
-      throw Object.assign(new Error('Invalid credentials'), { code: ERROR_CODES.UNAUTHORIZED });
+      throw new UnauthorizedError('Invalid credentials');
     }
     assertHasPassword(user.passwordHash);
 
     const validPassword = await bcrypt.compare(input.password, user.passwordHash);
     if (!validPassword) {
-      throw Object.assign(new Error('Invalid credentials'), { code: ERROR_CODES.UNAUTHORIZED });
+      throw new UnauthorizedError('Invalid credentials');
     }
 
     if (!user.totpEnabled || !user.totpSecret) {
@@ -52,9 +52,7 @@ export class ReauthenticateUseCase implements IReauthenticateUseCase {
 
     const allowed = await this.deps.totpRateLimiter.consume(`totp:stepup:user:${user.id}`);
     if (!allowed) {
-      throw Object.assign(new Error('Too many verification attempts. Please try again later.'), {
-        code: ERROR_CODES.RATE_LIMITED,
-      });
+      throw new RateLimitedError('Too many verification attempts. Please try again later.');
     }
 
     const validCode = await verifyTotpOrBackupCode(
@@ -63,9 +61,7 @@ export class ReauthenticateUseCase implements IReauthenticateUseCase {
       input.code,
     );
     if (!validCode) {
-      throw Object.assign(new Error('Invalid verification code'), {
-        code: ERROR_CODES.UNAUTHORIZED,
-      });
+      throw new UnauthorizedError('Invalid verification code');
     }
 
     return { user, totpRequired: false };

@@ -1,7 +1,7 @@
+import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IUpdateApplicationUseCase } from '#src/use-cases/jobs/IUpdateApplicationUseCase.js';
 import type { ITransactionManager } from '#src/use-cases/ports/ITransactionManager.js';
-import { ERROR_CODES } from '#src/constants.js';
 import { assertValidBulkIds } from '#src/use-cases/jobs/bulkValidation.js';
 import type {
   IBulkAddTagToApplicationsUseCase,
@@ -27,12 +27,10 @@ export class BulkAddTagToApplicationsUseCase implements IBulkAddTagToApplication
         input.applicationIds.map(async (applicationId) => {
           const app = await this.deps.applicationRepository.findById(applicationId);
           if (!app) {
-            throw Object.assign(new Error('Application not found'), {
-              code: ERROR_CODES.NOT_FOUND,
-            });
+            throw new NotFoundError('Application not found');
           }
           if (app.userId !== input.userId) {
-            throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+            throw new ForbiddenError('Forbidden');
           }
 
           const tags = app.tags.includes(input.tag) ? app.tags : [...app.tags, input.tag];

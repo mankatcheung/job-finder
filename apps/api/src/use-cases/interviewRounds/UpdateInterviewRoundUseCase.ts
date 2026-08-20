@@ -1,6 +1,6 @@
+import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IInterviewRoundRepository } from '#src/use-cases/ports/IInterviewRoundRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IUpdateInterviewRoundUseCase,
   UpdateInterviewRoundInput,
@@ -17,12 +17,10 @@ export class UpdateInterviewRoundUseCase implements IUpdateInterviewRoundUseCase
 
   async execute(input: UpdateInterviewRoundInput): Promise<UpdateInterviewRoundOutput> {
     const round = await this.deps.interviewRoundRepository.findById(input.roundId);
-    if (!round)
-      throw Object.assign(new Error('Interview round not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!round) throw new NotFoundError('Interview round not found');
 
     const app = await this.deps.applicationRepository.findById(round.applicationId);
-    if (!app || app.userId !== input.userId)
-      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+    if (!app || app.userId !== input.userId) throw new ForbiddenError('Forbidden');
 
     return this.deps.interviewRoundRepository.update(input.roundId, {
       type: input.type,

@@ -1,7 +1,8 @@
+import { NotFoundError, ValidationError } from '#src/use-cases/errors/DomainError.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
-import { ERROR_CODES, LLM_PROVIDER } from '#src/constants.js';
+import { LLM_PROVIDER } from '#src/constants.js';
 import type {
   ISaveLlmApiKeyUseCase,
   SaveLlmApiKeyInput,
@@ -30,10 +31,10 @@ export class SaveLlmApiKeyUseCase implements ISaveLlmApiKeyUseCase {
 
   async execute(input: SaveLlmApiKeyInput): Promise<void> {
     if (!VALID_PROVIDERS.includes(input.provider)) {
-      throw Object.assign(new Error('Unsupported AI provider'), { code: ERROR_CODES.VALIDATION });
+      throw new ValidationError('Unsupported AI provider');
     }
     if (!input.apiKey.trim()) {
-      throw Object.assign(new Error('API key is required'), { code: ERROR_CODES.VALIDATION });
+      throw new ValidationError('API key is required');
     }
 
     const isCustom = input.provider === LLM_PROVIDER.CUSTOM;
@@ -42,28 +43,20 @@ export class SaveLlmApiKeyUseCase implements ISaveLlmApiKeyUseCase {
 
     if (isCustom) {
       if (!baseUrl) {
-        throw Object.assign(new Error('A base URL is required for a custom provider'), {
-          code: ERROR_CODES.VALIDATION,
-        });
+        throw new ValidationError('A base URL is required for a custom provider');
       }
       if (!isValidUrl(baseUrl)) {
-        throw Object.assign(new Error('Base URL must be a valid http(s) URL'), {
-          code: ERROR_CODES.VALIDATION,
-        });
+        throw new ValidationError('Base URL must be a valid http(s) URL');
       }
       if (!model) {
-        throw Object.assign(new Error('A model is required for a custom provider'), {
-          code: ERROR_CODES.VALIDATION,
-        });
+        throw new ValidationError('A model is required for a custom provider');
       }
     } else if (baseUrl) {
-      throw Object.assign(new Error('A base URL can only be set for a custom provider'), {
-        code: ERROR_CODES.VALIDATION,
-      });
+      throw new ValidationError('A base URL can only be set for a custom provider');
     }
 
     const user = await this.deps.userRepository.findById(input.userId);
-    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!user) throw new NotFoundError('User not found');
 
     await this.deps.llmApiKeyRepository.upsert({
       id: this.deps.generateId(),

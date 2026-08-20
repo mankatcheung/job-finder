@@ -1,7 +1,7 @@
+import { ConflictError } from '#src/use-cases/errors/DomainError.js';
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ISendEmailVerificationUseCase } from '#src/use-cases/auth/ISendEmailVerificationUseCase.js';
-import { ERROR_CODES } from '#src/constants.js';
 import { assertValidPassword } from '#src/use-cases/auth/passwordValidation.js';
 import type {
   IRegisterUseCase,
@@ -23,7 +23,7 @@ export class RegisterUseCase implements IRegisterUseCase {
 
     const existing = await this.deps.userRepository.findByEmail(input.email);
     if (existing) {
-      throw Object.assign(new Error('Email already registered'), { code: ERROR_CODES.CONFLICT });
+      throw new ConflictError('Email already registered');
     }
 
     const passwordHash = await bcrypt.hash(input.password, 12);

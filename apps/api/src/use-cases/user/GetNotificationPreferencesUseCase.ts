@@ -1,5 +1,5 @@
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IGetNotificationPreferencesUseCase,
   NotificationPreferences,
@@ -14,7 +14,7 @@ export class GetNotificationPreferencesUseCase implements IGetNotificationPrefer
 
   async execute(userId: string): Promise<NotificationPreferences> {
     const user = await this.deps.userRepository.findById(userId);
-    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!user) throw new NotFoundError('User not found');
 
     return {
       weeklyDigestEnabled: user.weeklyDigestEnabled,

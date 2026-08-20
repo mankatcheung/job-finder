@@ -1,8 +1,9 @@
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import { createHash, randomBytes } from 'crypto';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IEmailVerificationTokenRepository } from '#src/use-cases/ports/IEmailVerificationTokenRepository.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
-import { ERROR_CODES, EMAIL_VERIFICATION_TOKEN } from '#src/constants.js';
+import { EMAIL_VERIFICATION_TOKEN } from '#src/constants.js';
 import type { ISendEmailVerificationUseCase } from '#src/use-cases/auth/ISendEmailVerificationUseCase.js';
 
 interface Deps {
@@ -18,7 +19,7 @@ export class SendEmailVerificationUseCase implements ISendEmailVerificationUseCa
 
   async execute(userId: string): Promise<void> {
     const user = await this.deps.userRepository.findById(userId);
-    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!user) throw new NotFoundError('User not found');
 
     await this.deps.emailVerificationTokenRepository.deleteAllForUser(user.id);
 

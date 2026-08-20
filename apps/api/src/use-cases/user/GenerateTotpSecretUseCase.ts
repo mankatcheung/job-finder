@@ -1,8 +1,12 @@
+import {
+  ConflictError,
+  NotFoundError,
+  UnauthorizedError,
+} from '#src/use-cases/errors/DomainError.js';
 import QRCode from 'qrcode';
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ITotpProvider } from '#src/use-cases/ports/ITotpProvider.js';
-import { ERROR_CODES } from '#src/constants.js';
 import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
 import type {
   IGenerateTotpSecretUseCase,
@@ -20,18 +24,16 @@ export class GenerateTotpSecretUseCase implements IGenerateTotpSecretUseCase {
 
   async execute(input: GenerateTotpSecretInput): Promise<TotpSetup> {
     const user = await this.deps.userRepository.findById(input.userId);
-    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!user) throw new NotFoundError('User not found');
 
     if (user.totpEnabled) {
-      throw Object.assign(new Error('Two-factor authentication is already enabled'), {
-        code: ERROR_CODES.CONFLICT,
-      });
+      throw new ConflictError('Two-factor authentication is already enabled');
     }
 
     assertHasPassword(user.passwordHash);
     const validPassword = await bcrypt.compare(input.password, user.passwordHash);
     if (!validPassword) {
-      throw Object.assign(new Error('Invalid password'), { code: ERROR_CODES.UNAUTHORIZED });
+      throw new UnauthorizedError('Invalid password');
     }
 
     const secret = this.deps.totpProvider.generateSecret();

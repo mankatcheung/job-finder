@@ -1,5 +1,5 @@
+import { AiResponseInvalidError } from '#src/use-cases/errors/DomainError.js';
 import type { ZodType } from 'zod';
-import { ERROR_CODES } from '#src/constants.js';
 
 /**
  * Parses an LLM's JSON response against a Zod schema, instead of a bare
@@ -23,16 +23,12 @@ export function parseAiJson<T>(raw: string, schema: ZodType<T>): T {
   try {
     json = JSON.parse(clean);
   } catch {
-    throw Object.assign(new Error("The AI's response couldn't be understood — please try again"), {
-      code: ERROR_CODES.AI_RESPONSE_INVALID,
-    });
+    throw new AiResponseInvalidError("The AI's response couldn't be understood — please try again");
   }
 
   const result = schema.safeParse(json);
   if (!result.success) {
-    throw Object.assign(new Error("The AI's response couldn't be understood — please try again"), {
-      code: ERROR_CODES.AI_RESPONSE_INVALID,
-    });
+    throw new AiResponseInvalidError("The AI's response couldn't be understood — please try again");
   }
 
   return result.data;

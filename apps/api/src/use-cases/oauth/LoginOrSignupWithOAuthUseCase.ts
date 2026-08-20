@@ -1,7 +1,11 @@
+import {
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from '#src/use-cases/errors/DomainError.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IOAuthAccountRepository } from '#src/use-cases/ports/IOAuthAccountRepository.js';
 import type { IOAuthProviderRegistry } from '#src/use-cases/ports/IOAuthProviderRegistry.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   ILoginOrSignupWithOAuthUseCase,
   LoginOrSignupWithOAuthInput,
@@ -29,19 +33,14 @@ export class LoginOrSignupWithOAuthUseCase implements ILoginOrSignupWithOAuthUse
     if (existingLink) {
       const user = await this.deps.userRepository.findById(existingLink.userId);
       if (!user) {
-        throw Object.assign(new Error('Linked account not found'), {
-          code: ERROR_CODES.NOT_FOUND,
-        });
+        throw new NotFoundError('Linked account not found');
       }
       return { user, isNewUser: false };
     }
 
     if (!profile.email || !profile.emailVerified) {
-      throw Object.assign(
-        new Error(
-          'Your provider did not share a verified email address, so an account cannot be created automatically.',
-        ),
-        { code: ERROR_CODES.VALIDATION },
+      throw new ValidationError(
+        'Your provider did not share a verified email address, so an account cannot be created automatically.',
       );
     }
 
@@ -51,11 +50,8 @@ export class LoginOrSignupWithOAuthUseCase implements ILoginOrSignupWithOAuthUse
       // to an existing account based only on a matching email is a known
       // account-takeover vector. The user must log in with their existing
       // method first and link this provider explicitly from settings.
-      throw Object.assign(
-        new Error(
-          'An account with this email already exists. Log in and link this provider from account settings.',
-        ),
-        { code: ERROR_CODES.CONFLICT },
+      throw new ConflictError(
+        'An account with this email already exists. Log in and link this provider from account settings.',
       );
     }
 

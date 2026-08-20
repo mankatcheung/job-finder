@@ -1,6 +1,6 @@
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
-import { ERROR_CODES } from '#src/constants.js';
 import {
   assertAllowedAvatarMimeType,
   assertValidAvatarSizeBytes,
@@ -23,7 +23,7 @@ export class ConfirmAvatarUseCase implements IConfirmAvatarUseCase {
     assertValidAvatarSizeBytes(input.sizeBytes);
 
     const user = await this.deps.userRepository.findById(input.userId);
-    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!user) throw new NotFoundError('User not found');
 
     const previousKey = user.avatarKey;
     await this.deps.userRepository.update(input.userId, { avatarKey: input.storageKey });

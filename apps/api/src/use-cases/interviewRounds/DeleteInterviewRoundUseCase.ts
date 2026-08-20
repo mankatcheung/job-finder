@@ -1,6 +1,6 @@
+import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IInterviewRoundRepository } from '#src/use-cases/ports/IInterviewRoundRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IDeleteInterviewRoundUseCase,
   DeleteInterviewRoundInput,
@@ -16,12 +16,10 @@ export class DeleteInterviewRoundUseCase implements IDeleteInterviewRoundUseCase
 
   async execute(input: DeleteInterviewRoundInput): Promise<void> {
     const round = await this.deps.interviewRoundRepository.findById(input.roundId);
-    if (!round)
-      throw Object.assign(new Error('Interview round not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!round) throw new NotFoundError('Interview round not found');
 
     const app = await this.deps.applicationRepository.findById(round.applicationId);
-    if (!app || app.userId !== input.userId)
-      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+    if (!app || app.userId !== input.userId) throw new ForbiddenError('Forbidden');
 
     await this.deps.interviewRoundRepository.delete(input.roundId);
   }

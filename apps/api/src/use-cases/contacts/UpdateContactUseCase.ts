@@ -1,6 +1,6 @@
+import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IContactRepository } from '#src/use-cases/ports/IContactRepository.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IUpdateContactUseCase,
   UpdateContactInput,
@@ -17,12 +17,10 @@ export class UpdateContactUseCase implements IUpdateContactUseCase {
 
   async execute(input: UpdateContactInput): Promise<UpdateContactOutput> {
     const contact = await this.deps.contactRepository.findById(input.contactId);
-    if (!contact)
-      throw Object.assign(new Error('Contact not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!contact) throw new NotFoundError('Contact not found');
 
     const app = await this.deps.applicationRepository.findById(contact.applicationId);
-    if (!app || app.userId !== input.userId)
-      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+    if (!app || app.userId !== input.userId) throw new ForbiddenError('Forbidden');
 
     return this.deps.contactRepository.update(input.contactId, {
       name: input.name,

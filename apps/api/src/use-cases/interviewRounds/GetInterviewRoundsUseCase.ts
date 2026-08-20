@@ -1,6 +1,6 @@
+import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IInterviewRoundRepository } from '#src/use-cases/ports/IInterviewRoundRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IGetInterviewRoundsUseCase,
   GetInterviewRoundsInput,
@@ -17,10 +17,8 @@ export class GetInterviewRoundsUseCase implements IGetInterviewRoundsUseCase {
 
   async execute(input: GetInterviewRoundsInput): Promise<GetInterviewRoundsOutput> {
     const app = await this.deps.applicationRepository.findById(input.applicationId);
-    if (!app)
-      throw Object.assign(new Error('Application not found'), { code: ERROR_CODES.NOT_FOUND });
-    if (app.userId !== input.userId)
-      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+    if (!app) throw new NotFoundError('Application not found');
+    if (app.userId !== input.userId) throw new ForbiddenError('Forbidden');
 
     return this.deps.interviewRoundRepository.findAllByApplicationId(input.applicationId);
   }

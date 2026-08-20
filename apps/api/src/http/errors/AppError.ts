@@ -36,6 +36,12 @@ export class ForbiddenError extends AppError {
   }
 }
 
+export class UserNotFoundError extends AppError {
+  constructor(message = 'No account found with this email') {
+    super(message, 404, ERROR_CODES.USER_NOT_FOUND);
+  }
+}
+
 export class ValidationError extends AppError {
   constructor(message = 'Invalid input') {
     super(message, 400, ERROR_CODES.VALIDATION);
@@ -79,6 +85,12 @@ export function fromCodedError(err: unknown): AppError {
     switch (code) {
       case ERROR_CODES.NOT_FOUND:
         return new NotFoundError(err.message);
+      case ERROR_CODES.USER_NOT_FOUND:
+        // Was missing, so LoginUseCase's "No account found with this email"
+        // fell through to the 500 default and reached the sign-in page as
+        // "Internal server error" — even though formatError already listed
+        // this code as one clients are expected to see.
+        return new UserNotFoundError(err.message);
       case ERROR_CODES.CONFLICT:
         return new ConflictError(err.message);
       case ERROR_CODES.UNAUTHORIZED:

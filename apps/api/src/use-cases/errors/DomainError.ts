@@ -44,3 +44,59 @@ export class ConflictError extends DomainError {
     super(message, ERROR_CODES.CONFLICT);
   }
 }
+
+/** The caller is not authenticated, or their credential no longer stands. */
+export class UnauthorizedError extends DomainError {
+  constructor(message = 'Unauthorized') {
+    super(message, ERROR_CODES.UNAUTHORIZED);
+  }
+}
+
+/** The input is malformed or fails a rule the caller can fix. */
+export class ValidationError extends DomainError {
+  constructor(message = 'Invalid input') {
+    super(message, ERROR_CODES.VALIDATION);
+  }
+}
+
+/** The caller is doing something too often. */
+export class RateLimitedError extends DomainError {
+  constructor(message = 'Too many requests') {
+    super(message, ERROR_CODES.RATE_LIMITED);
+  }
+}
+
+/** The action needs a fresh authentication before it will be allowed. */
+export class StepUpRequiredError extends DomainError {
+  constructor(message = 'Re-authentication required') {
+    super(message, ERROR_CODES.STEP_UP_REQUIRED);
+  }
+}
+
+/** No email matches. Distinct from NotFoundError so the sign-in page can say so. */
+export class UserNotFoundError extends DomainError {
+  constructor(message = 'No account found with this email') {
+    super(message, ERROR_CODES.USER_NOT_FOUND);
+  }
+}
+
+/** The user has not configured an AI provider. */
+export class AiNotConfiguredError extends DomainError {
+  constructor(message = 'AI is not configured') {
+    super(message, ERROR_CODES.AI_NOT_CONFIGURED);
+  }
+}
+
+/** The model replied with something unusable. */
+export class AiResponseInvalidError extends DomainError {
+  constructor(message = 'The AI response could not be used') {
+    super(message, ERROR_CODES.AI_RESPONSE_INVALID);
+  }
+}
+
+/** A dependency this action needs is unavailable. */
+export class ServiceUnavailableError extends DomainError {
+  constructor(message = 'Service unavailable') {
+    super(message, ERROR_CODES.SERVICE_UNAVAILABLE);
+  }
+}

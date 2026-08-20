@@ -1,6 +1,6 @@
+import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import { getWeeklyApplicationGoalStats } from './weeklyApplicationGoal.js';
 import type {
   IGetWeeklyApplicationGoalUseCase,
@@ -17,7 +17,7 @@ export class GetWeeklyApplicationGoalUseCase implements IGetWeeklyApplicationGoa
 
   async execute(userId: string): Promise<WeeklyApplicationGoalStats> {
     const user = await this.deps.userRepository.findById(userId);
-    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!user) throw new NotFoundError('User not found');
 
     const applications = await this.deps.applicationRepository.findAllByUserId(userId);
     return getWeeklyApplicationGoalStats(applications, user.weeklyApplicationGoal);

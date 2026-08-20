@@ -1,8 +1,8 @@
+import { UnauthorizedError, UserNotFoundError } from '#src/use-cases/errors/DomainError.js';
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ILoginEventRepository } from '#src/use-cases/ports/ILoginEventRepository.js';
 import type { ILoginUseCase, LoginInput, LoginOutput } from '#src/use-cases/auth/ILoginUseCase.js';
-import { ERROR_CODES } from '#src/constants.js';
 import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
 
 interface Deps {
@@ -17,15 +17,13 @@ export class LoginUseCase implements ILoginUseCase {
   async execute(input: LoginInput): Promise<LoginOutput> {
     const user = await this.deps.userRepository.findByEmail(input.email);
     if (!user) {
-      throw Object.assign(new Error('No account found with this email. Please register first.'), {
-        code: ERROR_CODES.USER_NOT_FOUND,
-      });
+      throw new UserNotFoundError('No account found with this email. Please register first.');
     }
     assertHasPassword(user.passwordHash);
 
     const valid = await bcrypt.compare(input.password, user.passwordHash);
     if (!valid) {
-      throw Object.assign(new Error('Invalid credentials'), { code: ERROR_CODES.UNAUTHORIZED });
+      throw new UnauthorizedError('Invalid credentials');
     }
 
     await this.deps.loginEventRepository.create({

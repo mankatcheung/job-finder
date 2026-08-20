@@ -1,6 +1,6 @@
+import { ValidationError } from '#src/use-cases/errors/DomainError.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   ISetDefaultLlmProviderUseCase,
   SetDefaultLlmProviderInput,
@@ -20,10 +20,7 @@ export class SetDefaultLlmProviderUseCase implements ISetDefaultLlmProviderUseCa
       input.provider,
     );
     if (!key) {
-      throw Object.assign(
-        new Error('Add an API key for this provider before making it the default'),
-        { code: ERROR_CODES.VALIDATION },
-      );
+      throw new ValidationError('Add an API key for this provider before making it the default');
     }
 
     await this.deps.userRepository.update(input.userId, { defaultLlmProvider: input.provider });

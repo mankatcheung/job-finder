@@ -1,9 +1,9 @@
+import { UnauthorizedError } from '#src/use-cases/errors/DomainError.js';
 import { createHash } from 'crypto';
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IPasswordResetTokenRepository } from '#src/use-cases/ports/IPasswordResetTokenRepository.js';
 import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import { assertValidPassword } from '#src/use-cases/auth/passwordValidation.js';
 import type {
   IResetPasswordUseCase,
@@ -26,9 +26,7 @@ export class ResetPasswordUseCase implements IResetPasswordUseCase {
     const resetToken = await this.deps.passwordResetTokenRepository.findByTokenHash(tokenHash);
 
     if (!resetToken || resetToken.usedAt || resetToken.expiresAt < new Date()) {
-      throw Object.assign(new Error('Invalid or expired reset link'), {
-        code: ERROR_CODES.UNAUTHORIZED,
-      });
+      throw new UnauthorizedError('Invalid or expired reset link');
     }
 
     const passwordHash = await bcrypt.hash(input.newPassword, 12);

@@ -1,10 +1,16 @@
+import {
+  AiNotConfiguredError,
+  ForbiddenError,
+  NotFoundError,
+  RateLimitedError,
+} from '#src/use-cases/errors/DomainError.js';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
-import { ERROR_CODES, AI_PROMPT_INPUT } from '#src/constants.js';
+import { AI_PROMPT_INPUT } from '#src/constants.js';
 
 export interface GenerateCompanyBriefingInput {
   applicationId: string;
@@ -38,24 +44,20 @@ export class GenerateCompanyBriefingUseCase {
         `company-briefing:user:${input.userId}`,
       ))
     ) {
-      throw Object.assign(new Error('Too many requests — please wait a moment and try again'), {
-        code: ERROR_CODES.RATE_LIMITED,
-      });
+      throw new RateLimitedError('Too many requests — please wait a moment and try again');
     }
 
     const app = await this.deps.applicationRepository.findById(input.applicationId);
     if (!app) {
-      throw Object.assign(new Error('Application not found'), { code: ERROR_CODES.NOT_FOUND });
+      throw new NotFoundError('Application not found');
     }
     if (app.userId !== input.userId) {
-      throw Object.assign(new Error('Forbidden'), { code: ERROR_CODES.FORBIDDEN });
+      throw new ForbiddenError('Forbidden');
     }
 
     const llmProvider = await this.deps.llmProviderFactory.forUser(input.userId);
     if (!llmProvider) {
-      throw Object.assign(new Error('Add your AI API key in Settings to use this feature'), {
-        code: ERROR_CODES.AI_NOT_CONFIGURED,
-      });
+      throw new AiNotConfiguredError('Add your AI API key in Settings to use this feature');
     }
 
     const user = await this.deps.userRepository.findById(input.userId);

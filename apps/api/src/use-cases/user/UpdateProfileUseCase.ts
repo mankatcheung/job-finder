@@ -1,5 +1,5 @@
+import { NotFoundError, ValidationError } from '#src/use-cases/errors/DomainError.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
-import { ERROR_CODES } from '#src/constants.js';
 import type {
   IUpdateProfileUseCase,
   UpdateProfileInput,
@@ -35,7 +35,7 @@ export class UpdateProfileUseCase implements IUpdateProfileUseCase {
 
   async execute(input: UpdateProfileInput): Promise<void> {
     const user = await this.deps.userRepository.findById(input.userId);
-    if (!user) throw Object.assign(new Error('User not found'), { code: ERROR_CODES.NOT_FOUND });
+    if (!user) throw new NotFoundError('User not found');
 
     const name = normalize(input.name);
     const timezone = normalize(input.timezone);
@@ -43,18 +43,16 @@ export class UpdateProfileUseCase implements IUpdateProfileUseCase {
     const customAiPrompt = normalize(input.customAiPrompt);
 
     if (name && name.length > MAX_NAME_LENGTH) {
-      throw Object.assign(new Error('Name is too long'), { code: ERROR_CODES.VALIDATION });
+      throw new ValidationError('Name is too long');
     }
     if (targetRole && targetRole.length > MAX_TARGET_ROLE_LENGTH) {
-      throw Object.assign(new Error('Target role is too long'), {
-        code: ERROR_CODES.VALIDATION,
-      });
+      throw new ValidationError('Target role is too long');
     }
     if (customAiPrompt && customAiPrompt.length > MAX_AI_PROMPT_LENGTH) {
-      throw Object.assign(new Error('AI prompt is too long'), { code: ERROR_CODES.VALIDATION });
+      throw new ValidationError('AI prompt is too long');
     }
     if (timezone && !isValidTimezone(timezone)) {
-      throw Object.assign(new Error('Invalid timezone'), { code: ERROR_CODES.VALIDATION });
+      throw new ValidationError('Invalid timezone');
     }
 
     await this.deps.userRepository.update(input.userId, {
