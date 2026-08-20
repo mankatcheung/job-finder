@@ -2,10 +2,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const { mockGqlRequest, mockUseSearch } = vi.hoisted(() => ({
-  mockGqlRequest: vi.fn(),
-  mockUseSearch: vi.fn().mockReturnValue({}),
-}));
+const { mockGqlRequest, mockUseSearch, mockToast } = vi.hoisted(() => {
+  const toastFn = vi.fn();
+  return {
+    mockGqlRequest: vi.fn(),
+    mockUseSearch: vi.fn().mockReturnValue({}),
+    mockToast: Object.assign(toastFn, {
+      success: vi.fn(),
+      error: vi.fn(),
+      dismiss: vi.fn(),
+    }),
+  };
+});
 
 vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => (opts: Record<string, unknown>) => ({
@@ -27,11 +35,10 @@ vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
 }));
 
-vi.mock('#/lib/undoToast', () => ({
-  showUndoToast: vi.fn(({ onExecute }) => {
-    onExecute();
-  }),
-}));
+// Deliberately NOT mocking '#/lib/undoToast'. The old mock ran the deferred
+// work synchronously, which is exactly what hid JEF-190: a test that mocks the
+// timing away cannot tell an immediate delete from a delayed one.
+vi.mock('sonner', () => ({ toast: mockToast }));
 
 vi.mock('#/graphql/generated/graphql', () => ({}));
 
@@ -505,26 +512,37 @@ describe('ApplicationsPage', () => {
       });
     });
 
-    it('does not delete when undo is clicked', async () => {
-      // Override mock to NOT execute immediately
-      const { showUndoToast } = await import('#/lib/undoToast');
-      vi.mocked(showUndoToast).mockImplementation(() => {});
-
+    it('puts the rows back and restores them server-side when undo is clicked', async () => {
+      // The delete is no longer cancellable — it has already been sent by the
+      // time the toast appears — so undo has to reverse it, not prevent it.
       render(<ApplicationsPage />, { wrapper: Wrapper });
       await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
 
       fireEvent.click(screen.getByLabelText('Select Stripe'));
-      mockGqlRequest.mockClear();
-
+      mockMutationResult({ deleteApplication: true });
       fireEvent.click(screen.getByRole('button', { name: 'Delete selected' }));
 
-      // Without the mock calling onExecute, no delete mutation should fire
-      await new Promise((r) => setTimeout(r, 100));
-      expect(mockGqlRequest).not.toHaveBeenCalledWith(
-        expect.stringContaining('deleteApplication'),
-        expect.anything(),
+      expect(screen.queryByText('Stripe')).not.toBeInTheDocument();
+      await waitFor(() =>
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('deleteApplication'), {
+          id: '1',
+        }),
       );
-      expect(screen.getByText('1 selected')).toBeInTheDocument();
+
+      const [, options] = mockToast.mock.calls.at(-1) as [
+        string,
+        { action: { onClick: () => void } },
+      ];
+      options.action.onClick();
+
+      // The optimistic snapshot goes back immediately...
+      await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+      // ...and the server is told to undo it too.
+      await waitFor(() =>
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RestoreApplication'), {
+          id: '1',
+        }),
+      );
     });
 
     it('clears the selection via the clear button', async () => {

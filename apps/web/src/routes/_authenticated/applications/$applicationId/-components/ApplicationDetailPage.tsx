@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
+import { deleteApplicationWithUndo } from '../../-deleteWithUndo';
 import { getErrorMessage } from '#/lib/errors';
 import { ErrorState } from '#/components/ErrorState';
 import { useLocale } from '#/lib/i18n';
@@ -59,7 +60,6 @@ const UPDATE_NOTE = `
   }
 `;
 const DELETE_NOTE = `mutation DeleteNote($id: ID!) { deleteNote(id: $id) }`;
-const DELETE_APPLICATION = `mutation DeleteApplication($id: ID!) { deleteApplication(id: $id) }`;
 const HEALTH_SCORE_QUERY = `
   query ApplicationHealthScore($applicationId: ID!) {
     applicationHealthScore(applicationId: $applicationId) {
@@ -254,13 +254,6 @@ export function ApplicationDetailPage() {
       qc.invalidateQueries({ queryKey: ['applications'] });
     },
   });
-  const deleteApp = useMutation({
-    mutationFn: () => gqlClient.request(DELETE_APPLICATION, { id: applicationId }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['applications'] });
-      navigate({ to: '/applications' });
-    },
-  });
 
   const app = appData?.application;
   const notes = notesData?.notes ?? [];
@@ -322,11 +315,14 @@ export function ApplicationDetailPage() {
             </Link>
             <button
               onClick={() => {
-                showUndoToast({
-                  message: t('applicationDetail.applicationDeletedToast'),
-                  onExecute: () => deleteApp.mutate(),
-                  onUndo: () => {},
-                });
+                // Sends the delete now and leaves immediately — undo is a real
+                // restoreApplication call, so there is nothing to wait for.
+                deleteApplicationWithUndo(
+                  qc,
+                  applicationId,
+                  t('applicationDetail.applicationDeletedToast'),
+                  () => navigate({ to: '/applications' }),
+                );
               }}
               className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
               title={t('applicationDetail.deleteApplicationTitle')}
