@@ -200,21 +200,6 @@ export function ApplicationDetailPage() {
     onSuccess: () => setEditingNote(null),
     onSettled: () => qc.invalidateQueries({ queryKey: ['notes', applicationId] }),
   });
-  const deleteNote = useMutation({
-    mutationFn: (id: string) => gqlClient.request(DELETE_NOTE, { id }),
-    onMutate: async (id) => {
-      await qc.cancelQueries({ queryKey: ['notes', applicationId] });
-      const prevNotes = qc.getQueryData<{ notes: Note[] }>(['notes', applicationId]);
-      qc.setQueryData<{ notes: Note[] }>(['notes', applicationId], (old) => ({
-        notes: (old?.notes ?? []).filter((n) => n.id !== id),
-      }));
-      return { prevNotes };
-    },
-    onError: (_err, _id, context) => {
-      if (context?.prevNotes) qc.setQueryData(['notes', applicationId], context.prevNotes);
-    },
-    onSettled: () => qc.invalidateQueries({ queryKey: ['notes', applicationId] }),
-  });
   const toggleStar = useMutation({
     mutationFn: (starred: boolean) =>
       gqlClient.request(UPDATE_STARRED, { id: applicationId, input: { starred } }),
@@ -536,8 +521,10 @@ export function ApplicationDetailPage() {
                             );
                             showUndoToast({
                               message: t('applicationDetail.noteDeletedToast'),
-                              onExecute: () => deleteNote.mutate(note.id),
+                              operation: { document: DELETE_NOTE, variables: { id: note.id } },
                               onUndo: () => qc.setQueryData(['notes', applicationId], snapshot),
+                              onSettled: () =>
+                                qc.invalidateQueries({ queryKey: ['notes', applicationId] }),
                             });
                           }}
                           className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"

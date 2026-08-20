@@ -1,11 +1,21 @@
 import { toast } from 'sonner';
 import i18next from 'i18next';
+import { gqlClient } from '#/graphql/client';
+import { getErrorMessage } from '#/lib/errors';
+import { forgetPendingOperation, rememberPendingOperation } from '#/lib/pendingOperations';
 
 type UndoToastOptions = {
   message: string;
   duration?: number;
-  onExecute: () => void;
+  /**
+   * The request to send once the window closes. Taken as data rather than a
+   * callback so it can be written to storage and replayed after a refresh —
+   * an opaque `onExecute` could not survive the page.
+   */
+  operation: { document: string; variables?: Record<string, unknown> };
   onUndo: () => void;
+  /** Cache work once the request resolves, either way (usually invalidation). */
+  onSettled?: () => void;
 };
 
 type UndoableActionToastOptions = {
@@ -19,17 +29,33 @@ type UndoableActionToastOptions = {
  *
  * Only for operations the server cannot reverse — deleting a note, a contact,
  * an interview round, a document. For those, "undo" can only mean "never send
- * it", so the request has to wait.
+ * it", so the request has to wait. Where a real reversing operation exists,
+ * use `showUndoableActionToast` and send immediately (JEF-190).
  *
- * The pending call lives in a `setTimeout`, which means it does not survive
- * the page: a refresh or a closed tab inside the window drops the operation
- * after the UI has already reported it as done. Prefer
- * `showUndoableActionToast` wherever a real reversing operation exists —
- * see JEF-190.
+ * The operation is recorded durably before the timer starts, so a refresh or a
+ * closed tab inside the window no longer drops it — the next load replays it
+ * (JEF-191). The record is cleared on undo and once the request resolves.
  */
-export function showUndoToast({ message, duration = 5000, onExecute, onUndo }: UndoToastOptions) {
+export function showUndoToast({
+  message,
+  duration = 5000,
+  operation,
+  onUndo,
+  onSettled,
+}: UndoToastOptions) {
+  const pendingId = rememberPendingOperation(operation.document, operation.variables);
+
   const timer = setTimeout(() => {
-    onExecute();
+    void (async () => {
+      try {
+        await gqlClient.request(operation.document, operation.variables);
+      } catch (error) {
+        toast.error(getErrorMessage(error));
+      } finally {
+        forgetPendingOperation(pendingId);
+        onSettled?.();
+      }
+    })();
   }, duration);
 
   toast(message, {
@@ -38,6 +64,7 @@ export function showUndoToast({ message, duration = 5000, onExecute, onUndo }: U
       label: i18next.t('common.undo'),
       onClick: () => {
         clearTimeout(timer);
+        forgetPendingOperation(pendingId);
         onUndo();
       },
     },

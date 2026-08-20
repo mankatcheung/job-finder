@@ -231,28 +231,6 @@ export function InterviewsTab({
     onSettled: () => invalidate(),
   });
 
-  const deleteRound = useMutation({
-    mutationFn: (id: string) => gqlClient.request(DELETE_ROUND, { id }),
-    onMutate: async (id) => {
-      await qc.cancelQueries({ queryKey: ['interviewRounds', applicationId] });
-      const prev = qc.getQueryData<{ interviewRounds: InterviewRound[] }>([
-        'interviewRounds',
-        applicationId,
-      ]);
-      qc.setQueryData<{ interviewRounds: InterviewRound[] }>(
-        ['interviewRounds', applicationId],
-        (old) => ({
-          interviewRounds: (old?.interviewRounds ?? []).filter((r) => r.id !== id),
-        }),
-      );
-      return { prev };
-    },
-    onError: (_err, _id, context) => {
-      if (context?.prev) qc.setQueryData(['interviewRounds', applicationId], context.prev);
-    },
-    onSettled: () => invalidate(),
-  });
-
   const rounds = data?.interviewRounds ?? [];
 
   const openEdit = (r: InterviewRound) => {
@@ -444,8 +422,9 @@ export function InterviewsTab({
                       );
                       showUndoToast({
                         message: t('interviews.interviewRoundDeletedToast'),
-                        onExecute: () => deleteRound.mutate(round.id),
+                        operation: { document: DELETE_ROUND, variables: { id: round.id } },
                         onUndo: () => qc.setQueryData(['interviewRounds', applicationId], snapshot),
+                        onSettled: invalidate,
                       });
                     }}
                     className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"

@@ -29,14 +29,23 @@ vi.mock('#/graphql/client', () => ({
 }));
 
 vi.mock('#/lib/undoToast', () => ({
-  // Deleting a note is still deferred (notes are a hard delete with nothing to
-  // restore), so this stays.
-  showUndoToast: vi.fn(({ onExecute }) => {
-    onExecute();
-  }),
-  // Deleting the application is not. This one does nothing on purpose: the
-  // helper has already sent the delete before it calls the toast, so a no-op
-  // here cannot make the test pass for the wrong reason.
+  // Sends the operation the call site handed over, instead of running an
+  // opaque callback. The request is now described as data so it can be
+  // replayed after a refresh (JEF-191), which means this mock also checks
+  // that each call site names the right document and variables.
+  showUndoToast: vi.fn(
+    ({
+      operation,
+      onSettled,
+    }: {
+      operation: { document: string; variables?: Record<string, unknown> };
+      onSettled?: () => void;
+    }) => {
+      void Promise.resolve(mockGqlRequest(operation.document, operation.variables))
+        .catch(() => {})
+        .finally(() => onSettled?.());
+    },
+  ),
   showUndoableActionToast: vi.fn(),
 }));
 

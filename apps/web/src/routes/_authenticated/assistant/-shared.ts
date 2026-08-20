@@ -107,6 +107,10 @@ export function chatHistoryQueryOptions(conversationId: string) {
  * undo toast; the actual deletion (and dropping its chat-history cache
  * entry) only fires once the toast's undo window expires. Shared between
  * the chat page and the history page so both stay in sync.
+ *
+ * A conversation cannot be restored once deleted, so this keeps the deferred
+ * form rather than JEF-190's send-immediately one. The request is recorded
+ * durably, so leaving the page mid-window postpones it rather than losing it.
  */
 export function deleteConversationWithUndo(
   qc: QueryClient,
@@ -120,20 +124,17 @@ export function deleteConversationWithUndo(
   onDeleted?.();
   showUndoToast({
     message: 'Conversation deleted',
-    onExecute: () => {
-      gqlClient
-        .request(DELETE_CONVERSATION, { id })
-        .then(() => {
-          qc.removeQueries({ queryKey: chatHistoryQueryOptions(id).queryKey });
-        })
-        .catch(() => {
-          toast.error('Failed to delete conversation');
-          qc.invalidateQueries({ queryKey: conversationsQueryOptions.queryKey });
-        });
-    },
+    operation: { document: DELETE_CONVERSATION, variables: { id } },
     onUndo: () => {
       qc.setQueryData<ConversationsResult>(conversationsQueryOptions.queryKey, snapshot);
       toast.dismiss();
+    },
+    // Runs whether or not the request succeeded: dropping the chat-history
+    // entry is right either way, and the list refetch corrects it if the
+    // delete failed (showUndoToast has already surfaced the error).
+    onSettled: () => {
+      qc.removeQueries({ queryKey: chatHistoryQueryOptions(id).queryKey });
+      qc.invalidateQueries({ queryKey: conversationsQueryOptions.queryKey });
     },
   });
 }
