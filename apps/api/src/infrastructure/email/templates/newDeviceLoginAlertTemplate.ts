@@ -1,9 +1,24 @@
+import { ENV } from '#src/constants.js';
+
 export function buildNewDeviceLoginAlertHtml(
   deviceLabel: string,
   location: string | null,
   ipAddress: string | null,
   loginTime: Date,
 ): string {
+  // No fallback on purpose. This link is the entire point of the email — it is
+  // where someone goes when they think their account is compromised — so a
+  // guessed origin would send them somewhere that is not Trakwyn at the exact
+  // moment they most need it to be. Failing to send beats sending a wrong
+  // address, and an unset variable is a deployment mistake worth surfacing
+  // rather than papering over.
+  const webAppOrigin = process.env[ENV.WEB_APP_ORIGIN]?.trim();
+  if (!webAppOrigin) {
+    throw new Error(
+      `${ENV.WEB_APP_ORIGIN} is not set — refusing to build a security alert email without a trustworthy link`,
+    );
+  }
+
   const dateStr = loginTime.toLocaleString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -42,7 +57,7 @@ export function buildNewDeviceLoginAlertHtml(
         If this was you, no action is needed.
       </p>
       <p style="margin:0;color:#374151;font-size:14px;">
-        If you don't recognise this activity, please <a href="${process.env['WEB_APP_ORIGIN'] ?? 'https://job-finder-eight-phi.vercel.app'}/settings/security" style="color:#2563eb;text-decoration:underline;">review your active sessions</a> and revoke any you don't recognise. You should also consider changing your password.
+        If you don't recognise this activity, please <a href="${webAppOrigin}/settings/security" style="color:#2563eb;text-decoration:underline;">review your active sessions</a> and revoke any you don't recognise. You should also consider changing your password.
       </p>
     </div>
     <p style="margin:16px 0 0;text-align:center;color:#9ca3af;font-size:12px;">
