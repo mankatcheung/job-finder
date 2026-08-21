@@ -2,7 +2,15 @@ import type { IHttpRequest } from '#src/http/ports/IHttpRequest.js';
 import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
 import type { Cradle } from '#src/http/container.js';
 import { setAuthCookies } from '#src/http/schema/types/AuthPayloadType.js';
-import { COOKIES, ENV, OAUTH, OAUTH_PROVIDER, ROUTES } from '#src/constants.js';
+import {
+  COOKIES,
+  COOKIE_PATH,
+  ENV,
+  NODE_ENV,
+  OAUTH,
+  OAUTH_PROVIDER,
+  ROUTES,
+} from '#src/constants.js';
 import type { OAuthProviderName } from '#src/domain/oauthAccount/OAuthAccount.js';
 
 const KNOWN_PROVIDERS = new Set<string>(Object.values(OAUTH_PROVIDER));
@@ -13,6 +21,37 @@ function isKnownProvider(provider: string): provider is OAuthProviderName {
 
 function callbackUrl(request: IHttpRequest, provider: string): string {
   return `${request.protocol}://${request.headers.host}${OAUTH.callbackPath(provider)}`;
+}
+
+/**
+ * Options for the cookie that ties a redirect to the browser that began it.
+ *
+ * `SameSite=Lax`, deliberately not the `none` the auth cookies use: the
+ * callback arrives as a top-level GET navigation, which Lax permits, and
+ * anything looser would weaken the very thing this cookie exists to prove.
+ * Host-only (no `domain`) because only this API ever reads it, and scoped to
+ * the same window as the state it guards.
+ */
+const STATE_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env[ENV.NODE_ENV] === NODE_ENV.PRODUCTION,
+  sameSite: 'lax',
+  path: COOKIE_PATH,
+  maxAge: Math.floor(OAUTH.STATE_TTL_MS / 1000),
+} as const;
+
+/**
+ * The signature proves we minted a state; it does not prove we minted it for
+ * the browser presenting it. Without this check an attacker can run the flow
+ * themselves, keep their own valid code and state, and hand the victim the
+ * callback URL — logging the victim into the attacker's account (JEF-198).
+ *
+ * A missing cookie is a hard failure, never a fall-through: treating it as
+ * "no cookie, carry on" would leave the hole open while looking closed.
+ */
+function stateMatchesBrowser(request: IHttpRequest, nonce: string): boolean {
+  const cookieNonce = request.cookies[COOKIES.OAUTH_STATE];
+  return typeof cookieNonce === 'string' && cookieNonce.length > 0 && cookieNonce === nonce;
 }
 
 export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
@@ -58,11 +97,14 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
         }
 
         const returnTo = mode === 'login' ? safeReturnTo(req.query.returnTo) : undefined;
-        const state = oauthStateService.issue(provider, mode, userId, returnTo);
+        const { state, nonce } = oauthStateService.issue(provider, mode, userId, returnTo);
         const authorizationUrl = oauthProviderRegistry
           .get(provider)
           .getAuthorizationUrl(state, callbackUrl(req, provider));
 
+        // Set on the same response as the redirect, so the browser carries it
+        // through the provider and back — see stateMatchesBrowser above.
+        res.setCookie(COOKIES.OAUTH_STATE, nonce, STATE_COOKIE_OPTIONS);
         res.redirect(authorizationUrl);
       },
     },
@@ -76,6 +118,12 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
           res.status(404).send({ error: 'Unknown OAuth provider' });
           return;
         }
+
+        // Cleared once here rather than on each branch below: this handler has
+        // seven ways out, and a stale nonce left behind would block the user's
+        // next attempt. The value is read from the request, so clearing the
+        // response cookie now does not affect the checks that follow.
+        res.clearCookie(COOKIES.OAUTH_STATE, { path: COOKIE_PATH });
 
         const code = typeof req.query.code === 'string' ? req.query.code : undefined;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
@@ -99,6 +147,10 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
         }
         if (parsedState.provider !== provider) {
           res.redirect(`${webAppOrigin}/login?oauthError=provider_mismatch`);
+          return;
+        }
+        if (!stateMatchesBrowser(req, parsedState.nonce)) {
+          res.redirect(`${webAppOrigin}/login?oauthError=invalid_state`);
           return;
         }
 
