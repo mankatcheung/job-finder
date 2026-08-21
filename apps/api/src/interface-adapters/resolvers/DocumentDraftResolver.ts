@@ -2,6 +2,7 @@ import type { ICreateDocumentDraftUseCase } from '#src/use-cases/documents/Creat
 import type { IUpdateDocumentDraftContentUseCase } from '#src/use-cases/documents/UpdateDocumentDraftContentUseCase.js';
 import type { IRenameDocumentDraftUseCase } from '#src/use-cases/documents/RenameDocumentDraftUseCase.js';
 import type { IGenerateCoverLetterDraftUseCase } from '#src/use-cases/documents/GenerateCoverLetterDraftUseCase.js';
+import type { IGenerateResumeDraftUseCase } from '#src/use-cases/documents/GenerateResumeDraftUseCase.js';
 import type { IGetDocumentDraftsUseCase } from '#src/use-cases/documents/GetDocumentDraftsUseCase.js';
 import type { IGetDocumentDraftUseCase } from '#src/use-cases/documents/GetDocumentDraftUseCase.js';
 import type { IDeleteDocumentDraftUseCase } from '#src/use-cases/documents/DeleteDocumentDraftUseCase.js';
@@ -20,6 +21,7 @@ interface Deps {
   updateDocumentDraftContentUseCase: IUpdateDocumentDraftContentUseCase;
   renameDocumentDraftUseCase: IRenameDocumentDraftUseCase;
   generateCoverLetterDraftUseCase: IGenerateCoverLetterDraftUseCase;
+  generateResumeDraftUseCase: IGenerateResumeDraftUseCase;
   getDocumentDraftsUseCase: IGetDocumentDraftsUseCase;
   getDocumentDraftUseCase: IGetDocumentDraftUseCase;
   deleteDocumentDraftUseCase: IDeleteDocumentDraftUseCase;
@@ -103,6 +105,11 @@ export class DocumentDraftResolver {
       applicationId,
       resumeText,
     });
+    return this.deps.documentDraftMapper.toDTO(draft);
+  }
+
+  async generateResumeDraft(userId: string, applicationId: string): Promise<DocumentDraftDTO> {
+    const draft = await this.deps.generateResumeDraftUseCase.execute({ userId, applicationId });
     return this.deps.documentDraftMapper.toDTO(draft);
   }
 

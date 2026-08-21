@@ -8,6 +8,7 @@ import { CreateDocumentDraftUseCase } from '#src/use-cases/documents/CreateDocum
 import { UpdateDocumentDraftContentUseCase } from '#src/use-cases/documents/UpdateDocumentDraftContentUseCase.js';
 import { RenameDocumentDraftUseCase } from '#src/use-cases/documents/RenameDocumentDraftUseCase.js';
 import { GenerateCoverLetterDraftUseCase } from '#src/use-cases/documents/GenerateCoverLetterDraftUseCase.js';
+import { GenerateResumeDraftUseCase } from '#src/use-cases/documents/GenerateResumeDraftUseCase.js';
 import { GetDocumentDraftsUseCase } from '#src/use-cases/documents/GetDocumentDraftsUseCase.js';
 import { GetDocumentDraftUseCase } from '#src/use-cases/documents/GetDocumentDraftUseCase.js';
 import { DeleteDocumentDraftUseCase } from '#src/use-cases/documents/DeleteDocumentDraftUseCase.js';
@@ -26,6 +27,9 @@ export const documents = {
     lifetime: Lifetime.TRANSIENT,
   }),
   renameDocumentDraftUseCase: asClass(RenameDocumentDraftUseCase, {
+    lifetime: Lifetime.TRANSIENT,
+  }),
+  generateResumeDraftUseCase: asClass(GenerateResumeDraftUseCase, {
     lifetime: Lifetime.TRANSIENT,
   }),
   generateCoverLetterDraftUseCase: asClass(GenerateCoverLetterDraftUseCase, {

@@ -2,8 +2,18 @@ import { useState, useEffect } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { proseToTiptapDoc } from '#/lib/proseToTiptapDoc';
+import { getErrorMessage } from '#/lib/errors';
 import { useLocale } from '#/lib/i18n';
 import { Alert, Button, FormLabel, Input, Select } from '@trakwyn/ui';
+
+const GENERATE_RESUME_MUTATION = `
+  mutation GenerateResume($applicationId: ID!) {
+    generateResume(applicationId: $applicationId) {
+      id
+      applicationId
+    }
+  }
+`;
 
 const CREATE_DRAFT_MUTATION = `
   mutation CreateDocumentDraft($input: CreateDocumentDraftInput!) {
@@ -38,7 +48,7 @@ export const Route = createFileRoute('/_authenticated/applications/$applicationI
   component: NewDocumentDraftPage,
 });
 
-function NewDocumentDraftPage() {
+export function NewDocumentDraftPage() {
   const { t } = useLocale();
   const { applicationId } = Route.useParams();
   const navigate = useNavigate();
@@ -103,6 +113,24 @@ function NewDocumentDraftPage() {
       });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('documentDraft.createFailed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerate = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await gqlClient.request<{
+        generateResume: { id: string; applicationId: string };
+      }>(GENERATE_RESUME_MUTATION, { applicationId });
+      await navigate({
+        to: '/applications/$applicationId/documents/$draftId',
+        params: { applicationId: res.generateResume.applicationId, draftId: res.generateResume.id },
+      });
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -177,6 +205,26 @@ function NewDocumentDraftPage() {
             </Select>
           )}
         </div>
+
+        {type === 'resume' && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {t('documentDraft.generateResumeTitle')}
+            </p>
+            <p className="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
+              {t('documentDraft.generateResumeHelp')}
+            </p>
+            <Button
+              type="button"
+              variant="secondary"
+              className="mt-3"
+              onClick={() => void handleGenerate()}
+              disabled={loading}
+            >
+              {loading ? t('documentDraft.generating') : `✨ ${t('documentDraft.generateResume')}`}
+            </Button>
+          </div>
+        )}
 
         {error && <Alert>{error}</Alert>}
 

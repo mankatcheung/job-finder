@@ -147,6 +147,8 @@ import type { CreateDocumentDraftUseCase } from '#src/use-cases/documents/Create
 import type { UpdateDocumentDraftContentUseCase } from '#src/use-cases/documents/UpdateDocumentDraftContentUseCase.js';
 import type { RenameDocumentDraftUseCase } from '#src/use-cases/documents/RenameDocumentDraftUseCase.js';
 import type { GenerateCoverLetterDraftUseCase } from '#src/use-cases/documents/GenerateCoverLetterDraftUseCase.js';
+import type { GenerateResumeDraftUseCase } from '#src/use-cases/documents/GenerateResumeDraftUseCase.js';
+import type { GenerateResumeUseCase } from '#src/use-cases/resume/GenerateResumeUseCase.js';
 import type { GetDocumentDraftsUseCase } from '#src/use-cases/documents/GetDocumentDraftsUseCase.js';
 import type { GetDocumentDraftUseCase } from '#src/use-cases/documents/GetDocumentDraftUseCase.js';
 import type { DeleteDocumentDraftUseCase } from '#src/use-cases/documents/DeleteDocumentDraftUseCase.js';
@@ -451,6 +453,9 @@ export interface Cradle {
   updateDocumentDraftContentUseCase: UpdateDocumentDraftContentUseCase;
   renameDocumentDraftUseCase: RenameDocumentDraftUseCase;
   generateCoverLetterDraftUseCase: GenerateCoverLetterDraftUseCase;
+  generateResumeDraftUseCase: GenerateResumeDraftUseCase;
+  generateResumeUseCase: GenerateResumeUseCase;
+  generateResumeRateLimiter: IRateLimiter;
   getDocumentDraftsUseCase: GetDocumentDraftsUseCase;
   getDocumentDraftUseCase: GetDocumentDraftUseCase;
   deleteDocumentDraftUseCase: DeleteDocumentDraftUseCase;
