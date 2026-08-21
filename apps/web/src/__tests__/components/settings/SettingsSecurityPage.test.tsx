@@ -606,17 +606,14 @@ describe('SettingsSecurityPage', () => {
       });
     });
 
-    it('shows the raw error message when redirected back with ?oauthError=<message>', async () => {
-      mockUseSearch.mockReturnValue({
-        oauthError: 'This account is already linked to another user',
-      });
+    it('translates the oauthError slug redirected back from the callback', async () => {
+      mockUseSearch.mockReturnValue({ oauthError: 'already_linked' });
       render(<SettingsSecurityPage />, { wrapper: Wrapper });
 
       await waitFor(() => {
-        expect(
-          screen.getByText('This account is already linked to another user'),
-        ).toBeInTheDocument();
+        expect(screen.getByText(/already linked to another user/i)).toBeInTheDocument();
       });
+      expect(screen.queryByText('already_linked')).not.toBeInTheDocument();
     });
 
     it('renders the Google and GitHub logos next to each provider row', async () => {
