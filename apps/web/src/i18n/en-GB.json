@@ -16,6 +16,8 @@
   "settings.integrations": "Integrations",
   "settings.notifications": "Notifications",
   "settings.data": "Data",
+  "settings.ai": "AI",
+  "settings.dangerZone": "Danger zone",
   "errors.notFound": "Page not found",
   "errors.goDashboard": "Go to dashboard",
   "errors.somethingWrong": "Something went wrong",

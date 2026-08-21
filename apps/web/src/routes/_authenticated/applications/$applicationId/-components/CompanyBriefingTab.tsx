@@ -93,7 +93,7 @@ export function CompanyBriefingTab({ applicationId }: { applicationId: string })
             {getGqlErrorCode(generate.error) === AI_NOT_CONFIGURED_CODE ? (
               <>
                 {t('resumeMatch.addApiKeyPrefix')}{' '}
-                <Link to="/settings/profile" className="underline">
+                <Link to="/settings/ai" className="underline">
                   {t('resumeMatch.accountSettingsLinkText')}
                 </Link>{' '}
                 {t('resumeMatch.addApiKeySuffix')}

@@ -11,9 +11,6 @@ import { oauthErrorKey } from '#/lib/oauthError';
 import { API_ORIGIN } from '#/lib/apiOrigin';
 import { OAuthProviderLogo } from '#/components/OAuthProviderLogo';
 import {
-  REQUEST_EMAIL_CHANGE,
-  REQUEST_ADD_BACKUP_EMAIL,
-  REMOVE_BACKUP_EMAIL,
   UPDATE_PASSWORD,
   LINKED_OAUTH_ACCOUNTS_QUERY,
   UNLINK_OAUTH_ACCOUNT,
@@ -26,16 +23,10 @@ import {
   REVOKE_SESSION,
   REVOKE_OTHER_SESSIONS,
   SECURITY_ACTIVITY,
-  emailSchema,
-  backupEmailSchema,
-  removeBackupEmailSchema,
   passwordSchema,
   totpBeginSchema,
   totpConfirmSchema,
   totpDisableSchema,
-  type EmailForm,
-  type BackupEmailForm,
-  type RemoveBackupEmailForm,
   type PasswordForm,
   type TotpBeginForm,
   type TotpConfirmForm,
@@ -53,64 +44,6 @@ export function SettingsSecurityPage() {
   const { t } = useLocale();
   const qc = useQueryClient();
   const { withStepUp, dialog: stepUpDialog } = useStepUpReauth();
-
-  // Email form
-  const emailForm = useForm<EmailForm>({ resolver: zodResolver(emailSchema) });
-  const onUpdateEmail = async (data: EmailForm) => {
-    try {
-      await withStepUp(() => gqlClient.request(REQUEST_EMAIL_CHANGE, data));
-      emailForm.reset();
-      emailForm.setError('root', { message: '' });
-    } catch (err) {
-      if (err instanceof Error && err.message === STEP_UP_CANCELLED) return;
-      emailForm.setError('root', {
-        message: extractGqlError(err) ?? t('security.emailUpdateFailed'),
-      });
-    }
-  };
-
-  // Backup email recovery
-  const { data: meData } = useQuery({
-    queryKey: ['me'],
-    queryFn: () =>
-      gqlClient.request<{
-        me: { backupEmail: string | null; backupEmailVerifiedAt: string | null } | null;
-      }>(`
-      query SecurityMe {
-        me { backupEmail backupEmailVerifiedAt }
-      }
-    `),
-  });
-  const backupEmail = meData?.me?.backupEmail ?? null;
-  const backupEmailVerified = Boolean(meData?.me?.backupEmailVerifiedAt);
-  const backupEmailForm = useForm<BackupEmailForm>({ resolver: zodResolver(backupEmailSchema) });
-  const removeBackupEmailForm = useForm<RemoveBackupEmailForm>({
-    resolver: zodResolver(removeBackupEmailSchema),
-  });
-  const onAddBackupEmail = async (data: BackupEmailForm) => {
-    try {
-      await withStepUp(() => gqlClient.request(REQUEST_ADD_BACKUP_EMAIL, data));
-      backupEmailForm.reset();
-      await qc.invalidateQueries({ queryKey: ['me'] });
-    } catch (err) {
-      if (err instanceof Error && err.message === STEP_UP_CANCELLED) return;
-      backupEmailForm.setError('root', {
-        message: extractGqlError(err) ?? t('security.addBackupEmailFailed'),
-      });
-    }
-  };
-  const onRemoveBackupEmail = async (data: RemoveBackupEmailForm) => {
-    try {
-      await withStepUp(() => gqlClient.request(REMOVE_BACKUP_EMAIL, data));
-      removeBackupEmailForm.reset();
-      await qc.invalidateQueries({ queryKey: ['me'] });
-    } catch (err) {
-      if (err instanceof Error && err.message === STEP_UP_CANCELLED) return;
-      removeBackupEmailForm.setError('root', {
-        message: extractGqlError(err) ?? t('security.removeBackupEmailFailed'),
-      });
-    }
-  };
 
   // Password form
   const passwordForm = useForm<PasswordForm>({ resolver: zodResolver(passwordSchema) });
@@ -256,156 +189,6 @@ export function SettingsSecurityPage() {
   return (
     <div className="space-y-10">
       {stepUpDialog}
-      {/* ── Email ── */}
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            {t('security.emailTitle')}
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t('security.emailDescription')}
-          </p>
-        </div>
-        <form onSubmit={emailForm.handleSubmit(onUpdateEmail)} className="space-y-3">
-          <div>
-            <FormLabel>{t('security.currentPasswordLabel')}</FormLabel>
-            <Input
-              type="password"
-              {...emailForm.register('currentPassword')}
-              invalid={!!emailForm.formState.errors.currentPassword}
-              placeholder="••••••••"
-            />
-            {emailForm.formState.errors.currentPassword && (
-              <p className="mt-1 text-xs text-red-600">
-                {emailForm.formState.errors.currentPassword.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <FormLabel>{t('security.newEmailLabel')}</FormLabel>
-            <Input
-              type="email"
-              {...emailForm.register('newEmail')}
-              invalid={!!emailForm.formState.errors.newEmail}
-              placeholder="you@example.com"
-            />
-            {emailForm.formState.errors.newEmail && (
-              <p className="mt-1 text-xs text-red-600">
-                {emailForm.formState.errors.newEmail.message}
-              </p>
-            )}
-          </div>
-          {emailForm.formState.errors.root?.message && (
-            <Alert>{emailForm.formState.errors.root.message}</Alert>
-          )}
-          {emailForm.formState.isSubmitSuccessful && !emailForm.formState.errors.root?.message && (
-            <p className="text-sm text-green-600">{t('security.emailConfirmationSent')}</p>
-          )}
-          <Button type="submit" disabled={emailForm.formState.isSubmitting}>
-            {emailForm.formState.isSubmitting ? t('security.sending') : t('security.updateEmail')}
-          </Button>
-        </form>
-      </section>
-
-      <hr className="border-gray-200 dark:border-gray-700" />
-
-      {/* ── Backup email ── */}
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            {t('security.backupEmailTitle')}
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t('security.backupEmailDescription')}
-          </p>
-        </div>
-        {backupEmail ? (
-          <div className="space-y-3">
-            <p className="text-sm text-gray-900 dark:text-gray-100">
-              {backupEmail}{' '}
-              <span className={backupEmailVerified ? 'text-green-600' : 'text-amber-600'}>
-                {backupEmailVerified ? t('security.verified') : t('security.verificationPending')}
-              </span>
-            </p>
-            <form
-              onSubmit={removeBackupEmailForm.handleSubmit(onRemoveBackupEmail)}
-              className="space-y-3"
-            >
-              <div>
-                <FormLabel>{t('security.currentPasswordToRemoveLabel')}</FormLabel>
-                <Input
-                  type="password"
-                  {...removeBackupEmailForm.register('currentPassword')}
-                  invalid={!!removeBackupEmailForm.formState.errors.currentPassword}
-                  placeholder="••••••••"
-                />
-                {removeBackupEmailForm.formState.errors.currentPassword && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {removeBackupEmailForm.formState.errors.currentPassword.message}
-                  </p>
-                )}
-              </div>
-              {removeBackupEmailForm.formState.errors.root?.message && (
-                <Alert>{removeBackupEmailForm.formState.errors.root.message}</Alert>
-              )}
-              <Button
-                type="submit"
-                variant="destructive"
-                disabled={removeBackupEmailForm.formState.isSubmitting}
-              >
-                {removeBackupEmailForm.formState.isSubmitting
-                  ? t('security.removing')
-                  : t('security.removeBackupEmail')}
-              </Button>
-            </form>
-          </div>
-        ) : (
-          <form onSubmit={backupEmailForm.handleSubmit(onAddBackupEmail)} className="space-y-3">
-            <div>
-              <FormLabel>{t('security.backupEmailLabel')}</FormLabel>
-              <Input
-                type="email"
-                {...backupEmailForm.register('backupEmail')}
-                invalid={!!backupEmailForm.formState.errors.backupEmail}
-                placeholder="backup@example.com"
-              />
-              {backupEmailForm.formState.errors.backupEmail && (
-                <p className="mt-1 text-xs text-red-600">
-                  {backupEmailForm.formState.errors.backupEmail.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <FormLabel>{t('security.currentPasswordLabel')}</FormLabel>
-              <Input
-                type="password"
-                {...backupEmailForm.register('currentPassword')}
-                invalid={!!backupEmailForm.formState.errors.currentPassword}
-                placeholder="••••••••"
-              />
-              {backupEmailForm.formState.errors.currentPassword && (
-                <p className="mt-1 text-xs text-red-600">
-                  {backupEmailForm.formState.errors.currentPassword.message}
-                </p>
-              )}
-            </div>
-            {backupEmailForm.formState.errors.root?.message && (
-              <Alert>{backupEmailForm.formState.errors.root.message}</Alert>
-            )}
-            {backupEmailForm.formState.isSubmitSuccessful && (
-              <p className="text-sm text-green-600">{t('security.backupEmailVerificationSent')}</p>
-            )}
-            <Button type="submit" disabled={backupEmailForm.formState.isSubmitting}>
-              {backupEmailForm.formState.isSubmitting
-                ? t('security.sending')
-                : t('security.addBackupEmail')}
-            </Button>
-          </form>
-        )}
-      </section>
-
-      <hr className="border-gray-200 dark:border-gray-700" />
-
       {/* ── Password ── */}
       <section className="space-y-4">
         <div>

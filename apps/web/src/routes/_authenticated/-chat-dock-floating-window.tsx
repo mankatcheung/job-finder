@@ -87,7 +87,7 @@ export function ChatDockFloatingWindow() {
       {llmApiKeys.length === 0 ? (
         <p className="flex-1 flex items-center justify-center text-center text-xs text-gray-400 dark:text-gray-500 px-4">
           {t('assistant.addApiKeyPrefix')}{' '}
-          <Link to="/settings/integrations" className="underline mx-1">
+          <Link to="/settings/ai" className="underline mx-1">
             {t('assistant.settingsLinkText')}
           </Link>{' '}
           {t('assistant.addApiKeySuffix')}

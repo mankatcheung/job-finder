@@ -25,6 +25,8 @@ import {
   BellIcon,
   DatabaseIcon,
   ShieldIcon,
+  SparklesIcon,
+  AlertTriangleIcon,
   UserIcon,
   XIcon,
 } from 'lucide-react';
@@ -36,9 +38,12 @@ const SETTINGS_NAV = [
   { to: '/settings/profile', labelKey: 'settings.profile', icon: UserIcon },
   { to: '/settings/experience', labelKey: 'settings.experience', icon: BriefcaseIcon },
   { to: '/settings/security', labelKey: 'settings.security', icon: ShieldIcon },
+  { to: '/settings/ai', labelKey: 'settings.ai', icon: SparklesIcon },
   { to: '/settings/integrations', labelKey: 'settings.integrations', icon: PlugIcon },
   { to: '/settings/notifications', labelKey: 'settings.notifications', icon: BellIcon },
   { to: '/settings/data', labelKey: 'settings.data', icon: DatabaseIcon },
+  // Last, deliberately: the only irreversible action in Settings.
+  { to: '/settings/danger-zone', labelKey: 'settings.dangerZone', icon: AlertTriangleIcon },
 ] as const;
 
 const MAIN_NAV = [
