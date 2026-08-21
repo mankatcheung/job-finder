@@ -24,7 +24,11 @@ export class LoginOrSignupWithOAuthUseCase implements ILoginOrSignupWithOAuthUse
 
   async execute(input: LoginOrSignupWithOAuthInput): Promise<LoginOrSignupWithOAuthOutput> {
     const provider = this.deps.oauthProviderRegistry.get(input.provider);
-    const profile = await provider.exchangeCodeForProfile(input.code, input.redirectUri);
+    const profile = await provider.exchangeCodeForProfile(
+      input.code,
+      input.redirectUri,
+      input.codeVerifier,
+    );
 
     const existingLink = await this.deps.oauthAccountRepository.findByProvider(
       input.provider,

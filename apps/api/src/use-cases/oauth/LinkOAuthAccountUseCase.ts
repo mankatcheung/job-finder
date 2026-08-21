@@ -17,7 +17,11 @@ export class LinkOAuthAccountUseCase implements ILinkOAuthAccountUseCase {
 
   async execute(input: LinkOAuthAccountInput): Promise<void> {
     const provider = this.deps.oauthProviderRegistry.get(input.provider);
-    const profile = await provider.exchangeCodeForProfile(input.code, input.redirectUri);
+    const profile = await provider.exchangeCodeForProfile(
+      input.code,
+      input.redirectUri,
+      input.codeVerifier,
+    );
 
     const existing = await this.deps.oauthAccountRepository.findByProvider(
       input.provider,

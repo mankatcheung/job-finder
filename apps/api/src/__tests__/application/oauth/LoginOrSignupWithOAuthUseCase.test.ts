@@ -9,7 +9,12 @@ import {
   makeOAuthProvider,
 } from '#src/__tests__/helpers/mocks.js';
 
-const input = { provider: 'google' as const, code: 'auth-code', redirectUri: 'https://api/cb' };
+const input = {
+  provider: 'google' as const,
+  code: 'auth-code',
+  redirectUri: 'https://api/cb',
+  codeVerifier: 'test-verifier',
+};
 
 describe('LoginOrSignupWithOAuthUseCase', () => {
   it('logs in the existing user when the provider identity is already linked', async () => {

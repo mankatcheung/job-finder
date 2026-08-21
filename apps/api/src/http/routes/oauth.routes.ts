@@ -12,6 +12,7 @@ import {
   ROUTES,
 } from '#src/constants.js';
 import type { OAuthProviderName } from '#src/domain/oauthAccount/OAuthAccount.js';
+import { createPkcePair } from '#src/infrastructure/auth/pkce.js';
 
 const KNOWN_PROVIDERS = new Set<string>(Object.values(OAUTH_PROVIDER));
 
@@ -41,17 +42,44 @@ const STATE_COOKIE_OPTIONS = {
 } as const;
 
 /**
+ * The redirect cookie carries two things the callback needs and the browser
+ * must not be able to tamper with: the state's nonce (JEF-198) and the PKCE
+ * verifier (JEF-200).
+ *
+ * One cookie rather than two, deliberately. They are created together, read
+ * together and cleared together, and combining them makes it impossible to
+ * arrive with one but not the other — a partial state that would otherwise
+ * need its own handling on every path. Both halves are base64url or hex, so
+ * neither can contain the separator.
+ */
+const COOKIE_SEPARATOR = '.';
+
+function encodeRedirectCookie(nonce: string, codeVerifier: string): string {
+  return `${nonce}${COOKIE_SEPARATOR}${codeVerifier}`;
+}
+
+function decodeRedirectCookie(
+  request: IHttpRequest,
+): { nonce: string; codeVerifier: string } | null {
+  const raw = request.cookies[COOKIES.OAUTH_STATE];
+  if (typeof raw !== 'string') return null;
+  const [nonce, codeVerifier] = raw.split(COOKIE_SEPARATOR);
+  if (!nonce || !codeVerifier) return null;
+  return { nonce, codeVerifier };
+}
+
+/**
  * The signature proves we minted a state; it does not prove we minted it for
  * the browser presenting it. Without this check an attacker can run the flow
  * themselves, keep their own valid code and state, and hand the victim the
  * callback URL — logging the victim into the attacker's account (JEF-198).
  *
- * A missing cookie is a hard failure, never a fall-through: treating it as
- * "no cookie, carry on" would leave the hole open while looking closed.
+ * A missing or half-formed cookie is a hard failure, never a fall-through:
+ * treating it as "no cookie, carry on" would leave the hole open while looking
+ * closed, and would silently drop PKCE with it.
  */
-function stateMatchesBrowser(request: IHttpRequest, nonce: string): boolean {
-  const cookieNonce = request.cookies[COOKIES.OAUTH_STATE];
-  return typeof cookieNonce === 'string' && cookieNonce.length > 0 && cookieNonce === nonce;
+function stateMatchesBrowser(nonce: string, cookieNonce: string): boolean {
+  return cookieNonce.length > 0 && cookieNonce === nonce;
 }
 
 export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
@@ -98,13 +126,21 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
 
         const returnTo = mode === 'login' ? safeReturnTo(req.query.returnTo) : undefined;
         const { state, nonce } = oauthStateService.issue(provider, mode, userId, returnTo);
+        // Only the challenge — the hash — goes to the provider. The verifier
+        // stays here, in the cookie, so capturing the redirect URL reveals
+        // nothing that could redeem the code.
+        const { verifier, challenge } = createPkcePair();
         const authorizationUrl = oauthProviderRegistry
           .get(provider)
-          .getAuthorizationUrl(state, callbackUrl(req, provider));
+          .getAuthorizationUrl(state, callbackUrl(req, provider), challenge);
 
         // Set on the same response as the redirect, so the browser carries it
-        // through the provider and back — see stateMatchesBrowser above.
-        res.setCookie(COOKIES.OAUTH_STATE, nonce, STATE_COOKIE_OPTIONS);
+        // through the provider and back — see the cookie note above.
+        res.setCookie(
+          COOKIES.OAUTH_STATE,
+          encodeRedirectCookie(nonce, verifier),
+          STATE_COOKIE_OPTIONS,
+        );
         res.redirect(authorizationUrl);
       },
     },
@@ -149,7 +185,8 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
           res.redirect(`${webAppOrigin}/login?oauthError=provider_mismatch`);
           return;
         }
-        if (!stateMatchesBrowser(req, parsedState.nonce)) {
+        const redirectCookie = decodeRedirectCookie(req);
+        if (!redirectCookie || !stateMatchesBrowser(parsedState.nonce, redirectCookie.nonce)) {
           res.redirect(`${webAppOrigin}/login?oauthError=invalid_state`);
           return;
         }
@@ -172,6 +209,7 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
               provider,
               code,
               redirectUri,
+              codeVerifier: redirectCookie.codeVerifier,
             });
             res.redirect(`${webAppOrigin}/settings/security?oauthLinked=${provider}`);
           } catch (err) {
@@ -189,6 +227,7 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
             provider,
             code,
             redirectUri,
+            codeVerifier: redirectCookie.codeVerifier,
           });
           const userAgent =
             typeof req.headers['user-agent'] === 'string' ? req.headers['user-agent'] : null;

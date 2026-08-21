@@ -21,18 +21,24 @@ export class GoogleOAuthProvider implements IOAuthProvider {
     this.clientSecret = process.env[ENV.GOOGLE_OAUTH_CLIENT_SECRET] ?? '';
   }
 
-  getAuthorizationUrl(state: string, redirectUri: string): string {
+  getAuthorizationUrl(state: string, redirectUri: string, codeChallenge: string): string {
     const params = new URLSearchParams({
       client_id: this.clientId,
       redirect_uri: redirectUri,
       response_type: 'code',
       scope: 'openid email profile',
       state,
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
     });
     return `${OAUTH.GOOGLE_AUTHORIZATION_URL}?${params.toString()}`;
   }
 
-  async exchangeCodeForProfile(code: string, redirectUri: string): Promise<OAuthProfile> {
+  async exchangeCodeForProfile(
+    code: string,
+    redirectUri: string,
+    codeVerifier: string,
+  ): Promise<OAuthProfile> {
     if (!this.clientId || !this.clientSecret) {
       throw new Error(`${ENV.GOOGLE_OAUTH_CLIENT_ID}/${ENV.GOOGLE_OAUTH_CLIENT_SECRET} not set`);
     }
@@ -46,6 +52,7 @@ export class GoogleOAuthProvider implements IOAuthProvider {
         code,
         grant_type: 'authorization_code',
         redirect_uri: redirectUri,
+        code_verifier: codeVerifier,
       }),
     });
     if (!tokenResponse.ok) {

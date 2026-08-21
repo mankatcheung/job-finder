@@ -16,12 +16,25 @@ describe('GitHubOAuthProvider', () => {
   describe('getAuthorizationUrl', () => {
     it('builds a GitHub authorization URL carrying the client id, redirect, and state', () => {
       const provider = new GitHubOAuthProvider();
-      const url = new URL(provider.getAuthorizationUrl('my-state', 'https://api/cb'));
+      const url = new URL(
+        provider.getAuthorizationUrl('my-state', 'https://api/cb', 'my-challenge'),
+      );
 
       expect(url.origin + url.pathname).toBe('https://github.com/login/oauth/authorize');
       expect(url.searchParams.get('client_id')).toBe('client-id');
       expect(url.searchParams.get('redirect_uri')).toBe('https://api/cb');
       expect(url.searchParams.get('state')).toBe('my-state');
+    });
+
+    it('sends the PKCE challenge and names S256 as the method', () => {
+      // GitHub accepts S256 only (PKCE shipped for OAuth Apps in July 2025).
+      const provider = new GitHubOAuthProvider();
+      const url = new URL(
+        provider.getAuthorizationUrl('my-state', 'https://api/cb', 'my-challenge'),
+      );
+
+      expect(url.searchParams.get('code_challenge')).toBe('my-challenge');
+      expect(url.searchParams.get('code_challenge_method')).toBe('S256');
     });
   });
 
@@ -37,7 +50,11 @@ describe('GitHubOAuthProvider', () => {
       vi.stubGlobal('fetch', mockFetch);
 
       const provider = new GitHubOAuthProvider();
-      const profile = await provider.exchangeCodeForProfile('auth-code', 'https://api/cb');
+      const profile = await provider.exchangeCodeForProfile(
+        'auth-code',
+        'https://api/cb',
+        'my-verifier',
+      );
 
       expect(profile).toEqual({
         providerAccountId: '42',
@@ -66,7 +83,11 @@ describe('GitHubOAuthProvider', () => {
       vi.stubGlobal('fetch', mockFetch);
 
       const provider = new GitHubOAuthProvider();
-      const profile = await provider.exchangeCodeForProfile('auth-code', 'https://api/cb');
+      const profile = await provider.exchangeCodeForProfile(
+        'auth-code',
+        'https://api/cb',
+        'my-verifier',
+      );
 
       expect(profile.email).toBe('primary@example.com');
       expect(profile.emailVerified).toBe(true);
@@ -82,9 +103,9 @@ describe('GitHubOAuthProvider', () => {
       );
       const provider = new GitHubOAuthProvider();
 
-      await expect(provider.exchangeCodeForProfile('bad-code', 'https://api/cb')).rejects.toThrow(
-        'GitHub token exchange failed',
-      );
+      await expect(
+        provider.exchangeCodeForProfile('bad-code', 'https://api/cb', 'my-verifier'),
+      ).rejects.toThrow('GitHub token exchange failed');
     });
   });
 });
