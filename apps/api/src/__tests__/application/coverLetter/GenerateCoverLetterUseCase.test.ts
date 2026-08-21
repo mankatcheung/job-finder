@@ -11,6 +11,9 @@ import {
   makeUserRepository,
   makeUser,
   makeRateLimiter,
+  makeNoteRepository,
+  makeCompanyBriefingRepository,
+  makeNote,
 } from '#src/__tests__/helpers/mocks.js';
 
 const COVER_LETTER = 'Dear Hiring Manager,\n\nI am excited to apply…\n\nSincerely,\nJane';
@@ -22,6 +25,8 @@ function baseDeps(overrides?: Record<string, unknown>) {
     skillRepository: makeSkillRepository(),
     userRepository: makeUserRepository({ findById: vi.fn().mockResolvedValue(makeUser()) }),
     generateCoverLetterRateLimiter: makeRateLimiter(),
+    noteRepository: makeNoteRepository(),
+    companyBriefingRepository: makeCompanyBriefingRepository(),
     ...overrides,
   };
 }
@@ -268,5 +273,101 @@ describe('GenerateCoverLetterUseCase', () => {
 
     expect((err as { code: string }).code).toBe('RATE_LIMITED');
     expect(applicationRepository.findById).not.toHaveBeenCalled();
+  });
+  describe('application context (JEF-205)', () => {
+    function runWith(over: {
+      app?: ReturnType<typeof makeApplication>;
+      notes?: ReturnType<typeof makeNote>[];
+      briefing?: { content: string; generatedAt: Date } | null;
+    }) {
+      const llmProvider = makeLLMProvider(COVER_LETTER);
+      const useCase = new GenerateCoverLetterUseCase(
+        baseDeps({
+          applicationRepository: makeApplicationRepository({
+            findById: vi.fn().mockResolvedValue(over.app ?? makeApplication()),
+          }),
+          llmProviderFactory: makeLLMProviderFactory({
+            forUser: vi.fn().mockResolvedValue(llmProvider),
+          }),
+          noteRepository: makeNoteRepository({
+            findAllByApplicationId: vi.fn().mockResolvedValue(over.notes ?? []),
+          }),
+          companyBriefingRepository: makeCompanyBriefingRepository({
+            findByApplicationId: vi.fn().mockResolvedValue(over.briefing ?? null),
+          }),
+        }) as never,
+      );
+      return {
+        llmProvider,
+        run: () => useCase.execute({ applicationId: 'app-1', userId: 'user-1' }),
+        prompt: () => {
+          const messages = vi.mocked(llmProvider.complete).mock.calls[0]![0];
+          return messages[messages.length - 1]!.content;
+        },
+      };
+    }
+
+    it("puts the user's notes in the prompt", async () => {
+      // Notes are the highest-value context here: they hold things that exist
+      // nowhere else, like what a recruiter said they were looking for.
+      const ctx = runWith({
+        notes: [makeNote({ content: 'Recruiter said they want Kafka experience' })],
+      });
+
+      await ctx.run();
+
+      expect(ctx.prompt()).toContain('Kafka experience');
+    });
+
+    it('puts the stored company briefing in the prompt', async () => {
+      const ctx = runWith({
+        briefing: { content: 'Acme builds widgets for hospitals.', generatedAt: new Date() },
+      });
+
+      await ctx.run();
+
+      expect(ctx.prompt()).toContain('widgets for hospitals');
+    });
+
+    it('marks the briefing as unverified rather than presenting it as fact', async () => {
+      // The briefing is itself model-generated, and its own prompt admits it
+      // may lack reliable company knowledge. Passing it through unlabelled
+      // would launder a hedge into a confident claim in a letter the user
+      // sends to that company.
+      const ctx = runWith({
+        briefing: { content: 'Acme builds widgets.', generatedAt: new Date() },
+      });
+
+      await ctx.run();
+
+      expect(ctx.prompt()).toMatch(/unverified/i);
+    });
+
+    it('never puts the salary range in the prompt', async () => {
+      // One field away from the ones being added, and a letter that raises
+      // compensation unprompted does real damage.
+      const ctx = runWith({ app: makeApplication({ salaryRange: '£95,000 – £120,000' }) });
+
+      await ctx.run();
+
+      expect(ctx.prompt()).not.toContain('95,000');
+      expect(ctx.prompt()).not.toMatch(/salary/i);
+    });
+
+    it('works exactly as before when there is neither a note nor a briefing', async () => {
+      // The common case, and the easiest to break.
+      const ctx = runWith({ notes: [], briefing: null });
+
+      await expect(ctx.run()).resolves.toBe(COVER_LETTER);
+      expect(ctx.prompt()).not.toMatch(/notes|briefing/i);
+    });
+
+    it('caps very long notes instead of sending them whole', async () => {
+      const ctx = runWith({ notes: [makeNote({ content: 'x'.repeat(20_000) })] });
+
+      await ctx.run();
+
+      expect(ctx.prompt().length).toBeLessThan(12_000);
+    });
   });
 });

@@ -31,4 +31,17 @@ describe('buildContainer', () => {
     expect(container.resolve('compareOffersUseCase')).toBeDefined();
     expect(container.resolve('offerResolver')).toBeDefined();
   });
+  it('resolves the generators with their new application-context deps (JEF-205)', async () => {
+    const { buildContainer } = await import('#src/http/container.js');
+
+    const container = buildContainer();
+
+    // Awilix supplies noteRepository and companyBriefingRepository by name.
+    // A missing registration would only surface the first time someone
+    // generated a cover letter in production.
+    expect(container.resolve('generateCoverLetterUseCase')).toBeDefined();
+    expect(container.resolve('generateResumeUseCase')).toBeDefined();
+    expect(container.resolve('generateCoverLetterDraftUseCase')).toBeDefined();
+    expect(container.resolve('generateResumeDraftUseCase')).toBeDefined();
+  });
 });

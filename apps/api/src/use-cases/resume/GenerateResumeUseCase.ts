@@ -12,6 +12,8 @@ import type { LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
+import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
+import { formatApplicationContext } from '#src/use-cases/shared/applicationContext.js';
 import type { ResumeContent } from '#src/domain/resume/ResumeContent.js';
 import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
 import { parseAiJson } from '#src/use-cases/shared/parseAiJson.js';
@@ -34,6 +36,7 @@ interface Deps extends UserProfileRepositories {
   applicationRepository: IApplicationRepository;
   userRepository: IUserRepository;
   generateResumeRateLimiter: IRateLimiter;
+  noteRepository: INoteRepository;
 }
 
 const resumeSchema = z.object({
@@ -120,10 +123,18 @@ export class GenerateResumeUseCase {
       throw new AiNotConfiguredError('Add your AI API key in Settings to use this feature');
     }
 
-    const user = await this.deps.userRepository.findById(input.userId);
+    const [user, notes] = await Promise.all([
+      this.deps.userRepository.findById(input.userId),
+      this.deps.noteRepository.findAllByApplicationId(input.applicationId),
+    ]);
+    // Notes only, no company briefing: a resume is about the candidate, and
+    // the briefing is unverified model output about the employer. Nothing in
+    // it belongs in a document asserting this person's history (JEF-205).
+    const context = formatApplicationContext({ notes, briefing: null });
+
     const messages: LLMMessage[] = [{ role: 'system', content: SYSTEM_PROMPT }];
     if (user?.customAiPrompt) messages.push({ role: 'system', content: user.customAiPrompt });
-    messages.push({ role: 'user', content: this.buildPrompt(app, profile) });
+    messages.push({ role: 'user', content: this.buildPrompt(app, profile, context) });
 
     const resume = parseAiJson<ResumeContent>(
       await llmProvider.complete(messages, 2048),
@@ -136,6 +147,7 @@ export class GenerateResumeUseCase {
   private buildPrompt(
     app: { company: string; role: string; location?: string | null; description?: string | null },
     profile: UserProfile,
+    applicationContext: string,
   ): string {
     return [
       'Tailor this candidate to the following role.',
@@ -149,6 +161,7 @@ export class GenerateResumeUseCase {
             )}`,
           ]
         : []),
+      ...(applicationContext ? [`\n${applicationContext}`] : []),
       `\nCandidate background — the only facts you may use:\n${formatUserProfile(profile)}`,
     ].join('\n');
   }

@@ -652,6 +652,10 @@ export const AI_PROMPT_INPUT = {
   COMPANY_BRIEFING_JOB_DESCRIPTION_MAX_CHARS: 3000,
   /** ComputeResumeMatchScoreUseCase — the application's job description field. */
   RESUME_MATCH_JOB_DESCRIPTION_MAX_CHARS: 6000,
+  /** Cover letter + resume generation — the user's notes on the application (JEF-205). */
+  APPLICATION_NOTES_MAX_CHARS: 2000,
+  /** Cover letter generation — the stored company briefing (JEF-205). */
+  APPLICATION_BRIEFING_MAX_CHARS: 2000,
 } as const;
 
 /** In-app AI chat assistant settings. */

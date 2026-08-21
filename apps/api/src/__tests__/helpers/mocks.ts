@@ -105,7 +105,9 @@ export const makeDocumentRepository = (
 });
 
 export const makeNoteRepository = (overrides?: Partial<INoteRepository>): INoteRepository => ({
-  findAllByApplicationId: vi.fn(),
+  // Defaults to an empty list, like the other list finders — a bare vi.fn()
+  // resolves undefined, which every caller then has to guard against.
+  findAllByApplicationId: vi.fn().mockResolvedValue([]),
   findById: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
