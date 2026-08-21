@@ -131,7 +131,12 @@ describe('CoverLetterTab', () => {
     fireEvent.click(screen.getByRole('button', { name: /generate cover letter/i }));
 
     await waitFor(() =>
-      expect(screen.getByRole('link', { name: /settings/i })).toBeInTheDocument(),
+      // The href, not just the presence: before JEF-204 these pointed at
+      // /settings/profile, which has never had AI settings on it.
+      expect(screen.getByRole('link', { name: /settings/i })).toHaveAttribute(
+        'href',
+        '/settings/ai',
+      ),
     );
     expect(mockNavigate).not.toHaveBeenCalled();
   });

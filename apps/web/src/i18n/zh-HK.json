@@ -16,6 +16,8 @@
   "settings.integrations": "整合",
   "settings.notifications": "通知",
   "settings.data": "資料",
+  "settings.ai": "AI",
+  "settings.dangerZone": "危險區域",
   "errors.notFound": "找不到頁面",
   "errors.goDashboard": "前往主頁",
   "errors.somethingWrong": "發生錯誤",

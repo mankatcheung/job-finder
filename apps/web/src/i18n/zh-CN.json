@@ -16,6 +16,8 @@
   "settings.integrations": "集成",
   "settings.notifications": "通知",
   "settings.data": "数据",
+  "settings.ai": "AI",
+  "settings.dangerZone": "危险区域",
   "errors.notFound": "页面未找到",
   "errors.goDashboard": "前往仪表盘",
   "errors.somethingWrong": "发生错误",

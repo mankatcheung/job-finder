@@ -120,7 +120,7 @@ export function JdImportPanel({ onFill }: Props) {
           {aiNotConfigured && (
             <p className="text-xs text-red-600 dark:text-red-400">
               {t('resumeMatch.addApiKeyPrefix')}{' '}
-              <Link to="/settings/profile" className="underline">
+              <Link to="/settings/ai" className="underline">
                 {t('resumeMatch.accountSettingsLinkText')}
               </Link>{' '}
               {t('resumeMatch.addApiKeySuffix')}

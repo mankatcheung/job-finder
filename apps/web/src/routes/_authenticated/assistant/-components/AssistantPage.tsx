@@ -129,7 +129,7 @@ export function AssistantPage() {
           ) : !activeId ? (
             <p className="text-xs text-gray-400 dark:text-gray-500">
               {t('assistant.addApiKeyPrefix')}{' '}
-              <Link to="/settings/integrations" className="underline">
+              <Link to="/settings/ai" className="underline">
                 {t('assistant.settingsLinkText')}
               </Link>{' '}
               {t('assistant.addApiKeySuffix')}

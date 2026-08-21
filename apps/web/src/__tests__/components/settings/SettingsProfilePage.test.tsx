@@ -264,4 +264,134 @@ describe('SettingsProfilePage', () => {
       expect(screen.queryByRole('button', { name: /remove/i })).not.toBeInTheDocument();
     });
   });
+  describe('email update form', () => {
+    it('calls requestEmailChange mutation with current password and new email', async () => {
+      render(<SettingsProfilePage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+      mockGqlRequest.mockResolvedValue({ requestEmailChange: true });
+
+      const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
+      const form = updateEmailBtn.closest('form')!;
+      const pwInput = form.querySelector('input[type="password"]')!;
+      const emailInput = form.querySelector('input[type="email"]')!;
+
+      fireEvent.change(pwInput, { target: { value: 'mypassword' } });
+      fireEvent.change(emailInput, { target: { value: 'new@example.com' } });
+      fireEvent.click(updateEmailBtn);
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RequestEmailChange'), {
+          currentPassword: 'mypassword',
+          newEmail: 'new@example.com',
+        });
+      });
+    });
+
+    it('shows error message on email update failure', async () => {
+      render(<SettingsProfilePage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+      mockGqlRequest.mockRejectedValue({
+        response: { errors: [{ message: 'Email already in use' }] },
+      });
+
+      const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
+      const form = updateEmailBtn.closest('form')!;
+      const pwInput = form.querySelector('input[type="password"]')!;
+      const emailInput = form.querySelector('input[type="email"]')!;
+
+      fireEvent.change(pwInput, { target: { value: 'mypassword' } });
+      fireEvent.change(emailInput, { target: { value: 'taken@example.com' } });
+      fireEvent.click(updateEmailBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText('Email already in use')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('step-up reauthentication (JEF-44)', () => {
+    const stepUpRequiredError = {
+      response: {
+        errors: [
+          {
+            message: 'Please verify your identity again to continue.',
+            extensions: { code: 'STEP_UP_REQUIRED' },
+          },
+        ],
+      },
+    };
+
+    it('prompts for reauth on STEP_UP_REQUIRED, then retries the original mutation on success', async () => {
+      render(<SettingsProfilePage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+
+      mockGqlRequest.mockRejectedValueOnce(stepUpRequiredError);
+      mockGqlRequest.mockResolvedValueOnce({
+        reauthenticate: { success: true, totpRequired: false, accessToken: 'new-access-token' },
+      });
+      mockGqlRequest.mockResolvedValueOnce({ requestEmailChange: true });
+
+      const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
+      const form = updateEmailBtn.closest('form')!;
+      fireEvent.change(form.querySelector('input[type="password"]')!, {
+        target: { value: 'mypassword' },
+      });
+      fireEvent.change(form.querySelector('input[type="email"]')!, {
+        target: { value: 'new@example.com' },
+      });
+      fireEvent.click(updateEmailBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText("Confirm it's you")).toBeInTheDocument();
+      });
+
+      const dialog = screen.getByText("Confirm it's you").closest('div')!.parentElement!;
+      fireEvent.change(dialog.querySelector('input[type="password"]')!, {
+        target: { value: 'mypassword' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /^confirm$/i }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('Reauthenticate'), {
+          password: 'mypassword',
+          code: undefined,
+        });
+      });
+      await waitFor(() => {
+        expect(screen.queryByText("Confirm it's you")).not.toBeInTheDocument();
+      });
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RequestEmailChange'), {
+        currentPassword: 'mypassword',
+        newEmail: 'new@example.com',
+      });
+    });
+
+    it('dismisses silently when the reauth dialog is cancelled', async () => {
+      render(<SettingsProfilePage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+
+      mockGqlRequest.mockRejectedValueOnce(stepUpRequiredError);
+
+      const updateEmailBtn = screen.getByRole('button', { name: /update email/i });
+      const form = updateEmailBtn.closest('form')!;
+      fireEvent.change(form.querySelector('input[type="password"]')!, {
+        target: { value: 'mypassword' },
+      });
+      fireEvent.change(form.querySelector('input[type="email"]')!, {
+        target: { value: 'new@example.com' },
+      });
+      fireEvent.click(updateEmailBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText("Confirm it's you")).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /^cancel$/i }));
+
+      await waitFor(() => {
+        expect(screen.queryByText("Confirm it's you")).not.toBeInTheDocument();
+      });
+      expect(screen.queryByText('Failed to update email.')).not.toBeInTheDocument();
+    });
+  });
 });

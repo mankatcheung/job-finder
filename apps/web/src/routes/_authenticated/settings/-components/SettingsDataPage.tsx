@@ -1,27 +1,12 @@
 import { DownloadIcon, UploadIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
-import { queryClient } from '#/lib/queryClient';
 import { useLocale } from '#/lib/i18n';
-import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
-import {
-  EXPORT_USER_DATA,
-  IMPORT_USER_DATA,
-  DELETE_ACCOUNT,
-  deleteSchema,
-  type DeleteForm,
-  type ImportSummary,
-  extractGqlError,
-} from './shared';
-import { useStepUpReauth, STEP_UP_CANCELLED } from './useStepUpReauth';
+import { Alert } from '@trakwyn/ui';
+import { EXPORT_USER_DATA, IMPORT_USER_DATA, type ImportSummary, extractGqlError } from './shared';
 
 export function SettingsDataPage() {
   const { t } = useLocale();
-  const navigate = useNavigate();
-  const { withStepUp, dialog: stepUpDialog } = useStepUpReauth();
 
   // Export
   const onExport = async () => {
@@ -64,24 +49,8 @@ export function SettingsDataPage() {
     }
   };
 
-  // Delete form
-  const deleteForm = useForm<DeleteForm>({ resolver: zodResolver(deleteSchema) });
-  const onDeleteAccount = async (data: DeleteForm) => {
-    try {
-      await withStepUp(() => gqlClient.request(DELETE_ACCOUNT, data));
-      queryClient.clear();
-      await navigate({ to: '/login' });
-    } catch (err) {
-      if (err instanceof Error && err.message === STEP_UP_CANCELLED) return;
-      deleteForm.setError('root', {
-        message: extractGqlError(err) ?? t('data.deleteAccountFailed'),
-      });
-    }
-  };
-
   return (
     <div className="space-y-10">
-      {stepUpDialog}
       {/* ── Export ── */}
       <section className="space-y-4">
         <div>
@@ -135,40 +104,6 @@ export function SettingsDataPage() {
               ` ${t('data.skippedDocuments', { count: importResult.documentsSkipped })}`}
           </p>
         )}
-      </section>
-
-      <hr className="border-gray-200 dark:border-gray-700" />
-
-      {/* ── Danger zone ── */}
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-base font-semibold text-red-600">{t('data.dangerZoneTitle')}</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t('data.dangerZoneDescription')}
-          </p>
-        </div>
-        <form onSubmit={deleteForm.handleSubmit(onDeleteAccount)} className="space-y-3">
-          <div>
-            <FormLabel>{t('data.confirmPasswordLabel')}</FormLabel>
-            <Input
-              type="password"
-              {...deleteForm.register('password')}
-              invalid={!!deleteForm.formState.errors.password}
-              placeholder="••••••••"
-            />
-            {deleteForm.formState.errors.password && (
-              <p className="mt-1 text-xs text-red-600">
-                {deleteForm.formState.errors.password.message}
-              </p>
-            )}
-          </div>
-          {deleteForm.formState.errors.root && (
-            <Alert>{deleteForm.formState.errors.root.message}</Alert>
-          )}
-          <Button type="submit" variant="destructive" disabled={deleteForm.formState.isSubmitting}>
-            {deleteForm.formState.isSubmitting ? t('data.deleting') : t('data.deleteMyAccount')}
-          </Button>
-        </form>
       </section>
     </div>
   );

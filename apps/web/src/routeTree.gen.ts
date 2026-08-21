@@ -32,6 +32,8 @@ import { Route as AuthenticatedApplicationsTrashRouteImport } from './routes/_au
 import { Route as AuthenticatedAssistantIndexRouteImport } from './routes/_authenticated/assistant/index';
 import { Route as AuthenticatedAssistantHistoryRouteImport } from './routes/_authenticated/assistant/history';
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index';
+import { Route as AuthenticatedSettingsAiRouteImport } from './routes/_authenticated/settings/ai';
+import { Route as AuthenticatedSettingsDangerZoneRouteImport } from './routes/_authenticated/settings/danger-zone';
 import { Route as AuthenticatedSettingsDataRouteImport } from './routes/_authenticated/settings/data';
 import { Route as AuthenticatedSettingsExperienceRouteImport } from './routes/_authenticated/settings/experience';
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings/integrations';
@@ -167,6 +169,17 @@ const AuthenticatedSettingsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any);
+const AuthenticatedSettingsAiRoute = AuthenticatedSettingsAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => AuthenticatedSettingsRouteRoute,
+} as any);
+const AuthenticatedSettingsDangerZoneRoute =
+  AuthenticatedSettingsDangerZoneRouteImport.update({
+    id: '/danger-zone',
+    path: '/danger-zone',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any);
 const AuthenticatedSettingsDataRoute =
   AuthenticatedSettingsDataRouteImport.update({
     id: '/data',
@@ -260,6 +273,8 @@ export interface FileRoutesByFullPath {
   '/applications/new': typeof AuthenticatedApplicationsNewRoute;
   '/applications/trash': typeof AuthenticatedApplicationsTrashRoute;
   '/assistant/history': typeof AuthenticatedAssistantHistoryRoute;
+  '/settings/ai': typeof AuthenticatedSettingsAiRoute;
+  '/settings/danger-zone': typeof AuthenticatedSettingsDangerZoneRoute;
   '/settings/data': typeof AuthenticatedSettingsDataRoute;
   '/settings/experience': typeof AuthenticatedSettingsExperienceRoute;
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute;
@@ -295,6 +310,8 @@ export interface FileRoutesByTo {
   '/applications/new': typeof AuthenticatedApplicationsNewRoute;
   '/applications/trash': typeof AuthenticatedApplicationsTrashRoute;
   '/assistant/history': typeof AuthenticatedAssistantHistoryRoute;
+  '/settings/ai': typeof AuthenticatedSettingsAiRoute;
+  '/settings/danger-zone': typeof AuthenticatedSettingsDangerZoneRoute;
   '/settings/data': typeof AuthenticatedSettingsDataRoute;
   '/settings/experience': typeof AuthenticatedSettingsExperienceRoute;
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute;
@@ -333,6 +350,8 @@ export interface FileRoutesById {
   '/_authenticated/applications/new': typeof AuthenticatedApplicationsNewRoute;
   '/_authenticated/applications/trash': typeof AuthenticatedApplicationsTrashRoute;
   '/_authenticated/assistant/history': typeof AuthenticatedAssistantHistoryRoute;
+  '/_authenticated/settings/ai': typeof AuthenticatedSettingsAiRoute;
+  '/_authenticated/settings/danger-zone': typeof AuthenticatedSettingsDangerZoneRoute;
   '/_authenticated/settings/data': typeof AuthenticatedSettingsDataRoute;
   '/_authenticated/settings/experience': typeof AuthenticatedSettingsExperienceRoute;
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute;
@@ -371,6 +390,8 @@ export interface FileRouteTypes {
     | '/applications/new'
     | '/applications/trash'
     | '/assistant/history'
+    | '/settings/ai'
+    | '/settings/danger-zone'
     | '/settings/data'
     | '/settings/experience'
     | '/settings/integrations'
@@ -406,6 +427,8 @@ export interface FileRouteTypes {
     | '/applications/new'
     | '/applications/trash'
     | '/assistant/history'
+    | '/settings/ai'
+    | '/settings/danger-zone'
     | '/settings/data'
     | '/settings/experience'
     | '/settings/integrations'
@@ -443,6 +466,8 @@ export interface FileRouteTypes {
     | '/_authenticated/applications/new'
     | '/_authenticated/applications/trash'
     | '/_authenticated/assistant/history'
+    | '/_authenticated/settings/ai'
+    | '/_authenticated/settings/danger-zone'
     | '/_authenticated/settings/data'
     | '/_authenticated/settings/experience'
     | '/_authenticated/settings/integrations'
@@ -637,6 +662,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport;
       parentRoute: typeof AuthenticatedSettingsRouteRoute;
     };
+    '/_authenticated/settings/ai': {
+      id: '/_authenticated/settings/ai';
+      path: '/ai';
+      fullPath: '/settings/ai';
+      preLoaderRoute: typeof AuthenticatedSettingsAiRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
+    '/_authenticated/settings/danger-zone': {
+      id: '/_authenticated/settings/danger-zone';
+      path: '/danger-zone';
+      fullPath: '/settings/danger-zone';
+      preLoaderRoute: typeof AuthenticatedSettingsDangerZoneRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRouteRoute;
+    };
     '/_authenticated/settings/data': {
       id: '/_authenticated/settings/data';
       path: '/data';
@@ -725,6 +764,8 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedSettingsRouteRouteChildren {
+  AuthenticatedSettingsAiRoute: typeof AuthenticatedSettingsAiRoute;
+  AuthenticatedSettingsDangerZoneRoute: typeof AuthenticatedSettingsDangerZoneRoute;
   AuthenticatedSettingsDataRoute: typeof AuthenticatedSettingsDataRoute;
   AuthenticatedSettingsExperienceRoute: typeof AuthenticatedSettingsExperienceRoute;
   AuthenticatedSettingsIntegrationsRoute: typeof AuthenticatedSettingsIntegrationsRoute;
@@ -736,6 +777,8 @@ interface AuthenticatedSettingsRouteRouteChildren {
 
 const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteChildren =
   {
+    AuthenticatedSettingsAiRoute: AuthenticatedSettingsAiRoute,
+    AuthenticatedSettingsDangerZoneRoute: AuthenticatedSettingsDangerZoneRoute,
     AuthenticatedSettingsDataRoute: AuthenticatedSettingsDataRoute,
     AuthenticatedSettingsExperienceRoute: AuthenticatedSettingsExperienceRoute,
     AuthenticatedSettingsIntegrationsRoute:
