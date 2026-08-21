@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { buildTestApp, type TestApp } from './helpers/buildTestApp.js';
 import { ENV } from '#src/constants.js';
 import { createHash } from 'crypto';
@@ -244,5 +244,102 @@ describe('oauth routes — PKCE', () => {
     });
 
     expect(res.headers.location).toContain('oauthError=invalid_state');
+  });
+});
+
+describe('oauth routes — the callback never leaks internal error detail', () => {
+  let testApp: TestApp;
+  const originalClientId = process.env[ENV.GITHUB_OAUTH_CLIENT_ID];
+
+  beforeAll(async () => {
+    testApp = await buildTestApp();
+    process.env[ENV.GITHUB_OAUTH_CLIENT_ID] = 'test-github-client-id';
+  }, 30_000);
+
+  afterAll(async () => {
+    if (originalClientId === undefined) delete process.env[ENV.GITHUB_OAUTH_CLIENT_ID];
+    else process.env[ENV.GITHUB_OAUTH_CLIENT_ID] = originalClientId;
+    await testApp.cleanup();
+  });
+
+  async function callbackAfterRealStart() {
+    const start = await testApp.app.inject({
+      method: 'GET',
+      url: '/auth/oauth/github/start',
+      headers: { host: 'api.trakwyn.com', 'x-forwarded-proto': 'https' },
+    });
+    const state = new URL(start.headers.location as string).searchParams.get('state')!;
+    const cookie = (start.cookies as Array<{ name: string; value: string }>).find(
+      (c) => c.name === 'trakwyn_oauth_state',
+    )!.value;
+
+    return testApp.app.inject({
+      method: 'GET',
+      url: `/auth/oauth/github/callback?code=some-code&state=${encodeURIComponent(state)}`,
+      headers: { host: 'api.trakwyn.com', 'x-forwarded-proto': 'https' },
+      cookies: { trakwyn_oauth_state: cookie },
+    });
+  }
+
+  it('does not put the thrown message in the redirect URL', async () => {
+    // Reaches the real GitHub token exchange, which fails here and throws
+    // `GitHub token exchange failed: <status>`. That string, and anything like
+    // it, must not reach the user's URL bar, history, or Referer.
+    const res = await callbackAfterRealStart();
+    const location = res.headers.location as string;
+
+    expect(location).toContain('oauthError=');
+    expect(location).not.toMatch(/token exchange failed/i);
+    expect(location).not.toMatch(/GITHUB_OAUTH_CLIENT/);
+    expect(location).not.toMatch(/CLIENT_SECRET/);
+  });
+
+  it('reports a stable slug the client can translate', async () => {
+    const res = await callbackAfterRealStart();
+
+    expect(new URL(res.headers.location as string).searchParams.get('oauthError')).toBe('failed');
+  });
+
+  it('passes a provider access_denied through as its own slug', async () => {
+    // "The user pressed Cancel" is a distinct outcome and deserves its own copy.
+    const res = await testApp.app.inject({
+      method: 'GET',
+      url: '/auth/oauth/github/callback?error=access_denied',
+      headers: { host: 'api.trakwyn.com', 'x-forwarded-proto': 'https' },
+    });
+
+    expect(new URL(res.headers.location as string).searchParams.get('oauthError')).toBe(
+      'access_denied',
+    );
+  });
+
+  it('does not echo an arbitrary provider error string into the page', async () => {
+    // Attacker-influencable text: allow-listed, not forwarded.
+    const res = await testApp.app.inject({
+      method: 'GET',
+      url: '/auth/oauth/github/callback?error=' + encodeURIComponent('something <script> odd'),
+      headers: { host: 'api.trakwyn.com', 'x-forwarded-proto': 'https' },
+    });
+    const location = res.headers.location as string;
+
+    expect(new URL(location).searchParams.get('oauthError')).toBe('failed');
+    expect(location).not.toContain('script');
+  });
+  it('logs the real error server-side, so the detail is hidden rather than lost', async () => {
+    const { logger } = (
+      testApp.app as unknown as { diContainer: { cradle: { logger: { error: unknown } } } }
+    ).diContainer.cradle;
+    const spy = vi.spyOn(logger as { error: (m: string, e: unknown) => void }, 'error');
+
+    await callbackAfterRealStart();
+
+    expect(spy).toHaveBeenCalled();
+    const [message, err] = spy.mock.calls[spy.mock.calls.length - 1]!;
+    expect(String(message)).toContain('OAuth login failed');
+    // The real message names this deployment's own environment variables.
+    // Before JEF-203 that string went into the user's URL bar and onto the
+    // sign-in page; now it reaches the log and nowhere else.
+    expect(String((err as Error).message)).toContain('GITHUB_OAUTH_CLIENT_SECRET');
+    spy.mockRestore();
   });
 });
