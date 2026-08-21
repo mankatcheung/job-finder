@@ -27,17 +27,24 @@ export class GitHubOAuthProvider implements IOAuthProvider {
     this.clientSecret = process.env[ENV.GITHUB_OAUTH_CLIENT_SECRET] ?? '';
   }
 
-  getAuthorizationUrl(state: string, redirectUri: string): string {
+  getAuthorizationUrl(state: string, redirectUri: string, codeChallenge: string): string {
     const params = new URLSearchParams({
       client_id: this.clientId,
       redirect_uri: redirectUri,
       scope: 'read:user user:email',
       state,
+      // GitHub shipped PKCE for OAuth Apps in July 2025 and accepts S256 only.
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
     });
     return `${OAUTH.GITHUB_AUTHORIZATION_URL}?${params.toString()}`;
   }
 
-  async exchangeCodeForProfile(code: string, redirectUri: string): Promise<OAuthProfile> {
+  async exchangeCodeForProfile(
+    code: string,
+    redirectUri: string,
+    codeVerifier: string,
+  ): Promise<OAuthProfile> {
     if (!this.clientId || !this.clientSecret) {
       throw new Error(`${ENV.GITHUB_OAUTH_CLIENT_ID}/${ENV.GITHUB_OAUTH_CLIENT_SECRET} not set`);
     }
@@ -50,6 +57,7 @@ export class GitHubOAuthProvider implements IOAuthProvider {
         client_secret: this.clientSecret,
         code,
         redirect_uri: redirectUri,
+        code_verifier: codeVerifier,
       }),
     });
     if (!tokenResponse.ok) {

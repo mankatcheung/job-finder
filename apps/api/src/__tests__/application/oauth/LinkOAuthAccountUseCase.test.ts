@@ -11,6 +11,7 @@ const input = {
   provider: 'google' as const,
   code: 'auth-code',
   redirectUri: 'https://api/cb',
+  codeVerifier: 'test-verifier',
 };
 
 describe('LinkOAuthAccountUseCase', () => {

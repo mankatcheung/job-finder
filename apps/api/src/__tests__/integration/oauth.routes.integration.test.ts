@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildTestApp, type TestApp } from './helpers/buildTestApp.js';
 import { ENV } from '#src/constants.js';
+import { createHash } from 'crypto';
 
 describe('oauth routes — redirect_uri behind Vercel-style reverse proxy', () => {
   let testApp: TestApp;
@@ -160,5 +161,88 @@ describe('oauth routes — state is bound to the browser that started the flow',
       (c) => c.name === 'trakwyn_oauth_state',
     );
     expect(cleared?.value).toBe('');
+  });
+});
+
+describe('oauth routes — PKCE', () => {
+  let testApp: TestApp;
+  const originalClientId = process.env[ENV.GITHUB_OAUTH_CLIENT_ID];
+
+  beforeAll(async () => {
+    testApp = await buildTestApp();
+    process.env[ENV.GITHUB_OAUTH_CLIENT_ID] = 'test-github-client-id';
+  }, 30_000);
+
+  afterAll(async () => {
+    if (originalClientId === undefined) delete process.env[ENV.GITHUB_OAUTH_CLIENT_ID];
+    else process.env[ENV.GITHUB_OAUTH_CLIENT_ID] = originalClientId;
+    await testApp.cleanup();
+  });
+
+  async function beginFlow() {
+    const res = await testApp.app.inject({
+      method: 'GET',
+      url: '/auth/oauth/github/start',
+      headers: { host: 'api.trakwyn.com', 'x-forwarded-proto': 'https' },
+    });
+    const location = new URL(res.headers.location as string);
+    const cookie = (res.cookies as Array<{ name: string; value: string }>).find(
+      (c) => c.name === 'trakwyn_oauth_state',
+    )!.value;
+    const [nonce, verifier] = cookie.split('.');
+    return { location, cookie, nonce, verifier };
+  }
+
+  it('sends a challenge and names S256 as the method', async () => {
+    const { location } = await beginFlow();
+
+    expect(location.searchParams.get('code_challenge')).toBeTruthy();
+    expect(location.searchParams.get('code_challenge_method')).toBe('S256');
+  });
+
+  it('sends the SHA-256 of the verifier it kept, not an unrelated value', async () => {
+    // The assertion that matters. "A challenge is present" would pass against
+    // an implementation sending a random string — which would protect nothing,
+    // because the exchange would then never match.
+    const { location, verifier } = await beginFlow();
+
+    expect(location.searchParams.get('code_challenge')).toBe(
+      createHash('sha256').update(verifier).digest('base64url'),
+    );
+  });
+
+  it('keeps the verifier out of the browser-visible half of the handshake', async () => {
+    const { location, verifier } = await beginFlow();
+
+    // The verifier must never appear in the URL the user is redirected to —
+    // that is the entire point of hashing it.
+    expect(location.toString()).not.toContain(verifier);
+    expect(location.searchParams.get('state')).not.toContain(verifier);
+  });
+
+  it('refuses a callback whose cookie carries no verifier', async () => {
+    const { nonce } = await beginFlow();
+    const stateRes = await testApp.app.inject({
+      method: 'GET',
+      url: '/auth/oauth/github/start',
+      headers: { host: 'api.trakwyn.com', 'x-forwarded-proto': 'https' },
+    });
+    const state = new URL(stateRes.headers.location as string).searchParams.get('state')!;
+    const realNonce = (stateRes.cookies as Array<{ name: string; value: string }>)
+      .find((c) => c.name === 'trakwyn_oauth_state')!
+      .value.split('.')[0];
+    void nonce;
+
+    // A cookie holding only the nonce — as an older client, or a tampering
+    // attempt, might present. Falling back to an exchange without PKCE would
+    // leave the property unenforced while looking enforced.
+    const res = await testApp.app.inject({
+      method: 'GET',
+      url: `/auth/oauth/github/callback?code=some-code&state=${encodeURIComponent(state)}`,
+      headers: { host: 'api.trakwyn.com', 'x-forwarded-proto': 'https' },
+      cookies: { trakwyn_oauth_state: realNonce },
+    });
+
+    expect(res.headers.location).toContain('oauthError=invalid_state');
   });
 });
