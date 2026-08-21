@@ -14,6 +14,8 @@ import {
   makeWorkExperience,
   makeEducation,
   makeSkill,
+  makeNoteRepository,
+  makeNote,
 } from '#src/__tests__/helpers/mocks.js';
 
 const WORK = [
@@ -49,6 +51,7 @@ function makeUseCase(over?: {
   work?: unknown[];
   edu?: unknown[];
   skills?: unknown[];
+  notes?: unknown[];
 }) {
   const llmProvider = makeLLMProvider(over?.response ?? VALID_RESUME);
   const deps = {
@@ -71,6 +74,9 @@ function makeUseCase(over?: {
       findAllByUserId: vi.fn().mockResolvedValue(over?.skills ?? SKILLS),
     }),
     generateResumeRateLimiter: makeRateLimiter(),
+    noteRepository: makeNoteRepository({
+      findAllByApplicationId: vi.fn().mockResolvedValue(over?.notes ?? []),
+    }),
   };
   return { useCase: new GenerateResumeUseCase(deps), deps, llmProvider };
 }
@@ -205,5 +211,30 @@ describe('GenerateResumeUseCase', () => {
     const err = await useCase.execute({ userId: 'user-1', applicationId: 'app-1' }).catch((e) => e);
 
     expect((err as { code: string }).code).toBe('AI_NOT_CONFIGURED');
+  });
+  it("includes the user's notes on the application (JEF-205)", async () => {
+    const ctx = makeUseCase({ notes: [makeNote({ content: 'They emphasised Kubernetes' })] });
+
+    await ctx.useCase.execute({ userId: 'user-1', applicationId: 'app-1' });
+
+    const messages = vi.mocked(ctx.llmProvider.complete).mock.calls[0]![0];
+    expect(messages[messages.length - 1]!.content).toContain('Kubernetes');
+  });
+
+  it('never puts the salary range in the prompt', async () => {
+    const ctx = makeUseCase();
+    ctx.deps.applicationRepository = makeApplicationRepository({
+      findById: vi
+        .fn()
+        .mockResolvedValue(
+          makeApplication({ userId: 'user-1', salaryRange: '£95,000 – £120,000' }),
+        ),
+    });
+    const useCase = new GenerateResumeUseCase(ctx.deps);
+
+    await useCase.execute({ userId: 'user-1', applicationId: 'app-1' });
+
+    const messages = vi.mocked(ctx.llmProvider.complete).mock.calls[0]![0];
+    expect(messages[messages.length - 1]!.content).not.toContain('95,000');
   });
 });

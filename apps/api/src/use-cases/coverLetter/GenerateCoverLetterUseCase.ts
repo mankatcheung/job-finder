@@ -12,6 +12,9 @@ import type { IEducationRepository } from '#src/use-cases/ports/IEducationReposi
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
+import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
+import type { ICompanyBriefingRepository } from '#src/use-cases/ports/ICompanyBriefingRepository.js';
+import { formatApplicationContext } from '#src/use-cases/shared/applicationContext.js';
 import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
 import { loadUserProfile, formatUserProfile } from '#src/use-cases/shared/userProfile.js';
 import { AI_PROMPT_INPUT } from '#src/constants.js';
@@ -30,6 +33,8 @@ interface Deps {
   skillRepository: ISkillRepository;
   userRepository: IUserRepository;
   generateCoverLetterRateLimiter: IRateLimiter;
+  noteRepository: INoteRepository;
+  companyBriefingRepository: ICompanyBriefingRepository;
 }
 
 const SYSTEM_PROMPT = `You are a professional cover letter writer. Write compelling, personalized cover letters that are concise (3-4 paragraphs), specific to the role, and written in first person. Return ONLY the cover letter body — no subject line, no date, no address block, no explanation.`;
@@ -57,11 +62,16 @@ export class GenerateCoverLetterUseCase {
       throw new AiNotConfiguredError('Add your AI API key in Settings to use this feature');
     }
 
-    const [profile, user] = await Promise.all([
+    // Notes and the briefing are both optional — having neither is the normal
+    // state, and generation works exactly as before when they are absent.
+    const [profile, user, notes, briefing] = await Promise.all([
       loadUserProfile(this.deps, input.userId).then(formatUserProfile),
       this.deps.userRepository.findById(input.userId),
+      this.deps.noteRepository.findAllByApplicationId(input.applicationId),
+      this.deps.companyBriefingRepository.findByApplicationId(input.applicationId),
     ]);
-    const userPrompt = this.buildPrompt(app, profile, input.resumeText);
+    const context = formatApplicationContext({ notes, briefing });
+    const userPrompt = this.buildPrompt(app, profile, input.resumeText, context);
 
     const messages: LLMMessage[] = [{ role: 'system', content: SYSTEM_PROMPT }];
     if (user?.customAiPrompt) {
@@ -75,7 +85,8 @@ export class GenerateCoverLetterUseCase {
   private buildPrompt(
     app: { company: string; role: string; location?: string | null; description?: string | null },
     profile: string,
-    resumeText?: string | null,
+    resumeText: string | null | undefined,
+    applicationContext: string,
   ): string {
     const lines = [
       `Write a cover letter for this job application:`,
@@ -88,6 +99,10 @@ export class GenerateCoverLetterUseCase {
           ]
         : []),
     ];
+
+    if (applicationContext) {
+      lines.push(`\n${applicationContext}`);
+    }
 
     if (resumeText?.trim()) {
       lines.push(`\nMy background / resume:\n${resumeText.trim().slice(0, 4000)}`);
