@@ -219,10 +219,29 @@ describe('LoginPage', () => {
     expect(github).toHaveAttribute('href', '/auth/oauth/github/start');
   });
 
-  it('shows an error banner when redirected back with an oauthError param', () => {
+  it('translates the oauthError slug rather than printing it', () => {
     mockUseSearch.mockReturnValue({ oauthError: 'provider_mismatch' });
     render(<LoginPage />);
 
-    expect(screen.getByText('provider_mismatch')).toBeInTheDocument();
+    expect(screen.queryByText('provider_mismatch')).not.toBeInTheDocument();
+    expect(screen.getByText(/sign-in link has expired/i)).toBeInTheDocument();
+  });
+
+  it('falls back to generic copy for a slug this build does not know', () => {
+    // A newer API reporting a case with no copy here must read as a plain
+    // failure, not leak an identifier into the page — which is the shape of
+    // the bug this replaced (JEF-203).
+    mockUseSearch.mockReturnValue({ oauthError: 'some_future_slug' });
+    render(<LoginPage />);
+
+    expect(screen.queryByText('some_future_slug')).not.toBeInTheDocument();
+    expect(screen.getByText(/didn't work/i)).toBeInTheDocument();
+  });
+
+  it('says the user cancelled, rather than calling it an error', () => {
+    mockUseSearch.mockReturnValue({ oauthError: 'access_denied' });
+    render(<LoginPage />);
+
+    expect(screen.getByText(/cancelled the sign-in/i)).toBeInTheDocument();
   });
 });

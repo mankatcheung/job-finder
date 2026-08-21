@@ -9,6 +9,7 @@ import { OAuthButtons } from '#/components/OAuthButtons';
 import { getErrorMessage } from '#/lib/errors';
 import { LogoMark } from '#/components/LogoMark';
 import { useLocale } from '#/lib/i18n';
+import { oauthErrorKey } from '#/lib/oauthError';
 import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
 
 const schema = z.object({
@@ -106,7 +107,7 @@ export function LoginPage() {
             </p>
           </div>
 
-          {oauthError && <Alert>{oauthError}</Alert>}
+          {oauthError && <Alert>{t(oauthErrorKey(oauthError))}</Alert>}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>

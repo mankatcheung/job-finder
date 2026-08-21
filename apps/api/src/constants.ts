@@ -79,6 +79,12 @@ export const COOKIES = {
   REFRESH_TOKEN: 'trakwyn_refresh_token',
   /** Non-HttpOnly hint cookie the web app reads to know a session exists. */
   LOGGED_IN: 'trakwyn_logged_in',
+  /**
+   * Ties an in-flight OAuth redirect to the browser that started it. Holds the
+   * nonce from the signed `state`; the callback refuses a state whose nonce
+   * does not match (JEF-198).
+   */
+  OAUTH_STATE: 'trakwyn_oauth_state',
 } as const;
 
 /** Shared cookie options. */

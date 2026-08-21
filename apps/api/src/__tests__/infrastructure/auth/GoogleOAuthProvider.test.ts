@@ -16,13 +16,25 @@ describe('GoogleOAuthProvider', () => {
   describe('getAuthorizationUrl', () => {
     it('builds a Google authorization URL carrying the client id, redirect, and state', () => {
       const provider = new GoogleOAuthProvider();
-      const url = new URL(provider.getAuthorizationUrl('my-state', 'https://api/cb'));
+      const url = new URL(
+        provider.getAuthorizationUrl('my-state', 'https://api/cb', 'my-challenge'),
+      );
 
       expect(url.origin + url.pathname).toBe('https://accounts.google.com/o/oauth2/v2/auth');
       expect(url.searchParams.get('client_id')).toBe('client-id');
       expect(url.searchParams.get('redirect_uri')).toBe('https://api/cb');
       expect(url.searchParams.get('state')).toBe('my-state');
       expect(url.searchParams.get('scope')).toContain('email');
+    });
+
+    it('sends the PKCE challenge and names S256 as the method', () => {
+      const provider = new GoogleOAuthProvider();
+      const url = new URL(
+        provider.getAuthorizationUrl('my-state', 'https://api/cb', 'my-challenge'),
+      );
+
+      expect(url.searchParams.get('code_challenge')).toBe('my-challenge');
+      expect(url.searchParams.get('code_challenge_method')).toBe('S256');
     });
   });
 
@@ -43,7 +55,11 @@ describe('GoogleOAuthProvider', () => {
       vi.stubGlobal('fetch', mockFetch);
 
       const provider = new GoogleOAuthProvider();
-      const profile = await provider.exchangeCodeForProfile('auth-code', 'https://api/cb');
+      const profile = await provider.exchangeCodeForProfile(
+        'auth-code',
+        'https://api/cb',
+        'my-verifier',
+      );
 
       expect(profile).toEqual({
         providerAccountId: 'google-sub-1',
@@ -62,18 +78,36 @@ describe('GoogleOAuthProvider', () => {
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 400 }));
       const provider = new GoogleOAuthProvider();
 
-      await expect(provider.exchangeCodeForProfile('bad-code', 'https://api/cb')).rejects.toThrow(
-        'Google token exchange failed',
-      );
+      await expect(
+        provider.exchangeCodeForProfile('bad-code', 'https://api/cb', 'my-verifier'),
+      ).rejects.toThrow('Google token exchange failed');
     });
 
     it('throws when client credentials are not configured', async () => {
       delete process.env.GOOGLE_OAUTH_CLIENT_ID;
       const provider = new GoogleOAuthProvider();
 
-      await expect(provider.exchangeCodeForProfile('code', 'https://api/cb')).rejects.toThrow(
-        'not set',
-      );
+      await expect(
+        provider.exchangeCodeForProfile('code', 'https://api/cb', 'my-verifier'),
+      ).rejects.toThrow('not set');
     });
+  });
+  it('sends the code_verifier in the token exchange', async () => {
+    // Without this the challenge sent at /start is decorative — the provider
+    // has nothing to check it against.
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ access_token: 'tok' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ sub: '1', email: 'a@b.c' }) });
+    vi.stubGlobal('fetch', mockFetch);
+
+    await new GoogleOAuthProvider().exchangeCodeForProfile(
+      'auth-code',
+      'https://api/cb',
+      'my-verifier',
+    );
+
+    const body = mockFetch.mock.calls[0][1].body as URLSearchParams;
+    expect(body.get('code_verifier')).toBe('my-verifier');
   });
 });

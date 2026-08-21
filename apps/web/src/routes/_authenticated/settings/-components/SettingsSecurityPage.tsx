@@ -7,6 +7,7 @@ import { useSearch } from '@tanstack/react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
 import { useLocale } from '#/lib/i18n';
+import { oauthErrorKey } from '#/lib/oauthError';
 import { API_ORIGIN } from '#/lib/apiOrigin';
 import { OAuthProviderLogo } from '#/components/OAuthProviderLogo';
 import {
@@ -490,7 +491,7 @@ export function SettingsSecurityPage() {
             {t('security.linkSucceeded', { provider: t(`security.${oauthLinked}`) })}
           </Alert>
         )}
-        {linkOauthError && <Alert>{linkOauthError}</Alert>}
+        {linkOauthError && <Alert>{t(oauthErrorKey(linkOauthError))}</Alert>}
         <div className="space-y-2">
           {(['google', 'github'] as const).map((provider) => {
             const linked = linkedAccounts.find((a) => a.provider === provider);
