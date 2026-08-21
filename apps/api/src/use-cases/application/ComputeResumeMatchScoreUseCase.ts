@@ -17,6 +17,7 @@ import type { IEducationRepository } from '#src/use-cases/ports/IEducationReposi
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
+import { loadUserProfile, formatUserProfile } from '#src/use-cases/shared/userProfile.js';
 import { parseAiJson } from '#src/use-cases/shared/parseAiJson.js';
 import { AI_PROMPT_INPUT } from '#src/constants.js';
 
@@ -150,66 +151,12 @@ export class ComputeResumeMatchScoreUseCase {
       if (text.trim()) return text;
     }
 
-    const profile = await this.buildProfile(input.userId);
+    const profile = formatUserProfile(await loadUserProfile(this.deps, input.userId));
     if (profile) return profile;
 
     throw new ValidationError(
       'Upload a resume, paste your resume text, or add work experience and skills to your profile',
     );
-  }
-
-  private async buildProfile(userId: string): Promise<string> {
-    const [workExperiences, educations, skills] = await Promise.all([
-      this.deps.workExperienceRepository.findAllByUserId(userId),
-      this.deps.educationRepository.findAllByUserId(userId),
-      this.deps.skillRepository.findAllByUserId(userId),
-    ]);
-
-    if (workExperiences.length === 0 && educations.length === 0 && skills.length === 0) {
-      return '';
-    }
-
-    const lines: string[] = [];
-
-    if (workExperiences.length > 0) {
-      lines.push('Work Experience:');
-      for (const we of workExperiences) {
-        const end = we.endDate ? new Date(we.endDate).toLocaleDateString() : 'Present';
-        lines.push(
-          `- ${we.title} at ${we.company} (${new Date(we.startDate).toLocaleDateString()} – ${end})`,
-        );
-        if (we.description) lines.push(`  ${we.description.slice(0, 200)}`);
-      }
-    }
-
-    if (educations.length > 0) {
-      lines.push('\nEducation:');
-      for (const edu of educations) {
-        const end = edu.endDate ? new Date(edu.endDate).toLocaleDateString() : 'Present';
-        lines.push(
-          `- ${edu.degree ?? ''} ${edu.field ?? ''} at ${edu.institution} (${new Date(edu.startDate).toLocaleDateString()} – ${end})`,
-        );
-        if (edu.description) lines.push(`  ${edu.description.slice(0, 200)}`);
-      }
-    }
-
-    if (skills.length > 0) {
-      lines.push('\nSkills:');
-      const grouped = skills.reduce(
-        (acc, s) => {
-          const cat = s.category ?? 'General';
-          acc[cat] = acc[cat] || [];
-          acc[cat].push(s.proficiency ? `${s.name} (${s.proficiency})` : s.name);
-          return acc;
-        },
-        {} as Record<string, string[]>,
-      );
-      for (const [cat, names] of Object.entries(grouped)) {
-        lines.push(`- ${cat}: ${names.join(', ')}`);
-      }
-    }
-
-    return lines.join('\n');
   }
 
   private parseResponse(raw: string): ResumeMatchScore {

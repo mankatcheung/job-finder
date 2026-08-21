@@ -254,6 +254,12 @@ export const RATE_LIMIT = {
     MAX_ATTEMPTS: 20,
     WINDOW_MS: 5 * 60 * 1000, // 5 minutes
   },
+  // Lower than the others: a resume is a bigger completion (2048 tokens) and
+  // regenerating it repeatedly is rarely what someone means to do.
+  GENERATE_RESUME: {
+    MAX_ATTEMPTS: 10,
+    WINDOW_MS: 5 * 60 * 1000, // 5 minutes
+  },
   PARSE_JOB_DESCRIPTION: {
     MAX_ATTEMPTS: 20,
     WINDOW_MS: 5 * 60 * 1000, // 5 minutes

@@ -39,6 +39,9 @@ export const rateLimiters = {
   chatRateLimiter: asValue(
     buildRateLimiter(RATE_LIMIT.CHAT_MESSAGE.MAX_ATTEMPTS, RATE_LIMIT.CHAT_MESSAGE.WINDOW_MS),
   ),
+  generateResumeRateLimiter: asValue(
+    buildRateLimiter(RATE_LIMIT.GENERATE_RESUME.MAX_ATTEMPTS, RATE_LIMIT.GENERATE_RESUME.WINDOW_MS),
+  ),
   generateCoverLetterRateLimiter: asValue(
     buildRateLimiter(
       RATE_LIMIT.GENERATE_COVER_LETTER.MAX_ATTEMPTS,

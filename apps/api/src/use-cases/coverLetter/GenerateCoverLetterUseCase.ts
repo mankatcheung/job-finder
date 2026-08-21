@@ -13,6 +13,7 @@ import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js'
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
+import { loadUserProfile, formatUserProfile } from '#src/use-cases/shared/userProfile.js';
 import { AI_PROMPT_INPUT } from '#src/constants.js';
 
 export interface GenerateCoverLetterInput {
@@ -57,7 +58,7 @@ export class GenerateCoverLetterUseCase {
     }
 
     const [profile, user] = await Promise.all([
-      this.buildProfile(input.userId),
+      loadUserProfile(this.deps, input.userId).then(formatUserProfile),
       this.deps.userRepository.findById(input.userId),
     ]);
     const userPrompt = this.buildPrompt(app, profile, input.resumeText);
@@ -69,56 +70,6 @@ export class GenerateCoverLetterUseCase {
     messages.push({ role: 'user', content: userPrompt });
 
     return llmProvider.complete(messages, 1024);
-  }
-
-  private async buildProfile(userId: string): Promise<string> {
-    const [workExperiences, educations, skills] = await Promise.all([
-      this.deps.workExperienceRepository.findAllByUserId(userId),
-      this.deps.educationRepository.findAllByUserId(userId),
-      this.deps.skillRepository.findAllByUserId(userId),
-    ]);
-
-    const lines: string[] = [];
-
-    if (workExperiences.length > 0) {
-      lines.push('Work Experience:');
-      for (const we of workExperiences) {
-        const end = we.endDate ? new Date(we.endDate).toLocaleDateString() : 'Present';
-        lines.push(
-          `- ${we.title} at ${we.company} (${new Date(we.startDate).toLocaleDateString()} – ${end})`,
-        );
-        if (we.description) lines.push(`  ${we.description.slice(0, 200)}`);
-      }
-    }
-
-    if (educations.length > 0) {
-      lines.push('\nEducation:');
-      for (const edu of educations) {
-        const end = edu.endDate ? new Date(edu.endDate).toLocaleDateString() : 'Present';
-        lines.push(
-          `- ${edu.degree ?? ''} ${edu.field ?? ''} at ${edu.institution} (${new Date(edu.startDate).toLocaleDateString()} – ${end})`,
-        );
-        if (edu.description) lines.push(`  ${edu.description.slice(0, 200)}`);
-      }
-    }
-
-    if (skills.length > 0) {
-      lines.push('\nSkills:');
-      const grouped = skills.reduce(
-        (acc, s) => {
-          const cat = s.category ?? 'General';
-          acc[cat] = acc[cat] || [];
-          acc[cat].push(s.proficiency ? `${s.name} (${s.proficiency})` : s.name);
-          return acc;
-        },
-        {} as Record<string, string[]>,
-      );
-      for (const [cat, names] of Object.entries(grouped)) {
-        lines.push(`- ${cat}: ${names.join(', ')}`);
-      }
-    }
-
-    return lines.join('\n');
   }
 
   private buildPrompt(
