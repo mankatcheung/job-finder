@@ -53,6 +53,26 @@ builder.mutationField('updateDocumentDraftContent', (t) =>
   }),
 );
 
+builder.mutationField('renameDocumentDraft', (t) =>
+  t.field({
+    type: DocumentDraftRef,
+    args: {
+      draftId: t.arg.id({ required: true }),
+      title: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { documentDraftResolver } = ctx.diScope.cradle;
+      return documentDraftResolver.renameDocumentDraft(
+        ctx.user.sub,
+        String(args.draftId),
+        args.title,
+      );
+    },
+  }),
+);
+
 builder.mutationField('deleteDocumentDraft', (t) =>
   t.field({
     type: 'Boolean',

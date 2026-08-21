@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
+import { proseToTiptapDoc } from '#/lib/proseToTiptapDoc';
 import { useLocale } from '#/lib/i18n';
 import { Alert, Button, FormLabel, Input, Select } from '@trakwyn/ui';
 
@@ -68,23 +69,14 @@ function NewDocumentDraftPage() {
     setError(null);
 
     try {
-      let contentJson =
-        '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":""}]}]}';
-      let plainText = '';
+      let { contentJson, plainText } = proseToTiptapDoc('');
 
       if (sourceDocumentId) {
         const extractRes = await gqlClient.request<{ extractDocumentText: { text: string } }>(
           EXTRACT_TEXT_MUTATION,
           { documentId: sourceDocumentId },
         );
-        plainText = extractRes.extractDocumentText.text;
-        contentJson = JSON.stringify({
-          type: 'doc',
-          content: plainText.split('\n').map((line) => ({
-            type: 'paragraph',
-            content: [{ type: 'text', text: line }],
-          })),
-        });
+        ({ contentJson, plainText } = proseToTiptapDoc(extractRes.extractDocumentText.text));
       }
 
       const res = await gqlClient.request<{

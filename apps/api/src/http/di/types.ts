@@ -145,6 +145,8 @@ import type { GetDocumentsUseCase } from '#src/use-cases/documents/GetDocumentsU
 import type { DeleteDocumentUseCase } from '#src/use-cases/documents/DeleteDocumentUseCase.js';
 import type { CreateDocumentDraftUseCase } from '#src/use-cases/documents/CreateDocumentDraftUseCase.js';
 import type { UpdateDocumentDraftContentUseCase } from '#src/use-cases/documents/UpdateDocumentDraftContentUseCase.js';
+import type { RenameDocumentDraftUseCase } from '#src/use-cases/documents/RenameDocumentDraftUseCase.js';
+import type { GenerateCoverLetterDraftUseCase } from '#src/use-cases/documents/GenerateCoverLetterDraftUseCase.js';
 import type { GetDocumentDraftsUseCase } from '#src/use-cases/documents/GetDocumentDraftsUseCase.js';
 import type { GetDocumentDraftUseCase } from '#src/use-cases/documents/GetDocumentDraftUseCase.js';
 import type { DeleteDocumentDraftUseCase } from '#src/use-cases/documents/DeleteDocumentDraftUseCase.js';
@@ -225,6 +227,10 @@ import type { ParseJobDescriptionUseCase } from '#src/use-cases/jobDescription/P
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
 import type { GenerateCoverLetterUseCase } from '#src/use-cases/coverLetter/GenerateCoverLetterUseCase.js';
 import type { GenerateCompanyBriefingUseCase } from '#src/use-cases/companyBriefing/GenerateCompanyBriefingUseCase.js';
+import type { GetCompanyBriefingUseCase } from '#src/use-cases/companyBriefing/GetCompanyBriefingUseCase.js';
+import type { DrizzleCompanyBriefingRepository } from '#src/infrastructure/db/repositories/DrizzleCompanyBriefingRepository.js';
+import type { CompanyBriefingMapper } from '#src/interface-adapters/mappers/CompanyBriefingMapper.js';
+import type { CompanyBriefingResolver } from '#src/interface-adapters/resolvers/CompanyBriefingResolver.js';
 import type { ComputeHealthScoreUseCase } from '#src/use-cases/application/ComputeHealthScoreUseCase.js';
 import type { ComputeResumeMatchScoreUseCase } from '#src/use-cases/application/ComputeResumeMatchScoreUseCase.js';
 import type { GetApplicationChannelAnalyticsUseCase } from '#src/use-cases/application/GetApplicationChannelAnalyticsUseCase.js';
@@ -443,6 +449,8 @@ export interface Cradle {
   deleteDocumentUseCase: DeleteDocumentUseCase;
   createDocumentDraftUseCase: CreateDocumentDraftUseCase;
   updateDocumentDraftContentUseCase: UpdateDocumentDraftContentUseCase;
+  renameDocumentDraftUseCase: RenameDocumentDraftUseCase;
+  generateCoverLetterDraftUseCase: GenerateCoverLetterDraftUseCase;
   getDocumentDraftsUseCase: GetDocumentDraftsUseCase;
   getDocumentDraftUseCase: GetDocumentDraftUseCase;
   deleteDocumentDraftUseCase: DeleteDocumentDraftUseCase;
@@ -520,6 +528,10 @@ export interface Cradle {
   parseJobDescriptionUseCase: ParseJobDescriptionUseCase;
   generateCoverLetterUseCase: GenerateCoverLetterUseCase;
   generateCompanyBriefingUseCase: GenerateCompanyBriefingUseCase;
+  getCompanyBriefingUseCase: GetCompanyBriefingUseCase;
+  companyBriefingRepository: DrizzleCompanyBriefingRepository;
+  companyBriefingMapper: CompanyBriefingMapper;
+  companyBriefingResolver: CompanyBriefingResolver;
   computeHealthScoreUseCase: ComputeHealthScoreUseCase;
   chatTools: LLMToolDefinition[];
   chatWithAssistantUseCase: ChatWithAssistantUseCase;

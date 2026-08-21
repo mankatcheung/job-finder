@@ -1,0 +1,181 @@
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { randomUUID } from 'node:crypto';
+import { buildTestApp, type TestApp } from './helpers/buildTestApp.js';
+import type { Cradle } from '#src/http/container.js';
+
+const REGISTER_MUTATION = `
+  mutation Register($email: String!, $password: String!) {
+    register(email: $email, password: $password)
+  }
+`;
+
+const CREATE_APPLICATION_MUTATION = `
+  mutation CreateApplication($input: CreateApplicationInput!) {
+    createApplication(input: $input) { id }
+  }
+`;
+
+const BRIEFING_QUERY = `
+  query CompanyBriefing($applicationId: ID!) {
+    companyBriefing(applicationId: $applicationId) {
+      id
+      applicationId
+      content
+      generatedAt
+    }
+  }
+`;
+
+const DELETE_APPLICATION_MUTATION = `
+  mutation DeleteApplication($id: ID!) {
+    deleteApplication(id: $id)
+  }
+`;
+
+interface GraphQLResponse<T> {
+  data: T | null;
+  errors?: Array<{ message: string; extensions?: { code?: string } }>;
+}
+
+type Briefing = { id: string; applicationId: string; content: string; generatedAt: string } | null;
+
+/**
+ * The model call itself is not exercised here — there is no provider to call
+ * in a test. What matters for JEF-195 is the half that was missing: that a
+ * briefing, once stored, is still there on the next request instead of having
+ * lived in component state. So these seed through the app's own repository and
+ * drive the read path over real GraphQL.
+ */
+describe('company briefing integration', () => {
+  let testApp: TestApp;
+
+  async function registerAndLogin(): Promise<string> {
+    const email = `${randomUUID()}@example.com`;
+    const res = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      payload: { query: REGISTER_MUTATION, variables: { email, password: 'Password123!' } },
+    });
+    const cookies = res.cookies as Array<{ name: string; value: string }>;
+    return cookies.find((c) => c.name === 'trakwyn_access_token')!.value;
+  }
+
+  const authedInject = (token: string, query: string, variables?: Record<string, unknown>) =>
+    testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      cookies: { trakwyn_access_token: token },
+      payload: { query, variables },
+    });
+
+  async function createApplication(token: string): Promise<string> {
+    const res = await authedInject(token, CREATE_APPLICATION_MUTATION, {
+      input: { company: 'Acme', role: 'Engineer', status: 'applied' },
+    });
+    return (res.json() as GraphQLResponse<{ createApplication: { id: string } }>).data!
+      .createApplication.id;
+  }
+
+  const briefingRepository = () =>
+    (testApp.app as unknown as { diContainer: { cradle: Cradle } }).diContainer.cradle
+      .companyBriefingRepository;
+
+  beforeAll(async () => {
+    testApp = await buildTestApp();
+  });
+
+  afterAll(() => testApp.cleanup());
+
+  it('reports no briefing before one has been generated', async () => {
+    const token = await registerAndLogin();
+    const applicationId = await createApplication(token);
+
+    const res = await authedInject(token, BRIEFING_QUERY, { applicationId });
+    const body = res.json() as GraphQLResponse<{ companyBriefing: Briefing }>;
+
+    expect(body.errors).toBeUndefined();
+    expect(body.data!.companyBriefing).toBeNull();
+  });
+
+  it('serves a stored briefing back on a later request', async () => {
+    const token = await registerAndLogin();
+    const applicationId = await createApplication(token);
+
+    await briefingRepository().upsert({
+      id: randomUUID(),
+      applicationId,
+      content: 'Company overview…',
+      generatedAt: new Date('2026-08-01T00:00:00.000Z'),
+    });
+
+    const res = await authedInject(token, BRIEFING_QUERY, { applicationId });
+    const briefing = (res.json() as GraphQLResponse<{ companyBriefing: Briefing }>).data!
+      .companyBriefing;
+
+    expect(briefing).toMatchObject({ applicationId, content: 'Company overview…' });
+    expect(briefing!.generatedAt).toBe('2026-08-01T00:00:00.000Z');
+  });
+
+  it('regenerating replaces the briefing rather than adding a second', async () => {
+    const token = await registerAndLogin();
+    const applicationId = await createApplication(token);
+
+    await briefingRepository().upsert({
+      id: randomUUID(),
+      applicationId,
+      content: 'First',
+      generatedAt: new Date('2026-08-01T00:00:00.000Z'),
+    });
+    await briefingRepository().upsert({
+      id: randomUUID(),
+      applicationId,
+      content: 'Second',
+      generatedAt: new Date('2026-08-02T00:00:00.000Z'),
+    });
+
+    const res = await authedInject(token, BRIEFING_QUERY, { applicationId });
+    const briefing = (res.json() as GraphQLResponse<{ companyBriefing: Briefing }>).data!
+      .companyBriefing;
+
+    expect(briefing!.content).toBe('Second');
+    expect(briefing!.generatedAt).toBe('2026-08-02T00:00:00.000Z');
+  });
+
+  it("does not serve another user's briefing", async () => {
+    const owner = await registerAndLogin();
+    const applicationId = await createApplication(owner);
+    await briefingRepository().upsert({
+      id: randomUUID(),
+      applicationId,
+      content: 'Private research',
+      generatedAt: new Date(),
+    });
+
+    const attacker = await registerAndLogin();
+    const res = await authedInject(attacker, BRIEFING_QUERY, { applicationId });
+
+    expect((res.json() as GraphQLResponse<unknown>).errors?.[0]?.extensions?.code).toBe(
+      'FORBIDDEN',
+    );
+  });
+
+  it('stops serving the briefing once the application is in Trash', async () => {
+    const token = await registerAndLogin();
+    const applicationId = await createApplication(token);
+    await briefingRepository().upsert({
+      id: randomUUID(),
+      applicationId,
+      content: 'Overview',
+      generatedAt: new Date(),
+    });
+
+    await authedInject(token, DELETE_APPLICATION_MUTATION, { id: applicationId });
+
+    // The read goes through the trash-filtered findById, so a trashed
+    // application reports as missing rather than serving its research.
+    const res = await authedInject(token, BRIEFING_QUERY, { applicationId });
+    expect((res.json() as GraphQLResponse<unknown>).errors?.[0]?.extensions?.code).toBe(
+      'NOT_FOUND',
+    );
+  });
+});

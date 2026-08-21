@@ -86,6 +86,8 @@ import './mutations/mcpOAuthGrantMutations.js';
 import './mutations/contactMutations.js';
 import './mutations/jobDescriptionMutations.js';
 import './mutations/coverLetterMutations.js';
+import './types/CompanyBriefingType.js';
+import './queries/companyBriefingQueries.js';
 import './mutations/companyBriefingMutations.js';
 import './mutations/resumeMatchMutations.js';
 import './mutations/sessionMutations.js';

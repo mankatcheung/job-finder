@@ -6,6 +6,8 @@ import { GetDocumentsUseCase } from '#src/use-cases/documents/GetDocumentsUseCas
 import { DeleteDocumentUseCase } from '#src/use-cases/documents/DeleteDocumentUseCase.js';
 import { CreateDocumentDraftUseCase } from '#src/use-cases/documents/CreateDocumentDraftUseCase.js';
 import { UpdateDocumentDraftContentUseCase } from '#src/use-cases/documents/UpdateDocumentDraftContentUseCase.js';
+import { RenameDocumentDraftUseCase } from '#src/use-cases/documents/RenameDocumentDraftUseCase.js';
+import { GenerateCoverLetterDraftUseCase } from '#src/use-cases/documents/GenerateCoverLetterDraftUseCase.js';
 import { GetDocumentDraftsUseCase } from '#src/use-cases/documents/GetDocumentDraftsUseCase.js';
 import { GetDocumentDraftUseCase } from '#src/use-cases/documents/GetDocumentDraftUseCase.js';
 import { DeleteDocumentDraftUseCase } from '#src/use-cases/documents/DeleteDocumentDraftUseCase.js';
@@ -21,6 +23,12 @@ export const documents = {
   getDocumentsUseCase: asClass(GetDocumentsUseCase, { lifetime: Lifetime.TRANSIENT }),
   deleteDocumentUseCase: asClass(DeleteDocumentUseCase, { lifetime: Lifetime.TRANSIENT }),
   createDocumentDraftUseCase: asClass(CreateDocumentDraftUseCase, {
+    lifetime: Lifetime.TRANSIENT,
+  }),
+  renameDocumentDraftUseCase: asClass(RenameDocumentDraftUseCase, {
+    lifetime: Lifetime.TRANSIENT,
+  }),
+  generateCoverLetterDraftUseCase: asClass(GenerateCoverLetterDraftUseCase, {
     lifetime: Lifetime.TRANSIENT,
   }),
   updateDocumentDraftContentUseCase: asClass(UpdateDocumentDraftContentUseCase, {

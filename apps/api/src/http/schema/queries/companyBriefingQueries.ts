@@ -1,28 +1,26 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
-import { DocumentDraftRef } from '#src/http/schema/types/DocumentDraftType.js';
+import { CompanyBriefingRef } from '#src/http/schema/types/CompanyBriefingType.js';
 import { fromCodedError } from '#src/http/errors/AppError.js';
 import { ERROR_CODES } from '#src/constants.js';
 
-// Returns the saved draft rather than the letter as a string: the generated
-// text is now persisted (JEF-195), and the client needs its id to open it in
-// the editor.
-builder.mutationField('generateCoverLetter', (t) =>
+builder.queryField('companyBriefing', (t) =>
   t.field({
-    type: DocumentDraftRef,
+    type: CompanyBriefingRef,
+    // Nullable: "not generated yet" is the tab's normal opening state, not an
+    // error the client has to distinguish from a failure.
+    nullable: true,
     args: {
       applicationId: t.arg.id({ required: true }),
-      resumeText: t.arg.string({ required: false }),
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
-      const { documentDraftResolver } = ctx.diScope.cradle;
+      const { companyBriefingResolver } = ctx.diScope.cradle;
       try {
-        return await documentDraftResolver.generateCoverLetterDraft(
+        return await companyBriefingResolver.getCompanyBriefing(
           ctx.user.sub,
           String(args.applicationId),
-          args.resumeText,
         );
       } catch (err) {
         throw fromCodedError(err);

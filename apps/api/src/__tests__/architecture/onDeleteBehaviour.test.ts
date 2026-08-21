@@ -22,6 +22,7 @@ const DECLARED_ON_DELETE: Record<string, string> = {
   'ApiToken -> User': 'cascade',
   'ApplicationTag -> JobApplication': 'cascade',
   'BackupEmailVerificationToken -> User': 'cascade',
+  'CompanyBriefing -> JobApplication': 'cascade', // research about the company, meaningless without the application
   'Contact -> JobApplication': 'cascade',
   'Conversation -> User': 'cascade',
   'Document -> DocumentDraft': 'set null', // a draft and its exported file reference each other; neither owns the other

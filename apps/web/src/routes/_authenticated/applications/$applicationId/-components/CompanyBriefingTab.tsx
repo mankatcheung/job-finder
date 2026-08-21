@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { CopyIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
@@ -7,30 +7,62 @@ import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { useLocale } from '#/lib/i18n';
 import { Button, Card, Spinner } from '@trakwyn/ui';
 
-const GENERATE_COMPANY_BRIEFING = `
-  mutation GenerateCompanyBriefing($applicationId: ID!) {
-    generateCompanyBriefing(applicationId: $applicationId)
+const BRIEFING_FIELDS = `id applicationId content generatedAt`;
+
+const COMPANY_BRIEFING_QUERY = `
+  query CompanyBriefing($applicationId: ID!) {
+    companyBriefing(applicationId: $applicationId) { ${BRIEFING_FIELDS} }
   }
 `;
 
+const GENERATE_COMPANY_BRIEFING = `
+  mutation GenerateCompanyBriefing($applicationId: ID!) {
+    generateCompanyBriefing(applicationId: $applicationId) { ${BRIEFING_FIELDS} }
+  }
+`;
+
+type Briefing = { id: string; applicationId: string; content: string; generatedAt: string };
+
 export function CompanyBriefingTab({ applicationId }: { applicationId: string }) {
-  const { t } = useLocale();
-  const [briefing, setBriefing] = useState('');
+  const { t, formatDate } = useLocale();
+  const qc = useQueryClient();
   const [copied, setCopied] = useState(false);
+
+  const queryKey = ['companyBriefing', applicationId] as const;
+
+  // Read from the server rather than remembering the last generation in
+  // component state: the briefing is stored now, so leaving the tab no longer
+  // means paying to produce it again.
+  const { data, isLoading } = useQuery({
+    queryKey,
+    queryFn: () =>
+      gqlClient.request<{ companyBriefing: Briefing | null }>(COMPANY_BRIEFING_QUERY, {
+        applicationId,
+      }),
+  });
+  const briefing = data?.companyBriefing ?? null;
 
   const generate = useMutation({
     mutationFn: () =>
-      gqlClient.request<{ generateCompanyBriefing: string }>(GENERATE_COMPANY_BRIEFING, {
+      gqlClient.request<{ generateCompanyBriefing: Briefing }>(GENERATE_COMPANY_BRIEFING, {
         applicationId,
       }),
-    onSuccess: (data) => {
-      setBriefing(data.generateCompanyBriefing);
+    onSuccess: (result) => {
+      qc.setQueryData(queryKey, { companyBriefing: result.generateCompanyBriefing });
       setCopied(false);
     },
   });
 
+  const handleGenerate = () => {
+    // Regenerating overwrites the stored briefing and there is no undo, so an
+    // existing one is confirmed before it is replaced.
+    if (briefing && !confirm(t('companyBriefing.regenerateConfirm'))) return;
+    generate.mutate();
+  };
+
   const handleCopy = () => {
-    void navigator.clipboard.writeText(briefing);
+    if (!briefing) return;
+    void navigator.clipboard.writeText(briefing.content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -41,7 +73,7 @@ export function CompanyBriefingTab({ applicationId }: { applicationId: string })
         <p className="text-sm text-gray-600 dark:text-gray-400">
           {t('companyBriefing.description')}
         </p>
-        <Button onClick={() => generate.mutate()} disabled={generate.isPending}>
+        <Button onClick={handleGenerate} disabled={generate.isPending || isLoading}>
           <span className="flex items-center gap-2">
             {generate.isPending ? (
               <>
@@ -76,9 +108,19 @@ export function CompanyBriefingTab({ applicationId }: { applicationId: string })
       {briefing && (
         <Card className="p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {t('companyBriefing.title')}
-            </h3>
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {t('companyBriefing.title')}
+              </h3>
+              <p className="text-xs text-gray-400">
+                {t('companyBriefing.generatedAt', {
+                  date: formatDate(new Date(briefing.generatedAt), {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                  }),
+                })}
+              </p>
+            </div>
             <Button
               variant="secondary"
               size="sm"
@@ -95,7 +137,7 @@ export function CompanyBriefingTab({ applicationId }: { applicationId: string })
           </div>
           <p className="text-xs text-gray-400">{t('companyBriefing.disclaimer')}</p>
           <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-sans leading-relaxed">
-            {briefing}
+            {briefing.content}
           </pre>
         </Card>
       )}

@@ -1,5 +1,7 @@
 import type { ICreateDocumentDraftUseCase } from '#src/use-cases/documents/CreateDocumentDraftUseCase.js';
 import type { IUpdateDocumentDraftContentUseCase } from '#src/use-cases/documents/UpdateDocumentDraftContentUseCase.js';
+import type { IRenameDocumentDraftUseCase } from '#src/use-cases/documents/RenameDocumentDraftUseCase.js';
+import type { IGenerateCoverLetterDraftUseCase } from '#src/use-cases/documents/GenerateCoverLetterDraftUseCase.js';
 import type { IGetDocumentDraftsUseCase } from '#src/use-cases/documents/GetDocumentDraftsUseCase.js';
 import type { IGetDocumentDraftUseCase } from '#src/use-cases/documents/GetDocumentDraftUseCase.js';
 import type { IDeleteDocumentDraftUseCase } from '#src/use-cases/documents/DeleteDocumentDraftUseCase.js';
@@ -16,6 +18,8 @@ import type { DocumentDTO } from '#src/interface-adapters/mappers/DocumentMapper
 interface Deps {
   createDocumentDraftUseCase: ICreateDocumentDraftUseCase;
   updateDocumentDraftContentUseCase: IUpdateDocumentDraftContentUseCase;
+  renameDocumentDraftUseCase: IRenameDocumentDraftUseCase;
+  generateCoverLetterDraftUseCase: IGenerateCoverLetterDraftUseCase;
   getDocumentDraftsUseCase: IGetDocumentDraftsUseCase;
   getDocumentDraftUseCase: IGetDocumentDraftUseCase;
   deleteDocumentDraftUseCase: IDeleteDocumentDraftUseCase;
@@ -76,6 +80,28 @@ export class DocumentDraftResolver {
       draftId: input.draftId,
       contentJson: input.contentJson,
       plainText: input.plainText,
+    });
+    return this.deps.documentDraftMapper.toDTO(draft);
+  }
+
+  async renameDocumentDraft(
+    userId: string,
+    draftId: string,
+    title: string,
+  ): Promise<DocumentDraftDTO> {
+    const draft = await this.deps.renameDocumentDraftUseCase.execute({ userId, draftId, title });
+    return this.deps.documentDraftMapper.toDTO(draft);
+  }
+
+  async generateCoverLetterDraft(
+    userId: string,
+    applicationId: string,
+    resumeText?: string | null,
+  ): Promise<DocumentDraftDTO> {
+    const draft = await this.deps.generateCoverLetterDraftUseCase.execute({
+      userId,
+      applicationId,
+      resumeText,
     });
     return this.deps.documentDraftMapper.toDTO(draft);
   }

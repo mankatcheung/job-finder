@@ -67,6 +67,15 @@ export class DrizzleDocumentDraftRepository implements IDocumentDraftRepository 
     return this.toEntity(row);
   }
 
+  async rename(id: string, title: string): Promise<DocumentDraft> {
+    const [row] = await this.db
+      .update(documentDraft)
+      .set({ title, updatedAt: new Date() })
+      .where(eq(documentDraft.id, id))
+      .returning();
+    return this.toEntity(row);
+  }
+
   async delete(id: string): Promise<void> {
     await this.db.delete(documentDraft).where(eq(documentDraft.id, id));
   }

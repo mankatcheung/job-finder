@@ -9,6 +9,8 @@ import type { LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
+import type { ICompanyBriefingRepository } from '#src/use-cases/ports/ICompanyBriefingRepository.js';
+import type { CompanyBriefing } from '#src/domain/companyBriefing/CompanyBriefing.js';
 import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
 import { AI_PROMPT_INPUT } from '#src/constants.js';
 
@@ -22,6 +24,9 @@ interface Deps {
   applicationRepository: IApplicationRepository;
   userRepository: IUserRepository;
   generateCompanyBriefingRateLimiter: IRateLimiter;
+  companyBriefingRepository: ICompanyBriefingRepository;
+  generateId: () => string;
+  now: () => Date;
 }
 
 const SYSTEM_PROMPT = `You are a career research assistant preparing a candidate for a job application. Given a company, role, and job description, write a concise pre-interview briefing covering:
@@ -38,7 +43,7 @@ Return plain text with short section headers, no markdown formatting.`;
 export class GenerateCompanyBriefingUseCase {
   constructor(private readonly deps: Deps) {}
 
-  async execute(input: GenerateCompanyBriefingInput): Promise<string> {
+  async execute(input: GenerateCompanyBriefingInput): Promise<CompanyBriefing> {
     if (
       !(await this.deps.generateCompanyBriefingRateLimiter.consume(
         `company-briefing:user:${input.userId}`,
@@ -69,7 +74,18 @@ export class GenerateCompanyBriefingUseCase {
     }
     messages.push({ role: 'user', content: userPrompt });
 
-    return llmProvider.complete(messages, 768);
+    const content = await llmProvider.complete(messages, 768);
+
+    // Persisted rather than returned and forgotten (JEF-195). Upsert, not
+    // insert: one briefing per application, and regenerating replaces it.
+    // Only reached on success, so a failed call leaves the previous briefing
+    // intact rather than blanking it.
+    return this.deps.companyBriefingRepository.upsert({
+      id: this.deps.generateId(),
+      applicationId: input.applicationId,
+      content,
+      generatedAt: this.deps.now(),
+    });
   }
 
   private buildPrompt(app: {

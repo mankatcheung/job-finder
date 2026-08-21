@@ -8,6 +8,7 @@ import {
   makeUserRepository,
   makeUser,
   makeRateLimiter,
+  makeCompanyBriefingRepository,
 } from '#src/__tests__/helpers/mocks.js';
 
 const BRIEFING = 'Company overview:\nAcme builds widgets…\n\nTalking points:\n- Ask about X';
@@ -29,12 +30,15 @@ describe('GenerateCompanyBriefingUseCase', () => {
       llmProviderFactory,
       userRepository,
       generateCompanyBriefingRateLimiter: makeRateLimiter(),
+      companyBriefingRepository: makeCompanyBriefingRepository(),
+      generateId: () => 'briefing-1',
+      now: () => new Date('2026-08-21T00:00:00.000Z'),
     }).execute({
       applicationId: 'app-1',
       userId: 'user-1',
     });
 
-    expect(result).toBe(BRIEFING);
+    expect(result.content).toBe(BRIEFING);
     expect(llmProvider.complete).toHaveBeenCalledOnce();
   });
 
@@ -56,6 +60,9 @@ describe('GenerateCompanyBriefingUseCase', () => {
       llmProviderFactory,
       userRepository,
       generateCompanyBriefingRateLimiter: makeRateLimiter(),
+      companyBriefingRepository: makeCompanyBriefingRepository(),
+      generateId: () => 'briefing-1',
+      now: () => new Date('2026-08-21T00:00:00.000Z'),
     }).execute({
       applicationId: 'app-1',
       userId: 'user-1',
@@ -85,6 +92,9 @@ describe('GenerateCompanyBriefingUseCase', () => {
       llmProviderFactory,
       userRepository,
       generateCompanyBriefingRateLimiter: makeRateLimiter(),
+      companyBriefingRepository: makeCompanyBriefingRepository(),
+      generateId: () => 'briefing-1',
+      now: () => new Date('2026-08-21T00:00:00.000Z'),
     }).execute({
       applicationId: 'app-1',
       userId: 'user-1',
@@ -113,6 +123,9 @@ describe('GenerateCompanyBriefingUseCase', () => {
       llmProviderFactory,
       userRepository,
       generateCompanyBriefingRateLimiter: makeRateLimiter(),
+      companyBriefingRepository: makeCompanyBriefingRepository(),
+      generateId: () => 'briefing-1',
+      now: () => new Date('2026-08-21T00:00:00.000Z'),
     }).execute({
       applicationId: 'app-1',
       userId: 'user-1',
@@ -146,6 +159,9 @@ describe('GenerateCompanyBriefingUseCase', () => {
       llmProviderFactory,
       userRepository,
       generateCompanyBriefingRateLimiter: makeRateLimiter(),
+      companyBriefingRepository: makeCompanyBriefingRepository(),
+      generateId: () => 'briefing-1',
+      now: () => new Date('2026-08-21T00:00:00.000Z'),
     }).execute({
       applicationId: 'app-1',
       userId: 'user-1',
@@ -176,6 +192,9 @@ describe('GenerateCompanyBriefingUseCase', () => {
       llmProviderFactory,
       userRepository,
       generateCompanyBriefingRateLimiter: makeRateLimiter(),
+      companyBriefingRepository: makeCompanyBriefingRepository(),
+      generateId: () => 'briefing-1',
+      now: () => new Date('2026-08-21T00:00:00.000Z'),
     }).execute({
       applicationId: 'app-1',
       userId: 'user-1',
@@ -202,6 +221,9 @@ describe('GenerateCompanyBriefingUseCase', () => {
       llmProviderFactory,
       userRepository,
       generateCompanyBriefingRateLimiter: makeRateLimiter(),
+      companyBriefingRepository: makeCompanyBriefingRepository(),
+      generateId: () => 'briefing-1',
+      now: () => new Date('2026-08-21T00:00:00.000Z'),
     })
       .execute({ applicationId: 'missing', userId: 'user-1' })
       .catch((e) => e);
@@ -224,6 +246,9 @@ describe('GenerateCompanyBriefingUseCase', () => {
       llmProviderFactory,
       userRepository,
       generateCompanyBriefingRateLimiter: makeRateLimiter(),
+      companyBriefingRepository: makeCompanyBriefingRepository(),
+      generateId: () => 'briefing-1',
+      now: () => new Date('2026-08-21T00:00:00.000Z'),
     })
       .execute({ applicationId: 'app-1', userId: 'user-1' })
       .catch((e) => e);
@@ -245,6 +270,9 @@ describe('GenerateCompanyBriefingUseCase', () => {
       llmProviderFactory,
       userRepository,
       generateCompanyBriefingRateLimiter: makeRateLimiter(),
+      companyBriefingRepository: makeCompanyBriefingRepository(),
+      generateId: () => 'briefing-1',
+      now: () => new Date('2026-08-21T00:00:00.000Z'),
     })
       .execute({ applicationId: 'app-1', userId: 'user-1' })
       .catch((e) => e);
@@ -265,11 +293,65 @@ describe('GenerateCompanyBriefingUseCase', () => {
       llmProviderFactory,
       userRepository,
       generateCompanyBriefingRateLimiter,
+      companyBriefingRepository: makeCompanyBriefingRepository(),
+      generateId: () => 'briefing-1',
+      now: () => new Date('2026-08-21T00:00:00.000Z'),
     })
       .execute({ applicationId: 'app-1', userId: 'user-1' })
       .catch((e) => e);
 
     expect((err as { code: string }).code).toBe('RATE_LIMITED');
     expect(applicationRepository.findById).not.toHaveBeenCalled();
+  });
+  it('stores the briefing so it survives a reload', async () => {
+    // The bug this ticket exists for: the briefing used to live only in
+    // component state, so leaving the tab meant paying for it again.
+    const companyBriefingRepository = makeCompanyBriefingRepository();
+    const applicationRepository = makeApplicationRepository({
+      findById: vi.fn().mockResolvedValue(makeApplication({ userId: 'user-1' })),
+    });
+
+    await new GenerateCompanyBriefingUseCase({
+      applicationRepository,
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(makeLLMProvider(BRIEFING)),
+      }),
+      userRepository: makeUserRepository({ findById: vi.fn().mockResolvedValue(makeUser()) }),
+      generateCompanyBriefingRateLimiter: makeRateLimiter(),
+      companyBriefingRepository,
+      generateId: () => 'briefing-1',
+      now: () => new Date('2026-08-21T00:00:00.000Z'),
+    }).execute({ applicationId: 'app-1', userId: 'user-1' });
+
+    expect(companyBriefingRepository.upsert).toHaveBeenCalledWith({
+      id: 'briefing-1',
+      applicationId: 'app-1',
+      content: BRIEFING,
+      generatedAt: new Date('2026-08-21T00:00:00.000Z'),
+    });
+  });
+
+  it('does not store anything when the model call fails', async () => {
+    const companyBriefingRepository = makeCompanyBriefingRepository();
+    const llmProvider = makeLLMProvider(BRIEFING);
+    vi.mocked(llmProvider.complete).mockRejectedValue(new Error('provider down'));
+
+    await expect(
+      new GenerateCompanyBriefingUseCase({
+        applicationRepository: makeApplicationRepository({
+          findById: vi.fn().mockResolvedValue(makeApplication({ userId: 'user-1' })),
+        }),
+        llmProviderFactory: makeLLMProviderFactory({
+          forUser: vi.fn().mockResolvedValue(llmProvider),
+        }),
+        userRepository: makeUserRepository({ findById: vi.fn().mockResolvedValue(makeUser()) }),
+        generateCompanyBriefingRateLimiter: makeRateLimiter(),
+        companyBriefingRepository,
+        generateId: () => 'briefing-1',
+        now: () => new Date(),
+      }).execute({ applicationId: 'app-1', userId: 'user-1' }),
+    ).rejects.toThrow();
+
+    expect(companyBriefingRepository.upsert).not.toHaveBeenCalled();
   });
 });

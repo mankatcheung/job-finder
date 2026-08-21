@@ -5,6 +5,7 @@ import { ApplicationResolver } from '#src/interface-adapters/resolvers/Applicati
 import { NoteResolver } from '#src/interface-adapters/resolvers/NoteResolver.js';
 import { DocumentResolver } from '#src/interface-adapters/resolvers/DocumentResolver.js';
 import { DocumentDraftResolver } from '#src/interface-adapters/resolvers/DocumentDraftResolver.js';
+import { CompanyBriefingResolver } from '#src/interface-adapters/resolvers/CompanyBriefingResolver.js';
 import { UserResolver } from '#src/interface-adapters/resolvers/UserResolver.js';
 import { InterviewRoundResolver } from '#src/interface-adapters/resolvers/InterviewRoundResolver.js';
 import { ActivityLogResolver } from '#src/interface-adapters/resolvers/ActivityLogResolver.js';
@@ -30,6 +31,7 @@ export const resolvers = {
   applicationResolver: asClass(ApplicationResolver, { lifetime: Lifetime.SINGLETON }),
   noteResolver: asClass(NoteResolver, { lifetime: Lifetime.SINGLETON }),
   documentResolver: asClass(DocumentResolver, { lifetime: Lifetime.SINGLETON }),
+  companyBriefingResolver: asClass(CompanyBriefingResolver, { lifetime: Lifetime.SINGLETON }),
   documentDraftResolver: asClass(DocumentDraftResolver, { lifetime: Lifetime.SINGLETON }),
   userResolver: asClass(UserResolver, { lifetime: Lifetime.SINGLETON }),
   interviewRoundResolver: asClass(InterviewRoundResolver, { lifetime: Lifetime.SINGLETON }),
