@@ -26,23 +26,30 @@ export class OAuthStateService {
     return process.env[ENV.JWT_SECRET] ?? '';
   }
 
+  /**
+   * Returns the signed state and the nonce inside it. The caller needs the
+   * nonce separately so it can be stored in a cookie: the signature proves we
+   * minted this state, and the cookie is what proves we minted it for *this*
+   * browser (JEF-198).
+   */
   issue(
     provider: OAuthProviderName,
     mode: 'login' | 'link',
     userId?: string,
     returnTo?: string,
-  ): string {
+  ): { state: string; nonce: string } {
+    const nonce = randomBytes(16).toString('hex');
     const payload: OAuthState = {
       provider,
       mode,
       userId,
       returnTo,
-      nonce: randomBytes(16).toString('hex'),
+      nonce,
       exp: Date.now() + OAUTH.STATE_TTL_MS,
     };
     const encodedPayload = base64url(JSON.stringify(payload));
     const signature = createHmac('sha256', this.secret).update(encodedPayload).digest('base64url');
-    return `${encodedPayload}.${signature}`;
+    return { state: `${encodedPayload}.${signature}`, nonce };
   }
 
   verify(state: string): OAuthState {
