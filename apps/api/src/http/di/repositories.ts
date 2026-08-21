@@ -5,6 +5,7 @@ import { DrizzleApplicationRepository } from '#src/infrastructure/db/repositorie
 import { DrizzleNoteRepository } from '#src/infrastructure/db/repositories/DrizzleNoteRepository.js';
 import { DrizzleDocumentRepository } from '#src/infrastructure/db/repositories/DrizzleDocumentRepository.js';
 import { DrizzleDocumentDraftRepository } from '#src/infrastructure/db/repositories/DrizzleDocumentDraftRepository.js';
+import { DrizzleCompanyBriefingRepository } from '#src/infrastructure/db/repositories/DrizzleCompanyBriefingRepository.js';
 import { CachedApplicationRepository } from '#src/infrastructure/db/repositories/CachedApplicationRepository.js';
 import { CachedNoteRepository } from '#src/infrastructure/db/repositories/CachedNoteRepository.js';
 import { CachedApiTokenRepository } from '#src/infrastructure/db/repositories/CachedApiTokenRepository.js';
@@ -56,6 +57,9 @@ export const repositories = {
   }),
   drizzleNoteRepository: asClass(DrizzleNoteRepository, { lifetime: Lifetime.SINGLETON }),
   drizzleDocumentRepository: asClass(DrizzleDocumentRepository, { lifetime: Lifetime.SINGLETON }),
+  companyBriefingRepository: asClass(DrizzleCompanyBriefingRepository, {
+    lifetime: Lifetime.SINGLETON,
+  }),
   documentDraftRepository: asClass(DrizzleDocumentDraftRepository, {
     lifetime: Lifetime.SINGLETON,
   }),

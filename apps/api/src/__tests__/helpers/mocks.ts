@@ -55,6 +55,7 @@ import type { IDocumentTextExtractor } from '#src/use-cases/ports/IDocumentTextE
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 import type { IPushSubscriptionRepository } from '#src/use-cases/ports/IPushSubscriptionRepository.js';
 import type { PushSubscription } from '#src/domain/pushSubscription/PushSubscription.js';
+import type { ICompanyBriefingRepository } from '#src/use-cases/ports/ICompanyBriefingRepository.js';
 import type { IDocumentDraftRepository } from '#src/use-cases/ports/IDocumentDraftRepository.js';
 import type { DocumentDraft } from '#src/domain/documentDraft/DocumentDraft.js';
 import type { IPdfRenderer } from '#src/use-cases/ports/IPdfRenderer.js';
@@ -531,6 +532,14 @@ export const makeDocument = (overrides?: Partial<Document>): Document => ({
   ...overrides,
 });
 
+export const makeCompanyBriefingRepository = (
+  overrides?: Partial<ICompanyBriefingRepository>,
+): ICompanyBriefingRepository => ({
+  findByApplicationId: vi.fn().mockResolvedValue(null),
+  upsert: vi.fn().mockImplementation((data) => Promise.resolve({ ...data })),
+  ...overrides,
+});
+
 export const makeDocumentDraftRepository = (
   overrides?: Partial<IDocumentDraftRepository>,
 ): IDocumentDraftRepository => ({
@@ -538,6 +547,7 @@ export const makeDocumentDraftRepository = (
   findById: vi.fn(),
   create: vi.fn(),
   updateContent: vi.fn(),
+  rename: vi.fn(),
   delete: vi.fn(),
   ...overrides,
 });

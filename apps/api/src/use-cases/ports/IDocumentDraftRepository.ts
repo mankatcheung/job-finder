@@ -20,5 +20,6 @@ export interface IDocumentDraftRepository {
   findById(id: string): Promise<DocumentDraft | null>;
   create(data: CreateDocumentDraftData): Promise<DocumentDraft>;
   updateContent(id: string, data: UpdateDocumentDraftContentData): Promise<DocumentDraft>;
+  rename(id: string, title: string): Promise<DocumentDraft>;
   delete(id: string): Promise<void>;
 }

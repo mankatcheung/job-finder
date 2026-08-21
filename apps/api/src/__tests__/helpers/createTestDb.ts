@@ -272,6 +272,13 @@ const SCHEMA_STATEMENTS = [
   )`,
   `CREATE INDEX "DocumentDraft_applicationId_idx" ON "DocumentDraft"("applicationId")`,
   `CREATE INDEX "DocumentDraft_sourceDocumentId_idx" ON "DocumentDraft"("sourceDocumentId")`,
+  `CREATE TABLE "CompanyBriefing" (
+    "id" TEXT PRIMARY KEY,
+    "applicationId" TEXT NOT NULL UNIQUE,
+    "content" TEXT NOT NULL,
+    "generatedAt" INTEGER NOT NULL,
+    FOREIGN KEY ("applicationId") REFERENCES "JobApplication"("id") ON DELETE CASCADE
+  )`,
   `CREATE TABLE "ApplicationTag" (
     "id" TEXT PRIMARY KEY,
     "applicationId" TEXT NOT NULL,
