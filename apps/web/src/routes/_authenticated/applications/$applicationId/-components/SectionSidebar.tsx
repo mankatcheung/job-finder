@@ -41,9 +41,7 @@ export function SectionSidebar({ active, counts, onOpen }: SectionSidebarProps) 
                 className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                    : isEmpty
-                      ? 'text-gray-400 hover:bg-gray-50 dark:text-gray-500 dark:hover:bg-gray-700/50'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-gray-200'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-gray-200'
                 }`}
               >
                 <section.icon size={16} />
