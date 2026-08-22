@@ -21,6 +21,7 @@ import type { IPasswordResetTokenRepository } from '#src/use-cases/ports/IPasswo
 import type { PasswordResetToken } from '#src/domain/passwordResetToken/PasswordResetToken.js';
 import type { ILoginEventRepository } from '#src/use-cases/ports/ILoginEventRepository.js';
 import type { ISecurityEventRepository } from '#src/use-cases/ports/ISecurityEventRepository.js';
+import type { ICookieConsentRepository } from '#src/use-cases/ports/ICookieConsentRepository.js';
 import type { IMessageRepository } from '#src/use-cases/ports/IMessageRepository.js';
 import type { IConversationRepository } from '#src/use-cases/ports/IConversationRepository.js';
 import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
@@ -153,6 +154,13 @@ export const makeSecurityEventRepository = (
 ): ISecurityEventRepository => ({
   create: vi.fn(),
   findRecentByUserId: vi.fn().mockResolvedValue([]),
+  ...overrides,
+});
+
+export const makeCookieConsentRepository = (
+  overrides?: Partial<ICookieConsentRepository>,
+): ICookieConsentRepository => ({
+  create: vi.fn(),
   ...overrides,
 });
 

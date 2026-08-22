@@ -102,5 +102,6 @@ import './mutations/educationMutations.js';
 import './mutations/skillMutations.js';
 import './mutations/offerMutations.js';
 import './mutations/shareLinkMutations.js';
+import './mutations/cookieConsentMutations.js';
 
 export const schema = builder.toSchema();

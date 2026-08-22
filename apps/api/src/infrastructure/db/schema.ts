@@ -5,3 +5,4 @@ export * from './schema/application.js';
 export * from './schema/conversation.js';
 export * from './schema/notification.js';
 export * from './schema/profile.js';
+export * from './schema/consent.js';
