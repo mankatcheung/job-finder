@@ -3,10 +3,10 @@ import { HeadContent, Link, Scripts, createRootRouteWithContext } from '@tanstac
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
-import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from 'sonner';
 import { AlertTriangleIcon } from 'lucide-react';
 import { queryClient } from '#/lib/queryClient';
+import { CookieConsent } from '#/components/CookieConsent';
 import { THEME_INIT_SCRIPT, ThemeProvider, useTheme } from '#/lib/theme';
 import { LOCALE_INIT_SCRIPT, LocaleProvider, useLocale } from '#/lib/i18n';
 import { NavigationProgressBar } from '#/components/NavigationProgressBar';
@@ -156,7 +156,7 @@ function LocalizedDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <ThemeProvider>
-          <Analytics />
+          <CookieConsent />
           <NavigationProgressBar />
           <AppToaster />
           <QueryClientProvider client={queryClient}>

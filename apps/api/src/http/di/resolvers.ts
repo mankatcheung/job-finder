@@ -16,6 +16,7 @@ import { ApiTokenResolver } from '#src/interface-adapters/resolvers/ApiTokenReso
 import { McpOAuthGrantResolver } from '#src/interface-adapters/resolvers/McpOAuthGrantResolver.js';
 import { ShareLinkResolver } from '#src/interface-adapters/resolvers/ShareLinkResolver.js';
 import { NotificationResolver } from '#src/interface-adapters/resolvers/NotificationResolver.js';
+import { CookieConsentResolver } from '#src/interface-adapters/resolvers/CookieConsentResolver.js';
 import { SessionResolver } from '#src/interface-adapters/resolvers/SessionResolver.js';
 import { OAuthResolver } from '#src/interface-adapters/resolvers/OAuthResolver.js';
 import { WorkExperienceResolver } from '#src/interface-adapters/resolvers/WorkExperienceResolver.js';
@@ -43,6 +44,7 @@ export const resolvers = {
   mcpOAuthGrantResolver: asClass(McpOAuthGrantResolver, { lifetime: Lifetime.SINGLETON }),
   shareLinkResolver: asClass(ShareLinkResolver, { lifetime: Lifetime.SINGLETON }),
   notificationResolver: asClass(NotificationResolver, { lifetime: Lifetime.SINGLETON }),
+  cookieConsentResolver: asClass(CookieConsentResolver, { lifetime: Lifetime.SINGLETON }),
   sessionResolver: asClass(SessionResolver, { lifetime: Lifetime.SINGLETON }),
   oauthResolver: asClass(OAuthResolver, { lifetime: Lifetime.SINGLETON }),
   workExperienceResolver: asClass(WorkExperienceResolver, { lifetime: Lifetime.SINGLETON }),

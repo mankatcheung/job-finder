@@ -24,6 +24,7 @@ import { DrizzleContactRepository } from '#src/infrastructure/db/repositories/Dr
 import { DrizzlePasswordResetTokenRepository } from '#src/infrastructure/db/repositories/DrizzlePasswordResetTokenRepository.js';
 import { DrizzleLoginEventRepository } from '#src/infrastructure/db/repositories/DrizzleLoginEventRepository.js';
 import { DrizzleSecurityEventRepository } from '#src/infrastructure/db/repositories/DrizzleSecurityEventRepository.js';
+import { DrizzleCookieConsentRepository } from '#src/infrastructure/db/repositories/DrizzleCookieConsentRepository.js';
 import { DrizzleSessionRepository } from '#src/infrastructure/db/repositories/DrizzleSessionRepository.js';
 import { BlocklistingSessionRepository } from '#src/infrastructure/db/repositories/BlocklistingSessionRepository.js';
 import { DrizzleWorkExperienceRepository } from '#src/infrastructure/db/repositories/DrizzleWorkExperienceRepository.js';
@@ -129,6 +130,9 @@ export const repositories = {
   }),
   loginEventRepository: asClass(DrizzleLoginEventRepository, { lifetime: Lifetime.SINGLETON }),
   securityEventRepository: asClass(DrizzleSecurityEventRepository, {
+    lifetime: Lifetime.SINGLETON,
+  }),
+  cookieConsentRepository: asClass(DrizzleCookieConsentRepository, {
     lifetime: Lifetime.SINGLETON,
   }),
   messageRepository: asClass(DrizzleMessageRepository, { lifetime: Lifetime.SINGLETON }),

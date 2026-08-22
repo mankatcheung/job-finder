@@ -28,6 +28,7 @@ import type { DrizzleContactRepository } from '#src/infrastructure/db/repositori
 import type { DrizzlePasswordResetTokenRepository } from '#src/infrastructure/db/repositories/DrizzlePasswordResetTokenRepository.js';
 import type { DrizzleLoginEventRepository } from '#src/infrastructure/db/repositories/DrizzleLoginEventRepository.js';
 import type { DrizzleSecurityEventRepository } from '#src/infrastructure/db/repositories/DrizzleSecurityEventRepository.js';
+import type { DrizzleCookieConsentRepository } from '#src/infrastructure/db/repositories/DrizzleCookieConsentRepository.js';
 import type { DrizzleSessionRepository } from '#src/infrastructure/db/repositories/DrizzleSessionRepository.js';
 import type { BlocklistingSessionRepository } from '#src/infrastructure/db/repositories/BlocklistingSessionRepository.js';
 import type { ISessionBlocklist } from '#src/use-cases/ports/ISessionBlocklist.js';
@@ -98,6 +99,7 @@ import type { SecurityActivityResolver } from '#src/interface-adapters/resolvers
 import type { ApiTokenResolver } from '#src/interface-adapters/resolvers/ApiTokenResolver.js';
 import type { McpOAuthGrantResolver } from '#src/interface-adapters/resolvers/McpOAuthGrantResolver.js';
 import type { NotificationResolver } from '#src/interface-adapters/resolvers/NotificationResolver.js';
+import type { CookieConsentResolver } from '#src/interface-adapters/resolvers/CookieConsentResolver.js';
 import type { SessionResolver } from '#src/interface-adapters/resolvers/SessionResolver.js';
 import type { McpController } from '#src/interface-adapters/mcp/McpController.js';
 
@@ -210,6 +212,7 @@ import type { NotificationMapper } from '#src/interface-adapters/mappers/Notific
 import type { CreateNotificationUseCase } from '#src/use-cases/notifications/CreateNotificationUseCase.js';
 import type { GetNotificationsPageUseCase } from '#src/use-cases/notifications/GetNotificationsPageUseCase.js';
 import type { MarkNotificationsReadUseCase } from '#src/use-cases/notifications/MarkNotificationsReadUseCase.js';
+import type { RecordCookieConsentUseCase } from '#src/use-cases/cookieConsent/RecordCookieConsentUseCase.js';
 import type { GetUnreadNotificationCountUseCase } from '#src/use-cases/notifications/GetUnreadNotificationCountUseCase.js';
 import type { CreateContactUseCase } from '#src/use-cases/contacts/CreateContactUseCase.js';
 import type { GetContactsUseCase } from '#src/use-cases/contacts/GetContactsUseCase.js';
@@ -323,6 +326,7 @@ export interface Cradle {
   passwordResetTokenRepository: DrizzlePasswordResetTokenRepository;
   loginEventRepository: DrizzleLoginEventRepository;
   securityEventRepository: DrizzleSecurityEventRepository;
+  cookieConsentRepository: DrizzleCookieConsentRepository;
   messageRepository: DrizzleMessageRepository;
   conversationRepository: DrizzleConversationRepository;
   llmApiKeyRepository: ILlmApiKeyRepository;
@@ -394,6 +398,7 @@ export interface Cradle {
   mcpOAuthGrantResolver: McpOAuthGrantResolver;
   shareLinkResolver: ShareLinkResolver;
   notificationResolver: NotificationResolver;
+  cookieConsentResolver: CookieConsentResolver;
   sessionResolver: SessionResolver;
   workExperienceResolver: WorkExperienceResolver;
   educationResolver: EducationResolver;
@@ -513,6 +518,7 @@ export interface Cradle {
   createNotificationUseCase: CreateNotificationUseCase;
   getNotificationsPageUseCase: GetNotificationsPageUseCase;
   markNotificationsReadUseCase: MarkNotificationsReadUseCase;
+  recordCookieConsentUseCase: RecordCookieConsentUseCase;
   getUnreadNotificationCountUseCase: GetUnreadNotificationCountUseCase;
   createContactUseCase: CreateContactUseCase;
   getContactsUseCase: GetContactsUseCase;
