@@ -91,6 +91,66 @@ jobs:
       - run: pnpm build
       - run: pnpm test
 
+  e2e:
+    name: Playwright E2E (soft-launch)
+    needs: [quality, build-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-project
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Chromium
+        run: pnpm --filter @trakwyn/web exec playwright install --with-deps chromium
+
+      - name: Configure ephemeral E2E environment
+        run: |
+          cat > apps/api/.env <<'EOF'
+          PORT=3001
+          NODE_ENV=development
+          DATABASE_URL=file:${{ runner.temp }}/trakwyn-e2e.db
+          DATABASE_AUTH_TOKEN=
+          JWT_SECRET=e2e-only-jwt-secret
+          JWT_REFRESH_SECRET=e2e-only-refresh-secret
+          TOTP_ENCRYPTION_KEY=e2e-only-totp-encryption-key
+          LLM_API_KEY_ENCRYPTION_KEY=e2e-only-llm-encryption-key
+          STORAGE_PROVIDER=local
+          CACHE_PROVIDER=memory
+          EMAIL_PROVIDER=console
+          CORS_ORIGIN=http://localhost:3000
+          WEB_APP_ORIGIN=http://localhost:3000
+          API_ORIGIN=http://localhost:3001
+          COOKIE_DOMAIN=
+          EOF
+
+          cat > apps/web/.env <<'EOF'
+          VITE_API_URL=/graphql
+          EOF
+
+      - name: Run database migrations
+        run: pnpm --filter @trakwyn/api db:migrate:apply
+
+      - name: Run Playwright tests
+        run: pnpm --filter @trakwyn/web test:e2e
+
+      - name: Upload Playwright artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            apps/web/playwright-report/
+            apps/web/test-results/
+          if-no-files-found: ignore
+
   migrate-db:
     name: Run database migrations
     needs: [quality, build-test]

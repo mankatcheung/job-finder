@@ -10,11 +10,17 @@ test.describe('Account settings', () => {
   });
 
   test('renders all account sections', async ({ page }) => {
-    await expect(page.getByText('Email address')).toBeVisible();
     await expect(page.getByText('Password', { exact: true })).toBeVisible();
+
+    // Email address now lives on Profile, split out of Security (JEF-204).
+    await page.goto('/settings/profile');
+    await expect(page.getByText('Email address')).toBeVisible();
 
     await page.goto('/settings/data');
     await expect(page.getByText('Export your data')).toBeVisible();
+
+    // Danger zone is its own page, split out of Data (JEF-204).
+    await page.goto('/settings/danger-zone');
     await expect(page.getByText('Danger zone')).toBeVisible();
   });
 
@@ -22,6 +28,7 @@ test.describe('Account settings', () => {
     // Now a confirm-by-email flow (requestEmailChange), not an immediate
     // change — the only client-visible signal of success is the form
     // resetting (no success banner is shown).
+    await page.goto('/settings/profile');
     const newEmail = uniqueEmail('new');
     const emailSection = page.locator('section').filter({ hasText: 'Email address' });
     const newEmailInput = emailSection.getByPlaceholder('you@example.com');
@@ -34,6 +41,7 @@ test.describe('Account settings', () => {
   });
 
   test('shows error when updating email with wrong password', async ({ page }) => {
+    await page.goto('/settings/profile');
     const emailSection = page.locator('section').filter({ hasText: 'Email address' });
 
     await emailSection.getByPlaceholder('••••••••').fill('wrongpassword');
@@ -69,7 +77,7 @@ test.describe('Account settings', () => {
   });
 
   test('deletes account, clears session, and redirects to /login', async ({ page }) => {
-    await page.goto('/settings/data');
+    await page.goto('/settings/danger-zone');
     const dangerSection = page.locator('section').filter({ hasText: 'Danger zone' });
     await dangerSection.getByPlaceholder('••••••••').fill(password);
     await dangerSection.getByRole('button', { name: /delete my account/i }).click();

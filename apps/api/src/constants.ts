@@ -49,6 +49,7 @@ export const ENV = {
   CACHE_PROVIDER: 'CACHE_PROVIDER',
   UPSTASH_REDIS_REST_URL: 'UPSTASH_REDIS_REST_URL',
   UPSTASH_REDIS_REST_TOKEN: 'UPSTASH_REDIS_REST_TOKEN',
+  EMAIL_PROVIDER: 'EMAIL_PROVIDER',
   BREVO_API_KEY: 'BREVO_API_KEY',
   FROM_EMAIL: 'FROM_EMAIL',
   FROM_NAME: 'FROM_NAME',
@@ -470,6 +471,13 @@ export const EMAIL = {
 export const STORAGE_PROVIDER = {
   LOCAL: 'local',
   VERCEL_BLOB: 'vercel-blob',
+} as const;
+
+/** `EMAIL_PROVIDER` values. */
+export const EMAIL_PROVIDER = {
+  BREVO: 'brevo',
+  /** Logs instead of calling Brevo — local dev without a key, and CI. */
+  CONSOLE: 'console',
 } as const;
 
 /** Cache configuration, shared by MemoryCache and RedisCache. */

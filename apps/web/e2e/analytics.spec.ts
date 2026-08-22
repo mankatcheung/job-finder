@@ -19,7 +19,10 @@ test.describe('Analytics', () => {
 
   test('reflects created applications in the totals and charts', async ({ page }) => {
     await createApplication(page, { company: 'Acme Corp', role: 'Staff Engineer' });
-    await page.locator('a[href$="/edit"]').click();
+    // Star/edit/delete live in the actions sheet behind one "More actions"
+    // trigger, not as header icon buttons (JEF-208).
+    await page.getByRole('button', { name: 'More actions' }).click();
+    await page.getByRole('link', { name: 'Edit' }).click();
     await page
       .getByText('Status', { exact: true })
       .locator('xpath=following-sibling::select')

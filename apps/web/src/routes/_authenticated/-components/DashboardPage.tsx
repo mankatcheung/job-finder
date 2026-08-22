@@ -135,6 +135,10 @@ export function DashboardPage() {
             className="mt-4"
             value={goal.currentWeekCount}
             max={goal.weeklyApplicationGoal}
+            aria-label={t('dashboard.weeklyGoalProgress', {
+              current: goal.currentWeekCount,
+              goal: goal.weeklyApplicationGoal,
+            })}
           />
         </section>
       )}

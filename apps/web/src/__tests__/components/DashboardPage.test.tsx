@@ -93,6 +93,25 @@ describe('DashboardPage', () => {
     });
   });
 
+  it('gives the weekly goal progressbar an accessible name', async () => {
+    mockGqlRequest.mockImplementation((query: string) => {
+      if (query.includes('WeeklyApplicationGoal')) {
+        return Promise.resolve({
+          weeklyApplicationGoal: { currentWeekCount: 2, weeklyApplicationGoal: 5, streakWeeks: 1 },
+        });
+      }
+      if (query.includes('calendarEvents')) return Promise.resolve({ calendarEvents: [] });
+      return Promise.resolve({ applications: [] });
+    });
+    render(<DashboardPage />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('progressbar', { name: '2 of 5 applications this week' }),
+      ).toBeInTheDocument();
+    });
+  });
+
   it('renders an Upcoming section for future interviews and follow-ups only', async () => {
     const future = new Date(Date.now() + 86_400_000).toISOString();
     const past = new Date(Date.now() - 86_400_000).toISOString();

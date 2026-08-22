@@ -110,13 +110,23 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
         input: { applicationId, filename: file.name, mimeType: file.type },
       });
 
-      // `uploadUrl` is a Vercel Blob client token (not a fetchable URL) —
-      // put() uploads directly to Blob storage, bypassing our API.
-      await putBlob(requestUploadUrl.storageKey, file, {
-        access: 'public',
-        token: requestUploadUrl.uploadUrl,
-        contentType: file.type,
-      });
+      if (requestUploadUrl.uploadUrl.includes('/_upload/')) {
+        const response = await fetch(requestUploadUrl.uploadUrl, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': file.type },
+          body: file,
+        });
+        if (!response.ok) throw new Error('Local upload failed');
+      } else {
+        // `uploadUrl` is a Vercel Blob client token (not a fetchable URL) —
+        // put() uploads directly to Blob storage, bypassing our API.
+        await putBlob(requestUploadUrl.storageKey, file, {
+          access: 'public',
+          token: requestUploadUrl.uploadUrl,
+          contentType: file.type,
+        });
+      }
 
       setPendingUpload({
         storageKey: requestUploadUrl.storageKey,

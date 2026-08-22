@@ -91,6 +91,27 @@ describe('corsPlugin', () => {
     }
   });
 
+  it('allows PUT on a preflight, so cross-origin PUT routes (e.g. local document upload) are reachable', async () => {
+    // Regression: @fastify/cors defaults `methods` to GET,HEAD,POST (the
+    // CORS-spec "simple" methods) when not configured — every route here
+    // was GraphQL POST until the local-storage upload PUT route, whose
+    // preflight silently omitted PUT and made the browser drop the real
+    // request before it was ever sent.
+    app = await buildApp('https://www.trakwyn.com');
+
+    const res = await app.inject({
+      method: 'OPTIONS',
+      url: '/probe',
+      headers: {
+        origin: 'https://www.trakwyn.com',
+        'access-control-request-method': 'PUT',
+        'access-control-request-headers': 'content-type',
+      },
+    });
+
+    expect(res.headers['access-control-allow-methods']).toContain('PUT');
+  });
+
   it('tolerates spaces after the commas in CORS_ORIGIN', async () => {
     app = await buildApp('https://www.trakwyn.com, https://admin.trakwyn.com');
 
