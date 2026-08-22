@@ -21,6 +21,7 @@ import { OAuthProviderRegistry } from '#src/infrastructure/auth/OAuthProviderReg
 import { McpOAuthConsentService } from '#src/infrastructure/auth/McpOAuthConsentService.js';
 import { OAuthStateService } from '#src/infrastructure/auth/OAuthStateService.js';
 import { BrevoEmailService } from '#src/infrastructure/email/BrevoEmailService.js';
+import { ConsoleEmailService } from '#src/infrastructure/email/ConsoleEmailService.js';
 import { DeviceLabelService } from '#src/infrastructure/device/DeviceLabelService.js';
 import { IpLocationService } from '#src/infrastructure/device/IpLocationService.js';
 import { WebPushService } from '#src/infrastructure/push/WebPushService.js';
@@ -31,7 +32,7 @@ import { DocumentTextExtractor } from '#src/infrastructure/documents/DocumentTex
 import { ReactPdfDocumentRenderer } from '#src/infrastructure/pdf/ReactPdfDocumentRenderer.js';
 import { FetchJobPostingSourceResolver } from '#src/infrastructure/jobDescription/FetchJobPostingSourceResolver.js';
 
-import { ENV, STORAGE_PROVIDER } from '#src/constants.js';
+import { ENV, EMAIL_PROVIDER, STORAGE_PROVIDER } from '#src/constants.js';
 import type { Cradle } from './types.js';
 
 type StorageProviderConstructor = new () => LocalStorageProvider | VercelBlobStorageProvider;
@@ -39,6 +40,12 @@ const StorageProvider: StorageProviderConstructor =
   process.env[ENV.STORAGE_PROVIDER] === STORAGE_PROVIDER.VERCEL_BLOB
     ? VercelBlobStorageProvider
     : LocalStorageProvider;
+
+type EmailServiceConstructor = new () => BrevoEmailService | ConsoleEmailService;
+const EmailService: EmailServiceConstructor =
+  process.env[ENV.EMAIL_PROVIDER] === EMAIL_PROVIDER.CONSOLE
+    ? ConsoleEmailService
+    : BrevoEmailService;
 
 function buildCache(): ICache {
   const redis = getRedisClient();
@@ -78,7 +85,7 @@ export const infrastructure = {
   oauthProviderRegistry: asClass(OAuthProviderRegistry, { lifetime: Lifetime.SINGLETON }),
   oauthStateService: asClass(OAuthStateService, { lifetime: Lifetime.SINGLETON }),
   mcpOAuthConsentService: asClass(McpOAuthConsentService, { lifetime: Lifetime.SINGLETON }),
-  emailService: asClass(BrevoEmailService, { lifetime: Lifetime.SINGLETON }),
+  emailService: asClass(EmailService, { lifetime: Lifetime.SINGLETON }),
   deviceLabeler: asClass(DeviceLabelService, { lifetime: Lifetime.SINGLETON }),
   ipLocationResolver: asClass(IpLocationService, { lifetime: Lifetime.SINGLETON }),
   webPushService: asClass(WebPushService, { lifetime: Lifetime.SINGLETON }),

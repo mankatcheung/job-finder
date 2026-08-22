@@ -216,6 +216,7 @@ import type { GetContactsUseCase } from '#src/use-cases/contacts/GetContactsUseC
 import type { UpdateContactUseCase } from '#src/use-cases/contacts/UpdateContactUseCase.js';
 import type { DeleteContactUseCase } from '#src/use-cases/contacts/DeleteContactUseCase.js';
 import type { BrevoEmailService } from '#src/infrastructure/email/BrevoEmailService.js';
+import type { ConsoleEmailService } from '#src/infrastructure/email/ConsoleEmailService.js';
 import type { IDeviceLabeler } from '#src/use-cases/ports/IDeviceLabeler.js';
 import type { IIpLocationResolver } from '#src/use-cases/ports/IIpLocationResolver.js';
 import type { SendFollowUpRemindersUseCase } from '#src/use-cases/reminders/SendFollowUpRemindersUseCase.js';
@@ -517,7 +518,7 @@ export interface Cradle {
   getContactsUseCase: GetContactsUseCase;
   updateContactUseCase: UpdateContactUseCase;
   deleteContactUseCase: DeleteContactUseCase;
-  emailService: BrevoEmailService;
+  emailService: BrevoEmailService | ConsoleEmailService;
   deviceLabeler: IDeviceLabeler;
   ipLocationResolver: IIpLocationResolver;
   webPushService: WebPushService;
