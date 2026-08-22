@@ -249,6 +249,18 @@ export function LandingPage() {
               >
                 {t('auth.register')}
               </Link>
+              <Link
+                to="/privacy"
+                className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                {t('auth.privacyPolicy')}
+              </Link>
+              <Link
+                to="/terms"
+                className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                {t('auth.termsOfService')}
+              </Link>
               <button
                 type="button"
                 onClick={requestOpenCookiePreferences}
