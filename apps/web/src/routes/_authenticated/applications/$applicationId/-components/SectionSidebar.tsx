@@ -31,7 +31,6 @@ export function SectionSidebar({ active, counts, onOpen }: SectionSidebarProps) 
           {group.sections.map((section) => {
             const count = countFor(section);
             const isActive = active === section.id;
-            const isEmpty = count === 0;
             return (
               <button
                 key={section.id}
