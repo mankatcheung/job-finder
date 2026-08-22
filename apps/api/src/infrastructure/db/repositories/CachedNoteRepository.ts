@@ -30,10 +30,13 @@ export class CachedNoteRepository implements INoteRepository {
   }
 
   /**
-   * Not cached, deliberately. The count and the cached list are read at
-   * different moments by the detail page, and caching both invites a badge
-   * saying 3 over a list showing 2. A COUNT(*) is cheap; a wrong number the
-   * user can see is not.
+   * Not cached, matching `CachedDocumentRepository.countByApplicationId`.
+   *
+   * Not for want of an eviction point — create/update/delete already evict the
+   * list key and could evict a count key beside it. It is that `delete()` can
+   * only evict a list when the reverse index still holds the owning
+   * applicationId, so each cached key is another one that can silently miss;
+   * a single COUNT(*) is not worth adding to that set.
    */
   async countByApplicationId(applicationId: string): Promise<number> {
     return this.inner.countByApplicationId(applicationId);
