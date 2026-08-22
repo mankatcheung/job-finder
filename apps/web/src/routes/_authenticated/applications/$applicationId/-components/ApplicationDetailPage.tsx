@@ -10,6 +10,7 @@ import { Card, Skeleton } from '@trakwyn/ui';
 import { StatusBadge } from '../../../-components/StatusBadge';
 import { applicationQueryOptions, type Application } from '../-application-query';
 import type { BoardApplication } from '../../-board-queries';
+import type { ApplicationStatus } from '#/graphql/generated/graphql';
 import { TrashedApplicationView } from './TrashedApplicationView';
 import { HealthScorePanel, type HealthScore } from './HealthScorePanel';
 import { ApplicationInfoChips } from './ApplicationInfoChips';
@@ -27,9 +28,9 @@ import { ResumeMatchTab } from './ResumeMatchTab';
 import { sectionById, type SectionCounts, type SectionId } from '../-sections';
 import { Route } from '../index';
 
-const UPDATE_STARRED = `
+const UPDATE_APPLICATION = `
   mutation UpdateApplication($id: ID!, $input: UpdateApplicationInput!) {
-    updateApplication(id: $id, input: $input) { id starred }
+    updateApplication(id: $id, input: $input) { id starred status }
   }
 `;
 const HEALTH_SCORE_QUERY = `
@@ -113,44 +114,69 @@ export function ApplicationDetailPage() {
   });
   const counts = countsData?.application.sectionCounts;
 
-  const toggleStar = useMutation({
-    mutationFn: (starred: boolean) =>
-      gqlClient.request(UPDATE_STARRED, { id: applicationId, input: { starred } }),
-    onMutate: async (starred) => {
+  // Star and status are the same mutation with a different field, so they
+  // share one optimistic updater rather than two near-copies of it.
+  // Satisfies both caches at once: the board's `status` is the generated
+  // union, the detail query's is a plain string.
+  const patchCaches = (patch: Partial<Application> & Partial<BoardApplication>) => {
+    qc.setQueryData<{ application: Application }>(['application', applicationId], (old) =>
+      old ? { ...old, application: { ...old.application, ...patch } } : old,
+    );
+    qc.setQueriesData<{ applications: BoardApplication[] }>(
+      { queryKey: ['applications'], exact: false },
+      (old) => {
+        if (!old?.applications) return old;
+        return {
+          ...old,
+          applications: old.applications.map((a) =>
+            a.id === applicationId ? { ...a, ...patch } : a,
+          ),
+        };
+      },
+    );
+  };
+
+  const settleApplication = () => {
+    qc.invalidateQueries({ queryKey: ['application', applicationId] });
+    qc.invalidateQueries({ queryKey: ['applications'] });
+  };
+
+  const changeStatus = useMutation({
+    mutationFn: (status: ApplicationStatus) =>
+      gqlClient.request(UPDATE_APPLICATION, { id: applicationId, input: { status } }),
+    onMutate: async (status) => {
       await qc.cancelQueries({ queryKey: ['application', applicationId] });
-
       const prevApp = qc.getQueryData<{ application: Application }>(['application', applicationId]);
-
-      qc.setQueryData<{ application: Application }>(['application', applicationId], (old) =>
-        old ? { ...old, application: { ...old.application, starred } } : old,
-      );
-
-      // Optimistically update board cache
-      qc.setQueriesData<{ applications: BoardApplication[] }>(
-        { queryKey: ['applications'], exact: false },
-        (old) => {
-          if (!old?.applications) return old;
-          return {
-            ...old,
-            applications: old.applications.map((a) =>
-              a.id === applicationId ? { ...a, starred } : a,
-            ),
-          };
-        },
-      );
-
+      patchCaches({ status });
       return { prevApp };
     },
-    onError: (_err, _starred, context) => {
-      if (context?.prevApp) {
-        qc.setQueryData(['application', applicationId], context.prevApp);
-      }
+    onError: (_err, _status, context) => {
+      if (context?.prevApp) qc.setQueryData(['application', applicationId], context.prevApp);
       qc.invalidateQueries({ queryKey: ['applications'] });
     },
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: ['application', applicationId] });
+      settleApplication();
+      // The status is a health-score criterion, and moving to a terminal
+      // status changes the activity log too.
+      qc.invalidateQueries({ queryKey: ['healthScore', applicationId] });
+      qc.invalidateQueries({ queryKey: ['activity', applicationId] });
+    },
+  });
+
+  const toggleStar = useMutation({
+    mutationFn: (starred: boolean) =>
+      gqlClient.request(UPDATE_APPLICATION, { id: applicationId, input: { starred } }),
+    onMutate: async (starred) => {
+      await qc.cancelQueries({ queryKey: ['application', applicationId] });
+      const prevApp = qc.getQueryData<{ application: Application }>(['application', applicationId]);
+      patchCaches({ starred });
+      return { prevApp };
+    },
+    onError: (_err, _starred, context) => {
+      if (context?.prevApp) qc.setQueryData(['application', applicationId], context.prevApp);
       qc.invalidateQueries({ queryKey: ['applications'] });
     },
+    onSettled: settleApplication,
   });
 
   const app = appData?.application;
@@ -338,7 +364,9 @@ export function ApplicationDetailPage() {
         onClose={() => setActionsOpen(false)}
         applicationId={applicationId}
         starred={app.starred}
+        status={app.status}
         onToggleStar={() => toggleStar.mutate(!app.starred)}
+        onChangeStatus={(status) => changeStatus.mutate(status)}
         onDelete={() => {
           // Sends the delete now and leaves immediately — undo is a real
           // restoreApplication call, so there is nothing to wait for.

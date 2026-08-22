@@ -707,6 +707,55 @@ describe('ApplicationDetailPage — section index (JEF-208)', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('changes status from the actions sheet, showing the current one as chosen', async () => {
+    respond((query) =>
+      query.includes('UpdateApplication')
+        ? Promise.resolve({
+            updateApplication: { id: 'app-test-id', starred: false, status: 'interviewing' },
+          })
+        : undefined,
+    );
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+    await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    const sheet = () => screen.getByRole('dialog');
+    fireEvent.click(within(sheet()).getByRole('button', { name: /change status/i }));
+
+    // The status it is already on is marked, not offered as a change.
+    expect(within(sheet()).getByRole('button', { name: 'Applied' })).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
+
+    fireEvent.click(within(sheet()).getByRole('button', { name: 'Interviewing' }));
+
+    await waitFor(() =>
+      expect(mockGqlRequest).toHaveBeenCalledWith(
+        expect.stringContaining('UpdateApplication'),
+        expect.objectContaining({ id: 'app-test-id', input: { status: 'interviewing' } }),
+      ),
+    );
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('reopens the actions sheet on its first pane, not on the status list', async () => {
+    respond();
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+    await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: /change status/i }),
+    );
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Applied' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    expect(
+      within(screen.getByRole('dialog')).getByRole('button', { name: /change status/i }),
+    ).toBeInTheDocument();
+  });
+
   it('offers an edit link from the actions sheet', async () => {
     respond();
     render(<ApplicationDetailPage />, { wrapper: Wrapper });
