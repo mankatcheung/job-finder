@@ -4,6 +4,25 @@ import { DEFAULT_API_URL, ERROR_CODES } from '#/constants';
 
 const API_URL = import.meta.env.VITE_API_URL ?? DEFAULT_API_URL;
 
+// graphql-request always does `new URL(endpoint)` internally, which throws
+// for a relative string like the dev default '/graphql' — unlike the plain
+// `fetch()` below, which resolves relative URLs against the document itself.
+// Resolving is best-effort: a couple of routes that aren't `ssr: false`
+// (e.g. confirm-email-change) import this module for its client-only
+// effect-triggered calls, so this file's top level still runs during SSR,
+// where there's no `window` to resolve against — and a already-absolute
+// `API_URL` (e.g. production) needs no resolving in the first place.
+function resolveClientUrl(url: string): string {
+  if (typeof window === 'undefined') return url;
+  try {
+    return new URL(url, window.location.origin).toString();
+  } catch {
+    return url;
+  }
+}
+
+const GQL_CLIENT_URL = resolveClientUrl(API_URL);
+
 const REFRESH_MUTATION = `mutation { refreshToken }`;
 
 // Non-HttpOnly hint cookie the API sets alongside the real HttpOnly
@@ -58,7 +77,7 @@ function getOrStartRefresh(): Promise<boolean> {
   return refreshPromise!;
 }
 
-export const gqlClient = new GraphQLClient(API_URL, {
+export const gqlClient = new GraphQLClient(GQL_CLIENT_URL, {
   credentials: 'include',
   responseMiddleware: async (response) => {
     // graphql-request v7 wraps GraphQL errors in a ClientError (extends Error).

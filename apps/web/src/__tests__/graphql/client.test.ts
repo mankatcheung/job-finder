@@ -24,11 +24,36 @@ vi.mock('graphql-request', () => ({
 const mockLocationHref = vi.fn();
 Object.defineProperty(window, 'location', {
   value: {
+    origin: 'http://localhost:3000',
     set href(v: string) {
       mockLocationHref(v);
     },
   },
   writable: true,
+});
+
+describe('gqlClient endpoint resolution', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.stubEnv('VITE_API_URL', '/graphql');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('resolves the default relative endpoint to an absolute URL, which graphql-request requires', async () => {
+    // Regression: graphql-request's `new URL(endpoint)` throws on a bare
+    // relative path like '/graphql' (the documented dev default) — this
+    // broke every real request (e.g. registration) despite every unit test
+    // mocking gqlClient and never exercising the real constructor.
+    const { GraphQLClient } = await import('graphql-request');
+    await import('#/graphql/client');
+
+    const [urlArg] = vi.mocked(GraphQLClient).mock.calls.at(-1)!;
+    expect(() => new URL(urlArg as string)).not.toThrow();
+    expect(urlArg).toBe(`${window.location.origin}/graphql`);
+  });
 });
 
 describe('refresh token deduplication', () => {
