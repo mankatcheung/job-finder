@@ -169,6 +169,18 @@ export function RegisterPage() {
           </form>
 
           <OAuthButtons label={t('auth.signUp')} />
+
+          <p className="text-center text-xs text-gray-500 dark:text-gray-400">
+            {t('auth.termsAgreementPrefix')}{' '}
+            <Link to="/terms" className="underline hover:text-gray-700 dark:hover:text-gray-200">
+              {t('auth.termsOfService')}
+            </Link>{' '}
+            {t('auth.and')}{' '}
+            <Link to="/privacy" className="underline hover:text-gray-700 dark:hover:text-gray-200">
+              {t('auth.privacyPolicy')}
+            </Link>
+            {t('auth.termsAgreementSuffix')}
+          </p>
         </div>
       </div>
     </main>

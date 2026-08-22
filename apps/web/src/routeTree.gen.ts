@@ -15,9 +15,11 @@ import { Route as ConfirmBackupEmailRouteImport } from './routes/confirm-backup-
 import { Route as ConfirmEmailChangeRouteImport } from './routes/confirm-email-change';
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password';
 import { Route as LoginRouteImport } from './routes/login';
+import { Route as PrivacyRouteImport } from './routes/privacy';
 import { Route as RegisterRouteImport } from './routes/register';
 import { Route as ResetPasswordRouteImport } from './routes/reset-password';
 import { Route as ShareRouteImport } from './routes/share';
+import { Route as TermsRouteImport } from './routes/terms';
 import { Route as VerifyEmailRouteImport } from './routes/verify-email';
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account';
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics';
@@ -76,6 +78,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any);
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any);
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -89,6 +96,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const ShareRoute = ShareRouteImport.update({
   id: '/share',
   path: '/share',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any);
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
@@ -259,9 +271,11 @@ export interface FileRoutesByFullPath {
   '/confirm-email-change': typeof ConfirmEmailChangeRoute;
   '/forgot-password': typeof ForgotPasswordRoute;
   '/login': typeof LoginRoute;
+  '/privacy': typeof PrivacyRoute;
   '/register': typeof RegisterRoute;
   '/reset-password': typeof ResetPasswordRoute;
   '/share': typeof ShareRoute;
+  '/terms': typeof TermsRoute;
   '/verify-email': typeof VerifyEmailRoute;
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren;
   '/account': typeof AuthenticatedAccountRoute;
@@ -297,9 +311,11 @@ export interface FileRoutesByTo {
   '/confirm-email-change': typeof ConfirmEmailChangeRoute;
   '/forgot-password': typeof ForgotPasswordRoute;
   '/login': typeof LoginRoute;
+  '/privacy': typeof PrivacyRoute;
   '/register': typeof RegisterRoute;
   '/reset-password': typeof ResetPasswordRoute;
   '/share': typeof ShareRoute;
+  '/terms': typeof TermsRoute;
   '/verify-email': typeof VerifyEmailRoute;
   '/account': typeof AuthenticatedAccountRoute;
   '/analytics': typeof AuthenticatedAnalyticsRoute;
@@ -336,9 +352,11 @@ export interface FileRoutesById {
   '/confirm-email-change': typeof ConfirmEmailChangeRoute;
   '/forgot-password': typeof ForgotPasswordRoute;
   '/login': typeof LoginRoute;
+  '/privacy': typeof PrivacyRoute;
   '/register': typeof RegisterRoute;
   '/reset-password': typeof ResetPasswordRoute;
   '/share': typeof ShareRoute;
+  '/terms': typeof TermsRoute;
   '/verify-email': typeof VerifyEmailRoute;
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren;
   '/_authenticated/account': typeof AuthenticatedAccountRoute;
@@ -376,9 +394,11 @@ export interface FileRouteTypes {
     | '/confirm-email-change'
     | '/forgot-password'
     | '/login'
+    | '/privacy'
     | '/register'
     | '/reset-password'
     | '/share'
+    | '/terms'
     | '/verify-email'
     | '/settings'
     | '/account'
@@ -414,9 +434,11 @@ export interface FileRouteTypes {
     | '/confirm-email-change'
     | '/forgot-password'
     | '/login'
+    | '/privacy'
     | '/register'
     | '/reset-password'
     | '/share'
+    | '/terms'
     | '/verify-email'
     | '/account'
     | '/analytics'
@@ -452,9 +474,11 @@ export interface FileRouteTypes {
     | '/confirm-email-change'
     | '/forgot-password'
     | '/login'
+    | '/privacy'
     | '/register'
     | '/reset-password'
     | '/share'
+    | '/terms'
     | '/verify-email'
     | '/_authenticated/settings'
     | '/_authenticated/account'
@@ -492,9 +516,11 @@ export interface RootRouteChildren {
   ConfirmEmailChangeRoute: typeof ConfirmEmailChangeRoute;
   ForgotPasswordRoute: typeof ForgotPasswordRoute;
   LoginRoute: typeof LoginRoute;
+  PrivacyRoute: typeof PrivacyRoute;
   RegisterRoute: typeof RegisterRoute;
   ResetPasswordRoute: typeof ResetPasswordRoute;
   ShareRoute: typeof ShareRoute;
+  TermsRoute: typeof TermsRoute;
   VerifyEmailRoute: typeof VerifyEmailRoute;
   OauthAuthorizeRoute: typeof OauthAuthorizeRoute;
 }
@@ -543,6 +569,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport;
       parentRoute: typeof rootRouteImport;
     };
+    '/privacy': {
+      id: '/privacy';
+      path: '/privacy';
+      fullPath: '/privacy';
+      preLoaderRoute: typeof PrivacyRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/register': {
       id: '/register';
       path: '/register';
@@ -562,6 +595,13 @@ declare module '@tanstack/react-router' {
       path: '/share';
       fullPath: '/share';
       preLoaderRoute: typeof ShareRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/terms': {
+      id: '/terms';
+      path: '/terms';
+      fullPath: '/terms';
+      preLoaderRoute: typeof TermsRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     '/verify-email': {
@@ -851,9 +891,11 @@ const rootRouteChildren: RootRouteChildren = {
   ConfirmEmailChangeRoute: ConfirmEmailChangeRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  PrivacyRoute: PrivacyRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ShareRoute: ShareRoute,
+  TermsRoute: TermsRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   OauthAuthorizeRoute: OauthAuthorizeRoute,
 };

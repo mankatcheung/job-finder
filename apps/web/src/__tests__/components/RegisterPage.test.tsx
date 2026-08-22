@@ -161,4 +161,17 @@ describe('RegisterPage', () => {
     expect(google).toHaveAttribute('href', '/auth/oauth/google/start');
     expect(github).toHaveAttribute('href', '/auth/oauth/github/start');
   });
+
+  it('links to the Terms of Service and Privacy Policy', () => {
+    render(<RegisterPage />);
+
+    expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute(
+      'href',
+      '/terms',
+    );
+    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute(
+      'href',
+      '/privacy',
+    );
+  });
 });

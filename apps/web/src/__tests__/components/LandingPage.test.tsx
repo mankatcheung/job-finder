@@ -59,4 +59,19 @@ describe('LandingPage', () => {
       .getAllByRole('link', { name: 'Sign in' })
       .forEach((link) => expect(link).toHaveAttribute('href', '/login'));
   });
+
+  it('links to the Privacy Policy and Terms of Service in the footer', () => {
+    mockHasSessionCookie.mockReturnValue(false);
+
+    render(<LandingPage />);
+
+    expect(screen.getByRole('link', { name: 'auth.privacyPolicy' })).toHaveAttribute(
+      'href',
+      '/privacy',
+    );
+    expect(screen.getByRole('link', { name: 'auth.termsOfService' })).toHaveAttribute(
+      'href',
+      '/terms',
+    );
+  });
 });
