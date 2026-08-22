@@ -13,6 +13,8 @@ export default tseslint.config(
       'src/graphql/generated/**',
       'src/routeTree.gen.ts',
       '.vercel/**',
+      'playwright-report/**',
+      'test-results/**',
     ],
   },
   ...tseslint.configs.recommended,

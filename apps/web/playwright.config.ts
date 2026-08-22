@@ -8,7 +8,9 @@ export default defineConfig({
   // spec files in parallel overloads that single server (tests pass in
   // isolation but fail/timeout en masse when several files run at once).
   workers: 1,
-  reporter: process.env.CI ? 'github' : 'list',
+  reporter: process.env.CI
+    ? [['github'], ['html', { outputFolder: 'playwright-report', open: 'never' }]]
+    : 'list',
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
@@ -25,6 +27,7 @@ export default defineConfig({
       command: 'pnpm --filter @trakwyn/api dev',
       url: 'http://localhost:3001/graphql',
       reuseExistingServer: !process.env.CI,
+      env: process.env.CI ? { ...process.env, STORAGE_PROVIDER: 'local' } : undefined,
       timeout: 30_000,
     },
     {
