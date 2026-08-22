@@ -3,6 +3,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { hasSessionCookie } from '#/graphql/client';
 import { LogoMark } from '#/components/LogoMark';
 import { useLocale } from '#/lib/i18n';
+import { requestOpenCookiePreferences } from '#/lib/cookieConsent';
 import {
   LayoutDashboard,
   BarChart3,
@@ -248,6 +249,13 @@ export function LandingPage() {
               >
                 {t('auth.register')}
               </Link>
+              <button
+                type="button"
+                onClick={requestOpenCookiePreferences}
+                className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                {t('cookieConsent.footerLink')}
+              </button>
             </div>
           </div>
         </div>
