@@ -1,4 +1,4 @@
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
 import { note } from '../schema.js';
 import type { Note } from '#src/domain/note/Note.js';
@@ -14,6 +14,14 @@ export class DrizzleNoteRepository implements INoteRepository {
 
   private get db(): DrizzleClient {
     return getClient(this.database);
+  }
+
+  async countByApplicationId(applicationId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(note)
+      .where(eq(note.applicationId, applicationId));
+    return Number(row?.count ?? 0);
   }
 
   async findAllByApplicationId(applicationId: string): Promise<Note[]> {

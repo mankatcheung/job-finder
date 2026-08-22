@@ -9,6 +9,7 @@ import './types/enums/DigestFrequencyEnum.js';
 import './types/enums/OAuthProviderEnum.js';
 import './types/UserType.js';
 import './types/LinkedOAuthAccountType.js';
+import './types/ApplicationSectionCountsType.js';
 import './types/ApplicationType.js';
 import './types/ApplicationConnectionType.js';
 import './types/NoteType.js';

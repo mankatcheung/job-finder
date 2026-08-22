@@ -26,6 +26,7 @@ export interface UpdateOfferData {
 
 export interface IOfferRepository {
   findAllByApplicationId(applicationId: string): Promise<Offer[]>;
+  countByApplicationId(applicationId: string): Promise<number>;
   /** Across every application owned by the user — for cross-application analytics. */
   findAllByUserId(userId: string): Promise<Offer[]>;
   findById(id: string): Promise<Offer | null>;

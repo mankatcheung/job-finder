@@ -1,4 +1,4 @@
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
 import { documentDraft } from '../schema.js';
 import type { DocumentDraft } from '#src/domain/documentDraft/DocumentDraft.js';
@@ -18,6 +18,14 @@ export class DrizzleDocumentDraftRepository implements IDocumentDraftRepository 
 
   private get db(): DrizzleClient {
     return getClient(this.database);
+  }
+
+  async countByApplicationId(applicationId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(documentDraft)
+      .where(eq(documentDraft.applicationId, applicationId));
+    return Number(row?.count ?? 0);
   }
 
   async findAllByApplicationId(applicationId: string): Promise<DocumentDraft[]> {

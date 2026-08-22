@@ -23,6 +23,7 @@ const makeOffer = (overrides: Partial<Offer> = {}): Offer => ({
 
 const makeOfferRepository = (offers: Offer[]): IOfferRepository => ({
   findAllByApplicationId: vi.fn().mockResolvedValue(offers),
+  countByApplicationId: vi.fn().mockResolvedValue(offers.length),
   findAllByUserId: vi.fn().mockResolvedValue(offers),
   findById: vi
     .fn()

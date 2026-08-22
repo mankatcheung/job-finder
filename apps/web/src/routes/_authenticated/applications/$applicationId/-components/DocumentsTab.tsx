@@ -9,6 +9,7 @@ import { getErrorMessage } from '#/lib/errors';
 import { useLocale } from '#/lib/i18n';
 import { Button, Card, FormLabel, Input, Select } from '@trakwyn/ui';
 import { DocumentPreviewModal, isPreviewableMimeType } from './DocumentPreviewModal';
+import { invalidateSectionCounts } from '../-sectionCounts';
 
 export const DOCUMENTS_QUERY = `
   query Documents($applicationId: ID!) {
@@ -149,6 +150,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
         },
       });
       qc.invalidateQueries({ queryKey: ['documents', applicationId] });
+      invalidateSectionCounts(qc, applicationId);
       setPendingUpload(null);
     } catch (err) {
       setUploadError(getErrorMessage(err));
@@ -213,8 +215,10 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
                     message: t('documents.draftDeletedToast'),
                     operation: { document: DELETE_DRAFT, variables: { id: draft.id } },
                     onUndo: () => qc.setQueryData(['documentDrafts', applicationId], snapshot),
-                    onSettled: () =>
-                      qc.invalidateQueries({ queryKey: ['documentDrafts', applicationId] }),
+                    onSettled: () => {
+                      qc.invalidateQueries({ queryKey: ['documentDrafts', applicationId] });
+                      invalidateSectionCounts(qc, applicationId);
+                    },
                   });
                 }}
                 className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded shrink-0"
@@ -372,7 +376,10 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
                   message: t('documents.documentDeletedToast'),
                   operation: { document: DELETE_DOCUMENT, variables: { id: doc.id } },
                   onUndo: () => qc.setQueryData(['documents', applicationId], snapshot),
-                  onSettled: () => qc.invalidateQueries({ queryKey: ['documents', applicationId] }),
+                  onSettled: () => {
+                    qc.invalidateQueries({ queryKey: ['documents', applicationId] });
+                    invalidateSectionCounts(qc, applicationId);
+                  },
                 });
               }}
               className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"

@@ -6,6 +6,7 @@ import { gqlClient } from '#/graphql/client';
 import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { useLocale } from '#/lib/i18n';
 import { Button, Card, EmptyState, FormLabel, Skeleton, Spinner, Textarea } from '@trakwyn/ui';
+import { invalidateSectionCounts } from '../-sectionCounts';
 
 const GENERATE_COVER_LETTER = `
   mutation GenerateCoverLetter($applicationId: ID!, $resumeText: String) {
@@ -55,6 +56,7 @@ export function CoverLetterTab({ applicationId }: { applicationId: string }) {
       // Generated letters are saved as drafts now, so the useful next step is
       // the editor rather than a copy button over throwaway text.
       void qc.invalidateQueries({ queryKey: ['documentDrafts', applicationId] });
+      void invalidateSectionCounts(qc, applicationId);
       void navigate({
         to: '/applications/$applicationId/documents/$draftId',
         params: { applicationId, draftId: result.generateCoverLetter.id },

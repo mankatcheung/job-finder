@@ -64,4 +64,49 @@ describe('Modal', () => {
     );
     expect(screen.getByRole('button', { name: 'Confirm' })).toHaveFocus();
   });
+
+  // A bottom sheet is this same dialog with different geometry (JEF-208) — it
+  // has to keep the focus trap and Escape handling, not reimplement them.
+  describe('position="bottom"', () => {
+    it('anchors the panel to the bottom edge and rounds only its top', () => {
+      render(
+        <Modal open onClose={vi.fn()} position="bottom">
+          <button>Confirm</button>
+        </Modal>,
+      );
+      const panel = screen.getByRole('dialog');
+      expect(panel.className).toContain('rounded-t-2xl');
+      expect(panel.className).not.toContain('max-w-lg');
+      expect(panel.parentElement?.className).toContain('items-end');
+    });
+
+    it('still closes on Escape', async () => {
+      const onClose = vi.fn();
+      render(
+        <Modal open onClose={onClose} position="bottom">
+          <button>Confirm</button>
+        </Modal>,
+      );
+      await userEvent.keyboard('{Escape}');
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('names a title-less dialog from ariaLabel', () => {
+    render(
+      <Modal open onClose={vi.fn()} position="bottom" ariaLabel="More actions">
+        <button>Confirm</button>
+      </Modal>,
+    );
+    expect(screen.getByRole('dialog', { name: 'More actions' })).toBeInTheDocument();
+  });
+
+  it('prefers a string title over ariaLabel, since the title is already visible', () => {
+    render(
+      <Modal open onClose={vi.fn()} title="Delete application" ariaLabel="More actions">
+        <button>Confirm</button>
+      </Modal>,
+    );
+    expect(screen.getByRole('dialog', { name: 'Delete application' })).toBeInTheDocument();
+  });
 });

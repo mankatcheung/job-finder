@@ -1,4 +1,4 @@
-import { eq, asc } from 'drizzle-orm';
+import { eq, asc, sql } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
 import { contact } from '../schema.js';
 import type { Contact } from '#src/domain/contact/Contact.js';
@@ -18,6 +18,14 @@ export class DrizzleContactRepository implements IContactRepository {
 
   private get db(): DrizzleClient {
     return getClient(this.database);
+  }
+
+  async countByApplicationId(applicationId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(contact)
+      .where(eq(contact.applicationId, applicationId));
+    return Number(row?.count ?? 0);
   }
 
   async findAllByApplicationId(applicationId: string): Promise<Contact[]> {

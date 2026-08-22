@@ -4,6 +4,7 @@ import { ListTrashedApplicationsUseCase } from '#src/use-cases/jobs/ListTrashedA
 import { PurgeExpiredApplicationsUseCase } from '#src/use-cases/jobs/PurgeExpiredApplicationsUseCase.js';
 import { BulkRestoreApplicationsUseCase } from '#src/use-cases/jobs/BulkRestoreApplicationsUseCase.js';
 import { EmptyTrashUseCase } from '#src/use-cases/jobs/EmptyTrashUseCase.js';
+import { GetApplicationSectionCountsUseCase } from '#src/use-cases/jobs/GetApplicationSectionCountsUseCase.js';
 import { asClass, Lifetime, type NameAndRegistrationPair } from 'awilix';
 
 import { CreateApplicationUseCase } from '#src/use-cases/jobs/CreateApplicationUseCase.js';
@@ -60,4 +61,7 @@ export const jobs = {
     lifetime: Lifetime.TRANSIENT,
   }),
   emptyTrashUseCase: asClass(EmptyTrashUseCase, { lifetime: Lifetime.TRANSIENT }),
+  getApplicationSectionCountsUseCase: asClass(GetApplicationSectionCountsUseCase, {
+    lifetime: Lifetime.TRANSIENT,
+  }),
 } satisfies NameAndRegistrationPair<Cradle>;

@@ -432,4 +432,92 @@ describe('applications integration', () => {
       ).data!.trashedApplications.map((a) => a.id),
     ).toEqual([theirs]);
   });
+  it('serves section counts alongside the application, zeros included', async () => {
+    const token = await registerAndLogin();
+    const created = await authedInject(token, CREATE_APPLICATION_MUTATION, {
+      input: { company: 'Acme', role: 'Engineer', status: 'applied' },
+    });
+    const app = (created.json() as GraphQLResponse<{ createApplication: { id: string } }>).data!
+      .createApplication;
+
+    const res = await authedInject(
+      token,
+      `query AppCounts($id: ID!) {
+        application(id: $id) {
+          id
+          sectionCounts { notes interviews contacts documents documentDrafts offers }
+        }
+      }`,
+      { id: app.id },
+    );
+    const body = res.json() as GraphQLResponse<{
+      application: { sectionCounts: Record<string, number> };
+    }>;
+
+    expect(body.errors).toBeUndefined();
+    // Every section reports a number even when empty — the index dims a zero
+    // rather than hiding the row, so an absent key would be indistinguishable
+    // from "not loaded".
+    expect(body.data!.application.sectionCounts).toEqual({
+      notes: 0,
+      interviews: 0,
+      contacts: 0,
+      documents: 0,
+      documentDrafts: 0,
+      offers: 0,
+    });
+  });
+
+  it('counts what the application actually holds', async () => {
+    const token = await registerAndLogin();
+    const created = await authedInject(token, CREATE_APPLICATION_MUTATION, {
+      input: { company: 'Acme', role: 'Engineer', status: 'applied' },
+    });
+    const appId = (created.json() as GraphQLResponse<{ createApplication: { id: string } }>).data!
+      .createApplication.id;
+
+    for (const content of ['first', 'second']) {
+      await authedInject(
+        token,
+        `mutation CreateNote($applicationId: ID!, $content: String!) {
+          createNote(applicationId: $applicationId, content: $content) { id }
+        }`,
+        { applicationId: appId, content },
+      );
+    }
+
+    const res = await authedInject(
+      token,
+      `query AppCounts($id: ID!) {
+        application(id: $id) { sectionCounts { notes offers } }
+      }`,
+      { id: appId },
+    );
+    const counts = (
+      res.json() as GraphQLResponse<{ application: { sectionCounts: Record<string, number> } }>
+    ).data!.application.sectionCounts;
+
+    expect(counts.notes).toBe(2);
+    expect(counts.offers).toBe(0);
+  });
+
+  it("does not serve another user's section counts", async () => {
+    const owner = await registerAndLogin();
+    const created = await authedInject(owner, CREATE_APPLICATION_MUTATION, {
+      input: { company: 'Private', role: 'Engineer', status: 'applied' },
+    });
+    const appId = (created.json() as GraphQLResponse<{ createApplication: { id: string } }>).data!
+      .createApplication.id;
+
+    const attacker = await registerAndLogin();
+    const res = await authedInject(
+      attacker,
+      `query AppCounts($id: ID!) { application(id: $id) { sectionCounts { notes } } }`,
+      { id: appId },
+    );
+
+    expect((res.json() as GraphQLResponse<unknown>).errors?.[0]?.extensions?.code).toBe(
+      'FORBIDDEN',
+    );
+  });
 });

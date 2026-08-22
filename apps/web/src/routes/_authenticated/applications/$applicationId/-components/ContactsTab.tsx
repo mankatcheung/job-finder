@@ -5,6 +5,7 @@ import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
 import { useLocale } from '#/lib/i18n';
 import { Button, Card, EmptyState, FormLabel, Input, Textarea } from '@trakwyn/ui';
+import { invalidateSectionCounts } from '../-sectionCounts';
 const CONTACTS_QUERY = `
   query Contacts($applicationId: ID!) {
     contacts(applicationId: $applicationId) { id applicationId name role email phone linkedinUrl notes createdAt updatedAt }
@@ -75,7 +76,10 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
     queryFn: () => gqlClient.request<{ contacts: Contact[] }>(CONTACTS_QUERY, { applicationId }),
   });
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['contacts', applicationId] });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ['contacts', applicationId] });
+    invalidateSectionCounts(qc, applicationId);
+  };
 
   const createContact = useMutation({
     mutationFn: (f: ContactFormState) =>

@@ -1,5 +1,6 @@
 import { TRASH } from '#src/constants.js';
 import { builder } from '#src/http/schema/builder.js';
+import { ApplicationSectionCountsRef } from '#src/http/schema/types/ApplicationSectionCountsType.js';
 import { ApplicationStatusEnum } from '#src/http/schema/types/enums/ApplicationStatusEnum.js';
 import type { ApplicationDTO } from '#src/interface-adapters/mappers/ApplicationMapper.js';
 
@@ -35,5 +36,18 @@ JobApplicationRef.implement({
           : null,
     }),
     likelyGhosted: t.exposeBoolean('likelyGhosted'),
+    // Resolved on demand: six COUNT(*)s that only the detail page asks for,
+    // so list and board queries never pay for them.
+    sectionCounts: t.field({
+      type: ApplicationSectionCountsRef,
+      resolve: async (app, _args, ctx) => {
+        if (!ctx.user) throw new Error('Unauthorized');
+        const { getApplicationSectionCountsUseCase } = ctx.diScope.cradle;
+        return getApplicationSectionCountsUseCase.execute({
+          userId: ctx.user.sub,
+          applicationId: app.id,
+        });
+      },
+    }),
   }),
 });

@@ -29,6 +29,16 @@ export class CachedNoteRepository implements INoteRepository {
     return result;
   }
 
+  /**
+   * Not cached, deliberately. The count and the cached list are read at
+   * different moments by the detail page, and caching both invites a badge
+   * saying 3 over a list showing 2. A COUNT(*) is cheap; a wrong number the
+   * user can see is not.
+   */
+  async countByApplicationId(applicationId: string): Promise<number> {
+    return this.inner.countByApplicationId(applicationId);
+  }
+
   async findById(id: string): Promise<Note | null> {
     const key = CACHE_KEYS.noteById(id);
     const result = await this.cache.getOrSet(key, () => this.inner.findById(id));

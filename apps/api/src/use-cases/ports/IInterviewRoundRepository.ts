@@ -26,6 +26,7 @@ export interface UpdateInterviewRoundData {
 
 export interface IInterviewRoundRepository {
   findAllByApplicationId(applicationId: string): Promise<InterviewRound[]>;
+  countByApplicationId(applicationId: string): Promise<number>;
   /** Across every application owned by the user — for the calendar view. */
   findAllByUserId(userId: string): Promise<InterviewRound[]>;
   findById(id: string): Promise<InterviewRound | null>;

@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { offer, jobApplication } from '#src/infrastructure/db/schema.js';
 import type { DrizzleDb, DrizzleClient } from '#src/infrastructure/db/client.js';
 import { getClient } from '#src/infrastructure/db/transactionContext.js';
@@ -35,6 +35,14 @@ export class DrizzleOfferRepository implements IOfferRepository {
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };
+  }
+
+  async countByApplicationId(applicationId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(offer)
+      .where(eq(offer.applicationId, applicationId));
+    return Number(row?.count ?? 0);
   }
 
   async findAllByApplicationId(applicationId: string): Promise<Offer[]> {

@@ -1,35 +1,22 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { ArrowLeftIcon, MoreHorizontalIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
-import { showUndoToast } from '#/lib/undoToast';
 import { deleteApplicationWithUndo } from '../../-deleteWithUndo';
-import { getErrorMessage } from '#/lib/errors';
 import { ErrorState } from '#/components/ErrorState';
 import { useLocale } from '#/lib/i18n';
-import { Card, Skeleton, Textarea } from '@trakwyn/ui';
+import { Card, Skeleton } from '@trakwyn/ui';
 import { StatusBadge } from '../../../-components/StatusBadge';
-import {
-  ActivityIcon,
-  Building2Icon,
-  CalendarIcon,
-  CheckIcon,
-  DollarSignIcon,
-  EditIcon,
-  FileTextIcon,
-  PenLineIcon,
-  PlusIcon,
-  StarIcon,
-  XIcon,
-  Trash2Icon,
-  UploadIcon,
-  UsersIcon,
-} from 'lucide-react';
 import { applicationQueryOptions, type Application } from '../-application-query';
 import type { BoardApplication } from '../../-board-queries';
-import { InfoItem } from './InfoItem';
 import { TrashedApplicationView } from './TrashedApplicationView';
 import { HealthScorePanel, type HealthScore } from './HealthScorePanel';
+import { ApplicationInfoChips } from './ApplicationInfoChips';
+import { ApplicationActionsSheet } from './ApplicationActionsSheet';
+import { SectionIndex } from './SectionIndex';
+import { SectionSidebar } from './SectionSidebar';
+import { NotesTab } from './NotesTab';
 import { ActivityTab } from './ActivityTab';
 import { InterviewsTab } from './InterviewsTab';
 import { ContactsTab } from './ContactsTab';
@@ -37,6 +24,7 @@ import { DocumentsTab } from './DocumentsTab';
 import { CompanyBriefingTab } from './CompanyBriefingTab';
 import { CoverLetterTab } from './CoverLetterTab';
 import { ResumeMatchTab } from './ResumeMatchTab';
+import { sectionById, type SectionCounts, type SectionId } from '../-sections';
 import { Route } from '../index';
 
 const UPDATE_STARRED = `
@@ -44,22 +32,6 @@ const UPDATE_STARRED = `
     updateApplication(id: $id, input: $input) { id starred }
   }
 `;
-const NOTES_QUERY = `
-  query Notes($applicationId: ID!) {
-    notes(applicationId: $applicationId) { id applicationId content createdAt updatedAt }
-  }
-`;
-const CREATE_NOTE = `
-  mutation CreateNote($applicationId: ID!, $content: String!) {
-    createNote(applicationId: $applicationId, content: $content) { id applicationId content createdAt updatedAt }
-  }
-`;
-const UPDATE_NOTE = `
-  mutation UpdateNote($id: ID!, $content: String!) {
-    updateNote(id: $id, content: $content) { id applicationId content createdAt updatedAt }
-  }
-`;
-const DELETE_NOTE = `mutation DeleteNote($id: ID!) { deleteNote(id: $id) }`;
 const HEALTH_SCORE_QUERY = `
   query ApplicationHealthScore($applicationId: ID!) {
     applicationHealthScore(applicationId: $applicationId) {
@@ -68,57 +40,36 @@ const HEALTH_SCORE_QUERY = `
     }
   }
 `;
-
-type Note = {
-  id: string;
-  applicationId: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-};
+const SECTION_COUNTS_QUERY = `
+  query ApplicationSectionCounts($id: ID!) {
+    application(id: $id) {
+      id
+      sectionCounts { notes interviews contacts documents documentDrafts offers }
+    }
+  }
+`;
 
 export function ApplicationDetailPage() {
   const { t } = useLocale();
   const { applicationId } = Route.useParams();
+  const { section } = Route.useSearch();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [noteContent, setNoteContent] = useState('');
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
-  const [activeTab, setActiveTab] = useState<
-    | 'notes'
-    | 'interviews'
-    | 'contacts'
-    | 'activity'
-    | 'documents'
-    | 'company briefing'
-    | 'cover letter'
-    | 'resume match'
-    | 'offers'
-  >('notes');
+  const [actionsOpen, setActionsOpen] = useState(false);
 
-  const TABS = [
-    { id: 'notes' as const, label: t('applicationDetail.tabNotes'), icon: FileTextIcon },
-    { id: 'interviews' as const, label: t('applicationDetail.tabInterviews'), icon: CalendarIcon },
-    { id: 'contacts' as const, label: t('applicationDetail.tabContacts'), icon: UsersIcon },
-    { id: 'activity' as const, label: t('applicationDetail.tabActivity'), icon: ActivityIcon },
-    { id: 'documents' as const, label: t('applicationDetail.tabDocuments'), icon: UploadIcon },
-    {
-      id: 'company briefing' as const,
-      label: t('applicationDetail.tabCompanyBriefing'),
-      icon: Building2Icon,
-    },
-    {
-      id: 'cover letter' as const,
-      label: t('applicationDetail.tabCoverLetter'),
-      icon: PenLineIcon,
-    },
-    {
-      id: 'resume match' as const,
-      label: t('applicationDetail.tabResumeMatch'),
-      icon: FileTextIcon,
-    },
-    { id: 'offers' as const, label: t('applicationDetail.tabOffers'), icon: DollarSignIcon },
-  ];
+  // `section` absent means the phone is on the index screen; the desktop has
+  // no such state — its sidebar and content are always both on screen, so it
+  // falls back to Notes.
+  const activeSection: SectionId = section ?? 'notes';
+  const openSection = section;
+
+  // Named in full rather than relatively: `to: '.'` resolves against whatever
+  // the router thinks the current match is, which is one more thing to be
+  // wrong about than simply saying where we are.
+  const goToSearch = (search: { section?: SectionId }) =>
+    navigate({ to: '/applications/$applicationId', params: { applicationId }, search });
+  const openSectionAt = (id: SectionId) => goToSearch({ section: id });
+  const backToIndex = () => goToSearch({});
 
   const {
     data: appData,
@@ -140,15 +91,6 @@ export function ApplicationDetailPage() {
   const isTrashed = Boolean(appData?.application.deletedAt);
   const canLoadPanels = Boolean(appData) && !isTrashed;
 
-  const {
-    data: notesData,
-    isError: isNotesError,
-    error: notesError,
-  } = useQuery({
-    queryKey: ['notes', applicationId],
-    queryFn: () => gqlClient.request<{ notes: Note[] }>(NOTES_QUERY, { applicationId }),
-    enabled: canLoadPanels,
-  });
   const { data: healthScoreData } = useQuery({
     queryKey: ['healthScore', applicationId],
     queryFn: () =>
@@ -158,48 +100,19 @@ export function ApplicationDetailPage() {
     enabled: canLoadPanels,
   });
 
-  const createNote = useMutation({
-    mutationFn: (content: string) => gqlClient.request(CREATE_NOTE, { applicationId, content }),
-    onMutate: async (content) => {
-      await qc.cancelQueries({ queryKey: ['notes', applicationId] });
-      const prevNotes = qc.getQueryData<{ notes: Note[] }>(['notes', applicationId]);
-      const optimistic: Note = {
-        id: `__tmp_${Date.now()}`,
-        applicationId,
-        content,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      qc.setQueryData<{ notes: Note[] }>(['notes', applicationId], (old) => ({
-        notes: [...(old?.notes ?? []), optimistic],
-      }));
-      return { prevNotes };
-    },
-    onError: (_err, _content, context) => {
-      if (context?.prevNotes) qc.setQueryData(['notes', applicationId], context.prevNotes);
-    },
-    onSuccess: () => setNoteContent(''),
-    onSettled: () => qc.invalidateQueries({ queryKey: ['notes', applicationId] }),
+  // Its own cache entry rather than a field on `applicationQueryOptions`: the
+  // edit page shares that query and has no use for six COUNT(*)s, and the
+  // counts are invalidated on their own schedule as sections change.
+  const { data: countsData } = useQuery({
+    queryKey: ['sectionCounts', applicationId],
+    queryFn: () =>
+      gqlClient.request<{ application: { sectionCounts: SectionCounts } }>(SECTION_COUNTS_QUERY, {
+        id: applicationId,
+      }),
+    enabled: canLoadPanels,
   });
-  const updateNote = useMutation({
-    mutationFn: ({ id, content }: { id: string; content: string }) =>
-      gqlClient.request(UPDATE_NOTE, { id, content }),
-    onMutate: async ({ id, content }) => {
-      await qc.cancelQueries({ queryKey: ['notes', applicationId] });
-      const prevNotes = qc.getQueryData<{ notes: Note[] }>(['notes', applicationId]);
-      qc.setQueryData<{ notes: Note[] }>(['notes', applicationId], (old) => ({
-        notes: (old?.notes ?? []).map((n) =>
-          n.id === id ? { ...n, content, updatedAt: new Date().toISOString() } : n,
-        ),
-      }));
-      return { prevNotes };
-    },
-    onError: (_err, _vars, context) => {
-      if (context?.prevNotes) qc.setQueryData(['notes', applicationId], context.prevNotes);
-    },
-    onSuccess: () => setEditingNote(null),
-    onSettled: () => qc.invalidateQueries({ queryKey: ['notes', applicationId] }),
-  });
+  const counts = countsData?.application.sectionCounts;
+
   const toggleStar = useMutation({
     mutationFn: (starred: boolean) =>
       gqlClient.request(UPDATE_STARRED, { id: applicationId, input: { starred } }),
@@ -241,12 +154,11 @@ export function ApplicationDetailPage() {
   });
 
   const app = appData?.application;
-  const notes = notesData?.notes ?? [];
   const healthScore = healthScoreData?.applicationHealthScore;
 
   if (isAppError) {
     return (
-      <div className="p-4 sm:p-8 max-w-3xl mx-auto">
+      <div className="mx-auto max-w-3xl p-4 sm:p-8">
         <ErrorState error={appError} onRetry={() => refetchApp()} />
       </div>
     );
@@ -261,331 +173,183 @@ export function ApplicationDetailPage() {
 
   if (app.deletedAt) return <TrashedApplicationView app={app} />;
 
-  return (
-    <div className="p-4 sm:p-8 max-w-3xl mx-auto">
-      <div className="mb-4">
-        <a
-          href="/applications"
-          className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          {t('applicationForm.backToApplications')}
-        </a>
-      </div>
-
-      <Card className="p-4 sm:p-6 mb-6">
-        <div className="flex items-start justify-between gap-x-3 gap-y-2 flex-wrap">
-          <div className="min-w-0">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{app.company}</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-0.5">{app.role}</p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <StatusBadge status={app.status} />
-            <button
-              onClick={() => toggleStar.mutate(!app.starred)}
-              className={`p-2 rounded-lg transition-colors ${
-                app.starred
-                  ? 'text-yellow-400 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
-                  : 'text-gray-400 hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
-              }`}
-              title={t(app.starred ? 'applications.unstar' : 'applications.star')}
-            >
-              <StarIcon size={16} className={app.starred ? 'fill-yellow-400' : ''} />
-            </button>
+  const sectionContent = (
+    <>
+      {activeSection === 'notes' && (
+        <NotesTab applicationId={applicationId} enabled={canLoadPanels} />
+      )}
+      {activeSection === 'interviews' && (
+        <InterviewsTab applicationId={applicationId} company={app.company} role={app.role} />
+      )}
+      {activeSection === 'contacts' && <ContactsTab applicationId={applicationId} />}
+      {activeSection === 'activity' && <ActivityTab applicationId={applicationId} />}
+      {activeSection === 'documents' && <DocumentsTab applicationId={applicationId} />}
+      {activeSection === 'company-briefing' && <CompanyBriefingTab applicationId={applicationId} />}
+      {activeSection === 'cover-letter' && <CoverLetterTab applicationId={applicationId} />}
+      {activeSection === 'resume-match' && <ResumeMatchTab applicationId={applicationId} />}
+      {activeSection === 'offers' && (
+        <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            {t('applicationDetail.offerComparisonTitle')}
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {t('applicationDetail.offerComparisonDescription')}
+          </p>
+          <div className="flex flex-wrap gap-2">
             <Link
-              to="/applications/$applicationId/edit"
+              to="/applications/$applicationId/offers"
               params={{ applicationId }}
-              className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              <EditIcon size={16} />
+              {t('applicationDetail.manageOffers')}
             </Link>
-            <button
-              onClick={() => {
-                // Sends the delete now and leaves immediately — undo is a real
-                // restoreApplication call, so there is nothing to wait for.
-                deleteApplicationWithUndo(
-                  qc,
-                  applicationId,
-                  t('applicationDetail.applicationDeletedToast'),
-                  () => navigate({ to: '/applications' }),
-                );
-              }}
-              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
-              title={t('applicationDetail.deleteApplicationTitle')}
+            <Link
+              to="/applications/$applicationId/offers/compare"
+              params={{ applicationId }}
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
             >
-              <Trash2Icon size={16} />
-            </button>
+              {t('applicationDetail.compareOffers')}
+            </Link>
           </div>
         </div>
+      )}
+    </>
+  );
 
-        <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-          {app.location && (
-            <InfoItem label={t('applicationForm.locationLabel')} value={app.location} />
-          )}
-          {app.salaryRange && (
-            <InfoItem label={t('applicationDetail.salaryLabel')} value={app.salaryRange} />
-          )}
-          {app.appliedAt && (
-            <InfoItem
-              label={t('applicationDetail.appliedLabel')}
-              value={new Date(app.appliedAt).toLocaleDateString()}
-            />
-          )}
-          {app.source && <InfoItem label={t('applicationForm.sourceLabel')} value={app.source} />}
+  return (
+    <div className="mx-auto max-w-3xl p-4 sm:p-8">
+      {/*
+        Phone only, and only when drilled into a section: Back returns to the
+        index rather than leaving the application, and the company stays on
+        screen so you never lose track of which one you are inside.
+      */}
+      {openSection && (
+        <div className="-mx-4 mb-4 flex items-center gap-1 border-b border-gray-200 px-2 pb-2 md:hidden dark:border-gray-700">
+          <button
+            type="button"
+            onClick={backToIndex}
+            aria-label={t('applicationDetail.backToSections')}
+            className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+          >
+            <ArrowLeftIcon size={20} />
+          </button>
+          <div className="flex min-w-0 flex-col">
+            <span className="text-[15px] font-semibold text-gray-900 dark:text-gray-100">
+              {t(sectionById(activeSection).labelKey)}
+            </span>
+            <span className="truncate text-xs text-gray-400">
+              {app.company} · {app.role}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* The application's own header. On a phone it belongs to the index screen. */}
+      <div className={openSection ? 'hidden md:block' : undefined}>
+        <div className="mb-4">
+          <a
+            href="/applications"
+            className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            {t('applicationForm.backToApplications')}
+          </a>
+        </div>
+
+        <Card className="mb-6 p-4 sm:p-6">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{app.company}</h1>
+              <p className="mt-0.5 text-gray-500 dark:text-gray-400">{app.role}</p>
+            </div>
+            {/*
+              One 44px trigger instead of four 32px icon buttons crowding the
+              company name. Star, edit and delete moved into the sheet, where
+              they get labels and rows big enough to hit (JEF-208).
+            */}
+            <button
+              type="button"
+              onClick={() => setActionsOpen(true)}
+              aria-label={t('applicationDetail.moreActions')}
+              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+            >
+              <MoreHorizontalIcon size={20} />
+            </button>
+          </div>
+
+          <div className="mt-3">
+            <StatusBadge status={app.status} />
+          </div>
+
+          <div className="mt-3">
+            <ApplicationInfoChips app={app} />
+          </div>
+
           {app.followUpAt && (
-            <div>
-              <InfoItem
-                label={t('applicationDetail.followUpLabel')}
-                value={new Date(app.followUpAt).toLocaleDateString()}
-                highlight={new Date(app.followUpAt) <= new Date()}
-              />
-              <p className="text-xs text-gray-400 mt-0.5">
-                {t('applicationDetail.emailReminderNote')}
-              </p>
-            </div>
+            <p className="mt-2 text-xs text-gray-400">{t('applicationDetail.emailReminderNote')}</p>
           )}
-          {app.tags.length > 0 && (
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                {t('applicationForm.tagsLabel')}
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {app.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+
           {app.jobUrl && (
-            <div className="col-span-1 sm:col-span-2 md:col-span-3">
+            <div className="mt-3">
               <dt className="text-xs text-gray-400">{t('applicationForm.jobUrlLabel')}</dt>
               <a
                 href={app.jobUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline text-xs break-all"
+                className="text-xs break-all text-blue-600 hover:underline"
               >
                 {app.jobUrl}
               </a>
             </div>
           )}
+
           {app.description && (
-            <div className="col-span-1 sm:col-span-2 md:col-span-3">
-              <dt className="text-xs text-gray-400 mb-1">
+            <div className="mt-3">
+              <dt className="mb-1 text-xs text-gray-400">
                 {t('applicationDetail.descriptionLabel')}
               </dt>
-              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+              <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
                 {app.description}
               </p>
             </div>
           )}
-        </dl>
 
-        {healthScore && <HealthScorePanel healthScore={healthScore} />}
-      </Card>
+          {healthScore && <HealthScorePanel healthScore={healthScore} />}
+        </Card>
+      </div>
 
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Mobile: horizontal scrollable strip */}
-        <div
-          className="md:hidden flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto -mx-4 px-4"
-          aria-label={t('applicationDetail.sectionTabsAria')}
-        >
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 shrink-0 px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                activeTab === tab.id
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400'
-              }`}
-            >
-              <tab.icon size={14} />
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-col gap-6 md:flex-row">
+        <SectionSidebar active={activeSection} counts={counts} onOpen={openSectionAt} />
 
-        {/* Desktop: vertical sidebar */}
-        <nav
-          className="hidden md:flex flex-col w-44 shrink-0 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 p-2 h-fit sticky top-20"
-          aria-label={t('applicationDetail.sectionNavAria')}
-        >
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors text-left ${
-                activeTab === tab.id
-                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-gray-200'
-              }`}
-            >
-              <tab.icon size={16} />
-              {tab.label}
-            </button>
-          ))}
-        </nav>
+        {/* Phone: the index and a section are separate screens. Desktop: only the section. */}
+        {!openSection && <SectionIndex counts={counts} onOpen={openSectionAt} />}
 
-        {/* Content area */}
-        <div className="flex-1 min-w-0">
-          {activeTab === 'notes' && (
-            <div className="space-y-4">
-              <Card className="p-4">
-                <Textarea
-                  value={noteContent}
-                  onChange={(e) => setNoteContent(e.target.value)}
-                  className="h-24"
-                  placeholder={t('applicationDetail.addNotePlaceholder')}
-                />
-                <div className="mt-2 flex justify-end">
-                  <button
-                    onClick={() => {
-                      if (noteContent.trim()) createNote.mutate(noteContent.trim());
-                    }}
-                    disabled={!noteContent.trim() || createNote.isPending}
-                    aria-label={t('applicationDetail.addNote')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-medium rounded-lg"
-                  >
-                    <PlusIcon size={14} />{' '}
-                    <span className="hidden sm:inline">{t('applicationDetail.addNote')}</span>
-                  </button>
-                </div>
-              </Card>
-
-              {isNotesError && (
-                <p className="text-sm text-red-600 dark:text-red-400 py-2">
-                  {getErrorMessage(notesError)}
-                </p>
-              )}
-
-              {notes.map((note) => (
-                <Card key={note.id} className="p-4">
-                  {editingNote?.id === note.id ? (
-                    <>
-                      <Textarea
-                        value={editingNote.content}
-                        onChange={(e) =>
-                          setEditingNote({ ...editingNote, content: e.target.value })
-                        }
-                        className="h-24"
-                      />
-                      <div className="mt-2 flex gap-2 justify-end">
-                        <button
-                          onClick={() =>
-                            updateNote.mutate({ id: note.id, content: editingNote.content })
-                          }
-                          aria-label={t('common.save')}
-                          className="flex items-center gap-1 text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg"
-                        >
-                          <CheckIcon size={14} />{' '}
-                          <span className="hidden sm:inline">{t('common.save')}</span>
-                        </button>
-                        <button
-                          onClick={() => setEditingNote(null)}
-                          aria-label={t('common.cancel')}
-                          className="flex items-center gap-1 text-xs px-3 py-1.5 text-gray-500 hover:text-gray-700"
-                        >
-                          <XIcon size={14} />{' '}
-                          <span className="hidden sm:inline">{t('common.cancel')}</span>
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex justify-between gap-3">
-                      <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap flex-1">
-                        {note.content}
-                      </p>
-                      <div className="flex gap-1 shrink-0">
-                        <button
-                          onClick={() => setEditingNote(note)}
-                          className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                        >
-                          <EditIcon size={14} />
-                        </button>
-                        <button
-                          onClick={() => {
-                            const snapshot = qc.getQueryData<{ notes: Note[] }>([
-                              'notes',
-                              applicationId,
-                            ]);
-                            qc.setQueryData<{ notes: Note[] }>(
-                              ['notes', applicationId],
-                              (prev) => ({
-                                notes: (prev?.notes ?? []).filter((n) => n.id !== note.id),
-                              }),
-                            );
-                            showUndoToast({
-                              message: t('applicationDetail.noteDeletedToast'),
-                              operation: { document: DELETE_NOTE, variables: { id: note.id } },
-                              onUndo: () => qc.setQueryData(['notes', applicationId], snapshot),
-                              onSettled: () =>
-                                qc.invalidateQueries({ queryKey: ['notes', applicationId] }),
-                            });
-                          }}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-                        >
-                          <Trash2Icon size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                  <p className="text-xs text-gray-400 mt-2">
-                    {new Date(note.createdAt).toLocaleString()}
-                  </p>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {activeTab === 'interviews' && (
-            <InterviewsTab applicationId={applicationId} company={app.company} role={app.role} />
-          )}
-
-          {activeTab === 'contacts' && <ContactsTab applicationId={applicationId} />}
-
-          {activeTab === 'activity' && <ActivityTab applicationId={applicationId} />}
-
-          {activeTab === 'documents' && <DocumentsTab applicationId={applicationId} />}
-
-          {activeTab === 'company briefing' && <CompanyBriefingTab applicationId={applicationId} />}
-
-          {activeTab === 'cover letter' && <CoverLetterTab applicationId={applicationId} />}
-
-          {activeTab === 'resume match' && <ResumeMatchTab applicationId={applicationId} />}
-
-          {activeTab === 'offers' && (
-            <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {t('applicationDetail.offerComparisonTitle')}
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {t('applicationDetail.offerComparisonDescription')}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Link
-                  to="/applications/$applicationId/offers"
-                  params={{ applicationId }}
-                  className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                >
-                  {t('applicationDetail.manageOffers')}
-                </Link>
-                <Link
-                  to="/applications/$applicationId/offers/compare"
-                  params={{ applicationId }}
-                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-                >
-                  {t('applicationDetail.compareOffers')}
-                </Link>
-              </div>
-            </div>
-          )}
+        {/*
+          Hidden rather than unmounted on the phone index: the desktop needs it
+          at all times, and on a phone it warms the default section so the
+          first drill-down has nothing to wait for.
+        */}
+        <div className={`min-w-0 flex-1 ${openSection ? '' : 'hidden md:block'}`}>
+          {sectionContent}
         </div>
       </div>
+
+      <ApplicationActionsSheet
+        open={actionsOpen}
+        onClose={() => setActionsOpen(false)}
+        applicationId={applicationId}
+        starred={app.starred}
+        onToggleStar={() => toggleStar.mutate(!app.starred)}
+        onDelete={() => {
+          // Sends the delete now and leaves immediately — undo is a real
+          // restoreApplication call, so there is nothing to wait for.
+          deleteApplicationWithUndo(
+            qc,
+            applicationId,
+            t('applicationDetail.applicationDeletedToast'),
+            () => navigate({ to: '/applications' }),
+          );
+        }}
+      />
     </div>
   );
 }
