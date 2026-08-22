@@ -27,5 +27,11 @@ export default fp(async function corsPlugin(fastify: FastifyInstance) {
       cb(null, false);
     },
     credentials: true,
+    // @fastify/cors defaults to GET,HEAD,POST (the CORS-spec "simple"
+    // methods) when this is omitted — fine while every route was GraphQL
+    // POST, but the local-storage upload PUT route below needs it listed
+    // explicitly or its preflight response omits PUT and the browser drops
+    // the real request before it's ever sent.
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'],
   });
 });

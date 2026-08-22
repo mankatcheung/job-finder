@@ -27,7 +27,7 @@ import {
   flushObservability,
   isObservabilityEnabled,
 } from '#src/infrastructure/observability/tracing.js';
-import { ENV, NODE_ENV, ROUTES } from '#src/constants.js';
+import { ENV, NODE_ENV, ROUTES, STORAGE_PROVIDER } from '#src/constants.js';
 
 /**
  * Fully configures an already-constructed Fastify instance (cors/cookie/
@@ -58,6 +58,13 @@ export async function buildApp(fastify: FastifyInstance): Promise<FastifyInstanc
 
   await fastify.register(corsPlugin);
   await fastify.register(cookie);
+  if (process.env[ENV.STORAGE_PROVIDER] === STORAGE_PROVIDER.LOCAL) {
+    fastify.addContentTypeParser(
+      ['application/octet-stream', 'text/plain', 'application/pdf'],
+      { parseAs: 'buffer' },
+      (_request, body, done) => done(null, body),
+    );
+  }
   fastify.addContentTypeParser(
     'application/x-www-form-urlencoded',
     { parseAs: 'string' },
@@ -74,6 +81,28 @@ export async function buildApp(fastify: FastifyInstance): Promise<FastifyInstanc
     disposeOnClose: true,
     disposeOnResponse: true,
   });
+
+  if (process.env[ENV.STORAGE_PROVIDER] === STORAGE_PROVIDER.LOCAL) {
+    fastify.put<{ Params: { '*': string }; Body: Buffer }>(
+      '/uploads/_upload/*',
+      async (request, reply) => {
+        const storageKey = decodeURIComponent(request.params['*']);
+        if (
+          !/^users\/[^/]+\/applications\/[^/]+\/[^/]+$/.test(storageKey) ||
+          storageKey.includes('..')
+        ) {
+          return reply.code(400).send({ error: 'Invalid storage key' });
+        }
+
+        await container.cradle.storageProvider.putObject(
+          storageKey,
+          request.body,
+          request.headers['content-type']?.split(';', 1)[0] ?? 'application/octet-stream',
+        );
+        return reply.code(204).send();
+      },
+    );
+  }
 
   registerRoutes(fastify, [
     ...healthRoutes(),
