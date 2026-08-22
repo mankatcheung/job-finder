@@ -23,6 +23,13 @@ describe('ActivityTab', () => {
     vi.clearAllMocks();
   });
 
+  it('shows a loading placeholder instead of the empty state while the request is in flight', () => {
+    mockGqlRequest.mockReturnValue(new Promise(() => {}));
+    render(<ActivityTab applicationId="app-1" />, { wrapper: Wrapper });
+
+    expect(screen.queryByText('No activity yet.')).not.toBeInTheDocument();
+  });
+
   it('shows an empty state when there is no activity', async () => {
     mockGqlRequest.mockResolvedValue({ activityLogs: [] });
     render(<ActivityTab applicationId="app-1" />, { wrapper: Wrapper });

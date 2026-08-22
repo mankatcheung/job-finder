@@ -4,7 +4,7 @@ import { CheckIcon, EditIcon, PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
 import { useLocale } from '#/lib/i18n';
-import { Button, Card, EmptyState, FormLabel, Input, Textarea } from '@trakwyn/ui';
+import { Button, Card, EmptyState, FormLabel, Input, Skeleton, Textarea } from '@trakwyn/ui';
 import { invalidateSectionCounts } from '../-sectionCounts';
 const CONTACTS_QUERY = `
   query Contacts($applicationId: ID!) {
@@ -71,7 +71,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [form, setForm] = useState<ContactFormState>(emptyContactForm());
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['contacts', applicationId],
     queryFn: () => gqlClient.request<{ contacts: Contact[] }>(CONTACTS_QUERY, { applicationId }),
   });
@@ -276,8 +276,13 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
         />
       )}
 
-      {contacts.length === 0 && !showForm && (
-        <EmptyState size="compact" className="py-4" message={t('contacts.noContactsYet')} />
+      {isLoading ? (
+        <Skeleton className="h-20 rounded-lg" />
+      ) : (
+        contacts.length === 0 &&
+        !showForm && (
+          <EmptyState size="compact" className="py-4" message={t('contacts.noContactsYet')} />
+        )
       )}
 
       {contacts.map((contact) => (

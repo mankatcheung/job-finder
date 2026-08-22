@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
-import { Card, EmptyState } from '@trakwyn/ui';
+import { Card, EmptyState, Skeleton } from '@trakwyn/ui';
 const ACTIVITY_LOGS_QUERY = `
   query ActivityLogs($applicationId: ID!) {
     activityLogs(applicationId: $applicationId) {
@@ -48,7 +48,7 @@ function formatActivityPayload(eventType: string, payloadStr: string): string {
 }
 
 export function ActivityTab({ applicationId }: { applicationId: string }) {
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['activityLogs', applicationId],
     queryFn: () =>
       gqlClient.request<{ activityLogs: ActivityLog[] }>(ACTIVITY_LOGS_QUERY, { applicationId }),
@@ -58,9 +58,11 @@ export function ActivityTab({ applicationId }: { applicationId: string }) {
 
   return (
     <div className="space-y-3">
-      {logs.length === 0 && (
+      {isLoading ? (
+        <Skeleton className="h-16 rounded-lg" />
+      ) : logs.length === 0 ? (
         <EmptyState size="compact" className="py-4" message="No activity yet." />
-      )}
+      ) : null}
       {logs.map((log) => {
         const detail = formatActivityPayload(log.eventType, log.payload);
         return (

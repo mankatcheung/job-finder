@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon, MessageCircleIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { useLocale } from '#/lib/i18n';
-import { EmptyState } from '@trakwyn/ui';
+import { EmptyState, Skeleton } from '@trakwyn/ui';
 import {
   conversationsQueryOptions,
   deleteConversationWithUndo,
@@ -13,7 +13,7 @@ import { LLM_PROVIDER_LABEL } from '#/routes/_authenticated/settings/-components
 export function ConversationHistoryPage() {
   const { t } = useLocale();
   const qc = useQueryClient();
-  const { data } = useQuery(conversationsQueryOptions);
+  const { data, isLoading } = useQuery(conversationsQueryOptions);
   const conversations = data?.conversations ?? [];
 
   return (
@@ -41,7 +41,13 @@ export function ConversationHistoryPage() {
         </Link>
       </div>
 
-      {conversations.length === 0 ? (
+      {isLoading ? (
+        <div className="space-y-1.5">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className="h-14 rounded-xl" />
+          ))}
+        </div>
+      ) : conversations.length === 0 ? (
         <EmptyState
           className="py-16"
           icon={<MessageCircleIcon size={28} />}

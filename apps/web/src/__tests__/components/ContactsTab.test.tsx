@@ -57,6 +57,13 @@ describe('ContactsTab', () => {
     vi.clearAllMocks();
   });
 
+  it('shows a loading placeholder instead of the empty state while the request is in flight', () => {
+    mockGqlRequest.mockReturnValue(new Promise(() => {}));
+    render(<ContactsTab applicationId="app-1" />, { wrapper: Wrapper });
+
+    expect(screen.queryByText('No contacts yet.')).not.toBeInTheDocument();
+  });
+
   it('shows an empty state when there are no contacts', async () => {
     mockGqlRequest.mockResolvedValue({ contacts: [] });
     render(<ContactsTab applicationId="app-1" />, { wrapper: Wrapper });

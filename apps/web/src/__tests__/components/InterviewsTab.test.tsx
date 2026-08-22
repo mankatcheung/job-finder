@@ -59,6 +59,13 @@ describe('InterviewsTab', () => {
     vi.clearAllMocks();
   });
 
+  it('shows a loading placeholder instead of the empty state while the request is in flight', () => {
+    mockGqlRequest.mockReturnValue(new Promise(() => {}));
+    render(<InterviewsTab {...baseProps} />, { wrapper: Wrapper });
+
+    expect(screen.queryByText('No interview rounds yet.')).not.toBeInTheDocument();
+  });
+
   it('shows an empty state when there are no rounds', async () => {
     mockGqlRequest.mockResolvedValue({ interviewRounds: [] });
     render(<InterviewsTab {...baseProps} />, { wrapper: Wrapper });

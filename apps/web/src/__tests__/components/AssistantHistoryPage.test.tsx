@@ -63,6 +63,13 @@ describe('ConversationHistoryPage', () => {
     vi.clearAllMocks();
   });
 
+  it('shows a loading placeholder instead of the empty state while the request is in flight', () => {
+    mockGqlRequest.mockReturnValue(new Promise(() => {}));
+    render(<ConversationHistoryPage />, { wrapper: Wrapper });
+
+    expect(screen.queryByText('No conversations yet.')).not.toBeInTheDocument();
+  });
+
   it('shows an empty state when there are no conversations', async () => {
     mockGqlRequest.mockResolvedValue({ conversations: [] });
     render(<ConversationHistoryPage />, { wrapper: Wrapper });
