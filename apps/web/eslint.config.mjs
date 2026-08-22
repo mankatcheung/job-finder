@@ -12,6 +12,7 @@ export default tseslint.config(
       'node_modules/**',
       'src/graphql/generated/**',
       'src/routeTree.gen.ts',
+      '.vercel/**',
     ],
   },
   ...tseslint.configs.recommended,

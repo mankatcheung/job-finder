@@ -32,10 +32,6 @@ export function SectionIndex({ counts, onOpen }: SectionIndexProps) {
           <Card className="overflow-hidden">
             {group.sections.map((section, i) => {
               const count = countFor(section);
-              // A zero count means the section is genuinely empty, so it reads
-              // quieter — still reachable, visibly not worth a tap. A null
-              // count is a section with nothing to count, not an empty one.
-              const isEmpty = count === 0;
               return (
                 <button
                   key={section.id}
@@ -46,17 +42,8 @@ export function SectionIndex({ counts, onOpen }: SectionIndexProps) {
                   }`}
                   style={{ minHeight: '56px' }}
                 >
-                  <section.icon
-                    size={18}
-                    className={isEmpty ? 'text-gray-300 dark:text-gray-600' : 'text-gray-500'}
-                  />
-                  <span
-                    className={`flex-1 text-[15px] ${
-                      isEmpty
-                        ? 'text-gray-400 dark:text-gray-500'
-                        : 'text-gray-900 dark:text-gray-100'
-                    }`}
-                  >
+                  <section.icon size={18} className={'text-gray-500'} />
+                  <span className={`flex-1 text-[15px] ${'text-gray-900 dark:text-gray-100'}`}>
                     {t(section.labelKey)}
                   </span>{' '}
                   {count !== null && count > 0 && (
@@ -64,10 +51,7 @@ export function SectionIndex({ counts, onOpen }: SectionIndexProps) {
                       {count}
                     </span>
                   )}
-                  <ChevronRightIcon
-                    size={16}
-                    className={isEmpty ? 'text-gray-200 dark:text-gray-700' : 'text-gray-300'}
-                  />
+                  <ChevronRightIcon size={16} className={'text-gray-300'} />
                 </button>
               );
             })}
