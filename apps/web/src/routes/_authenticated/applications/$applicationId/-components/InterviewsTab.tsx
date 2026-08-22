@@ -4,7 +4,16 @@ import { CalendarIcon, CheckIcon, EditIcon, PlusIcon, Trash2Icon } from 'lucide-
 import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
 import { useLocale } from '#/lib/i18n';
-import { Button, Card, EmptyState, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
+import {
+  Button,
+  Card,
+  EmptyState,
+  FormLabel,
+  Input,
+  Select,
+  Skeleton,
+  Textarea,
+} from '@trakwyn/ui';
 import { invalidateSectionCounts } from '../-sectionCounts';
 const INTERVIEW_ROUNDS_QUERY = `
   query InterviewRounds($applicationId: ID!) {
@@ -132,7 +141,7 @@ export function InterviewsTab({
   const [editingRound, setEditingRound] = useState<InterviewRound | null>(null);
   const [form, setForm] = useState<RoundFormState>(emptyForm());
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['interviewRounds', applicationId],
     queryFn: () =>
       gqlClient.request<{ interviewRounds: InterviewRound[] }>(INTERVIEW_ROUNDS_QUERY, {
@@ -356,12 +365,17 @@ export function InterviewsTab({
         />
       )}
 
-      {rounds.length === 0 && !showForm && (
-        <EmptyState
-          size="compact"
-          className="py-4"
-          message={t('interviews.noInterviewRoundsYet')}
-        />
+      {isLoading ? (
+        <Skeleton className="h-20 rounded-lg" />
+      ) : (
+        rounds.length === 0 &&
+        !showForm && (
+          <EmptyState
+            size="compact"
+            className="py-4"
+            message={t('interviews.noInterviewRoundsYet')}
+          />
+        )
       )}
 
       {rounds.map((round) => (
