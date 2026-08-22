@@ -29,6 +29,19 @@ export class CachedNoteRepository implements INoteRepository {
     return result;
   }
 
+  /**
+   * Not cached, matching `CachedDocumentRepository.countByApplicationId`.
+   *
+   * Not for want of an eviction point — create/update/delete already evict the
+   * list key and could evict a count key beside it. It is that `delete()` can
+   * only evict a list when the reverse index still holds the owning
+   * applicationId, so each cached key is another one that can silently miss;
+   * a single COUNT(*) is not worth adding to that set.
+   */
+  async countByApplicationId(applicationId: string): Promise<number> {
+    return this.inner.countByApplicationId(applicationId);
+  }
+
   async findById(id: string): Promise<Note | null> {
     const key = CACHE_KEYS.noteById(id);
     const result = await this.cache.getOrSet(key, () => this.inner.findById(id));

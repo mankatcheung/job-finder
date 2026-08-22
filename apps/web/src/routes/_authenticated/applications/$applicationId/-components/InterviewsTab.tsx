@@ -5,6 +5,7 @@ import { gqlClient } from '#/graphql/client';
 import { showUndoToast } from '#/lib/undoToast';
 import { useLocale } from '#/lib/i18n';
 import { Button, Card, EmptyState, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
+import { invalidateSectionCounts } from '../-sectionCounts';
 const INTERVIEW_ROUNDS_QUERY = `
   query InterviewRounds($applicationId: ID!) {
     interviewRounds(applicationId: $applicationId) {
@@ -139,7 +140,10 @@ export function InterviewsTab({
       }),
   });
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['interviewRounds', applicationId] });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ['interviewRounds', applicationId] });
+    invalidateSectionCounts(qc, applicationId);
+  };
 
   const createRound = useMutation({
     mutationFn: (f: RoundFormState) =>

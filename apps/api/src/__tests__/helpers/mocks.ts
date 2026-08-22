@@ -108,6 +108,7 @@ export const makeNoteRepository = (overrides?: Partial<INoteRepository>): INoteR
   // Defaults to an empty list, like the other list finders — a bare vi.fn()
   // resolves undefined, which every caller then has to guard against.
   findAllByApplicationId: vi.fn().mockResolvedValue([]),
+  countByApplicationId: vi.fn().mockResolvedValue(0),
   findById: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
@@ -119,6 +120,7 @@ export const makeInterviewRoundRepository = (
   overrides?: Partial<IInterviewRoundRepository>,
 ): IInterviewRoundRepository => ({
   findAllByApplicationId: vi.fn(),
+  countByApplicationId: vi.fn().mockResolvedValue(0),
   findAllByUserId: vi.fn().mockResolvedValue([]),
   findUpcomingWithinWindow: vi.fn().mockResolvedValue([]),
   findById: vi.fn(),
@@ -492,6 +494,7 @@ export const makeContactRepository = (
   overrides?: Partial<IContactRepository>,
 ): IContactRepository => ({
   findAllByApplicationId: vi.fn().mockResolvedValue([]),
+  countByApplicationId: vi.fn().mockResolvedValue(0),
   findById: vi.fn().mockResolvedValue(null),
   create: vi.fn(),
   update: vi.fn(),
@@ -546,6 +549,7 @@ export const makeDocumentDraftRepository = (
   overrides?: Partial<IDocumentDraftRepository>,
 ): IDocumentDraftRepository => ({
   findAllByApplicationId: vi.fn().mockResolvedValue([]),
+  countByApplicationId: vi.fn().mockResolvedValue(0),
   findById: vi.fn(),
   create: vi.fn(),
   updateContent: vi.fn(),
@@ -762,6 +766,7 @@ export const makeSkill = (overrides?: Partial<Skill>): Skill => ({
 
 export const makeOfferRepository = (overrides?: Partial<IOfferRepository>): IOfferRepository => ({
   findAllByApplicationId: vi.fn().mockResolvedValue([]),
+  countByApplicationId: vi.fn().mockResolvedValue(0),
   findAllByUserId: vi.fn().mockResolvedValue([]),
   findById: vi.fn().mockResolvedValue(null),
   create: vi.fn(),

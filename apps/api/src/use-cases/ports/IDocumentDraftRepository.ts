@@ -17,6 +17,7 @@ export interface UpdateDocumentDraftContentData {
 
 export interface IDocumentDraftRepository {
   findAllByApplicationId(applicationId: string): Promise<DocumentDraft[]>;
+  countByApplicationId(applicationId: string): Promise<number>;
   findById(id: string): Promise<DocumentDraft | null>;
   create(data: CreateDocumentDraftData): Promise<DocumentDraft>;
   updateContent(id: string, data: UpdateDocumentDraftContentData): Promise<DocumentDraft>;

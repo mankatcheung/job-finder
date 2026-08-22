@@ -25,12 +25,25 @@ describe('scoreColor', () => {
 });
 
 describe('HealthScorePanel', () => {
-  it('renders the score and label, with criteria collapsed by default', () => {
+  it('renders the score and label on one line, with criteria collapsed by default', () => {
+    const { container } = render(<HealthScorePanel healthScore={healthScore} />);
+
+    // The 52px progress ring became a label, a verdict and a bar (JEF-208).
+    expect(screen.getByText('On track · 78')).toBeInTheDocument();
+    expect(screen.getByText('Application health')).toBeInTheDocument();
+    expect(screen.queryByText('Has notes')).not.toBeInTheDocument();
+
+    const bar = container.querySelector('[style*="width: 78%"]');
+    expect(bar).not.toBeNull();
+  });
+
+  it('reports its expanded state to assistive technology', () => {
     render(<HealthScorePanel healthScore={healthScore} />);
 
-    expect(screen.getByText('78')).toBeInTheDocument();
-    expect(screen.getByText('On track')).toBeInTheDocument();
-    expect(screen.queryByText('Has notes')).not.toBeInTheDocument();
+    const toggle = screen.getByRole('button');
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('expands to show criteria when clicked', () => {

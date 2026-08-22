@@ -7,6 +7,12 @@ const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export type ModalSize = 'sm' | 'md' | 'lg';
+/**
+ * Where the panel sits. `bottom` is the mobile sheet: same dialog, same focus
+ * trap and Escape handling, different geometry — full width, anchored to the
+ * bottom edge, rounded on top only.
+ */
+export type ModalPosition = 'center' | 'bottom';
 
 const SIZE_CLASSES: Record<ModalSize, string> = {
   sm: 'max-w-sm',
@@ -18,7 +24,14 @@ export interface ModalProps {
   open: boolean;
   onClose: () => void;
   title?: ReactNode;
+  /**
+   * Accessible name for a dialog with no visible title — a bottom sheet whose
+   * header is a grab handle, say. Ignored when `title` is a string, which
+   * already names the dialog.
+   */
+  ariaLabel?: string;
   size?: ModalSize;
+  position?: ModalPosition;
   children: ReactNode;
 }
 
@@ -28,7 +41,15 @@ export interface ModalProps {
  *
  * @category Overlay
  */
-export function Modal({ open, onClose, title, size = 'md', children }: ModalProps) {
+export function Modal({
+  open,
+  onClose,
+  title,
+  ariaLabel,
+  size = 'md',
+  position = 'center',
+  children,
+}: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
@@ -75,16 +96,24 @@ export function Modal({ open, onClose, title, size = 'md', children }: ModalProp
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className={`fixed inset-0 z-50 flex justify-center ${
+        position === 'bottom' ? 'items-end p-0' : 'items-center p-4'
+      }`}
+    >
       <div className="fixed inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label={typeof title === 'string' ? title : undefined}
+        aria-label={typeof title === 'string' ? title : ariaLabel}
         tabIndex={-1}
         onKeyDown={handleKeyDown}
-        className={`relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full ${SIZE_CLASSES[size]} max-h-[85vh] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700`}
+        className={`relative bg-white dark:bg-gray-800 shadow-2xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700 ${
+          position === 'bottom'
+            ? 'rounded-t-2xl border-b-0 pb-[env(safe-area-inset-bottom)]'
+            : `rounded-xl ${SIZE_CLASSES[size]}`
+        }`}
       >
         {title !== undefined && (
           <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">

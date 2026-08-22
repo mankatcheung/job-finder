@@ -134,6 +134,7 @@ import type { BulkUpdateApplicationsUseCase } from '#src/use-cases/jobs/BulkUpda
 import type { BulkDeleteApplicationsUseCase } from '#src/use-cases/jobs/BulkDeleteApplicationsUseCase.js';
 import type { BulkRestoreApplicationsUseCase } from '#src/use-cases/jobs/BulkRestoreApplicationsUseCase.js';
 import type { EmptyTrashUseCase } from '#src/use-cases/jobs/EmptyTrashUseCase.js';
+import type { GetApplicationSectionCountsUseCase } from '#src/use-cases/jobs/GetApplicationSectionCountsUseCase.js';
 import type { BulkAddTagToApplicationsUseCase } from '#src/use-cases/jobs/BulkAddTagToApplicationsUseCase.js';
 import type { CreateNoteUseCase } from '#src/use-cases/notes/CreateNoteUseCase.js';
 import type { GetNotesUseCase } from '#src/use-cases/notes/GetNotesUseCase.js';
@@ -439,6 +440,7 @@ export interface Cradle {
   bulkDeleteApplicationsUseCase: BulkDeleteApplicationsUseCase;
   bulkRestoreApplicationsUseCase: BulkRestoreApplicationsUseCase;
   emptyTrashUseCase: EmptyTrashUseCase;
+  getApplicationSectionCountsUseCase: GetApplicationSectionCountsUseCase;
   bulkAddTagToApplicationsUseCase: BulkAddTagToApplicationsUseCase;
   moveApplicationOnBoardUseCase: MoveApplicationOnBoardUseCase;
   createNoteUseCase: CreateNoteUseCase;

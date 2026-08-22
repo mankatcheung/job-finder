@@ -22,6 +22,7 @@ export interface UpdateContactData {
 
 export interface IContactRepository {
   findAllByApplicationId(applicationId: string): Promise<Contact[]>;
+  countByApplicationId(applicationId: string): Promise<number>;
   findById(id: string): Promise<Contact | null>;
   create(data: CreateContactData): Promise<Contact>;
   update(id: string, data: UpdateContactData): Promise<Contact>;

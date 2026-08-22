@@ -2,27 +2,56 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const { mockNavigate, mockGqlRequest } = vi.hoisted(() => ({
-  mockNavigate: vi.fn(),
-  mockGqlRequest: vi.fn(),
-}));
+// The open section lives in the URL now (JEF-208), so the router mock has to
+// be a real (tiny) store rather than a no-op: `useSearch` reads it, and
+// `useNavigate` writes it, which is what makes clicking a section re-render
+// the page the way the router would.
+const { mockNavigate, mockGqlRequest, searchStore } = vi.hoisted(() => {
+  const listeners = new Set<() => void>();
+  const store = {
+    value: {} as { section?: string },
+    subscribe(l: () => void) {
+      listeners.add(l);
+      return () => listeners.delete(l);
+    },
+    get() {
+      return store.value;
+    },
+    set(v: { section?: string }) {
+      store.value = v;
+      listeners.forEach((l) => l());
+    },
+  };
+  return {
+    mockGqlRequest: vi.fn(),
+    searchStore: store,
+    mockNavigate: vi.fn((opts?: { to?: string; search?: { section?: string } }) => {
+      if (opts?.search) store.set(opts.search);
+    }),
+  };
+});
 
-vi.mock('@tanstack/react-router', () => ({
-  createFileRoute: () => (opts: Record<string, unknown>) => ({
-    ...opts,
-    useParams: () => ({ applicationId: 'app-test-id' }),
-  }),
-  useNavigate: () => mockNavigate,
-  Link: ({
-    children,
-    to,
-    params,
-  }: {
-    children: React.ReactNode;
-    to: string;
-    params?: Record<string, string>;
-  }) => <a href={`${to}${params ? '/' + Object.values(params).join('/') : ''}`}>{children}</a>,
-}));
+vi.mock('@tanstack/react-router', async () => {
+  const React = await import('react');
+  return {
+    createFileRoute: () => (opts: Record<string, unknown>) => ({
+      ...opts,
+      useParams: () => ({ applicationId: 'app-test-id' }),
+      useSearch: () =>
+        React.useSyncExternalStore(searchStore.subscribe, searchStore.get, searchStore.get),
+    }),
+    useNavigate: () => mockNavigate,
+    Link: ({
+      children,
+      to,
+      params,
+    }: {
+      children: React.ReactNode;
+      to: string;
+      params?: Record<string, string>;
+    }) => <a href={`${to}${params ? '/' + Object.values(params).join('/') : ''}`}>{children}</a>,
+  };
+});
 
 vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
@@ -89,6 +118,7 @@ const mockNotes = [
 describe('ApplicationDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    searchStore.set({});
   });
 
   it('shows loading skeleton when data is not yet available', () => {
@@ -532,8 +562,11 @@ describe('ApplicationDetailPage', () => {
       expect(screen.getByText('Stripe')).toBeInTheDocument();
     });
 
-    const deleteAppBtn = screen.getByTitle('Delete application');
-    fireEvent.click(deleteAppBtn);
+    // Star, edit and delete live behind the single header trigger now.
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete application' }),
+    );
 
     // Synchronously, in the click handler — not after the request resolves and
     // not after a timer. This is the reported bug: the redirect used to be
@@ -549,6 +582,237 @@ describe('ApplicationDetailPage', () => {
   });
 });
 
+describe('ApplicationDetailPage — section index (JEF-208)', () => {
+  const counts = {
+    notes: 3,
+    interviews: 2,
+    contacts: 0,
+    documents: 1,
+    documentDrafts: 0,
+    offers: 0,
+  };
+
+  const respond = (extra: (query: string) => unknown = () => undefined) =>
+    mockGqlRequest.mockImplementation((query: string) => {
+      const custom = extra(query);
+      if (custom !== undefined) return custom;
+      if (query.includes('ApplicationSectionCounts'))
+        return Promise.resolve({ application: { id: 'app-test-id', sectionCounts: counts } });
+      if (query.includes('Notes')) return Promise.resolve({ notes: [] });
+      return Promise.resolve({ application: mockApp });
+    });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    searchStore.set({});
+  });
+
+  it('badges each section with its count, and leaves an empty one unbadged', async () => {
+    respond();
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+    await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+    const nav = screen.getByLabelText('Section navigation');
+    await waitFor(() =>
+      expect(within(nav).getByRole('button', { name: /notes 3/i })).toBeInTheDocument(),
+    );
+    expect(within(nav).getByRole('button', { name: /interviews 2/i })).toBeInTheDocument();
+    // Zero is not a badge saying "0" — the row just reads quieter.
+    expect(within(nav).getByRole('button', { name: /^contacts$/i })).toBeInTheDocument();
+    expect(within(nav).queryByRole('button', { name: /contacts 0/i })).not.toBeInTheDocument();
+  });
+
+  it('groups the sections under Track, Documents & AI and Outcome', async () => {
+    respond();
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+    await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+    const nav = screen.getByLabelText('Section navigation');
+    expect(within(nav).getByText('Track')).toBeInTheDocument();
+    expect(within(nav).getByText('Documents & AI')).toBeInTheDocument();
+    expect(within(nav).getByText('Outcome')).toBeInTheDocument();
+  });
+
+  it('opens on the section named in the URL', async () => {
+    searchStore.set({ section: 'offers' });
+    respond();
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+
+    await waitFor(() => expect(screen.getByText('Offer comparison')).toBeInTheDocument());
+    // ...and not on the default section.
+    expect(screen.queryByPlaceholderText(/add a note/i)).not.toBeInTheDocument();
+  });
+
+  it('puts the chosen section in the URL rather than in component state', async () => {
+    respond();
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+    await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+    fireEvent.click(
+      within(screen.getByLabelText('Section navigation')).getByRole('button', {
+        name: /interviews/i,
+      }),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      to: '/applications/$applicationId',
+      params: { applicationId: 'app-test-id' },
+      search: { section: 'interviews' },
+    });
+    expect(searchStore.get()).toEqual({ section: 'interviews' });
+  });
+
+  it('leaves the section, not the application, when the phone back button is used', async () => {
+    searchStore.set({ section: 'interviews' });
+    respond();
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+    await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back to sections' }));
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      to: '/applications/$applicationId',
+      params: { applicationId: 'app-test-id' },
+      search: {},
+    });
+    expect(searchStore.get()).toEqual({});
+  });
+
+  it('falls back to Notes when the URL names no section', async () => {
+    respond();
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+
+    await waitFor(() => expect(screen.getByPlaceholderText(/add a note/i)).toBeInTheDocument());
+  });
+
+  it('stars the application from the actions sheet', async () => {
+    respond((query) =>
+      query.includes('UpdateApplication')
+        ? Promise.resolve({ updateApplication: { id: 'app-test-id', starred: true } })
+        : undefined,
+    );
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+    await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Star' }));
+
+    await waitFor(() =>
+      expect(mockGqlRequest).toHaveBeenCalledWith(
+        expect.stringContaining('UpdateApplication'),
+        expect.objectContaining({ id: 'app-test-id', input: { starred: true } }),
+      ),
+    );
+    // The sheet closes behind the action rather than sitting over the page.
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('changes status from the actions sheet, showing the current one as chosen', async () => {
+    respond((query) =>
+      query.includes('UpdateApplication')
+        ? Promise.resolve({
+            updateApplication: { id: 'app-test-id', starred: false, status: 'interviewing' },
+          })
+        : undefined,
+    );
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+    await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    const sheet = () => screen.getByRole('dialog');
+    fireEvent.click(within(sheet()).getByRole('button', { name: /change status/i }));
+
+    // The status it is already on is marked, not offered as a change.
+    expect(within(sheet()).getByRole('button', { name: 'Applied' })).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
+
+    fireEvent.click(within(sheet()).getByRole('button', { name: 'Interviewing' }));
+
+    await waitFor(() =>
+      expect(mockGqlRequest).toHaveBeenCalledWith(
+        expect.stringContaining('UpdateApplication'),
+        expect.objectContaining({ id: 'app-test-id', input: { status: 'interviewing' } }),
+      ),
+    );
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('reopens the actions sheet on its first pane, not on the status list', async () => {
+    respond();
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+    await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: /change status/i }),
+    );
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Applied' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    expect(
+      within(screen.getByRole('dialog')).getByRole('button', { name: /change status/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('offers an edit link from the actions sheet', async () => {
+    respond();
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+    await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }));
+
+    expect(within(screen.getByRole('dialog')).getByRole('link', { name: 'Edit' })).toHaveAttribute(
+      'href',
+      '/applications/$applicationId/edit/app-test-id',
+    );
+  });
+
+  it('refreshes the counts when a note is added, so a badge cannot go stale', async () => {
+    respond((query) =>
+      query.includes('CreateNote')
+        ? Promise.resolve({
+            createNote: {
+              id: 'note-2',
+              applicationId: 'app-test-id',
+              content: 'New note',
+              createdAt: '2024-01-03T00:00:00.000Z',
+              updatedAt: '2024-01-03T00:00:00.000Z',
+            },
+          })
+        : undefined,
+    );
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+    await waitFor(() => expect(screen.getByText('Stripe')).toBeInTheDocument());
+
+    const countsCalls = () =>
+      mockGqlRequest.mock.calls.filter(([q]) => String(q).includes('ApplicationSectionCounts'))
+        .length;
+    await waitFor(() => expect(countsCalls()).toBe(1));
+
+    fireEvent.change(screen.getByPlaceholderText(/add a note/i), {
+      target: { value: 'New note content' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /add note/i }));
+
+    await waitFor(() => expect(countsCalls()).toBe(2));
+  });
+
+  it('does not ask for counts on a trashed application', async () => {
+    mockGqlRequest.mockResolvedValue({
+      application: { ...mockApp, deletedAt: '2026-08-15T12:00:00.000Z' },
+    });
+    render(<ApplicationDetailPage />, { wrapper: Wrapper });
+
+    await waitFor(() =>
+      expect(screen.getByText('This application is in Trash')).toBeInTheDocument(),
+    );
+    const queries = mockGqlRequest.mock.calls.map(([query]) => String(query));
+    expect(queries.some((q) => q.includes('ApplicationSectionCounts'))).toBe(false);
+  });
+});
+
 describe('ApplicationDetailPage — trashed application', () => {
   const trashedApp = {
     ...mockApp,
@@ -558,6 +822,7 @@ describe('ApplicationDetailPage — trashed application', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    searchStore.set({});
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.setSystemTime(new Date('2026-08-20T12:00:00.000Z'));
   });

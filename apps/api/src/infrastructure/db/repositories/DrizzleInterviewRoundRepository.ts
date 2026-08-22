@@ -1,4 +1,4 @@
-import { eq, asc, and, gt, lte, isNull } from 'drizzle-orm';
+import { eq, asc, and, gt, lte, isNull, sql } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
 import { interviewRound, jobApplication } from '../schema.js';
 import type {
@@ -23,6 +23,14 @@ export class DrizzleInterviewRoundRepository implements IInterviewRoundRepositor
 
   private get db(): DrizzleClient {
     return getClient(this.database);
+  }
+
+  async countByApplicationId(applicationId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(interviewRound)
+      .where(eq(interviewRound.applicationId, applicationId));
+    return Number(row?.count ?? 0);
   }
 
   async findAllByApplicationId(applicationId: string): Promise<InterviewRound[]> {
