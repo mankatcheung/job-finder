@@ -76,6 +76,21 @@ test.describe('Account settings', () => {
     await expect(passwordSection.getByText('Passwords do not match')).toBeVisible();
   });
 
+  test('shows an error and keeps the account when deleting with the wrong password', async ({
+    page,
+  }) => {
+    await page.goto('/settings/danger-zone');
+    const dangerSection = page.locator('section').filter({ hasText: 'Danger zone' });
+    await dangerSection.getByPlaceholder('••••••••').fill('wrongpassword');
+    await dangerSection.getByRole('button', { name: /delete my account/i }).click();
+
+    await expect(dangerSection.locator('p.text-red-600')).toBeVisible();
+    // Never left the page, and the account still works.
+    await expect(page).toHaveURL(/danger-zone/);
+    await page.reload();
+    await expect(page).toHaveURL(/danger-zone/);
+  });
+
   test('deletes account, clears session, and redirects to /login', async ({ page }) => {
     await page.goto('/settings/danger-zone');
     const dangerSection = page.locator('section').filter({ hasText: 'Danger zone' });
@@ -86,6 +101,34 @@ test.describe('Account settings', () => {
 
     // Verify session is gone — trying to access dashboard redirects to login
     await page.goto('/dashboard');
+    await expect(page).toHaveURL(/login/);
+  });
+
+  test('a deleted account can no longer log in with its old credentials', async ({ page }) => {
+    const email = uniqueEmail('to-be-deleted');
+    // Independent of the shared beforeEach's account — this test deletes its
+    // own throwaway account and then proves it, rather than reusing one
+    // another test in this file also tears down. /register redirects an
+    // already-authenticated visitor away, so sign out of beforeEach's
+    // account first.
+    await page.getByRole('button', { name: /sign out/i }).click();
+    await expect(page).toHaveURL(/login/);
+    // Wait for /login to actually settle before navigating away again — an
+    // immediate goto('/register') can race the logout redirect and abort.
+    await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
+    await registerAndLogin(page, { email, password });
+
+    await page.goto('/settings/danger-zone');
+    const dangerSection = page.locator('section').filter({ hasText: 'Danger zone' });
+    await dangerSection.getByPlaceholder('••••••••').fill(password);
+    await dangerSection.getByRole('button', { name: /delete my account/i }).click();
+    await expect(page).toHaveURL(/login/);
+
+    await page.getByPlaceholder('you@example.com').fill(email);
+    await page.getByPlaceholder('••••••••').fill(password);
+    await page.getByRole('button', { name: /sign in/i }).click();
+
+    await expect(page.locator('p.text-red-600')).toBeVisible();
     await expect(page).toHaveURL(/login/);
   });
 });
