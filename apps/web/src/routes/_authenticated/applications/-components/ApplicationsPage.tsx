@@ -355,7 +355,11 @@ function BulkActionBar({
   };
 
   return (
-    <div className="fixed bottom-16 lg:bottom-4 inset-x-0 z-40 flex justify-center px-4">
+    // bottom-16 at every breakpoint (was lg:bottom-4 on desktop): the chat
+    // dock's own persistent footer bar (-chat-dock-footer.tsx) is fixed
+    // bottom-0, h-12 (48px), same z-40 — bottom-4 overlapped it, so its
+    // buttons intercepted clicks meant for this bar's own buttons.
+    <div className="fixed bottom-16 inset-x-0 z-40 flex justify-center px-4">
       <div className="flex flex-wrap items-center gap-2 px-4 py-3 bg-gray-900 dark:bg-gray-700 text-white rounded-xl shadow-lg max-w-full">
         <span className="text-sm font-medium pr-1">
           {t('applications.selectedCount', { count: ids.length })}
