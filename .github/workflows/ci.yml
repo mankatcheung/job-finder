@@ -1,7 +1,8 @@
 name: CI & Deploy
 
 # Consolidated workflow: CI runs for every PR and push to main. On push to
-# main, deploy-api and deploy-web run only after quality and build-test pass.
+# main, deploy-api and deploy-web run only after quality, build-test, and
+# e2e all pass.
 #
 # Why three files became one:
 #   - Removed duplicate test gates (CI tests once, deploy reuses result)
@@ -92,7 +93,7 @@ jobs:
       - run: pnpm test
 
   e2e:
-    name: Playwright E2E (soft-launch)
+    name: Playwright E2E
     needs: [quality, build-test]
     runs-on: ubuntu-latest
     steps:
@@ -169,7 +170,7 @@ jobs:
 
   deploy-api:
     name: Deploy api to Vercel
-    needs: [quality, build-test, migrate-db]
+    needs: [quality, build-test, migrate-db, e2e]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -185,7 +186,7 @@ jobs:
 
   deploy-web:
     name: Deploy web to Vercel
-    needs: [quality, build-test]
+    needs: [quality, build-test, e2e]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
