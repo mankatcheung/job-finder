@@ -708,6 +708,7 @@
   "notificationInbox.loadFailed": "Failed to load notifications.",
   "notificationInbox.allCaughtUp": "You're all caught up.",
   "notificationInbox.selectNotificationAria": "Select {{title}}",
+  "notificationInbox.viewAll": "View all notifications",
   "responseTime.title": "Time to respond",
   "responseTime.description": "How long applications typically sit in each stage, and how long it takes to hear back after applying.",
   "responseTime.firstResponseLabel": "Time to first response",

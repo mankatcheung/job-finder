@@ -26,6 +26,7 @@ import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics';
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar';
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard';
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications';
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route';
 import { Route as OauthAuthorizeRouteImport } from './routes/oauth/authorize';
 import { Route as AuthenticatedApplicationsIndexRouteImport } from './routes/_authenticated/applications/index';
@@ -134,6 +135,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any);
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any);
 const AuthenticatedSettingsRouteRoute =
   AuthenticatedSettingsRouteRouteImport.update({
     id: '/settings',
@@ -289,6 +296,7 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AuthenticatedAnalyticsRoute;
   '/calendar': typeof AuthenticatedCalendarRoute;
   '/dashboard': typeof AuthenticatedDashboardRoute;
+  '/notifications': typeof AuthenticatedNotificationsRoute;
   '/oauth/authorize': typeof OauthAuthorizeRoute;
   '/applications/board': typeof AuthenticatedApplicationsBoardRoute;
   '/applications/new': typeof AuthenticatedApplicationsNewRoute;
@@ -329,6 +337,7 @@ export interface FileRoutesByTo {
   '/analytics': typeof AuthenticatedAnalyticsRoute;
   '/calendar': typeof AuthenticatedCalendarRoute;
   '/dashboard': typeof AuthenticatedDashboardRoute;
+  '/notifications': typeof AuthenticatedNotificationsRoute;
   '/oauth/authorize': typeof OauthAuthorizeRoute;
   '/applications/board': typeof AuthenticatedApplicationsBoardRoute;
   '/applications/new': typeof AuthenticatedApplicationsNewRoute;
@@ -372,6 +381,7 @@ export interface FileRoutesById {
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute;
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute;
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute;
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute;
   '/oauth/authorize': typeof OauthAuthorizeRoute;
   '/_authenticated/applications/board': typeof AuthenticatedApplicationsBoardRoute;
   '/_authenticated/applications/new': typeof AuthenticatedApplicationsNewRoute;
@@ -415,6 +425,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/calendar'
     | '/dashboard'
+    | '/notifications'
     | '/oauth/authorize'
     | '/applications/board'
     | '/applications/new'
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/calendar'
     | '/dashboard'
+    | '/notifications'
     | '/oauth/authorize'
     | '/applications/board'
     | '/applications/new'
@@ -497,6 +509,7 @@ export interface FileRouteTypes {
     | '/_authenticated/analytics'
     | '/_authenticated/calendar'
     | '/_authenticated/dashboard'
+    | '/_authenticated/notifications'
     | '/oauth/authorize'
     | '/_authenticated/applications/board'
     | '/_authenticated/applications/new'
@@ -657,6 +670,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard';
       fullPath: '/dashboard';
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport;
+      parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications';
+      path: '/notifications';
+      fullPath: '/notifications';
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport;
       parentRoute: typeof AuthenticatedRouteRoute;
     };
     '/_authenticated/settings': {
@@ -861,6 +881,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute;
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute;
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute;
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute;
   AuthenticatedApplicationsBoardRoute: typeof AuthenticatedApplicationsBoardRoute;
   AuthenticatedApplicationsNewRoute: typeof AuthenticatedApplicationsNewRoute;
   AuthenticatedApplicationsTrashRoute: typeof AuthenticatedApplicationsTrashRoute;
@@ -881,6 +902,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedApplicationsBoardRoute: AuthenticatedApplicationsBoardRoute,
   AuthenticatedApplicationsNewRoute: AuthenticatedApplicationsNewRoute,
   AuthenticatedApplicationsTrashRoute: AuthenticatedApplicationsTrashRoute,

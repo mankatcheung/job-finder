@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 
 const { mockGqlRequest } = vi.hoisted(() => ({
   mockGqlRequest: vi.fn(),
@@ -10,7 +11,22 @@ vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
 }));
 
-import { NotificationInboxButton } from '#/routes/_authenticated/-notification-inbox';
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    children,
+    to,
+    ...rest
+  }: { children: ReactNode; to: string } & Record<string, unknown>) => (
+    <a href={to} {...rest}>
+      {children}
+    </a>
+  ),
+}));
+
+import {
+  NotificationInboxButton,
+  NotificationInboxLink,
+} from '#/routes/_authenticated/-notification-inbox';
 
 const makeClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
@@ -38,24 +54,62 @@ const notification2 = {
   createdAt: new Date().toISOString(),
 };
 
-describe('NotificationInboxButton', () => {
+function mockResponses({
+  unreadCount = 2,
+  items = [notification1, notification2],
+}: {
+  unreadCount?: number;
+  items?: (typeof notification1)[];
+} = {}) {
+  mockGqlRequest.mockImplementation((query: string) => {
+    if (query.includes('UnreadNotificationCount')) {
+      return Promise.resolve({ unreadNotificationCount: unreadCount });
+    }
+    if (query.includes('NotificationsPage')) {
+      return Promise.resolve({
+        notificationsPage: { hasNextPage: false, nextCursor: null, items },
+      });
+    }
+    return Promise.resolve({});
+  });
+}
+
+describe('NotificationInboxLink (mobile)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGqlRequest.mockImplementation((query: string) => {
-      if (query.includes('UnreadNotificationCount')) {
-        return Promise.resolve({ unreadNotificationCount: 2 });
-      }
-      if (query.includes('NotificationsPage')) {
-        return Promise.resolve({
-          notificationsPage: {
-            hasNextPage: false,
-            nextCursor: null,
-            items: [notification1, notification2],
-          },
-        });
-      }
-      return Promise.resolve({});
+    mockResponses();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('links directly to the notifications page', async () => {
+    render(<NotificationInboxLink />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: /2 unread/i })).toHaveAttribute(
+        'href',
+        '/notifications',
+      );
     });
+  });
+
+  it('has a plain aria-label with no unread count when there are no unread notifications', async () => {
+    mockResponses({ unreadCount: 0 });
+
+    render(<NotificationInboxLink />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: 'Notifications' })).toBeInTheDocument();
+    });
+  });
+});
+
+describe('NotificationInboxButton (desktop popover)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockResponses();
   });
 
   afterEach(() => {
@@ -70,40 +124,44 @@ describe('NotificationInboxButton', () => {
     });
   });
 
-  it('does not show an unread badge when there are no unread notifications', async () => {
-    mockGqlRequest.mockImplementation((query: string) => {
-      if (query.includes('UnreadNotificationCount')) {
-        return Promise.resolve({ unreadNotificationCount: 0 });
-      }
-      return Promise.resolve({ notificationsPage: { hasNextPage: false, items: [] } });
-    });
-
-    render(<NotificationInboxButton />, { wrapper: Wrapper });
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Notifications' })).toBeInTheDocument();
-    });
-  });
-
-  it('opens the panel and lists notifications on click', async () => {
+  it('opens a popover listing notifications on click, capped at 5', async () => {
     render(<NotificationInboxButton />, { wrapper: Wrapper });
     await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
 
     fireEvent.click(screen.getByRole('button', { name: /notifications/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Upcoming interview: Acme')).toBeInTheDocument();
+      expect(mockGqlRequest).toHaveBeenCalledWith(
+        expect.stringContaining('NotificationsPage'),
+        expect.objectContaining({ limit: 5 }),
+      );
     });
+    expect(await screen.findByText('Upcoming interview: Acme')).toBeInTheDocument();
     expect(screen.getByText('New sign-in detected')).toBeInTheDocument();
   });
 
-  it('shows an empty state when there are no notifications', async () => {
-    mockGqlRequest.mockImplementation((query: string) => {
-      if (query.includes('UnreadNotificationCount')) {
-        return Promise.resolve({ unreadNotificationCount: 0 });
-      }
-      return Promise.resolve({ notificationsPage: { hasNextPage: false, items: [] } });
+  it('links to the full notifications page', async () => {
+    render(<NotificationInboxButton />, { wrapper: Wrapper });
+    fireEvent.click(await screen.findByRole('button', { name: /notifications/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: 'View all notifications' })).toHaveAttribute(
+        'href',
+        '/notifications',
+      );
     });
+  });
+
+  it('does not show bulk-select checkboxes in the popover', async () => {
+    render(<NotificationInboxButton />, { wrapper: Wrapper });
+    fireEvent.click(await screen.findByRole('button', { name: /notifications/i }));
+    await screen.findByText('Upcoming interview: Acme');
+
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  });
+
+  it('shows an empty state when there are no notifications', async () => {
+    mockResponses({ unreadCount: 0, items: [] });
 
     render(<NotificationInboxButton />, { wrapper: Wrapper });
     fireEvent.click(await screen.findByRole('button', { name: /notifications/i }));
@@ -113,7 +171,7 @@ describe('NotificationInboxButton', () => {
     });
   });
 
-  it('closes the panel on Escape', async () => {
+  it('closes the popover on Escape', async () => {
     render(<NotificationInboxButton />, { wrapper: Wrapper });
     fireEvent.click(await screen.findByRole('button', { name: /notifications/i }));
     await screen.findByText('Upcoming interview: Acme');
@@ -125,53 +183,21 @@ describe('NotificationInboxButton', () => {
     });
   });
 
-  it('closes the panel via the close button', async () => {
-    render(<NotificationInboxButton />, { wrapper: Wrapper });
+  it('closes the popover when clicking outside', async () => {
+    render(
+      <div>
+        <div data-testid="outside">outside</div>
+        <NotificationInboxButton />
+      </div>,
+      { wrapper: Wrapper },
+    );
     fireEvent.click(await screen.findByRole('button', { name: /notifications/i }));
     await screen.findByText('Upcoming interview: Acme');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    fireEvent.mouseDown(screen.getByTestId('outside'));
 
     await waitFor(() => {
       expect(screen.queryByText('Upcoming interview: Acme')).not.toBeInTheDocument();
-    });
-  });
-
-  it('selects all and marks them read via the bulk toolbar', async () => {
-    render(<NotificationInboxButton />, { wrapper: Wrapper });
-    fireEvent.click(await screen.findByRole('button', { name: /notifications/i }));
-    await screen.findByText('Upcoming interview: Acme');
-
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Select all' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Mark read' }));
-
-    await waitFor(() => {
-      expect(mockGqlRequest).toHaveBeenCalledWith(
-        expect.stringContaining('MarkNotificationsRead'),
-        {
-          ids: ['n-1', 'n-2'],
-          isRead: true,
-        },
-      );
-    });
-  });
-
-  it('marks unread via the bulk toolbar', async () => {
-    render(<NotificationInboxButton />, { wrapper: Wrapper });
-    fireEvent.click(await screen.findByRole('button', { name: /notifications/i }));
-    await screen.findByText('Upcoming interview: Acme');
-
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Select New sign-in detected' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Mark unread' }));
-
-    await waitFor(() => {
-      expect(mockGqlRequest).toHaveBeenCalledWith(
-        expect.stringContaining('MarkNotificationsRead'),
-        {
-          ids: ['n-2'],
-          isRead: false,
-        },
-      );
     });
   });
 
