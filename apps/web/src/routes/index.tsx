@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { hasSessionCookie } from '#/graphql/client';
 import { LogoMark } from '#/components/LogoMark';
 import { useLocale } from '#/lib/i18n';
@@ -19,6 +19,9 @@ export const Route = createFileRoute('/')({
   // server can ever see — the auth check can only run client-side. ssr:
   // false keeps the browser-only session hint out of the server render.
   ssr: false,
+  beforeLoad: () => {
+    if (hasSessionCookie()) throw redirect({ to: '/dashboard' });
+  },
   component: LandingPage,
 });
 
