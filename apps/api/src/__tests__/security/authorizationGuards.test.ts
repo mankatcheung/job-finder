@@ -16,6 +16,8 @@ import {
   makeEmailVerificationTokenRepository,
   makeRateLimiter,
   makeSecurityEventRepository,
+  makeDocumentRepository,
+  makeStorageProvider,
 } from '#src/__tests__/helpers/mocks.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 
@@ -62,6 +64,15 @@ const makeUpdatePasswordDeps = (overrides?: {
   ...overrides,
 });
 
+const makeDeleteAccountDeps = (overrides?: {
+  userRepository: ReturnType<typeof makeUserRepository>;
+}) => ({
+  userRepository: makeUserRepository(),
+  documentRepository: makeDocumentRepository({ findAllByUserId: vi.fn().mockResolvedValue([]) }),
+  storageProvider: makeStorageProvider(),
+  ...overrides,
+});
+
 describe('Authorization guards', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -89,7 +100,9 @@ describe('Authorization guards', () => {
     });
 
     it('DeleteAccountUseCase', async () => {
-      const err = await new DeleteAccountUseCase({ userRepository: notFound })
+      const err = await new DeleteAccountUseCase(
+        makeDeleteAccountDeps({ userRepository: notFound }),
+      )
         .execute({ userId: 'x', password: 'p' })
         .catch((e) => e);
       expect((err as { code: string }).code).toBe('NOT_FOUND');
@@ -124,7 +137,7 @@ describe('Authorization guards', () => {
     });
 
     it('DeleteAccountUseCase does not delete on wrong password', async () => {
-      const err = await new DeleteAccountUseCase({ userRepository: repo })
+      const err = await new DeleteAccountUseCase(makeDeleteAccountDeps({ userRepository: repo }))
         .execute({ userId: 'user-1', password: 'wrong' })
         .catch((e) => e);
 
@@ -164,7 +177,7 @@ describe('Authorization guards', () => {
       vi.mocked(bcrypt.compare).mockResolvedValue(RIGHT_PW);
 
       await expect(
-        new DeleteAccountUseCase({ userRepository: repo }).execute({
+        new DeleteAccountUseCase(makeDeleteAccountDeps({ userRepository: repo })).execute({
           userId: 'user-1',
           password: 'correct',
         }),
