@@ -5,6 +5,8 @@ import {
 } from '#src/use-cases/errors/DomainError.js';
 import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentRepository.js';
+import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
 import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
 import { isSessionFresh } from '#src/use-cases/auth/sessionFreshness.js';
 import type {
@@ -14,6 +16,8 @@ import type {
 
 interface Deps {
   userRepository: IUserRepository;
+  documentRepository: IDocumentRepository;
+  storageProvider: IStorageProvider;
 }
 
 export class DeleteAccountUseCase implements IDeleteAccountUseCase {
@@ -30,6 +34,12 @@ export class DeleteAccountUseCase implements IDeleteAccountUseCase {
     if (user.totpEnabled && !isSessionFresh(input.authTime)) {
       throw new StepUpRequiredError('Please verify your identity again to continue.');
     }
+
+    // Blobs before rows, same as PermanentlyDeleteApplicationUseCase: once
+    // the user row cascades away, the documents' storage keys go with it,
+    // and nothing would ever notice the orphaned files left behind.
+    const documents = await this.deps.documentRepository.findAllByUserId(input.userId);
+    await this.deps.storageProvider.deleteMany(documents.map((doc) => doc.storageKey));
 
     await this.deps.userRepository.delete(input.userId);
   }
