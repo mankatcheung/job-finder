@@ -90,6 +90,7 @@
   "auth.termsAgreementPrefix": "创建账户即表示您同意我们的",
   "auth.termsOfService": "服务条款",
   "auth.privacyPolicy": "隐私政策",
+  "auth.accessibility": "无障碍",
   "auth.and": "和",
   "auth.termsAgreementSuffix": "。",
   "landing.signIn": "登录",

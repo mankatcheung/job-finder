@@ -7,8 +7,8 @@ interface LegalFooterLinksProps {
 }
 
 /**
- * Privacy/Terms/Cookie-preferences links, shared by every page that isn't
- * the landing page (which has its own footer with the same three links
+ * Privacy/Terms/Accessibility/Cookie-preferences links, shared by every page
+ * that isn't the landing page (which has its own footer with the same links
  * inline) — /login and the authenticated app shell both use this so the
  * links are reachable everywhere, not just from `/` and `/register`.
  */
@@ -27,6 +27,9 @@ export function LegalFooterLinks({ className }: LegalFooterLinksProps) {
       </Link>
       <Link to="/terms" className="hover:text-gray-600 dark:hover:text-gray-300">
         {t('auth.termsOfService')}
+      </Link>
+      <Link to="/accessibility" className="hover:text-gray-600 dark:hover:text-gray-300">
+        {t('auth.accessibility')}
       </Link>
       <button
         type="button"
