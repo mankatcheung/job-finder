@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { hasSessionCookie } from '#/graphql/client';
 import { LogoMark } from '#/components/LogoMark';
+import { LegalFooterLinks } from '#/components/LegalFooterLinks';
 import { useLocale } from '#/lib/i18n';
-import { requestOpenCookiePreferences } from '#/lib/cookieConsent';
 import {
   LayoutDashboard,
   BarChart3,
@@ -288,51 +288,33 @@ export function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-gray-200 dark:border-gray-800">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+          <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-between">
             <div className="flex items-center gap-2">
               <LogoMark size={20} />
               <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                 Trakwyn
               </span>
             </div>
-            <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-              <Link
-                to={authLink}
-                className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-              >
-                {authLabel}
-              </Link>
-              <Link
-                to="/register"
-                className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-              >
-                {t('auth.register')}
-              </Link>
-              <Link
-                to="/privacy"
-                className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-              >
-                {t('auth.privacyPolicy')}
-              </Link>
-              <Link
-                to="/terms"
-                className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-              >
-                {t('auth.termsOfService')}
-              </Link>
-              <Link
-                to="/accessibility"
-                className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-              >
-                {t('auth.accessibility')}
-              </Link>
-              <button
-                type="button"
-                onClick={requestOpenCookiePreferences}
-                className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-              >
-                {t('cookieConsent.footerLink')}
-              </button>
+
+            <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
+              <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+                <Link
+                  to={authLink}
+                  className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                >
+                  {authLabel}
+                </Link>
+                <Link
+                  to="/register"
+                  className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                >
+                  {t('auth.register')}
+                </Link>
+              </div>
+
+              <div className="h-px w-32 bg-gray-200 dark:bg-gray-800 sm:h-4 sm:w-px" />
+
+              <LegalFooterLinks className="flex max-w-xs flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-gray-500 dark:text-gray-400 sm:max-w-none" />
             </div>
           </div>
         </div>

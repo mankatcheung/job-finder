@@ -125,4 +125,27 @@ describe('AuthenticatedLayout', () => {
         .every((l) => l.getAttribute('href') === '/terms'),
     ).toBe(true);
   });
+
+  it('links to Accessibility and Cookie preferences from the desktop sidebar footer', () => {
+    render(<AuthenticatedLayout />, { wrapper: Wrapper });
+
+    expect(screen.getByRole('link', { name: 'Accessibility' })).toHaveAttribute(
+      'href',
+      '/accessibility',
+    );
+    expect(screen.getByRole('button', { name: 'Cookie preferences' })).toBeInTheDocument();
+  });
+
+  it('shows all four legal links in the mobile sidebar drawer too', () => {
+    render(<AuthenticatedLayout />, { wrapper: Wrapper });
+
+    fireEvent.click(screen.getByRole('button', { name: /open menu/i }));
+
+    // Now present in both the mobile drawer and the (CSS-hidden, but still
+    // DOM-present) desktop sidebar, so two of each.
+    expect(screen.getAllByRole('link', { name: 'Privacy Policy' })).toHaveLength(2);
+    expect(screen.getAllByRole('link', { name: 'Terms of Service' })).toHaveLength(2);
+    expect(screen.getAllByRole('link', { name: 'Accessibility' })).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: 'Cookie preferences' })).toHaveLength(2);
+  });
 });

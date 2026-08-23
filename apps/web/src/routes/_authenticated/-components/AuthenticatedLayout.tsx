@@ -212,7 +212,7 @@ export function AuthenticatedLayout() {
                 <LogOutIcon size={18} />
                 {t('nav.signOut')}
               </button>
-              <LegalFooterLinks className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 pt-2 text-[10px] text-gray-500 dark:text-gray-400" />
+              <LegalFooterLinks className="mt-3 flex flex-col gap-1.5 border-t border-gray-100 px-3 pt-3 text-left [&>button]:text-left text-[11px] text-gray-500 dark:border-gray-700 dark:text-gray-400" />
             </div>
           </aside>
         )}
@@ -299,7 +299,7 @@ export function AuthenticatedLayout() {
                 {t('nav.signOut')}
               </button>
             </div>
-            <LegalFooterLinks className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 pt-2 text-[10px] text-gray-500 dark:text-gray-400" />
+            <LegalFooterLinks className="mt-3 flex flex-col gap-1.5 border-t border-gray-100 px-3 pt-3 text-left [&>button]:text-left text-[11px] text-gray-500 dark:border-gray-700 dark:text-gray-400" />
           </div>
         </aside>
 
