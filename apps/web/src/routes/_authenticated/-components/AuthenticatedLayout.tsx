@@ -11,7 +11,7 @@ import { LegalFooterLinks } from '#/components/LegalFooterLinks';
 import { ChatDockProvider } from '#/lib/chatDock';
 import { ChatDockFooter } from '../-chat-dock-footer';
 import { ChatDockFloatingWindow } from '../-chat-dock-floating-window';
-import { NotificationInboxButton } from '../-notification-inbox';
+import { NotificationInboxButton, NotificationInboxLink } from '../-notification-inbox';
 import { useLocale } from '#/lib/i18n';
 import {
   BarChart2Icon,
@@ -232,7 +232,7 @@ export function AuthenticatedLayout() {
               Trakwyn
             </span>
           </div>
-          <NotificationInboxButton />
+          <NotificationInboxLink />
         </header>
 
         {/* Desktop sidebar */}

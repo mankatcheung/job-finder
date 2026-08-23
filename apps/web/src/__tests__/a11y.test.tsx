@@ -22,8 +22,14 @@ vi.mock('@tanstack/react-router', () => ({
   useChildMatches: () => [{ routeId: '/_authenticated/dashboard' }],
   redirect: vi.fn(),
   Outlet: () => <div data-testid="outlet" />,
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
+  Link: ({
+    children,
+    to,
+    ...rest
+  }: { children: React.ReactNode; to: string } & Record<string, unknown>) => (
+    <a href={to} {...rest}>
+      {children}
+    </a>
   ),
 }));
 

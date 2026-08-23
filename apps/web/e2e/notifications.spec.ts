@@ -25,15 +25,29 @@ test.describe('Notifications', () => {
     await expect(secondPage).toHaveURL(/dashboard/);
     await secondDeviceContext.close();
 
-    // Back on the first session: open the inbox and find the alert.
+    // Back on the first session: open the popover and find the alert (JEF-218
+    // — the bell now opens a compact popover, not the full inbox; bulk
+    // actions live on the /notifications page it links to).
     await page.getByRole('button', { name: /notifications/i }).click();
     await expect(page.getByText('New sign-in detected')).toBeVisible();
     await expect(page.getByText('Unknown device signed in')).toBeVisible();
+    await expect(page.getByRole('checkbox')).toHaveCount(0);
+
+    await page.getByRole('link', { name: 'View all notifications' }).click();
+    await expect(page).toHaveURL(/notifications$/);
+    // Generous timeout: this is the first time this test's fresh browser
+    // context requests the /notifications route chunk, and under a heavily
+    // loaded local dev server that on-demand Vite compile can outrun a
+    // default-length assertion — a production build (what CI actually runs
+    // against) has no such compile step.
+    await expect(page.getByRole('heading', { name: 'Notifications' })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    // Mark it read via the bulk-action bar and confirm the page stays put
+    // and doesn't navigate away (JEF-125).
     const checkbox = page.getByRole('checkbox', { name: 'Select New sign-in detected' });
     await expect(checkbox).toBeVisible();
-
-    // Mark it read via the bulk-action bar and confirm the panel stays open
-    // and doesn't navigate away (JEF-125).
     await checkbox.check();
     await page.getByRole('button', { name: 'Mark read' }).click();
     await expect(page).not.toHaveURL(/applications/);

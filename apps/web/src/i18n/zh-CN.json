@@ -694,6 +694,7 @@
   "notificationInbox.loadFailed": "加载通知失败。",
   "notificationInbox.allCaughtUp": "全部处理完毕。",
   "notificationInbox.selectNotificationAria": "选择 {{title}}",
+  "notificationInbox.viewAll": "查看所有通知",
   "responseTime.title": "响应时间",
   "responseTime.description": "求职申请在每个阶段通常停留的时长，以及申请后收到回复所需的时长。",
   "responseTime.firstResponseLabel": "首次回复时间",
