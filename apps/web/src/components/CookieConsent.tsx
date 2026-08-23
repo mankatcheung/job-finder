@@ -117,7 +117,7 @@ export function CookieConsent() {
         title={t('cookieConsent.preferencesTitle')}
         size="sm"
       >
-        <div className="space-y-4">
+        <div className="space-y-4 p-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {t('cookieConsent.preferencesDescription')}
           </p>
