@@ -8,6 +8,7 @@ import { queryClient } from '#/lib/queryClient';
 import { OAuthButtons } from '#/components/OAuthButtons';
 import { getErrorMessage } from '#/lib/errors';
 import { LogoMark } from '#/components/LogoMark';
+import { LegalFooterLinks } from '#/components/LegalFooterLinks';
 import { useLocale } from '#/lib/i18n';
 import { oauthErrorKey } from '#/lib/oauthError';
 import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
@@ -164,6 +165,7 @@ export function LoginPage() {
 
           <OAuthButtons label={t('auth.signIn')} returnTo={returnTo} />
         </div>
+        <LegalFooterLinks />
       </div>
     </main>
   );

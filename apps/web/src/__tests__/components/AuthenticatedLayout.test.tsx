@@ -110,4 +110,19 @@ describe('AuthenticatedLayout', () => {
       ).toBe(true);
     });
   });
+
+  it('links to the Privacy Policy and Terms of Service from the sidebar', () => {
+    render(<AuthenticatedLayout />, { wrapper: Wrapper });
+
+    expect(
+      screen
+        .getAllByRole('link', { name: 'Privacy Policy' })
+        .every((l) => l.getAttribute('href') === '/privacy'),
+    ).toBe(true);
+    expect(
+      screen
+        .getAllByRole('link', { name: 'Terms of Service' })
+        .every((l) => l.getAttribute('href') === '/terms'),
+    ).toBe(true);
+  });
 });

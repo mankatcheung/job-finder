@@ -244,4 +244,17 @@ describe('LoginPage', () => {
 
     expect(screen.getByText(/cancelled the sign-in/i)).toBeInTheDocument();
   });
+
+  it('links to the Privacy Policy and Terms of Service', () => {
+    render(<LoginPage />);
+
+    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute(
+      'href',
+      '/privacy',
+    );
+    expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute(
+      'href',
+      '/terms',
+    );
+  });
 });

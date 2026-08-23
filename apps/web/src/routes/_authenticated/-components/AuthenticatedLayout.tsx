@@ -7,6 +7,7 @@ import { useHotkeys, getKeyModifier } from '#/hooks/useHotkeys';
 import { CommandPalette } from '#/components/CommandPalette';
 import { ShortcutCheatSheet } from '#/components/ShortcutCheatSheet';
 import { LogoMark } from '#/components/LogoMark';
+import { LegalFooterLinks } from '#/components/LegalFooterLinks';
 import { ChatDockProvider } from '#/lib/chatDock';
 import { ChatDockFooter } from '../-chat-dock-footer';
 import { ChatDockFloatingWindow } from '../-chat-dock-floating-window';
@@ -211,6 +212,7 @@ export function AuthenticatedLayout() {
                 <LogOutIcon size={18} />
                 {t('nav.signOut')}
               </button>
+              <LegalFooterLinks className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 pt-2 text-[10px] text-gray-500 dark:text-gray-400" />
             </div>
           </aside>
         )}
@@ -297,6 +299,7 @@ export function AuthenticatedLayout() {
                 {t('nav.signOut')}
               </button>
             </div>
+            <LegalFooterLinks className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 pt-2 text-[10px] text-gray-500 dark:text-gray-400" />
           </div>
         </aside>
 
