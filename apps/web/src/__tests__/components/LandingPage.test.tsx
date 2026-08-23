@@ -2,14 +2,14 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
-const { mockHasSessionCookie, mockRedirect } = vi.hoisted(() => ({
+const { mockHasSessionCookie, mockNavigate } = vi.hoisted(() => ({
   mockHasSessionCookie: vi.fn(),
-  mockRedirect: vi.fn((opts: unknown) => opts),
+  mockNavigate: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => (options: object) => options,
-  redirect: mockRedirect,
+  useNavigate: () => mockNavigate,
   Link: ({ children, to }: { children: ReactNode; to: string }) => <a href={to}>{children}</a>,
 }));
 
@@ -30,7 +30,7 @@ vi.mock('#/lib/i18n', () => ({
   }),
 }));
 
-import { LandingPage, Route } from '#/routes/index';
+import { LandingPage } from '#/routes/index';
 
 describe('LandingPage', () => {
   beforeEach(() => {
@@ -75,29 +75,22 @@ describe('LandingPage', () => {
       '/terms',
     );
   });
-});
 
-describe('index route beforeLoad', () => {
-  // The mocked createFileRoute() (unlike the real one) returns the raw
-  // options object, so `beforeLoad` lives directly on `Route` at runtime —
-  // not under `Route.options` as the real type would suggest.
-  const { beforeLoad } = Route as unknown as { beforeLoad: () => void };
+  describe('already-logged-in redirect', () => {
+    it('navigates to /dashboard on mount when a session already exists', () => {
+      mockHasSessionCookie.mockReturnValue(true);
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+      render(<LandingPage />);
 
-  it('redirects to /dashboard when a session already exists', () => {
-    mockHasSessionCookie.mockReturnValue(true);
+      expect(mockNavigate).toHaveBeenCalledWith({ to: '/dashboard', replace: true });
+    });
 
-    expect(() => beforeLoad()).toThrow();
-    expect(mockRedirect).toHaveBeenCalledWith({ to: '/dashboard' });
-  });
+    it('does not navigate away for logged-out users', () => {
+      mockHasSessionCookie.mockReturnValue(false);
 
-  it('does not redirect logged-out users', () => {
-    mockHasSessionCookie.mockReturnValue(false);
+      render(<LandingPage />);
 
-    expect(() => beforeLoad()).not.toThrow();
-    expect(mockRedirect).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 });

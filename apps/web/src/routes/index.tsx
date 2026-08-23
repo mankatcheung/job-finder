@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { createFileRoute, Link, redirect } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { hasSessionCookie } from '#/graphql/client';
 import { LogoMark } from '#/components/LogoMark';
 import { useLocale } from '#/lib/i18n';
@@ -14,14 +14,53 @@ import {
   ArrowRight,
 } from 'lucide-react';
 
-export const Route = createFileRoute('/')({
-  // The API and web app are on separate domains, so there is no cookie the
-  // server can ever see — the auth check can only run client-side. ssr:
-  // false keeps the browser-only session hint out of the server render.
-  ssr: false,
-  beforeLoad: () => {
-    if (hasSessionCookie()) throw redirect({ to: '/dashboard' });
+const SITE_URL = 'https://www.trakwyn.com';
+const OG_TITLE = 'Trakwyn — Your Job Search, Organized and Powered by AI';
+const OG_DESCRIPTION =
+  'Track applications, get AI-generated cover letters and resume feedback, visualize your pipeline, and never miss an interview. Everything you need to land your next role.';
+const OG_IMAGE = `${SITE_URL}/logo512.png`;
+
+const STRUCTURED_DATA = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Trakwyn',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  description: OG_DESCRIPTION,
+  url: SITE_URL,
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
   },
+};
+
+export const Route = createFileRoute('/')({
+  // Real content worth indexing — unlike /login and /register (which stay
+  // ssr: false, since they're utility pages behind a client-only auth
+  // check, not marketing pages), this route SSRs unconditionally. The
+  // already-logged-in redirect moved to a client-only effect in
+  // LandingPage below specifically so it wouldn't force ssr: false here
+  // (see JEF-206) — the API and web app are on separate domains, so
+  // hasSessionCookie() still can't run on the server either way.
+  head: () => ({
+    meta: [
+      { title: OG_TITLE },
+      { name: 'description', content: OG_DESCRIPTION },
+      { property: 'og:type', content: 'website' },
+      { property: 'og:url', content: SITE_URL },
+      { property: 'og:title', content: OG_TITLE },
+      { property: 'og:description', content: OG_DESCRIPTION },
+      { property: 'og:image', content: OG_IMAGE },
+      { property: 'og:image:width', content: '512' },
+      { property: 'og:image:height', content: '512' },
+      { name: 'twitter:card', content: 'summary' },
+      { name: 'twitter:title', content: OG_TITLE },
+      { name: 'twitter:description', content: OG_DESCRIPTION },
+      { name: 'twitter:image', content: OG_IMAGE },
+    ],
+    links: [{ rel: 'canonical', href: SITE_URL }],
+  }),
   component: LandingPage,
 });
 
@@ -54,13 +93,30 @@ const stepKeys = ['landing.step1', 'landing.step2', 'landing.step3', 'landing.st
 
 export function LandingPage() {
   const { t } = useLocale();
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const isLoggedIn = hasSessionCookie();
+  // Starts false so the client's first render matches the SSR'd markup —
+  // the server can never see the session cookie (see Route.head comment
+  // above), so it always renders the logged-out variant. A real logged-in
+  // visitor gets redirected by the effect below before this would matter.
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    if (hasSessionCookie()) {
+      setIsLoggedIn(true);
+      navigate({ to: '/dashboard', replace: true });
+    }
+  }, [navigate]);
+
   const authLink: '/dashboard' | '/login' = isLoggedIn ? '/dashboard' : '/login';
   const authLabel = isLoggedIn ? t('landing.goDashboard') : t('landing.signIn');
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
+      />
       {/* Header */}
       <header className="border-b border-gray-200 dark:border-gray-800">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
