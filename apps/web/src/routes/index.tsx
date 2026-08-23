@@ -264,6 +264,12 @@ export function LandingPage() {
               >
                 {t('auth.termsOfService')}
               </Link>
+              <Link
+                to="/accessibility"
+                className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                {t('auth.accessibility')}
+              </Link>
               <button
                 type="button"
                 onClick={requestOpenCookiePreferences}

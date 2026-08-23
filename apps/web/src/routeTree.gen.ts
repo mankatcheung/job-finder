@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root';
 import { Route as IndexRouteImport } from './routes/index';
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route';
+import { Route as AccessibilityRouteImport } from './routes/accessibility';
 import { Route as ConfirmBackupEmailRouteImport } from './routes/confirm-backup-email';
 import { Route as ConfirmEmailChangeRouteImport } from './routes/confirm-email-change';
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password';
@@ -56,6 +57,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any);
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const AccessibilityRoute = AccessibilityRouteImport.update({
+  id: '/accessibility',
+  path: '/accessibility',
   getParentRoute: () => rootRouteImport,
 } as any);
 const ConfirmBackupEmailRoute = ConfirmBackupEmailRouteImport.update({
@@ -267,6 +273,7 @@ const AuthenticatedApplicationsApplicationIdOffersCompareRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute;
+  '/accessibility': typeof AccessibilityRoute;
   '/confirm-backup-email': typeof ConfirmBackupEmailRoute;
   '/confirm-email-change': typeof ConfirmEmailChangeRoute;
   '/forgot-password': typeof ForgotPasswordRoute;
@@ -307,6 +314,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute;
+  '/accessibility': typeof AccessibilityRoute;
   '/confirm-backup-email': typeof ConfirmBackupEmailRoute;
   '/confirm-email-change': typeof ConfirmEmailChangeRoute;
   '/forgot-password': typeof ForgotPasswordRoute;
@@ -348,6 +356,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport;
   '/': typeof IndexRoute;
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren;
+  '/accessibility': typeof AccessibilityRoute;
   '/confirm-backup-email': typeof ConfirmBackupEmailRoute;
   '/confirm-email-change': typeof ConfirmEmailChangeRoute;
   '/forgot-password': typeof ForgotPasswordRoute;
@@ -390,6 +399,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
     | '/'
+    | '/accessibility'
     | '/confirm-backup-email'
     | '/confirm-email-change'
     | '/forgot-password'
@@ -430,6 +440,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo;
   to:
     | '/'
+    | '/accessibility'
     | '/confirm-backup-email'
     | '/confirm-email-change'
     | '/forgot-password'
@@ -470,6 +481,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/accessibility'
     | '/confirm-backup-email'
     | '/confirm-email-change'
     | '/forgot-password'
@@ -512,6 +524,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren;
+  AccessibilityRoute: typeof AccessibilityRoute;
   ConfirmBackupEmailRoute: typeof ConfirmBackupEmailRoute;
   ConfirmEmailChangeRoute: typeof ConfirmEmailChangeRoute;
   ForgotPasswordRoute: typeof ForgotPasswordRoute;
@@ -539,6 +552,13 @@ declare module '@tanstack/react-router' {
       path: '';
       fullPath: '/';
       preLoaderRoute: typeof AuthenticatedRouteRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/accessibility': {
+      id: '/accessibility';
+      path: '/accessibility';
+      fullPath: '/accessibility';
+      preLoaderRoute: typeof AccessibilityRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     '/confirm-backup-email': {
@@ -887,6 +907,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AccessibilityRoute: AccessibilityRoute,
   ConfirmBackupEmailRoute: ConfirmBackupEmailRoute,
   ConfirmEmailChangeRoute: ConfirmEmailChangeRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,

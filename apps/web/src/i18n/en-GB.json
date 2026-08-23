@@ -90,6 +90,7 @@
   "auth.termsAgreementPrefix": "By creating an account, you agree to our",
   "auth.termsOfService": "Terms of Service",
   "auth.privacyPolicy": "Privacy Policy",
+  "auth.accessibility": "Accessibility",
   "auth.and": "and",
   "auth.termsAgreementSuffix": ".",
   "landing.signIn": "Sign in",
