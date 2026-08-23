@@ -11,8 +11,18 @@ test.describe('Cookie consent', () => {
 
       await expect(page.getByRole('button', { name: /accept all/i })).not.toBeVisible();
 
-      await page.getByRole('button', { name: 'Cookie preferences' }).click();
-      await expect(page.getByRole('heading', { name: 'Cookie preferences' })).toBeVisible();
+      // / now SSRs its full marketing content (JEF-206), so there's a real
+      // window right after load where the DOM is painted but React hasn't
+      // finished hydrating yet — a click in that window never reaches the
+      // (not-yet-attached) handler. Retry the click rather than guessing a
+      // fixed delay, since how long hydration actually takes varies by
+      // environment.
+      await expect(async () => {
+        await page.getByRole('button', { name: 'Cookie preferences' }).click();
+        await expect(page.getByRole('heading', { name: 'Cookie preferences' })).toBeVisible({
+          timeout: 500,
+        });
+      }).toPass({ timeout: 5000 });
       // Analytics defaults on outside a consent-required region.
       await expect(page.getByRole('checkbox', { name: /^analytics$/i })).toBeChecked();
 
