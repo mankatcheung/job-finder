@@ -14,6 +14,7 @@ import {
   NOTIFICATIONS_PAGE_QUERY,
   MARK_NOTIFICATIONS_READ,
   NOTIFICATION_ICON,
+  NotificationRowSkeleton,
   timeAgo,
   type NotificationItem,
   type NotificationsPageResult,
@@ -146,11 +147,7 @@ export function NotificationsPage() {
           </div>
         )}
 
-        {isLoading && (
-          <div className="flex justify-center py-8 text-gray-400">
-            <Spinner size="md" />
-          </div>
-        )}
+        {isLoading && Array.from({ length: 5 }, (_, i) => <NotificationRowSkeleton key={i} />)}
         {isError && (
           <p className="text-sm text-red-600 px-4 py-6 text-center">
             {t('notificationInbox.loadFailed')}
