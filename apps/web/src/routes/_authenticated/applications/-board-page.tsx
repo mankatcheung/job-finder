@@ -274,6 +274,7 @@ function Column({
   return (
     <div
       ref={setNodeRef}
+      data-testid={`board-column-${status}`}
       className={`shrink-0 w-60 rounded-xl border-t-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 ${colors.columnBorder} transition-colors ${isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
     >
       <div className="flex items-center justify-between px-3 py-2.5">
