@@ -18,7 +18,14 @@ export async function createApplication(
   await page.getByPlaceholder('Senior Engineer').fill(role);
   await page.getByRole('button', { name: /save application/i }).click();
 
-  await expect(page).toHaveURL(/\/applications\/[^/]+$/);
+  // (?!new$) excludes the form's own URL (/applications/new) — without it,
+  // this can match before the post-save navigation actually happens (the
+  // form page's own URL already satisfies "/applications/<segment>$"), so a
+  // caller that uses the returned id gets the literal string "new" instead
+  // of racing correctly. Harmless for callers that only navigate via UI
+  // clicks afterward, but wrong for any caller that uses the id directly.
+  const detailUrlPattern = /\/applications\/(?!new$)[^/]+$/;
+  await expect(page).toHaveURL(detailUrlPattern);
   const match = /\/applications\/([^/]+)$/.exec(page.url());
   if (!match) throw new Error(`Could not parse applicationId from URL: ${page.url()}`);
   return match[1];
