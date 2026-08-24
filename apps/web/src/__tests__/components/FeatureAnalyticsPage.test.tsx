@@ -11,6 +11,7 @@ vi.mock('@tanstack/react-router', () => ({
 }));
 
 vi.mock('#/graphql/client', () => ({ hasSessionCookie: () => false }));
+vi.mock('#/lib/theme', () => ({ useTheme: () => ({ theme: 'light', setTheme: vi.fn() }) }));
 
 vi.mock('#/lib/i18n', () => ({
   useLocale: () => ({

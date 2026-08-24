@@ -18,6 +18,10 @@ vi.mock('#/graphql/client', () => ({
   hasSessionCookie: mockHasSessionCookie,
 }));
 
+vi.mock('#/lib/theme', () => ({
+  useTheme: () => ({ theme: 'light', setTheme: vi.fn() }),
+}));
+
 vi.mock('#/lib/i18n', () => ({
   useLocale: () => ({
     t: (key: string) =>
@@ -80,5 +84,14 @@ describe('MarketingHeader', () => {
     render(<MarketingHeader />);
 
     expect(screen.getByRole('link', { name: 'Get started' })).toHaveAttribute('href', '/register');
+  });
+
+  it('renders a theme toggle button, once for desktop and once for mobile', () => {
+    mockHasSessionCookie.mockReturnValue(false);
+    render(<MarketingHeader />);
+
+    // One in the desktop nav row, one beside the mobile hamburger — both
+    // always rendered, shown/hidden purely by the `sm:` breakpoint classes.
+    expect(screen.getAllByRole('button', { name: /theme/i })).toHaveLength(2);
   });
 });

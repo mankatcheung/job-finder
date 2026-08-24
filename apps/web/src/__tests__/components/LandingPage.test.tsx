@@ -17,6 +17,10 @@ vi.mock('#/graphql/client', () => ({
   hasSessionCookie: mockHasSessionCookie,
 }));
 
+vi.mock('#/lib/theme', () => ({
+  useTheme: () => ({ theme: 'light', setTheme: vi.fn() }),
+}));
+
 vi.mock('#/lib/i18n', () => ({
   useLocale: () => ({
     t: (key: string) =>
