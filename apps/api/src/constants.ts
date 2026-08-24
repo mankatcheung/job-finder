@@ -64,6 +64,7 @@ export const ENV = {
   GOOGLE_OAUTH_CLIENT_SECRET: 'GOOGLE_OAUTH_CLIENT_SECRET',
   GITHUB_OAUTH_CLIENT_ID: 'GITHUB_OAUTH_CLIENT_ID',
   GITHUB_OAUTH_CLIENT_SECRET: 'GITHUB_OAUTH_CLIENT_SECRET',
+  OAUTH_PROVIDER_MODE: 'OAUTH_PROVIDER_MODE',
   VAPID_PUBLIC_KEY: 'VAPID_PUBLIC_KEY',
   VAPID_PRIVATE_KEY: 'VAPID_PRIVATE_KEY',
   VAPID_SUBJECT: 'VAPID_SUBJECT',
@@ -353,6 +354,8 @@ export const ROUTES = {
   VAPID_PUBLIC_KEY: '/vapid-public-key',
   OAUTH_START: '/auth/oauth/:provider/start',
   OAUTH_CALLBACK: '/auth/oauth/:provider/callback',
+  /** Stand-in "provider" consent screen, registered only when OAUTH_PROVIDER_MODE=fake — see FakeOAuthProvider. */
+  OAUTH_FAKE_CONSENT: '/auth/oauth/fake-provider/authorize',
 } as const;
 
 /** OAuth provider names (mirrors the `OAuthProviderName` domain union). */
@@ -478,6 +481,13 @@ export const EMAIL_PROVIDER = {
   BREVO: 'brevo',
   /** Logs instead of calling Brevo — local dev without a key, and CI. */
   CONSOLE: 'console',
+} as const;
+
+/** `OAUTH_PROVIDER_MODE` values. */
+export const OAUTH_PROVIDER_MODE = {
+  REAL: 'real',
+  /** Same-origin stand-in provider, no live Google/GitHub calls — e2e/CI only. */
+  FAKE: 'fake',
 } as const;
 
 /** Cache configuration, shared by MemoryCache and RedisCache. */
