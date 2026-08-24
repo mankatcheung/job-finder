@@ -26,6 +26,11 @@ vi.mock('#/lib/i18n', () => ({
         'landing.getStarted': 'Get started',
         'landing.startFree': 'Start for free',
         'landing.getStartedFree': 'Get started for free',
+        'landing.features': 'Features',
+        'landing.tracking': 'Application tracking',
+        'landing.assistant': 'AI assistant',
+        'landing.resumeCoverLetters': 'Resume & cover letters',
+        'landing.analytics': 'Analytics & insights',
       })[key] ?? key,
   }),
 }));
@@ -74,6 +79,33 @@ describe('LandingPage', () => {
       'href',
       '/terms',
     );
+  });
+
+  it('links Features in the header to /features (JEF-228)', () => {
+    mockHasSessionCookie.mockReturnValue(false);
+
+    render(<LandingPage />);
+
+    expect(screen.getByRole('link', { name: 'Features' })).toHaveAttribute('href', '/features');
+  });
+
+  it('links each of the four highlighted feature cards to its /features/* page (JEF-228)', () => {
+    mockHasSessionCookie.mockReturnValue(false);
+
+    render(<LandingPage />);
+
+    // "Application tracking" etc. also appear as Product links in the
+    // shared footer (MarketingFooter) — every match should agree on the href.
+    const expectEveryLinkNamedToPointAt = (name: RegExp, href: string) => {
+      const links = screen.getAllByRole('link', { name });
+      expect(links.length).toBeGreaterThan(0);
+      links.forEach((link) => expect(link).toHaveAttribute('href', href));
+    };
+
+    expectEveryLinkNamedToPointAt(/Application tracking/, '/features/tracking');
+    expectEveryLinkNamedToPointAt(/AI assistant/, '/features/ai-assistant');
+    expectEveryLinkNamedToPointAt(/Resume & cover letters/, '/features/resume-cover-letter');
+    expectEveryLinkNamedToPointAt(/Analytics & insights/, '/features/analytics');
   });
 
   describe('already-logged-in redirect', () => {
