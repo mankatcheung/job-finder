@@ -65,6 +65,7 @@ export const ENV = {
   GITHUB_OAUTH_CLIENT_ID: 'GITHUB_OAUTH_CLIENT_ID',
   GITHUB_OAUTH_CLIENT_SECRET: 'GITHUB_OAUTH_CLIENT_SECRET',
   OAUTH_PROVIDER_MODE: 'OAUTH_PROVIDER_MODE',
+  LLM_PROVIDER_MODE: 'LLM_PROVIDER_MODE',
   VAPID_PUBLIC_KEY: 'VAPID_PUBLIC_KEY',
   VAPID_PRIVATE_KEY: 'VAPID_PRIVATE_KEY',
   VAPID_SUBJECT: 'VAPID_SUBJECT',
@@ -356,6 +357,14 @@ export const ROUTES = {
   OAUTH_CALLBACK: '/auth/oauth/:provider/callback',
   /** Stand-in "provider" consent screen, registered only when OAUTH_PROVIDER_MODE=fake — see FakeOAuthProvider. */
   OAUTH_FAKE_CONSENT: '/auth/oauth/fake-provider/authorize',
+  /**
+   * Stand-in OpenAI-compatible /chat/completions endpoint, registered only
+   * when LLM_PROVIDER_MODE=fake. Not a new provider type — a user (or an e2e
+   * test) points the existing "Custom (OpenAI-compatible)" provider's own
+   * base URL at this path, the same real, already-supported mechanism
+   * self-hosted/OpenAI-compatible endpoints already use.
+   */
+  LLM_FAKE_COMPLETIONS: '/llm-test/fake/chat/completions',
 } as const;
 
 /** OAuth provider names (mirrors the `OAuthProviderName` domain union). */
@@ -487,6 +496,12 @@ export const EMAIL_PROVIDER = {
 export const OAUTH_PROVIDER_MODE = {
   REAL: 'real',
   /** Same-origin stand-in provider, no live Google/GitHub calls — e2e/CI only. */
+  FAKE: 'fake',
+} as const;
+
+/** `LLM_PROVIDER_MODE` values — gates whether LLM_FAKE_COMPLETIONS exists at all. */
+export const LLM_PROVIDER_MODE = {
+  REAL: 'real',
   FAKE: 'fake',
 } as const;
 

@@ -133,6 +133,7 @@ jobs:
           GOOGLE_OAUTH_CLIENT_ID=e2e-fake-google-client-id
           GITHUB_OAUTH_CLIENT_ID=e2e-fake-github-client-id
           OAUTH_PROVIDER_MODE=fake
+          LLM_PROVIDER_MODE=fake
           EOF
 
           cat > apps/web/.env <<'EOF'

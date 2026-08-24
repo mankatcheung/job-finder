@@ -18,6 +18,7 @@ import { healthRoutes } from '#src/http/routes/health.routes.js';
 import { mcpRoutes } from '#src/http/routes/mcp.routes.js';
 import { oauthRoutes } from '#src/http/routes/oauth.routes.js';
 import { fakeOAuthConsentRoutes } from '#src/http/routes/fakeOAuthConsent.routes.js';
+import { fakeLlmCompletionsRoutes } from '#src/http/routes/fakeLlmCompletions.routes.js';
 import { mcpOAuthMetadataRoutes } from '#src/http/routes/mcpOAuth.routes.js';
 import { buildContainer } from '#src/http/container.js';
 import { schema } from '#src/http/schema/index.js';
@@ -28,7 +29,14 @@ import {
   flushObservability,
   isObservabilityEnabled,
 } from '#src/infrastructure/observability/tracing.js';
-import { ENV, NODE_ENV, ROUTES, STORAGE_PROVIDER, OAUTH_PROVIDER_MODE } from '#src/constants.js';
+import {
+  ENV,
+  NODE_ENV,
+  ROUTES,
+  STORAGE_PROVIDER,
+  OAUTH_PROVIDER_MODE,
+  LLM_PROVIDER_MODE,
+} from '#src/constants.js';
 
 /**
  * Fully configures an already-constructed Fastify instance (cors/cookie/
@@ -115,6 +123,10 @@ export async function buildApp(fastify: FastifyInstance): Promise<FastifyInstanc
     // Never present unless explicitly opted into — see FakeOAuthProvider.
     ...(process.env[ENV.OAUTH_PROVIDER_MODE] === OAUTH_PROVIDER_MODE.FAKE
       ? fakeOAuthConsentRoutes()
+      : []),
+    // Never present unless explicitly opted into — see fakeLlmCompletions.routes.ts.
+    ...(process.env[ENV.LLM_PROVIDER_MODE] === LLM_PROVIDER_MODE.FAKE
+      ? fakeLlmCompletionsRoutes()
       : []),
   ]);
 
