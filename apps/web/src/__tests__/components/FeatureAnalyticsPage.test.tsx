@@ -14,7 +14,10 @@ vi.mock('#/graphql/client', () => ({ hasSessionCookie: () => false }));
 vi.mock('#/lib/theme', () => ({ useTheme: () => ({ theme: 'light', setTheme: vi.fn() }) }));
 
 vi.mock('#/lib/i18n', () => ({
+  LOCALE_OPTIONS: [{ value: 'en', label: 'English' }],
   useLocale: () => ({
+    locale: 'en',
+    setLocale: vi.fn(),
     t: (key: string) =>
       ({
         'landing.features': 'Features',

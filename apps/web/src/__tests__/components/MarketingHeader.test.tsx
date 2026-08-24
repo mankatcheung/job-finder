@@ -23,7 +23,10 @@ vi.mock('#/lib/theme', () => ({
 }));
 
 vi.mock('#/lib/i18n', () => ({
+  LOCALE_OPTIONS: [{ value: 'en', label: 'English' }],
   useLocale: () => ({
+    locale: 'en',
+    setLocale: vi.fn(),
     t: (key: string) =>
       ({
         'landing.features': 'Features',
@@ -93,5 +96,12 @@ describe('MarketingHeader', () => {
     // One in the desktop nav row, one beside the mobile hamburger — both
     // always rendered, shown/hidden purely by the `sm:` breakpoint classes.
     expect(screen.getAllByRole('button', { name: /theme/i })).toHaveLength(2);
+  });
+
+  it('renders a locale picker, once for desktop and once for mobile', () => {
+    mockHasSessionCookie.mockReturnValue(false);
+    render(<MarketingHeader />);
+
+    expect(screen.getAllByRole('combobox')).toHaveLength(2);
   });
 });
