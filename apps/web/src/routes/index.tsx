@@ -1,23 +1,16 @@
 import { useEffect, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { hasSessionCookie } from '#/graphql/client';
-import { LogoMark } from '#/components/LogoMark';
-import { LegalFooterLinks } from '#/components/LegalFooterLinks';
+import { MarketingHeader } from '#/components/marketing/MarketingHeader';
+import { MarketingFooter } from '#/components/marketing/MarketingFooter';
 import { useLocale } from '#/lib/i18n';
-import {
-  LayoutDashboard,
-  BarChart3,
-  CalendarDays,
-  Sparkles,
-  FileText,
-  Bell,
-  ArrowRight,
-} from 'lucide-react';
+import { statusColor } from '#/lib/statusColors';
+import { LayoutDashboard, Sparkles, FileText, BarChart3, ArrowRight } from 'lucide-react';
 
 const SITE_URL = 'https://www.trakwyn.com';
 const OG_TITLE = 'Trakwyn — Your Job Search, Organized and Powered by AI';
 const OG_DESCRIPTION =
-  'Track applications, get AI-generated cover letters and resume feedback, visualize your pipeline, and never miss an interview. Everything you need to land your next role.';
+  'Track applications on a Kanban board, get AI-drafted resumes and cover letters grounded in your real experience, and see the analytics behind your search. Everything you need to land your next role.';
 const OG_IMAGE = `${SITE_URL}/logo512.png`;
 
 const STRUCTURED_DATA = {
@@ -64,37 +57,51 @@ export const Route = createFileRoute('/')({
   component: LandingPage,
 });
 
-const features = [
+/**
+ * The four deep-dive `/features/*` pages (JEF-228) — kept in the same order
+ * everywhere they're listed (here, the features index, and the footer's
+ * Product column) so a visitor doesn't have to re-learn the lineup.
+ */
+const highlightedFeatures = [
   {
     icon: LayoutDashboard,
     titleKey: 'landing.tracking',
     descriptionKey: 'landing.trackingDescription',
+    to: '/features/tracking' as const,
   },
-  { icon: Sparkles, titleKey: 'landing.assistant', descriptionKey: 'landing.assistantDescription' },
+  {
+    icon: Sparkles,
+    titleKey: 'landing.assistant',
+    descriptionKey: 'landing.assistantDescription',
+    to: '/features/ai-assistant' as const,
+  },
+  {
+    icon: FileText,
+    titleKey: 'landing.resumeCoverLetters',
+    descriptionKey: 'landing.resumeCoverLettersDescription',
+    to: '/features/resume-cover-letter' as const,
+  },
   {
     icon: BarChart3,
     titleKey: 'landing.analytics',
     descriptionKey: 'landing.analyticsDescription',
-  },
-  {
-    icon: CalendarDays,
-    titleKey: 'landing.calendar',
-    descriptionKey: 'landing.calendarDescription',
-  },
-  { icon: FileText, titleKey: 'landing.documents', descriptionKey: 'landing.documentsDescription' },
-  {
-    icon: Bell,
-    titleKey: 'landing.notifications',
-    descriptionKey: 'landing.notificationsDescription',
+    to: '/features/analytics' as const,
   },
 ] as const;
 
 const stepKeys = ['landing.step1', 'landing.step2', 'landing.step3', 'landing.step4'] as const;
 
+/** Sample data for the hero board preview — not live, just illustrative (JEF-228). */
+const HERO_BOARD_COLUMNS = [
+  { status: 'applied', cards: ['Northwind Labs', 'Halcyon Data', 'Fernbridge'] },
+  { status: 'interviewing', cards: ['Verdant Systems', 'Solace Group'] },
+  { status: 'offered', cards: ['Mosaic & Co'] },
+  { status: 'accepted', cards: [] },
+] as const;
+
 export function LandingPage() {
   const { t } = useLocale();
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   // Starts false so the client's first render matches the SSR'd markup —
   // the server can never see the session cookie (see Route.head comment
   // above), so it always renders the logged-out variant. A real logged-in
@@ -117,80 +124,7 @@ export function LandingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
       />
-      {/* Header */}
-      <header className="border-b border-gray-200 dark:border-gray-800">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <LogoMark size={24} />
-              <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Trakwyn</span>
-            </Link>
-            <div className="hidden sm:flex items-center gap-3">
-              <Link
-                to={authLink}
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-              >
-                {authLabel}
-              </Link>
-              <Link
-                to="/register"
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-              >
-                {t('landing.getStarted')}
-              </Link>
-            </div>
-            <button
-              type="button"
-              className="sm:hidden p-2 text-gray-600 dark:text-gray-400"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? (
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-                  />
-                </svg>
-              )}
-            </button>
-          </div>
-          {mobileMenuOpen && (
-            <div className="sm:hidden pb-4 space-y-2">
-              <Link
-                to={authLink}
-                className="block rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {authLabel}
-              </Link>
-              <Link
-                to="/register"
-                className="block rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white text-center"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {t('landing.getStarted')}
-              </Link>
-            </div>
-          )}
-        </div>
-      </header>
+      <MarketingHeader />
 
       <main>
         {/* Hero */}
@@ -222,6 +156,53 @@ export function LandingPage() {
           </div>
         </section>
 
+        {/* Hero board preview — a taste of the product on the very first fold (JEF-228) */}
+        <section className="px-4 sm:px-6 lg:px-8 pb-8">
+          <div className="mx-auto max-w-4xl rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-900/5 overflow-hidden dark:border-gray-800 dark:bg-gray-800/50">
+            <div className="flex items-center justify-between border-b border-gray-200 px-5 py-3 dark:border-gray-800">
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Board</span>
+              <span className="text-xs text-gray-400 dark:text-gray-500">
+                Every application, one view
+              </span>
+            </div>
+            <div className="flex gap-3 overflow-x-auto bg-gray-50 p-5 dark:bg-gray-900/40">
+              {HERO_BOARD_COLUMNS.map((column) => {
+                const colors = statusColor(column.status);
+                return (
+                  <div
+                    key={column.status}
+                    className={`w-48 shrink-0 rounded-xl border-t-4 border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 ${colors.columnBorder}`}
+                  >
+                    <div className="flex items-center justify-between px-3 py-2.5">
+                      <span className="flex items-center gap-1.5">
+                        <span className={`size-2 rounded-full ${colors.dot}`} aria-hidden="true" />
+                        <span
+                          className={`text-xs font-semibold capitalize ${colors.columnHeading}`}
+                        >
+                          {column.status}
+                        </span>
+                      </span>
+                      <span className="rounded-full bg-gray-200 px-1.5 py-0.5 text-xs text-gray-500 dark:bg-gray-700 dark:text-gray-400">
+                        {column.cards.length}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-1.5 px-2 pb-2">
+                      {column.cards.map((card) => (
+                        <div
+                          key={card}
+                          className="rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-medium text-gray-700 dark:border-gray-700 dark:text-gray-300"
+                        >
+                          {card}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
         {/* Features */}
         <section className="py-24 sm:py-32">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -233,23 +214,36 @@ export function LandingPage() {
                 {t('landing.everythingDescription')}
               </p>
             </div>
-            <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {features.map((feature) => (
-                <div
+            <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {highlightedFeatures.map((feature) => (
+                <Link
                   key={feature.titleKey}
-                  className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 p-6 shadow-sm"
+                  to={feature.to}
+                  className="group rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 p-6 shadow-sm hover:border-blue-300 dark:hover:border-blue-800 transition-colors"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
                     <feature.icon className="h-5 w-5 text-blue-600" />
                   </div>
-                  <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  <h3 className="mt-4 text-base font-semibold text-gray-900 dark:text-gray-100">
                     {t(feature.titleKey)}
                   </h3>
                   <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">
                     {t(feature.descriptionKey)}
                   </p>
-                </div>
+                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-600">
+                    Learn more
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </Link>
               ))}
+            </div>
+            <div className="mt-10 text-center">
+              <Link
+                to="/features"
+                className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+              >
+                See everything Trakwyn does →
+              </Link>
             </div>
           </div>
         </section>
@@ -285,40 +279,7 @@ export function LandingPage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 dark:border-gray-800">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-between">
-            <div className="flex items-center gap-2">
-              <LogoMark size={20} />
-              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                Trakwyn
-              </span>
-            </div>
-
-            <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
-              <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-                <Link
-                  to={authLink}
-                  className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-                >
-                  {authLabel}
-                </Link>
-                <Link
-                  to="/register"
-                  className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-                >
-                  {t('auth.register')}
-                </Link>
-              </div>
-
-              <div className="h-px w-32 bg-gray-200 dark:bg-gray-800 sm:h-4 sm:w-px" />
-
-              <LegalFooterLinks className="flex max-w-xs flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-gray-500 dark:text-gray-400 sm:max-w-none" />
-            </div>
-          </div>
-        </div>
-      </footer>
+      <MarketingFooter />
     </div>
   );
 }

@@ -28,6 +28,11 @@ import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard';
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications';
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route';
+import { Route as FeaturesIndexRouteImport } from './routes/features/index';
+import { Route as FeaturesAiAssistantRouteImport } from './routes/features/ai-assistant';
+import { Route as FeaturesAnalyticsRouteImport } from './routes/features/analytics';
+import { Route as FeaturesResumeCoverLetterRouteImport } from './routes/features/resume-cover-letter';
+import { Route as FeaturesTrackingRouteImport } from './routes/features/tracking';
 import { Route as OauthAuthorizeRouteImport } from './routes/oauth/authorize';
 import { Route as AuthenticatedApplicationsIndexRouteImport } from './routes/_authenticated/applications/index';
 import { Route as AuthenticatedApplicationsBoardRouteImport } from './routes/_authenticated/applications/board';
@@ -147,6 +152,32 @@ const AuthenticatedSettingsRouteRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any);
+const FeaturesIndexRoute = FeaturesIndexRouteImport.update({
+  id: '/features/',
+  path: '/features/',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const FeaturesAiAssistantRoute = FeaturesAiAssistantRouteImport.update({
+  id: '/features/ai-assistant',
+  path: '/features/ai-assistant',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const FeaturesAnalyticsRoute = FeaturesAnalyticsRouteImport.update({
+  id: '/features/analytics',
+  path: '/features/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const FeaturesResumeCoverLetterRoute =
+  FeaturesResumeCoverLetterRouteImport.update({
+    id: '/features/resume-cover-letter',
+    path: '/features/resume-cover-letter',
+    getParentRoute: () => rootRouteImport,
+  } as any);
+const FeaturesTrackingRoute = FeaturesTrackingRouteImport.update({
+  id: '/features/tracking',
+  path: '/features/tracking',
+  getParentRoute: () => rootRouteImport,
+} as any);
 const OauthAuthorizeRoute = OauthAuthorizeRouteImport.update({
   id: '/oauth/authorize',
   path: '/oauth/authorize',
@@ -297,7 +328,12 @@ export interface FileRoutesByFullPath {
   '/calendar': typeof AuthenticatedCalendarRoute;
   '/dashboard': typeof AuthenticatedDashboardRoute;
   '/notifications': typeof AuthenticatedNotificationsRoute;
+  '/features/ai-assistant': typeof FeaturesAiAssistantRoute;
+  '/features/analytics': typeof FeaturesAnalyticsRoute;
+  '/features/resume-cover-letter': typeof FeaturesResumeCoverLetterRoute;
+  '/features/tracking': typeof FeaturesTrackingRoute;
   '/oauth/authorize': typeof OauthAuthorizeRoute;
+  '/features/': typeof FeaturesIndexRoute;
   '/applications/board': typeof AuthenticatedApplicationsBoardRoute;
   '/applications/new': typeof AuthenticatedApplicationsNewRoute;
   '/applications/trash': typeof AuthenticatedApplicationsTrashRoute;
@@ -338,7 +374,12 @@ export interface FileRoutesByTo {
   '/calendar': typeof AuthenticatedCalendarRoute;
   '/dashboard': typeof AuthenticatedDashboardRoute;
   '/notifications': typeof AuthenticatedNotificationsRoute;
+  '/features/ai-assistant': typeof FeaturesAiAssistantRoute;
+  '/features/analytics': typeof FeaturesAnalyticsRoute;
+  '/features/resume-cover-letter': typeof FeaturesResumeCoverLetterRoute;
+  '/features/tracking': typeof FeaturesTrackingRoute;
   '/oauth/authorize': typeof OauthAuthorizeRoute;
+  '/features': typeof FeaturesIndexRoute;
   '/applications/board': typeof AuthenticatedApplicationsBoardRoute;
   '/applications/new': typeof AuthenticatedApplicationsNewRoute;
   '/applications/trash': typeof AuthenticatedApplicationsTrashRoute;
@@ -382,7 +423,12 @@ export interface FileRoutesById {
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute;
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute;
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute;
+  '/features/ai-assistant': typeof FeaturesAiAssistantRoute;
+  '/features/analytics': typeof FeaturesAnalyticsRoute;
+  '/features/resume-cover-letter': typeof FeaturesResumeCoverLetterRoute;
+  '/features/tracking': typeof FeaturesTrackingRoute;
   '/oauth/authorize': typeof OauthAuthorizeRoute;
+  '/features/': typeof FeaturesIndexRoute;
   '/_authenticated/applications/board': typeof AuthenticatedApplicationsBoardRoute;
   '/_authenticated/applications/new': typeof AuthenticatedApplicationsNewRoute;
   '/_authenticated/applications/trash': typeof AuthenticatedApplicationsTrashRoute;
@@ -426,7 +472,12 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/dashboard'
     | '/notifications'
+    | '/features/ai-assistant'
+    | '/features/analytics'
+    | '/features/resume-cover-letter'
+    | '/features/tracking'
     | '/oauth/authorize'
+    | '/features/'
     | '/applications/board'
     | '/applications/new'
     | '/applications/trash'
@@ -467,7 +518,12 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/dashboard'
     | '/notifications'
+    | '/features/ai-assistant'
+    | '/features/analytics'
+    | '/features/resume-cover-letter'
+    | '/features/tracking'
     | '/oauth/authorize'
+    | '/features'
     | '/applications/board'
     | '/applications/new'
     | '/applications/trash'
@@ -510,7 +566,12 @@ export interface FileRouteTypes {
     | '/_authenticated/calendar'
     | '/_authenticated/dashboard'
     | '/_authenticated/notifications'
+    | '/features/ai-assistant'
+    | '/features/analytics'
+    | '/features/resume-cover-letter'
+    | '/features/tracking'
     | '/oauth/authorize'
+    | '/features/'
     | '/_authenticated/applications/board'
     | '/_authenticated/applications/new'
     | '/_authenticated/applications/trash'
@@ -548,7 +609,12 @@ export interface RootRouteChildren {
   ShareRoute: typeof ShareRoute;
   TermsRoute: typeof TermsRoute;
   VerifyEmailRoute: typeof VerifyEmailRoute;
+  FeaturesAiAssistantRoute: typeof FeaturesAiAssistantRoute;
+  FeaturesAnalyticsRoute: typeof FeaturesAnalyticsRoute;
+  FeaturesResumeCoverLetterRoute: typeof FeaturesResumeCoverLetterRoute;
+  FeaturesTrackingRoute: typeof FeaturesTrackingRoute;
   OauthAuthorizeRoute: typeof OauthAuthorizeRoute;
+  FeaturesIndexRoute: typeof FeaturesIndexRoute;
 }
 
 declare module '@tanstack/react-router' {
@@ -685,6 +751,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings';
       preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport;
       parentRoute: typeof AuthenticatedRouteRoute;
+    };
+    '/features/': {
+      id: '/features/';
+      path: '/features';
+      fullPath: '/features/';
+      preLoaderRoute: typeof FeaturesIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/features/ai-assistant': {
+      id: '/features/ai-assistant';
+      path: '/features/ai-assistant';
+      fullPath: '/features/ai-assistant';
+      preLoaderRoute: typeof FeaturesAiAssistantRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/features/analytics': {
+      id: '/features/analytics';
+      path: '/features/analytics';
+      fullPath: '/features/analytics';
+      preLoaderRoute: typeof FeaturesAnalyticsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/features/resume-cover-letter': {
+      id: '/features/resume-cover-letter';
+      path: '/features/resume-cover-letter';
+      fullPath: '/features/resume-cover-letter';
+      preLoaderRoute: typeof FeaturesResumeCoverLetterRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/features/tracking': {
+      id: '/features/tracking';
+      path: '/features/tracking';
+      fullPath: '/features/tracking';
+      preLoaderRoute: typeof FeaturesTrackingRouteImport;
+      parentRoute: typeof rootRouteImport;
     };
     '/oauth/authorize': {
       id: '/oauth/authorize';
@@ -940,7 +1041,12 @@ const rootRouteChildren: RootRouteChildren = {
   ShareRoute: ShareRoute,
   TermsRoute: TermsRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  FeaturesAiAssistantRoute: FeaturesAiAssistantRoute,
+  FeaturesAnalyticsRoute: FeaturesAnalyticsRoute,
+  FeaturesResumeCoverLetterRoute: FeaturesResumeCoverLetterRoute,
+  FeaturesTrackingRoute: FeaturesTrackingRoute,
   OauthAuthorizeRoute: OauthAuthorizeRoute,
+  FeaturesIndexRoute: FeaturesIndexRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

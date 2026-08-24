@@ -1,0 +1,54 @@
+import { describe, expect, it, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
+
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({ children, to, className }: { children: ReactNode; to: string; className?: string }) => (
+    <a href={to} className={className}>
+      {children}
+    </a>
+  ),
+}));
+
+vi.mock('#/graphql/client', () => ({ hasSessionCookie: () => false }));
+
+vi.mock('#/lib/i18n', () => ({
+  useLocale: () => ({
+    t: (key: string) =>
+      ({
+        'landing.features': 'Features',
+        'landing.signIn': 'Sign in',
+        'landing.getStarted': 'Get started',
+        'auth.register': 'Register',
+      })[key] ?? key,
+  }),
+}));
+
+import { FeatureAnalyticsPage } from '#/routes/features/-components/FeatureAnalyticsPage';
+
+describe('FeatureAnalyticsPage', () => {
+  it('renders the headline and the funnel stat cards', () => {
+    render(<FeatureAnalyticsPage />);
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: "See what's actually working" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Response rate')).toBeInTheDocument();
+    // Appears twice: the stat card and the benefit-2 callout.
+    expect(screen.getAllByText('Likely ghosted').length).toBeGreaterThan(0);
+  });
+
+  it('renders the three benefit sections', () => {
+    render(<FeatureAnalyticsPage />);
+
+    expect(
+      screen.getByRole('heading', { name: 'Your funnel, stage by stage' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: "Know when you're being ghosted" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Where your offers come from' }),
+    ).toBeInTheDocument();
+  });
+});
