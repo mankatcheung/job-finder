@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { gqlClient } from '#/graphql/client';
 import { useHotkeys } from '#/hooks/useHotkeys';
 import { useLocale } from '#/lib/i18n';
-import { IconButton, Spinner } from '@trakwyn/ui';
+import { IconButton, Skeleton } from '@trakwyn/ui';
 import { BellIcon, CalendarIcon, ClockIcon, ShieldIcon } from 'lucide-react';
 
 const RECENT_LIMIT = 5;
@@ -61,6 +61,25 @@ export const NOTIFICATION_ICON: Record<NotificationType, React.ReactNode> = {
   follow_up_reminder: <ClockIcon size={16} className="text-amber-500" />,
   security_alert: <ShieldIcon size={16} className="text-red-500" />,
 };
+
+/**
+ * Shaped like a real notification row (icon + title + body + timestamp), so
+ * the initial load doesn't jump from empty space straight to a full list —
+ * the same convention the rest of the app's list pages use (Trash,
+ * Applications, Board) instead of a plain centered spinner.
+ */
+export function NotificationRowSkeleton() {
+  return (
+    <div className="flex items-start gap-2 border-b border-gray-100 px-4 py-3 last:border-0 dark:border-gray-700">
+      <Skeleton className="mt-0.5 h-4 w-4 shrink-0 rounded-full" />
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <Skeleton className="h-3.5 w-3/4 rounded" />
+        <Skeleton className="h-3 w-full rounded" />
+        <Skeleton className="h-2.5 w-14 rounded" />
+      </div>
+    </div>
+  );
+}
 
 export function timeAgo(
   iso: string,
@@ -244,11 +263,7 @@ function NotificationPopover({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {isLoading && (
-          <div className="flex justify-center py-8 text-gray-400">
-            <Spinner size="md" />
-          </div>
-        )}
+        {isLoading && Array.from({ length: 3 }, (_, i) => <NotificationRowSkeleton key={i} />)}
         {isError && (
           <p className="text-sm text-red-600 px-4 py-6 text-center">
             {t('notificationInbox.loadFailed')}
