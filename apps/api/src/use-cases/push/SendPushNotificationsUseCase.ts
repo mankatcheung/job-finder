@@ -57,7 +57,10 @@ export class SendPushNotificationsUseCase {
         type: NOTIFICATION_TYPE.INTERVIEW_REMINDER,
         title: `Upcoming interview: ${app.company}`,
         body: `${app.role} \u2014 ${round.type} interview tomorrow at ${timeStr}`,
-        url: `/applications/${app.id}`,
+        // Deep-links straight to the Interviews section (JEF-208's
+        // ?section= schema) rather than the default Notes tab, so the user
+        // doesn't have to navigate to find the round this is actually about.
+        url: `/applications/${app.id}?section=interviews`,
       });
       notificationsByUser.set(app.userId, existing);
       notifiedRoundIds.push(round.id);
@@ -73,7 +76,9 @@ export class SendPushNotificationsUseCase {
         type: NOTIFICATION_TYPE.FOLLOW_UP_REMINDER,
         title: `Follow up: ${app.company}`,
         body: `Time to follow up on your ${app.role} application`,
-        url: `/applications/${app.id}`,
+        // Contacts, not the default Notes tab — following up means reaching
+        // out to someone, and this is where that someone's info lives.
+        url: `/applications/${app.id}?section=contacts`,
       });
       notificationsByUser.set(app.userId, existing);
     }

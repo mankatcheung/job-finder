@@ -99,7 +99,10 @@ export class CreateSessionUseCase {
       type: NOTIFICATION_TYPE.SECURITY_ALERT,
       title: 'New sign-in detected',
       body: location ? `${deviceLabel} signed in from ${location}` : `${deviceLabel} signed in`,
-      url: '/settings/security',
+      // #security-activity scrolls straight to the login-event list this
+      // alert is actually about, instead of the top of a long settings page
+      // (SettingsSecurityPage.tsx scrolls to it on mount).
+      url: '/settings/security#security-activity',
     });
 
     await this.deps.emailService.sendNewDeviceLoginAlert(

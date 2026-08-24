@@ -186,6 +186,21 @@ export function SettingsSecurityPage() {
       );
   }, [t]);
 
+  // The new-sign-in-alert notification links here with #security-activity, so
+  // the user lands on the login-event list itself rather than the top of this
+  // long, single-scroll page. Plain browser anchor-scroll isn't reliable for
+  // it — this is a client-rendered settings page, so the target may not exist
+  // in the DOM yet when the browser processes the initial hash. Re-running on
+  // every loading-state change (not just once on mount) matters too: the
+  // sections above this one (linked accounts, 2FA, sessions) each load async
+  // and grow the page after a first scroll would have already landed, which
+  // left the target short of the top — scrollIntoView() is cheap enough to
+  // just re-run as each one settles.
+  useEffect(() => {
+    if (window.location.hash !== '#security-activity') return;
+    document.getElementById('security-activity')?.scrollIntoView();
+  }, [linkedAccountsLoading, totpLoading, sessionsData, securityActivity]);
+
   return (
     <div className="space-y-10">
       {stepUpDialog}
@@ -565,7 +580,7 @@ export function SettingsSecurityPage() {
       <hr className="border-gray-200 dark:border-gray-700" />
 
       {/* ── Security activity ── */}
-      <section className="space-y-4">
+      <section id="security-activity" className="scroll-mt-4 space-y-4">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             {t('security.securityActivityTitle')}

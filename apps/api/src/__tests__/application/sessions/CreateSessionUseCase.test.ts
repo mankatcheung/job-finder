@@ -146,7 +146,7 @@ describe('CreateSessionUseCase', () => {
           userId: 'user-1',
           type: 'security_alert',
           title: 'New sign-in detected',
-          url: '/settings/security',
+          url: '/settings/security#security-activity',
         }),
       );
     });
