@@ -4,6 +4,7 @@ import { Menu, X } from 'lucide-react';
 import { LogoMark } from '#/components/LogoMark';
 import { useLocale } from '#/lib/i18n';
 import { useIsLoggedIn } from '#/lib/useIsLoggedIn';
+import { MarketingThemeToggle } from './MarketingThemeToggle';
 
 interface MarketingHeaderProps {
   /** Bolds the Features nav item — set on `/features` and every `/features/*` page. */
@@ -56,15 +57,19 @@ export function MarketingHeader({ activeFeatures = false }: MarketingHeaderProps
             >
               {t('landing.getStarted')}
             </Link>
+            <MarketingThemeToggle />
           </div>
-          <button
-            type="button"
-            className="sm:hidden p-2 text-gray-600 dark:text-gray-400"
-            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          <div className="flex items-center gap-1 sm:hidden">
+            <MarketingThemeToggle />
+            <button
+              type="button"
+              className="p-2 text-gray-600 dark:text-gray-400"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
         {mobileMenuOpen && (
           <div className="sm:hidden pb-4 space-y-2">
