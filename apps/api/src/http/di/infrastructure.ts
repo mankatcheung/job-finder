@@ -17,6 +17,10 @@ import { JwtTokenService } from '#src/infrastructure/auth/JwtTokenService.js';
 import { TotpProvider } from '#src/infrastructure/auth/TotpProvider.js';
 import { GoogleOAuthProvider } from '#src/infrastructure/auth/GoogleOAuthProvider.js';
 import { GitHubOAuthProvider } from '#src/infrastructure/auth/GitHubOAuthProvider.js';
+import {
+  FakeGoogleOAuthProvider,
+  FakeGitHubOAuthProvider,
+} from '#src/infrastructure/auth/FakeOAuthProvider.js';
 import { OAuthProviderRegistry } from '#src/infrastructure/auth/OAuthProviderRegistry.js';
 import { McpOAuthConsentService } from '#src/infrastructure/auth/McpOAuthConsentService.js';
 import { OAuthStateService } from '#src/infrastructure/auth/OAuthStateService.js';
@@ -32,7 +36,7 @@ import { DocumentTextExtractor } from '#src/infrastructure/documents/DocumentTex
 import { ReactPdfDocumentRenderer } from '#src/infrastructure/pdf/ReactPdfDocumentRenderer.js';
 import { FetchJobPostingSourceResolver } from '#src/infrastructure/jobDescription/FetchJobPostingSourceResolver.js';
 
-import { ENV, EMAIL_PROVIDER, STORAGE_PROVIDER } from '#src/constants.js';
+import { ENV, EMAIL_PROVIDER, STORAGE_PROVIDER, OAUTH_PROVIDER_MODE } from '#src/constants.js';
 import type { Cradle } from './types.js';
 
 type StorageProviderConstructor = new () => LocalStorageProvider | VercelBlobStorageProvider;
@@ -46,6 +50,16 @@ const EmailService: EmailServiceConstructor =
   process.env[ENV.EMAIL_PROVIDER] === EMAIL_PROVIDER.CONSOLE
     ? ConsoleEmailService
     : BrevoEmailService;
+
+const useFakeOAuth = process.env[ENV.OAUTH_PROVIDER_MODE] === OAUTH_PROVIDER_MODE.FAKE;
+type GoogleOAuthProviderConstructor = new () => GoogleOAuthProvider | FakeGoogleOAuthProvider;
+type GitHubOAuthProviderConstructor = new () => GitHubOAuthProvider | FakeGitHubOAuthProvider;
+const GoogleOAuthProviderImpl: GoogleOAuthProviderConstructor = useFakeOAuth
+  ? FakeGoogleOAuthProvider
+  : GoogleOAuthProvider;
+const GitHubOAuthProviderImpl: GitHubOAuthProviderConstructor = useFakeOAuth
+  ? FakeGitHubOAuthProvider
+  : GitHubOAuthProvider;
 
 function buildCache(): ICache {
   const redis = getRedisClient();
@@ -80,8 +94,8 @@ export const infrastructure = {
   sessionBlocklist: asValue(buildSessionBlocklist()),
   transactionManager: asClass(DrizzleTransactionManager, { lifetime: Lifetime.SINGLETON }),
   totpProvider: asClass(TotpProvider, { lifetime: Lifetime.SINGLETON }),
-  googleOAuthProvider: asClass(GoogleOAuthProvider, { lifetime: Lifetime.SINGLETON }),
-  gitHubOAuthProvider: asClass(GitHubOAuthProvider, { lifetime: Lifetime.SINGLETON }),
+  googleOAuthProvider: asClass(GoogleOAuthProviderImpl, { lifetime: Lifetime.SINGLETON }),
+  gitHubOAuthProvider: asClass(GitHubOAuthProviderImpl, { lifetime: Lifetime.SINGLETON }),
   oauthProviderRegistry: asClass(OAuthProviderRegistry, { lifetime: Lifetime.SINGLETON }),
   oauthStateService: asClass(OAuthStateService, { lifetime: Lifetime.SINGLETON }),
   mcpOAuthConsentService: asClass(McpOAuthConsentService, { lifetime: Lifetime.SINGLETON }),

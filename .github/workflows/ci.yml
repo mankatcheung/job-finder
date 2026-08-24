@@ -129,6 +129,9 @@ jobs:
           WEB_APP_ORIGIN=http://localhost:3000
           API_ORIGIN=http://localhost:3001
           COOKIE_DOMAIN=
+          GOOGLE_OAUTH_CLIENT_ID=e2e-fake-google-client-id
+          GITHUB_OAUTH_CLIENT_ID=e2e-fake-github-client-id
+          OAUTH_PROVIDER_MODE=fake
           EOF
 
           cat > apps/web/.env <<'EOF'
