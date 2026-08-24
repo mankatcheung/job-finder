@@ -5,6 +5,7 @@ import { LogoMark } from '#/components/LogoMark';
 import { useLocale } from '#/lib/i18n';
 import { useIsLoggedIn } from '#/lib/useIsLoggedIn';
 import { MarketingThemeToggle } from './MarketingThemeToggle';
+import { MarketingLocalePicker } from './MarketingLocalePicker';
 
 interface MarketingHeaderProps {
   /** Bolds the Features nav item — set on `/features` and every `/features/*` page. */
@@ -57,9 +58,11 @@ export function MarketingHeader({ activeFeatures = false }: MarketingHeaderProps
             >
               {t('landing.getStarted')}
             </Link>
+            <MarketingLocalePicker />
             <MarketingThemeToggle />
           </div>
           <div className="flex items-center gap-1 sm:hidden">
+            <MarketingLocalePicker />
             <MarketingThemeToggle />
             <button
               type="button"

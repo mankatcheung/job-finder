@@ -22,7 +22,10 @@ vi.mock('#/lib/theme', () => ({
 }));
 
 vi.mock('#/lib/i18n', () => ({
+  LOCALE_OPTIONS: [{ value: 'en', label: 'English' }],
   useLocale: () => ({
+    locale: 'en',
+    setLocale: vi.fn(),
     t: (key: string) =>
       ({
         'landing.signIn': 'Sign in',
