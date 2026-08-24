@@ -64,7 +64,7 @@ describe('SendPushNotificationsUseCase', () => {
         userId: 'user-1',
         type: 'interview_reminder',
         title: 'Upcoming interview: Acme',
-        url: '/applications/app-1',
+        url: '/applications/app-1?section=interviews',
       }),
     );
   });
@@ -89,7 +89,7 @@ describe('SendPushNotificationsUseCase', () => {
         userId: 'user-2',
         type: 'follow_up_reminder',
         title: 'Follow up: Globex',
-        url: '/applications/app-2',
+        url: '/applications/app-2?section=contacts',
       }),
     );
   });
