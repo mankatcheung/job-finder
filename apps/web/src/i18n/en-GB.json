@@ -1039,5 +1039,15 @@
   "features.analytics.channelJobBoard": "Job board",
   "features.resumeCoverLetter.skillDesignSystems": "Design systems",
   "features.resumeCoverLetter.skillFigma": "Figma",
-  "features.resumeCoverLetter.skillZeroToOne": "0→1 product"
+  "features.resumeCoverLetter.skillZeroToOne": "0→1 product",
+  "applications.displayFields.title": "Details shown",
+  "applications.displayFields.pickerAria": "Choose which details are shown",
+  "applications.displayFields.role": "Role",
+  "applications.displayFields.location": "Location",
+  "applications.displayFields.date": "Date",
+  "applications.displayFields.tags": "Tags",
+  "applications.displayFields.status": "Status",
+  "applications.displayFields.starred": "Star",
+  "applications.displayFields.ghosted": "Likely ghosted",
+  "applications.displayFields.companyAlwaysShown": "Company is always shown"
 }
