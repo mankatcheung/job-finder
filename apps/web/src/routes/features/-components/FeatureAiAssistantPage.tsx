@@ -1,32 +1,39 @@
 import { Sparkles, Check } from 'lucide-react';
 import { FeaturePageLayout } from '#/components/marketing/FeaturePageLayout';
+import { useLocale } from '#/lib/i18n';
+
+const SAMPLE_COMPANY_A = 'Northwind Labs';
+const SAMPLE_COMPANY_B = 'Fernbridge';
+const PROVIDER_OPENAI = 'OpenAI';
 
 function ChatMockup() {
+  const { t } = useLocale();
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-900/5 dark:border-gray-800 dark:bg-gray-800/50">
       <div className="border-b border-gray-200 px-5 py-3.5 text-base font-bold text-gray-900 dark:border-gray-800 dark:text-gray-100">
-        Assistant
+        {t('features.aiAssistant.panelTitle')}
       </div>
       <div className="flex flex-col gap-3 p-5">
         <div className="max-w-[80%] self-end rounded-xl bg-blue-600 px-4 py-2 text-sm text-white">
-          Which of my applications haven&rsquo;t heard back in 2 weeks?
+          {t('features.aiAssistant.bubbleQuestion1')}
         </div>
         <div className="max-w-[85%] self-start rounded-xl border border-gray-200 px-4 py-2 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300">
-          Two: <strong className="font-semibold">Northwind Labs</strong> (applied 16 days ago) and{' '}
-          <strong className="font-semibold">Fernbridge</strong> (14 days). Want me to draft a
-          follow-up for either?
+          {t('features.aiAssistant.bubbleAnswer1Lead')}{' '}
+          <strong className="font-semibold">{SAMPLE_COMPANY_A}</strong>{' '}
+          {t('features.aiAssistant.bubbleAnswer1Mid')}{' '}
+          <strong className="font-semibold">{SAMPLE_COMPANY_B}</strong>{' '}
+          {t('features.aiAssistant.bubbleAnswer1Tail')}
         </div>
         <div className="max-w-[80%] self-end rounded-xl bg-blue-600 px-4 py-2 text-sm text-white">
-          Yes, draft one for Fernbridge — keep it short.
+          {t('features.aiAssistant.bubbleQuestion2')}
         </div>
         <div className="max-w-[85%] self-start rounded-xl border border-gray-200 px-4 py-2 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300">
-          Here&rsquo;s a short follow-up referencing your interview with their design lead. Want me
-          to save it as a note on the application?
+          {t('features.aiAssistant.bubbleAnswer2')}
         </div>
       </div>
       <div className="px-5 pb-5">
         <div className="rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-400 dark:border-gray-600">
-          Ask about any application&hellip;
+          {t('features.aiAssistant.inputPlaceholder')}
         </div>
       </div>
     </div>
@@ -34,36 +41,36 @@ function ChatMockup() {
 }
 
 export function FeatureAiAssistantPage() {
+  const { t } = useLocale();
   return (
     <FeaturePageLayout
       eyebrowIcon={Sparkles}
-      eyebrowLabel="AI assistant"
-      title="An assistant that knows your job search"
-      description="Ask it about any application, get help drafting a message, or just talk through your options — it has the context of your whole pipeline."
+      eyebrowLabel={t('features.aiAssistant.eyebrow')}
+      title={t('features.aiAssistant.title')}
+      description={t('features.aiAssistant.description')}
       heroVisual={<ChatMockup />}
       heroVisualMaxWidth="max-w-2xl"
       benefits={[
         {
-          title: 'Grounded in your data',
-          description:
-            "It reads your applications, notes and interview history when you ask — not a generic chatbot with no idea what you're actually working on. Ask about one company or your whole pipeline.",
+          title: t('features.aiAssistant.benefit1.title'),
+          description: t('features.aiAssistant.benefit1.description'),
           visual: (
             <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
               <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
-                What it can see
+                {t('features.aiAssistant.canSeeLabel')}
               </div>
               <div className="mt-3 flex flex-col gap-2.5">
                 {[
-                  'Applications & pipeline status',
-                  'Notes, interviews & contacts',
-                  'Response times & likely-ghosted flags',
-                ].map((line) => (
+                  'features.aiAssistant.canSeeItem1',
+                  'features.aiAssistant.canSeeItem2',
+                  'features.aiAssistant.canSeeItem3',
+                ].map((lineKey) => (
                   <div
-                    key={line}
+                    key={lineKey}
                     className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
                   >
                     <Check className="size-3.5 shrink-0 text-blue-600" />
-                    {line}
+                    {t(lineKey)}
                   </div>
                 ))}
               </div>
@@ -71,43 +78,41 @@ export function FeatureAiAssistantPage() {
           ),
         },
         {
-          title: 'Bring your own AI key',
-          description:
-            "Connect OpenAI, Anthropic, or any OpenAI-compatible endpoint. It's your key, so it's your usage and your cost — nothing routes through a shared account.",
+          title: t('features.aiAssistant.benefit2.title'),
+          description: t('features.aiAssistant.benefit2.description'),
           visual: (
             <div className="flex flex-col gap-2 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
               <div className="rounded-lg border border-blue-300 bg-blue-50 px-3 py-2.5 text-sm font-semibold text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                Anthropic — key connected
+                {t('features.aiAssistant.keyConnected')}
               </div>
               <div className="rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-400 dark:border-gray-700">
-                OpenAI
+                {PROVIDER_OPENAI}
               </div>
               <div className="rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-400 dark:border-gray-700">
-                Custom (OpenAI-compatible)
+                {t('features.aiAssistant.providerCustom')}
               </div>
             </div>
           ),
         },
         {
-          title: 'A history you can return to',
-          description:
-            "Every conversation is saved on its own, so a thread about salary negotiation doesn't get buried under one about resume edits. Pick up any of them right where you left off.",
+          title: t('features.aiAssistant.benefit3.title'),
+          description: t('features.aiAssistant.benefit3.description'),
           visual: (
             <div className="rounded-xl border border-gray-200 bg-white p-2 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
               <div className="rounded-lg bg-blue-50 px-3 py-2.5 text-sm font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                Fernbridge follow-up
+                {t('features.aiAssistant.historyItem1')}
               </div>
               <div className="px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300">
-                Negotiating the Northwind offer
+                {t('features.aiAssistant.historyItem2')}
               </div>
               <div className="px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300">
-                Which roles am I most likely to hear back from?
+                {t('features.aiAssistant.historyItem3')}
               </div>
             </div>
           ),
         },
       ]}
-      ctaHeadline="Talk through your search with the assistant"
+      ctaHeadline={t('features.aiAssistant.ctaHeadline')}
     />
   );
 }

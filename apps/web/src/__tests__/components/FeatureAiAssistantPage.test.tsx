@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import en from '#/i18n/en.json';
 import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
@@ -18,13 +19,9 @@ vi.mock('#/lib/i18n', () => ({
   useLocale: () => ({
     locale: 'en',
     setLocale: vi.fn(),
-    t: (key: string) =>
-      ({
-        'landing.features': 'Features',
-        'landing.signIn': 'Sign in',
-        'landing.getStarted': 'Get started',
-        'auth.register': 'Register',
-      })[key] ?? key,
+    // Resolve against the real English bundle so assertions on rendered copy
+    // keep working as keys are added (falls back to the key itself).
+    t: (key: string) => (en as Record<string, string>)[key] ?? key,
   }),
 }));
 

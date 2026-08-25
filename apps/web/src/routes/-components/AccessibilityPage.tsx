@@ -1,4 +1,5 @@
 import { LegalPageLayout } from '#/components/LegalPageLayout';
+import { useLocale } from '#/lib/i18n';
 
 const LAST_UPDATED = 'August 23, 2026';
 const CONTACT_EMAIL = 'privacy@trakwyn.com';
@@ -9,44 +10,32 @@ const CONTACT_EMAIL = 'privacy@trakwyn.com';
  * what's actually been done toward it, per JEF-132.
  */
 export function AccessibilityPage() {
+  const { t } = useLocale();
   return (
-    <LegalPageLayout title="Accessibility" lastUpdated={LAST_UPDATED}>
-      <p>
-        We want Trakwyn to be usable by everyone, including people using assistive technology like
-        screen readers, keyboard-only navigation, or browser zoom.
-      </p>
+    <LegalPageLayout titleKey="legal.accessibility.title" lastUpdated={LAST_UPDATED}>
+      <p>{t('legal.accessibility.intro')}</p>
 
-      <h2>Our target</h2>
+      <h2>{t('legal.accessibility.targetTitle')}</h2>
       <p>
-        We’re working toward the{' '}
+        {t('legal.accessibility.targetBodyPrefix')}{' '}
         <a href="https://www.w3.org/WAI/WCAG21/quickref/" target="_blank" rel="noreferrer">
-          Web Content Accessibility Guidelines (WCAG) 2.1
+          {t('legal.accessibility.wcagLinkText')}
         </a>{' '}
-        at Level AA. This is a target we’re working toward, not a certification — Trakwyn hasn’t had
-        a full manual accessibility audit, so we can’t claim to have fully met it yet.
+        {t('legal.accessibility.targetBodySuffix')}
       </p>
 
-      <h2>What we’ve done</h2>
+      <h2>{t('legal.accessibility.doneTitle')}</h2>
       <ul>
-        <li>
-          Automated accessibility scans (axe-core) run in our test suite against key pages,
-          including sign-in, registration, the dashboard, and the applications list, and are
-          required to pass with zero violations before a change ships.
-        </li>
-        <li>Accessibility issues found this way have been fixed as they were found.</li>
+        <li>{t('legal.accessibility.scansLi')}</li>
+        <li>{t('legal.accessibility.fixedLi')}</li>
       </ul>
 
-      <h2>Known limitations</h2>
-      <p>
-        Our automated coverage doesn’t yet reach every page, and automated scans only catch a subset
-        of real accessibility issues — they don’t replace testing with actual assistive technology.
-        If you run into something that doesn’t work well with a screen reader, keyboard navigation,
-        or another assistive tool, we want to know about it.
-      </p>
+      <h2>{t('legal.accessibility.limitationsTitle')}</h2>
+      <p>{t('legal.accessibility.limitationsBody')}</p>
 
-      <h2>Contact us</h2>
+      <h2>{t('legal.accessibility.contactTitle')}</h2>
       <p>
-        Found an accessibility barrier, or have feedback on how we can do better? Email us at{' '}
+        {t('legal.accessibility.contactPrefix')}{' '}
         <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
       </p>
     </LegalPageLayout>

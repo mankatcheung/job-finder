@@ -160,9 +160,11 @@ export function LandingPage() {
         <section className="px-4 pb-8 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-900/5 dark:border-gray-800 dark:bg-gray-800/50">
             <div className="flex items-center justify-between border-b border-gray-200 px-5 py-3 dark:border-gray-800">
-              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Board</span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                {t('landing.boardLabel')}
+              </span>
               <span className="text-xs text-gray-400 dark:text-gray-500">
-                Every application, one view
+                {t('landing.everyApplicationOneView')}
               </span>
             </div>
             <div className="flex gap-3 overflow-x-auto bg-gray-50 p-5 dark:bg-gray-900/40">
@@ -231,7 +233,7 @@ export function LandingPage() {
                     {t(feature.descriptionKey)}
                   </p>
                   <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-600">
-                    Learn more
+                    {t('landing.learnMore')}
                     <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                   </span>
                 </Link>
@@ -242,7 +244,7 @@ export function LandingPage() {
                 to="/features"
                 className="text-sm font-semibold text-blue-600 hover:text-blue-700"
               >
-                See everything Trakwyn does →
+                {t('landing.seeEverything')} →
               </Link>
             </div>
           </div>
