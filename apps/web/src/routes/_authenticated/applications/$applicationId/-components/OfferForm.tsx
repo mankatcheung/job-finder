@@ -148,7 +148,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
         />
       </div>
 
-      <div className="flex gap-3 justify-end">
+      <div className="flex justify-end gap-3">
         <Button type="button" variant="secondary" onClick={onCancel}>
           {t('common.cancel')}
         </Button>

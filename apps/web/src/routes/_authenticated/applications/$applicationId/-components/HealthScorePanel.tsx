@@ -90,9 +90,9 @@ export function HealthScorePanel({ healthScore }: { healthScore: HealthScore }) 
         <ul className="mt-3 space-y-1.5">
           {healthScore.criteria.map((c) => (
             <li key={c.key} className="flex items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
                 <span
-                  className={`shrink-0 w-4 h-4 rounded-full flex items-center justify-center ${c.met ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'}`}
+                  className={`flex size-4 shrink-0 items-center justify-center rounded-full ${c.met ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'}`}
                 >
                   {c.met && <CheckIcon size={10} className="text-white" />}
                 </span>

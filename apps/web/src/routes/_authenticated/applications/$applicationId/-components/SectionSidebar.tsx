@@ -20,12 +20,12 @@ export function SectionSidebar({ active, counts, onOpen }: SectionSidebarProps) 
 
   return (
     <nav
-      className="sticky top-20 hidden h-fit w-52 shrink-0 flex-col gap-4 rounded-xl border border-gray-200 bg-white p-2 dark:border-gray-700 dark:bg-gray-800 md:flex"
+      className="sticky top-20 hidden h-fit w-52 shrink-0 flex-col gap-4 rounded-xl border border-gray-200 bg-white p-2 md:flex dark:border-gray-700 dark:bg-gray-800"
       aria-label={t('applicationDetail.sectionNavAria')}
     >
       {SECTION_GROUPS.map((group) => (
         <div key={group.titleKey} className="flex flex-col gap-0.5">
-          <h2 className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+          <h2 className="px-2 pb-1 text-[11px] font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500">
             {t(group.titleKey)}
           </h2>
           {group.sections.map((section) => {

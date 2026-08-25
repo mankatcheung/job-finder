@@ -17,7 +17,7 @@ interface ErrorStateProps {
 export function ErrorState({ error, onRetry }: ErrorStateProps) {
   const { t } = useLocale();
   return (
-    <div className="text-center py-12">
+    <div className="py-12 text-center">
       <AlertTriangleIcon size={40} className="mx-auto mb-3 text-red-500" />
       <p className="text-gray-700 dark:text-gray-300">{getErrorMessage(error)}</p>
       {onRetry && (

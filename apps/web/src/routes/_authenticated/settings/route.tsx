@@ -26,22 +26,22 @@ function SettingsLayout() {
   ] as const;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+    <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-10">
+      <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">
         {t('nav.settings')}
       </h1>
-      <div className="flex flex-col lg:flex-row gap-8">
-        <nav className="hidden lg:block lg:w-48 shrink-0 space-y-1">
+      <div className="flex flex-col gap-8 lg:flex-row">
+        <nav className="hidden shrink-0 space-y-1 lg:block lg:w-48">
           {SETTINGS_NAV.map((item) => {
             const active = pathname.startsWith(item.to);
             return (
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
                   active
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-medium'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'bg-blue-50 font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-100'
                 }`}
               >
                 <item.icon size={16} />
@@ -50,7 +50,7 @@ function SettingsLayout() {
             );
           })}
         </nav>
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <div key={pathname} className="route-transition">
             <Outlet />
           </div>

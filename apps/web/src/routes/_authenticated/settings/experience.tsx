@@ -448,7 +448,7 @@ function SettingsExperiencePage() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-100">
               <BriefcaseIcon size={18} /> {t('experience.workExperienceTitle')}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -483,7 +483,7 @@ function SettingsExperiencePage() {
         {workExperiences.map((we) => (
           <div
             key={we.id}
-            className="flex items-start justify-between gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700"
+            className="flex items-start justify-between gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
           >
             <div className="min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -497,12 +497,12 @@ function SettingsExperiencePage() {
                 {we.endDate ? we.endDate.slice(0, 10) : t('experience.present')}
               </p>
               {we.description && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                <p className="mt-1 line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
                   {we.description}
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex shrink-0 items-center gap-1">
               <IconButton
                 label={t('common.edit')}
                 icon={<PencilIcon size={14} />}
@@ -526,9 +526,9 @@ function SettingsExperiencePage() {
             onSubmit={weForm.handleSubmit((data) =>
               weEditing ? updateWe.mutate(data) : createWe.mutate(data),
             )}
-            className="space-y-3 p-4 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10"
+            className="space-y-3 rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-800 dark:bg-blue-900/10"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FormLabel>{t('experience.companyLabel')}</FormLabel>
                 <Input
@@ -617,7 +617,7 @@ function SettingsExperiencePage() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-100">
               <GraduationCapIcon size={18} /> {t('experience.educationTitle')}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -652,7 +652,7 @@ function SettingsExperiencePage() {
         {educations.map((edu) => (
           <div
             key={edu.id}
-            className="flex items-start justify-between gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700"
+            className="flex items-start justify-between gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
           >
             <div className="min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -665,12 +665,12 @@ function SettingsExperiencePage() {
                 {edu.endDate ? edu.endDate.slice(0, 10) : t('experience.present')}
               </p>
               {edu.description && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                <p className="mt-1 line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
                   {edu.description}
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex shrink-0 items-center gap-1">
               <IconButton
                 label={t('common.edit')}
                 icon={<PencilIcon size={14} />}
@@ -694,9 +694,9 @@ function SettingsExperiencePage() {
             onSubmit={eduForm.handleSubmit((data) =>
               eduEditing ? updateEdu.mutate(data) : createEdu.mutate(data),
             )}
-            className="space-y-3 p-4 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10"
+            className="space-y-3 rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-800 dark:bg-blue-900/10"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FormLabel>{t('experience.institutionLabel')}</FormLabel>
                 <Input
@@ -776,7 +776,7 @@ function SettingsExperiencePage() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-100">
               <WrenchIcon size={18} /> {t('experience.skillsTitle')}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -813,7 +813,7 @@ function SettingsExperiencePage() {
             {skills.map((skill) => (
               <div
                 key={skill.id}
-                className="group flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm"
+                className="group flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800"
               >
                 <span className="text-gray-900 dark:text-gray-100">{skill.name}</span>
                 {skill.proficiency && (
@@ -825,7 +825,7 @@ function SettingsExperiencePage() {
                   label={t('common.edit')}
                   icon={<PencilIcon size={12} />}
                   size="sm"
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="opacity-0 transition-opacity group-hover:opacity-100"
                   onClick={() => {
                     setSkillEditing(skill);
                     setSkillFormOpen(true);
@@ -836,7 +836,7 @@ function SettingsExperiencePage() {
                   icon={<Trash2Icon size={12} />}
                   variant="danger"
                   size="sm"
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="opacity-0 transition-opacity group-hover:opacity-100"
                   onClick={() => deleteSkill.mutate(skill.id)}
                 />
               </div>
@@ -849,9 +849,9 @@ function SettingsExperiencePage() {
             onSubmit={skillForm.handleSubmit((data) =>
               skillEditing ? updateSkill.mutate(data) : createSkill.mutate(data),
             )}
-            className="space-y-3 p-4 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10"
+            className="space-y-3 rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-800 dark:bg-blue-900/10"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
                 <FormLabel>{t('experience.skillLabel')}</FormLabel>
                 <Input

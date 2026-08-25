@@ -40,10 +40,10 @@ const KANBAN_THUMB = (
     ].map((col) => (
       <div
         key={col.label}
-        className={`flex-1 rounded-md border-t-[3px] border border-gray-200 bg-white p-2 dark:border-gray-700 dark:bg-gray-800 ${col.color}`}
+        className={`flex-1 rounded-md border border-t-[3px] border-gray-200 bg-white p-2 dark:border-gray-700 dark:bg-gray-800 ${col.color}`}
       >
         <div className="text-[10px] font-bold">{col.label}</div>
-        <div className="mt-1.5 h-4 rounded border border-gray-200 dark:border-gray-700" />
+        <div className="mt-1.5 h-4 rounded-sm border border-gray-200 dark:border-gray-700" />
       </div>
     ))}
   </div>
@@ -64,9 +64,9 @@ const RESUME_THUMB = (
   <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-900/40">
     <div className="text-[11px] font-bold text-gray-900 dark:text-gray-100">Priya Anand</div>
     <div className="mt-1.5 space-y-1">
-      <div className="h-1 w-3/4 rounded bg-gray-300 dark:bg-gray-600" />
-      <div className="h-1 w-11/12 rounded bg-gray-300 dark:bg-gray-600" />
-      <div className="h-1 w-2/3 rounded bg-blue-300 dark:bg-blue-700" />
+      <div className="h-1 w-3/4 rounded-sm bg-gray-300 dark:bg-gray-600" />
+      <div className="h-1 w-11/12 rounded-sm bg-gray-300 dark:bg-gray-600" />
+      <div className="h-1 w-2/3 rounded-sm bg-blue-300 dark:bg-blue-700" />
     </div>
   </div>
 );
@@ -180,10 +180,10 @@ export function FeaturesIndexPage() {
 
       <main>
         {/* Hero */}
-        <section className="relative overflow-hidden py-20 sm:py-24 text-center">
-          <div className="absolute inset-0 -z-10 bg-gradient-to-b from-blue-50 to-gray-50 dark:from-gray-900 dark:to-gray-900" />
+        <section className="relative overflow-hidden py-20 text-center sm:py-24">
+          <div className="absolute inset-0 -z-10 bg-linear-to-b from-blue-50 to-gray-50 dark:from-gray-900 dark:to-gray-900" />
           <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-5xl">
+            <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl dark:text-gray-100">
               See what Trakwyn actually does
             </h1>
             <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
@@ -198,16 +198,16 @@ export function FeaturesIndexPage() {
           const reversed = i % 2 === 1;
           return (
             <div key={feature.to} className={reversed ? 'bg-gray-100 dark:bg-gray-800/30' : ''}>
-              <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+              <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
                 <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
                   <div className={reversed ? 'lg:order-2' : ''}>
-                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
-                      <feature.icon className="h-5 w-5 text-blue-600" />
+                    <div className="flex size-11 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
+                      <feature.icon className="size-5 text-blue-600" />
                     </div>
-                    <h2 className="mt-5 text-2xl font-bold text-gray-900 dark:text-gray-100 sm:text-3xl">
+                    <h2 className="mt-5 text-2xl font-bold text-gray-900 sm:text-3xl dark:text-gray-100">
                       {feature.title}
                     </h2>
-                    <p className="mt-3.5 text-base leading-7 text-gray-600 dark:text-gray-400">
+                    <p className="mt-3.5 text-base/7 text-gray-600 dark:text-gray-400">
                       {feature.description}
                     </p>
                     <ul className="mt-4 flex flex-col gap-2.5">
@@ -216,7 +216,7 @@ export function FeaturesIndexPage() {
                           key={bullet}
                           className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300"
                         >
-                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
+                          <Check className="mt-0.5 size-4 shrink-0 text-blue-600" />
                           {bullet}
                         </li>
                       ))}
@@ -240,8 +240,8 @@ export function FeaturesIndexPage() {
         })}
 
         {/* Everything else */}
-        <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-20">
-          <h2 className="text-center text-2xl font-bold text-gray-900 dark:text-gray-100 sm:text-3xl">
+        <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
+          <h2 className="text-center text-2xl font-bold text-gray-900 sm:text-3xl dark:text-gray-100">
             And everything else that keeps a search on track
           </h2>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -250,7 +250,7 @@ export function FeaturesIndexPage() {
                 key={item.title}
                 className="rounded-lg border border-gray-200 p-4 dark:border-gray-800"
               >
-                <item.icon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <item.icon className="size-4 text-gray-500 dark:text-gray-400" />
                 <div className="mt-2.5 text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {item.title}
                 </div>
@@ -269,7 +269,7 @@ export function FeaturesIndexPage() {
           </h2>
           <Link
             to="/register"
-            className="mt-7 inline-block rounded-lg bg-white px-7 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors"
+            className="mt-7 inline-block rounded-lg bg-white px-7 py-3 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50"
           >
             Get started free
           </Link>

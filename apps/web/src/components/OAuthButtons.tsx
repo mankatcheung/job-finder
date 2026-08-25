@@ -17,7 +17,7 @@ export function OAuthButtons({ label, returnTo }: OAuthButtonsProps) {
           <div className="w-full border-t border-gray-200 dark:border-gray-700" />
         </div>
         <div className="relative flex justify-center text-xs">
-          <span className="bg-white dark:bg-gray-800 px-2 text-gray-500 dark:text-gray-400">
+          <span className="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
             {t('common.or')}
           </span>
         </div>
@@ -25,14 +25,14 @@ export function OAuthButtons({ label, returnTo }: OAuthButtonsProps) {
 
       <a
         href={`${API_ORIGIN}/auth/oauth/google/start${returnToQuery}`}
-        className="flex w-full items-center justify-center gap-2 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
       >
         <OAuthProviderLogo provider="google" />
         {label} {t('common.withGoogle')}
       </a>
       <a
         href={`${API_ORIGIN}/auth/oauth/github/start${returnToQuery}`}
-        className="flex w-full items-center justify-center gap-2 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
       >
         <OAuthProviderLogo provider="github" />
         {label} {t('common.withGitHub')}

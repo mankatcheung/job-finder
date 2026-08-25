@@ -303,10 +303,10 @@ export function SettingsSecurityPage() {
               return (
                 <div
                   key={provider}
-                  className="flex items-center justify-between px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg"
+                  className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700"
                 >
                   <div className="flex items-center gap-3">
-                    <OAuthProviderLogo provider={provider} className="h-5 w-5 shrink-0" />
+                    <OAuthProviderLogo provider={provider} className="size-5 shrink-0" />
                     <div>
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {providerLabel}
@@ -362,7 +362,7 @@ export function SettingsSecurityPage() {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {t('security.backupCodesSaveNote')}
             </p>
-            <ul className="grid grid-cols-2 gap-2 font-mono text-sm bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+            <ul className="grid grid-cols-2 gap-2 rounded-lg bg-gray-50 p-3 font-mono text-sm dark:bg-gray-800">
               {backupCodes.map((code) => (
                 <li key={code}>{code}</li>
               ))}
@@ -440,7 +440,7 @@ export function SettingsSecurityPage() {
               <button
                 type="submit"
                 disabled={regenerateBackupCodesForm.formState.isSubmitting}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-60 text-gray-900 text-sm font-medium rounded-lg transition-colors dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100"
+                className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-200 disabled:opacity-60 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
               >
                 {regenerateBackupCodesForm.formState.isSubmitting
                   ? t('security.regenerating')
@@ -456,9 +456,9 @@ export function SettingsSecurityPage() {
             <img
               src={totpSetup.qrCodeDataUrl}
               alt={t('security.qrCodeAlt')}
-              className="w-40 h-40 rounded-lg border border-gray-200 dark:border-gray-700"
+              className="size-40 rounded-lg border border-gray-200 dark:border-gray-700"
             />
-            <p className="text-xs font-mono text-gray-500 dark:text-gray-400 break-all">
+            <p className="font-mono text-xs break-all text-gray-500 dark:text-gray-400">
               {totpSetup.secret}
             </p>
             <form onSubmit={totpConfirmForm.handleSubmit(onConfirmTotpSetup)} className="space-y-3">
@@ -533,7 +533,7 @@ export function SettingsSecurityPage() {
               type="button"
               onClick={onRevokeOtherSessions}
               aria-label={t('security.signOutOtherSessions')}
-              className="shrink-0 flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-xs font-medium rounded-lg transition-colors"
+              className="flex shrink-0 items-center gap-1 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-900 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
             >
               <LogOutIcon size={14} />{' '}
               <span className="hidden sm:inline">{t('security.signOutOtherSessions')}</span>
@@ -544,13 +544,13 @@ export function SettingsSecurityPage() {
           {sessions.map((session) => (
             <li
               key={session.id}
-              className="flex items-center justify-between gap-4 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg"
+              className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700"
             >
               <div className="min-w-0">
-                <p className="text-sm text-gray-900 dark:text-gray-100 truncate">
+                <p className="truncate text-sm text-gray-900 dark:text-gray-100">
                   {session.deviceLabel ?? session.userAgent ?? t('security.unknownDevice')}
                   {session.current && (
-                    <span className="ml-2 text-xs text-green-600 font-medium">
+                    <span className="ml-2 text-xs font-medium text-green-600">
                       {t('security.thisDevice')}
                     </span>
                   )}
@@ -566,7 +566,7 @@ export function SettingsSecurityPage() {
                   type="button"
                   onClick={() => onRevokeSession(session.id)}
                   aria-label={t('security.revokeSessionAria')}
-                  className="shrink-0 flex items-center gap-1 text-xs text-red-600 hover:underline"
+                  className="flex shrink-0 items-center gap-1 text-xs text-red-600 hover:underline"
                 >
                   <BanIcon size={14} />{' '}
                   <span className="hidden sm:inline">{t('security.revoke')}</span>
@@ -599,7 +599,7 @@ export function SettingsSecurityPage() {
           </p>
         )}
         {!securityActivityError && securityActivity && securityActivity.length > 0 && (
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
+          <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 dark:divide-gray-700 dark:border-gray-700">
             {securityActivity.map((event) => (
               <li key={event.id} className="px-3 py-2 text-sm">
                 <p className="text-gray-900 dark:text-gray-100">

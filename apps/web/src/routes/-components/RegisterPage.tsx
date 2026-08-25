@@ -57,16 +57,16 @@ export function RegisterPage() {
 
   if (registeredEmail) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+      <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
         <div className="w-full max-w-sm space-y-6">
           <Link to="/" className="flex items-center justify-center gap-2">
             <LogoMark size={28} />
             <span className="text-xl font-bold text-gray-900 dark:text-gray-100">Trakwyn</span>
           </Link>
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6 text-center">
-            <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+          <div className="space-y-6 rounded-xl bg-white p-8 text-center shadow-sm dark:bg-gray-800">
+            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
               <svg
-                className="w-6 h-6 text-green-600 dark:text-green-400"
+                className="size-6 text-green-600 dark:text-green-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth="1.5"
@@ -93,7 +93,7 @@ export function RegisterPage() {
             </div>
             <Link
               to="/login"
-              className="inline-block w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors text-center"
+              className="inline-block w-full rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-blue-700"
             >
               {t('auth.backToSignIn')}
             </Link>
@@ -104,13 +104,13 @@ export function RegisterPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
       <div className="w-full max-w-sm space-y-6">
         <Link to="/" className="flex items-center justify-center gap-2">
           <LogoMark size={28} />
           <span className="text-xl font-bold text-gray-900 dark:text-gray-100">Trakwyn</span>
         </Link>
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
+        <div className="space-y-6 rounded-xl bg-white p-8 shadow-sm dark:bg-gray-800">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {t('auth.createAccount')}

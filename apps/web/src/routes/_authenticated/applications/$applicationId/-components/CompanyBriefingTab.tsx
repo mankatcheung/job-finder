@@ -69,7 +69,7 @@ export function CompanyBriefingTab({ applicationId }: { applicationId: string })
 
   return (
     <div className="space-y-4">
-      <Card className="p-4 space-y-3">
+      <Card className="space-y-3 p-4">
         <p className="text-sm text-gray-600 dark:text-gray-400">
           {t('companyBriefing.description')}
         </p>
@@ -106,7 +106,7 @@ export function CompanyBriefingTab({ applicationId }: { applicationId: string })
       </Card>
 
       {briefing && (
-        <Card className="p-4 space-y-3">
+        <Card className="space-y-3 p-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -136,7 +136,7 @@ export function CompanyBriefingTab({ applicationId }: { applicationId: string })
             </Button>
           </div>
           <p className="text-xs text-gray-400">{t('companyBriefing.disclaimer')}</p>
-          <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-sans leading-relaxed">
+          <pre className="font-sans text-sm/relaxed whitespace-pre-wrap text-gray-800 dark:text-gray-200">
             {briefing.content}
           </pre>
         </Card>

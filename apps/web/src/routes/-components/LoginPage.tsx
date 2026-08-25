@@ -89,13 +89,13 @@ export function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
       <div className="w-full max-w-sm space-y-6">
         <Link to="/" className="flex items-center justify-center gap-2">
           <LogoMark size={28} />
           <span className="text-xl font-bold text-gray-900 dark:text-gray-100">Trakwyn</span>
         </Link>
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
+        <div className="space-y-6 rounded-xl bg-white p-8 shadow-sm dark:bg-gray-800">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {t('auth.signIn')}
@@ -123,7 +123,7 @@ export function LoginPage() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
+              <div className="mb-1 flex items-center justify-between">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t('auth.password')}
                 </label>
@@ -147,7 +147,7 @@ export function LoginPage() {
                 {errors.root.message?.includes('register') ? (
                   <>
                     {t('auth.noAccountFound')}{' '}
-                    <Link to="/register" className="underline font-medium hover:text-red-700">
+                    <Link to="/register" className="font-medium underline hover:text-red-700">
                       {t('auth.register')}
                     </Link>{' '}
                     {t('auth.createOne')}
@@ -205,13 +205,13 @@ function TotpStep({
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex items-center justify-center gap-2">
           <LogoMark size={28} />
           <span className="text-xl font-bold text-gray-900 dark:text-gray-100">Trakwyn</span>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
+        <div className="space-y-6 rounded-xl bg-white p-8 shadow-sm dark:bg-gray-800">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {t('auth.twoFactor')}
@@ -239,7 +239,7 @@ function TotpStep({
                 {errors.root.message?.includes('register') ? (
                   <>
                     {t('auth.noAccountFound')}{' '}
-                    <Link to="/register" className="underline font-medium hover:text-red-700">
+                    <Link to="/register" className="font-medium underline hover:text-red-700">
                       {t('auth.register')}
                     </Link>{' '}
                     {t('auth.createOne')}

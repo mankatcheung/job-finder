@@ -18,14 +18,14 @@ export function MarketingLocalePicker() {
   return (
     <div className="relative flex items-center">
       <GlobeIcon
-        className="pointer-events-none absolute left-2 h-3.5 w-3.5 text-gray-400"
+        className="pointer-events-none absolute left-2 size-3.5 text-gray-400"
         aria-hidden="true"
       />
       <select
         aria-label={t('settings.language')}
         value={locale}
         onChange={(event) => setLocale(event.target.value as Locale)}
-        className="appearance-none rounded-lg border border-gray-300 bg-white py-1.5 pl-7 pr-2 text-xs font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+        className="appearance-none rounded-lg border border-gray-300 bg-white py-1.5 pr-2 pl-7 text-xs font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
       >
         {LOCALE_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>

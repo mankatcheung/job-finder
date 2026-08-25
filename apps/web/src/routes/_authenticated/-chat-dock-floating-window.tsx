@@ -54,19 +54,19 @@ export function ChatDockFloatingWindow() {
   };
 
   return createPortal(
-    <div className="hidden lg:flex fixed bottom-16 right-4 z-50 w-96 h-[32rem] flex-col bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-200 dark:border-gray-700 shrink-0">
-        <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate min-w-0">
+    <div className="fixed right-4 bottom-16 z-50 hidden h-128 w-96 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl lg:flex dark:border-gray-700 dark:bg-gray-800">
+      <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-3 py-2.5 dark:border-gray-700">
+        <h2 className="min-w-0 truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
           {title}
         </h2>
-        <div className="flex items-center gap-0.5 shrink-0">
+        <div className="flex shrink-0 items-center gap-0.5">
           <button
             type="button"
             onClick={onMaximize}
             disabled={isNew}
             aria-label={t('chatDock.maximizeAria')}
             title={isNew ? t('chatDock.sendMessageFirst') : t('chatDock.openFullPage')}
-            className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed rounded transition-colors"
+            className="rounded-sm p-1.5 text-gray-400 transition-colors hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-30 dark:hover:text-gray-200"
           >
             <Maximize2Icon size={14} />
           </button>
@@ -85,9 +85,9 @@ export function ChatDockFloatingWindow() {
       </div>
 
       {llmApiKeys.length === 0 ? (
-        <p className="flex-1 flex items-center justify-center text-center text-xs text-gray-400 dark:text-gray-500 px-4">
+        <p className="flex flex-1 items-center justify-center px-4 text-center text-xs text-gray-400 dark:text-gray-500">
           {t('assistant.addApiKeyPrefix')}{' '}
-          <Link to="/settings/ai" className="underline mx-1">
+          <Link to="/settings/ai" className="mx-1 underline">
             {t('assistant.settingsLinkText')}
           </Link>{' '}
           {t('assistant.addApiKeySuffix')}

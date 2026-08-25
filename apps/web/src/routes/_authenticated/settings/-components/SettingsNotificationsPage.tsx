@@ -81,7 +81,7 @@ export function SettingsNotificationsPage() {
         {prefsLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-10 w-full max-w-xs rounded-lg" />
-            <Skeleton className="h-5 w-48 rounded" />
+            <Skeleton className="h-5 w-48 rounded-sm" />
             <Skeleton className="h-10 w-28 rounded-lg" />
           </div>
         ) : (

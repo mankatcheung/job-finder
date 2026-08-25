@@ -35,26 +35,26 @@ export function MarketingHeader({ activeFeatures = false }: MarketingHeaderProps
             <LogoMark size={24} />
             <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Trakwyn</span>
           </Link>
-          <div className="hidden sm:flex items-center gap-6">
+          <div className="hidden items-center gap-6 sm:flex">
             <Link
               to="/features"
               className={
                 activeFeatures
                   ? 'text-sm font-semibold text-blue-700 dark:text-blue-400'
-                  : 'text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors'
+                  : 'text-sm font-medium text-gray-700 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100'
               }
             >
               {t('landing.features')}
             </Link>
             <Link
               to={authLink}
-              className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+              className="text-sm font-medium text-gray-700 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
             >
               {authLabel}
             </Link>
             <Link
               to="/register"
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
             >
               {t('landing.getStarted')}
             </Link>
@@ -70,18 +70,18 @@ export function MarketingHeader({ activeFeatures = false }: MarketingHeaderProps
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
             </button>
           </div>
         </div>
         {mobileMenuOpen && (
-          <div className="sm:hidden pb-4 space-y-2">
+          <div className="space-y-2 pb-4 sm:hidden">
             <Link
               to="/features"
               className={
                 activeFeatures
-                  ? 'block rounded-lg px-3 py-2 text-sm font-semibold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                  : 'block rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  ? 'block rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                  : 'block rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
               }
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -89,14 +89,14 @@ export function MarketingHeader({ activeFeatures = false }: MarketingHeaderProps
             </Link>
             <Link
               to={authLink}
-              className="block rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="block rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
               onClick={() => setMobileMenuOpen(false)}
             >
               {authLabel}
             </Link>
             <Link
               to="/register"
-              className="block rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white text-center"
+              className="block rounded-lg bg-blue-600 px-3 py-2 text-center text-sm font-medium text-white"
               onClick={() => setMobileMenuOpen(false)}
             >
               {t('landing.getStarted')}

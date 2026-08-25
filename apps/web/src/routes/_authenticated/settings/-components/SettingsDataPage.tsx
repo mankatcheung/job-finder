@@ -63,7 +63,7 @@ export function SettingsDataPage() {
           type="button"
           onClick={onExport}
           aria-label={t('data.downloadExport')}
-          className="flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
         >
           <DownloadIcon size={14} />{' '}
           <span className="hidden sm:inline">{t('data.downloadExport')}</span>
@@ -80,7 +80,7 @@ export function SettingsDataPage() {
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">{t('data.importDescription')}</p>
         </div>
-        <label className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-sm font-medium rounded-lg transition-colors cursor-pointer">
+        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">
           <UploadIcon size={14} />{' '}
           <span className="hidden sm:inline">
             {importing ? t('data.importing') : t('data.chooseFileToImport')}

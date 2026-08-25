@@ -102,7 +102,7 @@ export function ApplicationActionsSheet({
               style={ROW_HEIGHT}
             >
               <span
-                className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusColor(status).dot}`}
+                className={`size-2.5 shrink-0 rounded-full ${statusColor(status).dot}`}
                 aria-hidden="true"
               />
               <span className="flex-1">{t('applicationDetail.changeStatus')}</span>
@@ -137,7 +137,7 @@ export function ApplicationActionsSheet({
               style={ROW_HEIGHT}
             >
               <span
-                className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusColor(value).dot}`}
+                className={`size-2.5 shrink-0 rounded-full ${statusColor(value).dot}`}
                 aria-hidden="true"
               />
               <span className="flex-1">{statusLabel(value)}</span>

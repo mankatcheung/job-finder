@@ -37,10 +37,10 @@ export function DocumentVersionOutcomesPanel() {
 
   return (
     <Card className="p-6">
-      <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+      <h2 className="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
         {t('documentOutcomes.title')}
       </h2>
-      <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+      <p className="mb-4 text-xs text-gray-400 dark:text-gray-500">
         {t('documentOutcomes.description')}
       </p>
 
@@ -53,19 +53,19 @@ export function DocumentVersionOutcomesPanel() {
             return (
               <div
                 key={`${o.documentType}::${o.version ?? ''}`}
-                className="flex items-center gap-3 py-2 border-b border-gray-100 dark:border-gray-700 last:border-0"
+                className="flex items-center gap-3 border-b border-gray-100 py-2 last:border-0 dark:border-gray-700"
               >
                 <span
-                  className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                  className={`shrink-0 rounded-sm px-1.5 py-0.5 text-[10px] font-medium ${
                     DOCUMENT_TYPE_BADGE_STYLE[o.documentType] ??
                     'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
                   }`}
                 >
                   {DOCUMENT_TYPE_LABEL[o.documentType] ?? o.documentType}
                 </span>
-                <span className="flex-1 min-w-0 text-sm text-gray-900 dark:text-gray-100 truncate">
+                <span className="min-w-0 flex-1 truncate text-sm text-gray-900 dark:text-gray-100">
                   {o.version ?? (
-                    <span className="italic text-gray-400">{t('documentOutcomes.noVersion')}</span>
+                    <span className="text-gray-400 italic">{t('documentOutcomes.noVersion')}</span>
                   )}
                 </span>
                 <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
@@ -74,10 +74,10 @@ export function DocumentVersionOutcomesPanel() {
                     applicationCount: o.applicationCount,
                   })}
                 </span>
-                <div className="shrink-0 w-16 h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                <div className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
                   <div className="h-full bg-purple-500" style={{ width: `${o.interviewRate}%` }} />
                 </div>
-                <span className="shrink-0 w-10 text-right text-xs font-medium text-gray-700 dark:text-gray-300">
+                <span className="w-10 shrink-0 text-right text-xs font-medium text-gray-700 dark:text-gray-300">
                   {o.interviewRate}%
                 </span>
                 {smallSample && (

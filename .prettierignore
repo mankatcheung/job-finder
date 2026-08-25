@@ -5,3 +5,4 @@ pnpm-lock.yaml
 apps/web/src/graphql/generated/
 apps/web/src/routeTree.gen.ts
 apps/api/prisma/migrations/
+.vercel/

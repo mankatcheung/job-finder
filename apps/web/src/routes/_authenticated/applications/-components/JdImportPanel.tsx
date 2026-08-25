@@ -68,13 +68,13 @@ export function JdImportPanel({ onFill }: Props) {
       : 'px-3 py-1.5 text-xs font-medium rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors';
 
   return (
-    <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 overflow-hidden">
+    <div className="overflow-hidden rounded-xl border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center gap-2 px-4 py-3 text-left"
+        className="flex w-full items-center gap-2 px-4 py-3 text-left"
       >
-        <SparklesIcon size={15} className="text-blue-500 shrink-0" />
+        <SparklesIcon size={15} className="shrink-0 text-blue-500" />
         <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
           {t('jdImport.autoFillTitle')}
         </span>
@@ -82,8 +82,8 @@ export function JdImportPanel({ onFill }: Props) {
       </button>
 
       {open && (
-        <div className="px-4 pb-4 space-y-3 border-t border-blue-200 dark:border-blue-800 pt-3">
-          <div className="flex gap-1 p-1 bg-blue-100 dark:bg-blue-900/40 rounded-lg w-fit">
+        <div className="space-y-3 border-t border-blue-200 px-4 pt-3 pb-4 dark:border-blue-800">
+          <div className="flex w-fit gap-1 rounded-lg bg-blue-100 p-1 dark:bg-blue-900/40">
             <button
               type="button"
               className={tabClass(mode === 'text')}

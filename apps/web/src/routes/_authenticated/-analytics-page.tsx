@@ -99,7 +99,7 @@ export function AnalyticsPage() {
 
   if (isLoading) {
     return (
-      <div className="p-4 sm:p-8 max-w-5xl mx-auto space-y-6">
+      <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-8">
         {[1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-64 rounded-xl" />
         ))}
@@ -109,17 +109,17 @@ export function AnalyticsPage() {
 
   if (isError) {
     return (
-      <div className="p-4 sm:p-8 max-w-5xl mx-auto">
+      <div className="mx-auto max-w-5xl p-4 sm:p-8">
         <ErrorState error={error} onRetry={() => refetch()} />
       </div>
     );
   }
 
   return (
-    <div className="p-4 sm:p-8 max-w-5xl mx-auto space-y-8">
+    <div className="mx-auto max-w-5xl space-y-8 p-4 sm:p-8">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('nav.analytics')}</h1>
 
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
         {[
           { label: t('dashboard.statTotal'), value: totalApps },
           { label: t('analyticsPage.statActive'), value: activeApps, color: 'text-blue-600' },
@@ -140,7 +140,7 @@ export function AnalyticsPage() {
           },
         ].map(({ label, value, color }) => (
           <Card key={label} className="p-4">
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{label}</p>
+            <p className="mb-1 text-xs text-gray-500 dark:text-gray-400">{label}</p>
             <p className={`text-2xl font-bold ${color ?? 'text-gray-900 dark:text-gray-100'}`}>
               {value}
             </p>
@@ -149,7 +149,7 @@ export function AnalyticsPage() {
       </div>
 
       <Card className="p-6">
-        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
+        <h2 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
           {t('analyticsPage.applicationsPerWeek')}
         </h2>
         {weeklyData.length === 0 ? (
@@ -172,7 +172,7 @@ export function AnalyticsPage() {
       </Card>
 
       <Card className="p-6">
-        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
+        <h2 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
           {t('analyticsPage.stageFunnel')}
         </h2>
         {apps.length === 0 ? (

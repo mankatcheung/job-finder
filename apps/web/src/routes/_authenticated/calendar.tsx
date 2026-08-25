@@ -179,18 +179,18 @@ function CalendarPage() {
           });
 
   return (
-    <div className="p-4 sm:p-8 max-w-3xl mx-auto">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+    <div className="mx-auto max-w-3xl p-4 sm:p-8">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('nav.calendar')}</h1>
-        <div className="flex gap-1 p-0.5 rounded-lg bg-gray-100 dark:bg-gray-800">
+        <div className="flex gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-800">
           {VIEW_MODES.map(({ mode, label }) => (
             <button
               key={mode}
               onClick={() => changeViewMode(mode)}
-              className={`px-3 py-1 text-sm rounded-md transition-colors ${
+              className={`rounded-md px-3 py-1 text-sm transition-colors ${
                 viewMode === mode
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                  ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-gray-100'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
               }`}
             >
               {label}
@@ -199,21 +199,21 @@ function CalendarPage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-2 mb-6">
+      <div className="mb-6 flex items-center justify-center gap-2">
         <button
           onClick={() => goToPeriod(-1)}
           aria-label={t('calendarPage.previousPeriod', { period: t(`calendarPage.${viewMode}`) })}
-          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+          className="rounded-lg p-1.5 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
         >
           <ChevronLeftIcon size={18} />
         </button>
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 w-48 text-center">
+        <span className="w-48 text-center text-sm font-medium text-gray-700 dark:text-gray-300">
           {periodLabel}
         </span>
         <button
           onClick={() => goToPeriod(1)}
           aria-label={t('calendarPage.nextPeriod', { period: t(`calendarPage.${viewMode}`) })}
-          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+          className="rounded-lg p-1.5 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
         >
           <ChevronRightIcon size={18} />
         </button>
@@ -227,11 +227,11 @@ function CalendarPage() {
         <>
           {viewMode !== 'day' && (
             <>
-              <div className="grid grid-cols-7 gap-1 mb-1">
+              <div className="mb-1 grid grid-cols-7 gap-1">
                 {WEEKDAY_LABELS.map((d) => (
                   <div
                     key={d}
-                    className="text-center text-xs font-medium text-gray-400 dark:text-gray-500 py-1"
+                    className="py-1 text-center text-xs font-medium text-gray-400 dark:text-gray-500"
                   >
                     {d}
                   </div>
@@ -249,13 +249,13 @@ function CalendarPage() {
                     <button
                       key={key}
                       onClick={() => setSelectedDay(key === selectedDay ? null : key)}
-                      className={`aspect-square rounded-lg p-1.5 flex flex-col items-center gap-1 text-sm transition-colors ${
+                      className={`flex aspect-square flex-col items-center gap-1 rounded-lg p-1.5 text-sm transition-colors ${
                         !inMonth
                           ? 'text-gray-300 dark:text-gray-600'
                           : 'text-gray-700 dark:text-gray-300'
                       } ${
                         isSelected
-                          ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-400'
+                          ? 'bg-blue-50 ring-1 ring-blue-400 dark:bg-blue-900/20'
                           : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                       } ${isToday ? 'font-bold' : ''}`}
                     >
@@ -265,7 +265,7 @@ function CalendarPage() {
                           {eventTypes.map((t) => (
                             <span
                               key={t}
-                              className={`w-1.5 h-1.5 rounded-full ${EVENT_DOT_STYLES[t]}`}
+                              className={`size-1.5 rounded-full ${EVENT_DOT_STYLES[t]}`}
                             />
                           ))}
                         </span>
@@ -279,12 +279,12 @@ function CalendarPage() {
 
           <div className="mt-6">
             {!dayInFocus && (
-              <p className="text-sm text-gray-400 dark:text-gray-500 py-4 text-center">
+              <p className="py-4 text-center text-sm text-gray-400 dark:text-gray-500">
                 {t('calendarPage.selectDayPrompt')}
               </p>
             )}
             {dayInFocus && focusedEvents.length === 0 && (
-              <p className="text-sm text-gray-400 dark:text-gray-500 py-4 text-center">
+              <p className="py-4 text-center text-sm text-gray-400 dark:text-gray-500">
                 {t('calendarPage.noEventsOnDay')}
               </p>
             )}
@@ -304,9 +304,9 @@ function CalendarPage() {
                     key={e.id}
                     to="/applications/$applicationId"
                     params={{ applicationId: e.applicationId }}
-                    className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="flex items-center gap-3 rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700"
                   >
-                    <span className={`w-2 h-2 rounded-full shrink-0 ${EVENT_DOT_STYLES[e.type]}`} />
+                    <span className={`size-2 shrink-0 rounded-full ${EVENT_DOT_STYLES[e.type]}`} />
                     <div>
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {EVENT_LABEL[e.type]}

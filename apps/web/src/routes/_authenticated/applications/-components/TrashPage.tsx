@@ -118,7 +118,7 @@ export function TrashPage() {
     restore.isPending || purge.isPending || restoreSelected.isPending || emptyTrash.isPending;
 
   return (
-    <div className="p-4 sm:p-8 max-w-3xl mx-auto">
+    <div className="mx-auto max-w-3xl p-4 sm:p-8">
       <div className="mb-4">
         <Link
           to="/applications"
@@ -128,7 +128,7 @@ export function TrashPage() {
         </Link>
       </div>
 
-      <div className="flex items-start justify-between gap-3 flex-wrap">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {t('trash.title')}
@@ -162,7 +162,7 @@ export function TrashPage() {
       )}
 
       {!isLoading && !isError && applications.length === 0 && (
-        <div className="text-center py-12">
+        <div className="py-12 text-center">
           <TrashIcon size={40} className="mx-auto mb-3 text-gray-300 dark:text-gray-600" />
           <p className="text-gray-500 dark:text-gray-400">{t('trash.empty')}</p>
         </div>
@@ -211,7 +211,7 @@ export function TrashPage() {
         {applications.map((app) => (
           <li key={app.id}>
             <Card className="p-4">
-              <div className="flex items-start justify-between gap-x-3 gap-y-2 flex-wrap">
+              <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
                 <div className="flex min-w-0 items-start gap-3">
                   <Checkbox
                     className="mt-1 shrink-0"
@@ -223,7 +223,7 @@ export function TrashPage() {
                     <Link
                       to="/applications/$applicationId"
                       params={{ applicationId: app.id }}
-                      className="font-semibold text-gray-900 dark:text-gray-100 hover:underline"
+                      className="font-semibold text-gray-900 hover:underline dark:text-gray-100"
                     >
                       {app.company}
                     </Link>
@@ -233,14 +233,14 @@ export function TrashPage() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex shrink-0 items-center gap-2">
                   <StatusBadge status={app.status} />
                   <button
                     type="button"
                     onClick={() => restore.mutate(app.id)}
                     disabled={busy}
                     aria-label={t('trash.restoreAria', { company: app.company })}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
+                    className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
                   >
                     <RotateCcwIcon size={14} />
                     <span className="hidden sm:inline">{t('trash.restore')}</span>
@@ -256,7 +256,7 @@ export function TrashPage() {
                     }}
                     disabled={busy}
                     aria-label={t('trash.deleteForeverAria', { company: app.company })}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 transition-colors"
+                    className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-900/20"
                   >
                     <Trash2Icon size={14} />
                     <span className="hidden sm:inline">{t('trash.deleteForever')}</span>

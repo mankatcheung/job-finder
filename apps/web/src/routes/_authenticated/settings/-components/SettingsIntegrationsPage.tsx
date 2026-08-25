@@ -177,8 +177,8 @@ export function SettingsIntegrationsPage() {
         {newApiToken && (
           <div className="space-y-3">
             <p className="text-sm text-green-600">{t('integrations.tokenCreatedNote')}</p>
-            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-              <code className="flex-1 text-sm font-mono text-gray-900 dark:text-gray-100 break-all">
+            <div className="flex items-center gap-2 rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+              <code className="flex-1 font-mono text-sm break-all text-gray-900 dark:text-gray-100">
                 {newApiToken.token}
               </code>
               <Button
@@ -206,7 +206,7 @@ export function SettingsIntegrationsPage() {
         {!newApiToken && (
           <>
             {apiTokenError && <Alert>{apiTokenError}</Alert>}
-            <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
               <div className="flex-1">
                 <FormLabel>{t('integrations.tokenNameLabel')}</FormLabel>
                 <Input
@@ -243,7 +243,7 @@ export function SettingsIntegrationsPage() {
         )}
 
         {apiTokens.length > 0 && (
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
+          <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 dark:divide-gray-700 dark:border-gray-700">
             {apiTokens.map((token) => (
               <li key={token.id} className="flex items-center justify-between gap-4 px-3 py-2">
                 <div className="min-w-0">
@@ -268,7 +268,7 @@ export function SettingsIntegrationsPage() {
                   onClick={() => onDeleteApiToken(token.id)}
                   disabled={deletingApiTokenId === token.id}
                   aria-label={t('integrations.revokeTokenAria')}
-                  className="shrink-0 flex items-center gap-1 text-xs text-red-600 hover:underline disabled:opacity-60"
+                  className="flex shrink-0 items-center gap-1 text-xs text-red-600 hover:underline disabled:opacity-60"
                 >
                   <Trash2Icon size={14} />{' '}
                   <span className="hidden sm:inline">
@@ -305,7 +305,7 @@ export function SettingsIntegrationsPage() {
             {t('integrations.mcpGrantsEmpty')}
           </p>
         ) : (
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
+          <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 dark:divide-gray-700 dark:border-gray-700">
             {mcpGrants.map((grant) => (
               <li key={grant.id} className="flex items-center justify-between gap-4 px-3 py-2">
                 <div className="min-w-0">
@@ -330,7 +330,7 @@ export function SettingsIntegrationsPage() {
                   onClick={() => onRevokeGrant(grant.id)}
                   disabled={revokingGrantId === grant.id}
                   aria-label={t('integrations.mcpGrantRevokeAria', { name: grant.clientName })}
-                  className="shrink-0 flex items-center gap-1 text-xs text-red-600 hover:underline disabled:opacity-60"
+                  className="flex shrink-0 items-center gap-1 text-xs text-red-600 hover:underline disabled:opacity-60"
                 >
                   <Trash2Icon size={14} />{' '}
                   <span className="hidden sm:inline">
@@ -361,8 +361,8 @@ export function SettingsIntegrationsPage() {
         {newShareLink && (
           <div className="space-y-3">
             <p className="text-sm text-green-600">{t('integrations.shareLinkCreatedNote')}</p>
-            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-              <code className="flex-1 text-sm font-mono text-gray-900 dark:text-gray-100 break-all">
+            <div className="flex items-center gap-2 rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+              <code className="flex-1 font-mono text-sm break-all text-gray-900 dark:text-gray-100">
                 {shareUrl(newShareLink.token)}
               </code>
               <Button
@@ -411,7 +411,7 @@ export function SettingsIntegrationsPage() {
         )}
 
         {shareLinks.length > 0 && (
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
+          <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 dark:divide-gray-700 dark:border-gray-700">
             {shareLinks.map((link) => (
               <li key={link.id} className="flex items-center justify-between gap-4 px-3 py-2">
                 <div className="min-w-0">
@@ -431,7 +431,7 @@ export function SettingsIntegrationsPage() {
                   onClick={() => onDeleteShareLink(link.id)}
                   disabled={deletingShareLinkId === link.id}
                   aria-label={t('integrations.revokeShareLinkAria')}
-                  className="shrink-0 flex items-center gap-1 text-xs text-red-600 hover:underline disabled:opacity-60"
+                  className="flex shrink-0 items-center gap-1 text-xs text-red-600 hover:underline disabled:opacity-60"
                 >
                   <Trash2Icon size={14} />{' '}
                   <span className="hidden sm:inline">
