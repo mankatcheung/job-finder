@@ -113,6 +113,23 @@ describe('AssistantNavConversations (app-sidebar subitems)', () => {
     await waitFor(() => expect(screen.getByText('New conversation')).toBeInTheDocument());
   });
 
+  it('starts a new conversation from a dedicated first subitem', async () => {
+    const onNavigate = vi.fn();
+    renderNav({ activeId: 'conv-1', onNavigate });
+
+    await waitFor(() => expect(screen.getByText('conv-1 title')).toBeInTheDocument());
+
+    // Sits above the recent threads, and links with an empty search param —
+    // clearing ?conversation= is what "new" means.
+    const items = screen.getAllByRole('link').map((l) => l.textContent);
+    expect(items.indexOf('New conversation')).toBe(0);
+    expect(items.indexOf('conv-1 title')).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByText('New conversation'));
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/assistant', search: {} });
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+  });
+
   it('always offers the all-chats entry and notifies the container after navigation', async () => {
     const onNavigate = vi.fn();
     mockGqlRequest.mockResolvedValue({ conversations: [] });

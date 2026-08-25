@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { MessageCircleIcon } from 'lucide-react';
+import { MessageCircleIcon, PlusIcon } from 'lucide-react';
 import { useLocale } from '#/lib/i18n';
 import { recentConversationsQueryOptions } from '#/routes/_authenticated/assistant/-shared';
 
@@ -31,6 +31,17 @@ export function AssistantNavConversations({
 
   return (
     <div className="ml-2 mt-1 mb-1 space-y-0.5 border-l border-gray-200 dark:border-gray-700">
+      {/* First among the subitems: an empty search param clears the active
+          conversation, which is exactly what "new" means here. */}
+      <Link
+        to="/assistant"
+        search={{}}
+        onClick={onNavigate}
+        className="sidebar-nav-item flex items-center gap-2 rounded-r-lg py-1.5 pr-3 pl-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-100"
+      >
+        <PlusIcon size={14} />
+        {t('assistant.newConversation')}
+      </Link>
       {conversations.map((c) => {
         const isActive = c.id === activeId;
         return (
