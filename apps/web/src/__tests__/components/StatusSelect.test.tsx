@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { ListFilterIcon } from 'lucide-react';
 import { StatusSelect } from '#/components/StatusSelect';
 import { STATUS_COLORS } from '#/lib/statusColors';
 
@@ -148,5 +149,52 @@ describe('StatusSelect', () => {
     expect(screen.getByRole('button', { name: 'Filter by status' })).toHaveTextContent(
       'Change status…',
     );
+  });
+
+  describe('iconOnlyOnMobile (JEF-232)', () => {
+    it('renders the mobile icon in place of the label below sm', () => {
+      setup({ iconOnlyOnMobile: true, mobileIcon: <ListFilterIcon aria-hidden="true" /> });
+      const trigger = screen.getByRole('button', { name: 'Filter by status' });
+      // Both variants render; the sm breakpoint decides which one shows.
+      expect(trigger.querySelector('span.sm\\:hidden')?.querySelector('svg')).not.toBeNull();
+      expect(trigger.querySelector('span.sm\\:hidden')).toHaveTextContent('');
+      expect(trigger).toHaveTextContent('All statuses');
+    });
+
+    it('shows the picked status as its colour dot beside the mobile icon', () => {
+      setup({
+        value: 'applied',
+        iconOnlyOnMobile: true,
+        mobileIcon: <ListFilterIcon aria-hidden="true" />,
+      });
+      const trigger = screen.getByRole('button', { name: 'Filter by status' });
+      expect(trigger.querySelector('span.sm\\:hidden')!.innerHTML).toContain(
+        STATUS_COLORS.applied.dot,
+      );
+    });
+
+    it('opens the same listbox and reports the choice', async () => {
+      const { user, onChange } = setup({
+        iconOnlyOnMobile: true,
+        mobileIcon: <ListFilterIcon aria-hidden="true" />,
+      });
+      await user.click(screen.getByRole('button', { name: 'Filter by status' }));
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      await user.click(screen.getByRole('option', { name: /Offered/ }));
+      expect(onChange).toHaveBeenCalledWith('offered');
+    });
+
+    it('keeps the desktop label and chevron at sm and above', () => {
+      setup({
+        value: 'interviewing',
+        iconOnlyOnMobile: true,
+        mobileIcon: <ListFilterIcon aria-hidden="true" />,
+      });
+      const desktopSpan = screen
+        .getByRole('button', { name: 'Filter by status' })
+        .querySelector('span.sm\\:flex');
+      expect(desktopSpan).toHaveTextContent('Interviewing');
+      expect(desktopSpan!.querySelector('svg[aria-hidden="true"]')).not.toBeNull();
+    });
   });
 });

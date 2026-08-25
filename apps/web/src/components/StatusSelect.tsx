@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { CheckIcon, ChevronDownIcon } from 'lucide-react';
 import { useLocale } from '#/lib/i18n';
 import { APPLICATION_STATUSES, statusColor } from '#/lib/statusColors';
@@ -19,6 +19,15 @@ export interface StatusSelectProps {
   variant?: 'default' | 'dark';
   /** Keeps the trigger showing `placeholder` after a pick, for action menus. */
   resetAfterSelect?: boolean;
+  /**
+   * Icon-only trigger under the sm breakpoint (JEF-232): renders `mobileIcon`
+   * in place of the label text so four filter controls fit one phone row. The
+   * aria-label and listbox behaviour are unchanged; a picked status stays
+   * visible as its colour dot beside the icon.
+   */
+  iconOnlyOnMobile?: boolean;
+  /** Shown instead of the label below sm when `iconOnlyOnMobile` is set. */
+  mobileIcon?: ReactNode;
   className?: string;
 }
 
@@ -45,6 +54,8 @@ export function StatusSelect({
   disabled = false,
   variant = 'default',
   resetAfterSelect = false,
+  iconOnlyOnMobile = false,
+  mobileIcon,
   className,
 }: StatusSelectProps) {
   const { t } = useLocale();
@@ -144,6 +155,11 @@ export function StatusSelect({
     .filter(Boolean)
     .join(' ');
 
+  const statusDot =
+    value && !resetAfterSelect ? (
+      <span className={`size-2 rounded-full ${statusColor(value).dot}`} aria-hidden="true" />
+    ) : null;
+
   return (
     <div ref={containerRef} className="relative">
       <button
@@ -158,11 +174,25 @@ export function StatusSelect({
         onKeyDown={onTriggerKeyDown}
         className={triggerClasses}
       >
-        {value && !resetAfterSelect && (
-          <span className={`size-2 rounded-full ${statusColor(value).dot}`} aria-hidden="true" />
+        {iconOnlyOnMobile ? (
+          <>
+            <span className="flex items-center gap-1.5 sm:hidden">
+              {statusDot}
+              {mobileIcon}
+            </span>
+            <span className="hidden items-center gap-2 sm:flex">
+              {statusDot}
+              <span className="capitalize">{triggerLabel}</span>
+              <ChevronDownIcon size={14} aria-hidden="true" className="opacity-60" />
+            </span>
+          </>
+        ) : (
+          <>
+            {statusDot}
+            <span className="capitalize">{triggerLabel}</span>
+            <ChevronDownIcon size={14} aria-hidden="true" className="opacity-60" />
+          </>
         )}
-        <span className="capitalize">{triggerLabel}</span>
-        <ChevronDownIcon size={14} aria-hidden="true" className="opacity-60" />
       </button>
 
       {open && (

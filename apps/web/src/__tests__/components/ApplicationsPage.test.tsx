@@ -24,11 +24,16 @@ vi.mock('@tanstack/react-router', () => ({
     children,
     to,
     search,
+    ...rest
   }: {
     children: React.ReactNode;
     to: string;
     search?: Record<string, string>;
-  }) => <a href={to + (search ? '?' + new URLSearchParams(search).toString() : '')}>{children}</a>,
+  } & Record<string, unknown>) => (
+    <a href={to + (search ? '?' + new URLSearchParams(search).toString() : '')} {...rest}>
+      {children}
+    </a>
+  ),
 }));
 
 vi.mock('#/graphql/client', () => ({
@@ -168,6 +173,42 @@ describe('ApplicationsPage', () => {
     expect(screen.getByRole('button', { name: 'Filter by status' })).toHaveTextContent(
       'All statuses',
     );
+  });
+
+  it('collapses the status filter to an icon-only trigger on mobile (JEF-232)', async () => {
+    // jsdom's matchMedia reports no sm match, so this is the phone layout.
+    mockGqlRequest.mockResolvedValue(page([]));
+    render(<ApplicationsPage />, { wrapper: Wrapper });
+
+    const trigger = await screen.findByRole('button', { name: 'Filter by status' });
+    expect(trigger.querySelector('span.sm\\:hidden')?.querySelector('svg')).not.toBeNull();
+  });
+
+  it('represents the starred and ghosted filters as labelled icon pills (JEF-232)', async () => {
+    mockGqlRequest.mockResolvedValue(page([]));
+    render(<ApplicationsPage />, { wrapper: Wrapper });
+
+    // Inactive pills keep their neutral surface; the icon is the touch target.
+    const starred = await screen.findByRole('link', { name: 'Starred' });
+    expect(starred.className).not.toContain('bg-yellow-400');
+    expect(starred.querySelector('svg')).toBeInTheDocument();
+
+    const ghosted = screen.getByRole('link', { name: 'Likely ghosted' });
+    expect(ghosted.className).not.toContain('bg-amber-500');
+    expect(ghosted.querySelector('svg')).toBeInTheDocument();
+  });
+
+  it('marks the starred and ghosted pills active when their search params are set', async () => {
+    mockUseSearch.mockReturnValue({ starred: true, likelyGhosted: true });
+    mockGqlRequest.mockResolvedValue(page([]));
+    render(<ApplicationsPage />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: 'Starred' }).className).toContain('bg-yellow-400');
+      expect(screen.getByRole('link', { name: 'Likely ghosted' }).className).toContain(
+        'bg-amber-500',
+      );
+    });
   });
 
   it('shows filtered empty state when status filter active', async () => {

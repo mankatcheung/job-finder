@@ -11,7 +11,9 @@ import { useBulkActions } from '../-useBulkActions';
 import { useInfiniteScrollSentinel } from '#/lib/useInfiniteScrollSentinel';
 import {
   BriefcaseIcon,
+  GhostIcon,
   KanbanIcon,
+  ListFilterIcon,
   PlusIcon,
   SearchIcon,
   StarIcon,
@@ -143,7 +145,9 @@ function ApplicationsPage() {
         )}
       </div>
 
-      <div className="mb-6 flex items-center gap-3">
+      {/* JEF-232: below sm each control collapses to its icon so the four of
+          them share one phone row; labels come back at sm. */}
+      <div className="mb-6 flex items-center gap-2 sm:gap-3">
         <StatusSelect
           value={status ?? ''}
           onChange={(next) => {
@@ -154,25 +158,34 @@ function ApplicationsPage() {
           }}
           label={t('applications.filterByStatus')}
           placeholder={t('applications.allStatuses')}
+          iconOnlyOnMobile
+          mobileIcon={<ListFilterIcon size={16} />}
         />
         <Link
           to="/applications"
           search={starred ? {} : { starred: true }}
-          className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs capitalize transition-colors ${
+          aria-label={t('applications.starred')}
+          className={`flex items-center justify-center gap-1.5 rounded-full border px-3 py-1.5 text-xs capitalize transition-colors ${
             starred
               ? 'border-yellow-400 bg-yellow-400 text-white'
               : 'border-gray-200 bg-white text-gray-600 hover:border-yellow-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400'
           }`}
         >
-          <StarIcon size={11} className={starred ? 'fill-white' : ''} />
-          {t('applications.starred')}
+          <StarIcon size={14} className={starred ? 'fill-white' : ''} />
+          <span className="hidden sm:inline">{t('applications.starred')}</span>
         </Link>
         <Link
           to="/applications"
           search={likelyGhosted ? {} : { likelyGhosted: true }}
-          className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${likelyGhosted ? 'border-amber-500 bg-amber-500 text-white' : 'border-gray-200 bg-white text-gray-600 hover:border-amber-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400'}`}
+          aria-label={t('applications.likelyGhosted')}
+          className={`flex items-center justify-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+            likelyGhosted
+              ? 'border-amber-500 bg-amber-500 text-white'
+              : 'border-gray-200 bg-white text-gray-600 hover:border-amber-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400'
+          }`}
         >
-          {t('applications.likelyGhosted')}
+          <GhostIcon size={14} />
+          <span className="hidden sm:inline">{t('applications.likelyGhosted')}</span>
         </Link>
         <div className="ml-auto">
           <ApplicationDisplayFieldsPicker fields={displayFields} onToggle={toggleDisplayField} />
