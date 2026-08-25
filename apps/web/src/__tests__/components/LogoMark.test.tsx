@@ -26,6 +26,8 @@ describe('LogoMark', () => {
   });
 
   it('applies a custom className', () => {
+    // Fixture string, not a real utility — the point is pass-through.
+    // eslint-disable-next-line better-tailwindcss/no-unknown-classes
     const { container } = render(<LogoMark className="my-class" />);
     const svg = container.querySelector('svg');
     expect(svg).toHaveClass('my-class');

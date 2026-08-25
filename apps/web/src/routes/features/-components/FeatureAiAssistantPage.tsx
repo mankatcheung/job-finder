@@ -3,7 +3,7 @@ import { FeaturePageLayout } from '#/components/marketing/FeaturePageLayout';
 
 function ChatMockup() {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-900/5 overflow-hidden dark:border-gray-800 dark:bg-gray-800/50">
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-900/5 dark:border-gray-800 dark:bg-gray-800/50">
       <div className="border-b border-gray-200 px-5 py-3.5 text-base font-bold text-gray-900 dark:border-gray-800 dark:text-gray-100">
         Assistant
       </div>
@@ -62,7 +62,7 @@ export function FeatureAiAssistantPage() {
                     key={line}
                     className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
                   >
-                    <Check className="h-3.5 w-3.5 shrink-0 text-blue-600" />
+                    <Check className="size-3.5 shrink-0 text-blue-600" />
                     {line}
                   </div>
                 ))}
@@ -75,7 +75,7 @@ export function FeatureAiAssistantPage() {
           description:
             "Connect OpenAI, Anthropic, or any OpenAI-compatible endpoint. It's your key, so it's your usage and your cost — nothing routes through a shared account.",
           visual: (
-            <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-800/50 flex flex-col gap-2">
+            <div className="flex flex-col gap-2 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
               <div className="rounded-lg border border-blue-300 bg-blue-50 px-3 py-2.5 text-sm font-semibold text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
                 Anthropic — key connected
               </div>

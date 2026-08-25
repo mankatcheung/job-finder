@@ -86,8 +86,8 @@ function ApplicationsPage() {
   const selectedCount = selectedIds.size;
 
   return (
-    <div className="p-4 sm:p-8 max-w-5xl mx-auto pb-24">
-      <div className="flex items-center justify-between mb-6">
+    <div className="mx-auto max-w-5xl p-4 pb-24 sm:p-8">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           {t('applications.title')}
         </h1>
@@ -95,7 +95,7 @@ function ApplicationsPage() {
           <Link
             to="/applications/trash"
             aria-label={t('trash.title')}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:text-gray-800 dark:border-gray-700 dark:hover:text-gray-200"
           >
             <TrashIcon size={15} />
             <span className="hidden sm:inline">{t('trash.title')}</span>
@@ -103,7 +103,7 @@ function ApplicationsPage() {
           <Link
             to="/applications/board"
             aria-label={t('applications.switchToBoardView')}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:text-gray-800 dark:border-gray-700 dark:hover:text-gray-200"
           >
             <KanbanIcon size={15} />
             <span className="hidden sm:inline">{t('applications.board')}</span>
@@ -111,7 +111,7 @@ function ApplicationsPage() {
           <Link
             to="/applications/new"
             aria-label={t('applications.newApplicationAria')}
-            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
           >
             <PlusIcon size={15} />
             <span className="hidden sm:inline">{t('applications.new')}</span>
@@ -122,25 +122,25 @@ function ApplicationsPage() {
       <div className="relative mb-4">
         <SearchIcon
           size={15}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
         />
         <input
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           placeholder={t('applications.searchPlaceholder')}
-          className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-8 pl-9 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
         />
         {searchInput && (
           <button
             onClick={() => setSearchInput('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
             <XIcon size={14} />
           </button>
         )}
       </div>
 
-      <div className="flex items-center gap-3 mb-6">
+      <div className="mb-6 flex items-center gap-3">
         <StatusSelect
           value={status ?? ''}
           onChange={(next) => {
@@ -155,10 +155,10 @@ function ApplicationsPage() {
         <Link
           to="/applications"
           search={starred ? {} : { starred: true }}
-          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border capitalize transition-colors ${
+          className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs capitalize transition-colors ${
             starred
-              ? 'bg-yellow-400 text-white border-yellow-400'
-              : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-yellow-400'
+              ? 'border-yellow-400 bg-yellow-400 text-white'
+              : 'border-gray-200 bg-white text-gray-600 hover:border-yellow-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400'
           }`}
         >
           <StarIcon size={11} className={starred ? 'fill-white' : ''} />
@@ -167,7 +167,7 @@ function ApplicationsPage() {
         <Link
           to="/applications"
           search={likelyGhosted ? {} : { likelyGhosted: true }}
-          className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${likelyGhosted ? 'bg-amber-500 text-white border-amber-500' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-amber-400'}`}
+          className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${likelyGhosted ? 'border-amber-500 bg-amber-500 text-white' : 'border-gray-200 bg-white text-gray-600 hover:border-amber-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400'}`}
         >
           {t('applications.likelyGhosted')}
         </Link>
@@ -197,7 +197,7 @@ function ApplicationsPage() {
         />
       ) : (
         <div className="space-y-2">
-          <label className="flex items-center gap-2 px-1 text-xs text-gray-500 dark:text-gray-400 select-none cursor-pointer">
+          <label className="flex cursor-pointer items-center gap-2 px-1 text-xs text-gray-500 select-none dark:text-gray-400">
             <Checkbox
               checked={allSelected}
               onChange={toggleAll}
@@ -211,7 +211,7 @@ function ApplicationsPage() {
           {apps.map((app) => (
             <Card
               key={app.id}
-              className="flex items-center gap-3 px-5 py-4 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+              className="flex items-center gap-3 px-5 py-4 transition-colors hover:border-blue-300 dark:hover:border-blue-600"
             >
               <Checkbox
                 className="shrink-0"
@@ -222,22 +222,22 @@ function ApplicationsPage() {
               <Link
                 to="/applications/$applicationId"
                 params={{ applicationId: app.id }}
-                className="flex-1 flex items-center justify-between min-w-0 group"
+                className="group flex min-w-0 flex-1 items-center justify-between"
               >
                 <div className="min-w-0">
-                  <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                     {app.company}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                     {app.role}
                     {app.location ? ` · ${app.location}` : ''}
                   </p>
                   {app.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1.5">
+                    <div className="mt-1.5 flex flex-wrap gap-1">
                       {app.tags.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
-                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+                          className="inline-flex items-center rounded-sm bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
                         >
                           {tag}
                         </span>
@@ -248,11 +248,11 @@ function ApplicationsPage() {
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex shrink-0 items-center gap-3">
                   {app.starred && (
-                    <StarIcon size={13} className="text-yellow-400 fill-yellow-400 shrink-0" />
+                    <StarIcon size={13} className="shrink-0 fill-yellow-400 text-yellow-400" />
                   )}
-                  <p className="text-xs text-gray-400 hidden sm:block">
+                  <p className="hidden text-xs text-gray-400 sm:block">
                     {app.appliedAt
                       ? new Date(app.appliedAt).toLocaleDateString()
                       : new Date(app.createdAt).toLocaleDateString()}
@@ -359,9 +359,9 @@ function BulkActionBar({
     // dock's own persistent footer bar (-chat-dock-footer.tsx) is fixed
     // bottom-0, h-12 (48px), same z-40 — bottom-4 overlapped it, so its
     // buttons intercepted clicks meant for this bar's own buttons.
-    <div className="fixed bottom-16 inset-x-0 z-40 flex justify-center px-4">
-      <div className="flex flex-wrap items-center gap-2 px-4 py-3 bg-gray-900 dark:bg-gray-700 text-white rounded-xl shadow-lg max-w-full">
-        <span className="text-sm font-medium pr-1">
+    <div className="fixed inset-x-0 bottom-16 z-40 flex justify-center px-4">
+      <div className="flex max-w-full flex-wrap items-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-white shadow-lg dark:bg-gray-700">
+        <span className="pr-1 text-sm font-medium">
           {t('applications.selectedCount', { count: ids.length })}
         </span>
 
@@ -389,14 +389,14 @@ function BulkActionBar({
             }}
             placeholder={t('applications.addTagPlaceholder')}
             disabled={bulk.isPending}
-            className="w-24 text-sm bg-gray-800 dark:bg-gray-600 border border-gray-700 dark:border-gray-500 rounded-lg px-2 py-1.5 placeholder-gray-400 disabled:opacity-60"
+            className="w-24 rounded-lg border border-gray-700 bg-gray-800 px-2 py-1.5 text-sm placeholder-gray-400 disabled:opacity-60 dark:border-gray-500 dark:bg-gray-600"
           />
           <button
             type="button"
             onClick={onAddTag}
             disabled={bulk.isPending || !tagInput.trim()}
             aria-label={t('applications.addTagToSelected')}
-            className="p-1.5 hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-60"
+            className="rounded-lg p-1.5 transition-colors hover:bg-gray-800 disabled:opacity-60 dark:hover:bg-gray-600"
           >
             <TagIcon size={16} />
           </button>
@@ -407,7 +407,7 @@ function BulkActionBar({
           onClick={() => bulk.bulkSetStarred(ids, true)}
           disabled={bulk.isPending}
           aria-label={t('applications.starSelected')}
-          className="flex items-center gap-1 px-2 py-1.5 text-sm hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-60"
+          className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-gray-800 disabled:opacity-60 dark:hover:bg-gray-600"
         >
           <StarIcon size={14} /> <span className="hidden sm:inline">{t('applications.star')}</span>
         </button>
@@ -416,7 +416,7 @@ function BulkActionBar({
           onClick={() => bulk.bulkSetStarred(ids, false)}
           disabled={bulk.isPending}
           aria-label={t('applications.unstarSelected')}
-          className="flex items-center gap-1 px-2 py-1.5 text-sm hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-60"
+          className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-gray-800 disabled:opacity-60 dark:hover:bg-gray-600"
         >
           <StarOffIcon size={14} />{' '}
           <span className="hidden sm:inline">{t('applications.unstar')}</span>
@@ -426,7 +426,7 @@ function BulkActionBar({
           onClick={onDelete}
           disabled={bulk.isPending}
           aria-label={t('applications.deleteSelected')}
-          className="flex items-center gap-1 px-2 py-1.5 text-sm text-red-300 hover:bg-red-900/40 rounded-lg transition-colors disabled:opacity-60"
+          className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm text-red-300 transition-colors hover:bg-red-900/40 disabled:opacity-60"
         >
           <Trash2Icon size={14} /> <span className="hidden sm:inline">{t('common.delete')}</span>
         </button>
@@ -435,7 +435,7 @@ function BulkActionBar({
           type="button"
           onClick={onClear}
           aria-label={t('applications.clearSelection')}
-          className="p-1.5 hover:bg-gray-800 dark:hover:bg-gray-600 rounded-lg transition-colors ml-1"
+          className="ml-1 rounded-lg p-1.5 transition-colors hover:bg-gray-800 dark:hover:bg-gray-600"
         >
           <XIcon size={16} />
         </button>

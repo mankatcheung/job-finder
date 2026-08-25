@@ -62,14 +62,14 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
 
   return (
     <div className="space-y-4">
-      <Card className="p-4 space-y-3">
+      <Card className="space-y-3 p-4">
         {usingUploadedResume && resumeDoc ? (
-          <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-gray-600 dark:text-gray-300">
               {t('resumeMatch.usingUploadedResumePrefix')}{' '}
               <span className="font-medium">{resumeDoc.name}</span>
             </p>
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex shrink-0 items-center gap-3">
               {isPreviewableMimeType(resumeDoc.mimeType) && (
                 <button
                   type="button"
@@ -114,7 +114,7 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
         <button
           onClick={() => compute.mutate()}
           disabled={compute.isPending || (!usingUploadedResume && !resumeText.trim())}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
         >
           {compute.isPending ? (
             <>
@@ -144,9 +144,9 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
       </Card>
 
       {result && color && (
-        <Card className="p-4 space-y-4">
+        <Card className="space-y-4 p-4">
           <div
-            className={`rounded-xl border border-gray-100 dark:border-gray-700 ${color.bg} p-3 flex items-center gap-3`}
+            className={`rounded-xl border border-gray-100 dark:border-gray-700 ${color.bg} flex items-center gap-3 p-3`}
           >
             <svg width="52" height="52" viewBox="0 0 52 52" className="shrink-0">
               <circle
@@ -188,7 +188,7 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
                 {t('resumeMatch.resumeMatchTitle')}
               </p>
               <span
-                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${color.badge}`}
+                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${color.badge}`}
               >
                 {result.label}
               </span>
@@ -201,14 +201,14 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
 
           {result.matchedKeywords.length > 0 && (
             <div>
-              <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+              <h4 className="mb-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
                 {t('resumeMatch.matchedKeywords')}
               </h4>
               <div className="flex flex-wrap gap-1.5">
                 {result.matchedKeywords.map((kw) => (
                   <span
                     key={kw}
-                    className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                    className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700 dark:bg-green-900/30 dark:text-green-400"
                   >
                     {kw}
                   </span>
@@ -219,14 +219,14 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
 
           {result.missingKeywords.length > 0 && (
             <div>
-              <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+              <h4 className="mb-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
                 {t('resumeMatch.missingKeywords')}
               </h4>
               <div className="flex flex-wrap gap-1.5">
                 {result.missingKeywords.map((kw) => (
                   <span
                     key={kw}
-                    className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                    className="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700 dark:bg-red-900/30 dark:text-red-400"
                   >
                     {kw}
                   </span>

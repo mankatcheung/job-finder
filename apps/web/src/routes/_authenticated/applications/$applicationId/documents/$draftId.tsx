@@ -166,12 +166,12 @@ function DocumentDraftEditPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="mx-auto max-w-4xl px-4 py-6">
+      <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <IconButton
             label={t('documentDraftEdit.backAria')}
-            icon={<ArrowLeftIcon className="h-5 w-5" />}
+            icon={<ArrowLeftIcon className="size-5" />}
             onClick={() =>
               navigate({ to: '/applications/$applicationId', params: { applicationId } })
             }
@@ -188,7 +188,7 @@ function DocumentDraftEditPage() {
                   if (e.key === 'Escape') setRenaming(false);
                 }}
                 aria-label={t('documentDraftEdit.renameAria')}
-                className="text-xl font-bold text-gray-900 dark:text-gray-100 bg-transparent border-b border-blue-500 outline-none"
+                className="border-b border-blue-500 bg-transparent text-xl font-bold text-gray-900 outline-none dark:text-gray-100"
               />
             ) : (
               <button
@@ -198,7 +198,7 @@ function DocumentDraftEditPage() {
                   setRenaming(true);
                 }}
                 title={t('documentDraftEdit.renameAria')}
-                className="text-xl font-bold text-gray-900 dark:text-gray-100 hover:underline text-left"
+                className="text-left text-xl font-bold text-gray-900 hover:underline dark:text-gray-100"
               >
                 {draft.title}
               </button>
@@ -217,13 +217,13 @@ function DocumentDraftEditPage() {
         <div className="flex items-center gap-2">
           <Button onClick={handleExportPdf} disabled={exporting}>
             <span className="inline-flex items-center gap-1.5">
-              <DownloadIcon className="h-4 w-4" />
+              <DownloadIcon className="size-4" />
               {exporting ? t('documentDraftEdit.exporting') : t('documentDraftEdit.exportPdf')}
             </span>
           </Button>
           <IconButton
             label={t('common.delete')}
-            icon={<TrashIcon className="h-4 w-4" />}
+            icon={<TrashIcon className="size-4" />}
             variant="danger"
             onClick={handleDelete}
           />

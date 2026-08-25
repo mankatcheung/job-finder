@@ -92,7 +92,7 @@ function StepUpReauthDialog({
 
   return (
     <Modal open onClose={onCancel} size="sm">
-      <div className="p-6 space-y-4">
+      <div className="space-y-4 p-6">
         <div>
           <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             {t('stepUpReauth.title')}
@@ -132,7 +132,7 @@ function StepUpReauthDialog({
             </div>
           )}
           {form.formState.errors.root && <Alert>{form.formState.errors.root.message}</Alert>}
-          <div className="flex gap-2 justify-end pt-2">
+          <div className="flex justify-end gap-2 pt-2">
             <Button variant="link" onClick={onCancel}>
               {t('common.cancel')}
             </Button>

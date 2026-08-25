@@ -118,14 +118,14 @@ function CompareOffersPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           {t('offerCompare.title')}
         </h1>
         <Button onClick={handleCompare} disabled={selectedIds.length < 2 || comparing}>
           <span className="inline-flex items-center gap-1.5">
-            <GitCompareArrowsIcon className="h-4 w-4" />
+            <GitCompareArrowsIcon className="size-4" />
             {comparing
               ? t('offerCompare.comparing')
               : t('offerCompare.compareCount', { count: selectedIds.length })}
@@ -138,18 +138,18 @@ function CompareOffersPage() {
       ) : (
         <>
           <div className="mb-6">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+            <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
               {t('offerCompare.selectHint')}
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               {offers.map((offer) => (
                 <button
                   key={offer.id}
                   onClick={() => toggleSelection(offer.id)}
-                  className={`p-4 border rounded-lg text-left transition-colors ${
+                  className={`rounded-lg border p-4 text-left transition-colors ${
                     selectedIds.includes(offer.id)
                       ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                      : 'border-gray-200 hover:border-gray-300 dark:border-gray-700'
                   }`}
                 >
                   <div className="flex items-start justify-between">
@@ -164,7 +164,7 @@ function CompareOffersPage() {
                       )}
                     </div>
                     {selectedIds.includes(offer.id) && (
-                      <CheckIcon className="h-5 w-5 text-blue-600" />
+                      <CheckIcon className="size-5 text-blue-600" />
                     )}
                   </div>
                 </button>
@@ -173,7 +173,7 @@ function CompareOffersPage() {
           </div>
 
           {comparisons.length > 0 && (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-gray-800">
                   <tr>
@@ -206,7 +206,7 @@ function CompareOffersPage() {
                       <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
                         {comp.company}
                         {index === 0 && (
-                          <span className="ml-2 text-xs text-green-600 font-normal">
+                          <span className="ml-2 text-xs font-normal text-green-600">
                             {t('offerCompare.best')}
                           </span>
                         )}
@@ -214,16 +214,16 @@ function CompareOffersPage() {
                       <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                         {comp.role}
                       </td>
-                      <td className="px-4 py-3 text-sm text-right text-gray-900 dark:text-gray-100">
+                      <td className="px-4 py-3 text-right text-sm text-gray-900 dark:text-gray-100">
                         {formatSalary(comp.normalizedYearlySalary)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-right font-semibold text-gray-900 dark:text-gray-100">
+                      <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900 dark:text-gray-100">
                         {formatSalary(comp.totalCompensation)}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                         {comp.offer.equity || '—'}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 max-w-[200px] truncate">
+                      <td className="max-w-[200px] truncate px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                         {comp.offer.benefits || '—'}
                       </td>
                     </tr>

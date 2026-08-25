@@ -26,7 +26,7 @@ export function SectionIndex({ counts, onOpen }: SectionIndexProps) {
     <div className="flex flex-col gap-5 md:hidden">
       {SECTION_GROUPS.map((group) => (
         <div key={group.titleKey} className="flex flex-col gap-1.5">
-          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+          <h2 className="px-1 text-[11px] font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500">
             {t(group.titleKey)}
           </h2>
           <Card className="overflow-hidden">

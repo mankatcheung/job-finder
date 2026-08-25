@@ -66,7 +66,7 @@ export function CoverLetterTab({ applicationId }: { applicationId: string }) {
 
   return (
     <div className="space-y-4">
-      <Card className="p-4 space-y-3">
+      <Card className="space-y-3 p-4">
         <div>
           <FormLabel>
             {t('coverLetter.resumeBackgroundLabel')}{' '}
@@ -110,12 +110,12 @@ export function CoverLetterTab({ applicationId }: { applicationId: string }) {
         )}
       </Card>
 
-      <Card className="p-4 space-y-3">
+      <Card className="space-y-3 p-4">
         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
           {t('coverLetter.savedTitle')}
         </h3>
 
-        {isLoading && <Skeleton className="h-12 w-full rounded" />}
+        {isLoading && <Skeleton className="h-12 w-full rounded-sm" />}
 
         {!isLoading && letters.length === 0 && (
           <EmptyState icon={<FileTextIcon size={32} />} message={t('coverLetter.noneSavedYet')} />

@@ -193,7 +193,7 @@ export function ApplicationDetailPage() {
   if (!app)
     return (
       <div className="p-4 sm:p-8">
-        <Skeleton className="h-8 w-64 rounded" />
+        <Skeleton className="h-8 w-64 rounded-sm" />
       </div>
     );
 
@@ -255,7 +255,7 @@ export function ApplicationDetailPage() {
             type="button"
             onClick={backToIndex}
             aria-label={t('applicationDetail.backToSections')}
-            className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             <ArrowLeftIcon size={20} />
           </button>
@@ -296,7 +296,7 @@ export function ApplicationDetailPage() {
               type="button"
               onClick={() => setActionsOpen(true)}
               aria-label={t('applicationDetail.moreActions')}
-              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+              className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
             >
               <MoreHorizontalIcon size={20} />
             </button>

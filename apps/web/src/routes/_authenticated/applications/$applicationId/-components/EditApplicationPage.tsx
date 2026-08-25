@@ -129,12 +129,12 @@ export function EditApplicationPage() {
   if (!app)
     return (
       <div className="p-4 sm:p-8">
-        <Skeleton className="h-8 w-64 rounded" />
+        <Skeleton className="h-8 w-64 rounded-sm" />
       </div>
     );
 
   return (
-    <div className="p-4 sm:p-8 max-w-2xl mx-auto">
+    <div className="mx-auto max-w-2xl p-4 sm:p-8">
       <div className="mb-6">
         <a
           href={`/applications/${applicationId}`}
@@ -142,7 +142,7 @@ export function EditApplicationPage() {
         >
           {t('applicationForm.backToApplication')}
         </a>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">
+        <h1 className="mt-2 text-2xl font-bold text-gray-900 dark:text-gray-100">
           {t('applicationForm.editTitle')}
         </h1>
       </div>
@@ -159,9 +159,9 @@ export function EditApplicationPage() {
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 space-y-4"
+        className="space-y-4 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800"
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('applicationForm.companyLabel')} error={errors.company?.message}>
             <Input {...register('company')} invalid={!!errors.company} />
           </Field>
@@ -184,7 +184,7 @@ export function EditApplicationPage() {
           <Input {...register('jobUrl')} invalid={!!errors.jobUrl} type="url" />
         </Field>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('applicationForm.locationLabel')}>
             <Input {...register('location')} />
           </Field>
@@ -197,7 +197,7 @@ export function EditApplicationPage() {
           <Textarea {...register('description')} className="h-28" />
         </Field>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('applicationForm.sourceLabel')}>
             <Input {...register('source')} placeholder="LinkedIn, referral, Indeed…" />
           </Field>
@@ -213,7 +213,7 @@ export function EditApplicationPage() {
                 {tags.map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+                    className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
                   >
                     {tag}
                     <button
@@ -247,7 +247,7 @@ export function EditApplicationPage() {
           <Checkbox {...register('starred')} id="starred-edit" tone="yellow" />
           <label
             htmlFor="starred-edit"
-            className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none"
+            className="flex cursor-pointer items-center gap-1.5 text-sm text-gray-700 select-none dark:text-gray-300"
           >
             <StarIcon size={14} className="text-yellow-400" />{' '}
             {t('applicationForm.starThisApplication')}
@@ -262,7 +262,7 @@ export function EditApplicationPage() {
           </Button>
           <a
             href={`/applications/${applicationId}`}
-            className="px-5 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            className="px-5 py-2 text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
           >
             {t('common.cancel')}
           </a>

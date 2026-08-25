@@ -171,7 +171,7 @@ export function NotesTab({ applicationId, enabled }: NotesTabProps) {
                 <button
                   onClick={() => setEditingNote(note)}
                   aria-label={t('common.edit')}
-                  className="cursor-pointer rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                  className="cursor-pointer rounded-sm p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"
                 >
                   <EditIcon size={14} />
                 </button>
@@ -189,7 +189,7 @@ export function NotesTab({ applicationId, enabled }: NotesTabProps) {
                     });
                   }}
                   aria-label={t('common.delete')}
-                  className="cursor-pointer rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
+                  className="cursor-pointer rounded-sm p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
                 >
                   <Trash2Icon size={14} />
                 </button>

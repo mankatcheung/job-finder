@@ -189,10 +189,10 @@ export function KanbanBoard() {
 
   if (isLoading) {
     return (
-      <div className="p-4 sm:p-6 flex flex-col h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
-        <div className="flex gap-3 overflow-x-auto pb-4 flex-1">
+      <div className="flex h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex-col p-4 sm:h-[calc(100dvh-3.5rem)] sm:p-6 lg:h-screen">
+        <div className="flex flex-1 gap-3 overflow-x-auto pb-4">
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="shrink-0 w-60 h-96 rounded-xl" />
+            <Skeleton key={i} className="h-96 w-60 shrink-0 rounded-xl" />
           ))}
         </div>
       </div>
@@ -201,15 +201,15 @@ export function KanbanBoard() {
 
   if (isError) {
     return (
-      <div className="p-4 sm:p-6 flex flex-col h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
+      <div className="flex h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex-col p-4 sm:h-[calc(100dvh-3.5rem)] sm:p-6 lg:h-screen">
         <ErrorState error={error} onRetry={() => refetch()} />
       </div>
     );
   }
 
   return (
-    <div className="p-4 sm:p-6 flex flex-col h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
-      <div className="flex items-center justify-between mb-6">
+    <div className="flex h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex-col p-4 sm:h-[calc(100dvh-3.5rem)] sm:p-6 lg:h-screen">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           {t('applications.board')}
         </h1>
@@ -217,7 +217,7 @@ export function KanbanBoard() {
           <Link
             to="/applications"
             aria-label={t('applications.switchToListView')}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-800 dark:border-gray-700 dark:hover:text-gray-200"
           >
             <ListIcon size={13} />
             <span className="hidden sm:inline">{t('applications.list')}</span>
@@ -225,7 +225,7 @@ export function KanbanBoard() {
           <Link
             to="/applications/new"
             aria-label={t('applications.newApplicationAria')}
-            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
           >
             <PlusIcon size={15} />
             <span className="hidden sm:inline">{t('applications.newShort')}</span>
@@ -244,7 +244,7 @@ export function KanbanBoard() {
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <div className="flex gap-3 overflow-x-auto pb-4 flex-1">
+        <div className="flex flex-1 gap-3 overflow-x-auto pb-4">
           {STATUSES.map((status) => (
             <Column key={status} status={status} ids={columns[status] ?? []} appsById={appsById} />
           ))}
@@ -275,29 +275,29 @@ function Column({
     <div
       ref={setNodeRef}
       data-testid={`board-column-${status}`}
-      className={`shrink-0 w-60 rounded-xl border-t-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 ${colors.columnBorder} transition-colors ${isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+      className={`w-60 shrink-0 rounded-xl border border-t-4 border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50 ${colors.columnBorder} transition-colors ${isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
     >
       <div className="flex items-center justify-between px-3 py-2.5">
         {/* Dot and tinted heading, because the 4px top rule alone is easy to
             miss once a column is scrolled or sitting on a narrow screen. The
             label stays, so colour is never carrying the meaning on its own. */}
-        <span className="flex items-center gap-1.5 min-w-0">
+        <span className="flex min-w-0 items-center gap-1.5">
           <span
             className={`size-2 shrink-0 rounded-full ${colors.dot}`}
             aria-hidden="true"
             data-testid={`column-dot-${status}`}
           />
-          <span className={`text-xs font-semibold capitalize truncate ${colors.columnHeading}`}>
+          <span className={`truncate text-xs font-semibold capitalize ${colors.columnHeading}`}>
             {t(`status.${status}`)}
           </span>
         </span>
-        <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded-full">
+        <span className="rounded-full bg-gray-200 px-1.5 py-0.5 text-xs text-gray-500 dark:bg-gray-700 dark:text-gray-400">
           {ids.length}
         </span>
       </div>
 
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-        <div className="flex flex-col gap-2 p-2 flex-1 overflow-y-auto">
+        <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-2">
           {ids.map((id) => {
             const app = appsById.get(id);
             return app ? <SortableCard key={id} app={app} /> : null;
@@ -350,18 +350,18 @@ function AppCard({ app, isOverlay }: { app: Application; isOverlay?: boolean }) 
     <Link
       to="/applications/$applicationId"
       params={{ applicationId: app.id }}
-      className={`block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 text-left hover:border-blue-300 dark:hover:border-blue-600 transition-colors ${isOverlay ? 'shadow-xl rotate-1' : ''}`}
+      className={`block rounded-lg border border-gray-200 bg-white p-3 text-left transition-colors hover:border-blue-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-600 ${isOverlay ? 'rotate-1 shadow-xl' : ''}`}
       onClick={(e) => {
         if (isOverlay) e.preventDefault();
       }}
     >
-      <p className="text-xs font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">
+      <p className="line-clamp-2 text-xs font-semibold text-gray-900 dark:text-gray-100">
         {app.company}
       </p>
-      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">{app.role}</p>
-      {app.location && <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{app.location}</p>}
-      <div className="flex items-center justify-between mt-2">
-        {app.starred && <StarIcon size={11} className="text-yellow-400 fill-yellow-400" />}
+      <p className="mt-0.5 line-clamp-1 text-xs text-gray-500 dark:text-gray-400">{app.role}</p>
+      {app.location && <p className="mt-0.5 line-clamp-1 text-xs text-gray-400">{app.location}</p>}
+      <div className="mt-2 flex items-center justify-between">
+        {app.starred && <StarIcon size={11} className="fill-yellow-400 text-yellow-400" />}
         <StatusBadge status={app.status as ApplicationStatus} />
         {app.likelyGhosted && (
           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">

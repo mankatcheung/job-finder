@@ -166,24 +166,24 @@ function OffersPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('offers.title')}</h1>
         <button
           onClick={() => {
             setShowForm(true);
             setEditingOffer(null);
           }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
         >
-          <PlusIcon className="h-4 w-4" />
+          <PlusIcon className="size-4" />
           {t('offers.addOffer')}
         </button>
       </div>
 
       {(showForm || editingOffer) && (
-        <div className="mb-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+        <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
+          <h2 className="mb-4 text-lg font-medium text-gray-900 dark:text-gray-100">
             {editingOffer ? t('offers.editOffer') : t('offers.newOffer')}
           </h2>
           <OfferForm
@@ -205,7 +205,7 @@ function OffersPage() {
           {offers.map((offer) => (
             <div
               key={offer.id}
-              className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800"
+              className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -224,12 +224,12 @@ function OffersPage() {
                     </div>
                   )}
                   {offer.benefits && (
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                       {t('offers.benefitsLabel', { benefits: offer.benefits })}
                     </div>
                   )}
                   {offer.notes && (
-                    <div className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                    <div className="mt-1 text-sm text-gray-500 dark:text-gray-500">
                       {offer.notes}
                     </div>
                   )}
@@ -240,15 +240,15 @@ function OffersPage() {
                       setEditingOffer(offer);
                       setShowForm(false);
                     }}
-                    className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors"
+                    className="p-1.5 text-gray-400 transition-colors hover:text-blue-600"
                   >
-                    <PencilIcon className="h-4 w-4" />
+                    <PencilIcon className="size-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(offer.id)}
-                    className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
+                    className="p-1.5 text-gray-400 transition-colors hover:text-red-600"
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <TrashIcon className="size-4" />
                   </button>
                 </div>
               </div>

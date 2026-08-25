@@ -48,13 +48,13 @@ export function SharedSummaryPage() {
   const summary = data?.sharedSummary;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 py-12">
-      <div className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 space-y-6">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900">
+      <div className="w-full max-w-lg space-y-6 rounded-xl bg-white p-8 shadow-sm dark:bg-gray-800">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {t('sharedSummary.title')}
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {t('sharedSummary.description')}
           </p>
         </div>
@@ -84,10 +84,10 @@ export function SharedSummaryPage() {
             </div>
 
             <div>
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              <h2 className="mb-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
                 {t('sharedSummary.byStatus')}
               </h2>
-              <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
+              <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 dark:divide-gray-700 dark:border-gray-700">
                 {summary.statusCounts.map((sc) => (
                   <li
                     key={sc.status}
@@ -116,9 +116,9 @@ export function SharedSummaryPage() {
 
 function SummaryStat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+    <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-900">
       <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{value}</p>
-      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{label}</p>
+      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{label}</p>
     </div>
   );
 }

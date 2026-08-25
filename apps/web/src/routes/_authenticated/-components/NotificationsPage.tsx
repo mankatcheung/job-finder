@@ -97,15 +97,15 @@ export function NotificationsPage() {
   const selectedCount = selectedIds.size;
 
   return (
-    <div className="p-4 sm:p-8 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 sm:mb-8">
+    <div className="mx-auto max-w-2xl p-4 sm:p-8">
+      <h1 className="mb-6 text-2xl font-bold text-gray-900 sm:mb-8 dark:text-gray-100">
         {t('notificationInbox.title')}
       </h1>
 
-      <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
         {items.length > 0 && (
-          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 dark:border-gray-700">
-            <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 cursor-pointer select-none">
+          <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2 dark:border-gray-700">
+            <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-500 select-none dark:text-gray-400">
               <Checkbox
                 size="sm"
                 checked={allSelected}
@@ -149,19 +149,19 @@ export function NotificationsPage() {
 
         {isLoading && Array.from({ length: 5 }, (_, i) => <NotificationRowSkeleton key={i} />)}
         {isError && (
-          <p className="text-sm text-red-600 px-4 py-6 text-center">
+          <p className="px-4 py-6 text-center text-sm text-red-600">
             {t('notificationInbox.loadFailed')}
           </p>
         )}
         {!isLoading && !isError && items.length === 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 px-4 py-8 text-center">
+          <p className="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
             {t('notificationInbox.allCaughtUp')}
           </p>
         )}
         {items.map((notification) => (
           <div
             key={notification.id}
-            className={`flex items-start gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-700 last:border-0 ${
+            className={`flex items-start gap-3 border-b border-gray-100 px-4 py-3 last:border-0 dark:border-gray-700 ${
               notification.read ? '' : 'bg-blue-50/50 dark:bg-blue-900/10'
             }`}
           >
@@ -177,7 +177,7 @@ export function NotificationsPage() {
             <button
               type="button"
               onClick={() => onRowClick(notification)}
-              className="flex-1 min-w-0 text-left flex items-start gap-2"
+              className="flex min-w-0 flex-1 items-start gap-2 text-left"
             >
               <span className="mt-0.5 shrink-0">{NOTIFICATION_ICON[notification.type]}</span>
               <span className="min-w-0 flex-1">
@@ -190,15 +190,15 @@ export function NotificationsPage() {
                 >
                   {notification.title}
                 </span>
-                <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                <span className="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">
                   {notification.body}
                 </span>
-                <span className="block text-[11px] text-gray-400 mt-1">
+                <span className="mt-1 block text-[11px] text-gray-400">
                   {timeAgo(notification.createdAt, t)}
                 </span>
               </span>
               {!notification.read && (
-                <span className="mt-1.5 h-2 w-2 rounded-full bg-blue-500 shrink-0" />
+                <span className="mt-1.5 size-2 shrink-0 rounded-full bg-blue-500" />
               )}
             </button>
           </div>

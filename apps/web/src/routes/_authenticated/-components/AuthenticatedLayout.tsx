@@ -128,15 +128,15 @@ export function AuthenticatedLayout() {
 
   return (
     <ChatDockProvider>
-      <div className="min-h-screen lg:h-screen flex bg-gray-50 dark:bg-gray-900">
+      <div className="flex min-h-screen bg-gray-50 lg:h-screen dark:bg-gray-900">
         <CommandPalette />
         <ShortcutCheatSheet isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
 
         {/* Mobile sidebar drawer backdrop */}
         {sidebarVisible && (
           <div
-            className={`lg:hidden fixed inset-0 z-50 bg-black/50 transition-opacity duration-300 ease-out ${
-              sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            className={`fixed inset-0 z-50 bg-black/50 transition-opacity duration-300 ease-out lg:hidden ${
+              sidebarOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
             }`}
             onClick={closeSidebar}
           />
@@ -145,11 +145,11 @@ export function AuthenticatedLayout() {
         {/* Mobile sidebar drawer */}
         {sidebarVisible && (
           <aside
-            className={`lg:hidden fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-xl flex flex-col transform transition-transform duration-300 ease-out ${
+            className={`fixed inset-y-0 left-0 z-50 flex w-64 transform flex-col bg-white shadow-xl transition-transform duration-300 ease-out lg:hidden dark:bg-gray-800 ${
               sidebarOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
           >
-            <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+            <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
               <span className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100">
                 <LogoMark size={22} />
                 Trakwyn
@@ -157,7 +157,7 @@ export function AuthenticatedLayout() {
               <button
                 onClick={closeSidebar}
                 aria-label={t('authenticatedLayout.closeMenu')}
-                className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 rounded-lg transition-colors"
+                className="rounded-lg p-2 text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
               >
                 <XIcon size={18} />
               </button>
@@ -165,7 +165,7 @@ export function AuthenticatedLayout() {
 
             <nav
               aria-label={t('authenticatedLayout.mainNavigation')}
-              className="flex-1 px-3 py-4 space-y-1 overflow-y-auto"
+              className="flex-1 space-y-1 overflow-y-auto px-3 py-4"
             >
               {MAIN_NAV.map((item, i) => (
                 <NavItem
@@ -178,7 +178,7 @@ export function AuthenticatedLayout() {
                 />
               ))}
 
-              <div className="pt-3 mt-3 border-t border-gray-200 dark:border-gray-700">
+              <div className="mt-3 border-t border-gray-200 pt-3 dark:border-gray-700">
                 <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
                   <AccountAvatarIcon avatarUrl={avatarUrl} size={18} />
                   {t('nav.settings')}
@@ -188,10 +188,10 @@ export function AuthenticatedLayout() {
                     <Link
                       key={item.to}
                       to={item.to}
-                      className={`flex items-center gap-2 pl-5 pr-3 py-1.5 text-sm rounded-lg transition-colors sidebar-nav-item ${
+                      className={`sidebar-nav-item flex items-center gap-2 rounded-lg py-1.5 pr-3 pl-5 text-sm transition-colors ${
                         pathname.startsWith(item.to)
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-medium'
-                          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+                          ? 'bg-blue-50 font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-100'
                       }`}
                       style={{ animationDelay: `${(MAIN_NAV.length + i) * 50}ms` }}
                     >
@@ -203,27 +203,27 @@ export function AuthenticatedLayout() {
               </div>
             </nav>
 
-            <div className="mt-auto px-3 py-4 border-t border-gray-200 dark:border-gray-700 space-y-1 bg-white dark:bg-gray-800">
+            <div className="mt-auto space-y-1 border-t border-gray-200 bg-white px-3 py-4 dark:border-gray-700 dark:bg-gray-800">
               <button
                 onClick={handleLogout}
                 data-testid="mobile-sidebar-logout"
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-100"
               >
                 <LogOutIcon size={18} />
                 {t('nav.signOut')}
               </button>
-              <LegalFooterLinks className="mt-3 flex flex-col gap-1.5 border-t border-gray-100 px-3 pt-3 text-left [&>button]:text-left text-[11px] text-gray-500 dark:border-gray-700 dark:text-gray-400" />
+              <LegalFooterLinks className="mt-3 flex flex-col gap-1.5 border-t border-gray-100 px-3 pt-3 text-left text-[11px] text-gray-500 dark:border-gray-700 dark:text-gray-400 [&>button]:text-left" />
             </div>
           </aside>
         )}
 
         {/* Mobile top header */}
-        <header className="lg:hidden fixed top-0 inset-x-0 z-40 h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4">
+        <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 lg:hidden dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center gap-2">
             <button
               onClick={openSidebar}
               aria-label={t('authenticatedLayout.openMenu')}
-              className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 rounded-lg transition-colors"
+              className="rounded-lg p-2 text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
             >
               <MenuIcon size={18} />
             </button>
@@ -236,8 +236,8 @@ export function AuthenticatedLayout() {
         </header>
 
         {/* Desktop sidebar */}
-        <aside className="hidden lg:flex lg:h-screen w-60 shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col sidebar-desktop-entrance">
-          <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between sidebar-entrance-item">
+        <aside className="sidebar-desktop-entrance hidden w-60 shrink-0 flex-col border-r border-gray-200 bg-white lg:flex lg:h-screen dark:border-gray-700 dark:bg-gray-800">
+          <div className="sidebar-entrance-item flex items-center justify-between border-b border-gray-200 px-6 py-5 dark:border-gray-700">
             <span className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100">
               <LogoMark size={22} />
               Trakwyn
@@ -245,7 +245,7 @@ export function AuthenticatedLayout() {
             <NotificationInboxButton />
           </div>
 
-          <nav aria-label="Main navigation" className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          <nav aria-label="Main navigation" className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
             {MAIN_NAV.map((item, i) => (
               <NavItem
                 key={item.to}
@@ -258,7 +258,7 @@ export function AuthenticatedLayout() {
             ))}
           </nav>
 
-          <div className="px-3 pb-2 space-y-1">
+          <div className="space-y-1 px-3 pb-2">
             <div
               className="sidebar-entrance-item"
               style={{ animationDelay: `${MAIN_NAV.length * 50}ms` }}
@@ -273,16 +273,16 @@ export function AuthenticatedLayout() {
             </div>
           </div>
 
-          <div className="mt-auto shrink-0 px-3 py-4 border-t border-gray-200 dark:border-gray-700 space-y-1">
+          <div className="mt-auto shrink-0 space-y-1 border-t border-gray-200 px-3 py-4 dark:border-gray-700">
             <button
               onClick={() => setShortcutsOpen(true)}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors sidebar-entrance-item"
+              className="sidebar-entrance-item flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-100"
               style={{ animationDelay: `${(MAIN_NAV.length + 1) * 50}ms` }}
               title={t('shortcuts.showShortcuts')}
             >
               <KeyboardIcon size={18} />
               {t('nav.shortcuts')}
-              <kbd className="ml-auto text-[10px] text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded font-mono">
+              <kbd className="ml-auto rounded-sm bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] text-gray-600 dark:bg-gray-700 dark:text-gray-300">
                 {getKeyModifier()}+/
               </kbd>
             </button>
@@ -293,17 +293,17 @@ export function AuthenticatedLayout() {
               <button
                 onClick={handleLogout}
                 data-testid="desktop-sidebar-logout"
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-100"
               >
                 <LogOutIcon size={18} />
                 {t('nav.signOut')}
               </button>
             </div>
-            <LegalFooterLinks className="mt-3 flex flex-col gap-1.5 border-t border-gray-100 px-3 pt-3 text-left [&>button]:text-left text-[11px] text-gray-500 dark:border-gray-700 dark:text-gray-400" />
+            <LegalFooterLinks className="mt-3 flex flex-col gap-1.5 border-t border-gray-100 px-3 pt-3 text-left text-[11px] text-gray-500 dark:border-gray-700 dark:text-gray-400 [&>button]:text-left" />
           </div>
         </aside>
 
-        <main className="flex-1 overflow-auto pt-14 lg:pt-0 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-12">
+        <main className="flex-1 overflow-auto pt-14 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pt-0 lg:pb-12">
           <div key={sectionKey} className="route-transition">
             <Outlet />
           </div>
@@ -314,7 +314,7 @@ export function AuthenticatedLayout() {
           overlap. */}
         <nav
           aria-label={t('authenticatedLayout.bottomNavigation')}
-          className="lg:hidden fixed bottom-0 inset-x-0 z-40 h-[calc(4rem+env(safe-area-inset-bottom))] bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex items-center pb-[env(safe-area-inset-bottom)]"
+          className="fixed inset-x-0 bottom-0 z-40 flex h-[calc(4rem+env(safe-area-inset-bottom))] items-center border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden dark:border-gray-700 dark:bg-gray-800"
         >
           <BottomNavItem
             to="/dashboard"
@@ -390,10 +390,10 @@ function NavItem({
   return (
     <Link
       to={to}
-      className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-all duration-200 sidebar-nav-item ${
+      className={`sidebar-nav-item flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all duration-200 ${
         active
-          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
-          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+          ? 'bg-blue-50 font-medium text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
+          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-100'
       }`}
       style={{ animationDelay: `${delay}ms` }}
     >
@@ -417,7 +417,7 @@ function BottomNavItem({
   return (
     <Link
       to={to}
-      className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-xs transition-colors ${
+      className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs transition-colors ${
         active ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'
       }`}
     >

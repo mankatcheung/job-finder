@@ -12,7 +12,7 @@ const FUNNEL = [
 function AnalyticsMockup() {
   const max = FUNNEL[0].value;
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-900/5 overflow-hidden dark:border-gray-800 dark:bg-gray-800/50">
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-900/5 dark:border-gray-800 dark:bg-gray-800/50">
       <div className="border-b border-gray-200 px-5 py-3.5 text-base font-bold text-gray-900 dark:border-gray-800 dark:text-gray-100">
         Analytics
       </div>
@@ -79,7 +79,7 @@ export function FeatureAnalyticsPage() {
           description:
             'See exactly where applications drop off — from draft through applied, interviewing, offered and accepted — instead of guessing why the pipeline feels stuck.',
           visual: (
-            <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-800/50 divide-y divide-gray-100 dark:divide-gray-700">
+            <div className="divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:divide-gray-700 dark:border-gray-800 dark:bg-gray-800/50">
               {[
                 ['Applied', 21],
                 ['Interviewing', 9],
@@ -100,7 +100,7 @@ export function FeatureAnalyticsPage() {
           visual: (
             <div className="rounded-xl border border-orange-200 bg-orange-50 p-5 dark:border-orange-900 dark:bg-orange-900/20">
               <div className="flex items-center gap-1.5 text-xs font-bold text-orange-700 dark:text-orange-400">
-                <Bell className="h-3.5 w-3.5" />
+                <Bell className="size-3.5" />
                 Likely ghosted
               </div>
               <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
@@ -114,7 +114,7 @@ export function FeatureAnalyticsPage() {
           description:
             'Channel and response-time analytics show which sources — referrals, job boards, direct applications — are actually converting, so you can spend more time where it works.',
           visual: (
-            <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-800/50 space-y-2.5">
+            <div className="space-y-2.5 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
               {[
                 ['Referral', 82],
                 ['Direct', 54],

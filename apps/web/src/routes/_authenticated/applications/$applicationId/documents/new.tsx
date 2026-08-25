@@ -137,24 +137,24 @@ export function NewDocumentDraftPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+    <div className="mx-auto max-w-2xl px-4 py-8">
+      <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">
         {t('documentDraft.newDraftTitle')}
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
             {t('documentDraft.typeLabel')}
           </label>
           <div className="flex gap-3">
             <button
               type="button"
               onClick={() => setType('cover_letter')}
-              className={`flex-1 py-2 px-4 rounded-lg border text-sm font-medium transition-colors ${
+              className={`flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
                 type === 'cover_letter'
                   ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                  : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800'
               }`}
             >
               {t('documents.cover_letter')}
@@ -162,10 +162,10 @@ export function NewDocumentDraftPage() {
             <button
               type="button"
               onClick={() => setType('resume')}
-              className={`flex-1 py-2 px-4 rounded-lg border text-sm font-medium transition-colors ${
+              className={`flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
                 type === 'resume'
                   ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                  : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800'
               }`}
             >
               {t('documents.resume')}
@@ -187,7 +187,7 @@ export function NewDocumentDraftPage() {
 
         <div>
           <FormLabel>{t('documentDraft.startFromLabel')}</FormLabel>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+          <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
             {t('documentDraft.startFromHelp')}
           </p>
           {loadingDocs ? (

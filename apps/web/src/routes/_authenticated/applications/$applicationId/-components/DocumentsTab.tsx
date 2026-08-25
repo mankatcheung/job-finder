@@ -178,7 +178,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
         <Link
           to="/applications/$applicationId/documents/new"
           params={{ applicationId }}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
+          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700"
         >
           <PlusIcon size={14} /> <span className="hidden sm:inline">{t('documents.newDraft')}</span>
         </Link>
@@ -192,13 +192,13 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
                 <Link
                   to="/applications/$applicationId/documents/$draftId"
                   params={{ applicationId, draftId: draft.id }}
-                  className="text-sm font-medium text-blue-600 hover:underline truncate block"
+                  className="block truncate text-sm font-medium text-blue-600 hover:underline"
                 >
                   {draft.title}
                 </Link>
-                <div className="flex items-center gap-2 mt-0.5">
+                <div className="mt-0.5 flex items-center gap-2">
                   <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${draft.type === 'cover_letter' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}`}
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${draft.type === 'cover_letter' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}`}
                   >
                     {draft.type === 'cover_letter'
                       ? t('documents.cover_letter')
@@ -231,7 +231,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
                     },
                   });
                 }}
-                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded shrink-0"
+                className="shrink-0 rounded-sm p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
               >
                 <Trash2Icon size={14} />
               </button>
@@ -241,7 +241,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
       )}
 
       {!pendingUpload && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-6 text-center">
+        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center dark:border-gray-600 dark:bg-gray-800">
           <label className="cursor-pointer">
             <input
               type="file"
@@ -254,7 +254,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
                 <span>{t('documents.uploading')}</span>
               ) : (
                 <>
-                  <span className="text-blue-600 font-medium hover:underline">
+                  <span className="font-medium text-blue-600 hover:underline">
                     {t('documents.clickToUpload')}
                   </span>{' '}
                   {t('documents.uploadPromptSuffix')}
@@ -267,14 +267,14 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
       )}
 
       {pendingUpload && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-blue-200 dark:border-blue-700 p-4 space-y-3">
+        <div className="space-y-3 rounded-xl border border-blue-200 bg-white p-4 dark:border-blue-700 dark:bg-gray-800">
           <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
             {t('documents.uploaded')}{' '}
             <span className="font-normal text-gray-600 dark:text-gray-400">
               {pendingUpload.name}
             </span>
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <FormLabel size="xs">{t('documents.documentTypeLabel')}</FormLabel>
               <Select value={docType} onChange={(e) => setDocType(e.target.value)}>
@@ -296,7 +296,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
               />
             </div>
           </div>
-          <div className="flex gap-2 justify-end">
+          <div className="flex justify-end gap-2">
             <Button
               size="sm"
               onClick={handleConfirm}
@@ -328,7 +328,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
       {docs.map((doc) => (
         <Card key={doc.id} className="flex items-center justify-between px-4 py-3">
           <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-wrap items-center gap-2">
               {isPreviewableMimeType(doc.mimeType) ? (
                 <Button
                   variant="link"
@@ -342,14 +342,14 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
                   href={doc.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-medium text-blue-600 hover:underline truncate"
+                  className="truncate text-sm font-medium text-blue-600 hover:underline"
                 >
                   {doc.name}
                 </a>
               )}
               {doc.documentType !== 'other' && (
                 <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${DOC_TYPE_BADGE[doc.documentType] ?? ''}`}
+                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${DOC_TYPE_BADGE[doc.documentType] ?? ''}`}
                 >
                   {t(`documents.${doc.documentType}`, { defaultValue: doc.documentType })}
                 </span>
@@ -360,12 +360,12 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
               {doc.mimeType} · {(doc.sizeBytes / 1024).toFixed(1)} KB
             </p>
           </div>
-          <div className="ml-4 flex items-center gap-1 shrink-0">
+          <div className="ml-4 flex shrink-0 items-center gap-1">
             <a
               href={doc.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+              className="rounded-sm p-1.5 text-gray-400 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20"
               title={t('documents.openInNewTab')}
             >
               <ExternalLinkIcon size={14} />
@@ -392,7 +392,7 @@ export function DocumentsTab({ applicationId }: { applicationId: string }) {
                   },
                 });
               }}
-              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+              className="rounded-sm p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
             >
               <Trash2Icon size={14} />
             </button>

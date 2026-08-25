@@ -36,15 +36,15 @@ export function ResponseTimeAnalyticsPanel() {
 
   return (
     <Card className="p-6">
-      <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+      <h2 className="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
         {t('responseTime.title')}
       </h2>
-      <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+      <p className="mb-4 text-xs text-gray-400 dark:text-gray-500">
         {t('responseTime.description')}
       </p>
 
       <div className="mb-6">
-        <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">
+        <p className="mb-1 text-xs text-gray-400 dark:text-gray-500">
           {t('responseTime.firstResponseLabel')}
         </p>
         <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -72,15 +72,15 @@ export function ResponseTimeAnalyticsPanel() {
             return (
               <div
                 key={stat.status}
-                className="flex items-center gap-3 py-2 border-b border-gray-100 dark:border-gray-700 last:border-0"
+                className="flex items-center gap-3 border-b border-gray-100 py-2 last:border-0 dark:border-gray-700"
               >
                 <span className="w-24 shrink-0 text-sm text-gray-900 dark:text-gray-100">
                   {t(`status.${stat.status}`, { defaultValue: stat.status })}
                 </span>
-                <div className="flex-1 h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
                   <div className="h-full bg-blue-500" style={{ width: `${widthPercent}%` }} />
                 </div>
-                <span className="shrink-0 w-12 text-right text-xs font-medium text-gray-700 dark:text-gray-300">
+                <span className="w-12 shrink-0 text-right text-xs font-medium text-gray-700 dark:text-gray-300">
                   {formatDays(stat.medianDays)}
                 </span>
                 {smallSample && (

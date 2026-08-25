@@ -67,13 +67,13 @@ export function ActivityTab({ applicationId }: { applicationId: string }) {
         const detail = formatActivityPayload(log.eventType, log.payload);
         return (
           <Card key={log.id} className="flex items-start gap-3 p-3">
-            <span className="text-lg leading-none mt-0.5">{EVENT_ICONS[log.eventType] ?? '•'}</span>
-            <div className="flex-1 min-w-0">
+            <span className="mt-0.5 text-lg leading-none">{EVENT_ICONS[log.eventType] ?? '•'}</span>
+            <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {EVENT_LABELS[log.eventType] ?? log.eventType}
-                {detail && <span className="font-normal text-gray-500 ml-1">— {detail}</span>}
+                {detail && <span className="ml-1 font-normal text-gray-500">— {detail}</span>}
               </p>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="mt-0.5 text-xs text-gray-400">
                 {new Date(log.createdAt).toLocaleString()}
               </p>
             </div>

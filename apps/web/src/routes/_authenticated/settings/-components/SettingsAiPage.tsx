@@ -152,7 +152,7 @@ export function SettingsAiPage() {
         {llmKeyListError && <Alert>{llmKeyListError}</Alert>}
 
         {llmApiKeys.length > 0 && (
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
+          <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 dark:divide-gray-700 dark:border-gray-700">
             {llmApiKeys.map((key) => {
               const isDefault = key.provider === defaultLlmProvider;
               return (
@@ -170,7 +170,7 @@ export function SettingsAiPage() {
                       )}
                     </p>
                     {(key.model || key.baseUrl) && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 break-all">
+                      <p className="text-xs break-all text-gray-500 dark:text-gray-400">
                         {[key.model, key.baseUrl].filter(Boolean).join(' · ')}
                       </p>
                     )}

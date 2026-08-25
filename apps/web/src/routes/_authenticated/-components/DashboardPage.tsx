@@ -22,9 +22,9 @@ import {
 } from '../dashboard';
 
 const UPCOMING_EVENT_ICON: Record<CalendarEventKind, React.ReactNode> = {
-  interview: <CalendarIcon size={13} className="text-purple-500 shrink-0" />,
-  followUp: <AlertCircleIcon size={13} className="text-amber-500 shrink-0" />,
-  applied: <FileTextIcon size={13} className="text-blue-500 shrink-0" />,
+  interview: <CalendarIcon size={13} className="shrink-0 text-purple-500" />,
+  followUp: <AlertCircleIcon size={13} className="shrink-0 text-amber-500" />,
+  applied: <FileTextIcon size={13} className="shrink-0 text-blue-500" />,
 };
 
 export function DashboardPage() {
@@ -87,14 +87,14 @@ export function DashboardPage() {
   ];
 
   return (
-    <div className="p-4 sm:p-8 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-6 sm:mb-8">
+    <div className="mx-auto max-w-5xl p-4 sm:p-8">
+      <div className="mb-6 flex items-center justify-between sm:mb-8">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           {t('dashboard.title')}
         </h1>
         <Link
           to="/applications/new"
-          className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
         >
           <PlusIcon size={15} />
           <span className="hidden sm:inline">{t('dashboard.newApplication')}</span>
@@ -102,7 +102,7 @@ export function DashboardPage() {
       </div>
 
       {/* Mobile: horizontal scrollable strip so 5 stats don't leave an orphaned card; sm+: grid */}
-      <div className="flex sm:grid sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 overflow-x-auto sm:overflow-visible -mx-4 sm:mx-0 px-4 sm:px-0 pb-1 sm:pb-0 mb-8 sm:mb-10 snap-x snap-mandatory sm:snap-none">
+      <div className="-mx-4 mb-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:mb-10 sm:grid sm:snap-none sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-5">
         {statItems.map((item) => (
           <StatCard
             key={item.label}
@@ -145,21 +145,21 @@ export function DashboardPage() {
 
       {upcomingEvents.length > 0 && (
         <div className="mb-10">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               {t('dashboard.upcomingTitle')}
             </h2>
-            <Link to="/calendar" className="text-sm text-blue-600 hover:underline shrink-0">
+            <Link to="/calendar" className="shrink-0 text-sm text-blue-600 hover:underline">
               {t('dashboard.viewCalendar')}
             </Link>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:overflow-x-auto sm:pb-1">
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-3 sm:overflow-x-auto sm:pb-1">
             {upcomingEvents.map((event) => (
               <Link
                 key={event.id}
                 to="/applications/$applicationId"
                 params={{ applicationId: event.applicationId }}
-                className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors sm:min-w-[220px] sm:flex-1"
+                className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:border-blue-300 sm:min-w-[220px] sm:flex-1 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-600"
               >
                 {UPCOMING_EVENT_ICON[event.type]}
                 <div className="min-w-0">
@@ -170,10 +170,10 @@ export function DashboardPage() {
                       day: 'numeric',
                     })}
                   </p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                  <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
                     {event.company}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{event.role}</p>
+                  <p className="truncate text-xs text-gray-500 dark:text-gray-400">{event.role}</p>
                 </div>
               </Link>
             ))}
@@ -182,7 +182,7 @@ export function DashboardPage() {
       )}
 
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+        <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
           {t('dashboard.recentApplicationsTitle')}
         </h2>
         {isLoading ? (
@@ -201,7 +201,7 @@ export function DashboardPage() {
             action={
               <Link
                 to="/applications/new"
-                className="mt-2 inline-block text-blue-600 hover:underline text-sm"
+                className="mt-2 inline-block text-sm text-blue-600 hover:underline"
               >
                 {t('dashboard.addFirstOne')}
               </Link>
@@ -216,17 +216,17 @@ export function DashboardPage() {
                   key={app.id}
                   to="/applications/$applicationId"
                   params={{ applicationId: app.id }}
-                  className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+                  className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 transition-colors hover:border-blue-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-600"
                 >
-                  <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex min-w-0 items-center gap-2">
                     {app.starred && (
-                      <StarIcon size={13} className="text-yellow-400 fill-yellow-400 shrink-0" />
+                      <StarIcon size={13} className="shrink-0 fill-yellow-400 text-yellow-400" />
                     )}
                     {isOverdue && (
-                      <AlertCircleIcon size={13} className="text-orange-500 shrink-0" />
+                      <AlertCircleIcon size={13} className="shrink-0 text-orange-500" />
                     )}
                     <div className="min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {app.company}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">{app.role}</p>
@@ -267,11 +267,11 @@ function StatCard({
   };
   return (
     <Card className={`p-4 ${className}`}>
-      <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${colors[color]}`}>
+      <div className={`mb-3 flex size-9 items-center justify-center rounded-lg ${colors[color]}`}>
         {icon}
       </div>
       {loading ? (
-        <div className="h-7 w-12 bg-gray-100 dark:bg-gray-700 rounded animate-pulse mb-1" />
+        <div className="mb-1 h-7 w-12 animate-pulse rounded-sm bg-gray-100 dark:bg-gray-700" />
       ) : (
         <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{value}</p>
       )}

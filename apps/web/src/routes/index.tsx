@@ -129,26 +129,26 @@ export function LandingPage() {
       <main>
         {/* Hero */}
         <section className="relative overflow-hidden py-24 sm:py-32">
-          <div className="absolute inset-0 -z-10 bg-gradient-to-b from-blue-50 to-gray-50 dark:from-gray-900 dark:to-gray-900" />
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-6xl">
+          <div className="absolute inset-0 -z-10 bg-linear-to-b from-blue-50 to-gray-50 dark:from-gray-900 dark:to-gray-900" />
+          <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
+            <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl dark:text-gray-100">
               {t('landing.heroTitleLine1')}
               <br />
               <span className="text-blue-600">{t('landing.heroTitleLine2')}</span>
             </h1>
-            <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            <p className="mx-auto mt-6 max-w-2xl text-lg/8 text-gray-600 dark:text-gray-400">
               {t('landing.heroDescription')}
             </p>
             <div className="mt-10 flex items-center justify-center gap-4">
               <Link
                 to="/register"
-                className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
+                className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
               >
                 {t('landing.startFree')}
               </Link>
               <Link
                 to={authLink}
-                className="rounded-lg border border-gray-300 dark:border-gray-600 px-6 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="rounded-lg border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
               >
                 {authLabel}
               </Link>
@@ -157,8 +157,8 @@ export function LandingPage() {
         </section>
 
         {/* Hero board preview — a taste of the product on the very first fold (JEF-228) */}
-        <section className="px-4 sm:px-6 lg:px-8 pb-8">
-          <div className="mx-auto max-w-4xl rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-900/5 overflow-hidden dark:border-gray-800 dark:bg-gray-800/50">
+        <section className="px-4 pb-8 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-900/5 dark:border-gray-800 dark:bg-gray-800/50">
             <div className="flex items-center justify-between border-b border-gray-200 px-5 py-3 dark:border-gray-800">
               <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Board</span>
               <span className="text-xs text-gray-400 dark:text-gray-500">
@@ -171,7 +171,7 @@ export function LandingPage() {
                 return (
                   <div
                     key={column.status}
-                    className={`w-48 shrink-0 rounded-xl border-t-4 border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 ${colors.columnBorder}`}
+                    className={`w-48 shrink-0 rounded-xl border border-t-4 border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 ${colors.columnBorder}`}
                   >
                     <div className="flex items-center justify-between px-3 py-2.5">
                       <span className="flex items-center gap-1.5">
@@ -207,10 +207,10 @@ export function LandingPage() {
         <section className="py-24 sm:py-32">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl">
+              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-gray-100">
                 {t('landing.everything')}
               </h2>
-              <p className="mt-4 text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-400">
                 {t('landing.everythingDescription')}
               </p>
             </div>
@@ -219,20 +219,20 @@ export function LandingPage() {
                 <Link
                   key={feature.titleKey}
                   to={feature.to}
-                  className="group rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 p-6 shadow-sm hover:border-blue-300 dark:hover:border-blue-800 transition-colors"
+                  className="group rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-colors hover:border-blue-300 dark:border-gray-800 dark:bg-gray-800/50 dark:hover:border-blue-800"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
-                    <feature.icon className="h-5 w-5 text-blue-600" />
+                  <div className="flex size-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
+                    <feature.icon className="size-5 text-blue-600" />
                   </div>
                   <h3 className="mt-4 text-base font-semibold text-gray-900 dark:text-gray-100">
                     {t(feature.titleKey)}
                   </h3>
-                  <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">
+                  <p className="mt-2 text-sm/6 text-gray-600 dark:text-gray-400">
                     {t(feature.descriptionKey)}
                   </p>
                   <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-600">
                     Learn more
-                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                    <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                   </span>
                 </Link>
               ))}
@@ -249,30 +249,30 @@ export function LandingPage() {
         </section>
 
         {/* How it works */}
-        <section className="py-24 sm:py-32 bg-gray-100 dark:bg-gray-800/30">
+        <section className="bg-gray-100 py-24 sm:py-32 dark:bg-gray-800/30">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl">
+              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-gray-100">
                 {t('landing.getStartedMinutes')}
               </h2>
             </div>
             <div className="mt-12 space-y-6">
               {stepKeys.map((stepKey, i) => (
                 <div key={stepKey} className="flex items-start gap-4">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
                     {i + 1}
                   </div>
-                  <p className="text-lg text-gray-700 dark:text-gray-300 pt-0.5">{t(stepKey)}</p>
+                  <p className="pt-0.5 text-lg text-gray-700 dark:text-gray-300">{t(stepKey)}</p>
                 </div>
               ))}
             </div>
             <div className="mt-12 text-center">
               <Link
                 to="/register"
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
               >
                 {t('landing.getStartedFree')}
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="size-4" />
               </Link>
             </div>
           </div>

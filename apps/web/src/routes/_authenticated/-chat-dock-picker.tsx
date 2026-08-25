@@ -19,21 +19,21 @@ export function ChatDockConversationPicker({ onSelect }: { onSelect: () => void 
   const conversations = (data?.conversations ?? []).slice(0, RECENT_LIMIT);
 
   return (
-    <div className="w-72 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xl overflow-hidden">
+    <div className="w-72 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800">
       <button
         type="button"
         onClick={() => {
           dock.openNew();
           onSelect();
         }}
-        className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors border-b border-gray-100 dark:border-gray-700"
+        className="flex w-full items-center gap-2 border-b border-gray-100 px-3 py-2.5 text-sm text-blue-600 transition-colors hover:bg-blue-50 dark:border-gray-700 dark:text-blue-400 dark:hover:bg-blue-900/20"
       >
         <PlusIcon size={15} />
         {t('assistant.newConversation')}
       </button>
 
       {conversations.length === 0 ? (
-        <p className="px-3 py-4 text-xs text-gray-400 dark:text-gray-500 text-center">
+        <p className="px-3 py-4 text-center text-xs text-gray-400 dark:text-gray-500">
           {t('conversationHistory.noConversationsYet')}
         </p>
       ) : (
@@ -46,12 +46,12 @@ export function ChatDockConversationPicker({ onSelect }: { onSelect: () => void 
                   dock.openConversation(c.id);
                   onSelect();
                 }}
-                className="w-full text-left px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-50 dark:border-gray-700/50 last:border-0"
+                className="w-full border-b border-gray-50 px-3 py-2.5 text-left transition-colors last:border-0 hover:bg-gray-50 dark:border-gray-700/50 dark:hover:bg-gray-700"
               >
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
                   {c.title ?? t('assistant.newConversation')}
                 </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
                   {timeAgo(c.updatedAt, t)}
                   {c.llmProvider ? ` · ${LLM_PROVIDER_LABEL[c.llmProvider] ?? c.llmProvider}` : ''}
                 </p>

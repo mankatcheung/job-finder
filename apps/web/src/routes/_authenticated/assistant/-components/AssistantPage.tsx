@@ -64,9 +64,9 @@ export function AssistantPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
-      <div className="flex-1 flex flex-col min-w-0 px-4 pt-4 sm:px-8 sm:pt-8 max-w-3xl mx-auto w-full min-h-0">
-        <div className="flex items-center justify-between mb-2 shrink-0">
+    <div className="flex h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex-col sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
+      <div className="mx-auto flex min-h-0 w-full max-w-3xl min-w-0 flex-1 flex-col px-4 pt-4 sm:px-8 sm:pt-8">
+        <div className="mb-2 flex shrink-0 items-center justify-between">
           <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
             {t('assistant.title')}
           </h1>
@@ -88,7 +88,7 @@ export function AssistantPage() {
               to="/assistant/history"
               aria-label={t('assistant.conversationHistory')}
               title={t('assistant.conversationHistory')}
-              className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-lg transition-colors"
+              className="rounded-lg p-2 text-gray-400 transition-colors hover:text-gray-900 dark:hover:text-gray-100"
             >
               <HistoryIcon size={16} />
             </Link>
@@ -110,7 +110,7 @@ export function AssistantPage() {
               <select
                 value={pickedProvider ?? ''}
                 onChange={(e) => setPickedProvider(e.target.value)}
-                className="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               >
                 {llmApiKeys.map((k) => (
                   <option key={k.provider} value={k.provider}>
@@ -123,7 +123,7 @@ export function AssistantPage() {
                 value={pickedModel}
                 onChange={(e) => setPickedModel(e.target.value)}
                 placeholder={t('assistant.modelOptionalPlaceholder')}
-                className="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 w-40"
+                className="w-40 rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
           ) : !activeId ? (

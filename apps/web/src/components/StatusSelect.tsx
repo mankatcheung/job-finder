@@ -174,10 +174,10 @@ export function StatusSelect({
           tabIndex={-1}
           ref={listRef}
           onKeyDown={onListKeyDown}
-          className={`absolute z-50 mt-1 min-w-full max-h-72 overflow-y-auto rounded-lg border shadow-lg py-1 focus:outline-none ${
+          className={`absolute z-50 mt-1 max-h-72 min-w-full overflow-y-auto rounded-lg border py-1 shadow-lg focus:outline-none ${
             isDark
-              ? 'bg-gray-800 dark:bg-gray-700 border-gray-700 dark:border-gray-600 text-white'
-              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200'
+              ? 'border-gray-700 bg-gray-800 text-white dark:border-gray-600 dark:bg-gray-700'
+              : 'border-gray-200 bg-white text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200'
           }`}
         >
           {options.map((option, index) => {
@@ -191,7 +191,7 @@ export function StatusSelect({
                 aria-selected={selected}
                 onPointerEnter={() => setActiveIndex(index)}
                 onClick={() => pick(option)}
-                className={`flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer whitespace-nowrap ${
+                className={`flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm whitespace-nowrap ${
                   active
                     ? isDark
                       ? 'bg-gray-700 dark:bg-gray-600'
@@ -203,11 +203,11 @@ export function StatusSelect({
                   className={`size-2 shrink-0 rounded-full ${
                     option
                       ? statusColor(option).dot
-                      : 'bg-transparent border border-current opacity-40'
+                      : 'border border-current bg-transparent opacity-40'
                   }`}
                   aria-hidden="true"
                 />
-                <span className="capitalize flex-1">{labelFor(option)}</span>
+                <span className="flex-1 capitalize">{labelFor(option)}</span>
                 {selected && <CheckIcon size={14} aria-hidden="true" className="opacity-70" />}
               </li>
             );

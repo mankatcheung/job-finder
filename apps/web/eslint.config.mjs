@@ -3,6 +3,7 @@ import reactPlugin from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import i18next from 'eslint-plugin-i18next';
 import prettierConfig from 'eslint-config-prettier';
+import betterTailwindcss from 'eslint-plugin-better-tailwindcss';
 
 export default tseslint.config(
   {
@@ -21,6 +22,40 @@ export default tseslint.config(
   reactPlugin.configs.flat.recommended,
   reactPlugin.configs.flat['jsx-runtime'],
   prettierConfig,
+  betterTailwindcss.configs.recommended,
+  {
+    // Validates class strings against the real Tailwind v4 stylesheet
+    // (src/styles.css) so correctness rules like no-unknown-classes and
+    // no-conflicting-classes resolve actual utilities instead of guessing.
+    settings: {
+      'better-tailwindcss': {
+        entryPoint: 'src/styles.css',
+      },
+    },
+    rules: {
+      // Prettier owns line layout: it reflows JSX attributes around multi-line
+      // string values, so this rule's wrapped output never reaches a stable
+      // state with `pnpm format:check` (the two oscillate). Everything the
+      // rule would enforce inside a class string is order-independent anyway;
+      // revisit only if prettier-plugin-tailwindcss ever replaces Prettier.
+      'better-tailwindcss/enforce-consistent-line-wrapping': 'off',
+      // Component classes hand-written in styles.css as plain CSS (not
+      // @utility, so the Tailwind compiler can't see them) — route/page
+      // transitions, sidebar entrance animations, theme toggle.
+      'better-tailwindcss/no-unknown-classes': [
+        'error',
+        {
+          ignore: [
+            '^route-transition$',
+            '^theme-toggle-icon$',
+            '^sidebar-nav-item$',
+            '^sidebar-entrance-item$',
+            '^sidebar-desktop-entrance$',
+          ],
+        },
+      ],
+    },
+  },
   {
     plugins: { 'react-hooks': reactHooks },
     settings: { react: { version: 'detect' } },

@@ -9,15 +9,15 @@ function ResumeMockup() {
         <div className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
           Senior Product Designer · San Francisco, CA
         </div>
-        <div className="mt-5 text-[11px] font-bold uppercase tracking-wide text-blue-600">
+        <div className="mt-5 text-[11px] font-bold tracking-wide text-blue-600 uppercase">
           Experience
         </div>
         <div className="mt-2.5 space-y-2">
-          <div className="h-1.5 w-3/5 rounded bg-gray-200 dark:bg-gray-700" />
-          <div className="h-1.5 w-11/12 rounded bg-gray-200 dark:bg-gray-700" />
-          <div className="h-1.5 w-4/5 rounded bg-gray-200 dark:bg-gray-700" />
+          <div className="h-1.5 w-3/5 rounded-sm bg-gray-200 dark:bg-gray-700" />
+          <div className="h-1.5 w-11/12 rounded-sm bg-gray-200 dark:bg-gray-700" />
+          <div className="h-1.5 w-4/5 rounded-sm bg-gray-200 dark:bg-gray-700" />
         </div>
-        <div className="mt-5 text-[11px] font-bold uppercase tracking-wide text-blue-600">
+        <div className="mt-5 text-[11px] font-bold tracking-wide text-blue-600 uppercase">
           Skills
         </div>
         <div className="mt-2.5 flex flex-wrap gap-1.5">
@@ -39,10 +39,10 @@ function ResumeMockup() {
         </div>
         <div className="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-900/20">
           <div className="flex items-center gap-1.5 text-xs font-bold text-green-700 dark:text-green-400">
-            <Shield className="h-3.5 w-3.5" />
+            <Shield className="size-3.5" />
             Grounded, not invented
           </div>
-          <p className="mt-1.5 text-xs leading-relaxed text-green-800 dark:text-green-500">
+          <p className="mt-1.5 text-xs/relaxed text-green-800 dark:text-green-500">
             Every line traces back to your stored experience, education or skills — never
             fabricated.
           </p>
@@ -81,7 +81,7 @@ export function FeatureResumeCoverLetterPage() {
                     key={line}
                     className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
                   >
-                    <Check className="h-3.5 w-3.5 shrink-0 text-blue-600" />
+                    <Check className="size-3.5 shrink-0 text-blue-600" />
                     {line}
                   </div>
                 ))}
@@ -100,8 +100,8 @@ export function FeatureResumeCoverLetterPage() {
               </div>
               <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">Northwind Labs</div>
               <div className="mt-3 space-y-2">
-                <div className="h-1.5 w-11/12 rounded bg-gray-200 dark:bg-gray-700" />
-                <div className="h-1.5 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-1.5 w-11/12 rounded-sm bg-gray-200 dark:bg-gray-700" />
+                <div className="h-1.5 w-3/4 rounded-sm bg-gray-200 dark:bg-gray-700" />
               </div>
               <div className="mt-3 text-xs text-gray-400">
                 Series B · healthtech · design-led culture

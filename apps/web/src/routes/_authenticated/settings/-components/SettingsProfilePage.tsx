@@ -192,16 +192,16 @@ export function SettingsProfilePage() {
             <img
               src={me.avatarUrl}
               alt={t('profile.profilePhotoAlt')}
-              className="w-16 h-16 rounded-full object-cover border border-gray-200 dark:border-gray-600"
+              className="size-16 rounded-full border border-gray-200 object-cover dark:border-gray-600"
             />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-600">
+            <div className="flex size-16 items-center justify-center rounded-full border border-gray-200 bg-gray-100 text-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-500">
               <UserIcon size={28} />
             </div>
           )}
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <label className="cursor-pointer px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline">
+              <label className="cursor-pointer px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400">
                 {avatarUploading
                   ? t('documents.uploading')
                   : me?.avatarUrl
@@ -221,7 +221,7 @@ export function SettingsProfilePage() {
                   onClick={onRemoveAvatar}
                   disabled={avatarUploading}
                   aria-label={t('profile.removePhotoAria')}
-                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 disabled:opacity-60"
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-red-600 disabled:opacity-60 dark:text-gray-400 dark:hover:text-red-400"
                 >
                   <Trash2Icon size={14} />{' '}
                   <span className="hidden sm:inline">{t('security.remove')}</span>
@@ -460,7 +460,7 @@ export function SettingsProfilePage() {
             {t('profile.appearanceDescription')}
           </p>
         </div>
-        <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 p-1 gap-1">
+        <div className="inline-flex gap-1 rounded-lg border border-gray-300 p-1 dark:border-gray-600">
           {THEME_OPTIONS.map((option) => (
             <button
               key={option.value}
@@ -468,10 +468,10 @@ export function SettingsProfilePage() {
               onClick={() => setTheme(option.value)}
               aria-pressed={theme === option.value}
               aria-label={t('profile.themeAria', { theme: option.label })}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 theme === option.value
                   ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
               }`}
             >
               {option.icon}

@@ -172,8 +172,8 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
     onCancel: () => void;
     submitting: boolean;
   }) => (
-    <Card className="p-4 space-y-3">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <Card className="space-y-3 p-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <FormLabel size="xs">{t('contacts.nameLabel')}</FormLabel>
           <Input
@@ -225,7 +225,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
           placeholder={t('contacts.notesPlaceholder')}
         />
       </div>
-      <div className="flex gap-2 justify-end">
+      <div className="flex justify-end gap-2">
         <Button
           size="sm"
           onClick={onSubmit}
@@ -295,13 +295,13 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
             />
           ) : (
             <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
+              <div className="min-w-0 space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {contact.name}
                   </span>
                   {contact.role && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
                       {contact.role}
                     </span>
                   )}
@@ -328,18 +328,18 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
                   )}
                 </div>
                 {contact.notes && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap mt-1">
+                  <p className="mt-1 text-sm whitespace-pre-wrap text-gray-600 dark:text-gray-400">
                     {contact.notes}
                   </p>
                 )}
               </div>
-              <div className="flex gap-1 shrink-0">
+              <div className="flex shrink-0 gap-1">
                 <button
                   onClick={() => {
                     setEditingContact(contact);
                     setForm(contactToForm(contact));
                   }}
-                  className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  className="rounded-sm p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"
                 >
                   <EditIcon size={14} />
                 </button>
@@ -362,7 +362,7 @@ export function ContactsTab({ applicationId }: { applicationId: string }) {
                       onSettled: invalidate,
                     });
                   }}
-                  className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                  className="rounded-sm p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
                 >
                   <Trash2Icon size={14} />
                 </button>

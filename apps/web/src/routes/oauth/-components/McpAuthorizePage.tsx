@@ -65,7 +65,7 @@ export function McpAuthorizePage() {
   const loginReturnTo = `/oauth/authorize?${new URLSearchParams(search).toString()}`;
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-sm dark:bg-gray-800">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           {t('mcp.authorizeTitle', { defaultValue: 'Authorize MCP access' })}

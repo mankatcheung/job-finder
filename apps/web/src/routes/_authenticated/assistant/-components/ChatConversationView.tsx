@@ -156,9 +156,9 @@ export function ChatConversationView({
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div
-        className={`flex-1 overflow-y-auto space-y-3 min-h-0 ${compact ? 'p-3' : 'space-y-4 mb-4'}`}
+        className={`min-h-0 flex-1 space-y-3 overflow-y-auto ${compact ? 'p-3' : 'mb-4 space-y-4'}`}
       >
         {conversationId && isHistoryLoading ? (
           <div className="space-y-3">
@@ -178,7 +178,7 @@ export function ChatConversationView({
                         key={q}
                         type="button"
                         onClick={() => void handleSend(q)}
-                        className="text-xs px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        className="rounded-full border border-gray-300 px-3 py-1.5 text-xs text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                       >
                         {q}
                       </button>
@@ -197,7 +197,7 @@ export function ChatConversationView({
                   className={`max-w-[80%] rounded-xl px-4 py-2 text-sm whitespace-pre-wrap ${
                     m.role === 'user'
                       ? 'bg-blue-600 text-white'
-                      : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200'
+                      : 'border border-gray-200 bg-white text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200'
                   }`}
                 >
                   {m.content}
@@ -209,7 +209,7 @@ export function ChatConversationView({
 
         {send.isPending && (
           <div className="flex justify-start">
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2 text-sm text-gray-400 flex items-center gap-2">
+            <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-400 dark:border-gray-700 dark:bg-gray-800">
               <Spinner />
               {LOADING_MESSAGES[loadingMessageIndex]}
             </div>
@@ -236,7 +236,7 @@ export function ChatConversationView({
 
       <form
         onSubmit={onSubmit}
-        className={`flex gap-2 shrink-0 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 ${compact ? 'p-2' : 'py-3'}`}
+        className={`flex shrink-0 gap-2 border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900 ${compact ? 'p-2' : 'py-3'}`}
       >
         <Input
           type="text"

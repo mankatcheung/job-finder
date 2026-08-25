@@ -53,7 +53,7 @@ export function TrashedApplicationView({ app }: { app: Application }) {
   });
 
   return (
-    <div className="p-4 sm:p-8 max-w-3xl mx-auto">
+    <div className="mx-auto max-w-3xl p-4 sm:p-8">
       <div className="mb-4">
         <Link
           to="/applications/trash"
@@ -104,7 +104,7 @@ export function TrashedApplicationView({ app }: { app: Application }) {
       </div>
 
       <Card className="p-4 sm:p-6">
-        <div className="flex items-start justify-between gap-x-3 gap-y-2 flex-wrap">
+        <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
           <div className="min-w-0">
             <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{app.company}</h1>
             <p className="mt-0.5 text-gray-500 dark:text-gray-400">{app.role}</p>
@@ -133,7 +133,7 @@ export function TrashedApplicationView({ app }: { app: Application }) {
             <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400">
               {t('applicationDetail.descriptionLabel')}
             </h2>
-            <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
+            <p className="mt-1 text-sm whitespace-pre-wrap text-gray-700 dark:text-gray-300">
               {app.description}
             </p>
           </div>

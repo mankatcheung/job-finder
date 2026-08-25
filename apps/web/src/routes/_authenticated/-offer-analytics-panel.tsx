@@ -48,10 +48,10 @@ export function OfferAnalyticsPanel() {
 
   return (
     <Card className="p-6">
-      <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+      <h2 className="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
         {t('offerAnalytics.title')}
       </h2>
-      <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+      <p className="mb-4 text-xs text-gray-400 dark:text-gray-500">
         {t('offerAnalytics.description')}
       </p>
 
@@ -59,10 +59,10 @@ export function OfferAnalyticsPanel() {
         <EmptyState size="compact" className="py-8" message={t('offerAnalytics.emptyMessage')} />
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
             {analytics.byCurrency.map((stat) => (
               <div key={stat.currency}>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">
+                <p className="mb-1 text-xs text-gray-400 dark:text-gray-500">
                   {t('offerAnalytics.medianLabel', { currency: stat.currency, count: stat.count })}
                 </p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -80,12 +80,12 @@ export function OfferAnalyticsPanel() {
             {analytics.trend.map((point) => (
               <div
                 key={point.offerId}
-                className="flex items-center gap-3 py-2 border-b border-gray-100 dark:border-gray-700 last:border-0"
+                className="flex items-center gap-3 border-b border-gray-100 py-2 last:border-0 dark:border-gray-700"
               >
                 <span className="w-24 shrink-0 text-xs text-gray-400 dark:text-gray-500">
                   {formatDate(point.createdAt)}
                 </span>
-                <span className="flex-1 min-w-0 text-sm text-gray-900 dark:text-gray-100 truncate">
+                <span className="min-w-0 flex-1 truncate text-sm text-gray-900 dark:text-gray-100">
                   {point.company}
                   <span className="text-gray-400 dark:text-gray-500"> · {point.role}</span>
                 </span>

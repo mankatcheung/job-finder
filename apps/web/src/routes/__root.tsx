@@ -46,11 +46,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function NotFound() {
   const { t } = useLocale();
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <div className="text-center space-y-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="space-y-4 text-center">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">404</h1>
         <p className="text-gray-500 dark:text-gray-400">{t('errors.notFound')}</p>
-        <Link to="/dashboard" className="inline-block text-blue-600 hover:underline text-sm">
+        <Link to="/dashboard" className="inline-block text-sm text-blue-600 hover:underline">
           {t('errors.goDashboard')}
         </Link>
       </div>
@@ -63,8 +63,8 @@ function NotFound() {
 function RouteError() {
   const { t } = useLocale();
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <div className="text-center space-y-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="space-y-4 text-center">
         <AlertTriangleIcon size={40} className="mx-auto text-red-500" />
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           {t('errors.somethingWrong')}
@@ -73,7 +73,7 @@ function RouteError() {
         <div className="flex items-center justify-center gap-4">
           <button
             onClick={() => window.location.reload()}
-            className="text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2 transition-colors"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
           >
             {t('errors.reload')}
           </button>

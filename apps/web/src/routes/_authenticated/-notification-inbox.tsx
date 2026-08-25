@@ -71,11 +71,11 @@ export const NOTIFICATION_ICON: Record<NotificationType, React.ReactNode> = {
 export function NotificationRowSkeleton() {
   return (
     <div className="flex items-start gap-2 border-b border-gray-100 px-4 py-3 last:border-0 dark:border-gray-700">
-      <Skeleton className="mt-0.5 h-4 w-4 shrink-0 rounded-full" />
+      <Skeleton className="mt-0.5 size-4 shrink-0 rounded-full" />
       <div className="min-w-0 flex-1 space-y-1.5">
-        <Skeleton className="h-3.5 w-3/4 rounded" />
-        <Skeleton className="h-3 w-full rounded" />
-        <Skeleton className="h-2.5 w-14 rounded" />
+        <Skeleton className="h-3.5 w-3/4 rounded-sm" />
+        <Skeleton className="h-3 w-full rounded-sm" />
+        <Skeleton className="h-2.5 w-14 rounded-sm" />
       </div>
     </div>
   );
@@ -107,9 +107,9 @@ function BellIconWithBadge({ unreadCount }: { unreadCount: number }) {
     <>
       <BellIcon size={18} />
       {unreadCount > 0 && (
-        <span className="absolute top-1 right-1 flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+        <span className="absolute top-1 right-1 flex size-2">
+          <span className="absolute inline-flex size-full animate-ping rounded-full bg-red-400 opacity-75" />
+          <span className="relative inline-flex size-2 rounded-full bg-red-500" />
         </span>
       )}
     </>
@@ -254,7 +254,7 @@ function NotificationPopover({
       role="dialog"
       aria-label={t('notificationInbox.title')}
       style={{ top: position.top, left: position.left }}
-      className="fixed z-50 flex max-h-[70vh] w-80 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800 sm:w-96"
+      className="fixed z-50 flex max-h-[70vh] w-80 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl sm:w-96 dark:border-gray-700 dark:bg-gray-800"
     >
       <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
         <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
@@ -265,12 +265,12 @@ function NotificationPopover({
       <div className="flex-1 overflow-y-auto">
         {isLoading && Array.from({ length: 3 }, (_, i) => <NotificationRowSkeleton key={i} />)}
         {isError && (
-          <p className="text-sm text-red-600 px-4 py-6 text-center">
+          <p className="px-4 py-6 text-center text-sm text-red-600">
             {t('notificationInbox.loadFailed')}
           </p>
         )}
         {!isLoading && !isError && items.length === 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 px-4 py-8 text-center">
+          <p className="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
             {t('notificationInbox.allCaughtUp')}
           </p>
         )}
@@ -294,15 +294,15 @@ function NotificationPopover({
               >
                 {notification.title}
               </span>
-              <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              <span className="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">
                 {notification.body}
               </span>
-              <span className="block text-[11px] text-gray-400 mt-1">
+              <span className="mt-1 block text-[11px] text-gray-400">
                 {timeAgo(notification.createdAt, t)}
               </span>
             </span>
             {!notification.read && (
-              <span className="mt-1.5 h-2 w-2 rounded-full bg-blue-500 shrink-0" />
+              <span className="mt-1.5 size-2 shrink-0 rounded-full bg-blue-500" />
             )}
           </button>
         ))}
