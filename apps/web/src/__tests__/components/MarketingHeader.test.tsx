@@ -33,6 +33,7 @@ vi.mock('#/lib/i18n', () => ({
         'landing.signIn': 'Sign in',
         'landing.goDashboard': 'Go to dashboard',
         'landing.getStarted': 'Get started',
+        'settings.language': 'Language',
       })[key] ?? key,
   }),
 }));
@@ -102,6 +103,7 @@ describe('MarketingHeader', () => {
     mockHasSessionCookie.mockReturnValue(false);
     render(<MarketingHeader />);
 
-    expect(screen.getAllByRole('combobox')).toHaveLength(2);
+    // Icon-only triggers now — one per header cluster, popup closed by default.
+    expect(screen.getAllByRole('button', { name: 'Language' })).toHaveLength(2);
   });
 });

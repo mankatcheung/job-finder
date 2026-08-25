@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 const { mockSetLocale } = vi.hoisted(() => ({
   mockSetLocale: vi.fn(),
@@ -19,22 +20,89 @@ vi.mock('#/lib/i18n', () => ({
 
 import { MarketingLocalePicker } from '#/components/marketing/MarketingLocalePicker';
 
-describe('MarketingLocalePicker', () => {
-  it('lists every supported locale and shows the current one selected', () => {
-    render(<MarketingLocalePicker />);
+const openList = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(screen.getByRole('button', { name: 'Language' }));
+  return screen.getByRole('listbox');
+};
 
-    const select = screen.getByRole('combobox', { name: 'Language' });
-    expect(select).toHaveValue('en');
-    expect(screen.getByRole('option', { name: 'English' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: '简体中文' })).toBeInTheDocument();
+describe('MarketingLocalePicker', () => {
+  beforeEach(() => {
+    mockSetLocale.mockClear();
   });
 
-  it('calls setLocale with the newly picked value', () => {
+  it('is a single icon button until opened — no always-visible select pill', () => {
     render(<MarketingLocalePicker />);
 
-    const select = screen.getByRole('combobox', { name: 'Language' });
-    fireEvent.change(select, { target: { value: 'zh-CN' } });
+    const trigger = screen.getByRole('button', { name: 'Language' });
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+
+  it('opens a popup listing every supported locale, current one selected', async () => {
+    const user = userEvent.setup();
+    render(<MarketingLocalePicker />);
+    await openList(user);
+
+    expect(screen.getByRole('option', { name: 'English' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByRole('option', { name: '简体中文' })).toHaveAttribute(
+      'aria-selected',
+      'false',
+    );
+  });
+
+  it('calls setLocale with the newly picked value and closes the popup', async () => {
+    const user = userEvent.setup();
+    render(<MarketingLocalePicker />);
+    await openList(user);
+
+    await user.click(screen.getByRole('option', { name: '简体中文' }));
 
     expect(mockSetLocale).toHaveBeenCalledWith('zh-CN');
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+
+  it('closes without picking when clicking outside the popup', async () => {
+    const user = userEvent.setup();
+    render(<MarketingLocalePicker />);
+    await openList(user);
+
+    await user.click(document.body);
+
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(mockSetLocale).not.toHaveBeenCalled();
+  });
+
+  describe('keyboard', () => {
+    it('opens on ArrowDown and picks with Enter', async () => {
+      const user = userEvent.setup();
+      render(<MarketingLocalePicker />);
+      const trigger = screen.getByRole('button', { name: 'Language' });
+      trigger.focus();
+
+      await user.keyboard('{ArrowDown}');
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // Opens on the current selection (en, index 0); one step down is zh-CN.
+      await user.keyboard('{ArrowDown}{Enter}');
+      expect(mockSetLocale).toHaveBeenCalledWith('zh-CN');
+      expect(trigger).toHaveFocus();
+    });
+
+    it('closes on Escape without selecting', async () => {
+      const user = userEvent.setup();
+      render(<MarketingLocalePicker />);
+      const trigger = screen.getByRole('button', { name: 'Language' });
+      trigger.focus();
+
+      await user.keyboard('{ArrowDown}{Escape}');
+
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+      expect(mockSetLocale).not.toHaveBeenCalled();
+      expect(trigger).toHaveFocus();
+    });
   });
 });
