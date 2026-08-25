@@ -88,6 +88,13 @@ export async function ensureLocaleLoaded(locale: Locale): Promise<void> {
  * the effective precedence, since LocaleProvider's own initial state wins.
  */
 function detectLocale(): Locale {
+  // The server always renders English: there's no Accept-Language or cookie
+  // available to the prerender/SSR pass, so the static marketing pages
+  // (.vercel/output/static/*.html) are English HTML by design. A non-English
+  // visitor hydrates into their locale via LocaleProvider below — the same
+  // brief flash of English the lazy bundle fetch already accepts. Localized
+  // SSR would need the locale to become part of the URL; revisit if SEO in
+  // non-English markets ever demands it.
   if (typeof window === 'undefined') return 'en';
   try {
     const queryLocale = new URLSearchParams(window.location.search).get(LOCALE_QUERY_KEY);

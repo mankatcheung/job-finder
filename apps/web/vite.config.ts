@@ -33,24 +33,37 @@ const config = defineConfig(({ command }) => ({
       ? [
           nitro({
             preset: 'vercel',
-            // Prerender the landing page at build time (JEF-169) so it's
-            // emitted as .vercel/output/static/index.html. The Vercel route
-            // config puts `handle: filesystem` ahead of the `/(.*) ->
-            // /__server` fallback, so that file is served straight from the
-            // edge — the serverless function is never invoked for `/`.
+            // Prerender every marketing page at build time (JEF-169, extended
+            // to the full set) so each is emitted as a real HTML file under
+            // .vercel/output/static/. The Vercel route config puts
+            // `handle: filesystem` ahead of the `/(.*) -> /__server`
+            // fallback, so those files are served straight from the edge —
+            // the serverless function is never invoked for them.
             //
-            // Measured before this (JEF-168): the document returned
+            // Measured before this (JEF-168): documents returned
             // `x-vercel-cache: MISS` on every request with
             // `cache-control: max-age=0, must-revalidate`, so every
             // anonymous visit invoked the function and paid a London->
             // Virginia hop. Warm TTFB ~150 ms, one cold start at 1.18 s.
             //
-            // The prerendered HTML is still the same empty shell, because
-            // `/` sets `ssr: false` — TanStack Start skips server rendering
-            // for it even at build time. This buys the TTFB and cold-start
-            // win, not a content/SEO win; see the JEF-169 follow-up note for
-            // what rendering real content would additionally require.
-            routeRules: { '/': { prerender: true } },
+            // Every path here is a marketing page that SSRs unconditionally
+            // (none sets `ssr: false`), so the prerendered HTML carries the
+            // real content — hero copy, feature text, policy documents — and
+            // crawlers index it without executing JS. This invariant is
+            // enforced by src/__tests__/routes/marketingSsr.test.ts; if a
+            // route below ever gains an auth gate or client-only cookie
+            // check, remove it from this list in the same change.
+            routeRules: {
+              '/': { prerender: true },
+              '/features': { prerender: true },
+              '/features/tracking': { prerender: true },
+              '/features/ai-assistant': { prerender: true },
+              '/features/resume-cover-letter': { prerender: true },
+              '/features/analytics': { prerender: true },
+              '/privacy': { prerender: true },
+              '/terms': { prerender: true },
+              '/accessibility': { prerender: true },
+            },
           }),
         ]
       : []),
