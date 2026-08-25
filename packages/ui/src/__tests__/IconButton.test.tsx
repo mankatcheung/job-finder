@@ -29,4 +29,23 @@ describe('IconButton', () => {
       'hover:bg-gray-100',
     );
   });
+
+  it('is a centered flex container so wrapped icons cannot inflate its height', () => {
+    // An inline icon wrapper (e.g. .theme-toggle-icon) otherwise sits on the
+    // text baseline and adds the font's descent to the button's line box.
+    render(
+      <IconButton
+        label="Theme"
+        icon={
+          <span className="theme-toggle-icon">
+            <svg />
+          </span>
+        }
+      />,
+    );
+    const button = screen.getByRole('button', { name: 'Theme' });
+    expect(button.className).toContain('flex');
+    expect(button.className).toContain('items-center');
+    expect(button.className).toContain('justify-center');
+  });
 });
