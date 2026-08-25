@@ -379,6 +379,7 @@ function AppCard({
   const { t } = useLocale();
   const showMetaRow =
     (displayFields.starred && app.starred) ||
+    displayFields.date ||
     displayFields.status ||
     (displayFields.ghosted && app.likelyGhosted);
   return (
@@ -399,11 +400,6 @@ function AppCard({
       {displayFields.location && app.location && (
         <p className="mt-0.5 line-clamp-1 text-xs text-gray-400">{app.location}</p>
       )}
-      {displayFields.date && (
-        <p className="mt-0.5 line-clamp-1 text-[11px] text-gray-400">
-          {new Date(app.appliedAt ?? app.createdAt).toLocaleDateString()}
-        </p>
-      )}
       {displayFields.tags && app.tags.length > 0 && (
         <div className="mt-1.5 flex flex-wrap gap-1">
           {app.tags.slice(0, 2).map((tag) => (
@@ -419,17 +415,29 @@ function AppCard({
           )}
         </div>
       )}
+      {/* Date rides inline in the meta row rather than as its own stacked
+          line: a taller card shifts the drag geometry the board's pointer
+          tests are tuned against (JEF-230 e2e regression). */}
       {showMetaRow && (
-        <div className="mt-2 flex items-center justify-between">
-          {displayFields.starred && app.starred && (
-            <StarIcon size={11} className="fill-yellow-400 text-yellow-400" />
-          )}
-          {displayFields.status && <StatusBadge status={app.status as ApplicationStatus} />}
-          {displayFields.ghosted && app.likelyGhosted && (
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
-              {t('applications.likelyGhosted')}
-            </span>
-          )}
+        <div className="mt-2 flex items-center justify-between gap-1">
+          <span className="flex min-w-0 items-center gap-1">
+            {displayFields.starred && app.starred && (
+              <StarIcon size={11} className="shrink-0 fill-yellow-400 text-yellow-400" />
+            )}
+            {displayFields.date && (
+              <span className="truncate text-[11px] text-gray-400">
+                {new Date(app.appliedAt ?? app.createdAt).toLocaleDateString()}
+              </span>
+            )}
+          </span>
+          <span className="flex shrink-0 items-center gap-1">
+            {displayFields.status && <StatusBadge status={app.status as ApplicationStatus} />}
+            {displayFields.ghosted && app.likelyGhosted && (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                {t('applications.likelyGhosted')}
+              </span>
+            )}
+          </span>
         </div>
       )}
     </Link>
