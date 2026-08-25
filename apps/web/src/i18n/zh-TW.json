@@ -939,5 +939,16 @@
   "features.analytics.benefit3.description": "渠道與回覆時間分析顯示哪些來源——內推、求職平台、直接投遞——真正帶來轉換，讓你把時間花在有成效的地方。",
   "features.analytics.ctaHeadline": "看清你的數據，而不只是清單",
   "legal.lastUpdated": "最後更新：{{date}}",
-  "legal.backToHome": "返回 Trakwyn"
+  "legal.backToHome": "返回 Trakwyn",
+  "landing.features": "功能",
+  "landing.resumeCoverLetters": "履歷與求職信",
+  "landing.resumeCoverLettersDescription": "依據你的真實經歷，產生量身打造的草稿。",
+  "features.index.thumbChatQuestion": "兩週沒有回音了？",
+  "features.index.thumbChatAnswer": "兩個申請——要我起草跟進信嗎？",
+  "features.analytics.channelReferral": "內推",
+  "features.analytics.channelDirect": "直接投遞",
+  "features.analytics.channelJobBoard": "求職平台",
+  "features.resumeCoverLetter.skillDesignSystems": "設計系統",
+  "features.resumeCoverLetter.skillFigma": "Figma",
+  "features.resumeCoverLetter.skillZeroToOne": "從零到一產品"
 }

@@ -26,12 +26,16 @@ function ResumeMockup() {
           {t('features.resumeCoverLetter.sectionSkills')}
         </div>
         <div className="mt-2.5 flex flex-wrap gap-1.5">
-          {['Design systems', 'Figma', '0→1 product'].map((skill) => (
+          {[
+            'features.resumeCoverLetter.skillDesignSystems',
+            'features.resumeCoverLetter.skillFigma',
+            'features.resumeCoverLetter.skillZeroToOne',
+          ].map((skillKey) => (
             <span
-              key={skill}
+              key={skillKey}
               className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
             >
-              {skill}
+              {t(skillKey)}
             </span>
           ))}
         </div>

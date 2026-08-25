@@ -178,10 +178,8 @@ export function LandingPage() {
                     <div className="flex items-center justify-between px-3 py-2.5">
                       <span className="flex items-center gap-1.5">
                         <span className={`size-2 rounded-full ${colors.dot}`} aria-hidden="true" />
-                        <span
-                          className={`text-xs font-semibold capitalize ${colors.columnHeading}`}
-                        >
-                          {column.status}
+                        <span className={`text-xs font-semibold ${colors.columnHeading}`}>
+                          {t(`status.${column.status}`)}
                         </span>
                       </span>
                       <span className="rounded-full bg-gray-200 px-1.5 py-0.5 text-xs text-gray-500 dark:bg-gray-700 dark:text-gray-400">

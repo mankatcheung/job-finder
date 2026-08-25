@@ -34,9 +34,10 @@ describe('FeatureTrackingPage', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: 'Every application, one board' }),
     ).toBeInTheDocument();
-    ['draft', 'applied', 'interviewing', 'offered', 'accepted', 'rejected', 'withdrawn'].forEach(
-      (status) => {
-        expect(screen.getByText(status)).toBeInTheDocument();
+    // Board column headers render the localized status labels now.
+    ['Draft', 'Applied', 'Interviewing', 'Offered', 'Accepted', 'Rejected', 'Withdrawn'].forEach(
+      (label) => {
+        expect(screen.getByText(label)).toBeInTheDocument();
       },
     );
   });
