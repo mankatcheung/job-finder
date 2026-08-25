@@ -36,8 +36,8 @@ function BoardMockup() {
               className={`w-40 shrink-0 rounded-lg border border-t-4 border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 ${colors.columnBorder}`}
             >
               <div className="flex items-center justify-between px-2.5 py-2">
-                <span className={`text-[11px] font-bold capitalize ${colors.columnHeading}`}>
-                  {status}
+                <span className={`text-[11px] font-bold ${colors.columnHeading}`}>
+                  {t(`status.${status}`)}
                 </span>
                 <span className="rounded-full bg-gray-200 px-1.5 py-0.5 text-[10px] text-gray-500 dark:bg-gray-700 dark:text-gray-400">
                   {cards.length}

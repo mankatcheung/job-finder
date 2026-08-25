@@ -3,12 +3,12 @@ import { FeaturePageLayout } from '#/components/marketing/FeaturePageLayout';
 import { useLocale } from '#/lib/i18n';
 
 const FUNNEL = [
-  { label: 'Draft', value: 34, color: 'bg-gray-400' },
-  { label: 'Applied', value: 21, color: 'bg-blue-500' },
-  { label: 'Interview', value: 9, color: 'bg-purple-500' },
-  { label: 'Offered', value: 3, color: 'bg-orange-500' },
-  { label: 'Accepted', value: 1, color: 'bg-green-500' },
-];
+  { statusKey: 'status.draft', value: 34, color: 'bg-gray-400' },
+  { statusKey: 'status.applied', value: 21, color: 'bg-blue-500' },
+  { statusKey: 'status.interviewing', value: 9, color: 'bg-purple-500' },
+  { statusKey: 'status.offered', value: 3, color: 'bg-orange-500' },
+  { statusKey: 'status.accepted', value: 1, color: 'bg-green-500' },
+] as const;
 
 function AnalyticsMockup() {
   const { t } = useLocale();
@@ -49,12 +49,12 @@ function AnalyticsMockup() {
           </div>
           <div className="flex h-24 items-end gap-2.5">
             {FUNNEL.map((stage) => (
-              <div key={stage.label} className="flex flex-1 flex-col items-center gap-1">
+              <div key={stage.statusKey} className="flex flex-1 flex-col items-center gap-1">
                 <div
                   className={`w-full rounded-t ${stage.color}`}
                   style={{ height: `${(stage.value / max) * 100}%` }}
                 />
-                <span className="text-[9px] text-gray-400">{stage.label}</span>
+                <span className="text-[9px] text-gray-400">{t(stage.statusKey)}</span>
               </div>
             ))}
           </div>
@@ -94,13 +94,15 @@ export function FeatureAnalyticsPage() {
           description: t('features.analytics.benefit1.description'),
           visual: (
             <div className="divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:divide-gray-700 dark:border-gray-800 dark:bg-gray-800/50">
-              {[
-                ['Applied', 21],
-                ['Interviewing', 9],
-                ['Offered', 3],
-              ].map(([label, value]) => (
-                <div key={label} className="flex items-center justify-between py-2.5 text-sm">
-                  <span className="text-gray-700 dark:text-gray-300">{label}</span>
+              {(
+                [
+                  ['status.applied', 21],
+                  ['status.interviewing', 9],
+                  ['status.offered', 3],
+                ] as const
+              ).map(([statusKey, value]) => (
+                <div key={statusKey} className="flex items-center justify-between py-2.5 text-sm">
+                  <span className="text-gray-700 dark:text-gray-300">{t(statusKey)}</span>
                   <span className="font-bold text-gray-900 dark:text-gray-100">{value}</span>
                 </div>
               ))}
@@ -127,14 +129,16 @@ export function FeatureAnalyticsPage() {
           description: t('features.analytics.benefit3.description'),
           visual: (
             <div className="space-y-2.5 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
-              {[
-                ['Referral', 82],
-                ['Direct', 54],
-                ['Job board', 28],
-              ].map(([label, pct]) => (
-                <div key={label} className="flex items-center gap-3">
+              {(
+                [
+                  ['features.analytics.channelReferral', 82],
+                  ['features.analytics.channelDirect', 54],
+                  ['features.analytics.channelJobBoard', 28],
+                ] as const
+              ).map(([channelKey, pct]) => (
+                <div key={channelKey} className="flex items-center gap-3">
                   <span className="w-16 shrink-0 text-xs text-gray-500 dark:text-gray-400">
-                    {label}
+                    {t(channelKey)}
                   </span>
                   <div className="h-2 flex-1 rounded-full bg-gray-100 dark:bg-gray-700">
                     <div className="h-full rounded-full bg-blue-600" style={{ width: `${pct}%` }} />
