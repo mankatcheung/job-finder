@@ -59,7 +59,10 @@ test.describe('AI assistant chat', () => {
 
     // Back on /assistant with the same conversation restored.
     await expect(page).toHaveURL(/\/assistant\?conversation=/);
-    await expect(page.getByText('Hello there')).toBeVisible();
+    // Scope to the main pane: the restored conversation now also appears by
+    // title in the app-sidebar subitems (JEF-229), which would otherwise
+    // make this locator ambiguous.
+    await expect(page.getByRole('main').getByText('Hello there')).toBeVisible();
     await expect(page.getByText(FAKE_REPLY)).toBeVisible();
   });
 });
