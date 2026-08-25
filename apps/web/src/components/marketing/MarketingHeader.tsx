@@ -33,7 +33,9 @@ export function MarketingHeader({ activeFeatures = false }: MarketingHeaderProps
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <LogoMark size={24} />
-            <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Trakwyn</span>
+            <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              {t('marketing.brandName')}
+            </span>
           </Link>
           <div className="hidden items-center gap-6 sm:flex">
             <Link

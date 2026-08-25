@@ -1,6 +1,7 @@
 import { LayoutDashboard, CalendarDays, Bell, FileText } from 'lucide-react';
 import { FeaturePageLayout } from '#/components/marketing/FeaturePageLayout';
 import { APPLICATION_STATUSES, statusColor } from '#/lib/statusColors';
+import { useLocale } from '#/lib/i18n';
 
 /** Sample board data — illustrative, not a live capture (JEF-228). */
 const BOARD_CARDS: Partial<Record<(typeof APPLICATION_STATUSES)[number], string[]>> = {
@@ -11,13 +12,18 @@ const BOARD_CARDS: Partial<Record<(typeof APPLICATION_STATUSES)[number], string[
   rejected: ['Ashgrove Retail'],
 };
 
+const SAMPLE_POSTING_URL = 'northwindlabs.com/careers/senior-designer';
+
 function BoardMockup() {
+  const { t } = useLocale();
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-900/5 dark:border-gray-800 dark:bg-gray-800/50">
       <div className="flex items-center justify-between border-b border-gray-200 px-5 py-3.5 dark:border-gray-800">
-        <span className="text-base font-bold text-gray-900 dark:text-gray-100">Board</span>
+        <span className="text-base font-bold text-gray-900 dark:text-gray-100">
+          {t('features.tracking.boardLabel')}
+        </span>
         <span className="rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white">
-          + Add application
+          {t('features.tracking.addApplicationShort')}
         </span>
       </div>
       <div className="flex gap-2.5 overflow-x-auto bg-gray-50 p-4 dark:bg-gray-900/40">
@@ -56,70 +62,68 @@ function BoardMockup() {
 }
 
 export function FeatureTrackingPage() {
+  const { t } = useLocale();
   return (
     <FeaturePageLayout
       eyebrowIcon={LayoutDashboard}
-      eyebrowLabel="Application tracking"
-      title="Every application, one board"
-      description="Stop losing track in spreadsheets and email threads. See your whole pipeline at a glance, and move things forward with a drag."
+      eyebrowLabel={t('features.tracking.eyebrow')}
+      title={t('features.tracking.title')}
+      description={t('features.tracking.description')}
       heroVisual={<BoardMockup />}
       benefits={[
         {
-          title: 'Add a job in seconds',
-          description:
-            'Paste a posting URL and the details fill themselves in, or add one manually in a few fields. Either way it lands on the board as a draft, ready to move.',
+          title: t('features.tracking.benefit1.title'),
+          description: t('features.tracking.benefit1.description'),
           visual: (
             <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
               <div className="text-xs font-semibold text-gray-500 dark:text-gray-400">
-                Job posting URL
+                {t('features.tracking.jobPostingUrl')}
               </div>
               <div className="mt-2 rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-700 dark:border-gray-600 dark:text-gray-300">
-                northwindlabs.com/careers/senior-designer
+                {SAMPLE_POSTING_URL}
               </div>
               <div className="mt-3.5 inline-block rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white">
-                Add application
+                {t('features.tracking.addApplication')}
               </div>
             </div>
           ),
         },
         {
-          title: 'Board or list — your call',
-          description:
-            "Drag a card between columns when you want the visual pipeline. Switch to a sortable, filterable list when you'd rather scan everything at once. Same data, either view.",
+          title: t('features.tracking.benefit2.title'),
+          description: t('features.tracking.benefit2.description'),
           visual: (
             <div className="flex gap-2 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
               <div className="flex-1 rounded-lg bg-blue-50 px-2 py-2.5 text-center text-xs font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                Board
+                {t('features.tracking.boardLabel')}
               </div>
               <div className="flex-1 rounded-lg px-2 py-2.5 text-center text-xs font-semibold text-gray-400">
-                List
+                {t('features.tracking.listLabel')}
               </div>
             </div>
           ),
         },
         {
-          title: 'Nothing slips through',
-          description:
-            'Every application carries its own notes, contacts, documents and activity log. Interview and follow-up reminders fire on their own, so a promising lead never just goes quiet on you.',
+          title: t('features.tracking.benefit3.title'),
+          description: t('features.tracking.benefit3.description'),
           visual: (
             <div className="divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:divide-gray-700 dark:border-gray-800 dark:bg-gray-800/50">
               <div className="flex items-center gap-2.5 py-2.5 text-sm text-gray-700 dark:text-gray-300">
                 <CalendarDays className="size-4 shrink-0 text-blue-600" />
-                Phone screen — tomorrow, 2:00 PM
+                {t('features.tracking.reminderInterview')}
               </div>
               <div className="flex items-center gap-2.5 py-2.5 text-sm text-gray-700 dark:text-gray-300">
                 <Bell className="size-4 shrink-0 text-blue-600" />
-                Follow up with Fernbridge — 14 days, no reply
+                {t('features.tracking.reminderFollowUp')}
               </div>
               <div className="flex items-center gap-2.5 py-2.5 text-sm text-gray-700 dark:text-gray-300">
                 <FileText className="size-4 shrink-0 text-blue-600" />
-                Resume_v3.pdf attached
+                {t('features.tracking.reminderDocument')}
               </div>
             </div>
           ),
         },
       ]}
-      ctaHeadline="Put your search on one board"
+      ctaHeadline={t('features.tracking.ctaHeadline')}
     />
   );
 }

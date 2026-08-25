@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import en from '#/i18n/en.json';
 import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { Sparkles } from 'lucide-react';
@@ -19,6 +20,19 @@ vi.mock('#/components/marketing/MarketingHeader', () => ({
 
 vi.mock('#/components/marketing/MarketingFooter', () => ({
   MarketingFooter: () => <div data-testid="footer" />,
+}));
+
+vi.mock('#/lib/i18n', () => ({
+  LOCALE_OPTIONS: [{ value: 'en', label: 'English' }],
+  useLocale: () => ({
+    locale: 'en',
+    setLocale: vi.fn(),
+    formatDate: (value: Date | string | number) => new Date(value).toDateString(),
+    formatNumber: (value: number) => String(value),
+    // Resolve against the real English bundle so assertions on rendered copy
+    // keep working as keys are added (falls back to the key itself).
+    t: (key: string) => (en as Record<string, string>)[key] ?? key,
+  }),
 }));
 
 import { FeaturePageLayout } from '#/components/marketing/FeaturePageLayout';
@@ -81,8 +95,11 @@ describe('FeaturePageLayout', () => {
       />,
     );
 
-    expect(screen.getByRole('link', { name: 'Start free' })).toHaveAttribute('href', '/register');
-    expect(screen.getByRole('link', { name: 'Get started free' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Start for free' })).toHaveAttribute(
+      'href',
+      '/register',
+    );
+    expect(screen.getByRole('link', { name: 'Get started for free' })).toHaveAttribute(
       'href',
       '/register',
     );

@@ -16,18 +16,19 @@ import {
 } from 'lucide-react';
 import { MarketingHeader } from '#/components/marketing/MarketingHeader';
 import { MarketingFooter } from '#/components/marketing/MarketingFooter';
+import { useLocale } from '#/lib/i18n';
 
 interface DeepDive {
   icon: LucideIcon;
-  title: string;
-  description: string;
-  bullets: string[];
+  titleKey: string;
+  descriptionKey: string;
+  bulletKeys: string[];
   to:
     | '/features/tracking'
     | '/features/ai-assistant'
     | '/features/resume-cover-letter'
     | '/features/analytics';
-  linkLabel: string;
+  linkLabelKey: string;
   thumbnail: React.ReactNode;
 }
 
@@ -86,94 +87,103 @@ const ANALYTICS_THUMB = (
 const DEEP_DIVES: DeepDive[] = [
   {
     icon: LayoutDashboard,
-    title: 'Application tracking & Kanban board',
-    description:
-      'Every application lives in one pipeline instead of a spreadsheet and three email folders. Drag a card as it moves, or work from a plain list — whichever fits how you think.',
-    bullets: [
-      'Board or list view, seven pipeline stages',
-      'Notes, contacts, documents and an activity log per application',
-      'Interview and follow-up reminders, so nothing goes cold',
+    titleKey: 'features.index.tracking.title',
+    descriptionKey: 'features.index.tracking.description',
+    bulletKeys: [
+      'features.index.tracking.bullet1',
+      'features.index.tracking.bullet2',
+      'features.index.tracking.bullet3',
     ],
     to: '/features/tracking',
-    linkLabel: 'Explore application tracking',
+    linkLabelKey: 'features.index.tracking.linkLabel',
     thumbnail: KANBAN_THUMB,
   },
   {
     icon: Sparkles,
-    title: 'AI assistant',
-    description:
-      'A chat that actually knows your pipeline — not a generic bot in a corner. It can see your applications, notes and interviews when you ask it something.',
-    bullets: [
-      'Grounded in your real data, not generic advice',
-      'Bring your own key — OpenAI, Anthropic, or compatible',
-      'Every conversation saved and searchable later',
+    titleKey: 'features.index.aiAssistant.title',
+    descriptionKey: 'features.index.aiAssistant.description',
+    bulletKeys: [
+      'features.index.aiAssistant.bullet1',
+      'features.index.aiAssistant.bullet2',
+      'features.index.aiAssistant.bullet3',
     ],
     to: '/features/ai-assistant',
-    linkLabel: 'Explore the AI assistant',
+    linkLabelKey: 'features.index.aiAssistant.linkLabel',
     thumbnail: CHAT_THUMB,
   },
   {
     icon: FileText,
-    title: 'Resume & cover letter generation',
-    description:
-      "Drafted from your real work history, skills and notes — plus the job posting itself. Nothing it writes is something you didn't tell it.",
-    bullets: [
-      'Grounded in your stored experience — no invented history',
-      'Tailored to the posting and company briefing',
-      'Versioned drafts you can edit, regenerate and track',
+    titleKey: 'features.index.resumeCoverLetter.title',
+    descriptionKey: 'features.index.resumeCoverLetter.description',
+    bulletKeys: [
+      'features.index.resumeCoverLetter.bullet1',
+      'features.index.resumeCoverLetter.bullet2',
+      'features.index.resumeCoverLetter.bullet3',
     ],
     to: '/features/resume-cover-letter',
-    linkLabel: 'Explore resume & cover letters',
+    linkLabelKey: 'features.index.resumeCoverLetter.linkLabel',
     thumbnail: RESUME_THUMB,
   },
   {
     icon: BarChart3,
-    title: 'Analytics & insights',
-    description:
-      'Response rates, interview conversion, ghosting patterns and time-to-offer — the numbers behind your search, not just a list of applications.',
-    bullets: [
-      'Your funnel, stage by stage',
-      "Know when you're likely being ghosted",
-      'See which channels actually convert',
+    titleKey: 'features.index.analytics.title',
+    descriptionKey: 'features.index.analytics.description',
+    bulletKeys: [
+      'features.index.analytics.bullet1',
+      'features.index.analytics.bullet2',
+      'features.index.analytics.bullet3',
     ],
     to: '/features/analytics',
-    linkLabel: 'Explore analytics',
+    linkLabelKey: 'features.index.analytics.linkLabel',
     thumbnail: ANALYTICS_THUMB,
   },
 ];
 
-const EVERYTHING_ELSE: Array<{ icon: LucideIcon; title: string; description: string }> = [
+const EVERYTHING_ELSE: Array<{ icon: LucideIcon; titleKey: string; descriptionKey: string }> = [
   {
     icon: CalendarDays,
-    title: 'Calendar & reminders',
-    description: 'Interviews and follow-ups on one calendar.',
+    titleKey: 'features.index.else.calendar.title',
+    descriptionKey: 'features.index.else.calendar.description',
   },
-  { icon: Users, title: 'Contacts', description: 'Recruiters and interviewers, per application.' },
-  { icon: FileText, title: 'Documents', description: 'Every resume and letter version, kept.' },
+  {
+    icon: Users,
+    titleKey: 'features.index.else.contacts.title',
+    descriptionKey: 'features.index.else.contacts.description',
+  },
+  {
+    icon: FileText,
+    titleKey: 'features.index.else.documents.title',
+    descriptionKey: 'features.index.else.documents.description',
+  },
   {
     icon: Bell,
-    title: 'Notifications',
-    description: 'In-app and push, so reminders reach you.',
+    titleKey: 'features.index.else.notifications.title',
+    descriptionKey: 'features.index.else.notifications.description',
   },
   {
     icon: Shield,
-    title: 'Security',
-    description: '2FA, session management, sign-in alerts.',
+    titleKey: 'features.index.else.security.title',
+    descriptionKey: 'features.index.else.security.description',
   },
   {
     icon: KeyRound,
-    title: 'Bring your own AI key',
-    description: 'Your provider, your usage, your cost.',
+    titleKey: 'features.index.else.byok.title',
+    descriptionKey: 'features.index.else.byok.description',
   },
   {
     icon: Puzzle,
-    title: 'Browser extension',
-    description: "Save a posting from the page you're on.",
+    titleKey: 'features.index.else.extension.title',
+    descriptionKey: 'features.index.else.extension.description',
   },
-  { icon: Globe, title: '5 languages', description: 'English, Cantonese, Mandarin and more.' },
+  {
+    icon: Globe,
+    titleKey: 'features.index.else.languages.title',
+    descriptionKey: 'features.index.else.languages.description',
+  },
 ];
 
 export function FeaturesIndexPage() {
+  const { t } = useLocale();
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <MarketingHeader activeFeatures />
@@ -184,11 +194,10 @@ export function FeaturesIndexPage() {
           <div className="absolute inset-0 -z-10 bg-linear-to-b from-blue-50 to-gray-50 dark:from-gray-900 dark:to-gray-900" />
           <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl dark:text-gray-100">
-              See what Trakwyn actually does
+              {t('features.index.heroTitle')}
             </h1>
             <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
-              Four things it&rsquo;s built to do well — plus everything else that keeps a job search
-              from falling through the cracks.
+              {t('features.index.heroDescription')}
             </p>
           </div>
         </section>
@@ -205,19 +214,19 @@ export function FeaturesIndexPage() {
                       <feature.icon className="size-5 text-blue-600" />
                     </div>
                     <h2 className="mt-5 text-2xl font-bold text-gray-900 sm:text-3xl dark:text-gray-100">
-                      {feature.title}
+                      {t(feature.titleKey)}
                     </h2>
                     <p className="mt-3.5 text-base/7 text-gray-600 dark:text-gray-400">
-                      {feature.description}
+                      {t(feature.descriptionKey)}
                     </p>
                     <ul className="mt-4 flex flex-col gap-2.5">
-                      {feature.bullets.map((bullet) => (
+                      {feature.bulletKeys.map((bulletKey) => (
                         <li
-                          key={bullet}
+                          key={bulletKey}
                           className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300"
                         >
                           <Check className="mt-0.5 size-4 shrink-0 text-blue-600" />
-                          {bullet}
+                          {t(bulletKey)}
                         </li>
                       ))}
                     </ul>
@@ -225,7 +234,7 @@ export function FeaturesIndexPage() {
                       to={feature.to}
                       className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700"
                     >
-                      {feature.linkLabel} →
+                      {t(feature.linkLabelKey)} →
                     </Link>
                   </div>
                   <div
@@ -242,20 +251,20 @@ export function FeaturesIndexPage() {
         {/* Everything else */}
         <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
           <h2 className="text-center text-2xl font-bold text-gray-900 sm:text-3xl dark:text-gray-100">
-            And everything else that keeps a search on track
+            {t('features.index.everythingElseTitle')}
           </h2>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {EVERYTHING_ELSE.map((item) => (
               <div
-                key={item.title}
+                key={item.titleKey}
                 className="rounded-lg border border-gray-200 p-4 dark:border-gray-800"
               >
                 <item.icon className="size-4 text-gray-500 dark:text-gray-400" />
                 <div className="mt-2.5 text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  {item.title}
+                  {t(item.titleKey)}
                 </div>
                 <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {item.description}
+                  {t(item.descriptionKey)}
                 </div>
               </div>
             ))}
@@ -264,14 +273,12 @@ export function FeaturesIndexPage() {
 
         {/* CTA */}
         <section className="bg-blue-600 px-4 py-20 text-center sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white">
-            Ready to see it on your own applications?
-          </h2>
+          <h2 className="text-3xl font-bold text-white">{t('features.index.ctaTitle')}</h2>
           <Link
             to="/register"
             className="mt-7 inline-block rounded-lg bg-white px-7 py-3 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50"
           >
-            Get started free
+            {t('landing.getStartedFree')}
           </Link>
         </section>
       </main>

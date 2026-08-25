@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+import en from '#/i18n/en.json';
 import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
@@ -20,12 +21,9 @@ vi.mock('#/graphql/client', () => ({
 
 vi.mock('#/lib/i18n', () => ({
   useLocale: () => ({
-    t: (key: string) =>
-      ({
-        'landing.signIn': 'Sign in',
-        'landing.goDashboard': 'Go to dashboard',
-        'auth.register': 'Register',
-      })[key] ?? key,
+    // Resolve against the real English bundle so assertions on rendered copy
+    // keep working as keys are added (falls back to the key itself).
+    t: (key: string) => (en as Record<string, string>)[key] ?? key,
   }),
 }));
 
@@ -76,11 +74,11 @@ describe('MarketingFooter', () => {
     mockHasSessionCookie.mockReturnValue(false);
     render(<MarketingFooter />);
 
-    expect(screen.getByRole('link', { name: 'auth.privacyPolicy' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute(
       'href',
       '/privacy',
     );
-    expect(screen.getByRole('link', { name: 'auth.termsOfService' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute(
       'href',
       '/terms',
     );

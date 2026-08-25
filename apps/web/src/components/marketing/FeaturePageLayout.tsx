@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router';
 import type { LucideIcon } from 'lucide-react';
 import { MarketingHeader } from './MarketingHeader';
 import { MarketingFooter } from './MarketingFooter';
+import { useLocale } from '#/lib/i18n';
 
 export interface FeatureBenefit {
   title: string;
@@ -40,6 +41,7 @@ export function FeaturePageLayout({
   benefits,
   ctaHeadline,
 }: FeaturePageLayoutProps) {
+  const { t } = useLocale();
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <MarketingHeader activeFeatures />
@@ -61,7 +63,7 @@ export function FeaturePageLayout({
               to="/register"
               className="mt-8 inline-block rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
             >
-              Start free
+              {t('landing.startFree')}
             </Link>
           </div>
         </section>
@@ -100,7 +102,7 @@ export function FeaturePageLayout({
             to="/register"
             className="mt-7 inline-block rounded-lg bg-white px-7 py-3 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50"
           >
-            Get started free
+            {t('landing.getStartedFree')}
           </Link>
         </section>
       </main>

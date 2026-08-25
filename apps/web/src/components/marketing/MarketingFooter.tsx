@@ -27,47 +27,47 @@ export function MarketingFooter() {
             <Link to="/" className="flex items-center gap-2">
               <LogoMark size={22} />
               <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                Trakwyn
+                {t('marketing.brandName')}
               </span>
             </Link>
             <p className="mt-3 max-w-xs text-sm/6 text-gray-500 dark:text-gray-400">
-              Your job search, organized and powered by AI. Free to start.
+              {t('marketing.footer.tagline')}
             </p>
           </div>
           <div>
             <div className="text-xs font-semibold tracking-wide text-gray-400 uppercase dark:text-gray-500">
-              Product
+              {t('marketing.footer.productHeading')}
             </div>
             <div className="mt-3.5 flex flex-col gap-2.5">
               <Link
                 to="/features/tracking"
                 className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
               >
-                Application tracking
+                {t('marketing.footer.trackingLink')}
               </Link>
               <Link
                 to="/features/ai-assistant"
                 className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
               >
-                AI assistant
+                {t('marketing.footer.aiAssistantLink')}
               </Link>
               <Link
                 to="/features/resume-cover-letter"
                 className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
               >
-                Resume &amp; cover letters
+                {t('marketing.footer.resumeCoverLettersLink')}
               </Link>
               <Link
                 to="/features/analytics"
                 className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
               >
-                Analytics
+                {t('marketing.footer.analyticsLink')}
               </Link>
             </div>
           </div>
           <div>
             <div className="text-xs font-semibold tracking-wide text-gray-400 uppercase dark:text-gray-500">
-              Account
+              {t('marketing.footer.accountHeading')}
             </div>
             <div className="mt-3.5 flex flex-col gap-2.5">
               <Link
@@ -87,7 +87,7 @@ export function MarketingFooter() {
         </div>
         <div className="mt-10 flex flex-col items-center gap-4 border-t border-gray-200 pt-6 sm:flex-row sm:justify-between dark:border-gray-800">
           <span className="text-xs text-gray-400 dark:text-gray-500">
-            © {new Date().getFullYear()} Trakwyn. All rights reserved.
+            {t('marketing.footer.copyright', { year: new Date().getFullYear() })}
           </span>
           <LegalFooterLinks className="flex max-w-xs flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-gray-500 sm:max-w-none dark:text-gray-400" />
         </div>
