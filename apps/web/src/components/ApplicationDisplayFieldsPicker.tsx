@@ -1,12 +1,13 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { CheckIcon, SlidersHorizontalIcon } from 'lucide-react';
-import { Checkbox } from '@trakwyn/ui';
+import { Checkbox, Modal } from '@trakwyn/ui';
 import { useLocale } from '#/lib/i18n';
 import {
   APPLICATION_DISPLAY_FIELDS,
   type ApplicationDisplayField,
   type ApplicationDisplayFields,
 } from '#/lib/applicationDisplayFields';
+import { useMediaQuery } from '#/lib/useMediaQuery';
 
 const FIELD_LABEL_KEYS: Record<ApplicationDisplayField, string> = {
   role: 'applications.displayFields.role',
@@ -25,13 +26,16 @@ interface ApplicationDisplayFieldsPickerProps {
 }
 
 /**
- * The JEF-230 control: a popover of checkboxes deciding which detail fields
+ * The JEF-230 control: a picker of checkboxes deciding which detail fields
  * the applications list rows and board cards render. The preference is shared
  * by both views (same localStorage entry), so the picker is the one component
  * both pages mount.
  *
- * Same dismissal contract as StatusSelect: click-away and Escape close it,
- * with focus returned to the trigger so keyboard users aren't stranded.
+ * Desktop gets an anchored popover; below the sm breakpoint it becomes a
+ * bottom sheet instead (JEF-232), matching ApplicationActionsSheet — a popup
+ * anchored to a corner is cramped on a phone, and tapping one of its own
+ * checkboxes would trip the click-away dismissal. The sheet's rows are 56px
+ * touch targets and dismiss via backdrop or Escape like every other sheet.
  */
 export function ApplicationDisplayFieldsPicker({
   fields,
@@ -40,18 +44,23 @@ export function ApplicationDisplayFieldsPicker({
 }: ApplicationDisplayFieldsPickerProps) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
+  const isDesktop = useMediaQuery('(min-width: 640px)');
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
 
+  // Click-away only guards the popover; on mobile there is nothing anchored
+  // to protect — the Modal's backdrop is the dismissal surface.
   useEffect(() => {
-    if (!open) return;
+    if (!open || !isDesktop) return;
     const onPointerDown = (event: PointerEvent) => {
       if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
     };
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, [open]);
+  }, [open, isDesktop]);
+
+  const fieldLabel = (field: ApplicationDisplayField) => t(FIELD_LABEL_KEYS[field]);
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
@@ -60,7 +69,7 @@ export function ApplicationDisplayFieldsPicker({
         ref={triggerRef}
         aria-haspopup="true"
         aria-expanded={open}
-        aria-controls={panelId}
+        aria-controls={isDesktop && open ? panelId : undefined}
         aria-label={t('applications.displayFields.pickerAria')}
         title={t('applications.displayFields.title')}
         onClick={() => setOpen((prev) => !prev)}
@@ -72,7 +81,7 @@ export function ApplicationDisplayFieldsPicker({
         <span className="hidden sm:inline">{t('applications.displayFields.title')}</span>
       </button>
 
-      {open && (
+      {open && isDesktop && (
         <div
           id={panelId}
           role="group"
@@ -89,9 +98,9 @@ export function ApplicationDisplayFieldsPicker({
                   <Checkbox
                     checked={fields[field]}
                     onChange={() => onToggle(field)}
-                    aria-label={t(FIELD_LABEL_KEYS[field])}
+                    aria-label={fieldLabel(field)}
                   />
-                  {t(FIELD_LABEL_KEYS[field])}
+                  {fieldLabel(field)}
                 </label>
               </li>
             ))}
@@ -101,6 +110,39 @@ export function ApplicationDisplayFieldsPicker({
             {t('applications.displayFields.companyAlwaysShown')}
           </p>
         </div>
+      )}
+
+      {open && !isDesktop && (
+        <Modal
+          open={open}
+          onClose={() => setOpen(false)}
+          position="bottom"
+          ariaLabel={t('applications.displayFields.pickerAria')}
+        >
+          <div className="flex flex-col pb-2">
+            <div className="flex justify-center py-2.5">
+              <div className="h-1 w-9 rounded-full bg-gray-200 dark:bg-gray-600" />
+            </div>
+            {APPLICATION_DISPLAY_FIELDS.map((field) => (
+              <label
+                key={field}
+                className="flex w-full cursor-pointer items-center gap-3.5 px-5 py-3 text-left text-[15px] text-gray-900 transition-colors select-none hover:bg-gray-50 dark:text-gray-100 dark:hover:bg-gray-700/50"
+                style={{ minHeight: '56px' }}
+              >
+                <Checkbox
+                  checked={fields[field]}
+                  onChange={() => onToggle(field)}
+                  aria-label={fieldLabel(field)}
+                />
+                <span className="flex-1">{fieldLabel(field)}</span>
+              </label>
+            ))}
+            <p className="mt-1 flex items-center gap-1.5 px-5 pb-1 text-[11px] text-gray-400 dark:text-gray-500">
+              <CheckIcon size={11} aria-hidden="true" />
+              {t('applications.displayFields.companyAlwaysShown')}
+            </p>
+          </div>
+        </Modal>
       )}
     </div>
   );
