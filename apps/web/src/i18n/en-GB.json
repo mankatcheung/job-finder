@@ -1042,5 +1042,15 @@
   "features.resumeCoverLetter.skillZeroToOne": "0→1 product",
   "assistant.allChats": "All chats",
   "conversationHistory.searchPlaceholder": "Search conversations…",
-  "conversationHistory.noResults": "No conversations match your search."
+  "conversationHistory.noResults": "No conversations match your search.",
+  "applications.displayFields.title": "Details shown",
+  "applications.displayFields.pickerAria": "Choose which details are shown",
+  "applications.displayFields.role": "Role",
+  "applications.displayFields.location": "Location",
+  "applications.displayFields.date": "Date",
+  "applications.displayFields.tags": "Tags",
+  "applications.displayFields.status": "Status",
+  "applications.displayFields.starred": "Star",
+  "applications.displayFields.ghosted": "Likely ghosted",
+  "applications.displayFields.companyAlwaysShown": "Company is always shown"
 }

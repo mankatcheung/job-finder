@@ -28,6 +28,11 @@ import { StatusBadge } from '../-components/StatusBadge';
 import { ErrorState } from '#/components/ErrorState';
 import { ListIcon, PlusIcon, StarIcon } from 'lucide-react';
 import { useLocale } from '#/lib/i18n';
+import { ApplicationDisplayFieldsPicker } from '#/components/ApplicationDisplayFieldsPicker';
+import {
+  useApplicationDisplayFields,
+  type ApplicationDisplayFields,
+} from '#/lib/applicationDisplayFields';
 import { boardApplicationsQueryOptions, type BoardApplication } from './-board-queries';
 import {
   findColumnOf,
@@ -54,6 +59,7 @@ const QUERY_KEY = ['applications', null];
 export function KanbanBoard() {
   const { t } = useLocale();
   const qc = useQueryClient();
+  const { fields: displayFields, toggleField: toggleDisplayField } = useApplicationDisplayFields();
 
   const { data, isLoading, isError, error, refetch } = useQuery(boardApplicationsQueryOptions);
 
@@ -214,6 +220,7 @@ export function KanbanBoard() {
           {t('applications.board')}
         </h1>
         <div className="flex items-center gap-2">
+          <ApplicationDisplayFieldsPicker fields={displayFields} onToggle={toggleDisplayField} />
           <Link
             to="/applications"
             aria-label={t('applications.switchToListView')}
@@ -246,11 +253,19 @@ export function KanbanBoard() {
       >
         <div className="flex flex-1 gap-3 overflow-x-auto pb-4">
           {STATUSES.map((status) => (
-            <Column key={status} status={status} ids={columns[status] ?? []} appsById={appsById} />
+            <Column
+              key={status}
+              status={status}
+              ids={columns[status] ?? []}
+              appsById={appsById}
+              displayFields={displayFields}
+            />
           ))}
         </div>
 
-        <DragOverlay>{activeApp && <AppCard app={activeApp} isOverlay />}</DragOverlay>
+        <DragOverlay>
+          {activeApp && <AppCard app={activeApp} isOverlay displayFields={displayFields} />}
+        </DragOverlay>
       </DndContext>
     </div>
   );
@@ -260,10 +275,12 @@ function Column({
   status,
   ids,
   appsById,
+  displayFields,
 }: {
   status: string;
   ids: string[];
   appsById: Map<string, Application>;
+  displayFields: ApplicationDisplayFields;
 }) {
   const { t } = useLocale();
   const colors = statusColor(status);
@@ -300,7 +317,7 @@ function Column({
         <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-2">
           {ids.map((id) => {
             const app = appsById.get(id);
-            return app ? <SortableCard key={id} app={app} /> : null;
+            return app ? <SortableCard key={id} app={app} displayFields={displayFields} /> : null;
           })}
         </div>
       </SortableContext>
@@ -308,7 +325,13 @@ function Column({
   );
 }
 
-function SortableCard({ app }: { app: Application }) {
+function SortableCard({
+  app,
+  displayFields,
+}: {
+  app: Application;
+  displayFields: ApplicationDisplayFields;
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: app.id,
   });
@@ -339,13 +362,26 @@ function SortableCard({ app }: { app: Application }) {
       {...listeners}
       {...attributes}
     >
-      <AppCard app={app} />
+      <AppCard app={app} displayFields={displayFields} />
     </div>
   );
 }
 
-function AppCard({ app, isOverlay }: { app: Application; isOverlay?: boolean }) {
+function AppCard({
+  app,
+  isOverlay,
+  displayFields,
+}: {
+  app: Application;
+  isOverlay?: boolean;
+  displayFields: ApplicationDisplayFields;
+}) {
   const { t } = useLocale();
+  const showMetaRow =
+    (displayFields.starred && app.starred) ||
+    displayFields.date ||
+    displayFields.status ||
+    (displayFields.ghosted && app.likelyGhosted);
   return (
     <Link
       to="/applications/$applicationId"
@@ -358,17 +394,52 @@ function AppCard({ app, isOverlay }: { app: Application; isOverlay?: boolean }) 
       <p className="line-clamp-2 text-xs font-semibold text-gray-900 dark:text-gray-100">
         {app.company}
       </p>
-      <p className="mt-0.5 line-clamp-1 text-xs text-gray-500 dark:text-gray-400">{app.role}</p>
-      {app.location && <p className="mt-0.5 line-clamp-1 text-xs text-gray-400">{app.location}</p>}
-      <div className="mt-2 flex items-center justify-between">
-        {app.starred && <StarIcon size={11} className="fill-yellow-400 text-yellow-400" />}
-        <StatusBadge status={app.status as ApplicationStatus} />
-        {app.likelyGhosted && (
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
-            {t('applications.likelyGhosted')}
+      {displayFields.role && (
+        <p className="mt-0.5 line-clamp-1 text-xs text-gray-500 dark:text-gray-400">{app.role}</p>
+      )}
+      {displayFields.location && app.location && (
+        <p className="mt-0.5 line-clamp-1 text-xs text-gray-400">{app.location}</p>
+      )}
+      {displayFields.tags && app.tags.length > 0 && (
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {app.tags.slice(0, 2).map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex max-w-full items-center truncate rounded-sm bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+            >
+              {tag}
+            </span>
+          ))}
+          {app.tags.length > 2 && (
+            <span className="text-[10px] text-gray-400">+{app.tags.length - 2}</span>
+          )}
+        </div>
+      )}
+      {/* Date rides inline in the meta row rather than as its own stacked
+          line: a taller card shifts the drag geometry the board's pointer
+          tests are tuned against (JEF-230 e2e regression). */}
+      {showMetaRow && (
+        <div className="mt-2 flex items-center justify-between gap-1">
+          <span className="flex min-w-0 items-center gap-1">
+            {displayFields.starred && app.starred && (
+              <StarIcon size={11} className="shrink-0 fill-yellow-400 text-yellow-400" />
+            )}
+            {displayFields.date && (
+              <span className="truncate text-[11px] text-gray-400">
+                {new Date(app.appliedAt ?? app.createdAt).toLocaleDateString()}
+              </span>
+            )}
           </span>
-        )}
-      </div>
+          <span className="flex shrink-0 items-center gap-1">
+            {displayFields.status && <StatusBadge status={app.status as ApplicationStatus} />}
+            {displayFields.ghosted && app.likelyGhosted && (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                {t('applications.likelyGhosted')}
+              </span>
+            )}
+          </span>
+        </div>
+      )}
     </Link>
   );
 }

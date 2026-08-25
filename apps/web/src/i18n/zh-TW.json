@@ -953,5 +953,15 @@
   "features.resumeCoverLetter.skillZeroToOne": "從零到一產品",
   "assistant.allChats": "所有對話",
   "conversationHistory.searchPlaceholder": "搜尋對話…",
-  "conversationHistory.noResults": "沒有符合的對話。"
+  "conversationHistory.noResults": "沒有符合的對話。",
+  "applications.displayFields.title": "顯示的詳細資訊",
+  "applications.displayFields.pickerAria": "選擇要顯示的詳細資訊",
+  "applications.displayFields.role": "職位",
+  "applications.displayFields.location": "地點",
+  "applications.displayFields.date": "日期",
+  "applications.displayFields.tags": "標籤",
+  "applications.displayFields.status": "狀態",
+  "applications.displayFields.starred": "星號",
+  "applications.displayFields.ghosted": "可能已讀不回",
+  "applications.displayFields.companyAlwaysShown": "公司名稱一律顯示"
 }

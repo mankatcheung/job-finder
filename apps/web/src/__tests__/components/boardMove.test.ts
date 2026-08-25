@@ -20,6 +20,7 @@ const app = (overrides: Partial<BoardApplication> = {}): BoardApplication => ({
   appliedAt: null,
   starred: false,
   createdAt: '2024-01-01T00:00:00.000Z',
+  tags: [],
   likelyGhosted: false,
   boardPosition: 0,
   ...overrides,

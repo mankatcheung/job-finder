@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const { mockGqlRequest } = vi.hoisted(() => ({
@@ -44,6 +44,7 @@ const app = (overrides: Partial<Record<string, unknown>> = {}) => ({
   appliedAt: '2024-01-01T00:00:00.000Z',
   starred: false,
   createdAt: '2024-01-01T00:00:00.000Z',
+  tags: [] as string[],
   likelyGhosted: false,
   boardPosition: 0,
   ...overrides,
@@ -52,6 +53,7 @@ const app = (overrides: Partial<Record<string, unknown>> = {}) => ({
 describe('KanbanBoard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
   it('shows an error state with a retry action when the query fails', async () => {
@@ -217,5 +219,35 @@ describe('KanbanBoard', () => {
         '/applications/new',
       );
     });
+  });
+
+  it('hides card fields toggled off in the display picker (JEF-230)', async () => {
+    mockGqlRequest.mockResolvedValue({
+      applications: [app({ location: 'Remote', role: 'Engineer' })],
+    });
+    render(<KanbanBoard />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('Acme')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Engineer')).toBeInTheDocument();
+    expect(screen.getByText('Remote')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose which details are shown' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Role' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Location' }));
+
+    // Company stays; the toggled fields disappear from the card. Column
+    // headings keep their own localized status labels regardless of the
+    // per-card status badge setting.
+    expect(screen.getByText('Acme')).toBeInTheDocument();
+    expect(screen.queryByText('Engineer')).not.toBeInTheDocument();
+    expect(screen.queryByText('Remote')).not.toBeInTheDocument();
+    const stored = JSON.parse(localStorage.getItem('applications.displayFields') ?? '{}') as Record<
+      string,
+      boolean
+    >;
+    expect(stored.role).toBe(false);
+    expect(stored.location).toBe(false);
   });
 });

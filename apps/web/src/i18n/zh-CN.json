@@ -953,5 +953,15 @@
   "features.resumeCoverLetter.skillZeroToOne": "从零到一产品",
   "assistant.allChats": "所有对话",
   "conversationHistory.searchPlaceholder": "搜索对话…",
-  "conversationHistory.noResults": "没有匹配的对话。"
+  "conversationHistory.noResults": "没有匹配的对话。",
+  "applications.displayFields.title": "显示的详细信息",
+  "applications.displayFields.pickerAria": "选择要显示的详细信息",
+  "applications.displayFields.role": "职位",
+  "applications.displayFields.location": "地点",
+  "applications.displayFields.date": "日期",
+  "applications.displayFields.tags": "标签",
+  "applications.displayFields.status": "状态",
+  "applications.displayFields.starred": "星标",
+  "applications.displayFields.ghosted": "可能已读不回",
+  "applications.displayFields.companyAlwaysShown": "公司名称一律显示"
 }

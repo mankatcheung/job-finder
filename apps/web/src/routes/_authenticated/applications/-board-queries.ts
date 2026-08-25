@@ -5,7 +5,7 @@ import type { ApplicationStatus } from '#/graphql/generated/graphql';
 const APPLICATIONS_QUERY = `
   query BoardApplications {
     applications {
-       id company role status location appliedAt starred createdAt likelyGhosted boardPosition
+       id company role status location appliedAt starred createdAt tags likelyGhosted boardPosition
     }
   }
 `;
@@ -19,6 +19,7 @@ export type BoardApplication = {
   appliedAt?: string | null;
   starred: boolean;
   createdAt: string;
+  tags: string[];
   likelyGhosted: boolean;
   /** Rank within its status column, ascending. */
   boardPosition: number;
