@@ -41,6 +41,11 @@ export function IconButton({
   const classes = [
     VARIANT_CLASSES[variant],
     SIZE_CLASSES[size],
+    // Flex-centering blockifies the icon (e.g. MarketingThemeToggle's inline
+    // .theme-toggle-icon span) so it can't sit on the text baseline — that
+    // added the font's descent to the line box and made buttons taller than
+    // their padding+icon arithmetic, visibly next to fixed-height siblings.
+    'flex items-center justify-center',
     'disabled:opacity-30 disabled:cursor-not-allowed transition-colors',
     className ?? '',
   ]
