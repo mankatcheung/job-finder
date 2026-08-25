@@ -30,6 +30,8 @@ import {
   type ApplicationsPageResult,
 } from '../index';
 import { StatusSelect } from '#/components/StatusSelect';
+import { ApplicationDisplayFieldsPicker } from '#/components/ApplicationDisplayFieldsPicker';
+import { useApplicationDisplayFields } from '#/lib/applicationDisplayFields';
 
 function ApplicationsPage() {
   const { t } = useLocale();
@@ -38,6 +40,7 @@ function ApplicationsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const bulk = useBulkActions();
+  const { fields: displayFields, toggleField: toggleDisplayField } = useApplicationDisplayFields();
 
   useEffect(() => {
     const t = setTimeout(() => setSearchTerm(searchInput.trim().toLowerCase()), 200);
@@ -171,6 +174,9 @@ function ApplicationsPage() {
         >
           {t('applications.likelyGhosted')}
         </Link>
+        <div className="ml-auto">
+          <ApplicationDisplayFieldsPicker fields={displayFields} onToggle={toggleDisplayField} />
+        </div>
       </div>
 
       {isLoading ? (
@@ -228,11 +234,17 @@ function ApplicationsPage() {
                   <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                     {app.company}
                   </p>
-                  <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                    {app.role}
-                    {app.location ? ` · ${app.location}` : ''}
-                  </p>
-                  {app.tags.length > 0 && (
+                  {(displayFields.role || (displayFields.location && app.location)) && (
+                    <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                      {[
+                        displayFields.role ? app.role : null,
+                        displayFields.location && app.location ? app.location : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </p>
+                  )}
+                  {displayFields.tags && app.tags.length > 0 && (
                     <div className="mt-1.5 flex flex-wrap gap-1">
                       {app.tags.slice(0, 3).map((tag) => (
                         <span
@@ -249,16 +261,18 @@ function ApplicationsPage() {
                   )}
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
-                  {app.starred && (
+                  {displayFields.starred && app.starred && (
                     <StarIcon size={13} className="shrink-0 fill-yellow-400 text-yellow-400" />
                   )}
-                  <p className="hidden text-xs text-gray-400 sm:block">
-                    {app.appliedAt
-                      ? new Date(app.appliedAt).toLocaleDateString()
-                      : new Date(app.createdAt).toLocaleDateString()}
-                  </p>
-                  <StatusBadge status={app.status} />
-                  {app.likelyGhosted && (
+                  {displayFields.date && (
+                    <p className="hidden text-xs text-gray-400 sm:block">
+                      {app.appliedAt
+                        ? new Date(app.appliedAt).toLocaleDateString()
+                        : new Date(app.createdAt).toLocaleDateString()}
+                    </p>
+                  )}
+                  {displayFields.status && <StatusBadge status={app.status} />}
+                  {displayFields.ghosted && app.likelyGhosted && (
                     <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
                       {t('applications.likelyGhosted')}
                     </span>

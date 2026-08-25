@@ -70,6 +70,7 @@ describe('ApplicationsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseSearch.mockReturnValue({});
+    localStorage.clear();
   });
 
   it('shows empty state when no applications', async () => {
@@ -113,6 +114,48 @@ describe('ApplicationsPage', () => {
       expect(screen.getByText('Vercel')).toBeInTheDocument();
     });
     expect(screen.getByText('Engineer · Remote')).toBeInTheDocument();
+  });
+
+  it('hides fields toggled off in the display picker and persists the choice (JEF-230)', async () => {
+    mockGqlRequest.mockResolvedValue(
+      page([
+        {
+          id: '1',
+          company: 'Stripe',
+          role: 'Engineer',
+          status: 'applied',
+          location: 'Remote',
+          appliedAt: null,
+          tags: [],
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+      ]),
+    );
+    render(<ApplicationsPage />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('Engineer · Remote')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Applied')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose which details are shown' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Location' }));
+
+    // The row re-renders with just the role; the choice is persisted so the
+    // board view (and the next visit) agrees.
+    expect(screen.getByText('Engineer')).toBeInTheDocument();
+    expect(screen.queryByText(/Remote/)).not.toBeInTheDocument();
+    const stored = JSON.parse(localStorage.getItem('applications.displayFields') ?? '{}') as Record<
+      string,
+      boolean
+    >;
+    expect(stored.location).toBe(false);
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Status' }));
+    expect(screen.queryByText('Applied')).not.toBeInTheDocument();
+
+    // Company is the identity anchor and can never be hidden.
+    expect(screen.getByText('Stripe')).toBeInTheDocument();
   });
 
   it('shows status filter dropdown', async () => {
