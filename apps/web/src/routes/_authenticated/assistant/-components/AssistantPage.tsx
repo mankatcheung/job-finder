@@ -13,7 +13,6 @@ import {
   deleteConversationWithUndo,
 } from '#/routes/_authenticated/assistant/-shared';
 import { ChatConversationView } from './ChatConversationView';
-import { AssistantSidebar } from './AssistantSidebar';
 import { HistoryIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { IconButton } from '@trakwyn/ui';
 import { Route } from '../index';
@@ -65,8 +64,7 @@ export function AssistantPage() {
   };
 
   return (
-    <div className="flex h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex-col sm:h-[calc(100dvh-3.5rem)] lg:h-screen lg:flex-row">
-      <AssistantSidebar activeId={activeId} onNewConversation={onNewConversation} />
+    <div className="flex h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex-col sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
       <div className="mx-auto flex min-h-0 w-full max-w-3xl min-w-0 flex-1 flex-col px-4 pt-4 sm:px-8 sm:pt-8">
         <div className="mb-2 flex shrink-0 items-center justify-between">
           <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
@@ -81,20 +79,16 @@ export function AssistantPage() {
                 onClick={onDeleteActiveConversation}
               />
             )}
-            {/* Below lg the sidebar is hidden, so new-chat and history keep
-                their header-icon form there; on lg they'd duplicate the
-                sidebar's own controls. */}
             <IconButton
               label={t('assistant.newConversation')}
               icon={<PlusIcon size={16} />}
               onClick={onNewConversation}
-              className="lg:hidden"
             />
             <Link
               to="/assistant/history"
               aria-label={t('assistant.conversationHistory')}
               title={t('assistant.conversationHistory')}
-              className="rounded-lg p-2 text-gray-400 transition-colors hover:text-gray-900 dark:hover:text-gray-100 lg:hidden"
+              className="rounded-lg p-2 text-gray-400 transition-colors hover:text-gray-900 dark:hover:text-gray-100"
             >
               <HistoryIcon size={16} />
             </Link>

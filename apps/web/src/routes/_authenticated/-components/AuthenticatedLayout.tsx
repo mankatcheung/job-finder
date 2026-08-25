@@ -12,6 +12,7 @@ import { ChatDockProvider } from '#/lib/chatDock';
 import { ChatDockFooter } from '../-chat-dock-footer';
 import { ChatDockFloatingWindow } from '../-chat-dock-floating-window';
 import { NotificationInboxButton, NotificationInboxLink } from '../-notification-inbox';
+import { AssistantNavConversations } from './AssistantNavConversations';
 import { useLocale } from '#/lib/i18n';
 import {
   BarChart2Icon,
@@ -59,6 +60,10 @@ export function AuthenticatedLayout() {
   const { t } = useLocale();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const search = useRouterState({
+    select: (s) => s.location.search as { conversation?: string },
+  });
+  const inAssistantSection = pathname.startsWith('/assistant');
   // Keyed by the immediate child route (dashboard/applications/settings/…)
   // rather than the full pathname, so switching between nested settings tabs
   // doesn't also remount the settings layout's own sub-nav.
@@ -97,6 +102,25 @@ export function AuthenticatedLayout() {
     queryClient.clear();
     await navigate({ to: '/login' });
   };
+
+  // The assistant's recent conversations render as subitems under its nav
+  // entry (JEF-229), but only while the section is open — the same accordion
+  // treatment Settings gets in the drawer.
+  const renderMainNavItems = () =>
+    MAIN_NAV.map((item, i) => (
+      <div key={item.to}>
+        <NavItem
+          to={item.to}
+          icon={<item.icon size={18} />}
+          label={t(item.labelKey)}
+          active={pathname.startsWith(item.to)}
+          staggerIndex={i}
+        />
+        {item.to === '/assistant' && inAssistantSection && (
+          <AssistantNavConversations activeId={search.conversation} onNavigate={closeSidebar} />
+        )}
+      </div>
+    ));
 
   useHotkeys({ key: 'n', ctrl: true }, () => {
     navigate({ to: '/applications/new' });
@@ -167,16 +191,7 @@ export function AuthenticatedLayout() {
               aria-label={t('authenticatedLayout.mainNavigation')}
               className="flex-1 space-y-1 overflow-y-auto px-3 py-4"
             >
-              {MAIN_NAV.map((item, i) => (
-                <NavItem
-                  key={item.to}
-                  to={item.to}
-                  icon={<item.icon size={18} />}
-                  label={t(item.labelKey)}
-                  active={pathname.startsWith(item.to)}
-                  staggerIndex={i}
-                />
-              ))}
+              {renderMainNavItems()}
 
               <div className="mt-3 border-t border-gray-200 pt-3 dark:border-gray-700">
                 <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
@@ -246,16 +261,7 @@ export function AuthenticatedLayout() {
           </div>
 
           <nav aria-label="Main navigation" className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-            {MAIN_NAV.map((item, i) => (
-              <NavItem
-                key={item.to}
-                to={item.to}
-                icon={<item.icon size={18} />}
-                label={t(item.labelKey)}
-                active={pathname.startsWith(item.to)}
-                staggerIndex={i}
-              />
-            ))}
+            {renderMainNavItems()}
           </nav>
 
           <div className="space-y-1 px-3 pb-2">

@@ -84,7 +84,7 @@ describe('AssistantPage (chat)', () => {
     expect(screen.getByText('Summarize my interviews this month')).toBeInTheDocument();
   });
 
-  it('lists the recent conversations in the sidebar', async () => {
+  it('does not render an embedded conversation list — recent chats live in the app sidebar', () => {
     mockGqlRequest.mockImplementation((query: string) => {
       if (query.includes('Conversations'))
         return Promise.resolve({
@@ -94,16 +94,10 @@ describe('AssistantPage (chat)', () => {
     });
     render(<AssistantPage />, { wrapper: Wrapper });
 
-    await waitFor(() =>
-      expect(
-        screen.getByText('Ask about your applications, contacts, or interview rounds.'),
-      ).toBeInTheDocument(),
-    );
-    // JEF-229: the sidebar is the embedded list — recent threads render in
-    // the rail instead of requiring a detour through the history page.
-    await waitFor(() =>
-      expect(screen.getByText('Which applications have I applied to?')).toBeInTheDocument(),
-    );
+    // JEF-229: conversation switching moved to subitems under Assistant in
+    // the app sidebar (AuthenticatedLayout), so the chat page itself stays a
+    // single focused column.
+    expect(screen.queryByText('Which applications have I applied to?')).not.toBeInTheDocument();
   });
 
   it('links to the conversation history page', async () => {
