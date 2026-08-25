@@ -7,11 +7,36 @@ import { ERROR_CODES } from '#src/constants.js';
 builder.queryField('conversations', (t) =>
   t.field({
     type: [ConversationRef],
-    resolve: async (_root, _args, ctx) => {
+    args: {
+      // Bounds the fetch for surfaces that only show a window (the assistant
+      // sidebar's ten most recent). Omitted = the user's full history, which
+      // is what the history page still wants.
+      limit: t.arg.int({ required: false }),
+    },
+    resolve: async (_root, args, ctx) => {
       if (!ctx.user)
         throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
       const { listConversationsUseCase, conversationMapper } = ctx.diScope.cradle;
-      const conversations = await listConversationsUseCase.execute(ctx.user.sub);
+      const conversations = await listConversationsUseCase.execute(
+        ctx.user.sub,
+        args.limit ?? undefined,
+      );
+      return conversations.map((c) => conversationMapper.toDTO(c));
+    },
+  }),
+);
+
+builder.queryField('searchConversations', (t) =>
+  t.field({
+    type: [ConversationRef],
+    args: {
+      query: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { searchConversationsUseCase, conversationMapper } = ctx.diScope.cradle;
+      const conversations = await searchConversationsUseCase.execute(ctx.user.sub, args.query);
       return conversations.map((c) => conversationMapper.toDTO(c));
     },
   }),

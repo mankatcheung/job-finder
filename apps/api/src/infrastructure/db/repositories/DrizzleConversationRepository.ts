@@ -1,6 +1,6 @@
-import { eq, desc } from 'drizzle-orm';
+import { and, eq, desc, exists, or, sql } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
-import { conversation } from '../schema.js';
+import { conversation, message } from '../schema.js';
 import type { Conversation } from '#src/domain/conversation/Conversation.js';
 import type {
   IConversationRepository,
@@ -29,11 +29,39 @@ export class DrizzleConversationRepository implements IConversationRepository {
     return row ? this.toEntity(row) : null;
   }
 
-  async findAllByUserId(userId: string): Promise<Conversation[]> {
+  async findAllByUserId(userId: string, limit?: number): Promise<Conversation[]> {
     const rows = await this.db
       .select()
       .from(conversation)
       .where(eq(conversation.userId, userId))
+      .orderBy(desc(conversation.updatedAt))
+      .limit(limit ?? -1);
+    return rows.map((r) => this.toEntity(r));
+  }
+
+  async searchByUserId(userId: string, searchTerm: string): Promise<Conversation[]> {
+    // LIKE wildcards in user input are escaped so a search for "50%" finds
+    // the literal string, not every title containing "50" plus anything
+    // ending in a digit.
+    const pattern = `%${searchTerm.replace(/[\\%_]/g, (ch) => `\\${ch}`)}%`;
+    // Drizzle's like() helper has no escape-char parameter, so the ESCAPE
+    // clause that makes those escapes meaningful is spelled out here.
+    const titleMatch = sql`${conversation.title} LIKE ${pattern} ESCAPE '\\'`;
+    const contentMatch = exists(
+      this.db
+        .select({ one: sql`1` })
+        .from(message)
+        .where(
+          and(
+            eq(message.conversationId, conversation.id),
+            sql`${message.content} LIKE ${pattern} ESCAPE '\\'`,
+          ),
+        ),
+    );
+    const rows = await this.db
+      .select()
+      .from(conversation)
+      .where(and(eq(conversation.userId, userId), or(titleMatch, contentMatch)))
       .orderBy(desc(conversation.updatedAt));
     return rows.map((r) => this.toEntity(r));
   }

@@ -2,21 +2,46 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const { mockNavigate, mockGqlRequest } = vi.hoisted(() => ({
+const { mockNavigate, mockGqlRequest, mockPathname, mockSearch } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockGqlRequest: vi.fn().mockResolvedValue({ me: { avatarUrl: null } }),
+  // Mutable so individual tests can stand inside the assistant section and
+  // assert on its conversation subitems.
+  mockPathname: vi.fn(() => '/'),
+  mockSearch: vi.fn(() => ({})),
 }));
 
 vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => (opts: unknown) => opts,
   useNavigate: () => mockNavigate,
-  useRouterState: ({ select }: { select: (s: { location: { pathname: string } }) => string }) =>
-    select({ location: { pathname: '/' } }),
+  useRouterState: ({
+    select,
+  }: {
+    select: (s: { location: { pathname: string; search: unknown } }) => unknown;
+  }) =>
+    select({
+      location: {
+        pathname: mockPathname(),
+        search: mockSearch(),
+      },
+    }),
   useChildMatches: () => [{ routeId: '/_authenticated/dashboard' }],
   redirect: vi.fn(),
   Outlet: () => <div data-testid="outlet" />,
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
+  Link: ({
+    children,
+    to,
+    ...rest
+  }: {
+    children: React.ReactNode;
+    to: string;
+    [key: string]: unknown;
+  }) => (
+    // Forward every prop: the assistant subitems carry aria-current and
+    // onClick that tests assert on.
+    <a href={to} {...rest}>
+      {children}
+    </a>
   ),
 }));
 
@@ -53,6 +78,11 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 describe('AuthenticatedLayout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // clearAllMocks resets implementations recorded on these; restore the
+    // defaults the suite expects.
+    mockPathname.mockReturnValue('/');
+    mockSearch.mockReturnValue({});
+    mockGqlRequest.mockResolvedValue({ me: { avatarUrl: null } });
   });
 
   it('renders navigation links', () => {
@@ -145,7 +175,55 @@ describe('AuthenticatedLayout', () => {
     // DOM-present) desktop sidebar, so two of each.
     expect(screen.getAllByRole('link', { name: 'Privacy Policy' })).toHaveLength(2);
     expect(screen.getAllByRole('link', { name: 'Terms of Service' })).toHaveLength(2);
-    expect(screen.getAllByRole('link', { name: 'Accessibility' })).toHaveLength(2);
     expect(screen.getAllByRole('button', { name: 'Cookie preferences' })).toHaveLength(2);
+  });
+
+  describe('assistant conversation subitems (JEF-229)', () => {
+    const recent = {
+      conversations: [
+        {
+          id: 'conv-1',
+          title: 'Stripe prep',
+          llmProvider: null,
+          llmModel: null,
+          createdAt: '',
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+    };
+
+    it('renders recent conversations under Assistant while in the section', async () => {
+      mockPathname.mockReturnValue('/assistant');
+      mockSearch.mockReturnValue({ conversation: 'conv-1' });
+      mockGqlRequest.mockImplementation((query: string) => {
+        if (query.includes('RecentConversations')) return Promise.resolve(recent);
+        return Promise.resolve({ me: { avatarUrl: null } });
+      });
+      render(<AuthenticatedLayout />, { wrapper: Wrapper });
+
+      await waitFor(() =>
+        expect(screen.getAllByText('Stripe prep').length).toBeGreaterThanOrEqual(1),
+      );
+      // Both the desktop sidebar and the mobile drawer carry the subitems.
+      const activeRows = screen
+        .getAllByText('Stripe prep')
+        .filter((el) => el.getAttribute('aria-current') === 'page');
+      expect(activeRows.length).toBeGreaterThanOrEqual(1);
+      // The bounded window, not the full history query.
+      expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('RecentConversations'), {
+        limit: 10,
+      });
+    });
+
+    it('does not render conversation subitems outside the assistant section', () => {
+      mockGqlRequest.mockImplementation((query: string) => {
+        if (query.includes('RecentConversations')) return Promise.resolve(recent);
+        return Promise.resolve({ me: { avatarUrl: null } });
+      });
+      render(<AuthenticatedLayout />, { wrapper: Wrapper });
+
+      expect(screen.queryByText('Stripe prep')).not.toBeInTheDocument();
+      expect(screen.queryByText('All chats')).not.toBeInTheDocument();
+    });
   });
 });

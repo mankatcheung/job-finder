@@ -5,6 +5,7 @@ import { ChatWithAssistantUseCase } from '#src/use-cases/chat/ChatWithAssistantU
 import { CHAT_TOOLS, toLlmToolDefinitions } from '#src/interface-adapters/llm/toolCatalogue.js';
 import { CreateConversationUseCase } from '#src/use-cases/conversations/CreateConversationUseCase.js';
 import { ListConversationsUseCase } from '#src/use-cases/conversations/ListConversationsUseCase.js';
+import { SearchConversationsUseCase } from '#src/use-cases/conversations/SearchConversationsUseCase.js';
 import { DeleteConversationUseCase } from '#src/use-cases/conversations/DeleteConversationUseCase.js';
 
 import type { Cradle } from '../types.js';
@@ -22,6 +23,9 @@ export const chat = {
     lifetime: Lifetime.TRANSIENT,
   }),
   listConversationsUseCase: asClass(ListConversationsUseCase, { lifetime: Lifetime.TRANSIENT }),
+  searchConversationsUseCase: asClass(SearchConversationsUseCase, {
+    lifetime: Lifetime.TRANSIENT,
+  }),
   deleteConversationUseCase: asClass(DeleteConversationUseCase, {
     lifetime: Lifetime.TRANSIENT,
   }),

@@ -18,6 +18,37 @@ export const CONVERSATIONS_QUERY = `
   }
 `;
 
+/**
+ * Bounded variant for the assistant sidebar: the ten most recent threads,
+ * not the user's entire history (JEF-229).
+ */
+export const RECENT_CONVERSATIONS_QUERY = `
+  query RecentConversations($limit: Int!) {
+    conversations(limit: $limit) {
+      id
+      title
+      llmProvider
+      llmModel
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+/** Server-side search over titles and message contents (JEF-229). */
+export const SEARCH_CONVERSATIONS_QUERY = `
+  query SearchConversations($query: String!) {
+    searchConversations(query: $query) {
+      id
+      title
+      llmProvider
+      llmModel
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 export const CHAT_HISTORY_QUERY = `
   query ChatHistory($conversationId: ID!) {
     chatHistory(conversationId: $conversationId) {
@@ -92,6 +123,28 @@ export const conversationsQueryOptions = queryOptions({
   queryKey: ['conversations'],
   queryFn: () => gqlClient.request<ConversationsResult>(CONVERSATIONS_QUERY),
 });
+
+/** How many conversations the sidebar shows. */
+export const SIDEBAR_CONVERSATION_LIMIT = 10;
+
+export function recentConversationsQueryOptions(limit: number = SIDEBAR_CONVERSATION_LIMIT) {
+  return queryOptions({
+    queryKey: ['conversations', 'recent', limit],
+    queryFn: () => gqlClient.request<ConversationsResult>(RECENT_CONVERSATIONS_QUERY, { limit }),
+  });
+}
+
+export interface SearchConversationsResult {
+  searchConversations: Conversation[];
+}
+
+export function searchConversationsQueryOptions(query: string) {
+  return queryOptions({
+    queryKey: ['conversations', 'search', query],
+    queryFn: () =>
+      gqlClient.request<SearchConversationsResult>(SEARCH_CONVERSATIONS_QUERY, { query }),
+  });
+}
 
 export function chatHistoryQueryOptions(conversationId: string) {
   return queryOptions({

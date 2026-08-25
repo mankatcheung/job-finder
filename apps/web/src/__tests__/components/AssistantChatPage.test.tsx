@@ -84,7 +84,7 @@ describe('AssistantPage (chat)', () => {
     expect(screen.getByText('Summarize my interviews this month')).toBeInTheDocument();
   });
 
-  it('does not render an embedded conversation list', async () => {
+  it('does not render an embedded conversation list — recent chats live in the app sidebar', () => {
     mockGqlRequest.mockImplementation((query: string) => {
       if (query.includes('Conversations'))
         return Promise.resolve({
@@ -94,11 +94,9 @@ describe('AssistantPage (chat)', () => {
     });
     render(<AssistantPage />, { wrapper: Wrapper });
 
-    await waitFor(() =>
-      expect(
-        screen.getByText('Ask about your applications, contacts, or interview rounds.'),
-      ).toBeInTheDocument(),
-    );
+    // JEF-229: conversation switching moved to subitems under Assistant in
+    // the app sidebar (AuthenticatedLayout), so the chat page itself stays a
+    // single focused column.
     expect(screen.queryByText('Which applications have I applied to?')).not.toBeInTheDocument();
   });
 
@@ -106,8 +104,12 @@ describe('AssistantPage (chat)', () => {
     mockGqlRequest.mockImplementation(noConversations);
     render(<AssistantPage />, { wrapper: Wrapper });
 
-    await waitFor(() => expect(screen.getByLabelText('Conversation history')).toBeInTheDocument());
-    expect(screen.getByLabelText('Conversation history')).toHaveAttribute(
+    // The mobile-only header icon keeps this accessible name; the sidebar
+    // contributes a navigation landmark and an "All chats" link instead.
+    await waitFor(() =>
+      expect(screen.getByRole('link', { name: 'Conversation history' })).toBeInTheDocument(),
+    );
+    expect(screen.getByRole('link', { name: 'Conversation history' })).toHaveAttribute(
       'href',
       '/assistant/history',
     );

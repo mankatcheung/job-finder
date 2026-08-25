@@ -13,7 +13,20 @@ describe('ListConversationsUseCase', () => {
     const result = await useCase.execute('user-1');
 
     expect(result).toEqual(conversations);
-    expect(conversationRepository.findAllByUserId).toHaveBeenCalledWith('user-1');
+    expect(conversationRepository.findAllByUserId).toHaveBeenCalledWith('user-1', undefined);
+  });
+
+  it('passes the limit through so bounded surfaces do not fetch full history', async () => {
+    const conversations = [makeConversation({ id: 'conv-1' })];
+    const conversationRepository = makeConversationRepository({
+      findAllByUserId: vi.fn().mockResolvedValue(conversations),
+    });
+
+    const useCase = new ListConversationsUseCase({ conversationRepository });
+    const result = await useCase.execute('user-1', 10);
+
+    expect(result).toEqual(conversations);
+    expect(conversationRepository.findAllByUserId).toHaveBeenCalledWith('user-1', 10);
   });
 
   it('returns an empty array when the user has no conversations', async () => {

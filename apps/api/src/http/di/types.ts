@@ -194,6 +194,7 @@ import type { GetSecurityActivityUseCase } from '#src/use-cases/securityEvents/G
 import type { GetChatHistoryUseCase } from '#src/use-cases/chat/GetChatHistoryUseCase.js';
 import type { CreateConversationUseCase } from '#src/use-cases/conversations/CreateConversationUseCase.js';
 import type { ListConversationsUseCase } from '#src/use-cases/conversations/ListConversationsUseCase.js';
+import type { SearchConversationsUseCase } from '#src/use-cases/conversations/SearchConversationsUseCase.js';
 import type { DeleteConversationUseCase } from '#src/use-cases/conversations/DeleteConversationUseCase.js';
 import type { JwtTokenService } from '#src/infrastructure/auth/JwtTokenService.js';
 import type { ApiTokenMapper } from '#src/interface-adapters/mappers/ApiTokenMapper.js';
@@ -506,6 +507,7 @@ export interface Cradle {
   getChatHistoryUseCase: GetChatHistoryUseCase;
   createConversationUseCase: CreateConversationUseCase;
   listConversationsUseCase: ListConversationsUseCase;
+  searchConversationsUseCase: SearchConversationsUseCase;
   deleteConversationUseCase: DeleteConversationUseCase;
   createApiTokenUseCase: CreateApiTokenUseCase;
   listApiTokensUseCase: ListApiTokensUseCase;
