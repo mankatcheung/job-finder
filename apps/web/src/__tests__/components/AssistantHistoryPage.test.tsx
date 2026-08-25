@@ -186,4 +186,104 @@ describe('ConversationHistoryPage', () => {
       expect.anything(),
     );
   });
+
+  describe('search (JEF-229)', () => {
+    const fullHistory = {
+      conversations: [
+        {
+          id: 'conv-1',
+          title: 'Stripe interview prep',
+          llmProvider: null,
+          llmModel: null,
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: 'conv-2',
+          title: 'Cover letter draft',
+          llmProvider: null,
+          llmModel: null,
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+    };
+
+    const searchResults = (ids: string[]) => ({
+      searchConversations: ids.map((id) => ({
+        id,
+        title: `${id} match`,
+        llmProvider: null,
+        llmModel: null,
+        createdAt: '',
+        updatedAt: new Date().toISOString(),
+      })),
+    });
+
+    it('queries the server for the debounced term and renders only matches', async () => {
+      mockGqlRequest.mockImplementation((query: string) => {
+        if (query.includes('SearchConversations'))
+          return Promise.resolve(searchResults(['conv-2']));
+        return Promise.resolve(fullHistory);
+      });
+      render(<ConversationHistoryPage />, { wrapper: Wrapper });
+
+      await waitFor(() => expect(screen.getByText('Stripe interview prep')).toBeInTheDocument());
+
+      fireEvent.change(screen.getByPlaceholderText('Search conversations…'), {
+        target: { value: 'cover letter' },
+      });
+
+      // The search request carries the term; results replace the full list
+      // once the debounce fires.
+      await waitFor(() =>
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('SearchConversations'),
+          { query: 'cover letter' },
+        ),
+      );
+      await waitFor(() => expect(screen.getByText('conv-2 match')).toBeInTheDocument());
+      expect(screen.queryByText('Stripe interview prep')).not.toBeInTheDocument();
+    });
+
+    it('shows a no-results state instead of the empty-history one', async () => {
+      mockGqlRequest.mockImplementation((query: string) => {
+        if (query.includes('SearchConversations'))
+          return Promise.resolve({ searchConversations: [] });
+        return Promise.resolve(fullHistory);
+      });
+      render(<ConversationHistoryPage />, { wrapper: Wrapper });
+
+      await waitFor(() => expect(screen.getByText('Stripe interview prep')).toBeInTheDocument());
+      fireEvent.change(screen.getByPlaceholderText('Search conversations…'), {
+        target: { value: 'zzz-nothing' },
+      });
+
+      await waitFor(() =>
+        expect(screen.getByText('No conversations match your search.')).toBeInTheDocument(),
+      );
+      // The browse-mode empty state must not appear while searching.
+      expect(screen.queryByText('No conversations yet.')).not.toBeInTheDocument();
+    });
+
+    it('returns to the full list when the query is cleared', async () => {
+      mockGqlRequest.mockImplementation((query: string) => {
+        if (query.includes('SearchConversations')) return Promise.resolve(searchResults([]));
+        return Promise.resolve(fullHistory);
+      });
+      render(<ConversationHistoryPage />, { wrapper: Wrapper });
+
+      const input = screen.getByPlaceholderText('Search conversations…');
+      await waitFor(() => expect(screen.getByText('Stripe interview prep')).toBeInTheDocument());
+      fireEvent.change(input, { target: { value: 'cover letter' } });
+      await waitFor(() =>
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('SearchConversations'),
+          { query: 'cover letter' },
+        ),
+      );
+
+      fireEvent.change(input, { target: { value: '' } });
+      await waitFor(() => expect(screen.getByText('Stripe interview prep')).toBeInTheDocument());
+      expect(screen.getByText('Cover letter draft')).toBeInTheDocument();
+    });
+  });
 });

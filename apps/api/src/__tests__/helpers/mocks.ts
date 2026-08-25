@@ -178,6 +178,7 @@ export const makeConversationRepository = (
   create: vi.fn(),
   findById: vi.fn().mockResolvedValue(null),
   findAllByUserId: vi.fn().mockResolvedValue([]),
+  searchByUserId: vi.fn().mockResolvedValue([]),
   updateTitle: vi.fn(),
   updateLlmSettings: vi.fn(),
   delete: vi.fn(),

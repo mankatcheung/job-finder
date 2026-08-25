@@ -1039,5 +1039,8 @@
   "features.analytics.channelJobBoard": "Job board",
   "features.resumeCoverLetter.skillDesignSystems": "Design systems",
   "features.resumeCoverLetter.skillFigma": "Figma",
-  "features.resumeCoverLetter.skillZeroToOne": "0→1 product"
+  "features.resumeCoverLetter.skillZeroToOne": "0→1 product",
+  "assistant.allChats": "All chats",
+  "conversationHistory.searchPlaceholder": "Search conversations…",
+  "conversationHistory.noResults": "No conversations match your search."
 }

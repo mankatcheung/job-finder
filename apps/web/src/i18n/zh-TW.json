@@ -950,5 +950,8 @@
   "features.analytics.channelJobBoard": "求職平台",
   "features.resumeCoverLetter.skillDesignSystems": "設計系統",
   "features.resumeCoverLetter.skillFigma": "Figma",
-  "features.resumeCoverLetter.skillZeroToOne": "從零到一產品"
+  "features.resumeCoverLetter.skillZeroToOne": "從零到一產品",
+  "assistant.allChats": "所有對話",
+  "conversationHistory.searchPlaceholder": "搜尋對話…",
+  "conversationHistory.noResults": "沒有符合的對話。"
 }

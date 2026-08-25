@@ -950,5 +950,8 @@
   "features.analytics.channelJobBoard": "求职平台",
   "features.resumeCoverLetter.skillDesignSystems": "设计系统",
   "features.resumeCoverLetter.skillFigma": "Figma",
-  "features.resumeCoverLetter.skillZeroToOne": "从零到一产品"
+  "features.resumeCoverLetter.skillZeroToOne": "从零到一产品",
+  "assistant.allChats": "所有对话",
+  "conversationHistory.searchPlaceholder": "搜索对话…",
+  "conversationHistory.noResults": "没有匹配的对话。"
 }

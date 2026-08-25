@@ -67,6 +67,113 @@ describe('DrizzleConversationRepository', () => {
 
       expect(await repo.findAllByUserId('u1')).toHaveLength(0);
     });
+
+    it('returns at most `limit` conversations when bounded', async () => {
+      await db.db.insert(conversation).values([
+        { id: 'conv-1', userId: 'u1', updatedAt: new Date('2024-01-01T00:00:00Z') },
+        { id: 'conv-2', userId: 'u1', updatedAt: new Date('2024-01-02T00:00:00Z') },
+        { id: 'conv-3', userId: 'u1', updatedAt: new Date('2024-01-03T00:00:00Z') },
+      ]);
+
+      const conversations = await repo.findAllByUserId('u1', 2);
+      // The bound applies to the newest-updated end, not an arbitrary slice.
+      expect(conversations.map((c) => c.id)).toEqual(['conv-3', 'conv-2']);
+    });
+  });
+
+  describe('searchByUserId', () => {
+    beforeEach(async () => {
+      await db.db.insert(conversation).values([
+        {
+          id: 'conv-title',
+          userId: 'u1',
+          title: 'Stripe interview prep',
+          updatedAt: new Date('2024-01-01T00:00:00Z'),
+        },
+        {
+          id: 'conv-content',
+          userId: 'u1',
+          title: 'Untitled thread',
+          updatedAt: new Date('2024-01-02T00:00:00Z'),
+        },
+        {
+          id: 'conv-other',
+          userId: 'u1',
+          title: 'Cover letter draft',
+          updatedAt: new Date('2024-01-03T00:00:00Z'),
+        },
+      ]);
+      await db.db.insert(message).values([
+        {
+          id: 'msg-1',
+          conversationId: 'conv-content',
+          role: 'user',
+          content: 'How much does the offer pay — is 50% above market realistic?',
+        },
+        {
+          id: 'msg-2',
+          conversationId: 'conv-other',
+          role: 'assistant',
+          content: 'Here is a draft cover letter.',
+        },
+      ]);
+    });
+
+    it('matches on conversation title', async () => {
+      const results = await repo.searchByUserId('u1', 'stripe');
+      expect(results.map((c) => c.id)).toEqual(['conv-title']);
+    });
+
+    it('matches on message content when the title does not match', async () => {
+      const results = await repo.searchByUserId('u1', 'cover letter');
+      expect(results.map((c) => c.id)).toEqual(['conv-other']);
+    });
+
+    it('is case-insensitive', async () => {
+      const results = await repo.searchByUserId('u1', 'STRIPE');
+      expect(results.map((c) => c.id)).toEqual(['conv-title']);
+    });
+
+    it('does not return another user’s conversations', async () => {
+      // u2 may already exist from the findAllByUserId block — same shared db.
+      await db.db
+        .insert(user)
+        .values({ id: 'u2', email: 'u2@t.com', passwordHash: 'h' })
+        .onConflictDoNothing();
+      await db.db.insert(conversation).values({
+        id: 'conv-u2',
+        userId: 'u2',
+        title: 'Stripe prep',
+      });
+
+      expect(await repo.searchByUserId('u2', 'stripe').then((r) => r.map((c) => c.id))).toEqual([
+        'conv-u2',
+      ]);
+      expect(await repo.searchByUserId('u1', 'stripe').then((r) => r.map((c) => c.id))).toEqual([
+        'conv-title',
+      ]);
+    });
+
+    it('treats LIKE wildcards in the term literally', async () => {
+      // "50%" exists verbatim in conv-content's message; a naive LIKE would
+      // also match any conversation whose text contains "50" + anything.
+      const literal = await repo.searchByUserId('u1', '50%');
+      expect(literal.map((c) => c.id)).toEqual(['conv-content']);
+
+      // An underscore-only term must not act as a single-char wildcard and
+      // match everything.
+      expect(await repo.searchByUserId('u1', '_')).toHaveLength(0);
+    });
+
+    it('orders matches by most-recently-updated first', async () => {
+      // 'r' appears in all three titles, so the full set comes back ordered.
+      const results = await repo.searchByUserId('u1', 'r');
+      expect(await Promise.all(results.map((c) => c.title ?? ''))).toEqual([
+        'Cover letter draft',
+        'Untitled thread',
+        'Stripe interview prep',
+      ]);
+    });
   });
 
   describe('updateTitle', () => {

@@ -84,7 +84,7 @@ describe('AssistantPage (chat)', () => {
     expect(screen.getByText('Summarize my interviews this month')).toBeInTheDocument();
   });
 
-  it('does not render an embedded conversation list', async () => {
+  it('lists the recent conversations in the sidebar', async () => {
     mockGqlRequest.mockImplementation((query: string) => {
       if (query.includes('Conversations'))
         return Promise.resolve({
@@ -99,15 +99,23 @@ describe('AssistantPage (chat)', () => {
         screen.getByText('Ask about your applications, contacts, or interview rounds.'),
       ).toBeInTheDocument(),
     );
-    expect(screen.queryByText('Which applications have I applied to?')).not.toBeInTheDocument();
+    // JEF-229: the sidebar is the embedded list — recent threads render in
+    // the rail instead of requiring a detour through the history page.
+    await waitFor(() =>
+      expect(screen.getByText('Which applications have I applied to?')).toBeInTheDocument(),
+    );
   });
 
   it('links to the conversation history page', async () => {
     mockGqlRequest.mockImplementation(noConversations);
     render(<AssistantPage />, { wrapper: Wrapper });
 
-    await waitFor(() => expect(screen.getByLabelText('Conversation history')).toBeInTheDocument());
-    expect(screen.getByLabelText('Conversation history')).toHaveAttribute(
+    // The mobile-only header icon keeps this accessible name; the sidebar
+    // contributes a navigation landmark and an "All chats" link instead.
+    await waitFor(() =>
+      expect(screen.getByRole('link', { name: 'Conversation history' })).toBeInTheDocument(),
+    );
+    expect(screen.getByRole('link', { name: 'Conversation history' })).toHaveAttribute(
       'href',
       '/assistant/history',
     );
