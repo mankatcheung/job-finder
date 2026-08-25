@@ -32,57 +32,70 @@ interface DeepDive {
   thumbnail: React.ReactNode;
 }
 
-const KANBAN_THUMB = (
-  <div className="flex gap-2 rounded-lg bg-gray-50 p-3 dark:bg-gray-900/40">
-    {[
-      { label: 'Applied', color: 'border-t-blue-500 text-blue-700 dark:text-blue-400' },
-      { label: 'Interviewing', color: 'border-t-purple-500 text-purple-700 dark:text-purple-400' },
-      { label: 'Accepted', color: 'border-t-green-500 text-green-700 dark:text-green-400' },
-    ].map((col) => (
-      <div
-        key={col.label}
-        className={`flex-1 rounded-md border border-t-[3px] border-gray-200 bg-white p-2 dark:border-gray-700 dark:bg-gray-800 ${col.color}`}
-      >
-        <div className="text-[10px] font-bold">{col.label}</div>
-        <div className="mt-1.5 h-4 rounded-sm border border-gray-200 dark:border-gray-700" />
+function KanbanThumb() {
+  const { t } = useLocale();
+  return (
+    <div className="flex gap-2 rounded-lg bg-gray-50 p-3 dark:bg-gray-900/40">
+      {(['applied', 'interviewing', 'accepted'] as const).map((status) => {
+        const colors = {
+          applied: 'border-t-blue-500 text-blue-700 dark:text-blue-400',
+          interviewing: 'border-t-purple-500 text-purple-700 dark:text-purple-400',
+          accepted: 'border-t-green-500 text-green-700 dark:text-green-400',
+        }[status];
+        return (
+          <div
+            key={status}
+            className={`flex-1 rounded-md border border-t-[3px] border-gray-200 bg-white p-2 dark:border-gray-700 dark:bg-gray-800 ${colors}`}
+          >
+            <div className="text-[10px] font-bold">{t(`status.${status}`)}</div>
+            <div className="mt-1.5 h-4 rounded-sm border border-gray-200 dark:border-gray-700" />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ChatThumb() {
+  const { t } = useLocale();
+  return (
+    <div className="flex flex-col gap-1.5 rounded-lg bg-gray-50 p-3 dark:bg-gray-900/40">
+      <div className="max-w-[75%] self-end rounded-lg bg-blue-600 px-2.5 py-1.5 text-[11px] text-white">
+        {t('features.index.thumbChatQuestion')}
       </div>
-    ))}
-  </div>
-);
-
-const CHAT_THUMB = (
-  <div className="flex flex-col gap-1.5 rounded-lg bg-gray-50 p-3 dark:bg-gray-900/40">
-    <div className="max-w-[75%] self-end rounded-lg bg-blue-600 px-2.5 py-1.5 text-[11px] text-white">
-      Haven&rsquo;t heard back in 2 weeks?
+      <div className="max-w-[82%] self-start rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[11px] text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+        {t('features.index.thumbChatAnswer')}
+      </div>
     </div>
-    <div className="max-w-[82%] self-start rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[11px] text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
-      Two applications — want a follow-up drafted?
-    </div>
-  </div>
-);
+  );
+}
 
-const RESUME_THUMB = (
-  <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-900/40">
-    <div className="text-[11px] font-bold text-gray-900 dark:text-gray-100">Priya Anand</div>
-    <div className="mt-1.5 space-y-1">
-      <div className="h-1 w-3/4 rounded-sm bg-gray-300 dark:bg-gray-600" />
-      <div className="h-1 w-11/12 rounded-sm bg-gray-300 dark:bg-gray-600" />
-      <div className="h-1 w-2/3 rounded-sm bg-blue-300 dark:bg-blue-700" />
+function ResumeThumb() {
+  return (
+    <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-900/40">
+      <div className="text-[11px] font-bold text-gray-900 dark:text-gray-100">{'Priya Anand'}</div>
+      <div className="mt-1.5 space-y-1">
+        <div className="h-1 w-3/4 rounded-sm bg-gray-300 dark:bg-gray-600" />
+        <div className="h-1 w-11/12 rounded-sm bg-gray-300 dark:bg-gray-600" />
+        <div className="h-1 w-2/3 rounded-sm bg-blue-300 dark:bg-blue-700" />
+      </div>
     </div>
-  </div>
-);
+  );
+}
 
-const ANALYTICS_THUMB = (
-  <div className="flex h-16 items-end gap-1.5 rounded-lg bg-gray-50 p-3 dark:bg-gray-900/40">
-    {[90, 70, 42, 18, 10].map((h, i) => (
-      <div
-        key={i}
-        className="flex-1 rounded-t bg-blue-500"
-        style={{ height: `${h}%`, opacity: 1 - i * 0.12 }}
-      />
-    ))}
-  </div>
-);
+function AnalyticsThumb() {
+  return (
+    <div className="flex h-16 items-end gap-1.5 rounded-lg bg-gray-50 p-3 dark:bg-gray-900/40">
+      {[90, 70, 42, 18, 10].map((h, i) => (
+        <div
+          key={i}
+          className="flex-1 rounded-t bg-blue-500"
+          style={{ height: `${h}%`, opacity: 1 - i * 0.12 }}
+        />
+      ))}
+    </div>
+  );
+}
 
 const DEEP_DIVES: DeepDive[] = [
   {
@@ -96,7 +109,7 @@ const DEEP_DIVES: DeepDive[] = [
     ],
     to: '/features/tracking',
     linkLabelKey: 'features.index.tracking.linkLabel',
-    thumbnail: KANBAN_THUMB,
+    thumbnail: <KanbanThumb />,
   },
   {
     icon: Sparkles,
@@ -109,7 +122,7 @@ const DEEP_DIVES: DeepDive[] = [
     ],
     to: '/features/ai-assistant',
     linkLabelKey: 'features.index.aiAssistant.linkLabel',
-    thumbnail: CHAT_THUMB,
+    thumbnail: <ChatThumb />,
   },
   {
     icon: FileText,
@@ -122,7 +135,7 @@ const DEEP_DIVES: DeepDive[] = [
     ],
     to: '/features/resume-cover-letter',
     linkLabelKey: 'features.index.resumeCoverLetter.linkLabel',
-    thumbnail: RESUME_THUMB,
+    thumbnail: <ResumeThumb />,
   },
   {
     icon: BarChart3,
@@ -135,7 +148,7 @@ const DEEP_DIVES: DeepDive[] = [
     ],
     to: '/features/analytics',
     linkLabelKey: 'features.index.analytics.linkLabel',
-    thumbnail: ANALYTICS_THUMB,
+    thumbnail: <AnalyticsThumb />,
   },
 ];
 

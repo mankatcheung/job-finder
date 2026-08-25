@@ -1028,5 +1028,16 @@
   "legal.accessibility.limitationsTitle": "Known limitations",
   "legal.accessibility.limitationsBody": "Our automated coverage doesn’t yet reach every page, and automated scans only catch a subset of real accessibility issues — they don’t replace testing with actual assistive technology. If you run into something that doesn’t work well with a screen reader, keyboard navigation, or another assistive tool, we want to know about it.",
   "legal.accessibility.contactTitle": "Contact us",
-  "legal.accessibility.contactPrefix": "Found an accessibility barrier, or have feedback on how we can do better? Email us at"
+  "legal.accessibility.contactPrefix": "Found an accessibility barrier, or have feedback on how we can do better? Email us at",
+  "landing.features": "Features",
+  "landing.resumeCoverLetters": "Resume & cover letters",
+  "landing.resumeCoverLettersDescription": "Tailored drafts, grounded in your history.",
+  "features.index.thumbChatQuestion": "Haven't heard back in 2 weeks?",
+  "features.index.thumbChatAnswer": "Two applications — want a follow-up drafted?",
+  "features.analytics.channelReferral": "Referral",
+  "features.analytics.channelDirect": "Direct",
+  "features.analytics.channelJobBoard": "Job board",
+  "features.resumeCoverLetter.skillDesignSystems": "Design systems",
+  "features.resumeCoverLetter.skillFigma": "Figma",
+  "features.resumeCoverLetter.skillZeroToOne": "0→1 product"
 }
