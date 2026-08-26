@@ -106,6 +106,46 @@ describe('fetchWithRetry', () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
+  it('throws immediately without calling fetch when the external signal is already aborted', async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      fetchWithRetry('https://example.com', {}, controller.signal),
+    ).rejects.toMatchObject({ name: 'AbortError' });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('combines the external signal with the per-attempt timeout, so either can abort the fetch (JEF-240)', async () => {
+    vi.mocked(fetch).mockImplementation(() => new Promise(() => {}));
+    const controller = new AbortController();
+
+    void fetchWithRetry('https://example.com', {}, controller.signal);
+    await vi.advanceTimersByTimeAsync(0);
+
+    const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    expect(options.signal).toBeInstanceOf(AbortSignal);
+    expect(options.signal!.aborted).toBe(false);
+
+    controller.abort();
+    expect(options.signal!.aborted).toBe(true);
+  });
+
+  it('stops retrying once the external signal aborts mid-loop, instead of exhausting all attempts', async () => {
+    const controller = new AbortController();
+    vi.mocked(fetch).mockImplementation(() => {
+      // Simulate the client disconnecting partway through the first attempt.
+      controller.abort();
+      return Promise.reject(new DOMException('The operation was aborted.', 'AbortError'));
+    });
+
+    await expect(fetchWithRetry('https://example.com', {}, controller.signal)).rejects.toThrow();
+
+    // One attempt, not LLM.MAX_RETRIES + 1 — retrying against a client that's
+    // already gone would just waste more provider spend for nobody.
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
   it('waits with doubling backoff between retries', async () => {
     vi.mocked(fetch).mockResolvedValue(okResponse(500));
 

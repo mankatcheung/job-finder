@@ -57,6 +57,20 @@ describe('AnthropicLLMProvider', () => {
       expect(fetch).not.toHaveBeenCalled();
     });
 
+    it('forwards a caller-supplied signal into the outbound fetch (JEF-240)', async () => {
+      vi.mocked(fetch).mockImplementation(() => new Promise(() => {}));
+      const controller = new AbortController();
+      const provider = new AnthropicLLMProvider('secret-key');
+
+      void provider.complete([{ role: 'user', content: 'hi' }], undefined, controller.signal);
+      await Promise.resolve();
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      expect(options.signal!.aborted).toBe(false);
+      controller.abort();
+      expect(options.signal!.aborted).toBe(true);
+    });
+
     it('sends the API key and version as headers', async () => {
       vi.mocked(fetch).mockResolvedValue(
         jsonResponse({ content: [{ type: 'text', text: 'ok' }] }) as never,
