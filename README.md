@@ -126,6 +126,21 @@ All are scoped to the authenticated user — a token can never read another acco
 | `list_calendar_events`  | —                                          |
 | `get_analytics`         | —                                          |
 
+A full-access token also reaches these write tools, which create or update records (required arguments shown; each also accepts further optional fields to set):
+
+| Tool                     | Required arguments              |
+| ------------------------ | ------------------------------- |
+| `create_application`     | `company`, `role`               |
+| `update_application`     | `applicationId`                 |
+| `create_note`            | `applicationId`, `content`      |
+| `create_interview_round` | `applicationId`                 |
+| `create_skill`           | `name`                          |
+| `update_skill`           | `skillId`                       |
+| `create_education`       | `institution`, `startDate`      |
+| `update_education`       | `educationId`                   |
+| `create_work_experience` | `company`, `title`, `startDate` |
+| `update_work_experience` | `workExperienceId`              |
+
 Server identifies as `trakwyn-mcp` v1.0.0, MCP protocol `2024-11-05`. Supported methods: `initialize`, `tools/list`, `tools/call`.
 
 For local development the endpoint is `http://localhost:3001/mcp`.
