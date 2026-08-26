@@ -337,5 +337,9 @@ function safeReturnTo(value: string | string[] | undefined): string | undefined 
 }
 
 function returnToUrl(webAppOrigin: string, returnTo: string | undefined): string {
-  return returnTo ? `${webAppOrigin}${returnTo}` : webAppOrigin;
+  // A plain sign-in with no captured destination lands on the dashboard.
+  // It used to land on `/`, which only worked because the landing page
+  // bounced logged-in visitors to /dashboard — JEF-236 removed that
+  // redirect, so the default has to point at a real destination itself.
+  return returnTo ? `${webAppOrigin}${returnTo}` : `${webAppOrigin}/dashboard`;
 }
