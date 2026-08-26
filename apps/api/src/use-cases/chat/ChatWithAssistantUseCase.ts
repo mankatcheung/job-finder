@@ -117,12 +117,19 @@ export class ChatWithAssistantUseCase {
     // each time and never persisted.
     const history = await this.deps.messageRepository.findAllByConversationId(input.conversationId);
 
+    // Only the most recent CHAT.MAX_HISTORY_MESSAGES go to the model — see
+    // that constant's doc comment (JEF-237). `history` itself stays the full,
+    // uncapped list: `history.length === 0` below needs to know whether this
+    // is truly the conversation's first message, not just the first one
+    // still within the cap.
+    const historyForPrompt = history.slice(-CHAT.MAX_HISTORY_MESSAGES);
+
     const messages: LLMMessage[] = [
       { role: 'system', content: SYSTEM_PROMPT, cacheBreakpoint: true },
       ...(user?.customAiPrompt
         ? [{ role: 'system', content: user.customAiPrompt } as LLMMessage]
         : []),
-      ...history.map((m) => ({ role: m.role, content: m.content })),
+      ...historyForPrompt.map((m) => ({ role: m.role, content: m.content })),
       { role: 'user', content: input.message },
     ];
 
