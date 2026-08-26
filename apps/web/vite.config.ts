@@ -63,6 +63,7 @@ const config = defineConfig(({ command }) => ({
               '/privacy': { prerender: true },
               '/terms': { prerender: true },
               '/accessibility': { prerender: true },
+              '/ai-mcp-setup': { prerender: true },
             },
           }),
         ]

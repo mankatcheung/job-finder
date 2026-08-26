@@ -34,6 +34,7 @@ const PRERENDERED_MARKETING: Record<string, string> = {
   '/privacy': 'privacy.tsx',
   '/terms': 'terms.tsx',
   '/accessibility': 'accessibility.tsx',
+  '/ai-mcp-setup': 'ai-mcp-setup.tsx',
 };
 
 /**

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root';
 import { Route as IndexRouteImport } from './routes/index';
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route';
 import { Route as AccessibilityRouteImport } from './routes/accessibility';
+import { Route as AiMcpSetupRouteImport } from './routes/ai-mcp-setup';
 import { Route as ConfirmBackupEmailRouteImport } from './routes/confirm-backup-email';
 import { Route as ConfirmEmailChangeRouteImport } from './routes/confirm-email-change';
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password';
@@ -68,6 +69,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AccessibilityRoute = AccessibilityRouteImport.update({
   id: '/accessibility',
   path: '/accessibility',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const AiMcpSetupRoute = AiMcpSetupRouteImport.update({
+  id: '/ai-mcp-setup',
+  path: '/ai-mcp-setup',
   getParentRoute: () => rootRouteImport,
 } as any);
 const ConfirmBackupEmailRoute = ConfirmBackupEmailRouteImport.update({
@@ -312,6 +318,7 @@ const AuthenticatedApplicationsApplicationIdOffersCompareRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute;
   '/accessibility': typeof AccessibilityRoute;
+  '/ai-mcp-setup': typeof AiMcpSetupRoute;
   '/confirm-backup-email': typeof ConfirmBackupEmailRoute;
   '/confirm-email-change': typeof ConfirmEmailChangeRoute;
   '/forgot-password': typeof ForgotPasswordRoute;
@@ -359,6 +366,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute;
   '/accessibility': typeof AccessibilityRoute;
+  '/ai-mcp-setup': typeof AiMcpSetupRoute;
   '/confirm-backup-email': typeof ConfirmBackupEmailRoute;
   '/confirm-email-change': typeof ConfirmEmailChangeRoute;
   '/forgot-password': typeof ForgotPasswordRoute;
@@ -407,6 +415,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute;
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren;
   '/accessibility': typeof AccessibilityRoute;
+  '/ai-mcp-setup': typeof AiMcpSetupRoute;
   '/confirm-backup-email': typeof ConfirmBackupEmailRoute;
   '/confirm-email-change': typeof ConfirmEmailChangeRoute;
   '/forgot-password': typeof ForgotPasswordRoute;
@@ -456,6 +465,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/accessibility'
+    | '/ai-mcp-setup'
     | '/confirm-backup-email'
     | '/confirm-email-change'
     | '/forgot-password'
@@ -503,6 +513,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/accessibility'
+    | '/ai-mcp-setup'
     | '/confirm-backup-email'
     | '/confirm-email-change'
     | '/forgot-password'
@@ -550,6 +561,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/accessibility'
+    | '/ai-mcp-setup'
     | '/confirm-backup-email'
     | '/confirm-email-change'
     | '/forgot-password'
@@ -599,6 +611,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren;
   AccessibilityRoute: typeof AccessibilityRoute;
+  AiMcpSetupRoute: typeof AiMcpSetupRoute;
   ConfirmBackupEmailRoute: typeof ConfirmBackupEmailRoute;
   ConfirmEmailChangeRoute: typeof ConfirmEmailChangeRoute;
   ForgotPasswordRoute: typeof ForgotPasswordRoute;
@@ -638,6 +651,13 @@ declare module '@tanstack/react-router' {
       path: '/accessibility';
       fullPath: '/accessibility';
       preLoaderRoute: typeof AccessibilityRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/ai-mcp-setup': {
+      id: '/ai-mcp-setup';
+      path: '/ai-mcp-setup';
+      fullPath: '/ai-mcp-setup';
+      preLoaderRoute: typeof AiMcpSetupRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     '/confirm-backup-email': {
@@ -1031,6 +1051,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AccessibilityRoute: AccessibilityRoute,
+  AiMcpSetupRoute: AiMcpSetupRoute,
   ConfirmBackupEmailRoute: ConfirmBackupEmailRoute,
   ConfirmEmailChangeRoute: ConfirmEmailChangeRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,

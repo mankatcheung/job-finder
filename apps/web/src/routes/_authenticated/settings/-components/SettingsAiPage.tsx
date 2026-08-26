@@ -1,8 +1,9 @@
-import { StarIcon, Trash2Icon } from 'lucide-react';
+import { SparklesIcon, StarIcon, Trash2Icon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { useLocale } from '#/lib/i18n';
 import { Alert, Button, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
@@ -138,6 +139,21 @@ export function SettingsAiPage() {
 
   return (
     <div className="space-y-10">
+      <div className="flex items-center justify-between gap-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-900 dark:bg-blue-900/20">
+        <div className="flex items-center gap-3">
+          <SparklesIcon className="size-4.5 shrink-0 text-blue-700 dark:text-blue-400" />
+          <p className="text-sm text-blue-900 dark:text-blue-300">
+            {t('guides.aiMcpSetup.bannerAiText')}
+          </p>
+        </div>
+        <Link
+          to="/ai-mcp-setup"
+          className="shrink-0 text-sm font-semibold text-blue-700 hover:underline dark:text-blue-400"
+        >
+          {t('guides.aiMcpSetup.bannerLink')}
+        </Link>
+      </div>
+
       {/* ── AI features ── */}
       <section className="space-y-4">
         <div>
