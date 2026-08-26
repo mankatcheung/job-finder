@@ -183,12 +183,19 @@ export class ChatWithAssistantUseCase {
       );
     }
 
+    // Names only, in call order — just enough to tell the user what it was
+    // doing if it never gets to an answer, without holding onto full
+    // arguments/results (already in `messages` for that, and not needed here).
+    const calledTools: string[] = [];
+
     for (let i = 0; i < CHAT.MAX_TOOL_ITERATIONS; i++) {
       const result = await llmProvider.completeWithTools(messages, this.deps.chatTools);
 
       if (result.toolCalls.length === 0) {
         return result.content?.trim() || "I don't have a response for that.";
       }
+
+      calledTools.push(...result.toolCalls.map((call) => call.name));
 
       messages.push({
         role: 'assistant',
@@ -208,7 +215,19 @@ export class ChatWithAssistantUseCase {
       });
     }
 
-    return 'That took more steps than I could complete — try asking something more specific.';
+    return this.iterationCapMessage(calledTools);
+  }
+
+  /**
+   * Distinct tool names, in the order first called — enough for the user to
+   * see what it was doing before giving up, without the noise of every
+   * repeated call across iterations.
+   */
+  private iterationCapMessage(calledTools: string[]): string {
+    const base = 'That took more steps than I could complete — try asking something more specific.';
+    const distinct = [...new Set(calledTools)];
+    if (distinct.length === 0) return base;
+    return `${base} So far I looked at: ${distinct.join(', ')}.`;
   }
 
   private async executeTool(call: LLMToolCall, userId: string): Promise<unknown> {
