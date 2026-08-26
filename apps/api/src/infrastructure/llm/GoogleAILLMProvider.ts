@@ -19,6 +19,29 @@ interface GoogleAIWireResponse {
   candidates?: Array<{ content?: { parts?: GoogleAIPart[] } }>;
 }
 
+/**
+ * No prompt-caching wiring here, unlike `AnthropicLLMProvider`'s explicit
+ * `cache_control` (JEF-238 investigation):
+ *
+ * - Gemini's *implicit* (automatic, no-code) caching only applies to Gemini
+ *   2.5+ models — `LLM.GOOGLEAI_DEFAULT_MODEL` is `gemini-2.0-flash`, which
+ *   isn't eligible at all regardless of anything this provider does.
+ * - Even on a 2.5+ model, implicit caching needs a minimum prefix (2,048
+ *   tokens for 2.5 Flash/Pro, 4,096 for newer Flash/Pro Preview tiers) — our
+ *   system prompt plus the read-tool catalogue chat actually sends is only
+ *   ~2,000–2,500 tokens by rough estimate, so it sits right at that floor
+ *   even on 2.5, not comfortably above it.
+ * - Gemini's *explicit* caching (a durable, named `CachedContents` resource,
+ *   created/refreshed via a separate API call with its own TTL) would work
+ *   regardless of model/size, but is a real feature to build — resource
+ *   lifecycle, TTL refresh, a place to persist the resource name per
+ *   provider/key — not a one-line `cache_control`-style flag.
+ *
+ * Net: nothing to change here today. If/when the default (or a user's
+ * chosen) model moves to 2.5+, implicit caching applies automatically with
+ * no code change, the same as OpenAI's — the lever is model choice, not this
+ * provider.
+ */
 export class GoogleAILLMProvider implements ILLMProvider {
   constructor(
     private readonly apiKey: string,
@@ -28,6 +51,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
   async complete(
     messages: LLMMessage[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+    signal?: AbortSignal,
   ): Promise<string> {
     if (!this.apiKey) throw new Error('Google AI API key is not set');
 
@@ -36,10 +60,13 @@ export class GoogleAILLMProvider implements ILLMProvider {
       parts: [{ text: m.content }],
     }));
 
-    const json = await this.post({
-      contents,
-      generationConfig: { maxOutputTokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP) },
-    });
+    const json = await this.post(
+      {
+        contents,
+        generationConfig: { maxOutputTokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP) },
+      },
+      signal,
+    );
 
     return json.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
   }
@@ -48,6 +75,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+    signal?: AbortSignal,
   ): Promise<LLMCompletionResult> {
     if (!this.apiKey) throw new Error('Google AI API key is not set');
 
@@ -69,20 +97,25 @@ export class GoogleAILLMProvider implements ILLMProvider {
       .filter((m) => m.role !== 'system')
       .map((m) => this.toWireContent(m, idToName));
 
-    const json = await this.post({
-      contents,
-      ...(systemInstruction ? { systemInstruction: { parts: [{ text: systemInstruction }] } } : {}),
-      tools: [
-        {
-          functionDeclarations: tools.map((t) => ({
-            name: t.name,
-            description: t.description,
-            parameters: t.parameters,
-          })),
-        },
-      ],
-      generationConfig: { maxOutputTokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP) },
-    });
+    const json = await this.post(
+      {
+        contents,
+        ...(systemInstruction
+          ? { systemInstruction: { parts: [{ text: systemInstruction }] } }
+          : {}),
+        tools: [
+          {
+            functionDeclarations: tools.map((t) => ({
+              name: t.name,
+              description: t.description,
+              parameters: t.parameters,
+            })),
+          },
+        ],
+        generationConfig: { maxOutputTokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP) },
+      },
+      signal,
+    );
 
     const parts = json.candidates?.[0]?.content?.parts ?? [];
     const text = parts.find((p) => p.text !== undefined)?.text ?? null;
@@ -137,14 +170,21 @@ export class GoogleAILLMProvider implements ILLMProvider {
     return { role: m.role === 'assistant' ? 'model' : m.role, parts: [{ text: m.content }] };
   }
 
-  private async post(body: Record<string, unknown>): Promise<GoogleAIWireResponse> {
+  private async post(
+    body: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<GoogleAIWireResponse> {
     const url = `${LLM.GOOGLEAI_API_URL}/${this.model}:generateContent?key=${this.apiKey}`;
 
-    const response = await fetchWithRetry(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
+    const response = await fetchWithRetry(
+      url,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      },
+      signal,
+    );
 
     if (!response.ok) {
       const text = await response.text();

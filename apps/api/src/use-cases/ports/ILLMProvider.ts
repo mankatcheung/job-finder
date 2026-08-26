@@ -47,11 +47,12 @@ export type LLMStreamEvent =
   | { type: 'done'; content: string | null; toolCalls: LLMToolCall[] };
 
 export interface ILLMProvider {
-  complete(messages: LLMMessage[], maxTokens?: number): Promise<string>;
+  complete(messages: LLMMessage[], maxTokens?: number, signal?: AbortSignal): Promise<string>;
   completeWithTools(
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
     maxTokens?: number,
+    signal?: AbortSignal,
   ): Promise<LLMCompletionResult>;
   completeWithToolsStream(
     messages: LLMMessage[],

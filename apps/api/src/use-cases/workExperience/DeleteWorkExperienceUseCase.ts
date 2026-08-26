@@ -17,6 +17,6 @@ export class DeleteWorkExperienceUseCase implements IDeleteWorkExperienceUseCase
     if (!existing || existing.userId !== input.userId) {
       throw new NotFoundError('Work experience not found');
     }
-    await this.deps.workExperienceRepository.delete(input.id);
+    await this.deps.workExperienceRepository.delete(input.id, existing.userId);
   }
 }

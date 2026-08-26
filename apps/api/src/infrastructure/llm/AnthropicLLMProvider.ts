@@ -53,16 +53,20 @@ export class AnthropicLLMProvider implements ILLMProvider {
   async complete(
     messages: LLMMessage[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+    signal?: AbortSignal,
   ): Promise<string> {
     if (!this.apiKey) throw new Error('Anthropic API key is not set');
 
     const { system, conversation } = this.splitSystem(messages);
-    const json = await this.post({
-      model: this.model,
-      max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
-      ...(system ? { system } : {}),
-      messages: conversation.map((m) => ({ role: m.role, content: m.content })),
-    });
+    const json = await this.post(
+      {
+        model: this.model,
+        max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
+        ...(system ? { system } : {}),
+        messages: conversation.map((m) => ({ role: m.role, content: m.content })),
+      },
+      signal,
+    );
 
     return json.content?.find((block) => block.type === 'text')?.text ?? '';
   }
@@ -71,22 +75,26 @@ export class AnthropicLLMProvider implements ILLMProvider {
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+    signal?: AbortSignal,
   ): Promise<LLMCompletionResult> {
     if (!this.apiKey) throw new Error('Anthropic API key is not set');
 
     const { system, conversation } = this.splitSystem(messages);
-    const json = await this.post({
-      model: this.model,
-      max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
-      ...(system ? { system } : {}),
-      messages: this.toWireMessages(conversation),
-      tools: tools.map((t) => ({
-        name: t.name,
-        description: t.description,
-        input_schema: t.parameters,
-        ...(t.cacheBreakpoint ? { cache_control: { type: 'ephemeral' as const } } : {}),
-      })),
-    });
+    const json = await this.post(
+      {
+        model: this.model,
+        max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
+        ...(system ? { system } : {}),
+        messages: this.toWireMessages(conversation),
+        tools: tools.map((t) => ({
+          name: t.name,
+          description: t.description,
+          input_schema: t.parameters,
+          ...(t.cacheBreakpoint ? { cache_control: { type: 'ephemeral' as const } } : {}),
+        })),
+      },
+      signal,
+    );
 
     const blocks = json.content ?? [];
     const text =
@@ -245,16 +253,23 @@ export class AnthropicLLMProvider implements ILLMProvider {
     });
   }
 
-  private async post(body: Record<string, unknown>): Promise<AnthropicWireResponse> {
-    const response = await fetchWithRetry(LLM.ANTHROPIC_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': this.apiKey,
-        'anthropic-version': LLM.ANTHROPIC_VERSION,
+  private async post(
+    body: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<AnthropicWireResponse> {
+    const response = await fetchWithRetry(
+      LLM.ANTHROPIC_API_URL,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.apiKey,
+          'anthropic-version': LLM.ANTHROPIC_VERSION,
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    });
+      signal,
+    );
 
     if (!response.ok) {
       const text = await response.text();

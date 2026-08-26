@@ -707,6 +707,20 @@ export const CHAT = {
   MAX_TOOL_ITERATIONS: 5,
   /** Auto-derived conversation title is truncated to this many characters of the first message. */
   TITLE_MAX_LENGTH: 50,
+  /**
+   * Only the most recent messages of a conversation's stored history are
+   * sent back to the model on each turn — the rest is never resent (JEF-237).
+   * Without this, a long-running conversation resends every prior turn on
+   * every new message, so cost and latency both grow without bound as the
+   * conversation gets longer. 40 messages is 20 user/assistant turns; a hard
+   * cutoff rather than summarization — simpler, no extra LLM call, at the
+   * cost of the assistant losing anything before the cutoff. Only what's
+   * sent to the *model* is capped: `GetChatHistoryUseCase` (what the UI
+   * displays) still reads the complete, uncapped history from the
+   * repository — this constant is consulted only inside
+   * `ChatWithAssistantUseCase`.
+   */
+  MAX_HISTORY_MESSAGES: 40,
 } as const;
 
 /** Defaults/limits for cursor-paginated list queries. */

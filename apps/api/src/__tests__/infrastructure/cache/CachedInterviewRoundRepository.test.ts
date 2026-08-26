@@ -134,25 +134,27 @@ describe('CachedInterviewRoundRepository', () => {
   });
 
   describe('delete', () => {
-    it('looks up the round via its own findById, then invalidates byId and list caches', async () => {
+    it('delegates to inner and invalidates byId and list caches, without reading the round first', async () => {
       const { repo, inner } = makeRepo();
-      vi.mocked(inner.findById).mockResolvedValue(round);
       vi.mocked(inner.findAllByApplicationId).mockResolvedValue([round]);
       vi.mocked(inner.delete).mockResolvedValue(undefined);
 
       await repo.findAllByApplicationId('app-1');
-      await repo.delete('round-1');
+      await repo.delete('round-1', 'app-1');
 
-      expect(inner.findById).toHaveBeenCalledWith('round-1');
+      // JEF-209: delete() no longer looks the round up to learn its
+      // applicationId — the caller already had it.
+      expect(inner.findById).not.toHaveBeenCalled();
+
       vi.mocked(inner.findById).mockResolvedValue(null);
       vi.mocked(inner.findAllByApplicationId).mockResolvedValue([]);
       await repo.findById('round-1');
       await repo.findAllByApplicationId('app-1');
-      expect(inner.findById).toHaveBeenCalledTimes(2);
+      expect(inner.findById).toHaveBeenCalledTimes(1);
       expect(inner.findAllByApplicationId).toHaveBeenCalledTimes(2);
     });
 
-    it('invalidates the list cache from a second repo instance that never read the round locally (simulates a different serverless instance sharing the same Redis-backed cache)', async () => {
+    it('evicts the list cache from a second repo instance with no prior read on it', async () => {
       const inner = makeInterviewRoundRepository();
       const cache = new MemoryCache(60_000);
       const repoA = new CachedInterviewRoundRepository({
@@ -165,27 +167,15 @@ describe('CachedInterviewRoundRepository', () => {
       });
 
       vi.mocked(inner.findAllByApplicationId).mockResolvedValue([round]);
-      vi.mocked(inner.findById).mockResolvedValue(round);
       vi.mocked(inner.delete).mockResolvedValue(undefined);
 
-      // repoA warms the list cache, as if an earlier request landed on a different instance
+      // repoA warms the list cache; repoB never reads anything before deleting.
       await repoA.findAllByApplicationId('app-1');
-
-      // repoB has no local state whatsoever, yet must still invalidate correctly
-      await repoB.delete('round-1');
+      await repoB.delete('round-1', 'app-1');
 
       vi.mocked(inner.findAllByApplicationId).mockResolvedValue([]);
       await repoA.findAllByApplicationId('app-1');
       expect(inner.findAllByApplicationId).toHaveBeenCalledTimes(2);
-    });
-
-    it('still deletes from inner even when the round is not found', async () => {
-      const { repo, inner } = makeRepo();
-      vi.mocked(inner.findById).mockResolvedValue(null);
-      vi.mocked(inner.delete).mockResolvedValue(undefined);
-
-      await repo.delete('unknown-id');
-      expect(inner.delete).toHaveBeenCalledWith('unknown-id');
     });
   });
 

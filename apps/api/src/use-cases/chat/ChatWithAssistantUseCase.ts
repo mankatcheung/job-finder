@@ -24,6 +24,14 @@ export interface ChatWithAssistantInput {
   userId: string;
   conversationId: string;
   message: string;
+  /**
+   * Aborted when the client disconnects before a reply arrives (JEF-240) —
+   * threaded down to the LLM provider fetch so a cancelled generation stops
+   * costing tokens server-side instead of running to completion for no one.
+   * Tool execution itself isn't cancelled (cheap DB reads, not the expense
+   * this exists to avoid) — only the LLM call.
+   */
+  signal?: AbortSignal;
 }
 
 export interface ChatWithAssistantDeps extends ChatToolDeps {
@@ -67,9 +75,15 @@ export class ChatWithAssistantUseCase {
     // each time and never persisted.
     const history = await this.deps.messageRepository.findAllByConversationId(input.conversationId);
 
-    const messages = buildChatMessages(history, input.message, user);
+    // Only the most recent CHAT.MAX_HISTORY_MESSAGES go to the model — see
+    // that constant's doc comment (JEF-237). `history` itself stays the full,
+    // uncapped list: `history.length === 0` below needs to know whether this
+    // is truly the conversation's first message, not just the first one
+    // still within the cap.
+    const historyForPrompt = history.slice(-CHAT.MAX_HISTORY_MESSAGES);
+    const messages = buildChatMessages(historyForPrompt, input.message, user);
 
-    const reply = await this.complete(messages, input.userId, conversation, user);
+    const reply = await this.complete(messages, input.userId, conversation, user, input.signal);
 
     await this.deps.messageRepository.create({
       id: this.deps.generateId(),
@@ -99,6 +113,7 @@ export class ChatWithAssistantUseCase {
     userId: string,
     conversation: Conversation,
     user: User | null,
+    signal?: AbortSignal,
   ): Promise<string> {
     const providerName = conversation.llmProvider ?? user?.defaultLlmProvider ?? null;
 
@@ -119,12 +134,24 @@ export class ChatWithAssistantUseCase {
       );
     }
 
+    // Names only, in call order — just enough to tell the user what it was
+    // doing if it never gets to an answer, without holding onto full
+    // arguments/results (already in `messages` for that, and not needed here).
+    const calledTools: string[] = [];
+
     for (let i = 0; i < CHAT.MAX_TOOL_ITERATIONS; i++) {
-      const result = await llmProvider.completeWithTools(messages, this.deps.chatTools);
+      const result = await llmProvider.completeWithTools(
+        messages,
+        this.deps.chatTools,
+        undefined,
+        signal,
+      );
 
       if (result.toolCalls.length === 0) {
         return result.content?.trim() || "I don't have a response for that.";
       }
+
+      calledTools.push(...result.toolCalls.map((call) => call.name));
 
       messages.push({
         role: 'assistant',
@@ -144,6 +171,18 @@ export class ChatWithAssistantUseCase {
       });
     }
 
-    return 'That took more steps than I could complete — try asking something more specific.';
+    return this.iterationCapMessage(calledTools);
+  }
+
+  /**
+   * Distinct tool names, in the order first called — enough for the user to
+   * see what it was doing before giving up, without the noise of every
+   * repeated call across iterations.
+   */
+  private iterationCapMessage(calledTools: string[]): string {
+    const base = 'That took more steps than I could complete — try asking something more specific.';
+    const distinct = [...new Set(calledTools)];
+    if (distinct.length === 0) return base;
+    return `${base} So far I looked at: ${distinct.join(', ')}.`;
   }
 }

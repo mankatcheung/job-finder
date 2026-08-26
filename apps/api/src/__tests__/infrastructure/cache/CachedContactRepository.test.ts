@@ -124,17 +124,16 @@ describe('CachedContactRepository', () => {
   });
 
   describe('delete', () => {
-    it('delegates to inner and invalidates caches when applicationId is known', async () => {
+    it('delegates to inner and invalidates byId and list caches', async () => {
       const { repo, inner } = makeRepo();
       vi.mocked(inner.findById).mockResolvedValue(contact);
       vi.mocked(inner.findAllByApplicationId).mockResolvedValue([contact]);
       vi.mocked(inner.delete).mockResolvedValue(undefined);
 
-      // Populate caches (which also records applicationId→contactId mapping)
       await repo.findById('contact-1');
       await repo.findAllByApplicationId('app-1');
 
-      await repo.delete('contact-1');
+      await repo.delete('contact-1', 'app-1');
 
       vi.mocked(inner.findById).mockResolvedValue(null);
       vi.mocked(inner.findAllByApplicationId).mockResolvedValue([]);
@@ -144,12 +143,22 @@ describe('CachedContactRepository', () => {
       expect(inner.findAllByApplicationId).toHaveBeenCalledTimes(2);
     });
 
-    it('still deletes from inner even when applicationId is unknown', async () => {
-      const { repo, inner } = makeRepo();
+    it('evicts the list cache from a second repo instance with no prior read on it (JEF-209 — the id→applicationId map this used to depend on is gone)', async () => {
+      const inner = makeContactRepository();
+      const cache = new MemoryCache(60_000);
+      const repoA = new CachedContactRepository({ drizzleContactRepository: inner, cache });
+      const repoB = new CachedContactRepository({ drizzleContactRepository: inner, cache });
+
+      vi.mocked(inner.findAllByApplicationId).mockResolvedValue([contact]);
       vi.mocked(inner.delete).mockResolvedValue(undefined);
 
-      await repo.delete('unknown-id');
-      expect(inner.delete).toHaveBeenCalledWith('unknown-id');
+      // repoA warms the list cache; repoB never reads anything before deleting.
+      await repoA.findAllByApplicationId('app-1');
+      await repoB.delete('contact-1', 'app-1');
+
+      vi.mocked(inner.findAllByApplicationId).mockResolvedValue([]);
+      await repoA.findAllByApplicationId('app-1');
+      expect(inner.findAllByApplicationId).toHaveBeenCalledTimes(2);
     });
   });
 });

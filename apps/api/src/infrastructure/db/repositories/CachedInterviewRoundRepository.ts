@@ -40,13 +40,8 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
   }
 
   /**
-   * Not cached, matching `CachedDocumentRepository.countByApplicationId`.
-   *
-   * Not for want of an eviction point — create/update/delete already evict the
-   * list key and could evict a count key beside it. It is that `delete()` can
-   * only evict a list when the reverse index still holds the owning
-   * applicationId, so each cached key is another one that can silently miss;
-   * a single COUNT(*) is not worth adding to that set.
+   * Not cached, matching `CachedDocumentRepository.countByApplicationId`. A
+   * single COUNT(*) isn't worth a dedicated cache key and invalidation path.
    */
   async countByApplicationId(applicationId: string): Promise<number> {
     return this.inner.countByApplicationId(applicationId);
@@ -77,13 +72,9 @@ export class CachedInterviewRoundRepository implements IInterviewRoundRepository
     if (existing) await this.cache.delete(CACHE_KEYS.roundList(existing.applicationId));
   }
 
-  async delete(id: string): Promise<void> {
-    // Looked up via our own cached findById (Redis-backed in prod) rather
-    // than a process-local map, so this stays correct even when the lookup
-    // and the delete land on different serverless instances.
-    const existing = await this.findById(id);
-    await this.inner.delete(id);
+  async delete(id: string, applicationId: string): Promise<void> {
+    await this.inner.delete(id, applicationId);
     await this.cache.delete(CACHE_KEYS.roundById(id));
-    if (existing) await this.cache.delete(CACHE_KEYS.roundList(existing.applicationId));
+    await this.cache.delete(CACHE_KEYS.roundList(applicationId));
   }
 }

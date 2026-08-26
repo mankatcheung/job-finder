@@ -69,6 +69,7 @@ export function ChatConversationView({
   // react-query's cache. Replaced by the real persisted message once the
   // stream finishes and the history query is refetched.
   const [streamingText, setStreamingText] = useState('');
+  const [wasCancelled, setWasCancelled] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const { data: historyData, isLoading: isHistoryLoading } = useQuery({
@@ -80,16 +81,26 @@ export function ChatConversationView({
     [conversationId, historyData],
   );
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const send = useMutation({
     mutationFn: (vars: { conversationId: string; message: string }) => {
       setStreamingText('');
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
       return streamChatMessage({
         conversationId: vars.conversationId,
         message: vars.message,
         onDelta: (text) => setStreamingText((prev) => prev + text),
+        signal: controller.signal,
       });
     },
   });
+
+  const handleCancel = () => {
+    setWasCancelled(true);
+    abortControllerRef.current?.abort();
+  };
 
   const createConversation = useMutation({
     mutationFn: (vars: { provider?: string | null; model?: string | null }) =>
@@ -122,6 +133,7 @@ export function ChatConversationView({
     const trimmed = text.trim();
     if (!trimmed || send.isPending) return;
     setInput('');
+    setWasCancelled(false);
 
     let targetConversationId = conversationId;
     if (!targetConversationId) {
@@ -238,7 +250,7 @@ export function ChatConversationView({
             </div>
           ))}
 
-        {send.isError && (
+        {send.isError && !wasCancelled && (
           <p className="text-sm text-red-600 dark:text-red-400">
             {send.error instanceof ChatStreamError && send.error.code === AI_NOT_CONFIGURED_CODE ? (
               <>
@@ -269,9 +281,15 @@ export function ChatConversationView({
           placeholder={t('chat.inputPlaceholder')}
           className="flex-1"
         />
-        <Button type="submit" disabled={send.isPending || !input.trim()}>
-          {t('chat.send')}
-        </Button>
+        {send.isPending ? (
+          <Button type="button" variant="secondary" onClick={handleCancel}>
+            {t('chat.cancel')}
+          </Button>
+        ) : (
+          <Button type="submit" disabled={!input.trim()}>
+            {t('chat.send')}
+          </Button>
+        )}
       </form>
     </div>
   );

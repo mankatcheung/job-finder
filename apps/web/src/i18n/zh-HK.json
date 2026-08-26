@@ -709,6 +709,7 @@
   "chat.emptyPrompt": "可以問你嘅求職申請、聯絡人或面試輪次相關嘅問題。",
   "chat.inputPlaceholder": "輸入問題…",
   "chat.send": "傳送",
+  "chat.cancel": "取消",
   "stepUpReauth.title": "確認係你本人",
   "stepUpReauth.description": "你嘅工作階段已閒置一段時間——請再次驗證身分後繼續。",
   "stepUpReauth.twoFactorCodeLabel": "雙重驗證碼",

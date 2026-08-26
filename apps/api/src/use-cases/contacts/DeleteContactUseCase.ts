@@ -21,6 +21,6 @@ export class DeleteContactUseCase implements IDeleteContactUseCase {
     const app = await this.deps.applicationRepository.findById(contact.applicationId);
     if (!app || app.userId !== input.userId) throw new ForbiddenError('Forbidden');
 
-    await this.deps.contactRepository.delete(input.contactId);
+    await this.deps.contactRepository.delete(input.contactId, contact.applicationId);
   }
 }

@@ -28,7 +28,7 @@ export class DeleteNoteUseCase implements IDeleteNoteUseCase {
       throw new ForbiddenError('Forbidden');
     }
 
-    await this.deps.noteRepository.delete(input.noteId);
+    await this.deps.noteRepository.delete(input.noteId, note.applicationId);
 
     if (this.deps.activityLogRepository && this.deps.generateId)
       await this.deps.activityLogRepository.append({

@@ -4,6 +4,7 @@ import {
   MCP_TOOLS,
   toLlmToolDefinitions,
 } from '#src/interface-adapters/llm/toolCatalogue.js';
+import { CHAT } from '#src/constants.js';
 import { ChatWithAssistantUseCase } from '#src/use-cases/chat/ChatWithAssistantUseCase.js';
 import {
   makeRateLimiter,
@@ -179,6 +180,70 @@ describe('ChatWithAssistantUseCase', () => {
     expect(messages[3]).toEqual({ role: 'user', content: 'new question' });
   });
 
+  it('caps history sent to the model at CHAT.MAX_HISTORY_MESSAGES, keeping only the most recent (JEF-237)', async () => {
+    const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
+    const totalMessages = CHAT.MAX_HISTORY_MESSAGES + 4;
+    const fullHistory = Array.from({ length: totalMessages }, (_, i) =>
+      makeMessage({
+        id: `m${i}`,
+        role: i % 2 === 0 ? 'user' : 'assistant',
+        content: `message ${i}`,
+      }),
+    );
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+      messageRepository: makeMessageRepository({
+        findAllByConversationId: vi.fn().mockResolvedValue(fullHistory),
+      }),
+    });
+
+    await new ChatWithAssistantUseCase(deps as never).execute({
+      ...baseInput,
+      message: 'new question',
+    });
+
+    const [messages] = vi.mocked(llmProvider.completeWithTools).mock.calls[0];
+    // system + capped history + the new message.
+    expect(messages).toHaveLength(1 + CHAT.MAX_HISTORY_MESSAGES + 1);
+    const sentHistory = messages.slice(1, -1);
+    expect(sentHistory[0]).toEqual({ role: 'user', content: `message ${4}` });
+    expect(sentHistory[sentHistory.length - 1]).toEqual({
+      role: 'assistant',
+      content: `message ${totalMessages - 1}`,
+    });
+    // The oldest 4 messages never appear anywhere in the request.
+    expect(messages.some((m) => m.content === 'message 0')).toBe(false);
+    expect(messages.some((m) => m.content === 'message 3')).toBe(false);
+  });
+
+  it('does not derive a new title just because history exceeds the cap — only when it is truly empty', async () => {
+    const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
+    const conversationRepository = makeConversationRepository({
+      findById: vi.fn().mockResolvedValue(makeConversation({ id: 'conv-1', userId: 'user-1' })),
+    });
+    const fullHistory = Array.from({ length: CHAT.MAX_HISTORY_MESSAGES + 4 }, (_, i) =>
+      makeMessage({ id: `m${i}`, role: i % 2 === 0 ? 'user' : 'assistant', content: `msg ${i}` }),
+    );
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+      conversationRepository,
+      messageRepository: makeMessageRepository({
+        findAllByConversationId: vi.fn().mockResolvedValue(fullHistory),
+      }),
+    });
+
+    await new ChatWithAssistantUseCase(deps as never).execute({
+      ...baseInput,
+      message: 'another question',
+    });
+
+    expect(conversationRepository.updateTitle).not.toHaveBeenCalled();
+  });
+
   it('marks the system prompt and the last tool definition as a cache breakpoint', async () => {
     const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
     const deps = makeDeps({
@@ -193,6 +258,25 @@ describe('ChatWithAssistantUseCase', () => {
     expect(messages[0]).toMatchObject({ role: 'system', cacheBreakpoint: true });
     expect(tools.slice(0, -1).every((t) => !t.cacheBreakpoint)).toBe(true);
     expect(tools[tools.length - 1]).toMatchObject({ cacheBreakpoint: true });
+  });
+
+  it('forwards the caller-supplied abort signal into the LLM call (JEF-240)', async () => {
+    const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+    });
+    const controller = new AbortController();
+
+    await new ChatWithAssistantUseCase(deps as never).execute({
+      ...baseInput,
+      message: 'hi',
+      signal: controller.signal,
+    });
+
+    const [, , , signal] = vi.mocked(llmProvider.completeWithTools).mock.calls[0];
+    expect(signal).toBe(controller.signal);
   });
 
   it("splices the user's custom AI prompt in as a second system message when set", async () => {
@@ -617,7 +701,7 @@ describe('ChatWithAssistantUseCase', () => {
     expect(llmProvider.completeWithTools).toHaveBeenCalledTimes(3);
   });
 
-  it('gives up with a clear message after exceeding the max tool-call iterations', async () => {
+  it('gives up with a clear message listing the tool it kept calling after exceeding the max iterations', async () => {
     const alwaysCallsTool: LLMCompletionResult = {
       content: null,
       toolCalls: [{ id: 'call_x', name: 'list_applications', arguments: {} }],
@@ -640,9 +724,51 @@ describe('ChatWithAssistantUseCase', () => {
     });
 
     expect(result).toBe(
-      'That took more steps than I could complete — try asking something more specific.',
+      'That took more steps than I could complete — try asking something more specific. ' +
+        'So far I looked at: list_applications.',
     );
     expect(completeWithTools).toHaveBeenCalledTimes(5);
+  });
+
+  it('lists every distinct tool it tried, in the order first called, when it hits the cap (JEF-241)', async () => {
+    const completeWithTools = vi
+      .fn()
+      .mockResolvedValueOnce({
+        content: null,
+        toolCalls: [{ id: 'call_1', name: 'list_applications', arguments: {} }],
+      })
+      .mockResolvedValueOnce({
+        content: null,
+        toolCalls: [
+          { id: 'call_2', name: 'list_notes', arguments: { applicationId: 'app-1' } },
+          { id: 'call_3', name: 'list_contacts', arguments: { applicationId: 'app-1' } },
+        ],
+      })
+      .mockResolvedValue({
+        content: null,
+        // Same tool called again on later iterations — should appear once, not repeat.
+        toolCalls: [{ id: 'call_4', name: 'list_applications', arguments: {} }],
+      });
+    const llmProvider: ILLMProvider = {
+      complete: vi.fn(),
+      completeWithTools,
+      completeWithToolsStream: vi.fn(),
+    };
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+    });
+
+    const result = await new ChatWithAssistantUseCase(deps as never).execute({
+      ...baseInput,
+      message: 'go deep',
+    });
+
+    expect(result).toBe(
+      'That took more steps than I could complete — try asking something more specific. ' +
+        'So far I looked at: list_applications, list_notes, list_contacts.',
+    );
   });
 
   it('uses the conversation-locked provider/model without consulting the user default', async () => {

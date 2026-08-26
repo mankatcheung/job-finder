@@ -58,6 +58,19 @@ interface OpenAIStreamChunk {
  * and response shape — OpenAI itself, OpenRouter, Mistral, Groq, xAI,
  * DeepSeek, and any user-supplied custom endpoint. Only the base URL and
  * default model differ between them, which the caller supplies.
+ *
+ * Unlike Anthropic (`AnthropicLLMProvider`), this provider sets no explicit
+ * `cache_control` — OpenAI applies prompt caching automatically, no request
+ * changes required, to any prompt >=1024 tokens whose prefix repeats
+ * byte-for-byte across calls (OpenAI's own OpenAI-compatible-shaped
+ * competitors that support caching, e.g. DeepSeek, work the same way).
+ * `ChatWithAssistantUseCase` already builds messages with the stable part —
+ * system prompt, then the user's `customAiPrompt` if set — first and the
+ * per-turn conversation appended after, which is exactly the shape automatic
+ * prefix caching needs (JEF-238). Nothing to wire here; the `tools` array
+ * (also identical on every call, per `chatTools` in `http/di`) is static
+ * too, so the whole cacheable block only grows as a conversation's history
+ * grows, never shrinks or reorders.
  */
 export class OpenAICompatibleLLMProvider implements ILLMProvider {
   constructor(
@@ -69,14 +82,18 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
   async complete(
     messages: LLMMessage[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+    signal?: AbortSignal,
   ): Promise<string> {
     if (!this.apiKey) throw new Error('API key is not set');
 
-    const json = await this.post({
-      model: this.model,
-      messages: this.toWireMessages(messages),
-      max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
-    });
+    const json = await this.post(
+      {
+        model: this.model,
+        messages: this.toWireMessages(messages),
+        max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
+      },
+      signal,
+    );
 
     return json.choices[0]?.message?.content ?? '';
   }
@@ -85,18 +102,22 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+    signal?: AbortSignal,
   ): Promise<LLMCompletionResult> {
     if (!this.apiKey) throw new Error('API key is not set');
 
-    const json = await this.post({
-      model: this.model,
-      messages: this.toWireMessages(messages),
-      max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
-      tools: tools.map((t) => ({
-        type: 'function',
-        function: { name: t.name, description: t.description, parameters: t.parameters },
-      })),
-    });
+    const json = await this.post(
+      {
+        model: this.model,
+        messages: this.toWireMessages(messages),
+        max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
+        tools: tools.map((t) => ({
+          type: 'function',
+          function: { name: t.name, description: t.description, parameters: t.parameters },
+        })),
+      },
+      signal,
+    );
 
     const message = json.choices[0]?.message;
     const toolCalls: LLMToolCall[] = (message?.tool_calls ?? []).map((tc) => ({
@@ -190,15 +211,22 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     }
   }
 
-  private async post(body: Record<string, unknown>): Promise<OpenAIWireResponse> {
-    const response = await fetchWithRetry(this.baseUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `${AUTH_HEADER.BEARER_PREFIX}${this.apiKey}`,
+  private async post(
+    body: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<OpenAIWireResponse> {
+    const response = await fetchWithRetry(
+      this.baseUrl,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${AUTH_HEADER.BEARER_PREFIX}${this.apiKey}`,
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    });
+      signal,
+    );
 
     if (!response.ok) {
       const text = await response.text();

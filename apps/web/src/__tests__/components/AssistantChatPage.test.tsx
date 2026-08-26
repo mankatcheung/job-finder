@@ -63,6 +63,17 @@ vi.mock('#/lib/undoToast', () => ({
 
 import { AssistantPage } from '#/routes/_authenticated/assistant/-components/AssistantPage';
 
+/**
+ * `gqlClient.request` is called positionally (query, variables) for most
+ * mutations, but the send mutation switched to the object form
+ * ({ document, variables, signal }) so a cancel signal can be attached
+ * (JEF-240) — this normalizes both call shapes down to the query string so
+ * mock implementations don't need to care which one fired.
+ */
+function documentOf(arg: unknown): string {
+  return typeof arg === 'string' ? arg : (arg as { document: string }).document;
+}
+
 const makeClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
 
@@ -91,7 +102,8 @@ describe('AssistantPage (chat)', () => {
   });
 
   it('does not render an embedded conversation list — recent chats live in the app sidebar', () => {
-    mockGqlRequest.mockImplementation((query: string) => {
+    mockGqlRequest.mockImplementation((arg: unknown) => {
+      const query = documentOf(arg);
       if (query.includes('Conversations'))
         return Promise.resolve({
           conversations: [{ id: 'conv-1', title: 'Which applications have I applied to?' }],
@@ -123,7 +135,8 @@ describe('AssistantPage (chat)', () => {
 
   it('only shows the delete-conversation button when a conversation is active', async () => {
     mockSearch.mockReturnValue({ conversation: 'conv-1' });
-    mockGqlRequest.mockImplementation((query: string) => {
+    mockGqlRequest.mockImplementation((arg: unknown) => {
+      const query = documentOf(arg);
       if (query.includes('Conversations')) return noConversations();
       if (query.includes('ChatHistory')) return Promise.resolve({ chatHistory: [] });
       return Promise.resolve({});
@@ -147,7 +160,8 @@ describe('AssistantPage (chat)', () => {
 
   it('renders the active conversation’s history from the loader-populated query', async () => {
     mockSearch.mockReturnValue({ conversation: 'conv-1' });
-    mockGqlRequest.mockImplementation((query: string) => {
+    mockGqlRequest.mockImplementation((arg: unknown) => {
+      const query = documentOf(arg);
       if (query.includes('Conversations')) return noConversations();
       if (query.includes('ChatHistory'))
         return Promise.resolve({
@@ -181,7 +195,8 @@ describe('AssistantPage (chat)', () => {
   it('sends a message into the active conversation and appends the reply', async () => {
     mockSearch.mockReturnValue({ conversation: 'conv-1' });
     let chatHistoryCallCount = 0;
-    mockGqlRequest.mockImplementation((query: string) => {
+    mockGqlRequest.mockImplementation((arg: unknown) => {
+      const query = documentOf(arg);
       if (query.includes('Conversations')) return noConversations();
       if (query.includes('ChatHistory')) {
         chatHistoryCallCount++;
@@ -234,12 +249,14 @@ describe('AssistantPage (chat)', () => {
       expect.objectContaining({
         conversationId: 'conv-1',
         message: 'how many active applications do I have?',
+        signal: expect.any(AbortSignal),
       }),
     );
   });
 
   it('creates a conversation implicitly when sending with no active conversation', async () => {
-    mockGqlRequest.mockImplementation((query: string) => {
+    mockGqlRequest.mockImplementation((arg: unknown) => {
+      const query = documentOf(arg);
       if (query.includes('Conversations')) return noConversations();
       if (query.includes('CreateConversation'))
         return Promise.resolve({
@@ -261,7 +278,7 @@ describe('AssistantPage (chat)', () => {
 
     await waitFor(() =>
       expect(mockStreamChatMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ conversationId: 'new-conv' }),
+        expect.objectContaining({ conversationId: 'new-conv', signal: expect.any(AbortSignal) }),
       ),
     );
     expect(mockNavigate).toHaveBeenCalledWith({ search: { conversation: 'new-conv' } });
@@ -269,7 +286,8 @@ describe('AssistantPage (chat)', () => {
 
   it('deletes the active conversation and navigates back to a blank chat', async () => {
     mockSearch.mockReturnValue({ conversation: 'conv-1' });
-    mockGqlRequest.mockImplementation((query: string) => {
+    mockGqlRequest.mockImplementation((arg: unknown) => {
+      const query = documentOf(arg);
       if (query.includes('Conversations'))
         return Promise.resolve({ conversations: [{ id: 'conv-1', title: 'Old chat' }] });
       if (query.includes('DeleteConversation'))

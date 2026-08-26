@@ -25,6 +25,17 @@ vi.mock('#/lib/chatStream', async () => {
 import { ChatConversationView } from '#/routes/_authenticated/assistant/-components/ChatConversationView';
 import { ChatStreamError } from '#/lib/chatStream';
 
+/**
+ * `gqlClient.request` is called positionally (query, variables) for most
+ * mutations, but the send mutation switched to the object form
+ * ({ document, variables, signal }) so a cancel signal can be attached
+ * (JEF-240) — this normalizes both call shapes down to the query string so
+ * mock implementations don't need to care which one fired.
+ */
+function documentOf(arg: unknown): string {
+  return typeof arg === 'string' ? arg : (arg as { document: string }).document;
+}
+
 const makeClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
 
@@ -63,7 +74,8 @@ describe('ChatConversationView', () => {
     // This test asserts what the component itself is responsible for: the
     // create + stream calls firing with the right arguments, the streamed
     // text rendering live, and the callback firing with the new id.
-    mockGqlRequest.mockImplementation((query: string) => {
+    mockGqlRequest.mockImplementation((arg: unknown) => {
+      const query = documentOf(arg);
       if (query.includes('CreateConversation'))
         return Promise.resolve({
           createConversation: { id: 'new-conv', title: null, createdAt: '', updatedAt: '' },
@@ -105,6 +117,7 @@ describe('ChatConversationView', () => {
         expect.objectContaining({
           conversationId: 'new-conv',
           message: 'What are my active applications?',
+          signal: expect.any(AbortSignal),
         }),
       ),
     );
@@ -116,7 +129,8 @@ describe('ChatConversationView', () => {
   });
 
   it('renders existing chat history for an active conversation', async () => {
-    mockGqlRequest.mockImplementation((query: string) => {
+    mockGqlRequest.mockImplementation((arg: unknown) => {
+      const query = documentOf(arg);
       if (query.includes('ChatHistory'))
         return Promise.resolve({
           chatHistory: [
@@ -168,7 +182,8 @@ describe('ChatConversationView', () => {
 
   it('replaces the streamed bubble with the persisted history once the stream finishes', async () => {
     let chatHistoryCallCount = 0;
-    mockGqlRequest.mockImplementation((query: string) => {
+    mockGqlRequest.mockImplementation((arg: unknown) => {
+      const query = documentOf(arg);
       if (query.includes('ChatHistory')) {
         chatHistoryCallCount++;
         return Promise.resolve(
@@ -205,6 +220,67 @@ describe('ChatConversationView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Send' }));
 
     await waitFor(() => expect(screen.getAllByText('Persisted reply.')).toHaveLength(1));
+  });
+
+  it('shows a Cancel button while sending, and cancelling aborts the request signal without showing an error banner (JEF-240)', async () => {
+    mockGqlRequest.mockImplementation(() => Promise.resolve({ chatHistory: [] }));
+    let capturedSignal: AbortSignal | undefined;
+    let rejectSend: (err: unknown) => void = () => {};
+    mockStreamChatMessage.mockImplementation(({ signal }: { signal?: AbortSignal }) => {
+      capturedSignal = signal;
+      return new Promise((_resolve, reject) => {
+        rejectSend = reject;
+      });
+    });
+
+    render(
+      <ChatConversationView
+        conversationId="conv-1"
+        provider={null}
+        model=""
+        onConversationCreated={vi.fn()}
+      />,
+      { wrapper: Wrapper },
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Ask a question…'), {
+      target: { value: 'hello' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    const cancelButton = await screen.findByRole('button', { name: 'Cancel' });
+    expect(capturedSignal?.aborted).toBe(false);
+
+    fireEvent.click(cancelButton);
+    expect(capturedSignal?.aborted).toBe(true);
+    rejectSend(new DOMException('The operation was aborted.', 'AbortError'));
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Send' })).toBeInTheDocument());
+    expect(screen.queryByText('Something went wrong. Please try again.')).not.toBeInTheDocument();
+  });
+
+  it('shows the generic error banner for a non-cancelled, non-ChatStreamError send failure', async () => {
+    mockGqlRequest.mockImplementation(() => Promise.resolve({ chatHistory: [] }));
+    mockStreamChatMessage.mockRejectedValue(new Error('boom'));
+
+    render(
+      <ChatConversationView
+        conversationId="conv-1"
+        provider={null}
+        model=""
+        onConversationCreated={vi.fn()}
+      />,
+      { wrapper: Wrapper },
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Ask a question…'), {
+      target: { value: 'hello' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    await waitFor(() =>
+      expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument(),
+    );
   });
 
   it('shows the AI-not-configured link for a ChatStreamError with that code', async () => {

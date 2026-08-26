@@ -75,6 +75,6 @@ describe('DeleteInterviewRoundUseCase', () => {
     });
     await useCase.execute({ userId: 'user-1', roundId: 'round-1' });
 
-    expect(interviewRoundRepository.delete).toHaveBeenCalledWith('round-1');
+    expect(interviewRoundRepository.delete).toHaveBeenCalledWith('round-1', 'app-1');
   });
 });

@@ -56,7 +56,13 @@ export class StreamChatWithAssistantUseCase {
 
     const user = await this.deps.userRepository.findById(input.userId);
     const history = await this.deps.messageRepository.findAllByConversationId(input.conversationId);
-    const messages = buildChatMessages(history, input.message, user);
+    // Only the most recent CHAT.MAX_HISTORY_MESSAGES go to the model — see
+    // that constant's doc comment (JEF-237). `history` itself stays the full,
+    // uncapped list: `history.length === 0` below needs to know whether this
+    // is truly the conversation's first message, not just the first one
+    // still within the cap.
+    const historyForPrompt = history.slice(-CHAT.MAX_HISTORY_MESSAGES);
+    const messages = buildChatMessages(historyForPrompt, input.message, user);
 
     const providerName = conversation.llmProvider ?? user?.defaultLlmProvider ?? null;
     const llmProvider = await this.deps.llmProviderFactory.forUser(
