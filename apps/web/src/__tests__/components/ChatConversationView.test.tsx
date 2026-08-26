@@ -2,9 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const { mockGqlRequest, mockStreamChatMessage } = vi.hoisted(() => ({
+const { mockGqlRequest } = vi.hoisted(() => ({
   mockGqlRequest: vi.fn(),
-  mockStreamChatMessage: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-router', () => ({
@@ -17,13 +16,7 @@ vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
 }));
 
-vi.mock('#/lib/chatStream', async () => {
-  const actual = await vi.importActual<typeof import('#/lib/chatStream')>('#/lib/chatStream');
-  return { ...actual, streamChatMessage: mockStreamChatMessage };
-});
-
 import { ChatConversationView } from '#/routes/_authenticated/assistant/-components/ChatConversationView';
-import { ChatStreamError } from '#/lib/chatStream';
 
 /**
  * `gqlClient.request` is called positionally (query, variables) for most
@@ -67,32 +60,22 @@ describe('ChatConversationView', () => {
     expect(screen.queryByRole('button', { name: /summarize/i })).not.toBeInTheDocument();
   });
 
-  it('streams the reply chip-by-chip and lazily creates a conversation on click', async () => {
+  it('renders suggested question chips when provided, and lazily creates a conversation on click', async () => {
     // conversationId is a controlled prop — a real caller (AssistantPage's
     // routing, or the dock's own state) re-renders with the new id once
     // onConversationCreated fires, which is what makes the reply visible.
     // This test asserts what the component itself is responsible for: the
-    // create + stream calls firing with the right arguments, the streamed
-    // text rendering live, and the callback firing with the new id.
+    // create + send calls firing with the right arguments, and the callback
+    // firing with the new id — not the caller's downstream re-render.
     mockGqlRequest.mockImplementation((arg: unknown) => {
       const query = documentOf(arg);
       if (query.includes('CreateConversation'))
         return Promise.resolve({
           createConversation: { id: 'new-conv', title: null, createdAt: '', updatedAt: '' },
         });
-      if (query.includes('ChatHistory'))
-        return Promise.resolve({
-          chatHistory: [
-            { id: 'm1', role: 'user', content: 'What are my active applications?', createdAt: '' },
-            { id: 'm2', role: 'assistant', content: 'Here you go.', createdAt: '' },
-          ],
-        });
+      if (query.includes('SendChatMessage'))
+        return Promise.resolve({ sendChatMessage: 'Here you go.' });
       return Promise.resolve({});
-    });
-    let capturedOnDelta: ((text: string) => void) | undefined;
-    mockStreamChatMessage.mockImplementation(({ onDelta }: { onDelta: (text: string) => void }) => {
-      capturedOnDelta = onDelta;
-      return new Promise<void>(() => {});
     });
     const onConversationCreated = vi.fn();
 
@@ -113,19 +96,18 @@ describe('ChatConversationView', () => {
     fireEvent.click(screen.getByText('What are my active applications?'));
 
     await waitFor(() =>
-      expect(mockStreamChatMessage).toHaveBeenCalledWith(
+      expect(mockGqlRequest).toHaveBeenCalledWith(
         expect.objectContaining({
-          conversationId: 'new-conv',
-          message: 'What are my active applications?',
+          document: expect.stringContaining('SendChatMessage'),
+          variables: expect.objectContaining({
+            conversationId: 'new-conv',
+            message: 'What are my active applications?',
+          }),
           signal: expect.any(AbortSignal),
         }),
       ),
     );
     expect(onConversationCreated).toHaveBeenCalledWith('new-conv');
-
-    capturedOnDelta?.('Here');
-    capturedOnDelta?.(' you go.');
-    await waitFor(() => expect(screen.getByText('Here you go.')).toBeInTheDocument());
   });
 
   it('renders existing chat history for an active conversation', async () => {
@@ -180,57 +162,19 @@ describe('ChatConversationView', () => {
     expect(container.querySelector('.p-3')).not.toBeNull();
   });
 
-  it('replaces the streamed bubble with the persisted history once the stream finishes', async () => {
-    let chatHistoryCallCount = 0;
-    mockGqlRequest.mockImplementation((arg: unknown) => {
-      const query = documentOf(arg);
-      if (query.includes('ChatHistory')) {
-        chatHistoryCallCount++;
-        return Promise.resolve(
-          chatHistoryCallCount === 1
-            ? { chatHistory: [] }
-            : {
-                chatHistory: [
-                  { id: 'm1', role: 'user', content: 'hi', createdAt: '' },
-                  { id: 'm2', role: 'assistant', content: 'Persisted reply.', createdAt: '' },
-                ],
-              },
-        );
-      }
-      return Promise.resolve({});
-    });
-    mockStreamChatMessage.mockImplementation(
-      async ({ onDelta }: { onDelta: (text: string) => void }) => {
-        onDelta('Persisted');
-        onDelta(' reply.');
-      },
-    );
-
-    render(
-      <ChatConversationView
-        conversationId="conv-1"
-        provider={null}
-        model=""
-        onConversationCreated={vi.fn()}
-      />,
-      { wrapper: Wrapper },
-    );
-
-    fireEvent.change(screen.getByPlaceholderText('Ask a question…'), { target: { value: 'hi' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
-
-    await waitFor(() => expect(screen.getAllByText('Persisted reply.')).toHaveLength(1));
-  });
-
   it('shows a Cancel button while sending, and cancelling aborts the request signal without showing an error banner (JEF-240)', async () => {
-    mockGqlRequest.mockImplementation(() => Promise.resolve({ chatHistory: [] }));
     let capturedSignal: AbortSignal | undefined;
     let rejectSend: (err: unknown) => void = () => {};
-    mockStreamChatMessage.mockImplementation(({ signal }: { signal?: AbortSignal }) => {
-      capturedSignal = signal;
-      return new Promise((_resolve, reject) => {
-        rejectSend = reject;
-      });
+    mockGqlRequest.mockImplementation((arg: unknown) => {
+      const query = documentOf(arg);
+      if (query.includes('ChatHistory')) return Promise.resolve({ chatHistory: [] });
+      if (query.includes('SendChatMessage')) {
+        capturedSignal = (arg as { signal?: AbortSignal }).signal;
+        return new Promise((_resolve, reject) => {
+          rejectSend = reject;
+        });
+      }
+      return Promise.resolve({});
     });
 
     render(
@@ -259,9 +203,13 @@ describe('ChatConversationView', () => {
     expect(screen.queryByText('Something went wrong. Please try again.')).not.toBeInTheDocument();
   });
 
-  it('shows the generic error banner for a non-cancelled, non-ChatStreamError send failure', async () => {
-    mockGqlRequest.mockImplementation(() => Promise.resolve({ chatHistory: [] }));
-    mockStreamChatMessage.mockRejectedValue(new Error('boom'));
+  it('shows the generic error banner for a non-cancelled send failure', async () => {
+    mockGqlRequest.mockImplementation((arg: unknown) => {
+      const query = documentOf(arg);
+      if (query.includes('ChatHistory')) return Promise.resolve({ chatHistory: [] });
+      if (query.includes('SendChatMessage')) return Promise.reject(new Error('boom'));
+      return Promise.resolve({});
+    });
 
     render(
       <ChatConversationView
@@ -280,54 +228,6 @@ describe('ChatConversationView', () => {
 
     await waitFor(() =>
       expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument(),
-    );
-  });
-
-  it('shows the AI-not-configured link for a ChatStreamError with that code', async () => {
-    mockGqlRequest.mockImplementation(() => Promise.resolve({ chatHistory: [] }));
-    mockStreamChatMessage.mockRejectedValue(
-      new ChatStreamError('Add your AI API key', 'AI_NOT_CONFIGURED'),
-    );
-
-    render(
-      <ChatConversationView
-        conversationId="conv-1"
-        provider={null}
-        model=""
-        onConversationCreated={vi.fn()}
-      />,
-      { wrapper: Wrapper },
-    );
-
-    fireEvent.change(screen.getByPlaceholderText('Ask a question…'), { target: { value: 'hi' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
-
-    await waitFor(() => expect(screen.getByText('Account settings')).toBeInTheDocument());
-  });
-
-  it("shows the ChatStreamError's own message for any other code", async () => {
-    mockGqlRequest.mockImplementation(() => Promise.resolve({ chatHistory: [] }));
-    mockStreamChatMessage.mockRejectedValue(
-      new ChatStreamError('Too many messages — please wait a moment and try again', 'RATE_LIMITED'),
-    );
-
-    render(
-      <ChatConversationView
-        conversationId="conv-1"
-        provider={null}
-        model=""
-        onConversationCreated={vi.fn()}
-      />,
-      { wrapper: Wrapper },
-    );
-
-    fireEvent.change(screen.getByPlaceholderText('Ask a question…'), { target: { value: 'hi' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
-
-    await waitFor(() =>
-      expect(
-        screen.getByText('Too many messages — please wait a moment and try again'),
-      ).toBeInTheDocument(),
     );
   });
 });

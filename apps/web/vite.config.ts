@@ -75,7 +75,6 @@ const config = defineConfig(({ command }) => ({
       '/graphql': { target: 'http://localhost:3001', changeOrigin: true },
       '/auth': { target: 'http://localhost:3001', changeOrigin: true },
       '/oauth': { target: 'http://localhost:3001', changeOrigin: true },
-      '/chat/stream': { target: 'http://localhost:3001', changeOrigin: true },
     },
   },
 }));
