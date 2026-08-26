@@ -103,7 +103,16 @@ export const gqlClient = new GraphQLClient(GQL_CLIENT_URL, {
       await queryClient.invalidateQueries();
     } else {
       queryClient.clear();
-      window.location.href = '/login';
+      // The session died mid-app. Carry the current URL to /login so signing
+      // in lands the user back where they were (JEF-233); the marketing root
+      // isn't a destination worth returning to, and environments without a
+      // readable location (tests) just get plain /login.
+      const { pathname, search, hash } = window.location;
+      const intended =
+        typeof pathname === 'string' && pathname !== '/' ? `${pathname}${search}${hash}` : '';
+      window.location.href = intended
+        ? `/login?returnTo=${encodeURIComponent(intended)}`
+        : '/login';
     }
   },
 });

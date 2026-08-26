@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { hasSessionCookie } from '#/graphql/client';
+import { safeReturnTo } from '#/lib/returnTo';
 import { z } from 'zod';
 import { LoginPage } from './-components/LoginPage';
 
@@ -12,8 +13,13 @@ export const Route = createFileRoute('/login')({
   validateSearch: searchSchema,
   // See routes/index.tsx for why this must be ssr: false.
   ssr: false,
-  beforeLoad: () => {
-    if (hasSessionCookie()) throw redirect({ to: '/dashboard' });
+  beforeLoad: ({ search }) => {
+    if (hasSessionCookie()) {
+      // Already signed in — skip the form and deliver whatever the returnTo
+      // parameter promised (defaulting to the dashboard), not the login page
+      // itself (JEF-233).
+      throw redirect({ to: safeReturnTo(search.returnTo) as '/dashboard' });
+    }
   },
   component: LoginPage,
 });
