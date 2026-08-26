@@ -348,6 +348,16 @@ export const ROUTES = {
   GRAPHQL: '/graphql',
   HEALTH: '/health',
   MCP: '/mcp',
+  /**
+   * SSE alongside `sendChatMessage` (JEF-239) — not GraphQL, since streaming
+   * needs incremental writes to the raw response that Mercurius/Pothos's
+   * request-response model, and this codebase's `IHttpResponse` port's
+   * send()-once shape, don't support. Same cookie-based JWT auth as
+   * GraphQL, registered directly on the Fastify instance in `buildApp.ts`
+   * (like the local-upload route) rather than through the `RouteDefinition`
+   * abstraction, for the same reason.
+   */
+  CHAT_STREAM: '/chat/stream',
   DIGEST_SEND: '/admin/digest/send',
   TRASH_PURGE: '/admin/trash/purge',
   REMINDERS_SEND: '/admin/reminders/send',

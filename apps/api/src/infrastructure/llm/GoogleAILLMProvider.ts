@@ -4,6 +4,7 @@ import type {
   LLMToolDefinition,
   LLMCompletionResult,
   LLMToolCall,
+  LLMStreamEvent,
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { LLM } from '#src/constants.js';
 import { fetchWithRetry } from '#src/infrastructure/llm/fetchWithRetry.js';
@@ -96,6 +97,24 @@ export class GoogleAILLMProvider implements ILLMProvider {
       }));
 
     return { content: text, toolCalls };
+  }
+
+  /**
+   * Gemini stays on the non-streaming endpoint — JEF-239 only implements
+   * genuine streaming for Anthropic and OpenAI-compatible providers.
+   * Wrapping the existing call in the streaming shape keeps every provider
+   * satisfying the same `ILLMProvider` interface, so `ChatWithAssistantUseCase`
+   * doesn't need a runtime check for "does this provider actually stream" —
+   * a Gemini-backed chat just renders its reply in one paint instead of
+   * token-by-token, same as before this feature.
+   */
+  async *completeWithToolsStream(
+    messages: LLMMessage[],
+    tools: LLMToolDefinition[],
+    maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+  ): AsyncGenerator<LLMStreamEvent> {
+    const result = await this.completeWithTools(messages, tools, maxTokens);
+    yield { type: 'done', ...result };
   }
 
   private toWireContent(
