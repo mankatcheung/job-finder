@@ -11,6 +11,7 @@ import { LogoMark } from '#/components/LogoMark';
 import { LegalFooterLinks } from '#/components/LegalFooterLinks';
 import { useLocale } from '#/lib/i18n';
 import { oauthErrorKey } from '#/lib/oauthError';
+import { safeReturnTo } from '#/lib/returnTo';
 import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
 
 const schema = z.object({
@@ -262,8 +263,4 @@ function TotpStep({
       </div>
     </main>
   );
-}
-
-function safeReturnTo(value: string | undefined): string {
-  return value && value.startsWith('/') && !value.startsWith('//') ? value : '/dashboard';
 }

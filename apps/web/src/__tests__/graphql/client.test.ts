@@ -22,15 +22,30 @@ vi.mock('graphql-request', () => ({
 }));
 
 const mockLocationHref = vi.fn();
-Object.defineProperty(window, 'location', {
-  value: {
-    origin: 'http://localhost:3000',
-    set href(v: string) {
-      mockLocationHref(v);
+
+/**
+ * The base stub mirrors a visitor on the marketing root (`pathname: '/'`),
+ * which is why plain-`/login` redirects stay unparameterised. Tests that
+ * need a deeper current URL redefine this — hence `configurable`.
+ */
+function stubWindowLocation(fields: { pathname?: string; search?: string; hash?: string } = {}) {
+  Object.defineProperty(window, 'location', {
+    value: {
+      origin: 'http://localhost:3000',
+      pathname: '/',
+      search: '',
+      hash: '',
+      ...fields,
+      set href(v: string) {
+        mockLocationHref(v);
+      },
     },
-  },
-  writable: true,
-});
+    writable: true,
+    configurable: true,
+  });
+}
+
+stubWindowLocation();
 
 describe('gqlClient endpoint resolution', () => {
   beforeEach(() => {
@@ -97,6 +112,41 @@ describe('refresh token deduplication', () => {
       }),
     );
 
+    const { gqlClient } = await import('#/graphql/client');
+    const middleware = (gqlClient as unknown as { responseMiddleware: Middleware })
+      .responseMiddleware;
+
+    await middleware({ errors: [{ extensions: { code: 'UNAUTHORIZED' } }] });
+
+    expect(mockLocationHref).toHaveBeenCalledWith('/login');
+  });
+
+  it('carries the current deep path to /login as returnTo (JEF-233)', async () => {
+    fetchSpy.mockResolvedValue(
+      new Response(JSON.stringify({ data: { refreshToken: null } }), {
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    stubWindowLocation({ pathname: '/applications', search: '?status=applied' });
+    const { gqlClient } = await import('#/graphql/client');
+    const middleware = (gqlClient as unknown as { responseMiddleware: Middleware })
+      .responseMiddleware;
+
+    await middleware({ errors: [{ extensions: { code: 'UNAUTHORIZED' } }] });
+
+    expect(mockLocationHref).toHaveBeenCalledWith(
+      `/login?returnTo=${encodeURIComponent('/applications?status=applied')}`,
+    );
+  });
+
+  it('does not parameterise /login when the user is on the landing page', async () => {
+    fetchSpy.mockResolvedValue(
+      new Response(JSON.stringify({ data: { refreshToken: null } }), {
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    stubWindowLocation({ pathname: '/' });
     const { gqlClient } = await import('#/graphql/client');
     const middleware = (gqlClient as unknown as { responseMiddleware: Middleware })
       .responseMiddleware;

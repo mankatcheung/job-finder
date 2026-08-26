@@ -118,6 +118,28 @@ describe('LoginPage', () => {
     });
   });
 
+  it('navigates to the captured returnTo destination after login instead of the dashboard', async () => {
+    mockUseSearch.mockReturnValue({ returnTo: '/applications/abc123?tab=notes' });
+    mockGqlRequest.mockResolvedValue(noTotpResponse);
+    render(<LoginPage />);
+    await fillCredentials('test@example.com', 'password123');
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith({ to: '/applications/abc123?tab=notes' });
+    });
+  });
+
+  it('falls back to the dashboard when returnTo is not a same-origin path', async () => {
+    mockUseSearch.mockReturnValue({ returnTo: '//evil.example/phish' });
+    mockGqlRequest.mockResolvedValue(noTotpResponse);
+    render(<LoginPage />);
+    await fillCredentials('test@example.com', 'password123');
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith({ to: '/dashboard' });
+    });
+  });
+
   it('displays API error message on login failure', async () => {
     mockGqlRequest.mockRejectedValue({
       response: {
@@ -174,6 +196,22 @@ describe('LoginPage', () => {
       });
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith({ to: '/dashboard' });
+      });
+    });
+
+    it('keeps the returnTo destination through the two-factor step', async () => {
+      mockUseSearch.mockReturnValue({ returnTo: '/analytics' });
+      mockGqlRequest.mockResolvedValueOnce(totpRequiredResponse);
+      render(<LoginPage />);
+      await fillCredentials('test@example.com', 'password123');
+      await waitFor(() => screen.getByPlaceholderText('123456'));
+
+      mockGqlRequest.mockResolvedValueOnce({ loginWithTotp: 'totp-access-token' });
+      fireEvent.change(screen.getByPlaceholderText('123456'), { target: { value: '654321' } });
+      fireEvent.click(screen.getByRole('button', { name: /verify/i }));
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith({ to: '/analytics' });
       });
     });
 
