@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 
 const { mockGqlRequest } = vi.hoisted(() => ({
   mockGqlRequest: vi.fn(),
@@ -10,6 +11,7 @@ vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => (opts: object) => ({ ...opts, useSearch: () => ({}) }),
   useNavigate: () => vi.fn(),
   redirect: vi.fn(),
+  Link: ({ children, to }: { children: ReactNode; to: string }) => <a href={to}>{children}</a>,
 }));
 
 vi.mock('@tanstack/react-start', () => ({
@@ -69,6 +71,15 @@ describe('SettingsIntegrationsPage', () => {
     await waitFor(() => {
       expect(mockGqlRequest).toHaveBeenCalled();
     });
+  });
+
+  it('points to the setup guide for connecting an MCP client (JEF-231)', () => {
+    render(<SettingsIntegrationsPage />, { wrapper: Wrapper });
+
+    expect(screen.getByRole('link', { name: 'Read the guide' })).toHaveAttribute(
+      'href',
+      '/ai-mcp-setup',
+    );
   });
 
   describe('API token scope (JEF-170)', () => {

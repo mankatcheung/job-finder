@@ -1,6 +1,7 @@
-import { Trash2Icon, CopyIcon, CheckIcon } from 'lucide-react';
+import { Trash2Icon, CopyIcon, CheckIcon, PlugIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { useLocale } from '#/lib/i18n';
 import { Alert, Badge, Button, FormLabel, Input, Select, Skeleton } from '@trakwyn/ui';
@@ -152,6 +153,21 @@ export function SettingsIntegrationsPage() {
 
   return (
     <div className="space-y-10">
+      <div className="flex items-center justify-between gap-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-900 dark:bg-blue-900/20">
+        <div className="flex items-center gap-3">
+          <PlugIcon className="size-4.5 shrink-0 text-blue-700 dark:text-blue-400" />
+          <p className="text-sm text-blue-900 dark:text-blue-300">
+            {t('guides.aiMcpSetup.bannerIntegrationsText')}
+          </p>
+        </div>
+        <Link
+          to="/ai-mcp-setup"
+          className="shrink-0 text-sm font-semibold text-blue-700 hover:underline dark:text-blue-400"
+        >
+          {t('guides.aiMcpSetup.bannerLink')}
+        </Link>
+      </div>
+
       {/* ── API tokens ── */}
       <section className="space-y-4">
         <div>

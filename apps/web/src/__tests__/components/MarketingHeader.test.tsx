@@ -34,6 +34,7 @@ vi.mock('#/lib/i18n', () => ({
         'landing.goDashboard': 'Go to dashboard',
         'landing.getStarted': 'Get started',
         'settings.language': 'Language',
+        'guides.aiMcpSetup.eyebrow': 'Setup guide',
       })[key] ?? key,
   }),
 }));
@@ -64,6 +65,23 @@ describe('MarketingHeader', () => {
     render(<MarketingHeader />);
 
     expect(screen.getByRole('link', { name: 'Features' }).className).not.toContain('font-semibold');
+  });
+
+  it('links the setup guide to /ai-mcp-setup (JEF-231)', () => {
+    mockHasSessionCookie.mockReturnValue(false);
+    render(<MarketingHeader />);
+
+    expect(screen.getByRole('link', { name: 'Setup guide' })).toHaveAttribute(
+      'href',
+      '/ai-mcp-setup',
+    );
+  });
+
+  it('bolds the setup guide link when activeGuide is set', () => {
+    mockHasSessionCookie.mockReturnValue(false);
+    render(<MarketingHeader activeGuide />);
+
+    expect(screen.getByRole('link', { name: 'Setup guide' }).className).toContain('font-semibold');
   });
 
   it('shows "Sign in" pointing at /login for a logged-out visitor', () => {
