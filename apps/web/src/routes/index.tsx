@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { hasSessionCookie } from '#/graphql/client';
 import { MarketingHeader } from '#/components/marketing/MarketingHeader';
 import { MarketingFooter } from '#/components/marketing/MarketingFooter';
@@ -32,10 +32,10 @@ export const Route = createFileRoute('/')({
   // Real content worth indexing — unlike /login and /register (which stay
   // ssr: false, since they're utility pages behind a client-only auth
   // check, not marketing pages), this route SSRs unconditionally. The
-  // already-logged-in redirect moved to a client-only effect in
-  // LandingPage below specifically so it wouldn't force ssr: false here
-  // (see JEF-206) — the API and web app are on separate domains, so
-  // hasSessionCookie() still can't run on the server either way.
+  // logged-in CTA swap lives in a client-only effect in LandingPage below,
+  // which is also why no ssr: false is needed here (see JEF-206) — the API
+  // and web app are on separate domains, so hasSessionCookie() still can't
+  // run on the server either way.
   head: () => ({
     meta: [
       { title: OG_TITLE },
@@ -101,19 +101,18 @@ const HERO_BOARD_COLUMNS = [
 
 export function LandingPage() {
   const { t } = useLocale();
-  const navigate = useNavigate();
   // Starts false so the client's first render matches the SSR'd markup —
   // the server can never see the session cookie (see Route.head comment
-  // above), so it always renders the logged-out variant. A real logged-in
-  // visitor gets redirected by the effect below before this would matter.
+  // above), so it always renders the logged-out variant.
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // Logged-in visitors stay on the landing page: `/` is marketing content
+  // worth reading at any time, so JEF-236 removed JEF-213's auto-redirect
+  // to /dashboard. The header and hero simply offer "Go to dashboard" as an
+  // ordinary link instead of forcing the jump.
   useEffect(() => {
-    if (hasSessionCookie()) {
-      setIsLoggedIn(true);
-      navigate({ to: '/dashboard', replace: true });
-    }
-  }, [navigate]);
+    if (hasSessionCookie()) setIsLoggedIn(true);
+  }, []);
 
   const authLink: '/dashboard' | '/login' = isLoggedIn ? '/dashboard' : '/login';
   const authLabel = isLoggedIn ? t('landing.goDashboard') : t('landing.signIn');
