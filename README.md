@@ -29,25 +29,19 @@ The project is a monorepo with a GraphQL API, a web app, a browser extension for
 
 ## MCP server
 
-The API ships a [Model Context Protocol](https://modelcontextprotocol.io) server, so an AI assistant can read your job-search data, answer questions about it, and — with a full-access token — log applications and notes for you.
+The API ships a [Model Context Protocol](https://modelcontextprotocol.io) server, so an AI assistant can read your job-search data, answer questions about it, and — with full access — log applications and notes for you.
 
-**Most tools are read-only, and a read-only token can only reach those.** A few tools create or update data; they require a full-access token and are refused outright for a read-only one. **Nothing deletes** — there are no delete tools at all.
+**Most tools are read-only, and read-only access can only reach those.** A few tools create or update data; they require full access and are refused outright otherwise. **Nothing deletes** — there are no delete tools at all.
 
-### Connecting
+### Connecting with OAuth (recommended)
 
-1. In the web app, go to **Settings → Integrations → API tokens**.
-2. Create a token with **Read-only** access if you only want the assistant to _read_ your data — it's refused by both the GraphQL API and the MCP write tools, so it can't change anything even if it leaks. Choose **Full access** only if you want the assistant to be able to create and update records too.
-3. Copy the token (`trakwyn_…`) — it's shown only once.
+Most MCP clients — Claude Desktop, Cursor, Claude Code, and others — support
+OAuth, which is the easiest way to connect: nothing to copy, paste, or store
+yourself. [docs/mcp-oauth.md](docs/mcp-oauth.md) walks through the whole flow
+and the reasoning behind it; the summary is below.
 
-The endpoint is `POST https://api.trakwyn.com/mcp`, authenticated with `Authorization: Bearer <token>`.
-
-### OAuth clients
-
-MCP clients can use OAuth instead of manually-created API tokens.
-[docs/mcp-oauth.md](docs/mcp-oauth.md) walks through the whole flow and the
-reasoning behind it; the summary is below.
-
-The OAuth discovery documents are available at:
+Point your client at the endpoint, `POST https://api.trakwyn.com/mcp`. The
+client discovers the authorization server from:
 
 - `GET https://api.trakwyn.com/.well-known/oauth-protected-resource`
 - `GET https://api.trakwyn.com/.well-known/oauth-authorization-server`
@@ -55,12 +49,13 @@ The OAuth discovery documents are available at:
 The authorization server supports dynamic public-client registration, the
 authorization-code flow with PKCE (`S256`), rotating refresh tokens, and token
 revocation. Redirect URIs must be exact HTTPS URLs, or loopback HTTP URLs for
-local clients. The authorization flow uses the existing Trakwyn browser
-session and displays an explicit MCP consent screen before issuing a code.
+local clients. The authorization flow uses your existing Trakwyn browser
+session and displays an explicit MCP consent screen before issuing a code —
+sign in, approve, and the client is connected.
 
-The consent screen asks for one of the same two scopes an API token can have,
-and it means the same thing: a `read` grant reaches the read-only tools and
-nothing else, exactly as a read-only API token does.
+The consent screen asks for one of two scopes: a `read` grant reaches the
+read-only tools and nothing else; `full` also reaches the tools that create or
+update records. Start with `read` unless the client genuinely needs to write.
 
 Revoking is grant-wide. `POST /oauth/revoke` accepts either an access token or
 a refresh token, and either one takes down every credential issued from that
@@ -68,13 +63,29 @@ consent — so a client cannot "revoke" and then quietly refresh its way back in
 The same happens automatically if an authorization code or a rotated refresh
 token is ever replayed, since that means the credential leaked.
 
-Existing `trakwyn_...` API tokens remain supported for scripts and clients that
-do not implement OAuth.
-
 **Deploy prerequisite:** set `API_ORIGIN` to this API's own public origin (e.g.
 `https://api.trakwyn.com`). It is what the discovery documents advertise as the
 issuer and endpoint URLs; without it they fall back to the request's `Host`
 header, which a caller controls.
+
+For Claude Code:
+
+```bash
+claude mcp add --transport http trakwyn https://api.trakwyn.com/mcp
+```
+
+### API tokens (fallback)
+
+For a script, a CI job, or a client that doesn't support OAuth, a manually
+created API token works the same way a `read`/`full` OAuth grant does:
+
+1. In the web app, go to **Settings → Integrations → API tokens**.
+2. Create a token with **Read-only** access if you only want the assistant to _read_ your data — it's refused by both the GraphQL API and the MCP write tools, so it can't change anything even if it leaks. Choose **Full access** only if you want the assistant to be able to create and update records too.
+3. Copy the token (`trakwyn_…`) — it's shown only once.
+
+Authenticate with `Authorization: Bearer <token>` instead of an OAuth access
+token — the endpoint accepts either. Existing `trakwyn_...` tokens keep working
+regardless of how many clients connect over OAuth.
 
 Verify it works:
 
@@ -95,7 +106,7 @@ curl -s https://api.trakwyn.com/mcp \
        "params":{"name":"list_applications","arguments":{"status":"interviewing"}}}'
 ```
 
-For Claude Code:
+For Claude Code with a token instead of OAuth:
 
 ```bash
 claude mcp add --transport http trakwyn https://api.trakwyn.com/mcp \
