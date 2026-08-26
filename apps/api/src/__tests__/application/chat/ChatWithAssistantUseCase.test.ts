@@ -4,6 +4,7 @@ import {
   MCP_TOOLS,
   toLlmToolDefinitions,
 } from '#src/interface-adapters/llm/toolCatalogue.js';
+import { CHAT } from '#src/constants.js';
 import { ChatWithAssistantUseCase } from '#src/use-cases/chat/ChatWithAssistantUseCase.js';
 import {
   makeRateLimiter,
@@ -173,6 +174,70 @@ describe('ChatWithAssistantUseCase', () => {
     expect(messages[1]).toEqual({ role: 'user', content: 'earlier question' });
     expect(messages[2]).toEqual({ role: 'assistant', content: 'earlier answer' });
     expect(messages[3]).toEqual({ role: 'user', content: 'new question' });
+  });
+
+  it('caps history sent to the model at CHAT.MAX_HISTORY_MESSAGES, keeping only the most recent (JEF-237)', async () => {
+    const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
+    const totalMessages = CHAT.MAX_HISTORY_MESSAGES + 4;
+    const fullHistory = Array.from({ length: totalMessages }, (_, i) =>
+      makeMessage({
+        id: `m${i}`,
+        role: i % 2 === 0 ? 'user' : 'assistant',
+        content: `message ${i}`,
+      }),
+    );
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+      messageRepository: makeMessageRepository({
+        findAllByConversationId: vi.fn().mockResolvedValue(fullHistory),
+      }),
+    });
+
+    await new ChatWithAssistantUseCase(deps as never).execute({
+      ...baseInput,
+      message: 'new question',
+    });
+
+    const [messages] = vi.mocked(llmProvider.completeWithTools).mock.calls[0];
+    // system + capped history + the new message.
+    expect(messages).toHaveLength(1 + CHAT.MAX_HISTORY_MESSAGES + 1);
+    const sentHistory = messages.slice(1, -1);
+    expect(sentHistory[0]).toEqual({ role: 'user', content: `message ${4}` });
+    expect(sentHistory[sentHistory.length - 1]).toEqual({
+      role: 'assistant',
+      content: `message ${totalMessages - 1}`,
+    });
+    // The oldest 4 messages never appear anywhere in the request.
+    expect(messages.some((m) => m.content === 'message 0')).toBe(false);
+    expect(messages.some((m) => m.content === 'message 3')).toBe(false);
+  });
+
+  it('does not derive a new title just because history exceeds the cap — only when it is truly empty', async () => {
+    const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
+    const conversationRepository = makeConversationRepository({
+      findById: vi.fn().mockResolvedValue(makeConversation({ id: 'conv-1', userId: 'user-1' })),
+    });
+    const fullHistory = Array.from({ length: CHAT.MAX_HISTORY_MESSAGES + 4 }, (_, i) =>
+      makeMessage({ id: `m${i}`, role: i % 2 === 0 ? 'user' : 'assistant', content: `msg ${i}` }),
+    );
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+      conversationRepository,
+      messageRepository: makeMessageRepository({
+        findAllByConversationId: vi.fn().mockResolvedValue(fullHistory),
+      }),
+    });
+
+    await new ChatWithAssistantUseCase(deps as never).execute({
+      ...baseInput,
+      message: 'another question',
+    });
+
+    expect(conversationRepository.updateTitle).not.toHaveBeenCalled();
   });
 
   it('marks the system prompt and the last tool definition as a cache breakpoint', async () => {
