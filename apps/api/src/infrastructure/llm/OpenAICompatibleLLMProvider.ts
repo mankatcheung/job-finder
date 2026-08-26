@@ -4,11 +4,9 @@ import type {
   LLMToolDefinition,
   LLMCompletionResult,
   LLMToolCall,
-  LLMStreamEvent,
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { AUTH_HEADER, LLM } from '#src/constants.js';
 import { fetchWithRetry } from '#src/infrastructure/llm/fetchWithRetry.js';
-import { parseSSE } from '#src/infrastructure/llm/sseParser.js';
 
 interface OpenAIWireMessage {
   role: string;
@@ -26,29 +24,6 @@ interface OpenAIWireResponse {
     message: {
       content: string | null;
       tool_calls?: Array<{ id: string; function: { name: string; arguments: string } }>;
-    };
-  }>;
-}
-
-const OPENAI_STREAM_DONE = '[DONE]';
-
-/**
- * One `chat.completion.chunk` object. `delta.tool_calls` entries are keyed
- * by `index` (supports parallel tool calls); `id`/`function.name` typically
- * arrive once on a call's first chunk and subsequent chunks for the same
- * index carry only `function.arguments` fragments to concatenate — but this
- * provider merges whichever fields are present per chunk rather than
- * assuming that ordering, which costs nothing and is robust either way.
- */
-interface OpenAIStreamChunk {
-  choices?: Array<{
-    delta?: {
-      content?: string | null;
-      tool_calls?: Array<{
-        index: number;
-        id?: string;
-        function?: { name?: string; arguments?: string };
-      }>;
     };
   }>;
 }
@@ -129,60 +104,6 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     return { content: message?.content ?? null, toolCalls };
   }
 
-  async *completeWithToolsStream(
-    messages: LLMMessage[],
-    tools: LLMToolDefinition[],
-    maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
-  ): AsyncGenerator<LLMStreamEvent> {
-    if (!this.apiKey) throw new Error('API key is not set');
-
-    const body = await this.postStream({
-      model: this.model,
-      messages: this.toWireMessages(messages),
-      max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
-      stream: true,
-      tools: tools.map((t) => ({
-        type: 'function',
-        function: { name: t.name, description: t.description, parameters: t.parameters },
-      })),
-    });
-
-    let content = '';
-    const toolCalls = new Map<number, { id: string; name: string; arguments: string }>();
-
-    for await (const frame of parseSSE(body)) {
-      if (frame.data === OPENAI_STREAM_DONE) break;
-
-      const chunk = JSON.parse(frame.data) as OpenAIStreamChunk;
-      const delta = chunk.choices?.[0]?.delta;
-      if (!delta) continue;
-
-      if (delta.content) {
-        content += delta.content;
-        yield { type: 'text_delta', text: delta.content };
-      }
-
-      for (const tc of delta.tool_calls ?? []) {
-        const existing = toolCalls.get(tc.index) ?? { id: '', name: '', arguments: '' };
-        toolCalls.set(tc.index, {
-          id: tc.id ?? existing.id,
-          name: tc.function?.name ?? existing.name,
-          arguments: existing.arguments + (tc.function?.arguments ?? ''),
-        });
-      }
-    }
-
-    yield {
-      type: 'done',
-      content: content || null,
-      toolCalls: [...toolCalls.values()].map((tc) => ({
-        id: tc.id,
-        name: tc.name,
-        arguments: this.parseArguments(tc.arguments),
-      })),
-    };
-  }
-
   private toWireMessages(messages: LLMMessage[]): OpenAIWireMessage[] {
     return messages.map((m) => {
       if (m.role === 'tool') {
@@ -234,24 +155,5 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     }
 
     return response.json() as Promise<OpenAIWireResponse>;
-  }
-
-  private async postStream(body: Record<string, unknown>): Promise<ReadableStream<Uint8Array>> {
-    const response = await fetchWithRetry(this.baseUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `${AUTH_HEADER.BEARER_PREFIX}${this.apiKey}`,
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`LLM provider error ${response.status}: ${text}`);
-    }
-    if (!response.body) throw new Error('LLM provider error: response had no body to stream');
-
-    return response.body;
   }
 }
