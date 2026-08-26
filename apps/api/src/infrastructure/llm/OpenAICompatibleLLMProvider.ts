@@ -33,6 +33,19 @@ interface OpenAIWireResponse {
  * and response shape — OpenAI itself, OpenRouter, Mistral, Groq, xAI,
  * DeepSeek, and any user-supplied custom endpoint. Only the base URL and
  * default model differ between them, which the caller supplies.
+ *
+ * Unlike Anthropic (`AnthropicLLMProvider`), this provider sets no explicit
+ * `cache_control` — OpenAI applies prompt caching automatically, no request
+ * changes required, to any prompt >=1024 tokens whose prefix repeats
+ * byte-for-byte across calls (OpenAI's own OpenAI-compatible-shaped
+ * competitors that support caching, e.g. DeepSeek, work the same way).
+ * `ChatWithAssistantUseCase` already builds messages with the stable part —
+ * system prompt, then the user's `customAiPrompt` if set — first and the
+ * per-turn conversation appended after, which is exactly the shape automatic
+ * prefix caching needs (JEF-238). Nothing to wire here; the `tools` array
+ * (also identical on every call, per `chatTools` in `http/di`) is static
+ * too, so the whole cacheable block only grows as a conversation's history
+ * grows, never shrinks or reorders.
  */
 export class OpenAICompatibleLLMProvider implements ILLMProvider {
   constructor(
