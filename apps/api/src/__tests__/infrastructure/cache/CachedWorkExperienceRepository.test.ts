@@ -131,17 +131,16 @@ describe('CachedWorkExperienceRepository', () => {
   });
 
   describe('delete', () => {
-    it('delegates to inner and invalidates caches when userId is known', async () => {
+    it('delegates to inner and invalidates byId and list caches', async () => {
       const { repo, inner } = makeRepo();
       vi.mocked(inner.findById).mockResolvedValue(experience);
       vi.mocked(inner.findAllByUserId).mockResolvedValue([experience]);
       vi.mocked(inner.delete).mockResolvedValue(undefined);
 
-      // Populate caches (which also records userId→workExperienceId mapping)
       await repo.findById('we-1');
       await repo.findAllByUserId('user-1');
 
-      await repo.delete('we-1');
+      await repo.delete('we-1', 'user-1');
 
       vi.mocked(inner.findById).mockResolvedValue(null);
       vi.mocked(inner.findAllByUserId).mockResolvedValue([]);
@@ -151,12 +150,28 @@ describe('CachedWorkExperienceRepository', () => {
       expect(inner.findAllByUserId).toHaveBeenCalledTimes(2);
     });
 
-    it('still deletes from inner even when userId is unknown', async () => {
-      const { repo, inner } = makeRepo();
+    it('evicts the list cache from a second repo instance with no prior read on it (JEF-209 — the id→userId map this used to depend on is gone)', async () => {
+      const inner = makeWorkExperienceRepository();
+      const cache = new MemoryCache(60_000);
+      const repoA = new CachedWorkExperienceRepository({
+        drizzleWorkExperienceRepository: inner,
+        cache,
+      });
+      const repoB = new CachedWorkExperienceRepository({
+        drizzleWorkExperienceRepository: inner,
+        cache,
+      });
+
+      vi.mocked(inner.findAllByUserId).mockResolvedValue([experience]);
       vi.mocked(inner.delete).mockResolvedValue(undefined);
 
-      await repo.delete('unknown-id');
-      expect(inner.delete).toHaveBeenCalledWith('unknown-id');
+      // repoA warms the list cache; repoB never reads anything before deleting.
+      await repoA.findAllByUserId('user-1');
+      await repoB.delete('we-1', 'user-1');
+
+      vi.mocked(inner.findAllByUserId).mockResolvedValue([]);
+      await repoA.findAllByUserId('user-1');
+      expect(inner.findAllByUserId).toHaveBeenCalledTimes(2);
     });
   });
 });

@@ -17,6 +17,6 @@ export class DeleteEducationUseCase implements IDeleteEducationUseCase {
     if (!existing || existing.userId !== input.userId) {
       throw new NotFoundError('Education not found');
     }
-    await this.deps.educationRepository.delete(input.id);
+    await this.deps.educationRepository.delete(input.id, existing.userId);
   }
 }

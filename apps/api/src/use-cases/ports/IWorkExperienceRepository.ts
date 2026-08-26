@@ -10,5 +10,5 @@ export interface IWorkExperienceRepository {
   findById(id: string): Promise<WorkExperience | null>;
   create(data: CreateWorkExperienceData): Promise<WorkExperience>;
   update(id: string, data: UpdateWorkExperienceData): Promise<WorkExperience>;
-  delete(id: string): Promise<void>;
+  delete(id: string, userId: string): Promise<void>;
 }

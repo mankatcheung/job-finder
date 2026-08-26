@@ -31,7 +31,7 @@ export class DeleteDocumentUseCase implements IDeleteDocumentUseCase {
     }
 
     await this.deps.storageProvider.delete(doc.storageKey);
-    await this.deps.documentRepository.delete(input.documentId);
+    await this.deps.documentRepository.delete(input.documentId, doc.applicationId);
 
     if (this.deps.activityLogRepository && this.deps.generateId)
       await this.deps.activityLogRepository.append({

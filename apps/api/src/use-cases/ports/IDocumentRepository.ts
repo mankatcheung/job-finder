@@ -19,5 +19,5 @@ export interface IDocumentRepository {
   findAllByUserId(userId: string): Promise<Document[]>;
   findById(id: string): Promise<Document | null>;
   create(data: CreateDocumentData): Promise<Document>;
-  delete(id: string): Promise<void>;
+  delete(id: string, applicationId: string): Promise<void>;
 }

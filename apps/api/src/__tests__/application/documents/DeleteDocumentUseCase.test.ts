@@ -88,7 +88,7 @@ describe('DeleteDocumentUseCase', () => {
     await useCase.execute({ userId: 'user-1', documentId: 'doc-1' });
 
     expect(storageProvider.delete).toHaveBeenCalledWith(doc.storageKey);
-    expect(documentRepository.delete).toHaveBeenCalledWith('doc-1');
+    expect(documentRepository.delete).toHaveBeenCalledWith('doc-1', 'app-1');
 
     const storageOrder = vi.mocked(storageProvider.delete).mock.invocationCallOrder[0];
     const dbOrder = vi.mocked(documentRepository.delete).mock.invocationCallOrder[0];

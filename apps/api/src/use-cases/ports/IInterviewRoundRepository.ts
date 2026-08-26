@@ -35,5 +35,5 @@ export interface IInterviewRoundRepository {
   create(data: CreateInterviewRoundData): Promise<InterviewRound>;
   update(id: string, data: UpdateInterviewRoundData): Promise<InterviewRound>;
   updatePushNotificationSentAt(id: string, sentAt: Date): Promise<void>;
-  delete(id: string): Promise<void>;
+  delete(id: string, applicationId: string): Promise<void>;
 }
