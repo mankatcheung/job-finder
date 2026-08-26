@@ -149,6 +149,31 @@ describe('chat stream integration (JEF-239)', () => {
     ]);
   });
 
+  it('keeps CORS headers on the hijacked stream, so a cross-origin browser accepts it', async () => {
+    const token = await registerAndGetCookie();
+    // corsPlugin allows any *.vercel.app unconditionally, so this doesn't
+    // depend on whatever CORS_ORIGIN happened to be set when the app was built.
+    const origin = 'https://trakwyn-preview.vercel.app';
+
+    // Any streamed response will do — the headers go out before the first
+    // event, and a not-found conversation still takes the hijacked path.
+    const res = await testApp.app.inject({
+      method: 'POST',
+      url: ROUTES.CHAT_STREAM,
+      cookies: { trakwyn_access_token: token },
+      headers: { origin },
+      payload: { conversationId: 'nope', message: 'hi' },
+    });
+
+    expect(res.headers['content-type']).toContain('text/event-stream');
+    // reply.hijack() + reply.raw.writeHead() writes only what it's handed, so
+    // without explicitly carrying these over the browser rejects the whole
+    // response and the caller sees a bare network error. Production serves
+    // web and api from separate subdomains, so this is the real path.
+    expect(res.headers['access-control-allow-origin']).toBe(origin);
+    expect(res.headers['access-control-allow-credentials']).toBe('true');
+  });
+
   it('streams delta events for the reply and persists it, with the outbound provider call faked', async () => {
     const token = await registerAndGetCookie();
     const savedKey = await authedGraphQL(token, SAVE_LLM_API_KEY_MUTATION, {

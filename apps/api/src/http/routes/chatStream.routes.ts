@@ -63,6 +63,19 @@ export async function handleChatStream(
   // this response out of it so writing directly to reply.raw and manually
   // calling .end() is safe.
   reply.hijack();
+  // Anything earlier hooks put on the Fastify reply has to be carried over by
+  // hand — most importantly @fastify/cors's Access-Control-Allow-Origin and
+  // -Credentials, which it sets from an onRequest hook. Dropping those makes
+  // the browser reject the whole response, so a cross-origin caller sees a
+  // bare network error instead of a stream. That's production: web and api
+  // are separate subdomains. It went unnoticed because the e2e suite reaches
+  // the API through Vite's same-origin proxy, where CORS never applies.
+  // Copied via setHeader rather than spread into writeHead below: Node merges
+  // the two (writeHead wins on conflicts, which is what we want for the SSE
+  // headers), and it avoids casting Fastify's header type at the boundary.
+  for (const [name, value] of Object.entries(reply.getHeaders())) {
+    if (value !== undefined) reply.raw.setHeader(name, value);
+  }
   reply.raw.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',

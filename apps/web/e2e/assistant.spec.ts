@@ -59,13 +59,110 @@ test.describe('AI assistant chat', () => {
 
     // Back on /assistant with the same conversation restored.
     await expect(page).toHaveURL(/\/assistant\?conversation=/);
-    // Scope to the main pane: the restored conversation now also appears by
-    // title in the app-sidebar subitems (JEF-229), which would otherwise
-    // make this locator ambiguous.
-    await expect(page.getByRole('main').getByText('Hello there')).toBeVisible();
+    // What's being checked is the restored *message*, so match the bubble
+    // rather than any text: the same words also appear in the app-sidebar
+    // subitems (JEF-229) and now in the chat header, which names the open
+    // conversation — both would otherwise make this ambiguous.
+    await expect(
+      page.getByRole('main').getByText('Hello there', { exact: true }).last(),
+    ).toBeVisible();
     await expect(page.getByText(FAKE_REPLY)).toBeVisible();
   });
 });
+
+/**
+ * The chat pane is a fixed-height column: only the message list scrolls, so
+ * the header (which names the open conversation) and the composer stay put.
+ * jsdom has no layout engine, so these invariants can only be checked in a
+ * real browser — and they're viewport-dependent, hence both sizes. The
+ * desktop viewport is deliberately short so a handful of messages is enough
+ * to overflow the list without a long chain of round trips.
+ */
+const STICKY_VIEWPORTS = [
+  { name: 'desktop', width: 1280, height: 700 },
+  { name: 'mobile', width: 390, height: 664 },
+] as const;
+
+for (const viewport of STICKY_VIEWPORTS) {
+  test.describe(`AI assistant chat layout — ${viewport.name}`, () => {
+    const password = 'SecurePass123';
+
+    test.use({ viewport: { width: viewport.width, height: viewport.height } });
+
+    test.beforeEach(async ({ page }) => {
+      await registerAndLogin(page, { email: uniqueEmail('assistant-layout'), password });
+      await setupFakeAiProvider(page);
+    });
+
+    test('keeps the header and composer in view while the message list scrolls', async ({
+      page,
+    }) => {
+      await page.goto('/assistant');
+
+      const composer = page.getByPlaceholder('Ask a question…');
+      const heading = page.getByRole('heading', { name: 'Assistant' });
+
+      // Enough turns to overflow the list at either viewport height.
+      for (let i = 1; i <= 6; i++) {
+        await composer.fill(`Question number ${i}`);
+        await page.getByRole('button', { name: 'Send' }).click();
+        await expect(page.getByText(FAKE_REPLY)).toHaveCount(i);
+      }
+
+      // The whole page must not scroll — that's what pushed the composer off
+      // screen before. Only an inner region may overflow.
+      const pageScrolls = await page.evaluate(() => {
+        const el = document.documentElement;
+        return el.scrollHeight > el.clientHeight + 1;
+      });
+      expect(pageScrolls).toBe(false);
+
+      const mainScrolls = await page.evaluate(() => {
+        const el = document.querySelector('main')!;
+        return el.scrollHeight > el.clientHeight + 1;
+      });
+      expect(mainScrolls).toBe(false);
+
+      await expect(heading).toBeInViewport();
+      await expect(composer).toBeInViewport();
+
+      const headingBefore = await heading.boundingBox();
+      const composerBefore = await composer.boundingBox();
+
+      // Scroll the message list itself to the very top.
+      const scrolled = await page.evaluate(() => {
+        const region = [...document.querySelectorAll('div')].find(
+          (el) =>
+            getComputedStyle(el).overflowY === 'auto' && el.scrollHeight > el.clientHeight + 1,
+        );
+        if (!region) return false;
+        region.scrollTop = 0;
+        return true;
+      });
+      expect(scrolled).toBe(true);
+
+      // Both chrome elements are exactly where they were — that is the
+      // stickiness, and it's what a scrolling page would have broken.
+      expect(await heading.boundingBox()).toEqual(headingBefore);
+      expect(await composer.boundingBox()).toEqual(composerBefore);
+      await expect(heading).toBeInViewport();
+      await expect(composer).toBeInViewport();
+    });
+
+    test('names the open conversation in the pinned header', async ({ page }) => {
+      await page.goto('/assistant');
+
+      await page.getByPlaceholder('Ask a question…').fill('Prep me for a Stripe interview');
+      await page.getByRole('button', { name: 'Send' }).click();
+      await expect(page.getByText(FAKE_REPLY)).toBeVisible();
+
+      // The title is derived server-side from the first message.
+      const header = page.getByRole('main').getByText('Prep me for a Stripe interview').first();
+      await expect(header).toBeVisible();
+      await expect(header).toBeInViewport();
+    });
+  });
+}
 
 test.describe('AI resume generation', () => {
   const password = 'SecurePass123';
