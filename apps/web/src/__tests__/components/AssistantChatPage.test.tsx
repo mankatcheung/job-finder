@@ -140,6 +140,40 @@ describe('AssistantPage (chat)', () => {
     await waitFor(() => expect(screen.getByLabelText('Delete conversation')).toBeInTheDocument());
   });
 
+  it("names the active conversation in the header, so it's clear which one is open", async () => {
+    mockSearch.mockReturnValue({ conversation: 'conv-1' });
+    mockGqlRequest.mockImplementation((arg: unknown) => {
+      const query = documentOf(arg);
+      if (query.includes('Conversations'))
+        return Promise.resolve({
+          conversations: [{ id: 'conv-1', title: 'Interview prep for Stripe' }],
+        });
+      if (query.includes('ChatHistory')) return Promise.resolve({ chatHistory: [] });
+      return Promise.resolve({});
+    });
+    render(<AssistantPage />, { wrapper: Wrapper });
+
+    await waitFor(() => expect(screen.getByText('Interview prep for Stripe')).toBeInTheDocument());
+  });
+
+  it('falls back to the new-conversation label in the header for an untitled conversation', async () => {
+    mockSearch.mockReturnValue({ conversation: 'conv-1' });
+    mockGqlRequest.mockImplementation((arg: unknown) => {
+      const query = documentOf(arg);
+      if (query.includes('Conversations'))
+        return Promise.resolve({ conversations: [{ id: 'conv-1', title: null }] });
+      if (query.includes('ChatHistory')) return Promise.resolve({ chatHistory: [] });
+      return Promise.resolve({});
+    });
+    render(<AssistantPage />, { wrapper: Wrapper });
+
+    // The title is derived server-side from the first message, so a
+    // just-created conversation legitimately has none yet.
+    await waitFor(() =>
+      expect(screen.getByText('New conversation', { selector: 'p' })).toBeInTheDocument(),
+    );
+  });
+
   it('does not show the delete-conversation button with no active conversation', async () => {
     mockGqlRequest.mockImplementation(noConversations);
     render(<AssistantPage />, { wrapper: Wrapper });

@@ -64,6 +64,11 @@ export function AuthenticatedLayout() {
     select: (s) => s.location.search as { conversation?: string },
   });
   const inAssistantSection = pathname.startsWith('/assistant');
+  // Routes that are a fixed-height pane rather than a document: they fill the
+  // space main leaves and scroll something inside themselves. Only the chat
+  // qualifies today — /assistant/history is an ordinary scrolling list, so the
+  // match is exact. See the wrapper below for why this is opt-in.
+  const fillsViewport = pathname.replace(/\/$/, '') === '/assistant';
   // Keyed by the immediate child route (dashboard/applications/settings/…)
   // rather than the full pathname, so switching between nested settings tabs
   // doesn't also remount the settings layout's own sub-nav.
@@ -152,7 +157,17 @@ export function AuthenticatedLayout() {
 
   return (
     <ChatDockProvider>
-      <div className="flex min-h-screen bg-gray-50 lg:h-screen dark:bg-gray-900">
+      {/* The app shell is exactly one viewport tall at every breakpoint, so
+          <main> below is the only thing that scrolls. This was min-h-screen
+          (growing with content, so the *body* scrolled too) with lg:h-screen
+          only on desktop, which left a full-height page no reliable total to
+          subtract its chrome from: min-h-screen is 100vh, and on mobile 100vh
+          is the *largest* viewport, so it exceeds 100dvh whenever the browser
+          toolbar is showing — the gap the chat page was scrolling by. Pinning
+          the shell to h-dvh lets such a page say "fill the space" instead of
+          guessing at it. (The applications board still does its own 100dvh
+          arithmetic; it predates this and is left alone deliberately.) */}
+      <div className="flex h-dvh bg-gray-50 dark:bg-gray-900">
         <CommandPalette />
         <ShortcutCheatSheet isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
 
@@ -251,7 +266,7 @@ export function AuthenticatedLayout() {
         </header>
 
         {/* Desktop sidebar */}
-        <aside className="sidebar-desktop-entrance hidden w-60 shrink-0 flex-col border-r border-gray-200 bg-white lg:flex lg:h-screen dark:border-gray-700 dark:bg-gray-800">
+        <aside className="sidebar-desktop-entrance hidden w-60 shrink-0 flex-col border-r border-gray-200 bg-white lg:flex lg:h-full dark:border-gray-700 dark:bg-gray-800">
           <div className="sidebar-entrance-item flex items-center justify-between border-b border-gray-200 px-6 py-5 dark:border-gray-700">
             <span className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100">
               <LogoMark size={22} />
@@ -309,8 +324,19 @@ export function AuthenticatedLayout() {
           </div>
         </aside>
 
-        <main className="flex-1 overflow-auto pt-14 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pt-0 lg:pb-12">
-          <div key={sectionKey} className="route-transition">
+        <main className="min-w-0 flex-1 overflow-auto pt-14 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pt-0 lg:pb-12">
+          {/* Opt-in, not the default. `h-full` is a *definite* height, which is
+              what lets a page fill the viewport exactly — flex only distributes
+              space a container actually has, so with an auto height this box
+              grows to fit its content and the page's `flex-1` children are never
+              asked to shrink. That's precisely what a chat pane needs and what
+              ordinary pages must not get: giving every route a definite height
+              changes where content sits mid-interaction, which measurably broke
+              the board's drag-and-drop. So only routes that ask for it get it. */}
+          <div
+            key={sectionKey}
+            className={`route-transition ${fillsViewport ? 'flex h-full flex-col' : ''}`}
+          >
             <Outlet />
           </div>
         </main>
