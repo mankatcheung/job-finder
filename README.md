@@ -15,16 +15,16 @@ The project is a monorepo with a GraphQL API, a web app, a browser extension for
 
 ## Features
 
-- **Applications** — track job applications through their lifecycle, with interview rounds, offers, and outcomes.
+- **Applications** — track job applications through their lifecycle, with interview rounds, offers, and outcomes. Both the list and board views let you pick which details (role, location, date, tags, status, starred, ghosted) show on each row or card.
 - **Notes & documents** — attach notes and versioned documents (resumes, cover letters) to each application; upload via local disk (dev) or Vercel Blob (prod).
 - **Contacts & conversations** — keep track of recruiters/contacts and message threads per application.
-- **AI assistance (bring-your-own-key)** — auto-fill job descriptions and generate cover letters using your own OpenRouter or Google AI key, plus a chat assistant and company briefings.
+- **AI assistance (bring-your-own-key)** — auto-fill job descriptions and generate cover letters using your own OpenRouter or Google AI key, plus a chat assistant and company briefings. The assistant sidebar keeps a "New conversation" shortcut, your 10 most recent chats, and an "All chats" page with full, searchable conversation history.
 - **Calendar & reminders** — interview scheduling and follow-up reminders, with email (Brevo) and web push notifications.
 - **Analytics** — dashboards for response times, application channels, interview rounds, and offer outcomes.
 - **Auth** — email/password with TOTP two-factor, Google/GitHub OAuth, session management, security event log, and API tokens for CLI/extension access.
 - **Share links** — share a read-only summary of your job search progress via a public link.
 - **Weekly digest** — scheduled email summary of your job search activity.
-- **Localization** — web app available in 5 locales (i18next).
+- **Localization** — the app, including the public marketing site, is available in 5 locales (i18next).
 - **MCP server** — expose your job-search data read-only to an AI assistant ([details below](#mcp-server)).
 
 ## MCP server
