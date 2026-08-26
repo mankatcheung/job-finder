@@ -10,6 +10,8 @@ import { MarketingLocalePicker } from './MarketingLocalePicker';
 interface MarketingHeaderProps {
   /** Bolds the Features nav item — set on `/features` and every `/features/*` page. */
   activeFeatures?: boolean;
+  /** Bolds the setup guide nav item — set on `/ai-mcp-setup`. */
+  activeGuide?: boolean;
 }
 
 /**
@@ -19,7 +21,10 @@ interface MarketingHeaderProps {
  *
  * @category Layout
  */
-export function MarketingHeader({ activeFeatures = false }: MarketingHeaderProps) {
+export function MarketingHeader({
+  activeFeatures = false,
+  activeGuide = false,
+}: MarketingHeaderProps) {
   const { t } = useLocale();
   const isLoggedIn = useIsLoggedIn();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -47,6 +52,16 @@ export function MarketingHeader({ activeFeatures = false }: MarketingHeaderProps
               }
             >
               {t('landing.features')}
+            </Link>
+            <Link
+              to="/ai-mcp-setup"
+              className={
+                activeGuide
+                  ? 'text-sm font-semibold text-blue-700 dark:text-blue-400'
+                  : 'text-sm font-medium text-gray-700 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100'
+              }
+            >
+              {t('guides.aiMcpSetup.eyebrow')}
             </Link>
             <Link
               to={authLink}
@@ -88,6 +103,17 @@ export function MarketingHeader({ activeFeatures = false }: MarketingHeaderProps
               onClick={() => setMobileMenuOpen(false)}
             >
               {t('landing.features')}
+            </Link>
+            <Link
+              to="/ai-mcp-setup"
+              className={
+                activeGuide
+                  ? 'block rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                  : 'block rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+              }
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {t('guides.aiMcpSetup.eyebrow')}
             </Link>
             <Link
               to={authLink}
