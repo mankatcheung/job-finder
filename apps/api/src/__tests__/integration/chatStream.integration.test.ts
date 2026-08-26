@@ -151,10 +151,13 @@ describe('chat stream integration (JEF-239)', () => {
 
   it('streams delta events for the reply and persists it, with the outbound provider call faked', async () => {
     const token = await registerAndGetCookie();
-    await authedGraphQL(token, SAVE_LLM_API_KEY_MUTATION, {
+    const savedKey = await authedGraphQL(token, SAVE_LLM_API_KEY_MUTATION, {
       provider: 'openai',
       apiKey: 'test-key',
     });
+    expect(
+      (savedKey.json() as GraphQLResponse<{ saveLlmApiKey: boolean }>).data?.saveLlmApiKey,
+    ).toBe(true);
     const created = await authedGraphQL(token, CREATE_CONVERSATION_MUTATION, {
       provider: 'openai',
     });
