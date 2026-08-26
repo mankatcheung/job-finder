@@ -26,5 +26,5 @@ export interface IContactRepository {
   findById(id: string): Promise<Contact | null>;
   create(data: CreateContactData): Promise<Contact>;
   update(id: string, data: UpdateContactData): Promise<Contact>;
-  delete(id: string): Promise<void>;
+  delete(id: string, applicationId: string): Promise<void>;
 }

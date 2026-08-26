@@ -42,6 +42,6 @@ describe('DeleteContactUseCase', () => {
       contactRepository,
     });
     await useCase.execute({ userId: 'user-1', contactId: 'contact-1' });
-    expect(contactRepository.delete).toHaveBeenCalledWith('contact-1');
+    expect(contactRepository.delete).toHaveBeenCalledWith('contact-1', 'app-1');
   });
 });

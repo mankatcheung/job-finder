@@ -10,5 +10,5 @@ export interface IEducationRepository {
   findById(id: string): Promise<Education | null>;
   create(data: CreateEducationData): Promise<Education>;
   update(id: string, data: UpdateEducationData): Promise<Education>;
-  delete(id: string): Promise<void>;
+  delete(id: string, userId: string): Promise<void>;
 }

@@ -8,5 +8,5 @@ export interface ISkillRepository {
   findById(id: string): Promise<Skill | null>;
   create(data: CreateSkillData): Promise<Skill>;
   update(id: string, data: UpdateSkillData): Promise<Skill>;
-  delete(id: string): Promise<void>;
+  delete(id: string, userId: string): Promise<void>;
 }

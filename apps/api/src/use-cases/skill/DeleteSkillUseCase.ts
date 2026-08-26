@@ -17,6 +17,6 @@ export class DeleteSkillUseCase implements IDeleteSkillUseCase {
     if (!existing || existing.userId !== input.userId) {
       throw new NotFoundError('Skill not found');
     }
-    await this.deps.skillRepository.delete(input.id);
+    await this.deps.skillRepository.delete(input.id, existing.userId);
   }
 }

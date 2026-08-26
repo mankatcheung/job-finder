@@ -67,6 +67,6 @@ describe('DeleteNoteUseCase', () => {
     const useCase = new DeleteNoteUseCase({ applicationRepository, noteRepository });
     await useCase.execute({ userId: 'user-1', noteId: 'note-1' });
 
-    expect(noteRepository.delete).toHaveBeenCalledWith('note-1');
+    expect(noteRepository.delete).toHaveBeenCalledWith('note-1', 'app-1');
   });
 });

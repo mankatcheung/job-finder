@@ -21,6 +21,6 @@ export class DeleteInterviewRoundUseCase implements IDeleteInterviewRoundUseCase
     const app = await this.deps.applicationRepository.findById(round.applicationId);
     if (!app || app.userId !== input.userId) throw new ForbiddenError('Forbidden');
 
-    await this.deps.interviewRoundRepository.delete(input.roundId);
+    await this.deps.interviewRoundRepository.delete(input.roundId, round.applicationId);
   }
 }
