@@ -678,7 +678,7 @@ describe('ChatWithAssistantUseCase', () => {
     expect(llmProvider.completeWithTools).toHaveBeenCalledTimes(3);
   });
 
-  it('gives up with a clear message after exceeding the max tool-call iterations', async () => {
+  it('gives up with a clear message listing the tool it kept calling after exceeding the max iterations', async () => {
     const alwaysCallsTool: LLMCompletionResult = {
       content: null,
       toolCalls: [{ id: 'call_x', name: 'list_applications', arguments: {} }],
@@ -697,9 +697,47 @@ describe('ChatWithAssistantUseCase', () => {
     });
 
     expect(result).toBe(
-      'That took more steps than I could complete — try asking something more specific.',
+      'That took more steps than I could complete — try asking something more specific. ' +
+        'So far I looked at: list_applications.',
     );
     expect(completeWithTools).toHaveBeenCalledTimes(5);
+  });
+
+  it('lists every distinct tool it tried, in the order first called, when it hits the cap (JEF-241)', async () => {
+    const completeWithTools = vi
+      .fn()
+      .mockResolvedValueOnce({
+        content: null,
+        toolCalls: [{ id: 'call_1', name: 'list_applications', arguments: {} }],
+      })
+      .mockResolvedValueOnce({
+        content: null,
+        toolCalls: [
+          { id: 'call_2', name: 'list_notes', arguments: { applicationId: 'app-1' } },
+          { id: 'call_3', name: 'list_contacts', arguments: { applicationId: 'app-1' } },
+        ],
+      })
+      .mockResolvedValue({
+        content: null,
+        // Same tool called again on later iterations — should appear once, not repeat.
+        toolCalls: [{ id: 'call_4', name: 'list_applications', arguments: {} }],
+      });
+    const llmProvider: ILLMProvider = { complete: vi.fn(), completeWithTools };
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+    });
+
+    const result = await new ChatWithAssistantUseCase(deps as never).execute({
+      ...baseInput,
+      message: 'go deep',
+    });
+
+    expect(result).toBe(
+      'That took more steps than I could complete — try asking something more specific. ' +
+        'So far I looked at: list_applications, list_notes, list_contacts.',
+    );
   });
 
   it('uses the conversation-locked provider/model without consulting the user default', async () => {
