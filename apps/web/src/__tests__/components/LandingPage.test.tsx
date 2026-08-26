@@ -115,16 +115,20 @@ describe('LandingPage', () => {
     expectEveryLinkNamedToPointAt(/Analytics & insights/, '/features/analytics');
   });
 
-  describe('already-logged-in redirect', () => {
-    it('navigates to /dashboard on mount when a session already exists', () => {
+  describe('logged-in landing behaviour (JEF-236)', () => {
+    it('never navigates away on mount, even when a session already exists', () => {
+      // JEF-213 forced logged-in visitors from `/` over to /dashboard;
+      // JEF-236 removed that. The landing page is content, not a gate — a
+      // signed-in visitor reads it like anyone else and leaves via the
+      // ordinary "Go to dashboard" link.
       mockHasSessionCookie.mockReturnValue(true);
 
       render(<LandingPage />);
 
-      expect(mockNavigate).toHaveBeenCalledWith({ to: '/dashboard', replace: true });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('does not navigate away for logged-out users', () => {
+    it('leaves logged-out visitors alone as well', () => {
       mockHasSessionCookie.mockReturnValue(false);
 
       render(<LandingPage />);
