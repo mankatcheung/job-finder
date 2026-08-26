@@ -18,6 +18,29 @@ interface GoogleAIWireResponse {
   candidates?: Array<{ content?: { parts?: GoogleAIPart[] } }>;
 }
 
+/**
+ * No prompt-caching wiring here, unlike `AnthropicLLMProvider`'s explicit
+ * `cache_control` (JEF-238 investigation):
+ *
+ * - Gemini's *implicit* (automatic, no-code) caching only applies to Gemini
+ *   2.5+ models — `LLM.GOOGLEAI_DEFAULT_MODEL` is `gemini-2.0-flash`, which
+ *   isn't eligible at all regardless of anything this provider does.
+ * - Even on a 2.5+ model, implicit caching needs a minimum prefix (2,048
+ *   tokens for 2.5 Flash/Pro, 4,096 for newer Flash/Pro Preview tiers) — our
+ *   system prompt plus the read-tool catalogue chat actually sends is only
+ *   ~2,000–2,500 tokens by rough estimate, so it sits right at that floor
+ *   even on 2.5, not comfortably above it.
+ * - Gemini's *explicit* caching (a durable, named `CachedContents` resource,
+ *   created/refreshed via a separate API call with its own TTL) would work
+ *   regardless of model/size, but is a real feature to build — resource
+ *   lifecycle, TTL refresh, a place to persist the resource name per
+ *   provider/key — not a one-line `cache_control`-style flag.
+ *
+ * Net: nothing to change here today. If/when the default (or a user's
+ * chosen) model moves to 2.5+, implicit caching applies automatically with
+ * no code change, the same as OpenAI's — the lever is model choice, not this
+ * provider.
+ */
 export class GoogleAILLMProvider implements ILLMProvider {
   constructor(
     private readonly apiKey: string,
