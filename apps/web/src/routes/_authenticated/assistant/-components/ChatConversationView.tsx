@@ -2,13 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
-import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
+import { streamChatMessage, ChatStreamError } from '#/lib/chatStream';
+import { AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
 import { getErrorMessage } from '#/lib/errors';
 import { useLocale } from '#/lib/i18n';
 import { Button, Input, Skeleton, Spinner } from '@trakwyn/ui';
 import {
   CREATE_CONVERSATION,
-  SEND_CHAT_MESSAGE,
   chatHistoryQueryOptions,
   conversationsQueryOptions,
   type ChatHistoryResult,
@@ -64,6 +64,11 @@ export function ChatConversationView({
   const qc = useQueryClient();
   const [input, setInput] = useState('');
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  // The in-progress assistant reply, grown one chunk at a time as the server
+  // streams it (JEF-239) — a transient render-only value, not part of
+  // react-query's cache. Replaced by the real persisted message once the
+  // stream finishes and the history query is refetched.
+  const [streamingText, setStreamingText] = useState('');
   const [wasCancelled, setWasCancelled] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -80,11 +85,13 @@ export function ChatConversationView({
 
   const send = useMutation({
     mutationFn: (vars: { conversationId: string; message: string }) => {
+      setStreamingText('');
       const controller = new AbortController();
       abortControllerRef.current = controller;
-      return gqlClient.request<{ sendChatMessage: string }>({
-        document: SEND_CHAT_MESSAGE,
-        variables: vars,
+      return streamChatMessage({
+        conversationId: vars.conversationId,
+        message: vars.message,
+        onDelta: (text) => setStreamingText((prev) => prev + text),
         signal: controller.signal,
       });
     },
@@ -148,21 +155,25 @@ export function ChatConversationView({
       createdAt: new Date().toISOString(),
     });
     try {
-      const data = await send.mutateAsync({
+      await send.mutateAsync({
         conversationId: targetConversationId,
         message: trimmed,
       });
-      appendOptimistic(targetConversationId, {
-        id: tempMessageId(),
-        role: 'assistant',
-        content: data.sendChatMessage,
-        createdAt: new Date().toISOString(),
+      // The server has already persisted the real assistant message by the
+      // time the stream reports done — refetch rather than optimistically
+      // appending, so the transient streamingText bubble is replaced by the
+      // authoritative version (real id/timestamp) instead of a second,
+      // slightly-different copy of the same reply.
+      await qc.invalidateQueries({
+        queryKey: chatHistoryQueryOptions(targetConversationId).queryKey,
       });
       // Refreshes the conversation's title (auto-derived server-side from
       // the first message) and ordering (most-recently-updated first).
       void qc.invalidateQueries({ queryKey: conversationsQueryOptions.queryKey });
     } catch {
       // Error surfaced below via send.isError — the user's message stays visible so they can retry.
+    } finally {
+      setStreamingText('');
     }
   };
 
@@ -223,18 +234,25 @@ export function ChatConversationView({
           </>
         )}
 
-        {send.isPending && (
-          <div className="flex justify-start">
-            <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-400 dark:border-gray-700 dark:bg-gray-800">
-              <Spinner />
-              {LOADING_MESSAGES[loadingMessageIndex]}
+        {send.isPending &&
+          (streamingText ? (
+            <div className="flex justify-start">
+              <div className="max-w-[80%] rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm whitespace-pre-wrap text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                {streamingText}
+              </div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="flex justify-start">
+              <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-400 dark:border-gray-700 dark:bg-gray-800">
+                <Spinner />
+                {LOADING_MESSAGES[loadingMessageIndex]}
+              </div>
+            </div>
+          ))}
 
         {send.isError && !wasCancelled && (
           <p className="text-sm text-red-600 dark:text-red-400">
-            {getGqlErrorCode(send.error) === AI_NOT_CONFIGURED_CODE ? (
+            {send.error instanceof ChatStreamError && send.error.code === AI_NOT_CONFIGURED_CODE ? (
               <>
                 {t('resumeMatch.addApiKeyPrefix')}{' '}
                 <Link to="/settings/ai" className="underline">
@@ -242,6 +260,8 @@ export function ChatConversationView({
                 </Link>{' '}
                 {t('resumeMatch.addApiKeySuffix')}
               </>
+            ) : send.error instanceof ChatStreamError ? (
+              send.error.message
             ) : (
               getErrorMessage(send.error)
             )}

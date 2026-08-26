@@ -4,9 +4,11 @@ import type {
   LLMToolDefinition,
   LLMCompletionResult,
   LLMToolCall,
+  LLMStreamEvent,
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { LLM } from '#src/constants.js';
 import { fetchWithRetry } from '#src/infrastructure/llm/fetchWithRetry.js';
+import { parseSSE } from '#src/infrastructure/llm/sseParser.js';
 
 type AnthropicContentBlock =
   | { type: 'text'; text: string }
@@ -24,6 +26,22 @@ interface AnthropicWireMessage {
 
 interface AnthropicWireResponse {
   content?: AnthropicContentBlock[];
+}
+
+/**
+ * The subset of Anthropic's streaming event fields this provider acts on —
+ * see https://platform.claude.com/docs/en/build-with-claude/streaming. A
+ * flat, all-optional shape rather than a discriminated union: every field
+ * this provider doesn't recognize (message_start's `message`, ping, etc.)
+ * is simply absent rather than needing its own variant, matching the same
+ * loosely-typed-wire-response convention as `AnthropicWireResponse` above.
+ */
+interface AnthropicStreamEvent {
+  type: string;
+  index?: number;
+  content_block?: { type: 'text' } | { type: 'tool_use'; id: string; name: string };
+  delta?: { type: 'text_delta'; text: string } | { type: 'input_json_delta'; partial_json: string };
+  error?: { type: string; message: string };
 }
 
 export class AnthropicLLMProvider implements ILLMProvider {
@@ -89,6 +107,103 @@ export class AnthropicLLMProvider implements ILLMProvider {
       .map((b) => ({ id: b.id, name: b.name, arguments: b.input }));
 
     return { content: text, toolCalls };
+  }
+
+  async *completeWithToolsStream(
+    messages: LLMMessage[],
+    tools: LLMToolDefinition[],
+    maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+  ): AsyncGenerator<LLMStreamEvent> {
+    if (!this.apiKey) throw new Error('Anthropic API key is not set');
+
+    const { system, conversation } = this.splitSystem(messages);
+    const body = await this.postStream({
+      model: this.model,
+      max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
+      stream: true,
+      ...(system ? { system } : {}),
+      messages: this.toWireMessages(conversation),
+      tools: tools.map((t) => ({
+        name: t.name,
+        description: t.description,
+        input_schema: t.parameters,
+        ...(t.cacheBreakpoint ? { cache_control: { type: 'ephemeral' as const } } : {}),
+      })),
+    });
+
+    // Content blocks arrive by index — text and tool_use can interleave in
+    // principle, so each index accumulates independently rather than
+    // assuming a single running block. Tool call arguments stream as raw
+    // partial JSON string fragments (`input_json_delta`): Anthropic's own
+    // docs say to concatenate the whole string and parse once at
+    // content_block_stop rather than parsing incrementally.
+    const blocks = new Map<
+      number,
+      { type: 'text'; text: string } | { type: 'tool_use'; id: string; name: string; json: string }
+    >();
+
+    for await (const frame of parseSSE(body)) {
+      const event = JSON.parse(frame.data) as AnthropicStreamEvent;
+
+      switch (event.type) {
+        case 'content_block_start': {
+          if (event.index === undefined || !event.content_block) break;
+          const cb = event.content_block;
+          blocks.set(
+            event.index,
+            cb.type === 'text'
+              ? { type: 'text', text: '' }
+              : { type: 'tool_use', id: cb.id, name: cb.name, json: '' },
+          );
+          break;
+        }
+        case 'content_block_delta': {
+          if (event.index === undefined || !event.delta) break;
+          const block = blocks.get(event.index);
+          const delta = event.delta;
+          if (!block) break;
+          if (delta.type === 'text_delta' && block.type === 'text') {
+            block.text += delta.text;
+            yield { type: 'text_delta', text: delta.text };
+          } else if (delta.type === 'input_json_delta' && block.type === 'tool_use') {
+            block.json += delta.partial_json;
+          }
+          break;
+        }
+        case 'error':
+          throw new Error(`Anthropic stream error: ${event.error?.message ?? 'unknown error'}`);
+        default:
+          // message_start/content_block_stop/message_delta/message_stop/ping
+          // carry nothing this loop needs beyond what's already tracked, and
+          // future event types the docs say may be added should be ignored
+          // rather than treated as an error.
+          break;
+      }
+    }
+
+    let text: string | null = null;
+    const toolCalls: LLMToolCall[] = [];
+    for (const block of blocks.values()) {
+      if (block.type === 'text') {
+        text = block.text;
+      } else {
+        toolCalls.push({
+          id: block.id,
+          name: block.name,
+          arguments: this.parseArguments(block.json),
+        });
+      }
+    }
+
+    yield { type: 'done', content: text, toolCalls };
+  }
+
+  private parseArguments(raw: string): Record<string, unknown> {
+    try {
+      return raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
+    } catch {
+      return {};
+    }
   }
 
   private splitSystem(messages: LLMMessage[]): {
@@ -162,5 +277,25 @@ export class AnthropicLLMProvider implements ILLMProvider {
     }
 
     return response.json() as Promise<AnthropicWireResponse>;
+  }
+
+  private async postStream(body: Record<string, unknown>): Promise<ReadableStream<Uint8Array>> {
+    const response = await fetchWithRetry(LLM.ANTHROPIC_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': this.apiKey,
+        'anthropic-version': LLM.ANTHROPIC_VERSION,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Anthropic error ${response.status}: ${text}`);
+    }
+    if (!response.body) throw new Error('Anthropic error: response had no body to stream');
+
+    return response.body;
   }
 }

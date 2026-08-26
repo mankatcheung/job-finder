@@ -56,7 +56,11 @@ function makeDeps(overrides?: Record<string, unknown>) {
 function makeToolCallingProvider(...results: LLMCompletionResult[]): ILLMProvider {
   const completeWithTools = vi.fn();
   for (const result of results) completeWithTools.mockResolvedValueOnce(result);
-  return { complete: vi.fn(), completeWithTools };
+  return {
+    complete: vi.fn(),
+    completeWithTools,
+    completeWithToolsStream: vi.fn(),
+  };
 }
 
 const baseInput = { userId: 'user-1', conversationId: 'conv-1' };
@@ -703,7 +707,11 @@ describe('ChatWithAssistantUseCase', () => {
       toolCalls: [{ id: 'call_x', name: 'list_applications', arguments: {} }],
     };
     const completeWithTools = vi.fn().mockResolvedValue(alwaysCallsTool);
-    const llmProvider: ILLMProvider = { complete: vi.fn(), completeWithTools };
+    const llmProvider: ILLMProvider = {
+      complete: vi.fn(),
+      completeWithTools,
+      completeWithToolsStream: vi.fn(),
+    };
     const deps = makeDeps({
       llmProviderFactory: makeLLMProviderFactory({
         forUser: vi.fn().mockResolvedValue(llmProvider),
@@ -741,7 +749,11 @@ describe('ChatWithAssistantUseCase', () => {
         // Same tool called again on later iterations — should appear once, not repeat.
         toolCalls: [{ id: 'call_4', name: 'list_applications', arguments: {} }],
       });
-    const llmProvider: ILLMProvider = { complete: vi.fn(), completeWithTools };
+    const llmProvider: ILLMProvider = {
+      complete: vi.fn(),
+      completeWithTools,
+      completeWithToolsStream: vi.fn(),
+    };
     const deps = makeDeps({
       llmProviderFactory: makeLLMProviderFactory({
         forUser: vi.fn().mockResolvedValue(llmProvider),

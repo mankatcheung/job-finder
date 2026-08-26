@@ -34,6 +34,18 @@ export interface LLMCompletionResult {
   toolCalls: LLMToolCall[];
 }
 
+/**
+ * Emitted by `completeWithToolsStream` (JEF-239). `text_delta` events carry
+ * incremental assistant text as it arrives; exactly one `done` carries the
+ * fully-assembled result (same shape as `completeWithTools`'s return value)
+ * and always terminates the stream, whether or not any deltas preceded it.
+ * Providers that don't genuinely stream (Google — see `GoogleAILLMProvider`)
+ * satisfy this by yielding only the `done` event.
+ */
+export type LLMStreamEvent =
+  | { type: 'text_delta'; text: string }
+  | { type: 'done'; content: string | null; toolCalls: LLMToolCall[] };
+
 export interface ILLMProvider {
   complete(messages: LLMMessage[], maxTokens?: number, signal?: AbortSignal): Promise<string>;
   completeWithTools(
@@ -42,4 +54,9 @@ export interface ILLMProvider {
     maxTokens?: number,
     signal?: AbortSignal,
   ): Promise<LLMCompletionResult>;
+  completeWithToolsStream(
+    messages: LLMMessage[],
+    tools: LLMToolDefinition[],
+    maxTokens?: number,
+  ): AsyncGenerator<LLMStreamEvent>;
 }

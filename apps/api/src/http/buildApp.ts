@@ -16,6 +16,7 @@ import { digestRoutes } from '#src/http/routes/digest.routes.js';
 import { trashPurgeRoutes } from '#src/http/routes/trashPurge.routes.js';
 import { healthRoutes } from '#src/http/routes/health.routes.js';
 import { mcpRoutes } from '#src/http/routes/mcp.routes.js';
+import { handleChatStream } from '#src/http/routes/chatStream.routes.js';
 import { oauthRoutes } from '#src/http/routes/oauth.routes.js';
 import { fakeOAuthConsentRoutes } from '#src/http/routes/fakeOAuthConsent.routes.js';
 import { fakeLlmCompletionsRoutes } from '#src/http/routes/fakeLlmCompletions.routes.js';
@@ -145,6 +146,15 @@ export async function buildApp(fastify: FastifyInstance): Promise<FastifyInstanc
       },
     });
   }
+  // Registered directly (not through registerRoutes/RouteDefinition), same
+  // as MCP above: handleChatStream writes to reply.raw incrementally and
+  // needs the real FastifyRequest/FastifyReply, not the abstracted
+  // IHttpRequest/IHttpResponse ports built for a single send().
+  fastify.route({
+    method: 'POST',
+    url: ROUTES.CHAT_STREAM,
+    handler: handleChatStream,
+  });
   fastify.route({
     method: 'GET',
     url: ROUTES.OAUTH_START,

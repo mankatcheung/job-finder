@@ -325,4 +325,26 @@ describe('GoogleAILLMProvider', () => {
       });
     });
   });
+
+  describe('completeWithToolsStream (JEF-239)', () => {
+    it('wraps the non-streaming call and yields a single done event with its result', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }) as never,
+      );
+      const provider = new GoogleAILLMProvider('secret-key');
+
+      const events = [];
+      for await (const event of provider.completeWithToolsStream(
+        [{ role: 'user', content: 'hi' }],
+        [],
+      )) {
+        events.push(event);
+      }
+
+      expect(events).toEqual([{ type: 'done', content: 'ok', toolCalls: [] }]);
+      // Confirms it's the real (non-streaming) endpoint doing the work — no
+      // stream:true or SSE parsing involved for this provider.
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+  });
 });
