@@ -256,6 +256,25 @@ describe('ChatWithAssistantUseCase', () => {
     expect(tools[tools.length - 1]).toMatchObject({ cacheBreakpoint: true });
   });
 
+  it('forwards the caller-supplied abort signal into the LLM call (JEF-240)', async () => {
+    const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+    });
+    const controller = new AbortController();
+
+    await new ChatWithAssistantUseCase(deps as never).execute({
+      ...baseInput,
+      message: 'hi',
+      signal: controller.signal,
+    });
+
+    const [, , , signal] = vi.mocked(llmProvider.completeWithTools).mock.calls[0];
+    expect(signal).toBe(controller.signal);
+  });
+
   it("splices the user's custom AI prompt in as a second system message when set", async () => {
     const llmProvider = makeToolCallingProvider({ content: 'ok', toolCalls: [] });
     const deps = makeDeps({

@@ -35,10 +35,11 @@ export interface LLMCompletionResult {
 }
 
 export interface ILLMProvider {
-  complete(messages: LLMMessage[], maxTokens?: number): Promise<string>;
+  complete(messages: LLMMessage[], maxTokens?: number, signal?: AbortSignal): Promise<string>;
   completeWithTools(
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
     maxTokens?: number,
+    signal?: AbortSignal,
   ): Promise<LLMCompletionResult>;
 }

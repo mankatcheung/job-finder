@@ -64,6 +64,7 @@ export function ChatConversationView({
   const qc = useQueryClient();
   const [input, setInput] = useState('');
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  const [wasCancelled, setWasCancelled] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const { data: historyData, isLoading: isHistoryLoading } = useQuery({
@@ -75,10 +76,24 @@ export function ChatConversationView({
     [conversationId, historyData],
   );
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const send = useMutation({
-    mutationFn: (vars: { conversationId: string; message: string }) =>
-      gqlClient.request<{ sendChatMessage: string }>(SEND_CHAT_MESSAGE, vars),
+    mutationFn: (vars: { conversationId: string; message: string }) => {
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      return gqlClient.request<{ sendChatMessage: string }>({
+        document: SEND_CHAT_MESSAGE,
+        variables: vars,
+        signal: controller.signal,
+      });
+    },
   });
+
+  const handleCancel = () => {
+    setWasCancelled(true);
+    abortControllerRef.current?.abort();
+  };
 
   const createConversation = useMutation({
     mutationFn: (vars: { provider?: string | null; model?: string | null }) =>
@@ -111,6 +126,7 @@ export function ChatConversationView({
     const trimmed = text.trim();
     if (!trimmed || send.isPending) return;
     setInput('');
+    setWasCancelled(false);
 
     let targetConversationId = conversationId;
     if (!targetConversationId) {
@@ -216,7 +232,7 @@ export function ChatConversationView({
           </div>
         )}
 
-        {send.isError && (
+        {send.isError && !wasCancelled && (
           <p className="text-sm text-red-600 dark:text-red-400">
             {getGqlErrorCode(send.error) === AI_NOT_CONFIGURED_CODE ? (
               <>
@@ -245,9 +261,15 @@ export function ChatConversationView({
           placeholder={t('chat.inputPlaceholder')}
           className="flex-1"
         />
-        <Button type="submit" disabled={send.isPending || !input.trim()}>
-          {t('chat.send')}
-        </Button>
+        {send.isPending ? (
+          <Button type="button" variant="secondary" onClick={handleCancel}>
+            {t('chat.cancel')}
+          </Button>
+        ) : (
+          <Button type="submit" disabled={!input.trim()}>
+            {t('chat.send')}
+          </Button>
+        )}
       </form>
     </div>
   );

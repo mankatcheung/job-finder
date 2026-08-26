@@ -57,14 +57,18 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
   async complete(
     messages: LLMMessage[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+    signal?: AbortSignal,
   ): Promise<string> {
     if (!this.apiKey) throw new Error('API key is not set');
 
-    const json = await this.post({
-      model: this.model,
-      messages: this.toWireMessages(messages),
-      max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
-    });
+    const json = await this.post(
+      {
+        model: this.model,
+        messages: this.toWireMessages(messages),
+        max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
+      },
+      signal,
+    );
 
     return json.choices[0]?.message?.content ?? '';
   }
@@ -73,18 +77,22 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+    signal?: AbortSignal,
   ): Promise<LLMCompletionResult> {
     if (!this.apiKey) throw new Error('API key is not set');
 
-    const json = await this.post({
-      model: this.model,
-      messages: this.toWireMessages(messages),
-      max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
-      tools: tools.map((t) => ({
-        type: 'function',
-        function: { name: t.name, description: t.description, parameters: t.parameters },
-      })),
-    });
+    const json = await this.post(
+      {
+        model: this.model,
+        messages: this.toWireMessages(messages),
+        max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
+        tools: tools.map((t) => ({
+          type: 'function',
+          function: { name: t.name, description: t.description, parameters: t.parameters },
+        })),
+      },
+      signal,
+    );
 
     const message = json.choices[0]?.message;
     const toolCalls: LLMToolCall[] = (message?.tool_calls ?? []).map((tc) => ({
@@ -124,15 +132,22 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     }
   }
 
-  private async post(body: Record<string, unknown>): Promise<OpenAIWireResponse> {
-    const response = await fetchWithRetry(this.baseUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `${AUTH_HEADER.BEARER_PREFIX}${this.apiKey}`,
+  private async post(
+    body: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<OpenAIWireResponse> {
+    const response = await fetchWithRetry(
+      this.baseUrl,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${AUTH_HEADER.BEARER_PREFIX}${this.apiKey}`,
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    });
+      signal,
+    );
 
     if (!response.ok) {
       const text = await response.text();

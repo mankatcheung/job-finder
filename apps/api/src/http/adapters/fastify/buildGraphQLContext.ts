@@ -5,6 +5,23 @@ import { toHttpResponse } from '#src/http/adapters/fastify/toHttpResponse.js';
 import { diScopeOf } from '#src/http/adapters/fastify/diScope.js';
 import { AUTH_HEADER, COOKIES } from '#src/constants.js';
 
+/**
+ * Fires once the underlying connection closes, for any reason — a normal
+ * completed response closes it too. Only a close *before* the response
+ * finished writing means the client actually went away mid-request, so
+ * `abortSignal` (JEF-240) only aborts on that case; a request that already
+ * finished normally leaves it untouched (the controller is simply never
+ * aborted, which is harmless — nothing reads the signal after the resolver
+ * has already returned).
+ */
+export function abortSignalFor(reply: FastifyReply): AbortSignal {
+  const controller = new AbortController();
+  reply.raw.once('close', () => {
+    if (!reply.raw.writableEnded) controller.abort();
+  });
+  return controller.signal;
+}
+
 export async function buildGraphQLContext(
   request: FastifyRequest,
   reply: FastifyReply,
@@ -25,5 +42,6 @@ export async function buildGraphQLContext(
     diScope,
     request: toHttpRequest(request),
     reply: toHttpResponse(reply),
+    abortSignal: abortSignalFor(reply),
   };
 }

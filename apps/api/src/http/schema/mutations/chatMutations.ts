@@ -45,6 +45,7 @@ builder.mutationField('sendChatMessage', (t) =>
           userId: ctx.user.sub,
           conversationId: String(args.conversationId),
           message: args.message,
+          signal: ctx.abortSignal,
         });
       } catch (err) {
         throw fromCodedError(err);

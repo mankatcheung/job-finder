@@ -143,6 +143,20 @@ describe('OpenAICompatibleLLMProvider', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
+  it('forwards a caller-supplied signal into the outbound fetch (JEF-240)', async () => {
+    vi.mocked(fetch).mockImplementation(() => new Promise(() => {}));
+    const controller = new AbortController();
+    const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+
+    void provider.complete([{ role: 'user', content: 'hi' }], undefined, controller.signal);
+    await Promise.resolve();
+
+    const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    expect(options.signal!.aborted).toBe(false);
+    controller.abort();
+    expect(options.signal!.aborted).toBe(true);
+  });
+
   describe('completeWithTools', () => {
     const TOOLS = [
       {

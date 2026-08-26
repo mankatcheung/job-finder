@@ -50,6 +50,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
   async complete(
     messages: LLMMessage[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+    signal?: AbortSignal,
   ): Promise<string> {
     if (!this.apiKey) throw new Error('Google AI API key is not set');
 
@@ -58,10 +59,13 @@ export class GoogleAILLMProvider implements ILLMProvider {
       parts: [{ text: m.content }],
     }));
 
-    const json = await this.post({
-      contents,
-      generationConfig: { maxOutputTokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP) },
-    });
+    const json = await this.post(
+      {
+        contents,
+        generationConfig: { maxOutputTokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP) },
+      },
+      signal,
+    );
 
     return json.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
   }
@@ -70,6 +74,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+    signal?: AbortSignal,
   ): Promise<LLMCompletionResult> {
     if (!this.apiKey) throw new Error('Google AI API key is not set');
 
@@ -91,20 +96,25 @@ export class GoogleAILLMProvider implements ILLMProvider {
       .filter((m) => m.role !== 'system')
       .map((m) => this.toWireContent(m, idToName));
 
-    const json = await this.post({
-      contents,
-      ...(systemInstruction ? { systemInstruction: { parts: [{ text: systemInstruction }] } } : {}),
-      tools: [
-        {
-          functionDeclarations: tools.map((t) => ({
-            name: t.name,
-            description: t.description,
-            parameters: t.parameters,
-          })),
-        },
-      ],
-      generationConfig: { maxOutputTokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP) },
-    });
+    const json = await this.post(
+      {
+        contents,
+        ...(systemInstruction
+          ? { systemInstruction: { parts: [{ text: systemInstruction }] } }
+          : {}),
+        tools: [
+          {
+            functionDeclarations: tools.map((t) => ({
+              name: t.name,
+              description: t.description,
+              parameters: t.parameters,
+            })),
+          },
+        ],
+        generationConfig: { maxOutputTokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP) },
+      },
+      signal,
+    );
 
     const parts = json.candidates?.[0]?.content?.parts ?? [];
     const text = parts.find((p) => p.text !== undefined)?.text ?? null;
@@ -141,14 +151,21 @@ export class GoogleAILLMProvider implements ILLMProvider {
     return { role: m.role === 'assistant' ? 'model' : m.role, parts: [{ text: m.content }] };
   }
 
-  private async post(body: Record<string, unknown>): Promise<GoogleAIWireResponse> {
+  private async post(
+    body: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<GoogleAIWireResponse> {
     const url = `${LLM.GOOGLEAI_API_URL}/${this.model}:generateContent?key=${this.apiKey}`;
 
-    const response = await fetchWithRetry(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
+    const response = await fetchWithRetry(
+      url,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      },
+      signal,
+    );
 
     if (!response.ok) {
       const text = await response.text();

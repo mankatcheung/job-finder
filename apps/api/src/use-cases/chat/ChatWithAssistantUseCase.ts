@@ -39,6 +39,14 @@ export interface ChatWithAssistantInput {
   userId: string;
   conversationId: string;
   message: string;
+  /**
+   * Aborted when the client disconnects before a reply arrives (JEF-240) —
+   * threaded down to the LLM provider fetch so a cancelled generation stops
+   * costing tokens server-side instead of running to completion for no one.
+   * Tool execution itself isn't cancelled (cheap DB reads, not the expense
+   * this exists to avoid) — only the LLM call.
+   */
+  signal?: AbortSignal;
 }
 
 interface Deps {
@@ -133,7 +141,7 @@ export class ChatWithAssistantUseCase {
       { role: 'user', content: input.message },
     ];
 
-    const reply = await this.complete(messages, input.userId, conversation, user);
+    const reply = await this.complete(messages, input.userId, conversation, user, input.signal);
 
     await this.deps.messageRepository.create({
       id: this.deps.generateId(),
@@ -170,6 +178,7 @@ export class ChatWithAssistantUseCase {
     userId: string,
     conversation: Conversation,
     user: User | null,
+    signal?: AbortSignal,
   ): Promise<string> {
     const providerName = conversation.llmProvider ?? user?.defaultLlmProvider ?? null;
 
@@ -196,7 +205,12 @@ export class ChatWithAssistantUseCase {
     const calledTools: string[] = [];
 
     for (let i = 0; i < CHAT.MAX_TOOL_ITERATIONS; i++) {
-      const result = await llmProvider.completeWithTools(messages, this.deps.chatTools);
+      const result = await llmProvider.completeWithTools(
+        messages,
+        this.deps.chatTools,
+        undefined,
+        signal,
+      );
 
       if (result.toolCalls.length === 0) {
         return result.content?.trim() || "I don't have a response for that.";
