@@ -63,6 +63,18 @@ export async function handleChatStream(
   // this response out of it so writing directly to reply.raw and manually
   // calling .end() is safe.
   reply.hijack();
+  // Headers accumulated by onRequest hooks — above all @fastify/cors's
+  // Access-Control-Allow-Origin/-Credentials — live in Fastify's own reply
+  // store and are normally flushed by the send lifecycle hijack() just opted
+  // out of. Copying them onto the raw response is what keeps this readable
+  // cross-origin: without them the browser passes the preflight (which
+  // @fastify/cors answers itself, never reaching this handler) and then
+  // blocks the response body, so `fetch` rejects and the stream never
+  // starts. Same-origin callers — CI's e2e run through Vite's dev proxy —
+  // never notice, which is how this shipped broken twice.
+  for (const [key, value] of Object.entries(reply.getHeaders())) {
+    if (value !== undefined) reply.raw.setHeader(key, value);
+  }
   reply.raw.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',

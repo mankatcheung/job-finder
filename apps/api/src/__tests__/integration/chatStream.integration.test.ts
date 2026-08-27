@@ -86,11 +86,16 @@ describe('chat stream integration (JEF-239)', () => {
       payload: { query, variables },
     });
 
-  function streamInject(token: string | null, body: Record<string, unknown>) {
+  function streamInject(
+    token: string | null,
+    body: Record<string, unknown>,
+    headers?: Record<string, string>,
+  ) {
     return testApp.app.inject({
       method: 'POST',
       url: ROUTES.CHAT_STREAM,
       cookies: token ? { trakwyn_access_token: token } : undefined,
+      headers,
       payload: body,
     });
   }
@@ -193,5 +198,27 @@ describe('chat stream integration (JEF-239)', () => {
       { role: 'user', content: 'hi there' },
       { role: 'assistant', content: 'Hello there!' },
     ]);
+  });
+
+  // reply.hijack() opts out of the send lifecycle that normally flushes
+  // headers set by onRequest hooks, so @fastify/cors's headers have to be
+  // carried onto reply.raw by hand. Without them the browser passes the
+  // preflight (@fastify/cors answers that itself, never reaching the
+  // handler) and then blocks the response body — the stream never starts
+  // for any cross-origin caller, i.e. production and any local setup with
+  // VITE_API_URL pointed straight at :3001 rather than the Vite proxy.
+  it('carries CORS headers onto the hijacked SSE response for a cross-origin caller', async () => {
+    const token = await registerAndGetCookie();
+
+    const res = await streamInject(
+      token,
+      { conversationId: 'nope', message: 'hi' },
+      { origin: 'http://localhost:3000' },
+    );
+
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toContain('text/event-stream');
+    expect(res.headers['access-control-allow-origin']).toBe('http://localhost:3000');
+    expect(res.headers['access-control-allow-credentials']).toBe('true');
   });
 });
