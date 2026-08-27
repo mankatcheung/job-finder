@@ -65,10 +65,12 @@ export function AuthenticatedLayout() {
   });
   const inAssistantSection = pathname.startsWith('/assistant');
   // Routes that are a fixed-height pane rather than a document: they fill the
-  // space main leaves and scroll something inside themselves. Only the chat
-  // qualifies today — /assistant/history is an ordinary scrolling list, so the
-  // match is exact. See the wrapper below for why this is opt-in.
-  const fillsViewport = pathname.replace(/\/$/, '') === '/assistant';
+  // space main leaves and scroll something inside themselves — the chat and
+  // the applications board. /assistant/history and the applications list are
+  // ordinary scrolling lists, so both matches are exact. See the wrapper
+  // below for why this is opt-in.
+  const fillsViewport =
+    pathname.replace(/\/$/, '') === '/assistant' || pathname === '/applications/board';
   // Keyed by the immediate child route (dashboard/applications/settings/…)
   // rather than the full pathname, so switching between nested settings tabs
   // doesn't also remount the settings layout's own sub-nav.
@@ -158,15 +160,12 @@ export function AuthenticatedLayout() {
   return (
     <ChatDockProvider>
       {/* The app shell is exactly one viewport tall at every breakpoint, so
-          <main> below is the only thing that scrolls. This was min-h-screen
-          (growing with content, so the *body* scrolled too) with lg:h-screen
-          only on desktop, which left a full-height page no reliable total to
-          subtract its chrome from: min-h-screen is 100vh, and on mobile 100vh
-          is the *largest* viewport, so it exceeds 100dvh whenever the browser
-          toolbar is showing — the gap the chat page was scrolling by. Pinning
-          the shell to h-dvh lets such a page say "fill the space" instead of
-          guessing at it. (The applications board still does its own 100dvh
-          arithmetic; it predates this and is left alone deliberately.) */}
+          <main> below is the only thing that scrolls — h-dvh rather than
+          min-h-screen, which grows with content (so the *body* scrolled
+          too) and, on mobile, exceeds 100dvh whenever the browser toolbar
+          is showing (100vh is the *largest* viewport). Pinning the shell to
+          h-dvh lets a page say "fill the space" instead of computing its
+          own total to subtract chrome from. */}
       <div className="flex h-dvh bg-gray-50 dark:bg-gray-900">
         <CommandPalette />
         <ShortcutCheatSheet isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
@@ -329,10 +328,12 @@ export function AuthenticatedLayout() {
               what lets a page fill the viewport exactly — flex only distributes
               space a container actually has, so with an auto height this box
               grows to fit its content and the page's `flex-1` children are never
-              asked to shrink. That's precisely what a chat pane needs and what
-              ordinary pages must not get: giving every route a definite height
-              changes where content sits mid-interaction, which measurably broke
-              the board's drag-and-drop. So only routes that ask for it get it. */}
+              asked to shrink. That's precisely what a chat pane or a kanban
+              board needs and what an ordinary scrolling page must not get:
+              giving a route a definite height changes where content sits
+              mid-interaction, which can as easily be a drag-and-drop
+              regression (the board's own `boardCollisionDetection`, JEF-242)
+              as a squashed layout. So only routes that ask for it get it. */}
           <div
             key={sectionKey}
             className={`route-transition ${fillsViewport ? 'flex h-full flex-col' : ''}`}
