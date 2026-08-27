@@ -49,12 +49,11 @@ export class CachedApiTokenRepository implements IApiTokenRepository {
    * Not invalidated: fires on every validated request, so busting
    * findByTokenHash/findById here would defeat the point of caching them.
    *
-   * It is throttled instead. This used to be a database write on every request
-   * — a remote write, from a serverless function, to record that a token was
-   * used. Now the first caller in each window writes and the rest skip it,
-   * read by seeing whether `getOrSet` had to call its fetch. The field feeds a
-   * "last used" column in settings, where a minute of granularity reads the
-   * same as none.
+   * Throttled instead — a remote database write on every request, from a
+   * serverless function, is expensive for a field that only feeds a "last
+   * used" column in settings, where a minute of granularity reads the same
+   * as none. The first caller in each window writes and the rest skip it,
+   * detected by whether `getOrSet` had to call its fetch.
    */
   async updateLastUsed(id: string): Promise<void> {
     let firstInWindow = false;

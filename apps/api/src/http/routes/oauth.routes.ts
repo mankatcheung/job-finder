@@ -43,14 +43,13 @@ const STATE_COOKIE_OPTIONS = {
 } as const;
 
 /**
- * Every failure the callback can report, as a closed set of slugs.
- *
- * The route used to forward `err.message` into the query string, so an
- * unexpected throw put internal detail — upstream status codes, provider
- * error slugs, even this deployment's own environment variable names — into
- * the user's URL bar, history and Referer, and onto the sign-in page
- * (JEF-203). Nothing crosses that boundary now except a value from this list,
- * which the client translates.
+ * Every failure the callback can report, as a closed set of slugs — never
+ * forward a raw `err.message` (or any other free-text detail) into the
+ * query string instead. An unexpected throw's message can contain upstream
+ * status codes, provider error slugs, or this deployment's own environment
+ * variable names, and the query string ends up in the URL bar, browser
+ * history, and Referer header. Only a value from this list crosses that
+ * boundary; the client translates it into user-facing text.
  */
 export const OAUTH_ERROR = {
   /** The user pressed Cancel at the provider. Not a fault. */
@@ -288,9 +287,10 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
             });
             res.redirect(`${webAppOrigin}/settings/security?oauthLinked=${provider}`);
           } catch (err) {
-            // Logged, not shown: moving the detail out of the URL must not
-            // mean losing it, since this was previously the only place an
-            // unexpected failure surfaced at all.
+            // Logged, not shown: keeping raw error detail out of the
+            // redirect URL (see OAUTH_ERROR above) must not mean losing it
+            // entirely — an unexpected failure here has nowhere else to
+            // surface.
             getCradle().logger.error(`OAuth link failed for ${provider}`, err);
             res.redirect(`${webAppOrigin}/settings/security?oauthError=${linkErrorSlug(err)}`);
           }
@@ -337,9 +337,9 @@ function safeReturnTo(value: string | string[] | undefined): string | undefined 
 }
 
 function returnToUrl(webAppOrigin: string, returnTo: string | undefined): string {
-  // A plain sign-in with no captured destination lands on the dashboard.
-  // It used to land on `/`, which only worked because the landing page
-  // bounced logged-in visitors to /dashboard — JEF-236 removed that
-  // redirect, so the default has to point at a real destination itself.
+  // A plain sign-in with no captured destination lands on the dashboard,
+  // not `/` — the landing page doesn't redirect logged-in visitors
+  // elsewhere, so `/` would leave a freshly-signed-in user looking at the
+  // marketing page instead of their dashboard.
   return returnTo ? `${webAppOrigin}${returnTo}` : `${webAppOrigin}/dashboard`;
 }

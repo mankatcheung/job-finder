@@ -69,10 +69,9 @@ Resume:
 ${resumeText.slice(0, 6000)}`;
 
 // matchPercentage is intentionally left unclamped here — parseResponse()
-// clamps it to 0-100 after parsing, same as before this validation existed.
-// matchedKeywords/missingKeywords are the specific gap called out in
-// JEF-108: previously never checked to actually be arrays, so a
-// malformed-but-truthy value (e.g. a string) passed straight through.
+// clamps it to 0-100 after parsing. matchedKeywords/missingKeywords are
+// validated as arrays so a malformed-but-truthy LLM response (e.g. a
+// string) can't pass straight through as if it were valid.
 const resumeMatchLlmResponseSchema = z.object({
   matchPercentage: z.number().optional(),
   matchedKeywords: z.array(z.string()).optional(),

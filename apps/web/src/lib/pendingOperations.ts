@@ -13,12 +13,12 @@ export type PendingOperation = {
  * Deletes that are waiting out an undo window, written to localStorage so they
  * survive the page.
  *
- * `showUndoToast` holds the request in a `setTimeout`. That timer dies with the
- * tab, so a refresh inside the window used to drop the delete entirely — after
- * the UI had already removed the row and told the user it was gone (JEF-191).
- * Recording the operation up front and replaying whatever is left over on the
- * next load closes that, and covers a crash or a killed tab too, which a
- * `pagehide` flush would not.
+ * `showUndoToast` holds the request in a `setTimeout`, which dies with the
+ * tab — without this, a refresh inside the undo window would drop the
+ * delete entirely, after the UI had already removed the row and told the
+ * user it was gone. Recording the operation up front and replaying
+ * whatever is left over on the next load closes that gap, and covers a
+ * crash or a killed tab too, which a `pagehide` flush would not.
  *
  * Every entry is removed on success, on undo, and on any answer from the
  * server — so the queue only retains work that never reached the API at all.

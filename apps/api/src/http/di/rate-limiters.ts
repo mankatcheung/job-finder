@@ -81,10 +81,6 @@ export const rateLimiters = {
       RATE_LIMIT.REQUEST_ADD_BACKUP_EMAIL.WINDOW_MS,
     ),
   ),
-  // Was declared as a dependency by RemoveBackupEmailUseCase but never
-  // actually registered here — Awilix would have thrown a resolution error
-  // on every "remove backup email" mutation call. Found and fixed
-  // incidentally while rewriting this file for JEF-160.
   removeBackupEmailRateLimiter: asValue(
     buildRateLimiter(
       RATE_LIMIT.REMOVE_BACKUP_EMAIL.MAX_ATTEMPTS,
