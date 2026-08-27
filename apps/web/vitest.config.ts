@@ -12,6 +12,14 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    // Pinned rather than left to apps/web/.env (gitignored, developer-local):
+    // whether relative OAuth hrefs assert correctly must not depend on
+    // whether that file happens to hold the dev-proxy form (`/graphql`) or
+    // an absolute one (`http://localhost:3001/graphql`) — both are valid
+    // local configs, but only the relative one makes those assertions pass.
+    // Tests that need the absolute (production-subdomain) shape stub this
+    // explicitly with `vi.stubEnv` + `vi.resetModules()`.
+    env: { VITE_API_URL: '/graphql' },
     setupFiles: ['./src/__tests__/setup.ts'],
     // The jest-axe sweeps in a11y.test.tsx take 5-7s under full-suite
     // parallelism, right on Vitest's 5s default — they timed out only when
