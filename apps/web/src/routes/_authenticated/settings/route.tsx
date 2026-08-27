@@ -7,6 +7,8 @@ import {
   BellIcon,
   DatabaseIcon,
   BriefcaseIcon,
+  SparklesIcon,
+  AlertTriangleIcon,
 } from 'lucide-react';
 
 export const Route = createFileRoute('/_authenticated/settings')({
@@ -20,9 +22,12 @@ function SettingsLayout() {
     { to: '/settings/profile', label: t('settings.profile'), icon: UserIcon },
     { to: '/settings/experience', label: t('settings.experience'), icon: BriefcaseIcon },
     { to: '/settings/security', label: t('settings.security'), icon: ShieldIcon },
+    { to: '/settings/ai', label: t('settings.ai'), icon: SparklesIcon },
     { to: '/settings/integrations', label: t('settings.integrations'), icon: PlugIcon },
     { to: '/settings/notifications', label: t('settings.notifications'), icon: BellIcon },
     { to: '/settings/data', label: t('settings.data'), icon: DatabaseIcon },
+    // Last, deliberately: the only irreversible action in Settings.
+    { to: '/settings/danger-zone', label: t('settings.dangerZone'), icon: AlertTriangleIcon },
   ] as const;
 
   return (

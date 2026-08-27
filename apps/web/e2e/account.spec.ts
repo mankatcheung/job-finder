@@ -19,9 +19,12 @@ test.describe('Account settings', () => {
     await page.goto('/settings/data');
     await expect(page.getByText('Export your data')).toBeVisible();
 
-    // Danger zone is its own page, split out of Data (JEF-204).
+    // Danger zone is its own page, split out of Data (JEF-204). Scoped to
+    // the heading, not a plain getByText: the settings sub-nav link is
+    // labeled "Danger zone" too, so the bare text matches both the link
+    // and this page's own heading.
     await page.goto('/settings/danger-zone');
-    await expect(page.getByText('Danger zone')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Danger zone' })).toBeVisible();
   });
 
   test('updates email with correct password', async ({ page }) => {
