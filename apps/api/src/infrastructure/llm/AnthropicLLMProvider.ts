@@ -113,23 +113,27 @@ export class AnthropicLLMProvider implements ILLMProvider {
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+    signal?: AbortSignal,
   ): AsyncGenerator<LLMStreamEvent> {
     if (!this.apiKey) throw new Error('Anthropic API key is not set');
 
     const { system, conversation } = this.splitSystem(messages);
-    const body = await this.postStream({
-      model: this.model,
-      max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
-      stream: true,
-      ...(system ? { system } : {}),
-      messages: this.toWireMessages(conversation),
-      tools: tools.map((t) => ({
-        name: t.name,
-        description: t.description,
-        input_schema: t.parameters,
-        ...(t.cacheBreakpoint ? { cache_control: { type: 'ephemeral' as const } } : {}),
-      })),
-    });
+    const body = await this.postStream(
+      {
+        model: this.model,
+        max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
+        stream: true,
+        ...(system ? { system } : {}),
+        messages: this.toWireMessages(conversation),
+        tools: tools.map((t) => ({
+          name: t.name,
+          description: t.description,
+          input_schema: t.parameters,
+          ...(t.cacheBreakpoint ? { cache_control: { type: 'ephemeral' as const } } : {}),
+        })),
+      },
+      signal,
+    );
 
     // Content blocks arrive by index — text and tool_use can interleave in
     // principle, so each index accumulates independently rather than
@@ -279,16 +283,23 @@ export class AnthropicLLMProvider implements ILLMProvider {
     return response.json() as Promise<AnthropicWireResponse>;
   }
 
-  private async postStream(body: Record<string, unknown>): Promise<ReadableStream<Uint8Array>> {
-    const response = await fetchWithRetry(LLM.ANTHROPIC_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': this.apiKey,
-        'anthropic-version': LLM.ANTHROPIC_VERSION,
+  private async postStream(
+    body: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<ReadableStream<Uint8Array>> {
+    const response = await fetchWithRetry(
+      LLM.ANTHROPIC_API_URL,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.apiKey,
+          'anthropic-version': LLM.ANTHROPIC_VERSION,
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    });
+      signal,
+    );
 
     if (!response.ok) {
       const text = await response.text();

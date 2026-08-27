@@ -58,5 +58,6 @@ export interface ILLMProvider {
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
     maxTokens?: number,
+    signal?: AbortSignal,
   ): AsyncGenerator<LLMStreamEvent>;
 }

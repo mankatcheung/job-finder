@@ -145,8 +145,9 @@ export class GoogleAILLMProvider implements ILLMProvider {
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+    signal?: AbortSignal,
   ): AsyncGenerator<LLMStreamEvent> {
-    const result = await this.completeWithTools(messages, tools, maxTokens);
+    const result = await this.completeWithTools(messages, tools, maxTokens, signal);
     yield { type: 'done', ...result };
   }
 

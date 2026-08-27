@@ -133,19 +133,23 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
+    signal?: AbortSignal,
   ): AsyncGenerator<LLMStreamEvent> {
     if (!this.apiKey) throw new Error('API key is not set');
 
-    const body = await this.postStream({
-      model: this.model,
-      messages: this.toWireMessages(messages),
-      max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
-      stream: true,
-      tools: tools.map((t) => ({
-        type: 'function',
-        function: { name: t.name, description: t.description, parameters: t.parameters },
-      })),
-    });
+    const body = await this.postStream(
+      {
+        model: this.model,
+        messages: this.toWireMessages(messages),
+        max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
+        stream: true,
+        tools: tools.map((t) => ({
+          type: 'function',
+          function: { name: t.name, description: t.description, parameters: t.parameters },
+        })),
+      },
+      signal,
+    );
 
     let content = '';
     const toolCalls = new Map<number, { id: string; name: string; arguments: string }>();
@@ -236,15 +240,22 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     return response.json() as Promise<OpenAIWireResponse>;
   }
 
-  private async postStream(body: Record<string, unknown>): Promise<ReadableStream<Uint8Array>> {
-    const response = await fetchWithRetry(this.baseUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `${AUTH_HEADER.BEARER_PREFIX}${this.apiKey}`,
+  private async postStream(
+    body: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<ReadableStream<Uint8Array>> {
+    const response = await fetchWithRetry(
+      this.baseUrl,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${AUTH_HEADER.BEARER_PREFIX}${this.apiKey}`,
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    });
+      signal,
+    );
 
     if (!response.ok) {
       const text = await response.text();

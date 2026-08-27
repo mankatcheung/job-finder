@@ -333,6 +333,26 @@ describe('OpenAICompatibleLLMProvider', () => {
       expect(body.stream).toBe(true);
     });
 
+    it('forwards a caller-supplied signal into the outbound fetch', async () => {
+      vi.mocked(fetch).mockImplementation(() => new Promise(() => {}));
+      const controller = new AbortController();
+      const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+
+      const gen = provider.completeWithToolsStream(
+        [{ role: 'user', content: 'hi' }],
+        [],
+        undefined,
+        controller.signal,
+      );
+      void gen.next();
+      await Promise.resolve();
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      expect(options.signal!.aborted).toBe(false);
+      controller.abort();
+      expect(options.signal!.aborted).toBe(true);
+    });
+
     it('yields a text_delta per chunk and a final done with the joined content, stopping at [DONE]', async () => {
       const sse = [
         'data: {"choices":[{"delta":{"role":"assistant","content":"Hello"}}]}',

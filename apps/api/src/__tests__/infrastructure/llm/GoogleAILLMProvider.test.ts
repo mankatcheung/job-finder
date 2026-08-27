@@ -346,5 +346,26 @@ describe('GoogleAILLMProvider', () => {
       // stream:true or SSE parsing involved for this provider.
       expect(fetch).toHaveBeenCalledTimes(1);
     });
+
+    it('forwards a caller-supplied signal through to the underlying completeWithTools call', async () => {
+      vi.mocked(fetch).mockImplementation(() => new Promise(() => {}));
+      const controller = new AbortController();
+      const provider = new GoogleAILLMProvider('secret-key');
+
+      void provider
+        .completeWithToolsStream(
+          [{ role: 'user', content: 'hi' }],
+          [],
+          undefined,
+          controller.signal,
+        )
+        .next();
+      await Promise.resolve();
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      expect(options.signal!.aborted).toBe(false);
+      controller.abort();
+      expect(options.signal!.aborted).toBe(true);
+    });
   });
 });

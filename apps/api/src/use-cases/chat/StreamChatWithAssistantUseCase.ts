@@ -91,6 +91,8 @@ export class StreamChatWithAssistantUseCase {
       for await (const event of llmProvider.completeWithToolsStream(
         messages,
         this.deps.chatTools,
+        undefined,
+        input.signal,
       )) {
         if (event.type === 'text_delta') {
           yield { type: 'delta', text: event.text };

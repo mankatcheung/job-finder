@@ -151,6 +151,25 @@ describe('StreamChatWithAssistantUseCase', () => {
     ]);
   });
 
+  it('forwards the caller-supplied abort signal into the streaming LLM call', async () => {
+    const llmProvider = makeStreamingProvider({ deltas: ['ok'], content: 'ok', toolCalls: [] });
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        forUser: vi.fn().mockResolvedValue(llmProvider),
+      }),
+    });
+    const controller = new AbortController();
+
+    await collect(new StreamChatWithAssistantUseCase(deps as never), {
+      ...baseInput,
+      message: 'hi',
+      signal: controller.signal,
+    });
+
+    const [, , , signal] = vi.mocked(llmProvider.completeWithToolsStream).mock.calls[0];
+    expect(signal).toBe(controller.signal);
+  });
+
   it('persists the final reply and the user message once streaming finishes', async () => {
     const llmProvider = makeStreamingProvider({ deltas: ['ok'], content: 'ok', toolCalls: [] });
     const messageRepository = makeMessageRepository();

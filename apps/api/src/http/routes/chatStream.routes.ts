@@ -2,8 +2,16 @@ import type { FastifyRequest, FastifyReply } from 'fastify';
 import { DomainError } from '#src/use-cases/errors/DomainError.js';
 import { AUTH_HEADER, COOKIES, ERROR_CODES } from '#src/constants.js';
 import { diScopeOf } from '#src/http/adapters/fastify/diScope.js';
+import { abortSignalFor } from '#src/http/adapters/fastify/buildGraphQLContext.js';
 
+// Guards against writing to a connection the client already left — once
+// `signal` (below) aborts mid-stream, the LLM call's own AbortError lands in
+// the `catch` below and tries to write an `error` frame to a socket that's
+// already gone. Same for the `finally`'s `.end()`. Without this, that write
+// throws (or emits an unhandled 'error' on `reply.raw`, which has no
+// listener), turning a client's ordinary disconnect into a server crash.
 function writeSSE(reply: FastifyReply, event: string, data: unknown): void {
+  if (reply.raw.writableEnded) return;
   reply.raw.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 }
 
@@ -86,12 +94,19 @@ export async function handleChatStream(
   });
 
   const { streamChatWithAssistantUseCase } = diScopeOf(request).cradle;
+  // Same mechanism as `buildGraphQLContext.ts`'s `abortSignal` (JEF-240) —
+  // fires only if the connection closes before this response finished, so a
+  // client disconnect (navigation, tab close, the chat UI's cancel button)
+  // aborts the in-flight LLM fetch instead of letting it run to completion
+  // (and being billed for) with nobody left to read the result.
+  const signal = abortSignalFor(reply);
 
   try {
     for await (const event of streamChatWithAssistantUseCase.execute({
       userId: user.sub,
       conversationId,
       message,
+      signal,
     })) {
       if (event.type === 'delta') writeSSE(reply, 'delta', { text: event.text });
       else writeSSE(reply, 'done', {});
@@ -99,6 +114,6 @@ export async function handleChatStream(
   } catch (err) {
     writeSSE(reply, 'error', errorPayload(err));
   } finally {
-    reply.raw.end();
+    if (!reply.raw.writableEnded) reply.raw.end();
   }
 }
