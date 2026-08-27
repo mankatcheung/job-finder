@@ -141,7 +141,7 @@
   "applications.board": "Board",
   "applications.list": "List",
   "applications.new": "New",
-  "applications.newShort": "+ New",
+  "applications.newShort": "New",
   "applications.switchToBoardView": "Switch to board view",
   "applications.switchToListView": "Switch to list view",
   "applications.newApplicationAria": "New application",
