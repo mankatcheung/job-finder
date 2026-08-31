@@ -12,8 +12,16 @@ export interface SSEFrame {
  * or an event split mid-line across two reads — so this buffers decoded
  * text and only yields once a full frame (terminated by a blank line) has
  * arrived, holding back any trailing partial frame for the next read.
+ *
+ * `onChunk`, if given, fires after every non-final `read()` — the provider
+ * callers wire this to an idle-abort controller's `activity()` (JEF-239
+ * follow-up) so a still-flowing stream resets its idle timeout instead of
+ * being cut off by it.
  */
-export async function* parseSSE(body: ReadableStream<Uint8Array>): AsyncGenerator<SSEFrame> {
+export async function* parseSSE(
+  body: ReadableStream<Uint8Array>,
+  onChunk?: () => void,
+): AsyncGenerator<SSEFrame> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
@@ -22,6 +30,7 @@ export async function* parseSSE(body: ReadableStream<Uint8Array>): AsyncGenerato
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
+      onChunk?.();
 
       buffer += decoder.decode(value, { stream: true });
       // Normalizing over the whole buffer is safe to repeat: earlier text

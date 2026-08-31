@@ -22,6 +22,37 @@ const streamResponse = (sseText: string, ok = true, status = 200) => ({
   text: () => Promise.resolve(sseText),
 });
 
+/**
+ * Like `streamResponse`, but delivers each SSE frame `gapMs` apart instead
+ * of all at once — for asserting streaming behavior over elapsed time (e.g.
+ * the idle-timeout regression test) under `vi.useFakeTimers()`.
+ */
+const delayedStreamResponse = (frames: string[], gapMs: number, ok = true, status = 200) => {
+  const encoder = new TextEncoder();
+  let i = 0;
+  return {
+    ok,
+    status,
+    body: new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (i >= frames.length) {
+          controller.close();
+          return;
+        }
+        const frame = frames[i];
+        i++;
+        return new Promise<void>((resolve) => {
+          setTimeout(() => {
+            controller.enqueue(encoder.encode(frame));
+            resolve();
+          }, gapMs);
+        });
+      },
+    }),
+    text: () => Promise.resolve(frames.join('')),
+  };
+};
+
 async function collectStream(
   provider: AnthropicLLMProvider,
   ...args: Parameters<AnthropicLLMProvider['completeWithToolsStream']>
@@ -529,6 +560,48 @@ describe('AnthropicLLMProvider', () => {
         { type: 'text_delta', text: ' world' },
         { type: 'done', content: 'Hello world', toolCalls: [] },
       ]);
+    });
+
+    it('completes a stream that runs well past REQUEST_TIMEOUT_MS in total, as long as chunks keep arriving within the idle window (regression)', async () => {
+      vi.useFakeTimers();
+      try {
+        const frames = [
+          'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"text"}}\n\n',
+          'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"a"}}\n\n',
+          'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"b"}}\n\n',
+          'event: message_stop\ndata: {"type":"message_stop"}\n\n',
+        ];
+        // Spaced well under LLM.STREAM_IDLE_TIMEOUT_MS apart, but their sum
+        // comfortably exceeds LLM.REQUEST_TIMEOUT_MS — the old fixed-duration
+        // timeout (tied to the whole fetch, including the body read) would
+        // have aborted this mid-stream even though it was actively flowing.
+        const gapMs = LLM.STREAM_IDLE_TIMEOUT_MS - 5_000;
+        vi.mocked(fetch).mockResolvedValue(delayedStreamResponse(frames, gapMs) as never);
+        const provider = new AnthropicLLMProvider('secret-key');
+
+        const events: unknown[] = [];
+        const consume = (async () => {
+          for await (const event of provider.completeWithToolsStream(
+            [{ role: 'user', content: 'hi' }],
+            [],
+          )) {
+            events.push(event);
+          }
+        })();
+
+        for (let i = 0; i < frames.length; i++) {
+          await vi.advanceTimersByTimeAsync(gapMs);
+        }
+        await consume;
+
+        expect(events).toEqual([
+          { type: 'text_delta', text: 'a' },
+          { type: 'text_delta', text: 'b' },
+          { type: 'done', content: 'ab', toolCalls: [] },
+        ]);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('reassembles a streamed tool call from input_json_delta fragments', async () => {

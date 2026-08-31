@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { parseSSE } from '#src/infrastructure/llm/sseParser.js';
 
 function streamOf(chunks: string[]): ReadableStream<Uint8Array> {
@@ -69,5 +69,18 @@ describe('parseSSE', () => {
     const frames = await collect(streamOf(['event: ping\n\ndata: real\n\n']));
 
     expect(frames).toEqual([{ event: null, data: 'real' }]);
+  });
+
+  it('calls onChunk once per underlying read, not once per frame', async () => {
+    const onChunk = vi.fn();
+    const stream = streamOf(['data: one\n\ndata: two\n\n', 'data: three\n\n']);
+
+    const frames = [];
+    for await (const frame of parseSSE(stream, onChunk)) frames.push(frame);
+
+    expect(frames).toHaveLength(3);
+    // Two reads happened (two chunks pushed above, closed on the third pull)
+    // even though three frames were parsed out of them.
+    expect(onChunk).toHaveBeenCalledTimes(2);
   });
 });

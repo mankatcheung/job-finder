@@ -17,6 +17,14 @@ function sleep(ms: number): Promise<void> {
  * attempts) skips straight to throwing rather than burning a retry against
  * a caller that's already gone.
  *
+ * `perAttemptTimeoutMs` defaults to `LLM.REQUEST_TIMEOUT_MS` for the normal
+ * one-shot case. Pass `null` to skip the internal `AbortSignal.timeout`
+ * entirely and rely solely on `externalSignal` — used by streaming callers,
+ * which pass an idle-reset signal (see `createIdleAbortController`) instead:
+ * a fixed-duration timeout stays attached to the whole request including the
+ * body read, so it would abort a healthy, actively-streaming response that
+ * simply runs longer than one request "should."
+ *
  * Callers keep their own response-handling code unchanged: this only
  * decides whether to retry the transport-level call, then returns the
  * final `Response` (ok or not) or rethrows the final network/abort error.
@@ -25,6 +33,7 @@ export async function fetchWithRetry(
   url: string,
   init: RequestInit,
   externalSignal?: AbortSignal,
+  perAttemptTimeoutMs: number | null = LLM.REQUEST_TIMEOUT_MS,
 ): Promise<Response> {
   if (externalSignal?.aborted) {
     throw new DOMException('The operation was aborted.', 'AbortError');
@@ -33,10 +42,12 @@ export async function fetchWithRetry(
   let lastError: unknown;
 
   for (let attempt = 0; attempt <= LLM.MAX_RETRIES; attempt++) {
-    const timeoutSignal = AbortSignal.timeout(LLM.REQUEST_TIMEOUT_MS);
-    const signal = externalSignal
-      ? AbortSignal.any([timeoutSignal, externalSignal])
-      : timeoutSignal;
+    const timeoutSignal =
+      perAttemptTimeoutMs === null ? undefined : AbortSignal.timeout(perAttemptTimeoutMs);
+    const signal =
+      timeoutSignal && externalSignal
+        ? AbortSignal.any([timeoutSignal, externalSignal])
+        : (timeoutSignal ?? externalSignal);
     try {
       const response = await fetch(url, { ...init, signal });
       if (response.ok || response.status < 500 || attempt === LLM.MAX_RETRIES) {
@@ -53,4 +64,49 @@ export async function fetchWithRetry(
   // Unreachable: the loop above always returns or throws by the final
   // attempt. Present only so TypeScript can see every path returns.
   throw lastError;
+}
+
+/**
+ * Idle-reset abort signal for a streaming fetch (JEF-239 follow-up). Unlike
+ * `AbortSignal.timeout()`, which fires a fixed duration after creation
+ * regardless of what's happening on the wire, this only aborts once
+ * `idleMs` passes with no `activity()` call — call it on every chunk
+ * received so an actively-flowing stream is never cut off, while a
+ * connection that goes quiet (including a hung connect, before the first
+ * chunk) still gets caught.
+ *
+ * `externalSignal` — typically a client-disconnect signal — aborts the
+ * returned controller immediately, same as `fetchWithRetry`'s own handling.
+ * Callers must call `dispose()` once the stream ends (success or error) to
+ * clear the pending timer.
+ */
+export function createIdleAbortController(
+  idleMs: number,
+  externalSignal?: AbortSignal,
+): { signal: AbortSignal; activity: () => void; dispose: () => void } {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  const dispose = () => clearTimeout(timer);
+
+  const activity = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      controller.abort(
+        new DOMException('The operation was aborted due to timeout', 'TimeoutError'),
+      );
+    }, idleMs);
+  };
+
+  if (externalSignal?.aborted) {
+    controller.abort(externalSignal.reason);
+  } else {
+    externalSignal?.addEventListener('abort', () => {
+      dispose();
+      controller.abort(externalSignal.reason);
+    });
+    activity();
+  }
+
+  return { signal: controller.signal, activity, dispose };
 }

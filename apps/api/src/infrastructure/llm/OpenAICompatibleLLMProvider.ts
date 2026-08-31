@@ -7,7 +7,10 @@ import type {
   LLMStreamEvent,
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { AUTH_HEADER, LLM } from '#src/constants.js';
-import { fetchWithRetry } from '#src/infrastructure/llm/fetchWithRetry.js';
+import {
+  fetchWithRetry,
+  createIdleAbortController,
+} from '#src/infrastructure/llm/fetchWithRetry.js';
 import { parseSSE } from '#src/infrastructure/llm/sseParser.js';
 
 interface OpenAIWireMessage {
@@ -137,7 +140,7 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
   ): AsyncGenerator<LLMStreamEvent> {
     if (!this.apiKey) throw new Error('API key is not set');
 
-    const body = await this.postStream(
+    const { body, onChunk, dispose } = await this.postStream(
       {
         model: this.model,
         messages: this.toWireMessages(messages),
@@ -154,26 +157,30 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     let content = '';
     const toolCalls = new Map<number, { id: string; name: string; arguments: string }>();
 
-    for await (const frame of parseSSE(body)) {
-      if (frame.data === OPENAI_STREAM_DONE) break;
+    try {
+      for await (const frame of parseSSE(body, onChunk)) {
+        if (frame.data === OPENAI_STREAM_DONE) break;
 
-      const chunk = JSON.parse(frame.data) as OpenAIStreamChunk;
-      const delta = chunk.choices?.[0]?.delta;
-      if (!delta) continue;
+        const chunk = JSON.parse(frame.data) as OpenAIStreamChunk;
+        const delta = chunk.choices?.[0]?.delta;
+        if (!delta) continue;
 
-      if (delta.content) {
-        content += delta.content;
-        yield { type: 'text_delta', text: delta.content };
+        if (delta.content) {
+          content += delta.content;
+          yield { type: 'text_delta', text: delta.content };
+        }
+
+        for (const tc of delta.tool_calls ?? []) {
+          const existing = toolCalls.get(tc.index) ?? { id: '', name: '', arguments: '' };
+          toolCalls.set(tc.index, {
+            id: tc.id ?? existing.id,
+            name: tc.function?.name ?? existing.name,
+            arguments: existing.arguments + (tc.function?.arguments ?? ''),
+          });
+        }
       }
-
-      for (const tc of delta.tool_calls ?? []) {
-        const existing = toolCalls.get(tc.index) ?? { id: '', name: '', arguments: '' };
-        toolCalls.set(tc.index, {
-          id: tc.id ?? existing.id,
-          name: tc.function?.name ?? existing.name,
-          arguments: existing.arguments + (tc.function?.arguments ?? ''),
-        });
-      }
+    } finally {
+      dispose();
     }
 
     yield {
@@ -243,7 +250,12 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
   private async postStream(
     body: Record<string, unknown>,
     signal?: AbortSignal,
-  ): Promise<ReadableStream<Uint8Array>> {
+  ): Promise<{ body: ReadableStream<Uint8Array>; onChunk: () => void; dispose: () => void }> {
+    // See `createIdleAbortController`'s doc comment: a streaming reply can
+    // legitimately run well past a normal request's timeout as long as bytes
+    // keep arriving, so this resets on every chunk instead of capping total
+    // duration.
+    const idle = createIdleAbortController(LLM.STREAM_IDLE_TIMEOUT_MS, signal);
     const response = await fetchWithRetry(
       this.baseUrl,
       {
@@ -254,15 +266,20 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
         },
         body: JSON.stringify(body),
       },
-      signal,
+      idle.signal,
+      null,
     );
 
     if (!response.ok) {
+      idle.dispose();
       const text = await response.text();
       throw new Error(`LLM provider error ${response.status}: ${text}`);
     }
-    if (!response.body) throw new Error('LLM provider error: response had no body to stream');
+    if (!response.body) {
+      idle.dispose();
+      throw new Error('LLM provider error: response had no body to stream');
+    }
 
-    return response.body;
+    return { body: response.body, onChunk: idle.activity, dispose: idle.dispose };
   }
 }

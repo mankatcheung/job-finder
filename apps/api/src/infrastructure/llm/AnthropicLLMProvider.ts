@@ -7,7 +7,10 @@ import type {
   LLMStreamEvent,
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { LLM } from '#src/constants.js';
-import { fetchWithRetry } from '#src/infrastructure/llm/fetchWithRetry.js';
+import {
+  fetchWithRetry,
+  createIdleAbortController,
+} from '#src/infrastructure/llm/fetchWithRetry.js';
 import { parseSSE } from '#src/infrastructure/llm/sseParser.js';
 
 type AnthropicContentBlock =
@@ -118,7 +121,7 @@ export class AnthropicLLMProvider implements ILLMProvider {
     if (!this.apiKey) throw new Error('Anthropic API key is not set');
 
     const { system, conversation } = this.splitSystem(messages);
-    const body = await this.postStream(
+    const { body, onChunk, dispose } = await this.postStream(
       {
         model: this.model,
         max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
@@ -146,43 +149,47 @@ export class AnthropicLLMProvider implements ILLMProvider {
       { type: 'text'; text: string } | { type: 'tool_use'; id: string; name: string; json: string }
     >();
 
-    for await (const frame of parseSSE(body)) {
-      const event = JSON.parse(frame.data) as AnthropicStreamEvent;
+    try {
+      for await (const frame of parseSSE(body, onChunk)) {
+        const event = JSON.parse(frame.data) as AnthropicStreamEvent;
 
-      switch (event.type) {
-        case 'content_block_start': {
-          if (event.index === undefined || !event.content_block) break;
-          const cb = event.content_block;
-          blocks.set(
-            event.index,
-            cb.type === 'text'
-              ? { type: 'text', text: '' }
-              : { type: 'tool_use', id: cb.id, name: cb.name, json: '' },
-          );
-          break;
-        }
-        case 'content_block_delta': {
-          if (event.index === undefined || !event.delta) break;
-          const block = blocks.get(event.index);
-          const delta = event.delta;
-          if (!block) break;
-          if (delta.type === 'text_delta' && block.type === 'text') {
-            block.text += delta.text;
-            yield { type: 'text_delta', text: delta.text };
-          } else if (delta.type === 'input_json_delta' && block.type === 'tool_use') {
-            block.json += delta.partial_json;
+        switch (event.type) {
+          case 'content_block_start': {
+            if (event.index === undefined || !event.content_block) break;
+            const cb = event.content_block;
+            blocks.set(
+              event.index,
+              cb.type === 'text'
+                ? { type: 'text', text: '' }
+                : { type: 'tool_use', id: cb.id, name: cb.name, json: '' },
+            );
+            break;
           }
-          break;
+          case 'content_block_delta': {
+            if (event.index === undefined || !event.delta) break;
+            const block = blocks.get(event.index);
+            const delta = event.delta;
+            if (!block) break;
+            if (delta.type === 'text_delta' && block.type === 'text') {
+              block.text += delta.text;
+              yield { type: 'text_delta', text: delta.text };
+            } else if (delta.type === 'input_json_delta' && block.type === 'tool_use') {
+              block.json += delta.partial_json;
+            }
+            break;
+          }
+          case 'error':
+            throw new Error(`Anthropic stream error: ${event.error?.message ?? 'unknown error'}`);
+          default:
+            // message_start/content_block_stop/message_delta/message_stop/ping
+            // carry nothing this loop needs beyond what's already tracked, and
+            // future event types the docs say may be added should be ignored
+            // rather than treated as an error.
+            break;
         }
-        case 'error':
-          throw new Error(`Anthropic stream error: ${event.error?.message ?? 'unknown error'}`);
-        default:
-          // message_start/content_block_stop/message_delta/message_stop/ping
-          // carry nothing this loop needs beyond what's already tracked, and
-          // future event types the docs say may be added should be ignored
-          // rather than treated as an error.
-          break;
       }
+    } finally {
+      dispose();
     }
 
     let text: string | null = null;
@@ -286,7 +293,12 @@ export class AnthropicLLMProvider implements ILLMProvider {
   private async postStream(
     body: Record<string, unknown>,
     signal?: AbortSignal,
-  ): Promise<ReadableStream<Uint8Array>> {
+  ): Promise<{ body: ReadableStream<Uint8Array>; onChunk: () => void; dispose: () => void }> {
+    // See `createIdleAbortController`'s doc comment: a streaming reply can
+    // legitimately run well past a normal request's timeout as long as bytes
+    // keep arriving, so this resets on every chunk instead of capping total
+    // duration.
+    const idle = createIdleAbortController(LLM.STREAM_IDLE_TIMEOUT_MS, signal);
     const response = await fetchWithRetry(
       LLM.ANTHROPIC_API_URL,
       {
@@ -298,15 +310,20 @@ export class AnthropicLLMProvider implements ILLMProvider {
         },
         body: JSON.stringify(body),
       },
-      signal,
+      idle.signal,
+      null,
     );
 
     if (!response.ok) {
+      idle.dispose();
       const text = await response.text();
       throw new Error(`Anthropic error ${response.status}: ${text}`);
     }
-    if (!response.body) throw new Error('Anthropic error: response had no body to stream');
+    if (!response.body) {
+      idle.dispose();
+      throw new Error('Anthropic error: response had no body to stream');
+    }
 
-    return response.body;
+    return { body: response.body, onChunk: idle.activity, dispose: idle.dispose };
   }
 }
