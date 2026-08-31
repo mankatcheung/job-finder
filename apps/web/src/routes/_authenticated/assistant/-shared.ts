@@ -73,12 +73,6 @@ export const CREATE_CONVERSATION = `
   }
 `;
 
-export const SEND_CHAT_MESSAGE = `
-  mutation SendChatMessage($conversationId: ID!, $message: String!) {
-    sendChatMessage(conversationId: $conversationId, message: $message)
-  }
-`;
-
 export const DELETE_CONVERSATION = `
   mutation DeleteConversation($id: ID!) {
     deleteConversation(id: $id)

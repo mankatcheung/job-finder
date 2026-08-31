@@ -4,39 +4,66 @@ import {
   NotFoundError,
   RateLimitedError,
 } from '#src/use-cases/errors/DomainError.js';
-import type { LLMToolCall } from '#src/use-cases/ports/ILLMProvider.js';
+import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
+import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
+import type { IMessageRepository } from '#src/use-cases/ports/IMessageRepository.js';
+import type { IConversationRepository } from '#src/use-cases/ports/IConversationRepository.js';
+import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
+import type { LLMToolCall, LLMToolDefinition } from '#src/use-cases/ports/ILLMProvider.js';
 import { CHAT } from '#src/constants.js';
 import {
+  type ChatToolDeps,
   buildChatMessages,
   deriveChatTitle,
   executeChatTool,
 } from '#src/use-cases/chat/chatAssembly.js';
-import type {
-  ChatWithAssistantDeps,
-  ChatWithAssistantInput,
-} from '#src/use-cases/chat/ChatWithAssistantUseCase.js';
+
+export interface ChatWithAssistantInput {
+  userId: string;
+  conversationId: string;
+  message: string;
+  /**
+   * Aborted when the client disconnects before a reply arrives (JEF-240) —
+   * threaded down to the LLM provider fetch so a cancelled generation stops
+   * costing tokens server-side instead of running to completion for no one.
+   * Tool execution itself isn't cancelled (cheap DB reads, not the expense
+   * this exists to avoid) — only the LLM call.
+   */
+  signal?: AbortSignal;
+}
+
+export interface ChatWithAssistantDeps extends ChatToolDeps {
+  /**
+   * The tools this surface offers the model, injected rather than imported:
+   * the catalogue is an adapter-layer contract, and which subset chat gets
+   * is a composition decision (see `http/di`) — chat is session-authenticated
+   * with no token scope, so it receives read tools only (JEF-177).
+   */
+  chatTools: LLMToolDefinition[];
+  llmProviderFactory: ILLMProviderFactory;
+  chatRateLimiter: IRateLimiter;
+  messageRepository: IMessageRepository;
+  conversationRepository: IConversationRepository;
+  userRepository: IUserRepository;
+  generateId: () => string;
+}
 
 /**
  * `delta` carries incremental assistant text as it arrives — including
  * narration ahead of a tool call, since real streaming naturally surfaces
  * that. `done` always terminates the stream. Only text from the *final*
  * round (the one with no further tool calls) is persisted as the assistant
- * message, same as `ChatWithAssistantUseCase` — mid-conversation narration
- * is real-time UI only, discarded on reload, matching what the non-streaming
- * path already does with intermediate rounds' content.
+ * message — mid-conversation narration is real-time UI only, discarded on
+ * reload.
  */
 export type ChatStreamEvent = { type: 'delta'; text: string } | { type: 'done' };
 
 /**
- * Streaming counterpart to `ChatWithAssistantUseCase` (JEF-239) — same rate
- * limiting, conversation/user lookup, message assembly, tool-calling loop,
- * and persistence, but yields text as the provider streams it instead of
- * waiting for a fully-assembled reply. Kept as a separate class rather than
- * a `stream?: boolean` flag on the existing use case: the control flow is
- * genuinely different (an async generator yielding across potentially
- * several tool round-trips vs. a single `Promise<string>`), and the shared
- * parts (message assembly, tool dispatch, title derivation) already live in
- * `chatAssembly.ts` so this isn't a wholesale duplication.
+ * Streams the assistant's reply token-by-token (JEF-239): rate limiting,
+ * conversation/user lookup, message assembly, tool-calling loop, and
+ * persistence, yielding text as the provider streams it rather than
+ * returning a fully-assembled `Promise<string>`. The shared parts (message
+ * assembly, tool dispatch, title derivation) live in `chatAssembly.ts`.
  */
 export class StreamChatWithAssistantUseCase {
   constructor(private readonly deps: ChatWithAssistantDeps) {}

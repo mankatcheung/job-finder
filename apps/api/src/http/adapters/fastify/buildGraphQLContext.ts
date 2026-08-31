@@ -8,11 +8,12 @@ import { AUTH_HEADER, COOKIES } from '#src/constants.js';
 /**
  * Fires once the underlying connection closes, for any reason — a normal
  * completed response closes it too. Only a close *before* the response
- * finished writing means the client actually went away mid-request, so
- * `abortSignal` (JEF-240) only aborts on that case; a request that already
- * finished normally leaves it untouched (the controller is simply never
- * aborted, which is harmless — nothing reads the signal after the resolver
- * has already returned).
+ * finished writing means the client actually went away mid-request, so this
+ * only aborts on that case; a request that already finished normally leaves
+ * it untouched (the controller is simply never aborted, which is harmless —
+ * nothing reads the signal after the resolver has already returned). Used
+ * directly by `chatStream.routes.ts` (JEF-240) to cancel an in-flight LLM
+ * fetch when the client disconnects mid-stream.
  */
 export function abortSignalFor(reply: FastifyReply): AbortSignal {
   const controller = new AbortController();
@@ -42,6 +43,5 @@ export async function buildGraphQLContext(
     diScope,
     request: toHttpRequest(request),
     reply: toHttpResponse(reply),
-    abortSignal: abortSignalFor(reply),
   };
 }

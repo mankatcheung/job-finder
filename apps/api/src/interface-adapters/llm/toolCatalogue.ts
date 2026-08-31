@@ -9,8 +9,8 @@ import type { LLMToolDefinition } from '#src/use-cases/ports/ILLMProvider.js';
  * consumer — so it sits in the adapter layer next to the other outward-facing
  * schemas, not in `use-cases/`.
  *
- * Nothing in `use-cases/` imports it. `ChatWithAssistantUseCase` receives its
- * tools as an injected `LLMToolDefinition[]` (see `toLlmToolDefinitions`
+ * Nothing in `use-cases/` imports it. `StreamChatWithAssistantUseCase`
+ * receives its tools as an injected `LLMToolDefinition[]` (see `toLlmToolDefinitions`
  * below and the `chatTools` registration in `http/di`), so the use case knows
  * only the port type and never the catalogue itself. Which surface exposes
  * which tools is therefore a composition decision, made once in the container

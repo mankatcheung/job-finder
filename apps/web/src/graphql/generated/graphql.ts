@@ -78,6 +78,16 @@ export type ApplicationHealthScore = {
   score?: Maybe<Scalars['Int']['output']>;
 };
 
+export type ApplicationSectionCounts = {
+  __typename?: 'ApplicationSectionCounts';
+  contacts?: Maybe<Scalars['Int']['output']>;
+  documentDrafts?: Maybe<Scalars['Int']['output']>;
+  documents?: Maybe<Scalars['Int']['output']>;
+  interviews?: Maybe<Scalars['Int']['output']>;
+  notes?: Maybe<Scalars['Int']['output']>;
+  offers?: Maybe<Scalars['Int']['output']>;
+};
+
 export type ApplicationStatus =
   | 'accepted'
   | 'applied'
@@ -107,6 +117,14 @@ export type CalendarEventType =
   | 'applied'
   | 'followUp'
   | 'interview';
+
+export type CompanyBriefing = {
+  __typename?: 'CompanyBriefing';
+  applicationId?: Maybe<Scalars['ID']['output']>;
+  content?: Maybe<Scalars['String']['output']>;
+  generatedAt?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+};
 
 export type ConfirmDocumentInput = {
   applicationId: Scalars['ID']['input'];
@@ -385,6 +403,7 @@ export type JobApplication = {
   purgeAt?: Maybe<Scalars['String']['output']>;
   role?: Maybe<Scalars['String']['output']>;
   salaryRange?: Maybe<Scalars['String']['output']>;
+  sectionCounts?: Maybe<ApplicationSectionCounts>;
   source?: Maybe<Scalars['String']['output']>;
   starred?: Maybe<Scalars['Boolean']['output']>;
   status?: Maybe<ApplicationStatus>;
@@ -490,8 +509,9 @@ export type Mutation = {
   emptyTrash?: Maybe<EmptyTrashResult>;
   exportDocumentDraftToPdf?: Maybe<Document>;
   extractDocumentText?: Maybe<ExtractDocumentTextPayload>;
-  generateCompanyBriefing?: Maybe<Scalars['String']['output']>;
-  generateCoverLetter?: Maybe<Scalars['String']['output']>;
+  generateCompanyBriefing?: Maybe<CompanyBriefing>;
+  generateCoverLetter?: Maybe<DocumentDraft>;
+  generateResume?: Maybe<DocumentDraft>;
   importUserData?: Maybe<ImportSummary>;
   login?: Maybe<LoginResult>;
   loginWithTotp?: Maybe<Scalars['String']['output']>;
@@ -502,12 +522,14 @@ export type Mutation = {
   parseJobDescription?: Maybe<ParsedJobDescription>;
   permanentlyDeleteApplication?: Maybe<Scalars['Boolean']['output']>;
   reauthenticate?: Maybe<LoginResult>;
+  recordCookieConsent?: Maybe<Scalars['Boolean']['output']>;
   refreshToken?: Maybe<Scalars['String']['output']>;
   regenerateTotpBackupCodes?: Maybe<ConfirmTotpSetupResult>;
   register?: Maybe<Scalars['String']['output']>;
   registerPushSubscription?: Maybe<Scalars['Boolean']['output']>;
   removeAvatar?: Maybe<Scalars['Boolean']['output']>;
   removeBackupEmail?: Maybe<Scalars['Boolean']['output']>;
+  renameDocumentDraft?: Maybe<DocumentDraft>;
   requestAddBackupEmail?: Maybe<Scalars['Boolean']['output']>;
   requestAvatarUploadUrl?: Maybe<UploadUrlPayload>;
   requestBackupEmailRecovery?: Maybe<Scalars['Boolean']['output']>;
@@ -520,7 +542,6 @@ export type Mutation = {
   revokeOtherSessions?: Maybe<Scalars['Boolean']['output']>;
   revokeSession?: Maybe<Scalars['Boolean']['output']>;
   saveLlmApiKey?: Maybe<Scalars['Boolean']['output']>;
-  sendChatMessage?: Maybe<Scalars['String']['output']>;
   setDefaultLlmProvider?: Maybe<Scalars['Boolean']['output']>;
   unlinkOAuthAccount?: Maybe<Scalars['Boolean']['output']>;
   unregisterPushSubscription?: Maybe<Scalars['Boolean']['output']>;
@@ -776,6 +797,11 @@ export type MutationGenerateCoverLetterArgs = {
 };
 
 
+export type MutationGenerateResumeArgs = {
+  applicationId: Scalars['ID']['input'];
+};
+
+
 export type MutationImportUserDataArgs = {
   data: Scalars['String']['input'];
 };
@@ -822,6 +848,11 @@ export type MutationReauthenticateArgs = {
 };
 
 
+export type MutationRecordCookieConsentArgs = {
+  analyticsAccepted: Scalars['Boolean']['input'];
+};
+
+
 export type MutationRegenerateTotpBackupCodesArgs = {
   currentPassword: Scalars['String']['input'];
 };
@@ -842,6 +873,12 @@ export type MutationRegisterPushSubscriptionArgs = {
 
 export type MutationRemoveBackupEmailArgs = {
   currentPassword: Scalars['String']['input'];
+};
+
+
+export type MutationRenameDocumentDraftArgs = {
+  draftId: Scalars['ID']['input'];
+  title: Scalars['String']['input'];
 };
 
 
@@ -904,12 +941,6 @@ export type MutationSaveLlmApiKeyArgs = {
   baseUrl?: InputMaybe<Scalars['String']['input']>;
   model?: InputMaybe<Scalars['String']['input']>;
   provider: Scalars['String']['input'];
-};
-
-
-export type MutationSendChatMessageArgs = {
-  conversationId: Scalars['ID']['input'];
-  message: Scalars['String']['input'];
 };
 
 
@@ -1114,6 +1145,7 @@ export type Query = {
   applicationsPage?: Maybe<ApplicationConnection>;
   calendarEvents?: Maybe<Array<CalendarEvent>>;
   chatHistory?: Maybe<Array<Message>>;
+  companyBriefing?: Maybe<CompanyBriefing>;
   contacts?: Maybe<Array<Contact>>;
   conversations?: Maybe<Array<Conversation>>;
   documentDraft?: Maybe<DocumentDraft>;
@@ -1135,6 +1167,7 @@ export type Query = {
   offerAnalytics?: Maybe<OfferAnalytics>;
   offers?: Maybe<Array<Offer>>;
   responseTimeAnalytics?: Maybe<ResponseTimeAnalytics>;
+  searchConversations?: Maybe<Array<Conversation>>;
   securityActivity?: Maybe<Array<SecurityActivityItem>>;
   sessions?: Maybe<Array<Session>>;
   shareLinks?: Maybe<Array<ShareLink>>;
@@ -1183,8 +1216,18 @@ export type QueryChatHistoryArgs = {
 };
 
 
+export type QueryCompanyBriefingArgs = {
+  applicationId: Scalars['ID']['input'];
+};
+
+
 export type QueryContactsArgs = {
   applicationId: Scalars['ID']['input'];
+};
+
+
+export type QueryConversationsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1221,6 +1264,11 @@ export type QueryNotificationsPageArgs = {
 
 export type QueryOffersArgs = {
   applicationId: Scalars['ID']['input'];
+};
+
+
+export type QuerySearchConversationsArgs = {
+  query: Scalars['String']['input'];
 };
 
 

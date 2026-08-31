@@ -136,7 +136,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
    * Gemini stays on the non-streaming endpoint — JEF-239 only implements
    * genuine streaming for Anthropic and OpenAI-compatible providers.
    * Wrapping the existing call in the streaming shape keeps every provider
-   * satisfying the same `ILLMProvider` interface, so `ChatWithAssistantUseCase`
+   * satisfying the same `ILLMProvider` interface, so `StreamChatWithAssistantUseCase`
    * doesn't need a runtime check for "does this provider actually stream" —
    * a Gemini-backed chat just renders its reply in one paint instead of
    * token-by-token, same as before this feature.

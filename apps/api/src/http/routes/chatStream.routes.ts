@@ -41,7 +41,7 @@ async function authenticate(request: FastifyRequest): Promise<{ sub: string } | 
 }
 
 /**
- * SSE alongside the `sendChatMessage` mutation (JEF-239) — see `ROUTES.CHAT_STREAM`'s
+ * Streams the assistant's chat reply (JEF-239) — see `ROUTES.CHAT_STREAM`'s
  * doc comment for why this bypasses the `RouteDefinition`/`IHttpResponse`
  * abstraction and writes directly to the raw Fastify response. Registered
  * directly in `buildApp.ts`, not through `registerRoutes`, for the same

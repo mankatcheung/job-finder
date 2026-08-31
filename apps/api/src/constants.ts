@@ -348,10 +348,10 @@ export const ROUTES = {
   HEALTH: '/health',
   MCP: '/mcp',
   /**
-   * SSE alongside `sendChatMessage` (JEF-239) — not GraphQL, since streaming
-   * needs incremental writes to the raw response that Mercurius/Pothos's
-   * request-response model, and this codebase's `IHttpResponse` port's
-   * send()-once shape, don't support. Same cookie-based JWT auth as
+   * Streams the assistant's chat reply (JEF-239) — not GraphQL, since
+   * streaming needs incremental writes to the raw response that Mercurius/
+   * Pothos's request-response model, and this codebase's `IHttpResponse`
+   * port's send()-once shape, don't support. Same cookie-based JWT auth as
    * GraphQL, registered directly on the Fastify instance in `buildApp.ts`
    * (like the local-upload route) rather than through the `RouteDefinition`
    * abstraction, for the same reason.
@@ -729,7 +729,7 @@ export const CHAT = {
    * sent to the *model* is capped: `GetChatHistoryUseCase` (what the UI
    * displays) still reads the complete, uncapped history from the
    * repository — this constant is consulted only inside
-   * `ChatWithAssistantUseCase`.
+   * `StreamChatWithAssistantUseCase`.
    */
   MAX_HISTORY_MESSAGES: 40,
 } as const;

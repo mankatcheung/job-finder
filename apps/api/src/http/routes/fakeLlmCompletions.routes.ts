@@ -29,10 +29,10 @@ function fakeChatStreamBody(content: string): string {
  * self-hosted/OpenAI-compatible endpoints already use in production.
  *
  * Two canned response shapes, chosen by whether the request carries `tools`:
- * present means a chat request (ChatWithAssistantUseCase's/
- * StreamChatWithAssistantUseCase's `completeWithTools`/`completeWithToolsStream`)
- * — replies with plain text and no tool calls, which ends the tool-use loop
- * after one round. When such a request also carries `stream: true` (JEF-239),
+ * present means a chat request (`StreamChatWithAssistantUseCase`'s
+ * `completeWithToolsStream`) — replies with plain text and no tool calls,
+ * which ends the tool-use loop after one round. When such a request also
+ * carries `stream: true` (JEF-239),
  * the reply is framed as SSE instead of a single JSON object. Absent `tools`
  * means a `complete()` call — currently only GenerateResumeUseCase, which
  * requires strict JSON matching its schema and grounds every

@@ -29,31 +29,6 @@ builder.mutationField('createConversation', (t) =>
   }),
 );
 
-builder.mutationField('sendChatMessage', (t) =>
-  t.field({
-    type: 'String',
-    args: {
-      conversationId: t.arg.id({ required: true }),
-      message: t.arg.string({ required: true }),
-    },
-    resolve: async (_root, args, ctx) => {
-      if (!ctx.user)
-        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
-      const { chatWithAssistantUseCase } = ctx.diScope.cradle;
-      try {
-        return await chatWithAssistantUseCase.execute({
-          userId: ctx.user.sub,
-          conversationId: String(args.conversationId),
-          message: args.message,
-          signal: ctx.abortSignal,
-        });
-      } catch (err) {
-        throw fromCodedError(err);
-      }
-    },
-  }),
-);
-
 builder.mutationField('deleteConversation', (t) =>
   t.field({
     type: 'Boolean',

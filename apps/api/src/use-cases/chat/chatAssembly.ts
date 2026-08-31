@@ -21,10 +21,11 @@ import type { LLMMessage, LLMToolCall } from '#src/use-cases/ports/ILLMProvider.
 import { CHAT } from '#src/constants.js';
 
 /**
- * Shared between `ChatWithAssistantUseCase` (non-streaming) and
- * `StreamChatWithAssistantUseCase` (JEF-239) — both offer the model the same
- * tool catalogue and dispatch calls to it identically, so the dispatch
- * switch lives here once instead of being duplicated per use case.
+ * Message assembly, title derivation, and tool dispatch for
+ * `StreamChatWithAssistantUseCase` (JEF-239) — split out from that use case
+ * so the request-handling control flow (rate limiting, conversation lookup,
+ * the tool-calling loop) isn't tangled up with prompt/tool-catalogue
+ * plumbing.
  */
 export const CHAT_SYSTEM_PROMPT = `You are a helpful assistant inside a job application tracker. Answer the user's questions about their job applications, contacts, interview rounds, and professional background using the available tools — never guess at data you haven't fetched. Be concise; summarize lists rather than dumping raw data. Questions about notes, contacts, or interview rounds are scoped to one application, so first find its id with list_applications if you don't already have it. You can also look up the user's work experience, education, and skills to help with cover letters, interview prep, or career advice, their documents, offers, activity history and calendar, and get_analytics for aggregate stats about how their search is going. list_applications returns one page at a time as {items, hasNextPage, nextCursor} — read items, and if you need more than the first page, call it again passing cursor: nextCursor. Do not assume the first page is everything when hasNextPage is true.`;
 
