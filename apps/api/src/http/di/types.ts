@@ -171,6 +171,7 @@ import type { SaveLlmApiKeyUseCase } from '#src/use-cases/user/SaveLlmApiKeyUseC
 import type { ListLlmApiKeysUseCase } from '#src/use-cases/user/ListLlmApiKeysUseCase.js';
 import type { DeleteLlmApiKeyUseCase } from '#src/use-cases/user/DeleteLlmApiKeyUseCase.js';
 import type { SetDefaultLlmProviderUseCase } from '#src/use-cases/user/SetDefaultLlmProviderUseCase.js';
+import type { TestLlmApiKeyUseCase } from '#src/use-cases/user/TestLlmApiKeyUseCase.js';
 import type { ImportUserDataUseCase } from '#src/use-cases/user/ImportUserDataUseCase.js';
 import type { GetNotificationPreferencesUseCase } from '#src/use-cases/user/GetNotificationPreferencesUseCase.js';
 import type { UpdateNotificationPreferencesUseCase } from '#src/use-cases/user/UpdateNotificationPreferencesUseCase.js';
@@ -342,6 +343,7 @@ export interface Cradle {
   parseJobDescriptionRateLimiter: IRateLimiter;
   computeResumeMatchScoreRateLimiter: IRateLimiter;
   generateCompanyBriefingRateLimiter: IRateLimiter;
+  testLlmApiKeyRateLimiter: IRateLimiter;
   updatePasswordRateLimiter: IRateLimiter;
   requestEmailChangeRateLimiter: IRateLimiter;
   backupEmailVerificationTokenRepository: DrizzleBackupEmailVerificationTokenRepository;
@@ -484,6 +486,7 @@ export interface Cradle {
   listLlmApiKeysUseCase: ListLlmApiKeysUseCase;
   deleteLlmApiKeyUseCase: DeleteLlmApiKeyUseCase;
   setDefaultLlmProviderUseCase: SetDefaultLlmProviderUseCase;
+  testLlmApiKeyUseCase: TestLlmApiKeyUseCase;
   importUserDataUseCase: ImportUserDataUseCase;
   getNotificationPreferencesUseCase: GetNotificationPreferencesUseCase;
   updateNotificationPreferencesUseCase: UpdateNotificationPreferencesUseCase;

@@ -13,6 +13,7 @@ import type { ISaveLlmApiKeyUseCase } from '#src/use-cases/user/ISaveLlmApiKeyUs
 import type { IListLlmApiKeysUseCase } from '#src/use-cases/user/IListLlmApiKeysUseCase.js';
 import type { IDeleteLlmApiKeyUseCase } from '#src/use-cases/user/IDeleteLlmApiKeyUseCase.js';
 import type { ISetDefaultLlmProviderUseCase } from '#src/use-cases/user/ISetDefaultLlmProviderUseCase.js';
+import type { ITestLlmApiKeyUseCase } from '#src/use-cases/user/ITestLlmApiKeyUseCase.js';
 import type { IImportUserDataUseCase } from '#src/use-cases/user/IImportUserDataUseCase.js';
 import type { IGetNotificationPreferencesUseCase } from '#src/use-cases/user/IGetNotificationPreferencesUseCase.js';
 import type { IUpdateNotificationPreferencesUseCase } from '#src/use-cases/user/IUpdateNotificationPreferencesUseCase.js';
@@ -61,6 +62,9 @@ const makeDeps = (overrides?: object) => ({
   }),
   setDefaultLlmProviderUseCase: stub<ISetDefaultLlmProviderUseCase>({
     execute: vi.fn().mockResolvedValue(undefined),
+  }),
+  testLlmApiKeyUseCase: stub<ITestLlmApiKeyUseCase>({
+    execute: vi.fn().mockResolvedValue({ ok: true }),
   }),
   llmApiKeyMapper: new LlmApiKeyMapper(),
   importUserDataUseCase: stub<IImportUserDataUseCase>({ execute: vi.fn() }),
@@ -396,6 +400,45 @@ describe('UserResolver', () => {
         userId: 'user-1',
         provider: 'openai',
       });
+    });
+  });
+
+  describe('testLlmApiKey', () => {
+    it('delegates to testLlmApiKeyUseCase with the correct arguments and returns its result', async () => {
+      const deps = makeDeps({
+        testLlmApiKeyUseCase: stub<ITestLlmApiKeyUseCase>({
+          execute: vi.fn().mockResolvedValue({ ok: true }),
+        }),
+      });
+
+      const result = await new UserResolver(deps).testLlmApiKey(
+        'user-1',
+        'openrouter',
+        'sk-123',
+        'gpt-4o',
+        undefined,
+      );
+
+      expect(deps.testLlmApiKeyUseCase.execute).toHaveBeenCalledWith({
+        userId: 'user-1',
+        provider: 'openrouter',
+        apiKey: 'sk-123',
+        model: 'gpt-4o',
+        baseUrl: undefined,
+      });
+      expect(result).toEqual({ ok: true });
+    });
+
+    it('passes through a failure result unchanged', async () => {
+      const deps = makeDeps({
+        testLlmApiKeyUseCase: stub<ITestLlmApiKeyUseCase>({
+          execute: vi.fn().mockResolvedValue({ ok: false, error: 'Invalid API key' }),
+        }),
+      });
+
+      const result = await new UserResolver(deps).testLlmApiKey('user-1', 'openai');
+
+      expect(result).toEqual({ ok: false, error: 'Invalid API key' });
     });
   });
 

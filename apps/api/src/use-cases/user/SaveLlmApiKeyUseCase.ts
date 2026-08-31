@@ -3,6 +3,7 @@ import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
 import { LLM_PROVIDER } from '#src/constants.js';
+import { assertValidLlmApiKeyShape } from '#src/use-cases/user/llmApiKeyValidation.js';
 import type {
   ISaveLlmApiKeyUseCase,
   SaveLlmApiKeyInput,
@@ -15,44 +16,18 @@ interface Deps {
   generateId: () => string;
 }
 
-const VALID_PROVIDERS: string[] = Object.values(LLM_PROVIDER);
-
-function isValidUrl(value: string): boolean {
-  try {
-    const url = new URL(value);
-    return url.protocol === 'http:' || url.protocol === 'https:';
-  } catch {
-    return false;
-  }
-}
-
 export class SaveLlmApiKeyUseCase implements ISaveLlmApiKeyUseCase {
   constructor(private readonly deps: Deps) {}
 
   async execute(input: SaveLlmApiKeyInput): Promise<void> {
-    if (!VALID_PROVIDERS.includes(input.provider)) {
-      throw new ValidationError('Unsupported AI provider');
-    }
-    if (!input.apiKey.trim()) {
-      throw new ValidationError('API key is required');
-    }
-
     const isCustom = input.provider === LLM_PROVIDER.CUSTOM;
     const baseUrl = input.baseUrl?.trim() || null;
     const model = input.model?.trim() || null;
 
-    if (isCustom) {
-      if (!baseUrl) {
-        throw new ValidationError('A base URL is required for a custom provider');
-      }
-      if (!isValidUrl(baseUrl)) {
-        throw new ValidationError('Base URL must be a valid http(s) URL');
-      }
-      if (!model) {
-        throw new ValidationError('A model is required for a custom provider');
-      }
-    } else if (baseUrl) {
-      throw new ValidationError('A base URL can only be set for a custom provider');
+    assertValidLlmApiKeyShape({ provider: input.provider, baseUrl, model });
+
+    if (!input.apiKey.trim()) {
+      throw new ValidationError('API key is required');
     }
 
     const user = await this.deps.userRepository.findById(input.userId);

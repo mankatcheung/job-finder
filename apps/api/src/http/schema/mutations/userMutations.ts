@@ -5,6 +5,7 @@ import { clearAuthCookies } from '#src/http/schema/types/AuthPayloadType.js';
 import { TotpSetupRef } from '#src/http/schema/types/TotpSetupType.js';
 import { ConfirmTotpSetupResultRef } from '#src/http/schema/types/ConfirmTotpSetupType.js';
 import { ImportSummaryRef } from '#src/http/schema/types/ImportSummaryType.js';
+import { TestLlmApiKeyResultRef } from '#src/http/schema/types/TestLlmApiKeyResultType.js';
 import { UploadUrlPayloadRef } from '#src/http/schema/types/AuthPayloadType.js';
 import { deviceInfoFrom } from '#src/http/schema/requestDeviceInfo.js';
 import { fromCodedError } from '#src/http/errors/AppError.js';
@@ -280,6 +281,34 @@ builder.mutationField('setDefaultLlmProvider', (t) =>
       try {
         await userResolver.setDefaultLlmProvider(ctx.user.sub, args.provider);
         return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
+builder.mutationField('testLlmApiKey', (t) =>
+  t.field({
+    type: TestLlmApiKeyResultRef,
+    args: {
+      provider: t.arg.string({ required: true }),
+      apiKey: t.arg.string({ required: false }),
+      model: t.arg.string({ required: false }),
+      baseUrl: t.arg.string({ required: false }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        return await userResolver.testLlmApiKey(
+          ctx.user.sub,
+          args.provider,
+          args.apiKey,
+          args.model,
+          args.baseUrl,
+        );
       } catch (err) {
         throw fromCodedError(err);
       }

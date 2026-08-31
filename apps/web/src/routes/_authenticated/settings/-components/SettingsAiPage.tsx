@@ -1,4 +1,4 @@
-import { SparklesIcon, StarIcon, Trash2Icon } from 'lucide-react';
+import { PlugZapIcon, SparklesIcon, StarIcon, Trash2Icon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -12,6 +12,7 @@ import {
   SAVE_LLM_API_KEY,
   DELETE_LLM_API_KEY,
   SET_DEFAULT_LLM_PROVIDER,
+  TEST_LLM_API_KEY,
   UPDATE_PROFILE,
   llmApiKeySchema,
   customAiPromptSchema,
@@ -19,6 +20,7 @@ import {
   type LlmApiKeyForm,
   type CustomAiPromptForm,
   type LlmApiKey,
+  type TestLlmApiKeyResult,
   LLM_PROVIDER_OPTIONS,
   LLM_PROVIDER_LABEL,
   extractGqlError,
@@ -115,6 +117,75 @@ export function SettingsAiPage() {
     }
   };
 
+  // Testing a saved key (JEF-247) — separate pending/result state per
+  // provider row, so testing one key doesn't disturb another's last result.
+  const [testingProvider, setTestingProvider] = useState<string | null>(null);
+  const [savedKeyTestResults, setSavedKeyTestResults] = useState<
+    Record<string, TestLlmApiKeyResult>
+  >({});
+  const onTestSavedLlmApiKey = async (provider: string) => {
+    setTestingProvider(provider);
+    setSavedKeyTestResults((prev) => {
+      const next = { ...prev };
+      delete next[provider];
+      return next;
+    });
+    try {
+      const data = await gqlClient.request<{ testLlmApiKey: TestLlmApiKeyResult }>(
+        TEST_LLM_API_KEY,
+        { provider },
+      );
+      setSavedKeyTestResults((prev) => ({ ...prev, [provider]: data.testLlmApiKey }));
+    } catch (err) {
+      setSavedKeyTestResults((prev) => ({
+        ...prev,
+        [provider]: { ok: false, error: extractGqlError(err) ?? t('integrations.testKeyFailed') },
+      }));
+    } finally {
+      setTestingProvider(null);
+    }
+  };
+
+  // Testing the add-key form's unsaved values, before Save (JEF-247).
+  const [testingFormKey, setTestingFormKey] = useState(false);
+  const [formTestResult, setFormTestResult] = useState<TestLlmApiKeyResult | null>(null);
+  const [watchedApiKey, watchedModel, watchedBaseUrl] = llmApiKeyForm.watch([
+    'apiKey',
+    'model',
+    'baseUrl',
+  ]);
+  const canTestLlmApiKeyForm =
+    !!watchedApiKey?.trim() &&
+    (!isCustomLlmProvider || (!!watchedModel?.trim() && !!watchedBaseUrl?.trim()));
+  // Editing the form after a test invalidates that result — don't leave a
+  // stale "Connection works" showing against a key the user has since changed.
+  useEffect(() => {
+    setFormTestResult(null);
+  }, [llmApiKeyProvider, watchedApiKey, watchedModel, watchedBaseUrl]);
+  const onTestLlmApiKeyForm = async () => {
+    setTestingFormKey(true);
+    setFormTestResult(null);
+    try {
+      const data = await gqlClient.request<{ testLlmApiKey: TestLlmApiKeyResult }>(
+        TEST_LLM_API_KEY,
+        {
+          provider: llmApiKeyProvider,
+          apiKey: watchedApiKey,
+          model: watchedModel?.trim() || undefined,
+          baseUrl: watchedBaseUrl?.trim() || undefined,
+        },
+      );
+      setFormTestResult(data.testLlmApiKey);
+    } catch (err) {
+      setFormTestResult({
+        ok: false,
+        error: extractGqlError(err) ?? t('integrations.testKeyFailed'),
+      });
+    } finally {
+      setTestingFormKey(false);
+    }
+  };
+
   // Custom AI prompt
   const customAiPromptForm = useForm<CustomAiPromptForm>({
     resolver: zodResolver(customAiPromptSchema),
@@ -186,8 +257,36 @@ export function SettingsAiPage() {
                         {[key.model, key.baseUrl].filter(Boolean).join(' · ')}
                       </p>
                     )}
+                    {savedKeyTestResults[key.provider] && (
+                      <p
+                        className={`mt-0.5 text-xs ${
+                          savedKeyTestResults[key.provider].ok ? 'text-green-600' : 'text-red-600'
+                        }`}
+                      >
+                        {savedKeyTestResults[key.provider].ok
+                          ? t('integrations.testKeySuccess')
+                          : (savedKeyTestResults[key.provider].error ??
+                            t('integrations.testKeyFailed'))}
+                      </p>
+                    )}
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={() => onTestSavedLlmApiKey(key.provider)}
+                      disabled={testingProvider === key.provider}
+                      aria-label={t('integrations.testKey')}
+                    >
+                      <span className="flex items-center gap-1">
+                        <PlugZapIcon size={14} />{' '}
+                        <span className="hidden sm:inline">
+                          {testingProvider === key.provider
+                            ? t('integrations.testingKey')
+                            : t('integrations.testKey')}
+                        </span>
+                      </span>
+                    </Button>
                     {!isDefault && (
                       <Button
                         variant="link"
@@ -302,11 +401,28 @@ export function SettingsAiPage() {
             {llmApiKeyForm.formState.errors.root && (
               <Alert>{llmApiKeyForm.formState.errors.root.message}</Alert>
             )}
-            <Button type="submit" disabled={llmApiKeyForm.formState.isSubmitting}>
-              {llmApiKeyForm.formState.isSubmitting
-                ? t('applicationForm.saving')
-                : t('integrations.addKey')}
-            </Button>
+            {formTestResult && (
+              <p className={`text-xs ${formTestResult.ok ? 'text-green-600' : 'text-red-600'}`}>
+                {formTestResult.ok
+                  ? t('integrations.testKeySuccess')
+                  : (formTestResult.error ?? t('integrations.testKeyFailed'))}
+              </p>
+            )}
+            <div className="flex items-center gap-3">
+              <Button type="submit" disabled={llmApiKeyForm.formState.isSubmitting}>
+                {llmApiKeyForm.formState.isSubmitting
+                  ? t('applicationForm.saving')
+                  : t('integrations.addKey')}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onTestLlmApiKeyForm}
+                disabled={!canTestLlmApiKeyForm || testingFormKey}
+              >
+                {testingFormKey ? t('integrations.testingKey') : t('integrations.testKey')}
+              </Button>
+            </div>
           </form>
         ) : (
           <p className="text-sm text-gray-500 dark:text-gray-400">

@@ -543,6 +543,7 @@ export type Mutation = {
   revokeSession?: Maybe<Scalars['Boolean']['output']>;
   saveLlmApiKey?: Maybe<Scalars['Boolean']['output']>;
   setDefaultLlmProvider?: Maybe<Scalars['Boolean']['output']>;
+  testLlmApiKey?: Maybe<TestLlmApiKeyResult>;
   unlinkOAuthAccount?: Maybe<Scalars['Boolean']['output']>;
   unregisterPushSubscription?: Maybe<Scalars['Boolean']['output']>;
   updateApplication?: Maybe<JobApplication>;
@@ -945,6 +946,14 @@ export type MutationSaveLlmApiKeyArgs = {
 
 
 export type MutationSetDefaultLlmProviderArgs = {
+  provider: Scalars['String']['input'];
+};
+
+
+export type MutationTestLlmApiKeyArgs = {
+  apiKey?: InputMaybe<Scalars['String']['input']>;
+  baseUrl?: InputMaybe<Scalars['String']['input']>;
+  model?: InputMaybe<Scalars['String']['input']>;
   provider: Scalars['String']['input'];
 };
 
@@ -1365,6 +1374,12 @@ export type StatusCount = {
   __typename?: 'StatusCount';
   count?: Maybe<Scalars['Int']['output']>;
   status?: Maybe<ApplicationStatus>;
+};
+
+export type TestLlmApiKeyResult = {
+  __typename?: 'TestLlmApiKeyResult';
+  error?: Maybe<Scalars['String']['output']>;
+  ok?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type TimeToResponseStat = {

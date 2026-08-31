@@ -3,7 +3,10 @@ import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
 import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
-import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
+import type {
+  ILLMProviderFactory,
+  LLMProviderCredentials,
+} from '#src/use-cases/ports/ILLMProviderFactory.js';
 
 interface Deps {
   userRepository: IUserRepository;
@@ -37,5 +40,16 @@ export class UserLLMProviderFactory implements ILLMProviderFactory {
 
     const apiKey = this.deps.llmApiKeyCipher.decrypt(key.apiKey);
     return entry.create({ apiKey, model: model ?? key.model, baseUrl: key.baseUrl });
+  }
+
+  fromCredentials(credentials: LLMProviderCredentials): ILLMProvider | null {
+    const entry = PROVIDER_REGISTRY[credentials.provider];
+    if (!entry) return null;
+
+    return entry.create({
+      apiKey: credentials.apiKey,
+      model: credentials.model ?? null,
+      baseUrl: credentials.baseUrl ?? null,
+    });
   }
 }
