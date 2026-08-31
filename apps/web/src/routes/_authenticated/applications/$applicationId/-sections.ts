@@ -13,15 +13,14 @@ import {
 
 /**
  * The nine sections of an application, grouped as the detail page presents
- * them, in one place (JEF-208).
+ * them, in one place.
  *
  * The index, the desktop sidebar and the `?section=` URL schema all read this,
  * so a section cannot exist in the navigation and not in the URL — or be
  * grouped one way in the list and another in the sidebar.
  *
- * Ids are kebab-case because they are URL values. They used to be display-ish
- * strings with spaces ('cover letter'), which is fine for a `useState` and not
- * fine for a query param.
+ * Ids are kebab-case, not display-ish strings with spaces: they are URL
+ * query-param values.
  */
 export const SECTION_IDS = [
   'notes',

@@ -26,12 +26,8 @@ import {
 
 /**
  * Bring-your-own-key AI settings: provider keys, which provider is the
- * default, and the custom instructions appended to every prompt.
- *
- * Split out of Settings → Integrations (JEF-204), which had grown to four
- * unrelated sections. It also gives the "add your API key" prompts scattered
- * through the app somewhere accurate to link to — they previously pointed at
- * Settings → Profile, which has never had AI settings on it.
+ * default, and the custom instructions appended to every prompt. The
+ * target for every "add your API key" prompt scattered through the app.
  */
 export function SettingsAiPage() {
   const { t } = useLocale();

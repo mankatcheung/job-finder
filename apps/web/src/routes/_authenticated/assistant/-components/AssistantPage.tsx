@@ -64,13 +64,26 @@ export function AssistantPage() {
   };
 
   return (
-    <div className="flex h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex-col sm:h-[calc(100dvh-3.5rem)] lg:h-screen">
+    // Fills whatever main leaves after its own chrome-clearing padding (see
+    // AuthenticatedLayout) rather than recomputing it from 100dvh here. The
+    // header and composer below are shrink-0 siblings of the one scrollable
+    // region, so both stay put while only the messages scroll.
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="mx-auto flex min-h-0 w-full max-w-3xl min-w-0 flex-1 flex-col px-4 pt-4 sm:px-8 sm:pt-8">
-        <div className="mb-2 flex shrink-0 items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-            {t('assistant.title')}
-          </h1>
-          <div className="flex items-center gap-1">
+        <div className="mb-2 flex shrink-0 items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              {t('assistant.title')}
+            </h1>
+            {/* Which conversation is open. Pinned with the header so it stays
+                readable after scrolling up through a long thread. */}
+            <p className="truncate text-sm text-gray-500 dark:text-gray-400">
+              {activeId
+                ? (activeConversation?.title ?? t('assistant.newConversation'))
+                : t('assistant.newConversation')}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
             {activeId && (
               <IconButton
                 label={t('assistant.deleteConversation')}

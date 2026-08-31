@@ -8,9 +8,11 @@ import {
   PointerSensor,
   TouchSensor,
   closestCorners,
+  pointerWithin,
   useSensor,
   useSensors,
   useDroppable,
+  type CollisionDetection,
   type DragEndEvent,
   type DragOverEvent,
   type DragStartEvent,
@@ -55,6 +57,21 @@ type Application = BoardApplication;
 const STATUSES = APPLICATION_STATUSES;
 
 const QUERY_KEY = ['applications', null];
+
+/**
+ * Columns now stretch to fill the board's full height (JEF-242), so a short
+ * column can have a lot of empty space below its cards. `closestCorners`
+ * measures against every droppable's full rect including that empty space,
+ * which put the closest match on the wrong column once column heights
+ * stopped tracking their card count. `pointerWithin` only matches a
+ * droppable the pointer is literally inside, so column height no longer
+ * affects which one wins — falls back to `closestCorners` only for
+ * `KeyboardSensor`, which has no pointer position to test against.
+ */
+const boardCollisionDetection: CollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args);
+  return pointerCollisions.length > 0 ? pointerCollisions : closestCorners(args);
+};
 
 export function KanbanBoard() {
   const { t } = useLocale();
@@ -195,8 +212,8 @@ export function KanbanBoard() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex-col p-4 sm:h-[calc(100dvh-3.5rem)] sm:p-6 lg:h-screen">
-        <div className="flex flex-1 gap-3 overflow-x-auto pb-4">
+      <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-6">
+        <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto pb-4">
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="h-96 w-60 shrink-0 rounded-xl" />
           ))}
@@ -207,14 +224,14 @@ export function KanbanBoard() {
 
   if (isError) {
     return (
-      <div className="flex h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex-col p-4 sm:h-[calc(100dvh-3.5rem)] sm:p-6 lg:h-screen">
+      <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-6">
         <ErrorState error={error} onRetry={() => refetch()} />
       </div>
     );
   }
 
   return (
-    <div className="flex h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] flex-col p-4 sm:h-[calc(100dvh-3.5rem)] sm:p-6 lg:h-screen">
+    <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           {t('applications.board')}
@@ -232,7 +249,7 @@ export function KanbanBoard() {
           <Link
             to="/applications/new"
             aria-label={t('applications.newApplicationAria')}
-            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+            className="flex items-center gap-1.5 rounded-lg border border-transparent bg-blue-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
           >
             <PlusIcon size={15} />
             <span className="hidden sm:inline">{t('applications.newShort')}</span>
@@ -242,16 +259,14 @@ export function KanbanBoard() {
 
       <DndContext
         sensors={sensors}
-        // Rect intersection reads badly when two columns sit side by side;
-        // corners picks the column the pointer is actually nearest.
-        collisionDetection={closestCorners}
+        collisionDetection={boardCollisionDetection}
         accessibility={{ announcements }}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <div className="flex flex-1 gap-3 overflow-x-auto pb-4">
+        <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto pb-4">
           {STATUSES.map((status) => (
             <Column
               key={status}
@@ -292,7 +307,7 @@ function Column({
     <div
       ref={setNodeRef}
       data-testid={`board-column-${status}`}
-      className={`w-60 shrink-0 rounded-xl border border-t-4 border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50 ${colors.columnBorder} transition-colors ${isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+      className={`flex w-60 shrink-0 flex-col rounded-xl border border-t-4 border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50 ${colors.columnBorder} transition-colors ${isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
     >
       <div className="flex items-center justify-between px-3 py-2.5">
         {/* Dot and tinted heading, because the 4px top rule alone is easy to
@@ -314,7 +329,7 @@ function Column({
       </div>
 
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-        <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-2">
+        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
           {ids.map((id) => {
             const app = appsById.get(id);
             return app ? <SortableCard key={id} app={app} displayFields={displayFields} /> : null;

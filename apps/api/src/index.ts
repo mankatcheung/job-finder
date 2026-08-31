@@ -16,9 +16,26 @@ startObservability();
 // serverless function; buildApp() takes the instance as a parameter instead
 // of constructing its own (see buildApp.ts's own comment for the failure
 // this avoids).
+const isProduction = process.env[ENV.NODE_ENV] === NODE_ENV.PRODUCTION;
+
 const fastify = Fastify({
   logger: {
-    level: process.env[ENV.NODE_ENV] === NODE_ENV.PRODUCTION ? 'warn' : 'info',
+    level: isProduction ? 'warn' : 'info',
+    // Raw NDJSON is what Axiom's OTel ingestion expects in production, but
+    // it's unreadable in a dev terminal — every request/error is one dense
+    // JSON line with no color and no formatted stack trace, so a genuine
+    // error is easy to miss scrolling past. pino-pretty only reformats for
+    // the local stream; nothing about what gets logged changes.
+    transport: isProduction
+      ? undefined
+      : {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: 'HH:MM:ss',
+            ignore: 'pid,hostname',
+          },
+        },
   },
   // Vercel's edge terminates TLS and forwards to this function over what
   // Node sees as a plain connection, setting X-Forwarded-Proto/-Host to

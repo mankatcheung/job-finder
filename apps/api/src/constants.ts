@@ -249,10 +249,9 @@ export const RATE_LIMIT = {
   },
   // Single-shot AI mutations (cover letter / JD parsing / resume match) — more
   // generous than CHAT_MESSAGE since each is a discrete action rather than a
-  // back-and-forth conversation, but previously had zero protection against a
-  // buggy client looping the mutation. BYOK means this only ever burns the
-  // calling user's own provider quota, so severity is about abuse/bug
-  // containment, not shared-resource protection.
+  // back-and-forth conversation. BYOK means this only ever burns the calling
+  // user's own provider quota, so severity is about abuse/bug containment
+  // (a buggy client looping the mutation), not shared-resource protection.
   GENERATE_COVER_LETTER: {
     MAX_ATTEMPTS: 20,
     WINDOW_MS: 5 * 60 * 1000, // 5 minutes
@@ -548,7 +547,7 @@ export const CACHE = {
   TOKEN_TTL_MS: 60 * 1000,
   // How long between writes of a token's lastUsedAt. It feeds a "last used"
   // column in settings, where a minute of granularity is indistinguishable
-  // from none, and the write was previously happening on every request.
+  // from none — throttling the write costs nothing users would notice.
   TOKEN_LAST_USED_TTL_MS: 60 * 1000,
 } as const;
 

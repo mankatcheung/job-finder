@@ -106,10 +106,9 @@ export function LandingPage() {
   // above), so it always renders the logged-out variant.
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Logged-in visitors stay on the landing page: `/` is marketing content
-  // worth reading at any time, so JEF-236 removed JEF-213's auto-redirect
-  // to /dashboard. The header and hero simply offer "Go to dashboard" as an
-  // ordinary link instead of forcing the jump.
+  // Logged-in visitors stay on the landing page — `/` is marketing content
+  // worth reading at any time. The header and hero simply offer "Go to
+  // dashboard" as an ordinary link instead of forcing the jump.
   useEffect(() => {
     if (hasSessionCookie()) setIsLoggedIn(true);
   }, []);

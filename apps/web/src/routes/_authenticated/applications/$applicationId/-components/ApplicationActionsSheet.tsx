@@ -23,11 +23,10 @@ const ROW_CLASS =
   'flex w-full cursor-pointer items-center gap-3.5 px-5 text-left text-[15px] text-gray-900 transition-colors hover:bg-gray-50 dark:text-gray-100 dark:hover:bg-gray-700/50';
 
 /**
- * The application's own actions, as labelled rows.
- *
- * They used to be four 32px icon buttons sharing the header row with the
- * company name — under the 44px minimum, and unlabelled. Here each is a 56px
- * row with words on it, and the header keeps a single trigger (JEF-208).
+ * The application's own actions, as labelled rows: each is a 56px tap
+ * target with a text label, not an icon-only button — icon buttons sharing
+ * the header row with the company name fall under the 44px minimum tap
+ * target and give no indication what they do.
  */
 export function ApplicationActionsSheet({
   open,

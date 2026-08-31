@@ -84,7 +84,11 @@ export async function buildApp(fastify: FastifyInstance): Promise<FastifyInstanc
   );
 
   const container = buildContainer();
-  container.register({ logger: asValue(new PinoLogger(fastify.log)) });
+  // Shared with the errorFormatter below, not constructed twice — same
+  // fastify.log instance either way, so a second PinoLogger would just be
+  // redundant, not meaningfully different.
+  const logger = new PinoLogger(fastify.log);
+  container.register({ logger: asValue(logger) });
 
   await fastify.register(fastifyAwilixPlugin, {
     container,
@@ -180,7 +184,12 @@ export async function buildApp(fastify: FastifyInstance): Promise<FastifyInstanc
     schema,
     graphiql: process.env[ENV.NODE_ENV] !== NODE_ENV.PRODUCTION,
     errorFormatter: (result) => {
-      const errors = result.errors?.map(formatError);
+      // Not `result.errors?.map(formatError)` — formatError now takes a
+      // second (logger) argument, and Array.prototype.map passes (value,
+      // index, array) to its callback, so passed directly the array index
+      // would land in that slot the same way `['1','2'].map(parseInt)`
+      // famously misuses parseInt's radix parameter.
+      const errors = result.errors?.map((err) => formatError(err, logger));
       return { statusCode: 200, response: { ...result, errors } };
     },
     context: buildGraphQLContext,

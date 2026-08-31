@@ -221,7 +221,7 @@ export function ChatConversationView({
                 className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-xl px-4 py-2 text-sm whitespace-pre-wrap ${
+                  className={`max-w-[80%] rounded-xl px-4 py-2 text-sm whitespace-pre-wrap break-words ${
                     m.role === 'user'
                       ? 'bg-blue-600 text-white'
                       : 'border border-gray-200 bg-white text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200'
