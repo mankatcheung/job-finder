@@ -71,7 +71,13 @@ export class GoogleAILLMProvider implements ILLMProvider {
     return json.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
   }
 
-  async completeWithTools(
+  /**
+   * Not part of `ILLMProvider` — Gemini doesn't genuinely stream (see
+   * `completeWithToolsStream` below), so this is its own internal
+   * implementation of that method rather than a port method other callers
+   * reach directly.
+   */
+  private async completeWithTools(
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,

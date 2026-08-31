@@ -57,7 +57,6 @@ function makeStreamingProvider(
   let call = 0;
   return {
     complete: vi.fn(),
-    completeWithTools: vi.fn(),
     completeWithToolsStream: vi.fn(function (): AsyncGenerator<LLMStreamEvent> {
       const round = rounds[call++];
       async function* gen() {

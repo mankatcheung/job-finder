@@ -30,15 +30,13 @@ function fakeChatStreamBody(content: string): string {
  *
  * Two canned response shapes, chosen by whether the request carries `tools`:
  * present means a chat request (`StreamChatWithAssistantUseCase`'s
- * `completeWithToolsStream`) — replies with plain text and no tool calls,
- * which ends the tool-use loop after one round. When such a request also
- * carries `stream: true` (JEF-239),
- * the reply is framed as SSE instead of a single JSON object. Absent `tools`
- * means a `complete()` call — currently only GenerateResumeUseCase, which
- * requires strict JSON matching its schema and grounds every
- * company/institution against the user's own stored profile, so the canned
- * resume below only works together with a test that creates matching
- * work-experience/education fixtures first.
+ * `completeWithToolsStream`, always `stream: true` — JEF-239) — replies as
+ * an SSE-framed stream with plain text and no tool calls, which ends the
+ * tool-use loop after one round. Absent `tools` means a `complete()` call —
+ * currently only GenerateResumeUseCase, which requires strict JSON matching
+ * its schema and grounds every company/institution against the user's own
+ * stored profile, so the canned resume below only works together with a
+ * test that creates matching work-experience/education fixtures first.
  */
 export function fakeLlmCompletionsRoutes(): RouteDefinition[] {
   return [
@@ -46,9 +44,9 @@ export function fakeLlmCompletionsRoutes(): RouteDefinition[] {
       method: 'POST',
       path: ROUTES.LLM_FAKE_COMPLETIONS,
       handler: async (req, res) => {
-        const body = req.body as { tools?: unknown; stream?: boolean } | undefined;
+        const body = req.body as { tools?: unknown } | undefined;
 
-        if (body?.tools && body.stream) {
+        if (body?.tools) {
           res
             .status(200)
             .header('Content-Type', 'text/event-stream')
@@ -56,27 +54,25 @@ export function fakeLlmCompletionsRoutes(): RouteDefinition[] {
           return;
         }
 
-        const content = body?.tools
-          ? FAKE_CHAT_REPLY
-          : JSON.stringify({
-              summary: 'Experienced engineer.',
-              experience: [
-                {
-                  company: 'Acme Corp',
-                  title: 'Senior Engineer',
-                  period: '2020 - Present',
-                  bullets: ['Built things.'],
-                },
-              ],
-              education: [
-                {
-                  institution: 'State University',
-                  qualification: 'BS Computer Science',
-                  period: '2016 - 2020',
-                },
-              ],
-              skills: [{ category: 'Languages', items: ['TypeScript'] }],
-            });
+        const content = JSON.stringify({
+          summary: 'Experienced engineer.',
+          experience: [
+            {
+              company: 'Acme Corp',
+              title: 'Senior Engineer',
+              period: '2020 - Present',
+              bullets: ['Built things.'],
+            },
+          ],
+          education: [
+            {
+              institution: 'State University',
+              qualification: 'BS Computer Science',
+              period: '2016 - 2020',
+            },
+          ],
+          skills: [{ category: 'Languages', items: ['TypeScript'] }],
+        });
 
         res.send({ choices: [{ message: { content, tool_calls: [] } }] });
       },

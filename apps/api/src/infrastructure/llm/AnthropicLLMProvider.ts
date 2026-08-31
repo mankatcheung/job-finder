@@ -2,7 +2,6 @@ import type {
   ILLMProvider,
   LLMMessage,
   LLMToolDefinition,
-  LLMCompletionResult,
   LLMToolCall,
   LLMStreamEvent,
 } from '#src/use-cases/ports/ILLMProvider.js';
@@ -72,44 +71,6 @@ export class AnthropicLLMProvider implements ILLMProvider {
     );
 
     return json.content?.find((block) => block.type === 'text')?.text ?? '';
-  }
-
-  async completeWithTools(
-    messages: LLMMessage[],
-    tools: LLMToolDefinition[],
-    maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
-    signal?: AbortSignal,
-  ): Promise<LLMCompletionResult> {
-    if (!this.apiKey) throw new Error('Anthropic API key is not set');
-
-    const { system, conversation } = this.splitSystem(messages);
-    const json = await this.post(
-      {
-        model: this.model,
-        max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
-        ...(system ? { system } : {}),
-        messages: this.toWireMessages(conversation),
-        tools: tools.map((t) => ({
-          name: t.name,
-          description: t.description,
-          input_schema: t.parameters,
-          ...(t.cacheBreakpoint ? { cache_control: { type: 'ephemeral' as const } } : {}),
-        })),
-      },
-      signal,
-    );
-
-    const blocks = json.content ?? [];
-    const text =
-      blocks.find((b): b is { type: 'text'; text: string } => b.type === 'text')?.text ?? null;
-    const toolCalls: LLMToolCall[] = blocks
-      .filter(
-        (b): b is { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> } =>
-          b.type === 'tool_use',
-      )
-      .map((b) => ({ id: b.id, name: b.name, arguments: b.input }));
-
-    return { content: text, toolCalls };
   }
 
   async *completeWithToolsStream(

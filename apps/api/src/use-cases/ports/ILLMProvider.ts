@@ -29,6 +29,14 @@ export interface LLMToolDefinition {
   cacheBreakpoint?: boolean;
 }
 
+/**
+ * Return shape of a fully-assembled tool-calling completion — not on
+ * `ILLMProvider` itself (no provider exposes a non-streaming tool-calling
+ * method; see JEF-245), but still the shape `LLMStreamEvent`'s `done` event
+ * carries, and what `GoogleAILLMProvider` returns from its own internal,
+ * non-port `completeWithTools` (Gemini doesn't genuinely stream — see that
+ * class).
+ */
 export interface LLMCompletionResult {
   content: string | null;
   toolCalls: LLMToolCall[];
@@ -37,10 +45,10 @@ export interface LLMCompletionResult {
 /**
  * Emitted by `completeWithToolsStream` (JEF-239). `text_delta` events carry
  * incremental assistant text as it arrives; exactly one `done` carries the
- * fully-assembled result (same shape as `completeWithTools`'s return value)
- * and always terminates the stream, whether or not any deltas preceded it.
- * Providers that don't genuinely stream (Google — see `GoogleAILLMProvider`)
- * satisfy this by yielding only the `done` event.
+ * fully-assembled result (`LLMCompletionResult`'s shape) and always
+ * terminates the stream, whether or not any deltas preceded it. Providers
+ * that don't genuinely stream (Google — see `GoogleAILLMProvider`) satisfy
+ * this by yielding only the `done` event.
  */
 export type LLMStreamEvent =
   | { type: 'text_delta'; text: string }
@@ -48,12 +56,6 @@ export type LLMStreamEvent =
 
 export interface ILLMProvider {
   complete(messages: LLMMessage[], maxTokens?: number, signal?: AbortSignal): Promise<string>;
-  completeWithTools(
-    messages: LLMMessage[],
-    tools: LLMToolDefinition[],
-    maxTokens?: number,
-    signal?: AbortSignal,
-  ): Promise<LLMCompletionResult>;
   completeWithToolsStream(
     messages: LLMMessage[],
     tools: LLMToolDefinition[],

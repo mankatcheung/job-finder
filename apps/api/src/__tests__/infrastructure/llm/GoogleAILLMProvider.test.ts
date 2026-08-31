@@ -10,6 +10,15 @@ const jsonResponse = (body: unknown, ok = true, status = 200) => ({
   text: () => Promise.resolve(JSON.stringify(body)),
 });
 
+async function collectStream(
+  provider: GoogleAILLMProvider,
+  ...args: Parameters<GoogleAILLMProvider['completeWithToolsStream']>
+) {
+  const events = [];
+  for await (const event of provider.completeWithToolsStream(...args)) events.push(event);
+  return events;
+}
+
 describe('GoogleAILLMProvider', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
@@ -190,7 +199,12 @@ describe('GoogleAILLMProvider', () => {
     });
   });
 
-  describe('completeWithTools', () => {
+  // Exercises the private completeWithTools (Gemini's non-streaming
+  // implementation of the streaming port method — see completeWithToolsStream's
+  // doc comment) through the public completeWithToolsStream, since JEF-245
+  // removed completeWithTools from ILLMProvider and this class no longer
+  // exposes it directly.
+  describe('completeWithToolsStream tool-calling request/response shape', () => {
     const TOOLS = [
       {
         name: 'list_applications',
@@ -205,7 +219,7 @@ describe('GoogleAILLMProvider', () => {
       );
 
       const provider = new GoogleAILLMProvider('secret-key');
-      await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS, 999_999);
+      await collectStream(provider, [{ role: 'user', content: 'hi' }], TOOLS, 999_999);
 
       const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
       const body = JSON.parse(options.body as string);
@@ -218,7 +232,7 @@ describe('GoogleAILLMProvider', () => {
       );
 
       const provider = new GoogleAILLMProvider('secret-key');
-      await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
+      await collectStream(provider, [{ role: 'user', content: 'hi' }], TOOLS);
 
       const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
       const body = JSON.parse(options.body as string);
@@ -241,7 +255,8 @@ describe('GoogleAILLMProvider', () => {
       );
 
       const provider = new GoogleAILLMProvider('secret-key');
-      await provider.completeWithTools(
+      await collectStream(
+        provider,
         [
           { role: 'system', content: 'be helpful' },
           { role: 'user', content: 'hello' },
@@ -271,11 +286,20 @@ describe('GoogleAILLMProvider', () => {
       );
 
       const provider = new GoogleAILLMProvider('secret-key');
-      const result = await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
+      const events = await collectStream(provider, [{ role: 'user', content: 'hi' }], TOOLS);
 
-      expect(result.content).toBeNull();
-      expect(result.toolCalls).toEqual([
-        { id: 'list_applications-0', name: 'list_applications', arguments: { status: 'applied' } },
+      expect(events).toEqual([
+        {
+          type: 'done',
+          content: null,
+          toolCalls: [
+            {
+              id: 'list_applications-0',
+              name: 'list_applications',
+              arguments: { status: 'applied' },
+            },
+          ],
+        },
       ]);
     });
 
@@ -285,9 +309,9 @@ describe('GoogleAILLMProvider', () => {
       );
 
       const provider = new GoogleAILLMProvider('secret-key');
-      const result = await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
+      const events = await collectStream(provider, [{ role: 'user', content: 'hi' }], TOOLS);
 
-      expect(result).toEqual({ content: 'plain answer', toolCalls: [] });
+      expect(events).toEqual([{ type: 'done', content: 'plain answer', toolCalls: [] }]);
     });
 
     it('serializes an assistant tool-call request as a model functionCall part and a tool result by function name', async () => {
@@ -311,7 +335,7 @@ describe('GoogleAILLMProvider', () => {
         },
         { role: 'tool', content: '[]', toolCallId: 'list_applications-0' },
       ];
-      await provider.completeWithTools(messages, TOOLS);
+      await collectStream(provider, messages, TOOLS);
 
       const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
       const body = JSON.parse(options.body as string);

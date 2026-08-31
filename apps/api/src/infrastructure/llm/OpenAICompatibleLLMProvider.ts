@@ -2,8 +2,6 @@ import type {
   ILLMProvider,
   LLMMessage,
   LLMToolDefinition,
-  LLMCompletionResult,
-  LLMToolCall,
   LLMStreamEvent,
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { AUTH_HEADER, LLM } from '#src/constants.js';
@@ -99,37 +97,6 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     );
 
     return json.choices[0]?.message?.content ?? '';
-  }
-
-  async completeWithTools(
-    messages: LLMMessage[],
-    tools: LLMToolDefinition[],
-    maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
-    signal?: AbortSignal,
-  ): Promise<LLMCompletionResult> {
-    if (!this.apiKey) throw new Error('API key is not set');
-
-    const json = await this.post(
-      {
-        model: this.model,
-        messages: this.toWireMessages(messages),
-        max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
-        tools: tools.map((t) => ({
-          type: 'function',
-          function: { name: t.name, description: t.description, parameters: t.parameters },
-        })),
-      },
-      signal,
-    );
-
-    const message = json.choices[0]?.message;
-    const toolCalls: LLMToolCall[] = (message?.tool_calls ?? []).map((tc) => ({
-      id: tc.id,
-      name: tc.function.name,
-      arguments: this.parseArguments(tc.function.arguments),
-    }));
-
-    return { content: message?.content ?? null, toolCalls };
   }
 
   async *completeWithToolsStream(
