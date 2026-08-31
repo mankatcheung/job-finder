@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { GraphQLError } from 'graphql';
 import { formatError } from '#src/http/errors/formatError.js';
+import { makeLogger } from '#src/__tests__/helpers/mocks.js';
 import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import { UpdateSkillUseCase } from '#src/use-cases/skill/UpdateSkillUseCase.js';
 import { DeleteSkillUseCase } from '#src/use-cases/skill/DeleteSkillUseCase.js';
@@ -14,6 +15,7 @@ import { ERROR_CODES } from '#src/constants.js';
 function throughTheBoundary(error: unknown): { code?: unknown; message: string } {
   const formatted = formatError(
     new GraphQLError((error as Error).message, { originalError: error as Error }),
+    makeLogger(),
   );
   return { code: formatted.extensions?.code, message: formatted.message };
 }

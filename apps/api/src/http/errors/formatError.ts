@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { fromCodedError } from '#src/http/errors/AppError.js';
 import { ERROR_CODES } from '#src/constants.js';
+import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 
 // Expected client-facing error codes — these are not logged as server errors.
 const EXPECTED_ERROR_CODES: string[] = [
@@ -15,17 +16,21 @@ const EXPECTED_ERROR_CODES: string[] = [
   ERROR_CODES.USER_NOT_FOUND,
 ];
 
-export function formatError(err: GraphQLError): GraphQLError {
+export function formatError(err: GraphQLError, logger: ILogger): GraphQLError {
   const original = err.originalError;
   if (!original) return err;
 
   // GraphQLErrors thrown intentionally in resolvers pass through unchanged
   if (original instanceof GraphQLError) return original;
 
-  // Log unexpected infrastructure errors server-side
+  // Log unexpected infrastructure errors server-side. Through the injected
+  // logger rather than a bare console.error — that bypassed Fastify's pino
+  // instance entirely, so an unexpected error showed up as a raw, uncolored
+  // object dump disconnected from the request that caused it instead of a
+  // leveled, pretty-printed log line like everything else.
   const coded = (original as { code?: string }).code;
   if (!coded || !EXPECTED_ERROR_CODES.includes(coded)) {
-    console.error('[GraphQL error]', original);
+    logger.error('[GraphQL error]', original);
   }
 
   const appError = fromCodedError(original);
