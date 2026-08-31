@@ -274,6 +274,15 @@ export const RATE_LIMIT = {
     MAX_ATTEMPTS: 20,
     WINDOW_MS: 5 * 60 * 1000, // 5 minutes
   },
+  // Tighter than the other BYOK actions above (JEF-247): a "Test" click is a
+  // single cheap ping, not a natural conversational/generation flow, and
+  // this is the one BYOK mutation that can be driven with an arbitrary,
+  // not-yet-saved key value — worth a lower ceiling against someone using it
+  // to hammer third-party API keys through our backend.
+  TEST_LLM_API_KEY: {
+    MAX_ATTEMPTS: 10,
+    WINDOW_MS: 5 * 60 * 1000, // 5 minutes
+  },
 } as const;
 
 /** Email-verification token settings. */
@@ -435,6 +444,12 @@ export const LLM = {
   NVIDIA_DEFAULT_MODEL: 'meta/llama-3.1-8b-instruct',
   /** Output-token budget applied when a caller doesn't specify one. */
   DEFAULT_MAX_TOKENS: 512,
+  /**
+   * Output-token budget for `TestLlmApiKeyUseCase`'s "does this key work"
+   * ping (JEF-247) — a cheap `complete()` call just needs to confirm the
+   * request succeeds, not produce a usable reply.
+   */
+  TEST_API_KEY_MAX_TOKENS: 5,
   /**
    * Hard ceiling on requested output tokens (JEF-126), enforced by every
    * provider regardless of what a caller asks for — clamps `maxTokens`

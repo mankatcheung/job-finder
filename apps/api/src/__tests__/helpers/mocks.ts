@@ -634,6 +634,7 @@ export const makeLLMProviderFactory = (
   overrides?: Partial<ILLMProviderFactory>,
 ): ILLMProviderFactory => ({
   forUser: vi.fn().mockResolvedValue(makeLLMProvider()),
+  fromCredentials: vi.fn().mockReturnValue(makeLLMProvider()),
   ...overrides,
 });
 

@@ -25,6 +25,10 @@ import type { ISaveLlmApiKeyUseCase } from '#src/use-cases/user/ISaveLlmApiKeyUs
 import type { IListLlmApiKeysUseCase } from '#src/use-cases/user/IListLlmApiKeysUseCase.js';
 import type { IDeleteLlmApiKeyUseCase } from '#src/use-cases/user/IDeleteLlmApiKeyUseCase.js';
 import type { ISetDefaultLlmProviderUseCase } from '#src/use-cases/user/ISetDefaultLlmProviderUseCase.js';
+import type {
+  ITestLlmApiKeyUseCase,
+  TestLlmApiKeyResult,
+} from '#src/use-cases/user/ITestLlmApiKeyUseCase.js';
 import {
   LlmApiKeyMapper,
   type LlmApiKeyDTO,
@@ -71,6 +75,7 @@ interface Deps {
   listLlmApiKeysUseCase: IListLlmApiKeysUseCase;
   deleteLlmApiKeyUseCase: IDeleteLlmApiKeyUseCase;
   setDefaultLlmProviderUseCase: ISetDefaultLlmProviderUseCase;
+  testLlmApiKeyUseCase: ITestLlmApiKeyUseCase;
   llmApiKeyMapper: LlmApiKeyMapper;
   importUserDataUseCase: IImportUserDataUseCase;
   getNotificationPreferencesUseCase: IGetNotificationPreferencesUseCase;
@@ -211,6 +216,16 @@ export class UserResolver {
 
   async setDefaultLlmProvider(userId: string, provider: string): Promise<void> {
     await this.deps.setDefaultLlmProviderUseCase.execute({ userId, provider });
+  }
+
+  async testLlmApiKey(
+    userId: string,
+    provider: string,
+    apiKey?: string | null,
+    model?: string | null,
+    baseUrl?: string | null,
+  ): Promise<TestLlmApiKeyResult> {
+    return this.deps.testLlmApiKeyUseCase.execute({ userId, provider, apiKey, model, baseUrl });
   }
 
   async importUserData(userId: string, rawData: string): Promise<ImportSummary> {

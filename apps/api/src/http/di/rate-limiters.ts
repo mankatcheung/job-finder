@@ -66,6 +66,12 @@ export const rateLimiters = {
       RATE_LIMIT.GENERATE_COMPANY_BRIEFING.WINDOW_MS,
     ),
   ),
+  testLlmApiKeyRateLimiter: asValue(
+    buildRateLimiter(
+      RATE_LIMIT.TEST_LLM_API_KEY.MAX_ATTEMPTS,
+      RATE_LIMIT.TEST_LLM_API_KEY.WINDOW_MS,
+    ),
+  ),
   updatePasswordRateLimiter: asValue(
     buildRateLimiter(RATE_LIMIT.UPDATE_PASSWORD.MAX_ATTEMPTS, RATE_LIMIT.UPDATE_PASSWORD.WINDOW_MS),
   ),

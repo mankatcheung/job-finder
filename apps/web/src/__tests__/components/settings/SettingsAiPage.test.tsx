@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 
@@ -73,5 +74,132 @@ describe('SettingsAiPage', () => {
     // the loaded key row — then confirm it's on the row for that provider.
     const defaultBadge = await screen.findByText('Default');
     expect(defaultBadge.closest('li')).toHaveTextContent('OpenRouter');
+  });
+
+  describe('testing a saved key (JEF-247)', () => {
+    beforeEach(() => {
+      mockGqlRequest.mockImplementation((document: string) => {
+        if (document.includes('query LlmApiKeys')) {
+          return Promise.resolve({
+            llmApiKeys: [{ provider: 'openrouter', model: null, baseUrl: null }],
+            me: { defaultLlmProvider: 'openrouter', customAiPrompt: null },
+          });
+        }
+        return Promise.resolve({ testLlmApiKey: { ok: true, error: null } });
+      });
+    });
+
+    it('tests the saved key by provider, without sending an apiKey', async () => {
+      const user = userEvent.setup();
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+      const row = (await screen.findByText('Default')).closest('li') as HTMLElement;
+
+      await user.click(within(row).getByRole('button', { name: 'Test' }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('testLlmApiKey'), {
+          provider: 'openrouter',
+        });
+      });
+    });
+
+    it('shows a success message after a successful test', async () => {
+      const user = userEvent.setup();
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+      const row = (await screen.findByText('Default')).closest('li') as HTMLElement;
+
+      await user.click(within(row).getByRole('button', { name: 'Test' }));
+
+      expect(await within(row).findByText('Connection works.')).toBeInTheDocument();
+    });
+
+    it('shows the failure message after a failed test', async () => {
+      mockGqlRequest.mockImplementation((document: string) => {
+        if (document.includes('query LlmApiKeys')) {
+          return Promise.resolve({
+            llmApiKeys: [{ provider: 'openrouter', model: null, baseUrl: null }],
+            me: { defaultLlmProvider: 'openrouter', customAiPrompt: null },
+          });
+        }
+        return Promise.resolve({
+          testLlmApiKey: { ok: false, error: 'Invalid API key' },
+        });
+      });
+      const user = userEvent.setup();
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+      const row = (await screen.findByText('Default')).closest('li') as HTMLElement;
+
+      await user.click(within(row).getByRole('button', { name: 'Test' }));
+
+      expect(await within(row).findByText('Invalid API key')).toBeInTheDocument();
+    });
+  });
+
+  describe('testing the add-key form before saving (JEF-247)', () => {
+    it('disables the Test button until an API key is entered', async () => {
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+
+      const testButton = screen.getByRole('button', { name: 'Test' });
+      expect(testButton).toBeDisabled();
+
+      const user = userEvent.setup();
+      await user.type(screen.getByPlaceholderText('sk-…'), 'sk-123');
+
+      expect(testButton).toBeEnabled();
+    });
+
+    it('tests the unsaved form values without persisting anything', async () => {
+      mockGqlRequest.mockImplementation((document: string) => {
+        if (document.includes('query LlmApiKeys')) {
+          return Promise.resolve({
+            llmApiKeys: [],
+            me: { defaultLlmProvider: null, customAiPrompt: null },
+          });
+        }
+        return Promise.resolve({ testLlmApiKey: { ok: true, error: null } });
+      });
+      const user = userEvent.setup();
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+
+      await user.type(screen.getByPlaceholderText('sk-…'), 'sk-123');
+      await user.click(screen.getByRole('button', { name: 'Test' }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('testLlmApiKey'), {
+          provider: 'openrouter',
+          apiKey: 'sk-123',
+          model: undefined,
+          baseUrl: undefined,
+        });
+      });
+      expect(mockGqlRequest).not.toHaveBeenCalledWith(
+        expect.stringContaining('saveLlmApiKey'),
+        expect.anything(),
+      );
+      expect(await screen.findByText('Connection works.')).toBeInTheDocument();
+    });
+
+    it('keeps the Test button disabled for a custom provider until baseUrl and model are also filled in', async () => {
+      const user = userEvent.setup();
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+
+      await user.selectOptions(screen.getByRole('combobox'), 'custom');
+      await user.type(screen.getByPlaceholderText('sk-…'), 'sk-123');
+
+      const testButton = screen.getByRole('button', { name: 'Test' });
+      expect(testButton).toBeDisabled();
+
+      await user.type(
+        screen.getByPlaceholderText('https://your-endpoint.example.com/v1/chat/completions'),
+        'https://my-llm.example.com',
+      );
+      expect(testButton).toBeDisabled();
+
+      await user.type(screen.getByPlaceholderText('e.g. gpt-4o-mini'), 'my-model');
+      expect(testButton).toBeEnabled();
+    });
   });
 });

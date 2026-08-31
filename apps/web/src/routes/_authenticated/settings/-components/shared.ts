@@ -242,6 +242,15 @@ export const SET_DEFAULT_LLM_PROVIDER = `
   }
 `;
 
+export const TEST_LLM_API_KEY = `
+  mutation TestLlmApiKey($provider: String!, $apiKey: String, $model: String, $baseUrl: String) {
+    testLlmApiKey(provider: $provider, apiKey: $apiKey, model: $model, baseUrl: $baseUrl) {
+      ok
+      error
+    }
+  }
+`;
+
 export const LINKED_OAUTH_ACCOUNTS_QUERY = `
   query LinkedOAuthAccounts {
     linkedOAuthAccounts {
@@ -471,6 +480,11 @@ export type LlmApiKey = {
   provider: string;
   model: string | null;
   baseUrl: string | null;
+};
+
+export type TestLlmApiKeyResult = {
+  ok: boolean;
+  error: string | null;
 };
 
 export const LLM_PROVIDER_OPTIONS: { value: string; label: string }[] = [
