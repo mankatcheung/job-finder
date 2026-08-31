@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const { mockGqlRequest, mockNavigate, mockSearch } = vi.hoisted(() => ({
+const { mockGqlRequest, mockStreamChatMessage, mockNavigate, mockSearch } = vi.hoisted(() => ({
   mockGqlRequest: vi.fn(),
+  mockStreamChatMessage: vi.fn(),
   mockNavigate: vi.fn(),
   mockSearch: vi.fn(() => ({}) as { conversation?: string }),
 }));
@@ -34,6 +35,11 @@ vi.mock('@tanstack/react-router', () => ({
 vi.mock('#/graphql/client', () => ({
   gqlClient: { request: mockGqlRequest },
 }));
+
+vi.mock('#/lib/chatStream', async () => {
+  const actual = await vi.importActual<typeof import('#/lib/chatStream')>('#/lib/chatStream');
+  return { ...actual, streamChatMessage: mockStreamChatMessage };
+});
 
 vi.mock('#/lib/undoToast', () => ({
   // Sends the operation the call site handed over, instead of running an
@@ -222,14 +228,40 @@ describe('AssistantPage (chat)', () => {
 
   it('sends a message into the active conversation and appends the reply', async () => {
     mockSearch.mockReturnValue({ conversation: 'conv-1' });
+    let chatHistoryCallCount = 0;
     mockGqlRequest.mockImplementation((arg: unknown) => {
       const query = documentOf(arg);
       if (query.includes('Conversations')) return noConversations();
-      if (query.includes('ChatHistory')) return Promise.resolve({ chatHistory: [] });
-      if (query.includes('SendChatMessage'))
-        return Promise.resolve({ sendChatMessage: 'You have 2 active applications.' });
+      if (query.includes('ChatHistory')) {
+        chatHistoryCallCount++;
+        return Promise.resolve(
+          chatHistoryCallCount === 1
+            ? { chatHistory: [] }
+            : {
+                chatHistory: [
+                  {
+                    id: 'm1',
+                    role: 'user',
+                    content: 'how many active applications do I have?',
+                    createdAt: '',
+                  },
+                  {
+                    id: 'm2',
+                    role: 'assistant',
+                    content: 'You have 2 active applications.',
+                    createdAt: '',
+                  },
+                ],
+              },
+        );
+      }
       return Promise.resolve({});
     });
+    mockStreamChatMessage.mockImplementation(
+      async ({ onDelta }: { onDelta: (text: string) => void }) => {
+        onDelta('You have 2 active applications.');
+      },
+    );
 
     render(<AssistantPage />, { wrapper: Wrapper });
     await waitFor(() =>
@@ -247,13 +279,10 @@ describe('AssistantPage (chat)', () => {
       expect(screen.getByText('You have 2 active applications.')).toBeInTheDocument(),
     );
     expect(screen.getByText('how many active applications do I have?')).toBeInTheDocument();
-    expect(mockGqlRequest).toHaveBeenCalledWith(
+    expect(mockStreamChatMessage).toHaveBeenCalledWith(
       expect.objectContaining({
-        document: expect.stringContaining('SendChatMessage'),
-        variables: {
-          conversationId: 'conv-1',
-          message: 'how many active applications do I have?',
-        },
+        conversationId: 'conv-1',
+        message: 'how many active applications do I have?',
         signal: expect.any(AbortSignal),
       }),
     );
@@ -267,10 +296,10 @@ describe('AssistantPage (chat)', () => {
         return Promise.resolve({
           createConversation: { id: 'new-conv', title: null, createdAt: '', updatedAt: '' },
         });
-      if (query.includes('SendChatMessage'))
-        return Promise.resolve({ sendChatMessage: 'Sure, here is a summary.' });
+      if (query.includes('ChatHistory')) return Promise.resolve({ chatHistory: [] });
       return Promise.resolve({});
     });
+    mockStreamChatMessage.mockResolvedValue(undefined);
 
     render(<AssistantPage />, { wrapper: Wrapper });
     await waitFor(() =>
@@ -282,12 +311,8 @@ describe('AssistantPage (chat)', () => {
     fireEvent.click(screen.getByText('Summarize my interviews this month'));
 
     await waitFor(() =>
-      expect(mockGqlRequest).toHaveBeenCalledWith(
-        expect.objectContaining({
-          document: expect.stringContaining('SendChatMessage'),
-          variables: expect.objectContaining({ conversationId: 'new-conv' }),
-          signal: expect.any(AbortSignal),
-        }),
+      expect(mockStreamChatMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ conversationId: 'new-conv', signal: expect.any(AbortSignal) }),
       ),
     );
     expect(mockNavigate).toHaveBeenCalledWith({ search: { conversation: 'new-conv' } });

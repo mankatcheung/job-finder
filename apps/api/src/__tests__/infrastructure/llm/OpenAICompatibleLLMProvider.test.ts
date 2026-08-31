@@ -13,6 +13,27 @@ const jsonResponse = (body: unknown, ok = true, status = 200) => ({
   text: () => Promise.resolve(JSON.stringify(body)),
 });
 
+const streamResponse = (sseText: string, ok = true, status = 200) => ({
+  ok,
+  status,
+  body: new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode(sseText));
+      controller.close();
+    },
+  }),
+  text: () => Promise.resolve(sseText),
+});
+
+async function collectStream(
+  provider: OpenAICompatibleLLMProvider,
+  ...args: Parameters<OpenAICompatibleLLMProvider['completeWithToolsStream']>
+) {
+  const events = [];
+  for await (const event of provider.completeWithToolsStream(...args)) events.push(event);
+  return events;
+}
+
 describe('OpenAICompatibleLLMProvider', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
@@ -157,137 +178,108 @@ describe('OpenAICompatibleLLMProvider', () => {
     expect(options.signal!.aborted).toBe(true);
   });
 
-  describe('completeWithTools', () => {
-    const TOOLS = [
-      {
-        name: 'list_applications',
-        description: 'List applications',
-        parameters: { type: 'object' },
-      },
-    ];
+  describe('completeWithToolsStream (JEF-239)', () => {
+    it('throws when the API key is empty', async () => {
+      const provider = new OpenAICompatibleLLMProvider('', BASE_URL, MODEL);
 
-    it('clamps a maxTokens request above the hard ceiling (JEF-126)', async () => {
-      vi.mocked(fetch).mockResolvedValue(
-        jsonResponse({ choices: [{ message: { content: 'ok' } }] }) as never,
+      await expect(collectStream(provider, [{ role: 'user', content: 'hi' }], [])).rejects.toThrow(
+        'API key is not set',
       );
-
-      const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
-      await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS, 999_999);
-
-      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
-      const body = JSON.parse(options.body as string);
-      expect(body.max_tokens).toBe(LLM.MAX_OUTPUT_TOKENS_CAP);
+      expect(fetch).not.toHaveBeenCalled();
     });
 
-    it('sends tool definitions in the OpenAI function-calling shape', async () => {
-      vi.mocked(fetch).mockResolvedValue(
-        jsonResponse({ choices: [{ message: { content: 'ok' } }] }) as never,
-      );
-
+    it('sends stream: true in the request body', async () => {
+      vi.mocked(fetch).mockResolvedValue(streamResponse('data: [DONE]\n\n') as never);
       const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
-      await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
+
+      await collectStream(provider, [{ role: 'user', content: 'hi' }], []);
 
       const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
       const body = JSON.parse(options.body as string);
-      expect(body.tools).toEqual([
-        {
-          type: 'function',
-          function: {
-            name: 'list_applications',
-            description: 'List applications',
-            parameters: { type: 'object' },
-          },
-        },
+      expect(body.stream).toBe(true);
+    });
+
+    it('forwards a caller-supplied signal into the outbound fetch', async () => {
+      vi.mocked(fetch).mockImplementation(() => new Promise(() => {}));
+      const controller = new AbortController();
+      const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+
+      const gen = provider.completeWithToolsStream(
+        [{ role: 'user', content: 'hi' }],
+        [],
+        undefined,
+        controller.signal,
+      );
+      void gen.next();
+      await Promise.resolve();
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      expect(options.signal!.aborted).toBe(false);
+      controller.abort();
+      expect(options.signal!.aborted).toBe(true);
+    });
+
+    it('yields a text_delta per chunk and a final done with the joined content, stopping at [DONE]', async () => {
+      const sse = [
+        'data: {"choices":[{"delta":{"role":"assistant","content":"Hello"}}]}',
+        '',
+        'data: {"choices":[{"delta":{"content":" world"}}]}',
+        '',
+        'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}',
+        '',
+        'data: [DONE]',
+        '',
+        '',
+      ].join('\n');
+      vi.mocked(fetch).mockResolvedValue(streamResponse(sse) as never);
+      const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+
+      const events = await collectStream(provider, [{ role: 'user', content: 'hi' }], []);
+
+      expect(events).toEqual([
+        { type: 'text_delta', text: 'Hello' },
+        { type: 'text_delta', text: ' world' },
+        { type: 'done', content: 'Hello world', toolCalls: [] },
       ]);
     });
 
-    it('parses tool_calls from the response, including JSON-string arguments', async () => {
-      vi.mocked(fetch).mockResolvedValue(
-        jsonResponse({
-          choices: [
-            {
-              message: {
-                content: null,
-                tool_calls: [
-                  {
-                    id: 'call_1',
-                    function: { name: 'list_applications', arguments: '{"status":"applied"}' },
-                  },
-                ],
-              },
-            },
-          ],
-        }) as never,
-      );
-
+    it('reassembles a streamed tool call from per-index delta fragments', async () => {
+      const sse = [
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_1","function":{"name":"list_applications","arguments":""}}]}}]}',
+        '',
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\\"status\\":"}}]}}]}',
+        '',
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"\\"applied\\"}"}}]}}]}',
+        '',
+        'data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}]}',
+        '',
+        'data: [DONE]',
+        '',
+        '',
+      ].join('\n');
+      vi.mocked(fetch).mockResolvedValue(streamResponse(sse) as never);
       const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
-      const result = await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
 
-      expect(result).toEqual({
-        content: null,
-        toolCalls: [{ id: 'call_1', name: 'list_applications', arguments: { status: 'applied' } }],
-      });
-    });
+      const events = await collectStream(provider, [{ role: 'user', content: 'hi' }], []);
 
-    it('returns an empty toolCalls array and falls back to {} args when there are none / arguments are malformed', async () => {
-      vi.mocked(fetch).mockResolvedValueOnce(
-        jsonResponse({ choices: [{ message: { content: 'plain answer' } }] }) as never,
-      );
-      const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
-      const result = await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
-      expect(result).toEqual({ content: 'plain answer', toolCalls: [] });
-
-      vi.mocked(fetch).mockResolvedValueOnce(
-        jsonResponse({
-          choices: [
-            {
-              message: {
-                content: null,
-                tool_calls: [
-                  { id: 'call_1', function: { name: 'list_applications', arguments: 'not json' } },
-                ],
-              },
-            },
-          ],
-        }) as never,
-      );
-      const malformed = await provider.completeWithTools([{ role: 'user', content: 'hi' }], TOOLS);
-      expect(malformed.toolCalls[0].arguments).toEqual({});
-    });
-
-    it('serializes an assistant tool-call request and a tool result message correctly', async () => {
-      vi.mocked(fetch).mockResolvedValue(
-        jsonResponse({ choices: [{ message: { content: 'final answer' } }] }) as never,
-      );
-
-      const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
-      const messages: LLMMessage[] = [
-        { role: 'user', content: 'which apps need follow up?' },
+      expect(events).toEqual([
         {
-          role: 'assistant',
-          content: '',
+          type: 'done',
+          content: null,
           toolCalls: [
             { id: 'call_1', name: 'list_applications', arguments: { status: 'applied' } },
           ],
         },
-        { role: 'tool', content: '[]', toolCallId: 'call_1' },
-      ];
-      await provider.completeWithTools(messages, TOOLS);
+      ]);
+    });
 
-      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
-      const body = JSON.parse(options.body as string);
-      expect(body.messages[1]).toEqual({
-        role: 'assistant',
-        content: null,
-        tool_calls: [
-          {
-            id: 'call_1',
-            type: 'function',
-            function: { name: 'list_applications', arguments: '{"status":"applied"}' },
-          },
-        ],
-      });
-      expect(body.messages[2]).toEqual({ role: 'tool', tool_call_id: 'call_1', content: '[]' });
+    it('throws when the response is not ok', async () => {
+      vi.mocked(fetch).mockResolvedValue(streamResponse('rate limited', false, 429) as never);
+      const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+
+      await expect(collectStream(provider, [{ role: 'user', content: 'hi' }], [])).rejects.toThrow(
+        /LLM provider error 429/,
+      );
     });
   });
 });

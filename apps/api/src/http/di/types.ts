@@ -253,7 +253,7 @@ import type { RotateRefreshTokenUseCase } from '#src/use-cases/sessions/RotateRe
 import type { ListSessionsUseCase } from '#src/use-cases/sessions/ListSessionsUseCase.js';
 import type { RevokeSessionUseCase } from '#src/use-cases/sessions/RevokeSessionUseCase.js';
 import type { RevokeOtherSessionsUseCase } from '#src/use-cases/sessions/RevokeOtherSessionsUseCase.js';
-import type { ChatWithAssistantUseCase } from '#src/use-cases/chat/ChatWithAssistantUseCase.js';
+import type { StreamChatWithAssistantUseCase } from '#src/use-cases/chat/StreamChatWithAssistantUseCase.js';
 import type { LLMToolDefinition } from '#src/use-cases/ports/ILLMProvider.js';
 import type { CreateWorkExperienceUseCase } from '#src/use-cases/workExperience/CreateWorkExperienceUseCase.js';
 import type { UpdateWorkExperienceUseCase } from '#src/use-cases/workExperience/UpdateWorkExperienceUseCase.js';
@@ -550,7 +550,7 @@ export interface Cradle {
   companyBriefingResolver: CompanyBriefingResolver;
   computeHealthScoreUseCase: ComputeHealthScoreUseCase;
   chatTools: LLMToolDefinition[];
-  chatWithAssistantUseCase: ChatWithAssistantUseCase;
+  streamChatWithAssistantUseCase: StreamChatWithAssistantUseCase;
   computeResumeMatchScoreUseCase: ComputeResumeMatchScoreUseCase;
   getApplicationChannelAnalyticsUseCase: GetApplicationChannelAnalyticsUseCase;
   getCalendarEventsUseCase: GetCalendarEventsUseCase;

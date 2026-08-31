@@ -347,6 +347,16 @@ export const ROUTES = {
   GRAPHQL: '/graphql',
   HEALTH: '/health',
   MCP: '/mcp',
+  /**
+   * Streams the assistant's chat reply (JEF-239) — not GraphQL, since
+   * streaming needs incremental writes to the raw response that Mercurius/
+   * Pothos's request-response model, and this codebase's `IHttpResponse`
+   * port's send()-once shape, don't support. Same cookie-based JWT auth as
+   * GraphQL, registered directly on the Fastify instance in `buildApp.ts`
+   * (like the local-upload route) rather than through the `RouteDefinition`
+   * abstraction, for the same reason.
+   */
+  CHAT_STREAM: '/chat/stream',
   DIGEST_SEND: '/admin/digest/send',
   TRASH_PURGE: '/admin/trash/purge',
   REMINDERS_SEND: '/admin/reminders/send',
@@ -434,8 +444,20 @@ export const LLM = {
    * (GenerateCoverLetterUseCase's 1024).
    */
   MAX_OUTPUT_TOKENS_CAP: 2048,
-  /** Per-attempt request timeout for provider fetches, in milliseconds (JEF-110). */
+  /** Per-attempt request timeout for non-streaming provider fetches, in milliseconds (JEF-110). */
   REQUEST_TIMEOUT_MS: 45_000,
+  /**
+   * Idle timeout for streaming provider fetches, in milliseconds (JEF-239
+   * follow-up) — resets on every chunk received (see
+   * `createIdleAbortController`), so it only fires when bytes actually stop
+   * arriving, not from total stream duration. A fixed-duration timeout like
+   * `REQUEST_TIMEOUT_MS` would otherwise abort a healthy, actively-streaming
+   * reply that simply takes longer than one request "should." Kept equal to
+   * `REQUEST_TIMEOUT_MS` since it represents the same "how long is too long
+   * to hear nothing" tolerance, just measured between chunks instead of once
+   * for the whole call.
+   */
+  STREAM_IDLE_TIMEOUT_MS: 45_000,
   /** Extra attempts after the first for transient (network / 5xx) failures — 4xx responses never retry. */
   MAX_RETRIES: 2,
   /** Base delay before a retry, in milliseconds; doubles each attempt (300ms, 600ms, ...). */
@@ -707,7 +729,7 @@ export const CHAT = {
    * sent to the *model* is capped: `GetChatHistoryUseCase` (what the UI
    * displays) still reads the complete, uncapped history from the
    * repository — this constant is consulted only inside
-   * `ChatWithAssistantUseCase`.
+   * `StreamChatWithAssistantUseCase`.
    */
   MAX_HISTORY_MESSAGES: 40,
 } as const;

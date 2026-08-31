@@ -23,6 +23,14 @@ function resolveClientUrl(url: string): string {
 
 const GQL_CLIENT_URL = resolveClientUrl(API_URL);
 
+/**
+ * Sibling of the GraphQL endpoint for the chat streaming SSE route
+ * (JEF-239, `ROUTES.CHAT_STREAM` on the API) — not itself a GraphQL
+ * endpoint, so it's derived by swapping `/graphql`'s path rather than
+ * reusing `GQL_CLIENT_URL` outright.
+ */
+export const CHAT_STREAM_URL = resolveClientUrl(API_URL.replace(/\/graphql$/, '/chat/stream'));
+
 const REFRESH_MUTATION = `mutation { refreshToken }`;
 
 // Non-HttpOnly hint cookie the API sets alongside the real HttpOnly

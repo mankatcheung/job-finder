@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fetchWithRetry } from '#src/infrastructure/llm/fetchWithRetry.js';
+import {
+  fetchWithRetry,
+  createIdleAbortController,
+} from '#src/infrastructure/llm/fetchWithRetry.js';
 import { LLM } from '#src/constants.js';
 
 const okResponse = (status = 200) => ({ ok: status < 400, status }) as Response;
@@ -164,5 +167,97 @@ describe('fetchWithRetry', () => {
     expect(fetch).toHaveBeenCalledTimes(3);
 
     await promise;
+  });
+
+  it('skips the internal per-attempt timeout when perAttemptTimeoutMs is null, relying only on externalSignal', async () => {
+    vi.mocked(fetch).mockResolvedValue(okResponse(200));
+    const controller = new AbortController();
+
+    await fetchWithRetry('https://example.com', {}, controller.signal, null);
+
+    const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    expect(options.signal).toBe(controller.signal);
+  });
+
+  it('does not abort a perAttemptTimeoutMs: null call after what would have been the default timeout', async () => {
+    vi.mocked(fetch).mockImplementation(() => new Promise(() => {}));
+
+    void fetchWithRetry('https://example.com', {}, undefined, null);
+    await vi.advanceTimersByTimeAsync(0);
+
+    const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    expect(options.signal).toBeUndefined();
+
+    await vi.advanceTimersByTimeAsync(LLM.REQUEST_TIMEOUT_MS);
+    // No signal was ever created, so there is nothing to have fired.
+    expect(options.signal).toBeUndefined();
+  });
+});
+
+describe('createIdleAbortController', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('does not abort while activity() keeps resetting the idle timer, even past the idle duration in total', async () => {
+    const { signal, activity } = createIdleAbortController(1_000);
+
+    // Ten "chunks" spaced just under the idle window apart — total elapsed
+    // time (9_000ms) comfortably exceeds the 1_000ms idle window, but the
+    // signal must never fire because each chunk resets the clock.
+    for (let i = 0; i < 10; i++) {
+      await vi.advanceTimersByTimeAsync(900);
+      activity();
+    }
+
+    expect(signal.aborted).toBe(false);
+  });
+
+  it('aborts with a TimeoutError once idleMs passes with no activity() call', async () => {
+    const { signal, activity } = createIdleAbortController(1_000);
+    activity();
+
+    await vi.advanceTimersByTimeAsync(999);
+    expect(signal.aborted).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(signal.aborted).toBe(true);
+    expect((signal.reason as DOMException).name).toBe('TimeoutError');
+  });
+
+  it('aborts immediately, without arming a timer, when the external signal is already aborted', () => {
+    const controller = new AbortController();
+    controller.abort('already gone');
+
+    const { signal } = createIdleAbortController(1_000, controller.signal);
+
+    expect(signal.aborted).toBe(true);
+    expect(signal.reason).toBe('already gone');
+  });
+
+  it('aborts when the external signal aborts mid-stream, before the idle window elapses', async () => {
+    const controller = new AbortController();
+    const { signal, activity } = createIdleAbortController(1_000, controller.signal);
+    activity();
+
+    await vi.advanceTimersByTimeAsync(500);
+    controller.abort('client disconnected');
+
+    expect(signal.aborted).toBe(true);
+    expect(signal.reason).toBe('client disconnected');
+  });
+
+  it('dispose() clears the pending timer so it never fires', async () => {
+    const { signal, activity, dispose } = createIdleAbortController(1_000);
+    activity();
+    dispose();
+
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    expect(signal.aborted).toBe(false);
   });
 });

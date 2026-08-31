@@ -17,22 +17,22 @@ describe('fake LLM completions route — LLM_PROVIDER_MODE=fake', () => {
     await testApp.cleanup();
   });
 
-  it('replies with plain text and no tool calls when the request carries tools (chat)', async () => {
+  it('replies with an SSE-framed stream when the request carries tools (chat, JEF-239)', async () => {
     const res = await testApp.app.inject({
       method: 'POST',
       url: '/llm-test/fake/chat/completions',
       payload: {
         model: 'fake-model',
         messages: [{ role: 'user', content: 'hi' }],
-        max_tokens: 100,
+        stream: true,
         tools: [{ type: 'function', function: { name: 'list_applications' } }],
       },
     });
 
     expect(res.statusCode).toBe(200);
-    const body = res.json();
-    expect(body.choices[0].message.content).toBe('Fake assistant reply for e2e testing.');
-    expect(body.choices[0].message.tool_calls).toEqual([]);
+    expect(res.headers['content-type']).toContain('text/event-stream');
+    expect(res.body).toContain('Fake assistant reply for e2e testing.');
+    expect(res.body.trim().endsWith('data: [DONE]')).toBe(true);
   });
 
   it('replies with the canned resume JSON when the request carries no tools (complete)', async () => {

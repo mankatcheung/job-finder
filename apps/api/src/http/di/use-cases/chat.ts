@@ -1,7 +1,7 @@
 import { asClass, asValue, Lifetime, type NameAndRegistrationPair } from 'awilix';
 
 import { GetChatHistoryUseCase } from '#src/use-cases/chat/GetChatHistoryUseCase.js';
-import { ChatWithAssistantUseCase } from '#src/use-cases/chat/ChatWithAssistantUseCase.js';
+import { StreamChatWithAssistantUseCase } from '#src/use-cases/chat/StreamChatWithAssistantUseCase.js';
 import { CHAT_TOOLS, toLlmToolDefinitions } from '#src/interface-adapters/llm/toolCatalogue.js';
 import { CreateConversationUseCase } from '#src/use-cases/conversations/CreateConversationUseCase.js';
 import { ListConversationsUseCase } from '#src/use-cases/conversations/ListConversationsUseCase.js';
@@ -18,7 +18,9 @@ export const chat = {
   // gets read tools only — MCP takes the full catalogue and gates per
   // request instead (JEF-177).
   chatTools: asValue(toLlmToolDefinitions(CHAT_TOOLS)),
-  chatWithAssistantUseCase: asClass(ChatWithAssistantUseCase, { lifetime: Lifetime.TRANSIENT }),
+  streamChatWithAssistantUseCase: asClass(StreamChatWithAssistantUseCase, {
+    lifetime: Lifetime.TRANSIENT,
+  }),
   createConversationUseCase: asClass(CreateConversationUseCase, {
     lifetime: Lifetime.TRANSIENT,
   }),

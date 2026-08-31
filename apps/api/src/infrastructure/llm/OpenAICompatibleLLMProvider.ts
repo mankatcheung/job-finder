@@ -2,11 +2,14 @@ import type {
   ILLMProvider,
   LLMMessage,
   LLMToolDefinition,
-  LLMCompletionResult,
-  LLMToolCall,
+  LLMStreamEvent,
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { AUTH_HEADER, LLM } from '#src/constants.js';
-import { fetchWithRetry } from '#src/infrastructure/llm/fetchWithRetry.js';
+import {
+  fetchWithRetry,
+  createIdleAbortController,
+} from '#src/infrastructure/llm/fetchWithRetry.js';
+import { parseSSE } from '#src/infrastructure/llm/sseParser.js';
 
 interface OpenAIWireMessage {
   role: string;
@@ -28,6 +31,29 @@ interface OpenAIWireResponse {
   }>;
 }
 
+const OPENAI_STREAM_DONE = '[DONE]';
+
+/**
+ * One `chat.completion.chunk` object. `delta.tool_calls` entries are keyed
+ * by `index` (supports parallel tool calls); `id`/`function.name` typically
+ * arrive once on a call's first chunk and subsequent chunks for the same
+ * index carry only `function.arguments` fragments to concatenate — but this
+ * provider merges whichever fields are present per chunk rather than
+ * assuming that ordering, which costs nothing and is robust either way.
+ */
+interface OpenAIStreamChunk {
+  choices?: Array<{
+    delta?: {
+      content?: string | null;
+      tool_calls?: Array<{
+        index: number;
+        id?: string;
+        function?: { name?: string; arguments?: string };
+      }>;
+    };
+  }>;
+}
+
 /**
  * Covers every provider that implements OpenAI's `/chat/completions` request
  * and response shape — OpenAI itself, OpenRouter, Mistral, Groq, xAI,
@@ -39,7 +65,7 @@ interface OpenAIWireResponse {
  * changes required, to any prompt >=1024 tokens whose prefix repeats
  * byte-for-byte across calls (OpenAI's own OpenAI-compatible-shaped
  * competitors that support caching, e.g. DeepSeek, work the same way).
- * `ChatWithAssistantUseCase` already builds messages with the stable part —
+ * `StreamChatWithAssistantUseCase` already builds messages with the stable part —
  * system prompt, then the user's `customAiPrompt` if set — first and the
  * per-turn conversation appended after, which is exactly the shape automatic
  * prefix caching needs (JEF-238). Nothing to wire here; the `tools` array
@@ -73,19 +99,20 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     return json.choices[0]?.message?.content ?? '';
   }
 
-  async completeWithTools(
+  async *completeWithToolsStream(
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
     signal?: AbortSignal,
-  ): Promise<LLMCompletionResult> {
+  ): AsyncGenerator<LLMStreamEvent> {
     if (!this.apiKey) throw new Error('API key is not set');
 
-    const json = await this.post(
+    const { body, onChunk, dispose } = await this.postStream(
       {
         model: this.model,
         messages: this.toWireMessages(messages),
         max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
+        stream: true,
         tools: tools.map((t) => ({
           type: 'function',
           function: { name: t.name, description: t.description, parameters: t.parameters },
@@ -94,14 +121,44 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
       signal,
     );
 
-    const message = json.choices[0]?.message;
-    const toolCalls: LLMToolCall[] = (message?.tool_calls ?? []).map((tc) => ({
-      id: tc.id,
-      name: tc.function.name,
-      arguments: this.parseArguments(tc.function.arguments),
-    }));
+    let content = '';
+    const toolCalls = new Map<number, { id: string; name: string; arguments: string }>();
 
-    return { content: message?.content ?? null, toolCalls };
+    try {
+      for await (const frame of parseSSE(body, onChunk)) {
+        if (frame.data === OPENAI_STREAM_DONE) break;
+
+        const chunk = JSON.parse(frame.data) as OpenAIStreamChunk;
+        const delta = chunk.choices?.[0]?.delta;
+        if (!delta) continue;
+
+        if (delta.content) {
+          content += delta.content;
+          yield { type: 'text_delta', text: delta.content };
+        }
+
+        for (const tc of delta.tool_calls ?? []) {
+          const existing = toolCalls.get(tc.index) ?? { id: '', name: '', arguments: '' };
+          toolCalls.set(tc.index, {
+            id: tc.id ?? existing.id,
+            name: tc.function?.name ?? existing.name,
+            arguments: existing.arguments + (tc.function?.arguments ?? ''),
+          });
+        }
+      }
+    } finally {
+      dispose();
+    }
+
+    yield {
+      type: 'done',
+      content: content || null,
+      toolCalls: [...toolCalls.values()].map((tc) => ({
+        id: tc.id,
+        name: tc.name,
+        arguments: this.parseArguments(tc.arguments),
+      })),
+    };
   }
 
   private toWireMessages(messages: LLMMessage[]): OpenAIWireMessage[] {
@@ -155,5 +212,41 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     }
 
     return response.json() as Promise<OpenAIWireResponse>;
+  }
+
+  private async postStream(
+    body: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<{ body: ReadableStream<Uint8Array>; onChunk: () => void; dispose: () => void }> {
+    // See `createIdleAbortController`'s doc comment: a streaming reply can
+    // legitimately run well past a normal request's timeout as long as bytes
+    // keep arriving, so this resets on every chunk instead of capping total
+    // duration.
+    const idle = createIdleAbortController(LLM.STREAM_IDLE_TIMEOUT_MS, signal);
+    const response = await fetchWithRetry(
+      this.baseUrl,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${AUTH_HEADER.BEARER_PREFIX}${this.apiKey}`,
+        },
+        body: JSON.stringify(body),
+      },
+      idle.signal,
+      null,
+    );
+
+    if (!response.ok) {
+      idle.dispose();
+      const text = await response.text();
+      throw new Error(`LLM provider error ${response.status}: ${text}`);
+    }
+    if (!response.body) {
+      idle.dispose();
+      throw new Error('LLM provider error: response had no body to stream');
+    }
+
+    return { body: response.body, onChunk: idle.activity, dispose: idle.dispose };
   }
 }
