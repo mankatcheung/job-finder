@@ -1,4 +1,12 @@
-import { PlugZapIcon, SparklesIcon, StarIcon, Trash2Icon } from 'lucide-react';
+import {
+  CircleAlertIcon,
+  CircleCheckIcon,
+  PlugZapIcon,
+  PlusIcon,
+  SparklesIcon,
+  StarIcon,
+  Trash2Icon,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -6,7 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { useLocale } from '#/lib/i18n';
-import { Alert, Button, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
+import { Alert, Button, Card, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
 import {
   LLM_API_KEYS_QUERY,
   SAVE_LLM_API_KEY,
@@ -23,8 +31,25 @@ import {
   type TestLlmApiKeyResult,
   LLM_PROVIDER_OPTIONS,
   LLM_PROVIDER_LABEL,
+  LLM_PROVIDER_AVATAR,
   extractGqlError,
 } from './shared';
+
+function TestResultLine({ result }: { result: TestLlmApiKeyResult }) {
+  const { t } = useLocale();
+  return (
+    <p
+      className={`mt-1 flex items-center gap-1 text-xs ${
+        result.ok ? 'text-green-600' : 'text-red-600'
+      }`}
+    >
+      {result.ok ? <CircleCheckIcon size={13} /> : <CircleAlertIcon size={13} />}
+      {result.ok
+        ? t('integrations.testKeySuccess')
+        : (result.error ?? t('integrations.testKeyFailed'))}
+    </p>
+  );
+}
 
 /**
  * Bring-your-own-key AI settings: provider keys, which provider is the
@@ -71,6 +96,13 @@ export function SettingsAiPage() {
     }
   }, [availableProviderValues, llmApiKeyForm, llmApiKeyProvider, availableProviderOptions]);
 
+  // Progressive disclosure (redesign): once at least one provider is
+  // connected, the add-key form stays collapsed behind an "Add provider"
+  // button rather than always sitting open — a manual toggle overrides the
+  // "open when there's nothing configured yet" default in both directions.
+  const [addProviderOverride, setAddProviderOverride] = useState<boolean | null>(null);
+  const addProviderOpen = addProviderOverride ?? llmApiKeys.length === 0;
+
   const onSaveLlmApiKey = async (data: LlmApiKeyForm) => {
     try {
       await gqlClient.request(SAVE_LLM_API_KEY, {
@@ -80,6 +112,7 @@ export function SettingsAiPage() {
         baseUrl: data.baseUrl?.trim() || undefined,
       });
       llmApiKeyForm.reset({ provider: data.provider, apiKey: '', model: '', baseUrl: '' });
+      setAddProviderOverride(false);
       await qc.invalidateQueries({ queryKey: ['llmApiKeys'] });
     } catch (err) {
       llmApiKeyForm.setError('root', {
@@ -186,6 +219,12 @@ export function SettingsAiPage() {
     }
   };
 
+  const closeAddProviderForm = () => {
+    setAddProviderOverride(false);
+    llmApiKeyForm.reset({ provider: llmApiKeyProvider, apiKey: '', model: '', baseUrl: '' });
+    setFormTestResult(null);
+  };
+
   // Custom AI prompt
   const customAiPromptForm = useForm<CustomAiPromptForm>({
     resolver: zodResolver(customAiPromptSchema),
@@ -222,8 +261,8 @@ export function SettingsAiPage() {
       </div>
 
       {/* ── AI features ── */}
-      <section className="space-y-4">
-        <div>
+      <Card className="overflow-hidden">
+        <div className="px-5 pt-5 pb-1">
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             {t('integrations.aiFeaturesTitle')}
           </h2>
@@ -232,43 +271,48 @@ export function SettingsAiPage() {
           </p>
         </div>
 
-        {llmKeyListError && <Alert>{llmKeyListError}</Alert>}
+        {llmKeyListError && (
+          <div className="px-5 pt-3">
+            <Alert>{llmKeyListError}</Alert>
+          </div>
+        )}
 
         {llmApiKeys.length > 0 && (
-          <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 dark:divide-gray-700 dark:border-gray-700">
+          <div className="mt-4 border-t border-gray-100 dark:border-gray-700/60">
             {llmApiKeys.map((key) => {
               const isDefault = key.provider === defaultLlmProvider;
+              const avatar = LLM_PROVIDER_AVATAR[key.provider];
+              const testResult = savedKeyTestResults[key.provider];
               return (
-                <li
+                <div
                   key={key.provider}
-                  className="flex items-center justify-between gap-4 px-3 py-2"
+                  data-testid={`llm-provider-row-${key.provider}`}
+                  className="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-4 last:border-b-0 dark:border-gray-700/60"
                 >
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {LLM_PROVIDER_LABEL[key.provider] ?? key.provider}
-                      {isDefault && (
-                        <span className="ml-2 text-xs font-normal text-green-600">
-                          {t('integrations.default')}
-                        </span>
-                      )}
-                    </p>
-                    {(key.model || key.baseUrl) && (
-                      <p className="text-xs break-all text-gray-500 dark:text-gray-400">
-                        {[key.model, key.baseUrl].filter(Boolean).join(' · ')}
-                      </p>
-                    )}
-                    {savedKeyTestResults[key.provider] && (
-                      <p
-                        className={`mt-0.5 text-xs ${
-                          savedKeyTestResults[key.provider].ok ? 'text-green-600' : 'text-red-600'
-                        }`}
+                  <div className="flex min-w-0 items-start gap-3">
+                    {avatar && (
+                      <div
+                        className={`flex size-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${avatar.className}`}
                       >
-                        {savedKeyTestResults[key.provider].ok
-                          ? t('integrations.testKeySuccess')
-                          : (savedKeyTestResults[key.provider].error ??
-                            t('integrations.testKeyFailed'))}
-                      </p>
+                        {avatar.initials}
+                      </div>
                     )}
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {LLM_PROVIDER_LABEL[key.provider] ?? key.provider}
+                        {isDefault && (
+                          <span className="ml-2 text-xs font-normal text-green-600">
+                            {t('integrations.default')}
+                          </span>
+                        )}
+                      </p>
+                      {(key.model || key.baseUrl) && (
+                        <p className="text-xs break-all text-gray-500 dark:text-gray-400">
+                          {[key.model, key.baseUrl].filter(Boolean).join(' · ')}
+                        </p>
+                      )}
+                      {testResult && <TestResultLine result={testResult} />}
+                    </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
                     <Button
@@ -320,151 +364,180 @@ export function SettingsAiPage() {
                       </span>
                     </button>
                   </div>
-                </li>
+                </div>
               );
             })}
-          </ul>
-        )}
-
-        {availableProviderOptions.length > 0 ? (
-          <form onSubmit={llmApiKeyForm.handleSubmit(onSaveLlmApiKey)} className="space-y-3">
-            <div>
-              <FormLabel>{t('integrations.providerLabel')}</FormLabel>
-              <Select {...llmApiKeyForm.register('provider')}>
-                {availableProviderOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div>
-              <FormLabel>{t('integrations.apiKeyLabel')}</FormLabel>
-              <Input
-                type="password"
-                {...llmApiKeyForm.register('apiKey')}
-                invalid={!!llmApiKeyForm.formState.errors.apiKey}
-                placeholder="sk-…"
-              />
-              {llmApiKeyForm.formState.errors.apiKey && (
-                <p className="mt-1 text-xs text-red-600">
-                  {llmApiKeyForm.formState.errors.apiKey.message}
-                </p>
-              )}
-            </div>
-            {isCustomLlmProvider ? (
-              <>
-                <div>
-                  <FormLabel>{t('integrations.baseUrlLabel')}</FormLabel>
-                  <Input
-                    type="url"
-                    {...llmApiKeyForm.register('baseUrl')}
-                    invalid={!!llmApiKeyForm.formState.errors.baseUrl}
-                    placeholder="https://your-endpoint.example.com/v1/chat/completions"
-                  />
-                  {llmApiKeyForm.formState.errors.baseUrl && (
-                    <p className="mt-1 text-xs text-red-600">
-                      {llmApiKeyForm.formState.errors.baseUrl.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <FormLabel>{t('integrations.modelLabel')}</FormLabel>
-                  <Input
-                    type="text"
-                    {...llmApiKeyForm.register('model')}
-                    invalid={!!llmApiKeyForm.formState.errors.model}
-                    placeholder="e.g. gpt-4o-mini"
-                  />
-                  {llmApiKeyForm.formState.errors.model && (
-                    <p className="mt-1 text-xs text-red-600">
-                      {llmApiKeyForm.formState.errors.model.message}
-                    </p>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div>
-                <FormLabel>
-                  {t('integrations.modelLabel')}{' '}
-                  <span className="font-normal text-gray-400">
-                    ({t('integrations.modelOptionalNote')})
-                  </span>
-                </FormLabel>
-                <Input
-                  type="text"
-                  {...llmApiKeyForm.register('model')}
-                  placeholder={t('integrations.providerDefaultPlaceholder')}
-                />
-              </div>
-            )}
-            {llmApiKeyForm.formState.errors.root && (
-              <Alert>{llmApiKeyForm.formState.errors.root.message}</Alert>
-            )}
-            {formTestResult && (
-              <p className={`text-xs ${formTestResult.ok ? 'text-green-600' : 'text-red-600'}`}>
-                {formTestResult.ok
-                  ? t('integrations.testKeySuccess')
-                  : (formTestResult.error ?? t('integrations.testKeyFailed'))}
-              </p>
-            )}
-            <div className="flex items-center gap-3">
-              <Button type="submit" disabled={llmApiKeyForm.formState.isSubmitting}>
-                {llmApiKeyForm.formState.isSubmitting
-                  ? t('applicationForm.saving')
-                  : t('integrations.addKey')}
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={onTestLlmApiKeyForm}
-                disabled={!canTestLlmApiKeyForm || testingFormKey}
-              >
-                {testingFormKey ? t('integrations.testingKey') : t('integrations.testKey')}
-              </Button>
-            </div>
-          </form>
-        ) : (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t('integrations.allProvidersConfigured')}
-          </p>
-        )}
-
-        <form
-          onSubmit={customAiPromptForm.handleSubmit(onUpdateCustomAiPrompt)}
-          className="space-y-3"
-        >
-          <div>
-            <FormLabel>{t('integrations.customInstructionsLabel')}</FormLabel>
-            <Textarea
-              {...customAiPromptForm.register('customAiPrompt')}
-              invalid={!!customAiPromptForm.formState.errors.customAiPrompt}
-              rows={3}
-              placeholder="e.g. Keep cover letters under 200 words and write in a casual tone."
-            />
-            <p className="mt-1 text-xs text-gray-400">{t('integrations.customInstructionsHelp')}</p>
-            {customAiPromptForm.formState.errors.customAiPrompt && (
-              <p className="mt-1 text-xs text-red-600">
-                {customAiPromptForm.formState.errors.customAiPrompt.message}
-              </p>
-            )}
           </div>
+        )}
+
+        <div className="p-5">
+          {availableProviderOptions.length === 0 ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {t('integrations.allProvidersConfigured')}
+            </p>
+          ) : addProviderOpen ? (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40">
+              {llmApiKeys.length > 0 && (
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {t('integrations.addProvider')}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={closeAddProviderForm}
+                    className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                </div>
+              )}
+              <form onSubmit={llmApiKeyForm.handleSubmit(onSaveLlmApiKey)} className="space-y-3">
+                <div>
+                  <FormLabel>{t('integrations.providerLabel')}</FormLabel>
+                  <Select {...llmApiKeyForm.register('provider')}>
+                    {availableProviderOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <FormLabel>{t('integrations.apiKeyLabel')}</FormLabel>
+                  <Input
+                    type="password"
+                    {...llmApiKeyForm.register('apiKey')}
+                    invalid={!!llmApiKeyForm.formState.errors.apiKey}
+                    placeholder="sk-…"
+                  />
+                  {llmApiKeyForm.formState.errors.apiKey && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {llmApiKeyForm.formState.errors.apiKey.message}
+                    </p>
+                  )}
+                </div>
+                {isCustomLlmProvider ? (
+                  <>
+                    <div>
+                      <FormLabel>{t('integrations.baseUrlLabel')}</FormLabel>
+                      <Input
+                        type="url"
+                        {...llmApiKeyForm.register('baseUrl')}
+                        invalid={!!llmApiKeyForm.formState.errors.baseUrl}
+                        placeholder="https://your-endpoint.example.com/v1/chat/completions"
+                      />
+                      {llmApiKeyForm.formState.errors.baseUrl && (
+                        <p className="mt-1 text-xs text-red-600">
+                          {llmApiKeyForm.formState.errors.baseUrl.message}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <FormLabel>{t('integrations.modelLabel')}</FormLabel>
+                      <Input
+                        type="text"
+                        {...llmApiKeyForm.register('model')}
+                        invalid={!!llmApiKeyForm.formState.errors.model}
+                        placeholder="e.g. gpt-4o-mini"
+                      />
+                      {llmApiKeyForm.formState.errors.model && (
+                        <p className="mt-1 text-xs text-red-600">
+                          {llmApiKeyForm.formState.errors.model.message}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <FormLabel>
+                      {t('integrations.modelLabel')}{' '}
+                      <span className="font-normal text-gray-400">
+                        ({t('integrations.modelOptionalNote')})
+                      </span>
+                    </FormLabel>
+                    <Input
+                      type="text"
+                      {...llmApiKeyForm.register('model')}
+                      placeholder={t('integrations.providerDefaultPlaceholder')}
+                    />
+                  </div>
+                )}
+                {llmApiKeyForm.formState.errors.root && (
+                  <Alert>{llmApiKeyForm.formState.errors.root.message}</Alert>
+                )}
+                {formTestResult && <TestResultLine result={formTestResult} />}
+                <div className="flex items-center gap-3">
+                  <Button type="submit" disabled={llmApiKeyForm.formState.isSubmitting}>
+                    {llmApiKeyForm.formState.isSubmitting
+                      ? t('applicationForm.saving')
+                      : t('integrations.addKey')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={onTestLlmApiKeyForm}
+                    disabled={!canTestLlmApiKeyForm || testingFormKey}
+                  >
+                    {testingFormKey ? t('integrations.testingKey') : t('integrations.testKey')}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setAddProviderOverride(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-gray-300 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+            >
+              <PlusIcon size={15} />
+              {t('integrations.addProvider')}
+            </button>
+          )}
+        </div>
+      </Card>
+
+      {/* ── Custom instructions ── */}
+      <Card className="p-5">
+        <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+          {t('integrations.customInstructionsLabel')}
+        </h2>
+        <p className="mt-1 mb-3.5 text-sm text-gray-500 dark:text-gray-400">
+          {t('integrations.customInstructionsHelp')}
+        </p>
+        <form onSubmit={customAiPromptForm.handleSubmit(onUpdateCustomAiPrompt)}>
+          <Textarea
+            {...customAiPromptForm.register('customAiPrompt')}
+            invalid={!!customAiPromptForm.formState.errors.customAiPrompt}
+            rows={3}
+            placeholder="e.g. Keep cover letters under 200 words and write in a casual tone."
+          />
+          {customAiPromptForm.formState.errors.customAiPrompt && (
+            <p className="mt-1 text-xs text-red-600">
+              {customAiPromptForm.formState.errors.customAiPrompt.message}
+            </p>
+          )}
           {customAiPromptForm.formState.errors.root?.message && (
-            <Alert>{customAiPromptForm.formState.errors.root.message}</Alert>
+            <div className="mt-3">
+              <Alert>{customAiPromptForm.formState.errors.root.message}</Alert>
+            </div>
           )}
           {customAiPromptForm.formState.isSubmitSuccessful &&
             !customAiPromptForm.formState.errors.root?.message && (
-              <p className="text-sm text-green-600">
+              <p className="mt-3 text-sm text-green-600">
                 {t('integrations.customInstructionsUpdated')}
               </p>
             )}
-          <Button type="submit" disabled={customAiPromptForm.formState.isSubmitting}>
+          <Button
+            type="submit"
+            disabled={customAiPromptForm.formState.isSubmitting}
+            className="mt-3.5"
+          >
             {customAiPromptForm.formState.isSubmitting
               ? t('applicationForm.saving')
               : t('integrations.saveInstructions')}
           </Button>
         </form>
-      </section>
+      </Card>
     </div>
   );
 }
