@@ -13,8 +13,10 @@ import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js'
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
+import type { IDocumentDraftRepository } from '#src/use-cases/ports/IDocumentDraftRepository.js';
 import type { ICompanyBriefingRepository } from '#src/use-cases/ports/ICompanyBriefingRepository.js';
 import { formatApplicationContext } from '#src/use-cases/shared/applicationContext.js';
+import { formatCrossApplicationContext } from '#src/use-cases/shared/crossApplicationContext.js';
 import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
 import { loadUserProfile, formatUserProfile } from '#src/use-cases/shared/userProfile.js';
 import { AI_PROMPT_INPUT } from '#src/constants.js';
@@ -34,6 +36,7 @@ interface Deps {
   userRepository: IUserRepository;
   generateCoverLetterRateLimiter: IRateLimiter;
   noteRepository: INoteRepository;
+  documentDraftRepository: IDocumentDraftRepository;
   companyBriefingRepository: ICompanyBriefingRepository;
 }
 
@@ -71,7 +74,34 @@ export class GenerateCoverLetterUseCase {
       this.deps.companyBriefingRepository.findByApplicationId(input.applicationId),
     ]);
     const context = formatApplicationContext({ notes, briefing });
-    const userPrompt = this.buildPrompt(app, profile, input.resumeText, context);
+
+    // Only fetched when the user opted in (JEF-249) — an extra pair of
+    // queries across every generation otherwise, for a feature most users
+    // haven't turned on.
+    let crossApplicationContext = '';
+    if (user?.useCrossApplicationContext) {
+      const [otherNotes, otherCoverLetters] = await Promise.all([
+        this.deps.noteRepository.findRecentByUserExcludingApplication(
+          input.userId,
+          input.applicationId,
+          AI_PROMPT_INPUT.CROSS_APPLICATION_CONTEXT_MAX_APPLICATIONS,
+        ),
+        this.deps.documentDraftRepository.findRecentCoverLettersByUserExcludingApplication(
+          input.userId,
+          input.applicationId,
+          AI_PROMPT_INPUT.CROSS_APPLICATION_CONTEXT_MAX_APPLICATIONS,
+        ),
+      ]);
+      crossApplicationContext = formatCrossApplicationContext(otherNotes, otherCoverLetters);
+    }
+
+    const userPrompt = this.buildPrompt(
+      app,
+      profile,
+      input.resumeText,
+      context,
+      crossApplicationContext,
+    );
 
     const messages: LLMMessage[] = [{ role: 'system', content: SYSTEM_PROMPT }];
     if (user?.customAiPrompt) {
@@ -87,6 +117,7 @@ export class GenerateCoverLetterUseCase {
     profile: string,
     resumeText: string | null | undefined,
     applicationContext: string,
+    crossApplicationContext: string,
   ): string {
     const lines = [
       `Write a cover letter for this job application:`,
@@ -102,6 +133,10 @@ export class GenerateCoverLetterUseCase {
 
     if (applicationContext) {
       lines.push(`\n${applicationContext}`);
+    }
+
+    if (crossApplicationContext) {
+      lines.push(`\n${crossApplicationContext}`);
     }
 
     if (resumeText?.trim()) {

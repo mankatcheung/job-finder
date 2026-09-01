@@ -96,6 +96,7 @@ builder.mutationField('updateProfile', (t) =>
       timezone: t.arg.string({ required: false }),
       targetRole: t.arg.string({ required: false }),
       customAiPrompt: t.arg.string({ required: false }),
+      useCrossApplicationContext: t.arg.boolean({ required: false }),
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
@@ -108,6 +109,7 @@ builder.mutationField('updateProfile', (t) =>
           args.timezone,
           args.targetRole,
           args.customAiPrompt,
+          args.useCrossApplicationContext ?? undefined,
         );
         return true;
       } catch (err) {

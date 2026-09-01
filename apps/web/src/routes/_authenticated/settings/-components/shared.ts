@@ -44,12 +44,14 @@ export const UPDATE_PROFILE = `
     $timezone: String
     $targetRole: String
     $customAiPrompt: String
+    $useCrossApplicationContext: Boolean
   ) {
     updateProfile(
       name: $name
       timezone: $timezone
       targetRole: $targetRole
       customAiPrompt: $customAiPrompt
+      useCrossApplicationContext: $useCrossApplicationContext
     )
   }
 `;
@@ -220,6 +222,7 @@ export const LLM_API_KEYS_QUERY = `
     me {
       defaultLlmProvider
       customAiPrompt
+      useCrossApplicationContext
     }
   }
 `;

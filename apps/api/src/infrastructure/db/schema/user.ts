@@ -30,6 +30,15 @@ export const user = sqliteTable('User', {
   defaultLlmProvider: text('defaultLlmProvider'),
   /** User-authored instruction spliced into the system prompt for AI-generated text (cover letters, chat assistant). */
   customAiPrompt: text('customAiPrompt'),
+  /**
+   * Opt-in (JEF-249): let cover letter generation read a small, recent slice
+   * of notes and cover letters from the user's *other* applications, to
+   * match voice/tone. Off by default — it reaches into application data the
+   * user didn't ask about when generating a single letter.
+   */
+  useCrossApplicationContext: integer('useCrossApplicationContext', { mode: 'boolean' })
+    .notNull()
+    .default(false),
   /** Secondary email for account recovery when primary inbox is inaccessible. */
   backupEmail: text('backupEmail'),
   /** When the backup email was verified; null until verification completes. */

@@ -1,6 +1,6 @@
-import { eq, desc, sql } from 'drizzle-orm';
+import { eq, and, ne, isNull, desc, sql } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
-import { documentDraft } from '../schema.js';
+import { documentDraft, jobApplication } from '../schema.js';
 import type { DocumentDraft } from '#src/domain/documentDraft/DocumentDraft.js';
 import type {
   IDocumentDraftRepository,
@@ -86,6 +86,28 @@ export class DrizzleDocumentDraftRepository implements IDocumentDraftRepository 
 
   async delete(id: string): Promise<void> {
     await this.db.delete(documentDraft).where(eq(documentDraft.id, id));
+  }
+
+  async findRecentCoverLettersByUserExcludingApplication(
+    userId: string,
+    excludeApplicationId: string,
+    limit: number,
+  ): Promise<DocumentDraft[]> {
+    const rows = await this.db
+      .select({ documentDraft })
+      .from(documentDraft)
+      .innerJoin(jobApplication, eq(documentDraft.applicationId, jobApplication.id))
+      .where(
+        and(
+          eq(jobApplication.userId, userId),
+          eq(documentDraft.type, 'cover_letter'),
+          ne(jobApplication.id, excludeApplicationId),
+          isNull(jobApplication.deletedAt),
+        ),
+      )
+      .orderBy(desc(documentDraft.updatedAt))
+      .limit(limit);
+    return rows.map((r) => this.toEntity(r.documentDraft));
   }
 
   private toEntity(row: typeof documentDraft.$inferSelect): DocumentDraft {

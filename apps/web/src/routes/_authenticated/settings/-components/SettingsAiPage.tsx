@@ -14,7 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { useLocale } from '#/lib/i18n';
-import { Alert, Button, Card, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
+import { Alert, Button, Card, Checkbox, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
 import {
   LLM_API_KEYS_QUERY,
   SAVE_LLM_API_KEY,
@@ -66,7 +66,11 @@ export function SettingsAiPage() {
     queryFn: () =>
       gqlClient.request<{
         llmApiKeys: LlmApiKey[];
-        me: { defaultLlmProvider: string | null; customAiPrompt: string | null };
+        me: {
+          defaultLlmProvider: string | null;
+          customAiPrompt: string | null;
+          useCrossApplicationContext: boolean;
+        };
       }>(LLM_API_KEYS_QUERY),
   });
   const llmApiKeys = llmData?.llmApiKeys ?? [];
@@ -240,6 +244,24 @@ export function SettingsAiPage() {
       customAiPromptForm.setError('root', {
         message: extractGqlError(err) ?? t('integrations.updateCustomInstructionsFailed'),
       });
+    }
+  };
+
+  // Cross-application context (JEF-249)
+  const [crossAppContextError, setCrossAppContextError] = useState<string | null>(null);
+  const [updatingCrossAppContext, setUpdatingCrossAppContext] = useState(false);
+  const onToggleCrossApplicationContext = async (checked: boolean) => {
+    setUpdatingCrossAppContext(true);
+    setCrossAppContextError(null);
+    try {
+      await gqlClient.request(UPDATE_PROFILE, { useCrossApplicationContext: checked });
+      await qc.invalidateQueries({ queryKey: ['llmApiKeys'] });
+    } catch (err) {
+      setCrossAppContextError(
+        extractGqlError(err) ?? t('integrations.crossApplicationContextUpdateFailed'),
+      );
+    } finally {
+      setUpdatingCrossAppContext(false);
     }
   };
 
@@ -537,6 +559,32 @@ export function SettingsAiPage() {
               : t('integrations.saveInstructions')}
           </Button>
         </form>
+      </Card>
+
+      {/* ── Cross-application context (JEF-249) ── */}
+      <Card className="p-5">
+        <div className="flex items-start justify-between gap-6">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              {t('integrations.crossApplicationContextLabel')}
+            </h2>
+            <p className="mt-1 max-w-xl text-sm text-gray-500 dark:text-gray-400">
+              {t('integrations.crossApplicationContextHelp')}
+            </p>
+          </div>
+          <Checkbox
+            id="use-cross-application-context"
+            aria-label={t('integrations.crossApplicationContextLabel')}
+            checked={llmData?.me.useCrossApplicationContext ?? false}
+            disabled={updatingCrossAppContext}
+            onChange={(e) => onToggleCrossApplicationContext(e.target.checked)}
+          />
+        </div>
+        {crossAppContextError && (
+          <div className="mt-3">
+            <Alert>{crossAppContextError}</Alert>
+          </div>
+        )}
       </Card>
     </div>
   );

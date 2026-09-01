@@ -18,5 +18,6 @@ UserRef.implement({
     }),
     defaultLlmProvider: t.exposeString('defaultLlmProvider', { nullable: true }),
     customAiPrompt: t.exposeString('customAiPrompt', { nullable: true }),
+    useCrossApplicationContext: t.exposeBoolean('useCrossApplicationContext'),
   }),
 });

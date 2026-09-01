@@ -31,6 +31,7 @@ export interface IUserRepository {
       totpEnabled?: boolean;
       defaultLlmProvider?: string | null;
       customAiPrompt?: string | null;
+      useCrossApplicationContext?: boolean;
       backupEmail?: string | null;
       backupEmailVerifiedAt?: Date | null;
     },

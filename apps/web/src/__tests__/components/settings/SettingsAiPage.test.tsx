@@ -53,6 +53,71 @@ describe('SettingsAiPage', () => {
     expect(screen.getByText('AI features')).toBeInTheDocument();
   });
 
+  describe('cross-application context (JEF-249)', () => {
+    it('renders unchecked by default', async () => {
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+
+      const toggle = await screen.findByRole('checkbox', {
+        name: 'Use context from other applications',
+      });
+      expect(toggle).not.toBeChecked();
+    });
+
+    it('reflects the saved preference when already enabled', async () => {
+      mockGqlRequest.mockResolvedValue({
+        llmApiKeys: [],
+        me: { defaultLlmProvider: null, customAiPrompt: null, useCrossApplicationContext: true },
+      });
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('checkbox', { name: 'Use context from other applications' }),
+        ).toBeChecked();
+      });
+    });
+
+    it('saves the preference immediately when toggled', async () => {
+      const user = userEvent.setup();
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+      const toggle = await screen.findByRole('checkbox', {
+        name: 'Use context from other applications',
+      });
+
+      await user.click(toggle);
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('UpdateProfile'), {
+          useCrossApplicationContext: true,
+        });
+      });
+    });
+
+    it('shows an error and leaves the toggle usable when the save fails', async () => {
+      mockGqlRequest.mockImplementation((document: string) => {
+        if (document.includes('UpdateProfile')) {
+          return Promise.reject(new Error('network error'));
+        }
+        return Promise.resolve({
+          llmApiKeys: [],
+          me: { defaultLlmProvider: null, customAiPrompt: null, useCrossApplicationContext: false },
+        });
+      });
+      const user = userEvent.setup();
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+      const toggle = await screen.findByRole('checkbox', {
+        name: 'Use context from other applications',
+      });
+
+      await user.click(toggle);
+
+      expect(
+        await screen.findByText("Couldn't update this setting. Please try again."),
+      ).toBeInTheDocument();
+      expect(toggle).toBeEnabled();
+    });
+  });
+
   it('points to the setup guide for bring-your-own-key AI (JEF-231)', () => {
     render(<SettingsAiPage />, { wrapper: Wrapper });
 
