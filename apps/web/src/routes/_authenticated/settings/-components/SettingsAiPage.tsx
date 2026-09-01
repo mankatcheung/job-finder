@@ -41,19 +41,11 @@ function UsageSummaryLine({ summary }: { summary: LlmUsageSummary }) {
   const { t, formatNumber } = useLocale();
   const totalTokens = summary.promptTokens + summary.completionTokens;
   const parts = [
+    t('integrations.usageThisMonth'),
     t('integrations.usageRequests', { count: summary.requestCount }),
     t('integrations.usageTokens', { count: formatNumber(totalTokens) }),
-  ];
-  if (summary.estimatedCostUsd !== null) {
-    parts.push(
-      t('integrations.usageCost', {
-        cost: formatNumber(summary.estimatedCostUsd, { style: 'currency', currency: 'USD' }),
-      }),
-    );
-  }
-  parts.push(
     t('integrations.usageLastUsed', { date: new Date(summary.lastUsedAt).toLocaleDateString() }),
-  );
+  ];
   return <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{parts.join(' · ')}</p>;
 }
 

@@ -296,7 +296,6 @@ describe('SettingsAiPage', () => {
                 promptTokens: 100,
                 completionTokens: 40,
                 lastUsedAt: '2026-01-01T00:00:00.000Z',
-                estimatedCostUsd: 0.42,
               },
             ],
           });
@@ -305,13 +304,13 @@ describe('SettingsAiPage', () => {
       });
     });
 
-    it("shows the provider's request count, token count, and estimated cost", async () => {
+    it("shows the provider's request count and token count for the current month", async () => {
       render(<SettingsAiPage />, { wrapper: Wrapper });
       const row = await screen.findByTestId('llm-provider-row-openrouter');
 
-      expect(await within(row).findByText(/3 requests/)).toBeInTheDocument();
+      expect(await within(row).findByText(/This month/)).toBeInTheDocument();
+      expect(within(row).getByText(/3 requests/)).toBeInTheDocument();
       expect(within(row).getByText(/140 tokens/)).toBeInTheDocument();
-      expect(within(row).getByText(/~\$0\.42/)).toBeInTheDocument();
     });
 
     it('shows nothing for a provider with no recorded usage yet', async () => {

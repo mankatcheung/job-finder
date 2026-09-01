@@ -1,42 +1,24 @@
+import type { LlmUsageSummary } from '#src/domain/llmUsageEvent/LlmUsageEvent.js';
 import type { ILlmUsageEventRepository } from '#src/use-cases/ports/ILlmUsageEventRepository.js';
-import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
-import { estimateCostUsd } from '#src/use-cases/shared/llmPricing.js';
-import type {
-  IGetLlmUsageSummaryUseCase,
-  LlmUsageSummaryOutput,
-} from '#src/use-cases/user/IGetLlmUsageSummaryUseCase.js';
+import type { IGetLlmUsageSummaryUseCase } from '#src/use-cases/user/IGetLlmUsageSummaryUseCase.js';
 
 interface Deps {
   llmUsageEventRepository: ILlmUsageEventRepository;
-  llmApiKeyRepository: ILlmApiKeyRepository;
+  now: () => Date;
 }
 
 /**
- * Usage is aggregated per provider (`LlmUsageEvent` doesn't distinguish
- * model at the summary level — see `LlmUsageSummary`'s doc comment), but
- * cost pricing is per model. This attaches the *currently configured* model
- * for that provider's `LlmApiKey` as the one to price against — accurate
- * for the common case (a user rarely changes their model), an approximation
- * if they've switched models since some of the recorded usage.
+ * "This calendar month" is the policy decision that lives here, not in the
+ * repository — usage resets monthly by construction (nothing to sum before
+ * the 1st), no cron job or deletion required. UTC month boundary, matching
+ * how `createdAt` is stored.
  */
 export class GetLlmUsageSummaryUseCase implements IGetLlmUsageSummaryUseCase {
   constructor(private readonly deps: Deps) {}
 
-  async execute(userId: string): Promise<LlmUsageSummaryOutput[]> {
-    const [summaries, keys] = await Promise.all([
-      this.deps.llmUsageEventRepository.summarizeByUserId(userId),
-      this.deps.llmApiKeyRepository.findAllByUserId(userId),
-    ]);
-    const modelByProvider = new Map(keys.map((k) => [k.provider, k.model]));
-
-    return summaries.map((summary) => ({
-      ...summary,
-      estimatedCostUsd: estimateCostUsd(
-        summary.provider,
-        modelByProvider.get(summary.provider) ?? null,
-        summary.promptTokens,
-        summary.completionTokens,
-      ),
-    }));
+  async execute(userId: string): Promise<LlmUsageSummary[]> {
+    const now = this.deps.now();
+    const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    return this.deps.llmUsageEventRepository.summarizeByUserId(userId, startOfMonth);
   }
 }

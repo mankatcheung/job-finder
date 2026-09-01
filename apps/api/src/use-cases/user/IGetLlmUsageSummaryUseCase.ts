@@ -1,13 +1,5 @@
-export interface LlmUsageSummaryOutput {
-  provider: string;
-  requestCount: number;
-  promptTokens: number;
-  completionTokens: number;
-  lastUsedAt: Date;
-  /** Null when the provider/model combination has no known list price — see `llmPricing.ts`. */
-  estimatedCostUsd: number | null;
-}
+import type { LlmUsageSummary } from '#src/domain/llmUsageEvent/LlmUsageEvent.js';
 
 export interface IGetLlmUsageSummaryUseCase {
-  execute(userId: string): Promise<LlmUsageSummaryOutput[]>;
+  execute(userId: string): Promise<LlmUsageSummary[]>;
 }

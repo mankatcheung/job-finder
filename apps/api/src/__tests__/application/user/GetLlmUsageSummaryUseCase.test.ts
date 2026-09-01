@@ -1,83 +1,41 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetLlmUsageSummaryUseCase } from '#src/use-cases/user/GetLlmUsageSummaryUseCase.js';
-import {
-  makeLlmUsageEventRepository,
-  makeLlmApiKeyRepository,
-  makeLlmApiKey,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeLlmUsageEventRepository } from '#src/__tests__/helpers/mocks.js';
 
 describe('GetLlmUsageSummaryUseCase', () => {
-  it('attaches an estimated cost using the currently-configured model for that provider', async () => {
-    const lastUsedAt = new Date('2026-01-01T00:00:00.000Z');
-    const llmUsageEventRepository = makeLlmUsageEventRepository({
-      summarizeByUserId: vi.fn().mockResolvedValue([
-        {
-          provider: 'openai',
-          requestCount: 2,
-          promptTokens: 1_000_000,
-          completionTokens: 1_000_000,
-          lastUsedAt,
-        },
-      ]),
-    });
-    const llmApiKeyRepository = makeLlmApiKeyRepository({
-      findAllByUserId: vi
-        .fn()
-        .mockResolvedValue([makeLlmApiKey({ provider: 'openai', model: 'gpt-4o-mini' })]),
-    });
-
-    const result = await new GetLlmUsageSummaryUseCase({
-      llmUsageEventRepository,
-      llmApiKeyRepository,
-    }).execute('user-1');
-
-    expect(result).toEqual([
-      {
-        provider: 'openai',
-        requestCount: 2,
-        promptTokens: 1_000_000,
-        completionTokens: 1_000_000,
-        lastUsedAt,
-        estimatedCostUsd: 0.15 + 0.6,
-      },
-    ]);
-  });
-
-  it('returns a null estimated cost when the provider has no configured key (model unknown)', async () => {
-    const llmUsageEventRepository = makeLlmUsageEventRepository({
-      summarizeByUserId: vi.fn().mockResolvedValue([
-        {
-          provider: 'openai',
-          requestCount: 1,
-          promptTokens: 100,
-          completionTokens: 50,
-          lastUsedAt: new Date(),
-        },
-      ]),
-    });
-    const llmApiKeyRepository = makeLlmApiKeyRepository({
-      findAllByUserId: vi.fn().mockResolvedValue([]),
-    });
-
-    const result = await new GetLlmUsageSummaryUseCase({
-      llmUsageEventRepository,
-      llmApiKeyRepository,
-    }).execute('user-1');
-
-    expect(result[0].estimatedCostUsd).toBeNull();
-  });
-
-  it('returns an empty array when nothing has been recorded', async () => {
+  it('passes the start of the current UTC month as the cutoff', async () => {
     const llmUsageEventRepository = makeLlmUsageEventRepository({
       summarizeByUserId: vi.fn().mockResolvedValue([]),
     });
-    const llmApiKeyRepository = makeLlmApiKeyRepository();
+    const now = () => new Date('2026-03-15T12:34:56.000Z');
+
+    await new GetLlmUsageSummaryUseCase({ llmUsageEventRepository, now }).execute('user-1');
+
+    expect(llmUsageEventRepository.summarizeByUserId).toHaveBeenCalledWith(
+      'user-1',
+      new Date('2026-03-01T00:00:00.000Z'),
+    );
+  });
+
+  it('returns the repository result unchanged', async () => {
+    const summary = [
+      {
+        provider: 'openai',
+        requestCount: 2,
+        promptTokens: 100,
+        completionTokens: 40,
+        lastUsedAt: new Date('2026-03-15T00:00:00.000Z'),
+      },
+    ];
+    const llmUsageEventRepository = makeLlmUsageEventRepository({
+      summarizeByUserId: vi.fn().mockResolvedValue(summary),
+    });
 
     const result = await new GetLlmUsageSummaryUseCase({
       llmUsageEventRepository,
-      llmApiKeyRepository,
+      now: () => new Date('2026-03-15T00:00:00.000Z'),
     }).execute('user-1');
 
-    expect(result).toEqual([]);
+    expect(result).toEqual(summary);
   });
 });

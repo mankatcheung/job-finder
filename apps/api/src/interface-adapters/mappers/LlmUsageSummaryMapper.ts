@@ -1,4 +1,4 @@
-import type { LlmUsageSummaryOutput } from '#src/use-cases/user/IGetLlmUsageSummaryUseCase.js';
+import type { LlmUsageSummary } from '#src/domain/llmUsageEvent/LlmUsageEvent.js';
 
 export interface LlmUsageSummaryDTO {
   provider: string;
@@ -6,18 +6,16 @@ export interface LlmUsageSummaryDTO {
   promptTokens: number;
   completionTokens: number;
   lastUsedAt: string;
-  estimatedCostUsd: number | null;
 }
 
 export class LlmUsageSummaryMapper {
-  toDTO(summary: LlmUsageSummaryOutput): LlmUsageSummaryDTO {
+  toDTO(summary: LlmUsageSummary): LlmUsageSummaryDTO {
     return {
       provider: summary.provider,
       requestCount: summary.requestCount,
       promptTokens: summary.promptTokens,
       completionTokens: summary.completionTokens,
       lastUsedAt: summary.lastUsedAt.toISOString(),
-      estimatedCostUsd: summary.estimatedCostUsd,
     };
   }
 }

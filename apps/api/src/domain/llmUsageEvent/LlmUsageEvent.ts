@@ -9,12 +9,12 @@ export type LlmUsageEvent = {
 };
 
 /**
- * One provider's usage across every call recorded for a user — the shape
+ * One provider's usage since the cutoff the caller asked for — the shape
  * `ILlmUsageEventRepository.summarizeByUserId` returns, aggregated across
- * every model that provider's key has been used with (JEF-250). Cost is
- * computed separately (`use-cases/shared/llmPricing.ts`) rather than stored
- * here, since it's derived from a pricing table that can change independent
- * of the events themselves.
+ * every model that provider's key has been used with (JEF-250). No cost
+ * estimate: list prices drift, and a stale number is worse than none. Token
+ * counts only, scoped to the current calendar month by
+ * `GetLlmUsageSummaryUseCase` — older events aren't deleted, just excluded.
  */
 export type LlmUsageSummary = {
   provider: string;

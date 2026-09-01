@@ -395,7 +395,6 @@ describe('UserResolver', () => {
               promptTokens: 100,
               completionTokens: 40,
               lastUsedAt,
-              estimatedCostUsd: 0.01,
             },
           ]),
         }),
@@ -411,7 +410,6 @@ describe('UserResolver', () => {
           promptTokens: 100,
           completionTokens: 40,
           lastUsedAt: lastUsedAt.toISOString(),
-          estimatedCostUsd: 0.01,
         },
       ]);
     });

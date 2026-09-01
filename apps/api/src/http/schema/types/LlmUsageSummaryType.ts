@@ -9,6 +9,5 @@ LlmUsageSummaryRef.implement({
     promptTokens: t.exposeInt('promptTokens'),
     completionTokens: t.exposeInt('completionTokens'),
     lastUsedAt: t.exposeString('lastUsedAt'),
-    estimatedCostUsd: t.exposeFloat('estimatedCostUsd', { nullable: true }),
   }),
 });

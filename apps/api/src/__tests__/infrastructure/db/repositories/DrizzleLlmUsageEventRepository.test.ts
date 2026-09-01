@@ -30,7 +30,7 @@ describe('DrizzleLlmUsageEventRepository', () => {
         completionTokens: 20,
       });
 
-      const summary = await repo.summarizeByUserId('u1');
+      const summary = await repo.summarizeByUserId('u1', new Date(0));
       expect(summary).toEqual([
         {
           provider: 'openrouter',
@@ -62,7 +62,7 @@ describe('DrizzleLlmUsageEventRepository', () => {
         completionTokens: 40,
       });
 
-      const summary = await repo.summarizeByUserId('u1');
+      const summary = await repo.summarizeByUserId('u1', new Date(0));
 
       expect(summary).toHaveLength(1);
       expect(summary[0]).toMatchObject({
@@ -91,7 +91,7 @@ describe('DrizzleLlmUsageEventRepository', () => {
         completionTokens: 5,
       });
 
-      const summary = await repo.summarizeByUserId('u1');
+      const summary = await repo.summarizeByUserId('u1', new Date(0));
 
       expect(summary.map((s) => s.provider)).toEqual(['anthropic', 'openrouter']);
     });
@@ -107,11 +107,43 @@ describe('DrizzleLlmUsageEventRepository', () => {
         completionTokens: 5,
       });
 
-      expect(await repo.summarizeByUserId('u1')).toEqual([]);
+      expect(await repo.summarizeByUserId('u1', new Date(0))).toEqual([]);
     });
 
     it('returns an empty array when nothing has been recorded', async () => {
-      expect(await repo.summarizeByUserId('u1')).toEqual([]);
+      expect(await repo.summarizeByUserId('u1', new Date(0))).toEqual([]);
+    });
+
+    it('excludes events older than `since` — how usage "resets" monthly without deleting anything', async () => {
+      await db.db.insert(llmUsageEvent).values({
+        id: 'evt-old',
+        userId: 'u1',
+        provider: 'openrouter',
+        model: null,
+        promptTokens: 999,
+        completionTokens: 999,
+        createdAt: new Date('2025-01-01T00:00:00.000Z'),
+      });
+      await repo.record({
+        id: 'evt-new',
+        userId: 'u1',
+        provider: 'openrouter',
+        model: null,
+        promptTokens: 10,
+        completionTokens: 5,
+      });
+
+      const summary = await repo.summarizeByUserId('u1', new Date('2025-06-01T00:00:00.000Z'));
+
+      expect(summary).toEqual([
+        {
+          provider: 'openrouter',
+          requestCount: 1,
+          promptTokens: 10,
+          completionTokens: 5,
+          lastUsedAt: expect.any(Date),
+        },
+      ]);
     });
   });
 });

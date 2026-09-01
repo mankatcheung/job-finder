@@ -259,7 +259,6 @@ export const LLM_USAGE_SUMMARY_QUERY = `
       promptTokens
       completionTokens
       lastUsedAt
-      estimatedCostUsd
     }
   }
 `;
@@ -506,7 +505,6 @@ export type LlmUsageSummary = {
   promptTokens: number;
   completionTokens: number;
   lastUsedAt: string;
-  estimatedCostUsd: number | null;
 };
 
 export const LLM_PROVIDER_OPTIONS: { value: string; label: string }[] = [
