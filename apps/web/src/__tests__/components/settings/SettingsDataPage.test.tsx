@@ -78,8 +78,7 @@ describe('SettingsDataPage', () => {
   describe('data import', () => {
     const selectFile = (content: string, name = 'export.json') => {
       const file = new File([content], name, { type: 'application/json' });
-      const section = screen.getByText('Import your data').closest('section')!;
-      const input = section.querySelector('input[type="file"]') as HTMLInputElement;
+      const input = document.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [file] } });
     };
 

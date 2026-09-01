@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { gqlClient } from '#/graphql/client';
 import { queryClient } from '#/lib/queryClient';
 import { useLocale } from '#/lib/i18n';
-import { Alert, Button, FormLabel, Input } from '@trakwyn/ui';
+import { Alert, Button, Card, FormLabel, Input } from '@trakwyn/ui';
 import { DELETE_ACCOUNT, deleteSchema, type DeleteForm, extractGqlError } from './shared';
 import { useStepUpReauth, STEP_UP_CANCELLED } from './useStepUpReauth';
 
@@ -37,15 +37,15 @@ export function SettingsDangerZonePage() {
   return (
     <div className="space-y-10">
       {/* ── Danger zone ── */}
-      <section className="space-y-4">
+      <Card className="space-y-4 border-red-200 bg-red-50 p-5 dark:border-red-900 dark:bg-red-900/20">
         <div>
           <h2 className="text-base font-semibold text-red-600">{t('data.dangerZoneTitle')}</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-red-500 dark:text-red-400">
             {t('data.dangerZoneDescription')}
           </p>
         </div>
         <form onSubmit={deleteForm.handleSubmit(onDeleteAccount)} className="space-y-3">
-          <div>
+          <div className="max-w-sm">
             <FormLabel>{t('data.confirmPasswordLabel')}</FormLabel>
             <Input
               type="password"
@@ -66,7 +66,7 @@ export function SettingsDangerZonePage() {
             {deleteForm.formState.isSubmitting ? t('data.deleting') : t('data.deleteMyAccount')}
           </Button>
         </form>
-      </section>
+      </Card>
       {stepUpDialog}
     </div>
   );

@@ -2,7 +2,7 @@ import { DownloadIcon, UploadIcon } from 'lucide-react';
 import { useState } from 'react';
 import { gqlClient } from '#/graphql/client';
 import { useLocale } from '#/lib/i18n';
-import { Alert } from '@trakwyn/ui';
+import { Alert, Card } from '@trakwyn/ui';
 import { EXPORT_USER_DATA, IMPORT_USER_DATA, type ImportSummary, extractGqlError } from './shared';
 
 export function SettingsDataPage() {
@@ -50,9 +50,9 @@ export function SettingsDataPage() {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* ── Export ── */}
-      <section className="space-y-4">
+      <Card className="space-y-4 p-5">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             {t('data.exportTitle')}
@@ -68,12 +68,10 @@ export function SettingsDataPage() {
           <DownloadIcon size={14} />{' '}
           <span className="hidden sm:inline">{t('data.downloadExport')}</span>
         </button>
-      </section>
-
-      <hr className="border-gray-200 dark:border-gray-700" />
+      </Card>
 
       {/* ── Import ── */}
-      <section className="space-y-4">
+      <Card className="space-y-4 p-5">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             {t('data.importTitle')}
@@ -104,7 +102,7 @@ export function SettingsDataPage() {
               ` ${t('data.skippedDocuments', { count: importResult.documentsSkipped })}`}
           </p>
         )}
-      </section>
+      </Card>
     </div>
   );
 }

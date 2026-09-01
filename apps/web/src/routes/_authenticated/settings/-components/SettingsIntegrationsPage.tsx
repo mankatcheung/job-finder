@@ -1,10 +1,10 @@
-import { Trash2Icon, CopyIcon, CheckIcon, PlugIcon } from 'lucide-react';
+import { Trash2Icon, CopyIcon, CheckIcon, PlugIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { useLocale } from '#/lib/i18n';
-import { Alert, Badge, Button, FormLabel, Input, Select, Skeleton } from '@trakwyn/ui';
+import { Alert, Badge, Button, Card, FormLabel, Input, Select, Skeleton } from '@trakwyn/ui';
 import {
   API_TOKENS_QUERY,
   CREATE_API_TOKEN,
@@ -33,6 +33,8 @@ export function SettingsIntegrationsPage() {
     queryFn: () => gqlClient.request<{ apiTokens: ApiToken[] }>(API_TOKENS_QUERY),
   });
   const apiTokens = apiTokensData?.apiTokens ?? [];
+  const [apiTokenFormOverride, setApiTokenFormOverride] = useState<boolean | null>(null);
+  const apiTokenFormOpen = apiTokenFormOverride ?? apiTokens.length === 0;
   const [newApiToken, setNewApiToken] = useState<CreateApiTokenPayload | null>(null);
   const [apiTokenName, setApiTokenName] = useState('');
   // Defaults to read-only: it's what the MCP server needs (POST /mcp accepts
@@ -57,6 +59,7 @@ export function SettingsIntegrationsPage() {
       setNewApiToken(res.createApiToken);
       setApiTokenName('');
       setApiTokenScope('read');
+      setApiTokenFormOverride(null);
       await qc.invalidateQueries({ queryKey: ['apiTokens'] });
     } catch (err) {
       setApiTokenError(extractGqlError(err) ?? t('integrations.createTokenFailed'));
@@ -109,6 +112,8 @@ export function SettingsIntegrationsPage() {
     queryFn: () => gqlClient.request<{ shareLinks: ShareLink[] }>(SHARE_LINKS_QUERY),
   });
   const shareLinks = shareLinksData?.shareLinks ?? [];
+  const [shareLinkFormOverride, setShareLinkFormOverride] = useState<boolean | null>(null);
+  const shareLinkFormOpen = shareLinkFormOverride ?? shareLinks.length === 0;
   const [newShareLink, setNewShareLink] = useState<CreateShareLinkPayload | null>(null);
   const [shareLinkName, setShareLinkName] = useState('');
   const [creatingShareLink, setCreatingShareLink] = useState(false);
@@ -130,6 +135,7 @@ export function SettingsIntegrationsPage() {
       );
       setNewShareLink(res.createShareLink);
       setShareLinkName('');
+      setShareLinkFormOverride(null);
       await qc.invalidateQueries({ queryKey: ['shareLinks'] });
     } catch (err) {
       setShareLinkError(extractGqlError(err) ?? t('integrations.createShareLinkFailed'));
@@ -152,7 +158,7 @@ export function SettingsIntegrationsPage() {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       <div className="flex items-center justify-between gap-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-900 dark:bg-blue-900/20">
         <div className="flex items-center gap-3">
           <PlugIcon className="size-4.5 shrink-0 text-blue-700 dark:text-blue-400" />
@@ -169,25 +175,41 @@ export function SettingsIntegrationsPage() {
       </div>
 
       {/* ── API tokens ── */}
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            {t('integrations.apiTokensTitle')}
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t('integrations.apiTokensDescription')}
-          </p>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {t('integrations.mcpHint')}{' '}
-            <a
-              href="https://github.com/mankatcheung/trakwyn#mcp-server"
-              target="_blank"
-              rel="noreferrer"
-              className="text-blue-600 hover:underline"
+      <Card className="space-y-4 p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              {t('integrations.apiTokensTitle')}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {t('integrations.apiTokensDescription')}
+            </p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {t('integrations.mcpHint')}{' '}
+              <a
+                href="https://github.com/mankatcheung/trakwyn#mcp-server"
+                target="_blank"
+                rel="noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                {t('integrations.mcpHintLink')}
+              </a>
+            </p>
+          </div>
+          {!apiTokenFormOpen && !newApiToken && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setApiTokenFormOverride(true)}
+              className="shrink-0"
             >
-              {t('integrations.mcpHintLink')}
-            </a>
-          </p>
+              <span className="flex items-center gap-1.5">
+                <PlusIcon size={14} />{' '}
+                <span className="hidden sm:inline">{t('integrations.newToken')}</span>
+              </span>
+            </Button>
+          )}
         </div>
 
         {newApiToken && (
@@ -219,7 +241,7 @@ export function SettingsIntegrationsPage() {
           </div>
         )}
 
-        {!newApiToken && (
+        {!newApiToken && apiTokenFormOpen && (
           <>
             {apiTokenError && <Alert>{apiTokenError}</Alert>}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -249,6 +271,19 @@ export function SettingsIntegrationsPage() {
               >
                 {creatingApiToken ? t('integrations.creating') : t('integrations.createToken')}
               </Button>
+              {apiTokens.length > 0 && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setApiTokenFormOverride(false);
+                    setApiTokenName('');
+                    setApiTokenError(null);
+                  }}
+                >
+                  {t('common.cancel')}
+                </Button>
+              )}
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {apiTokenScope === 'read'
@@ -297,12 +332,10 @@ export function SettingsIntegrationsPage() {
             ))}
           </ul>
         )}
-      </section>
-
-      <hr className="border-gray-200 dark:border-gray-700" />
+      </Card>
 
       {/* ── Connected MCP clients ── */}
-      <section className="space-y-4">
+      <Card className="space-y-4 p-5">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             {t('integrations.mcpGrantsTitle')}
@@ -359,19 +392,33 @@ export function SettingsIntegrationsPage() {
             ))}
           </ul>
         )}
-      </section>
-
-      <hr className="border-gray-200 dark:border-gray-700" />
+      </Card>
 
       {/* ── Share links ── */}
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            {t('integrations.shareLinksTitle')}
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t('integrations.shareLinksDescription')}
-          </p>
+      <Card className="space-y-4 p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              {t('integrations.shareLinksTitle')}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {t('integrations.shareLinksDescription')}
+            </p>
+          </div>
+          {!shareLinkFormOpen && !newShareLink && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setShareLinkFormOverride(true)}
+              className="shrink-0"
+            >
+              <span className="flex items-center gap-1.5">
+                <PlusIcon size={14} />{' '}
+                <span className="hidden sm:inline">{t('integrations.newShareLink')}</span>
+              </span>
+            </Button>
+          )}
         </div>
 
         {newShareLink && (
@@ -403,7 +450,7 @@ export function SettingsIntegrationsPage() {
           </div>
         )}
 
-        {!newShareLink && (
+        {!newShareLink && shareLinkFormOpen && (
           <>
             {shareLinkError && <Alert>{shareLinkError}</Alert>}
             <div className="flex items-end gap-3">
@@ -422,6 +469,19 @@ export function SettingsIntegrationsPage() {
               >
                 {creatingShareLink ? t('integrations.creating') : t('integrations.createLink')}
               </Button>
+              {shareLinks.length > 0 && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setShareLinkFormOverride(false);
+                    setShareLinkName('');
+                    setShareLinkError(null);
+                  }}
+                >
+                  {t('common.cancel')}
+                </Button>
+              )}
             </div>
           </>
         )}
@@ -460,7 +520,7 @@ export function SettingsIntegrationsPage() {
             ))}
           </ul>
         )}
-      </section>
+      </Card>
     </div>
   );
 }
