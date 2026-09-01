@@ -3,6 +3,10 @@ import { resolve } from 'node:path';
 import { describe, it, expect } from 'vitest';
 import en from '#/i18n/en.json';
 import enGB from '#/i18n/en-GB.json';
+import zhCN from '#/i18n/zh-CN.json';
+import zhTW from '#/i18n/zh-TW.json';
+import zhHK from '#/i18n/zh-HK.json';
+import { SUPPORTED_LOCALES } from '#/lib/i18n';
 
 /**
  * Every security event type must have a `security.event.*` label (JEF-251).
@@ -61,9 +65,17 @@ const syntheticEventTypes = stringLiteralsIn(
 
 const eventTypes = [...syntheticEventTypes, ...persistedEventTypes];
 
+/**
+ * Every shipped locale, not just the English ones: a security event the user
+ * can't read is no better in Chinese than it was in English, and a bundle
+ * left out here is a bundle that quietly regrows the gap.
+ */
 const bundles: [string, Record<string, string>][] = [
   ['en', en],
   ['en-GB', enGB],
+  ['zh-CN', zhCN],
+  ['zh-TW', zhTW],
+  ['zh-HK', zhHK],
 ];
 
 describe('security activity event labels', () => {
@@ -73,6 +85,12 @@ describe('security activity event labels', () => {
     expect(eventTypes).toContain('login');
     expect(eventTypes).toContain('password_changed');
     expect(eventTypes).toContain('mcp_oauth_refresh_reuse_detected');
+  });
+
+  it('checks every locale the app ships', () => {
+    // Adding a locale without listing its bundle here would quietly shrink
+    // this test's reach rather than failing.
+    expect(bundles.map(([locale]) => locale).sort()).toEqual([...SUPPORTED_LOCALES].sort());
   });
 
   it.each(bundles)('has a label for every event type in %s', (_locale, bundle) => {
