@@ -450,6 +450,7 @@
   "integrations.modelOptionalNote": "optional — leave blank to use the provider default",
   "integrations.providerDefaultPlaceholder": "Provider default",
   "integrations.addKey": "Add key",
+  "integrations.addProvider": "Add provider",
   "integrations.allProvidersConfigured": "You've configured every available provider.",
   "integrations.customInstructionsLabel": "Custom instructions",
   "integrations.customInstructionsHelp": "Added to the prompt for AI-generated text (cover letters, the assistant chatbot).",

@@ -70,10 +70,10 @@ describe('SettingsAiPage', () => {
     render(<SettingsAiPage />, { wrapper: Wrapper });
 
     // "OpenRouter" alone would also match the (still-present) dropdown option
-    // before the list loads, so wait on "Default" — it only ever comes from
-    // the loaded key row — then confirm it's on the row for that provider.
-    const defaultBadge = await screen.findByText('Default');
-    expect(defaultBadge.closest('li')).toHaveTextContent('OpenRouter');
+    // before the list loads, so wait for the loaded row itself.
+    const row = await screen.findByTestId('llm-provider-row-openrouter');
+    expect(row).toHaveTextContent('OpenRouter');
+    expect(row).toHaveTextContent('Default');
   });
 
   describe('testing a saved key (JEF-247)', () => {
@@ -92,7 +92,7 @@ describe('SettingsAiPage', () => {
     it('tests the saved key by provider, without sending an apiKey', async () => {
       const user = userEvent.setup();
       render(<SettingsAiPage />, { wrapper: Wrapper });
-      const row = (await screen.findByText('Default')).closest('li') as HTMLElement;
+      const row = await screen.findByTestId('llm-provider-row-openrouter');
 
       await user.click(within(row).getByRole('button', { name: 'Test' }));
 
@@ -106,7 +106,7 @@ describe('SettingsAiPage', () => {
     it('shows a success message after a successful test', async () => {
       const user = userEvent.setup();
       render(<SettingsAiPage />, { wrapper: Wrapper });
-      const row = (await screen.findByText('Default')).closest('li') as HTMLElement;
+      const row = await screen.findByTestId('llm-provider-row-openrouter');
 
       await user.click(within(row).getByRole('button', { name: 'Test' }));
 
@@ -127,7 +127,7 @@ describe('SettingsAiPage', () => {
       });
       const user = userEvent.setup();
       render(<SettingsAiPage />, { wrapper: Wrapper });
-      const row = (await screen.findByText('Default')).closest('li') as HTMLElement;
+      const row = await screen.findByTestId('llm-provider-row-openrouter');
 
       await user.click(within(row).getByRole('button', { name: 'Test' }));
 
@@ -200,6 +200,81 @@ describe('SettingsAiPage', () => {
 
       await user.type(screen.getByPlaceholderText('e.g. gpt-4o-mini'), 'my-model');
       expect(testButton).toBeEnabled();
+    });
+  });
+
+  describe('progressive disclosure of the add-provider form (redesign)', () => {
+    it('opens the form automatically when no provider is configured yet', async () => {
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+
+      expect(screen.getByPlaceholderText('sk-…')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Add provider' })).not.toBeInTheDocument();
+    });
+
+    it('collapses the form behind an "Add provider" button once a key exists, and expands it on click', async () => {
+      mockGqlRequest.mockResolvedValue({
+        llmApiKeys: [{ provider: 'openrouter', model: null, baseUrl: null }],
+        me: { defaultLlmProvider: 'openrouter', customAiPrompt: null },
+      });
+      const user = userEvent.setup();
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+      await screen.findByTestId('llm-provider-row-openrouter');
+
+      expect(screen.queryByPlaceholderText('sk-…')).not.toBeInTheDocument();
+      const addProviderButton = screen.getByRole('button', { name: 'Add provider' });
+
+      await user.click(addProviderButton);
+
+      expect(screen.getByPlaceholderText('sk-…')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Add provider' })).not.toBeInTheDocument();
+    });
+
+    it('collapses the form again via Cancel, discarding what was typed', async () => {
+      mockGqlRequest.mockResolvedValue({
+        llmApiKeys: [{ provider: 'openrouter', model: null, baseUrl: null }],
+        me: { defaultLlmProvider: 'openrouter', customAiPrompt: null },
+      });
+      const user = userEvent.setup();
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+      await screen.findByTestId('llm-provider-row-openrouter');
+
+      await user.click(screen.getByRole('button', { name: 'Add provider' }));
+      await user.type(screen.getByPlaceholderText('sk-…'), 'sk-123');
+      await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+      expect(screen.queryByPlaceholderText('sk-…')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Add provider' })).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Add provider' }));
+      expect(screen.getByPlaceholderText('sk-…')).toHaveValue('');
+    });
+
+    it('collapses the form again after a successful save', async () => {
+      let saved = false;
+      mockGqlRequest.mockImplementation((document: string) => {
+        if (document.includes('query LlmApiKeys')) {
+          return Promise.resolve({
+            llmApiKeys: saved ? [{ provider: 'openrouter', model: null, baseUrl: null }] : [],
+            me: { defaultLlmProvider: saved ? 'openrouter' : null, customAiPrompt: null },
+          });
+        }
+        if (document.includes('saveLlmApiKey')) {
+          saved = true;
+          return Promise.resolve({ saveLlmApiKey: true });
+        }
+        return Promise.resolve({});
+      });
+      const user = userEvent.setup();
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(screen.getByPlaceholderText('sk-…')).toBeInTheDocument());
+
+      await user.type(screen.getByPlaceholderText('sk-…'), 'sk-123');
+      await user.click(screen.getByRole('button', { name: 'Add key' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Add provider' })).toBeInTheDocument();
+      });
     });
   });
 });
