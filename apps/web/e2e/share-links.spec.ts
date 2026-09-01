@@ -14,7 +14,7 @@ test.describe('Share links', () => {
     await page.getByPlaceholder('e.g. For my mentor').fill('For my mentor');
     await page.getByRole('button', { name: /create link/i }).click();
 
-    const shareLinksSection = page.locator('section').filter({ hasText: 'Share links' });
+    const shareLinksSection = page.locator('div.rounded-xl').filter({ hasText: 'Share links' });
     await expect(shareLinksSection.getByText(/share link created successfully/i)).toBeVisible();
     const shareUrl = await shareLinksSection.locator('code').textContent();
     expect(shareUrl).toContain('/share?token=');
@@ -43,7 +43,7 @@ test.describe('Share links', () => {
     await page.goto('/settings/integrations');
     await page.getByPlaceholder('e.g. For my mentor').fill('Temporary link');
     await page.getByRole('button', { name: /create link/i }).click();
-    const shareLinksSection = page.locator('section').filter({ hasText: 'Share links' });
+    const shareLinksSection = page.locator('div.rounded-xl').filter({ hasText: 'Share links' });
     const shareUrl = await shareLinksSection.locator('code').textContent();
 
     await page.getByRole('button', { name: /done/i }).click();

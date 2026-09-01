@@ -33,7 +33,7 @@ test.describe('Account settings', () => {
     // resetting (no success banner is shown).
     await page.goto('/settings/profile');
     const newEmail = uniqueEmail('new');
-    const emailSection = page.locator('section').filter({ hasText: 'Email address' });
+    const emailSection = page.locator('div.rounded-xl').filter({ hasText: 'Email address' });
     const newEmailInput = emailSection.getByPlaceholder('you@example.com');
 
     await emailSection.getByPlaceholder('••••••••').fill(password);
@@ -45,7 +45,7 @@ test.describe('Account settings', () => {
 
   test('shows error when updating email with wrong password', async ({ page }) => {
     await page.goto('/settings/profile');
-    const emailSection = page.locator('section').filter({ hasText: 'Email address' });
+    const emailSection = page.locator('div.rounded-xl').filter({ hasText: 'Email address' });
 
     await emailSection.getByPlaceholder('••••••••').fill('wrongpassword');
     await emailSection.getByPlaceholder('you@example.com').fill(uniqueEmail('wrong'));
@@ -56,7 +56,7 @@ test.describe('Account settings', () => {
 
   test('updates password with correct current password', async ({ page }) => {
     const newPassword = 'NewSecurePass456';
-    const passwordSection = page.locator('section').filter({ hasText: /^Password/ });
+    const passwordSection = page.locator('div.rounded-xl').filter({ hasText: /^Password/ });
     const inputs = passwordSection.locator('input[type="password"]');
 
     await inputs.nth(0).fill(password);
@@ -68,7 +68,7 @@ test.describe('Account settings', () => {
   });
 
   test('shows error when new passwords do not match', async ({ page }) => {
-    const passwordSection = page.locator('section').filter({ hasText: /^Password/ });
+    const passwordSection = page.locator('div.rounded-xl').filter({ hasText: /^Password/ });
     const inputs = passwordSection.locator('input[type="password"]');
 
     await inputs.nth(0).fill(password);
@@ -83,7 +83,7 @@ test.describe('Account settings', () => {
     page,
   }) => {
     await page.goto('/settings/danger-zone');
-    const dangerSection = page.locator('section').filter({ hasText: 'Danger zone' });
+    const dangerSection = page.locator('div.rounded-xl').filter({ hasText: 'Danger zone' });
     await dangerSection.getByPlaceholder('••••••••').fill('wrongpassword');
     await dangerSection.getByRole('button', { name: /delete my account/i }).click();
 
@@ -96,7 +96,7 @@ test.describe('Account settings', () => {
 
   test('deletes account, clears session, and redirects to /login', async ({ page }) => {
     await page.goto('/settings/danger-zone');
-    const dangerSection = page.locator('section').filter({ hasText: 'Danger zone' });
+    const dangerSection = page.locator('div.rounded-xl').filter({ hasText: 'Danger zone' });
     await dangerSection.getByPlaceholder('••••••••').fill(password);
     await dangerSection.getByRole('button', { name: /delete my account/i }).click();
 
@@ -122,7 +122,7 @@ test.describe('Account settings', () => {
     await registerAndLogin(page, { email, password });
 
     await page.goto('/settings/danger-zone');
-    const dangerSection = page.locator('section').filter({ hasText: 'Danger zone' });
+    const dangerSection = page.locator('div.rounded-xl').filter({ hasText: 'Danger zone' });
     await dangerSection.getByPlaceholder('••••••••').fill(password);
     await dangerSection.getByRole('button', { name: /delete my account/i }).click();
     await expect(page).toHaveURL(/login/);
