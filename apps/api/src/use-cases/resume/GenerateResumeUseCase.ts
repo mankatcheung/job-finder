@@ -26,7 +26,7 @@ import {
   type UserProfile,
   type UserProfileRepositories,
 } from '#src/use-cases/shared/userProfile.js';
-import { AI_PROMPT_INPUT } from '#src/constants.js';
+import { AI_PROMPT_INPUT } from '#src/use-cases/constants.js';
 
 export interface GenerateResumeInput {
   applicationId: string;

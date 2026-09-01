@@ -2,7 +2,7 @@ import { UnauthorizedError } from '#src/use-cases/errors/DomainError.js';
 import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 import type { Session } from '#src/domain/session/Session.js';
-import { SESSION } from '#src/constants.js';
+import { SESSION } from '#src/use-cases/constants.js';
 
 interface Deps {
   sessionRepository: ISessionRepository;

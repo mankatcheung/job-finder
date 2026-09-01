@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AnthropicLLMProvider } from '#src/infrastructure/llm/AnthropicLLMProvider.js';
-import { LLM } from '#src/constants.js';
+import { LLM } from '#src/use-cases/constants.js';
 import type { LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
 
 const jsonResponse = (body: unknown, ok = true, status = 200) => ({

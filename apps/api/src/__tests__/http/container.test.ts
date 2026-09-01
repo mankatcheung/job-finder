@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { ENV } from '#src/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
 
 describe('buildContainer', () => {
   beforeAll(() => {

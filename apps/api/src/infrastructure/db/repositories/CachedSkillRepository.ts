@@ -5,7 +5,7 @@ import type {
   UpdateSkillData,
 } from '#src/use-cases/ports/ISkillRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { CACHE_KEYS } from '#src/infrastructure/config/constants.js';
 
 interface Deps {
   drizzleSkillRepository: ISkillRepository;

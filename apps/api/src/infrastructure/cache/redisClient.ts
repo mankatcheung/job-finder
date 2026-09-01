@@ -1,5 +1,5 @@
 import { Redis } from '@upstash/redis';
-import { CACHE_PROVIDER, ENV } from '#src/constants.js';
+import { CACHE_PROVIDER, ENV } from '#src/infrastructure/config/constants.js';
 
 let cached: Redis | null | undefined;
 

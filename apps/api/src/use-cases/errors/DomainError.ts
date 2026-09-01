@@ -1,4 +1,4 @@
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 /**
  * How a use case says something went wrong.

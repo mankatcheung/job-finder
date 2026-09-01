@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { DrizzleApplicationRepository } from '#src/infrastructure/db/repositories/DrizzleApplicationRepository.js';
 import { createTestDb, type TestDb } from '#src/__tests__/helpers/createTestDb.js';
 import { user, jobApplication } from '#src/infrastructure/db/schema.js';
-import { CONTENT_LIMITS } from '#src/constants.js';
+import { CONTENT_LIMITS } from '#src/use-cases/constants.js';
 
 const BASE_APP = {
   id: 'app-1',

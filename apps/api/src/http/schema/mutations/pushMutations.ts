@@ -1,6 +1,6 @@
 import { builder } from '#src/http/schema/builder.js';
 import { GraphQLError } from 'graphql';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 import { fromCodedError } from '#src/http/errors/AppError.js';
 
 builder.mutationField('registerPushSubscription', (t) =>

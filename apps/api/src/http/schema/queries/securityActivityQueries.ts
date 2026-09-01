@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
 import { SecurityActivityItemRef } from '#src/http/schema/types/SecurityActivityType.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 builder.queryField('securityActivity', (t) =>
   t.field({

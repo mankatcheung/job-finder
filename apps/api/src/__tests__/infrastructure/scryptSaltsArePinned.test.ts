@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { TotpProvider } from '#src/infrastructure/auth/TotpProvider.js';
 import { LlmApiKeyCipher } from '#src/infrastructure/llm/LlmApiKeyCipher.js';
-import { ENV } from '#src/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
 
 /**
  * Both classes derive their AES key with scryptSync(passphrase, SCRYPT_SALT).

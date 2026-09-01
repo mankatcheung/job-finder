@@ -4,7 +4,7 @@ import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IPasswordResetTokenRepository } from '#src/use-cases/ports/IPasswordResetTokenRepository.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
-import { PASSWORD_RESET_TOKEN } from '#src/constants.js';
+import { PASSWORD_RESET_TOKEN } from '#src/use-cases/constants.js';
 import type {
   IRequestPasswordResetUseCase,
   RequestPasswordResetInput,

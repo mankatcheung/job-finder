@@ -1,7 +1,7 @@
 import type { OAuthProviderName } from '#src/domain/oauthAccount/OAuthAccount.js';
 import type { IOAuthProvider } from '#src/use-cases/ports/IOAuthProvider.js';
 import type { IOAuthProviderRegistry } from '#src/use-cases/ports/IOAuthProviderRegistry.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 interface Deps {
   googleOAuthProvider: IOAuthProvider;

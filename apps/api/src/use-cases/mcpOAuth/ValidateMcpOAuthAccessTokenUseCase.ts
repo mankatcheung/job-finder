@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { MCP_OAUTH } from '#src/constants.js';
+import { MCP_OAUTH } from '#src/use-cases/constants.js';
 import type { McpOAuthScope } from '#src/domain/mcpOAuth/McpOAuthAccessToken.js';
 import type { IMcpOAuthTokenRepository } from '#src/use-cases/ports/IMcpOAuthTokenRepository.js';
 

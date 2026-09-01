@@ -5,7 +5,7 @@ import type { IIpLocationResolver } from '#src/use-cases/ports/IIpLocationResolv
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 import type { ICreateNotificationUseCase } from '#src/use-cases/notifications/ICreateNotificationUseCase.js';
 import type { Session } from '#src/domain/session/Session.js';
-import { SESSION, NOTIFICATION_TYPE } from '#src/constants.js';
+import { NOTIFICATION_TYPE, SESSION } from '#src/use-cases/constants.js';
 
 interface Deps {
   sessionRepository: ISessionRepository;

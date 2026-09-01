@@ -3,7 +3,8 @@ import type { GraphQLContext } from '#src/http/context.js';
 import { toHttpRequest } from '#src/http/adapters/fastify/toHttpRequest.js';
 import { toHttpResponse } from '#src/http/adapters/fastify/toHttpResponse.js';
 import { diScopeOf } from '#src/http/adapters/fastify/diScope.js';
-import { AUTH_HEADER, COOKIES } from '#src/constants.js';
+import { AUTH_HEADER } from '#src/infrastructure/config/constants.js';
+import { COOKIES } from '#src/http/constants.js';
 
 /**
  * Fires once the underlying connection closes, for any reason — a normal

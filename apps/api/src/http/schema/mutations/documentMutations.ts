@@ -2,7 +2,7 @@ import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
 import { DocumentRef } from '#src/http/schema/types/DocumentType.js';
 import { UploadUrlPayloadRef } from '#src/http/schema/types/AuthPayloadType.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 import {
   RequestUploadUrlInput,
   ConfirmDocumentInput,

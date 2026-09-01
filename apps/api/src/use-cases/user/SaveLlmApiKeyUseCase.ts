@@ -2,7 +2,7 @@ import { NotFoundError, ValidationError } from '#src/use-cases/errors/DomainErro
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
-import { LLM_PROVIDER } from '#src/constants.js';
+import { LLM_PROVIDER } from '#src/use-cases/constants.js';
 import { assertValidLlmApiKeyShape } from '#src/use-cases/user/llmApiKeyValidation.js';
 import type {
   ISaveLlmApiKeyUseCase,

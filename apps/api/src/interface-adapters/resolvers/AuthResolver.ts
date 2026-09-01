@@ -10,7 +10,7 @@ import type { ITokenService, TokenPair } from '#src/use-cases/ports/ITokenServic
 import type { ISessionRepository } from '#src/use-cases/ports/ISessionRepository.js';
 import type { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
 import type { RotateRefreshTokenUseCase } from '#src/use-cases/sessions/RotateRefreshTokenUseCase.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 interface Deps {
   registerUseCase: IRegisterUseCase;

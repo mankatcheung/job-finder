@@ -3,7 +3,7 @@ import type {
   McpOAuthAccessToken,
   McpOAuthScope,
 } from '#src/domain/mcpOAuth/McpOAuthAccessToken.js';
-import { MCP_OAUTH } from '#src/constants.js';
+import { MCP_OAUTH } from '#src/use-cases/constants.js';
 import type { IMcpOAuthTokenRepository } from '#src/use-cases/ports/IMcpOAuthTokenRepository.js';
 
 interface Deps {

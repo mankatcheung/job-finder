@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
 import { InterviewRoundRef } from '#src/http/schema/types/InterviewRoundType.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 builder.queryField('interviewRounds', (t) =>
   t.field({

@@ -9,7 +9,7 @@ import { TestLlmApiKeyResultRef } from '#src/http/schema/types/TestLlmApiKeyResu
 import { UploadUrlPayloadRef } from '#src/http/schema/types/AuthPayloadType.js';
 import { deviceInfoFrom } from '#src/http/schema/requestDeviceInfo.js';
 import { fromCodedError } from '#src/http/errors/AppError.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 import type { JwtUser } from '#src/http/context.js';
 
 /**

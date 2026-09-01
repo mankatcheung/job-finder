@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
 import { DocumentVersionOutcomeRef } from '#src/http/schema/types/DocumentVersionOutcomeType.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 builder.queryField('documentVersionOutcomes', (t) =>
   t.field({

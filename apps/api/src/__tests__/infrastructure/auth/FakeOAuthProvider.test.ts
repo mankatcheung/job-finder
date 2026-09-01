@@ -3,7 +3,7 @@ import {
   FakeGoogleOAuthProvider,
   FakeGitHubOAuthProvider,
 } from '#src/infrastructure/auth/FakeOAuthProvider.js';
-import { ROUTES } from '#src/constants.js';
+import { ROUTES } from '#src/http/constants.js';
 
 describe('FakeOAuthProvider', () => {
   describe('getAuthorizationUrl', () => {

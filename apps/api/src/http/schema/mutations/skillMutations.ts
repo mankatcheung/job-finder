@@ -2,7 +2,7 @@ import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
 import { SkillRef } from '#src/http/schema/types/SkillType.js';
 import { CreateSkillInput, UpdateSkillInput } from '#src/http/schema/types/inputs/SkillInputs.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 builder.mutationField('createSkill', (t) =>
   t.field({

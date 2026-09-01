@@ -2,16 +2,9 @@ import type { IHttpRequest } from '#src/http/ports/IHttpRequest.js';
 import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
 import type { Cradle } from '#src/http/container.js';
 import { setAuthCookies } from '#src/http/schema/types/AuthPayloadType.js';
-import {
-  COOKIES,
-  COOKIE_PATH,
-  ENV,
-  ERROR_CODES,
-  NODE_ENV,
-  OAUTH,
-  OAUTH_PROVIDER,
-  ROUTES,
-} from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
+import { ENV, NODE_ENV, OAUTH } from '#src/infrastructure/config/constants.js';
+import { COOKIES, COOKIE_PATH, OAUTH_PROVIDER, ROUTES } from '#src/http/constants.js';
 import type { OAuthProviderName } from '#src/domain/oauthAccount/OAuthAccount.js';
 import { createPkcePair } from '#src/infrastructure/auth/pkce.js';
 

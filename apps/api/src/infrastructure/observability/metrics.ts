@@ -1,5 +1,5 @@
 import { metrics, type Counter } from '@opentelemetry/api';
-import { AXIOM, METRICS } from '#src/constants.js';
+import { AXIOM, METRICS } from '#src/infrastructure/config/constants.js';
 
 /** Which Redis-backed subsystem a resilience event came from. */
 export type MetricComponent = 'cache' | 'rate_limit' | 'session_blocklist';

@@ -1,4 +1,4 @@
-import { API_TOKEN, MCP_OAUTH } from '#src/constants.js';
+import { API_TOKEN, MCP_OAUTH } from '#src/use-cases/constants.js';
 import type { ApiTokenScope } from '#src/domain/apiToken/ApiToken.js';
 import type { ValidateApiTokenUseCase } from '#src/use-cases/apiTokens/ValidateApiTokenUseCase.js';
 import type { ValidateMcpOAuthAccessTokenUseCase } from '#src/use-cases/mcpOAuth/ValidateMcpOAuthAccessTokenUseCase.js';

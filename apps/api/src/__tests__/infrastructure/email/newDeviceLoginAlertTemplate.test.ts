@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { buildNewDeviceLoginAlertHtml } from '#src/infrastructure/email/templates/newDeviceLoginAlertTemplate.js';
-import { ENV } from '#src/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
 
 describe('buildNewDeviceLoginAlertHtml', () => {
   const original = process.env[ENV.WEB_APP_ORIGIN];

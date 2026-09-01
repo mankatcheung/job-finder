@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { TestLlmApiKeyUseCase } from '#src/use-cases/user/TestLlmApiKeyUseCase.js';
-import { LLM } from '#src/constants.js';
+import { LLM } from '#src/use-cases/constants.js';
 import {
   makeLLMProviderFactory,
   makeLLMProvider,

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { formatCrossApplicationContext } from '#src/use-cases/shared/crossApplicationContext.js';
-import { AI_PROMPT_INPUT } from '#src/constants.js';
+import { AI_PROMPT_INPUT } from '#src/use-cases/constants.js';
 
 describe('formatCrossApplicationContext', () => {
   it('returns an empty string when there is neither a note nor a cover letter', () => {

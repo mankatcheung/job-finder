@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OpenAICompatibleLLMProvider } from '#src/infrastructure/llm/OpenAICompatibleLLMProvider.js';
-import { LLM } from '#src/constants.js';
+import { LLM } from '#src/use-cases/constants.js';
 import type { LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
 
 const BASE_URL = 'https://api.example.com/v1/chat/completions';

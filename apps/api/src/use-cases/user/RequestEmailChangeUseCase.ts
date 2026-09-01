@@ -11,7 +11,7 @@ import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IEmailVerificationTokenRepository } from '#src/use-cases/ports/IEmailVerificationTokenRepository.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
-import { EMAIL_VERIFICATION_TOKEN } from '#src/constants.js';
+import { EMAIL_VERIFICATION_TOKEN } from '#src/use-cases/constants.js';
 import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
 import { isSessionFresh } from '#src/use-cases/auth/sessionFreshness.js';
 import type {

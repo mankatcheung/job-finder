@@ -3,7 +3,7 @@ import { DrizzleDocumentRepository } from '#src/infrastructure/db/repositories/D
 import { createTestDb, type TestDb } from '#src/__tests__/helpers/createTestDb.js';
 import { user, jobApplication, document } from '#src/infrastructure/db/schema.js';
 import { eq } from 'drizzle-orm';
-import { CONTENT_LIMITS } from '#src/constants.js';
+import { CONTENT_LIMITS } from '#src/use-cases/constants.js';
 
 const BASE_DOC = {
   id: 'doc-1',

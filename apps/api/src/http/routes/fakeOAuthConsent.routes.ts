@@ -1,6 +1,6 @@
 import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
 import type { IHttpRequest } from '#src/http/ports/IHttpRequest.js';
-import { OAUTH_PROVIDER, ROUTES } from '#src/constants.js';
+import { OAUTH_PROVIDER, ROUTES } from '#src/http/constants.js';
 import type { OAuthProfile } from '#src/use-cases/ports/IOAuthProvider.js';
 
 /**

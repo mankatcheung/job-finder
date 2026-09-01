@@ -1,6 +1,7 @@
 import mammoth from 'mammoth';
 import type { IDocumentTextExtractor } from '#src/use-cases/ports/IDocumentTextExtractor.js';
-import { ERROR_CODES, MIME_TYPE } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
+import { MIME_TYPE } from '#src/use-cases/constants.js';
 
 const UNSUPPORTED_MESSAGE =
   "This file type isn't supported for text extraction — please paste your resume text instead.";

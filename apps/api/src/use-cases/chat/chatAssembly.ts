@@ -18,7 +18,7 @@ import type { IWorkExperienceRepository } from '#src/use-cases/ports/IWorkExperi
 import type { IEducationRepository } from '#src/use-cases/ports/IEducationRepository.js';
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
 import type { LLMMessage, LLMToolCall } from '#src/use-cases/ports/ILLMProvider.js';
-import { CHAT } from '#src/constants.js';
+import { CHAT } from '#src/use-cases/constants.js';
 
 /**
  * Message assembly, title derivation, and tool dispatch for

@@ -1,6 +1,6 @@
 import type { Note } from '#src/domain/note/Note.js';
 import type { DocumentDraft } from '#src/domain/documentDraft/DocumentDraft.js';
-import { AI_PROMPT_INPUT } from '#src/constants.js';
+import { AI_PROMPT_INPUT } from '#src/use-cases/constants.js';
 
 /**
  * Opt-in context (JEF-249) drawn from the user's *other* applications —

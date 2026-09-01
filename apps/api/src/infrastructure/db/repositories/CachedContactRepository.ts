@@ -5,7 +5,7 @@ import type {
   UpdateContactData,
 } from '#src/use-cases/ports/IContactRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { CACHE_KEYS } from '#src/infrastructure/config/constants.js';
 
 interface Deps {
   drizzleContactRepository: IContactRepository;

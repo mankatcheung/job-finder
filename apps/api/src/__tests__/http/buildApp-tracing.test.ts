@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import Fastify, { type FastifyInstance } from 'fastify';
-import { ENV, ROUTES } from '#src/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
+import { ROUTES } from '#src/http/constants.js';
 import { createClient } from '@libsql/client';
 import { applyMigrations } from '#src/infrastructure/db/applyMigrations.js';
 import { tmpdir } from 'node:os';

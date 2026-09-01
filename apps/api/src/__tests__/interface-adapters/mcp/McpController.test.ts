@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { McpController, MCP_TOOLS } from '#src/interface-adapters/mcp/McpController.js';
-import { ERROR_CODES, JSON_RPC_ERROR, MCP } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
+import { JSON_RPC_ERROR, MCP } from '#src/interface-adapters/mcp/constants.js';
 import type { IGetApplicationsPageUseCase } from '#src/use-cases/jobs/IGetApplicationsPageUseCase.js';
 import type { IGetApplicationUseCase } from '#src/use-cases/jobs/IGetApplicationUseCase.js';
 import type { IGetNotesUseCase } from '#src/use-cases/notes/IGetNotesUseCase.js';

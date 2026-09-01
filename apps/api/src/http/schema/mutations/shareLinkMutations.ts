@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
 import { CreateShareLinkPayloadRef } from '#src/http/schema/types/ShareLinkType.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 builder.mutationField('createShareLink', (t) =>
   t.field({

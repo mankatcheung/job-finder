@@ -12,7 +12,7 @@ import {
   MoveApplicationOnBoardInput,
 } from '#src/http/schema/types/inputs/ApplicationInputs.js';
 import type { ApplicationStatus } from '#src/domain/application/ApplicationStatus.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 builder.mutationField('createApplication', (t) =>
   t.field({

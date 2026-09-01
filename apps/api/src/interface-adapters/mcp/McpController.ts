@@ -26,7 +26,9 @@ import type { GetOfferAnalyticsUseCase } from '#src/use-cases/offers/GetOfferAna
 import type { IWorkExperienceRepository } from '#src/use-cases/ports/IWorkExperienceRepository.js';
 import type { IEducationRepository } from '#src/use-cases/ports/IEducationRepository.js';
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
-import { API_TOKEN_SCOPE, ERROR_CODES, JSON_RPC_ERROR, MCP } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
+import { API_TOKEN_SCOPE } from '#src/use-cases/constants.js';
+import { JSON_RPC_ERROR, MCP } from '#src/interface-adapters/mcp/constants.js';
 import type { ApiTokenScope } from '#src/domain/apiToken/ApiToken.js';
 import { MCP_TOOLS } from '#src/interface-adapters/llm/toolCatalogue.js';
 

@@ -5,7 +5,7 @@ import { LlmApiKeyRef } from '#src/http/schema/types/LlmApiKeyType.js';
 import { LlmUsageSummaryRef } from '#src/http/schema/types/LlmUsageSummaryType.js';
 import { UserRef } from '#src/http/schema/types/UserType.js';
 import { WeeklyApplicationGoalRef } from '#src/http/schema/types/WeeklyApplicationGoalType.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 builder.queryField('exportUserData', (t) =>
   t.string({

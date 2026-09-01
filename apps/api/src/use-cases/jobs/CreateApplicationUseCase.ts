@@ -1,5 +1,5 @@
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
-import { DEFAULTS } from '#src/constants.js';
+import { DEFAULTS } from '#src/use-cases/constants.js';
 import type {
   ICreateApplicationUseCase,
   CreateApplicationInput,

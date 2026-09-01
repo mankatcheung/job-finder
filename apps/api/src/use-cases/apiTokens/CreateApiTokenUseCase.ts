@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'crypto';
 import type { IApiTokenRepository } from '#src/use-cases/ports/IApiTokenRepository.js';
 import type { ApiToken, ApiTokenScope } from '#src/domain/apiToken/ApiToken.js';
-import { API_TOKEN, DEFAULTS } from '#src/constants.js';
+import { API_TOKEN, DEFAULTS } from '#src/use-cases/constants.js';
 
 interface Deps {
   apiTokenRepository: IApiTokenRepository;

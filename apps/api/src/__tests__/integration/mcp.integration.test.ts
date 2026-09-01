@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { randomUUID } from 'node:crypto';
-import { ROUTES } from '#src/constants.js';
+import { ROUTES } from '#src/http/constants.js';
 import { buildTestApp, type TestApp } from './helpers/buildTestApp.js';
 
 const REGISTER_MUTATION = `

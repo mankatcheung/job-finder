@@ -5,7 +5,7 @@ import {
   CreateEducationInput,
   UpdateEducationInput,
 } from '#src/http/schema/types/inputs/EducationInputs.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 builder.mutationField('createEducation', (t) =>
   t.field({

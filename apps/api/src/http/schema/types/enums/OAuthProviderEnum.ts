@@ -1,5 +1,5 @@
 import { builder } from '#src/http/schema/builder.js';
-import { OAUTH_PROVIDER } from '#src/constants.js';
+import { OAUTH_PROVIDER } from '#src/http/constants.js';
 
 export const OAuthProviderEnum = builder.enumType('OAuthProvider', {
   values: {

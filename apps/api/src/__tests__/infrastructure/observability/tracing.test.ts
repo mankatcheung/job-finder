@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ENV, AXIOM } from '#src/constants.js';
+import { AXIOM, ENV } from '#src/infrastructure/config/constants.js';
 import {
   ATTR_SERVICE_NAME,
   ATTR_DEPLOYMENT_ENVIRONMENT_NAME,

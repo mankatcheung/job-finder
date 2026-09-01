@@ -1,4 +1,4 @@
-import { LLM } from '#src/constants.js';
+import { LLM } from '#src/use-cases/constants.js';
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));

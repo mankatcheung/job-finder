@@ -1,4 +1,4 @@
-import { TRASH } from '#src/constants.js';
+import { TRASH } from '#src/use-cases/constants.js';
 import { builder } from '#src/http/schema/builder.js';
 import { ApplicationSectionCountsRef } from '#src/http/schema/types/ApplicationSectionCountsType.js';
 import { ApplicationStatusEnum } from '#src/http/schema/types/enums/ApplicationStatusEnum.js';

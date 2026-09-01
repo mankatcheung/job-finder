@@ -7,7 +7,7 @@ import type {
   InterviewRoundOutcome,
 } from '#src/domain/interviewRound/InterviewRound.js';
 import { getClient } from '../transactionContext.js';
-import { DEFAULTS } from '#src/constants.js';
+import { DEFAULTS } from '#src/use-cases/constants.js';
 import type {
   IInterviewRoundRepository,
   CreateInterviewRoundData,

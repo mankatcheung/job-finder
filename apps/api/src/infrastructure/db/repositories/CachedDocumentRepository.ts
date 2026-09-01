@@ -4,7 +4,7 @@ import type {
   CreateDocumentData,
 } from '#src/use-cases/ports/IDocumentRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { CACHE_KEYS } from '#src/infrastructure/config/constants.js';
 
 interface Deps {
   drizzleDocumentRepository: IDocumentRepository;

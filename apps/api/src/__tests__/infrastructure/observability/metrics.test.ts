@@ -7,7 +7,7 @@ import {
   PeriodicExportingMetricReader,
 } from '@opentelemetry/sdk-metrics';
 import { otelMetrics, noopMetrics } from '#src/infrastructure/observability/metrics.js';
-import { METRICS } from '#src/constants.js';
+import { METRICS } from '#src/infrastructure/config/constants.js';
 
 describe('OtelMetrics', () => {
   afterEach(() => {

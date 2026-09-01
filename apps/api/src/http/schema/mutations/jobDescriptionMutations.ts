@@ -2,7 +2,7 @@ import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
 import { ParsedJobDescriptionRef } from '#src/http/schema/types/ParsedJobDescriptionType.js';
 import { fromCodedError } from '#src/http/errors/AppError.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 builder.mutationField('parseJobDescription', (t) =>
   t.field({

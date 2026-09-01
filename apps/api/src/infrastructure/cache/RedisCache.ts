@@ -1,4 +1,4 @@
-import { CACHE } from '#src/constants.js';
+import { CACHE } from '#src/infrastructure/config/constants.js';
 import { CircuitBreaker, CircuitBreakerOpenError } from './CircuitBreaker.js';
 import type { ICache } from './ICache.js';
 import type { IRedisClient } from './IRedisClient.js';

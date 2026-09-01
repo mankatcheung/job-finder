@@ -1,5 +1,5 @@
 import { ValidationError } from '#src/use-cases/errors/DomainError.js';
-import { BULK_ACTIONS } from '#src/constants.js';
+import { BULK_ACTIONS } from '#src/use-cases/constants.js';
 
 /** Shared guard for bulk-write use cases: rejects empty or oversized ID batches. */
 export function assertValidBulkNotificationIds(ids: string[]): void {

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildTestApp, type TestApp } from './helpers/buildTestApp.js';
-import { ENV, LLM_PROVIDER_MODE } from '#src/constants.js';
+import { ENV, LLM_PROVIDER_MODE } from '#src/infrastructure/config/constants.js';
 
 describe('fake LLM completions route — LLM_PROVIDER_MODE=fake', () => {
   let testApp: TestApp;

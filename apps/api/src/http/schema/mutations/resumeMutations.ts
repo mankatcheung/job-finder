@@ -2,7 +2,7 @@ import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
 import { DocumentDraftRef } from '#src/http/schema/types/DocumentDraftType.js';
 import { fromCodedError } from '#src/http/errors/AppError.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 // Returns the saved draft, like generateCoverLetter: the generated resume is
 // persisted as a DocumentDraft and the client needs its id to open the editor.

@@ -1,5 +1,5 @@
 import { ValidationError } from '#src/use-cases/errors/DomainError.js';
-import { ALLOWED_DOCUMENT_MIME_TYPES, MAX_DOCUMENT_SIZE_BYTES } from '#src/constants.js';
+import { ALLOWED_DOCUMENT_MIME_TYPES, MAX_DOCUMENT_SIZE_BYTES } from '#src/use-cases/constants.js';
 
 export function assertAllowedMimeType(mimeType: string): void {
   if (!(ALLOWED_DOCUMENT_MIME_TYPES as readonly string[]).includes(mimeType)) {

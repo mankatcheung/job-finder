@@ -8,7 +8,7 @@ import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRe
 import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentRepository.js';
 import type { IStorageProvider } from '#src/use-cases/ports/IStorageProvider.js';
 import { assertAllowedMimeType } from '#src/use-cases/documents/documentValidation.js';
-import { CONTENT_LIMITS } from '#src/constants.js';
+import { CONTENT_LIMITS } from '#src/use-cases/constants.js';
 import type {
   IRequestUploadUrlUseCase,
   RequestUploadUrlInput,

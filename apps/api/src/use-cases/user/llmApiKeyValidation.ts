@@ -1,5 +1,5 @@
 import { ValidationError } from '#src/use-cases/errors/DomainError.js';
-import { LLM_PROVIDER } from '#src/constants.js';
+import { LLM_PROVIDER } from '#src/use-cases/constants.js';
 
 export const VALID_LLM_PROVIDERS: string[] = Object.values(LLM_PROVIDER);
 

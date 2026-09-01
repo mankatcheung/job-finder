@@ -3,7 +3,7 @@ import type { DrizzleDb, DrizzleClient } from '../client.js';
 import { apiToken, user } from '../schema.js';
 import type { ApiToken, ApiTokenScope } from '#src/domain/apiToken/ApiToken.js';
 import { getClient } from '../transactionContext.js';
-import { DEFAULTS } from '#src/constants.js';
+import { DEFAULTS } from '#src/use-cases/constants.js';
 import type {
   IApiTokenRepository,
   CreateApiTokenData,

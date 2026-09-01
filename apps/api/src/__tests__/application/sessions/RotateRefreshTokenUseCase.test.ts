@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RotateRefreshTokenUseCase } from '#src/use-cases/sessions/RotateRefreshTokenUseCase.js';
 import { makeSessionRepository, makeSession, makeLogger } from '#src/__tests__/helpers/mocks.js';
-import { ERROR_CODES, SESSION } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
+import { SESSION } from '#src/use-cases/constants.js';
 
 const futureExpiry = () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 

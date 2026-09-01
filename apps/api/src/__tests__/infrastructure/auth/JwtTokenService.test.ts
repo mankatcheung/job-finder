@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { JwtTokenService } from '#src/infrastructure/auth/JwtTokenService.js';
-import { ENV, ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
 
 const ACCESS_SECRET = 'test-access-secret';
 const REFRESH_SECRET = 'test-refresh-secret';

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { ENV } from '#src/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
 import { TotpProvider } from '#src/infrastructure/auth/TotpProvider.js';
 
 describe('TotpProvider', () => {

@@ -1,7 +1,7 @@
 import type { Note } from '#src/domain/note/Note.js';
 import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { CACHE_KEYS } from '#src/infrastructure/config/constants.js';
 
 interface Deps {
   drizzleNoteRepository: INoteRepository;

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { buildTestApp, type TestApp } from './helpers/buildTestApp.js';
-import { ENV } from '#src/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
 import { createHash } from 'crypto';
 
 describe('oauth routes — redirect_uri behind Vercel-style reverse proxy', () => {

@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import type { ITokenService, TokenPair } from '#src/use-cases/ports/ITokenService.js';
-import { ENV, ERROR_CODES, JWT_EXPIRY } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
+import { JWT_EXPIRY } from '#src/use-cases/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
 
 export class JwtTokenService implements ITokenService {
   sign(

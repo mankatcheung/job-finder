@@ -2,7 +2,7 @@ import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
 import { DocumentDraftRef } from '#src/http/schema/types/DocumentDraftType.js';
 import { fromCodedError } from '#src/http/errors/AppError.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 // Returns the saved draft rather than the letter as a string: the generated
 // text is now persisted (JEF-195), and the client needs its id to open it in

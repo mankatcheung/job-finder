@@ -27,7 +27,7 @@ import type {
   ApplicationsPage,
 } from '#src/use-cases/ports/IApplicationRepository.js';
 import { txStorage, getClient } from '../transactionContext.js';
-import { CONTENT_LIMITS, REMINDER_WINDOW_MS } from '#src/constants.js';
+import { CONTENT_LIMITS, REMINDER_WINDOW_MS } from '#src/use-cases/constants.js';
 import { QuotaExceededError } from '#src/use-cases/errors/DomainError.js';
 import { LIKELY_GHOSTED_AFTER_DAYS } from '#src/use-cases/jobs/applicationStaleness.js';
 

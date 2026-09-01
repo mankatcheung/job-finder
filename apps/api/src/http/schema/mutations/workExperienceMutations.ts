@@ -5,7 +5,7 @@ import {
   CreateWorkExperienceInput,
   UpdateWorkExperienceInput,
 } from '#src/http/schema/types/inputs/WorkExperienceInputs.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 builder.mutationField('createWorkExperience', (t) =>
   t.field({

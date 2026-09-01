@@ -1,5 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
-import { ENV, MCP_OAUTH } from '#src/constants.js';
+import { MCP_OAUTH } from '#src/use-cases/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
 
 /** The authorization request a consent decision is bound to. */
 export interface McpConsentSubject {

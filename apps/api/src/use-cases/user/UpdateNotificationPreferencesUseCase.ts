@@ -1,6 +1,6 @@
 import { NotFoundError, ValidationError } from '#src/use-cases/errors/DomainError.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
-import { DIGEST_FREQUENCY } from '#src/constants.js';
+import { DIGEST_FREQUENCY } from '#src/use-cases/constants.js';
 import type {
   IUpdateNotificationPreferencesUseCase,
   UpdateNotificationPreferencesInput,

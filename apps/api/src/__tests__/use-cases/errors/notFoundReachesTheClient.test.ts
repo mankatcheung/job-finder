@@ -9,7 +9,7 @@ import { UpdateEducationUseCase } from '#src/use-cases/education/UpdateEducation
 import { DeleteEducationUseCase } from '#src/use-cases/education/DeleteEducationUseCase.js';
 import { UpdateWorkExperienceUseCase } from '#src/use-cases/workExperience/UpdateWorkExperienceUseCase.js';
 import { DeleteWorkExperienceUseCase } from '#src/use-cases/workExperience/DeleteWorkExperienceUseCase.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 /** What the client actually receives, once the error crosses the boundary. */
 function throughTheBoundary(error: unknown): { code?: unknown; message: string } {

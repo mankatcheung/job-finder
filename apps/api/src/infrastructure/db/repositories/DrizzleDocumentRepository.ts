@@ -7,7 +7,7 @@ import type {
   CreateDocumentData,
 } from '#src/use-cases/ports/IDocumentRepository.js';
 import { getClient, txStorage } from '../transactionContext.js';
-import { CONTENT_LIMITS, DEFAULTS } from '#src/constants.js';
+import { CONTENT_LIMITS, DEFAULTS } from '#src/use-cases/constants.js';
 import { QuotaExceededError } from '#src/use-cases/errors/DomainError.js';
 
 export class DrizzleDocumentRepository implements IDocumentRepository {

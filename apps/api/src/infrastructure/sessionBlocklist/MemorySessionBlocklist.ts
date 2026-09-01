@@ -1,5 +1,5 @@
 import { BoundedMap } from '#src/infrastructure/cache/BoundedMap.js';
-import { SESSION_BLOCKLIST } from '#src/constants.js';
+import { SESSION_BLOCKLIST } from '#src/infrastructure/config/constants.js';
 import type { ISessionBlocklist } from '#src/use-cases/ports/ISessionBlocklist.js';
 
 /**

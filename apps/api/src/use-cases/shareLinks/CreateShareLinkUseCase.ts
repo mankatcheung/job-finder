@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'crypto';
 import type { IShareLinkRepository } from '#src/use-cases/ports/IShareLinkRepository.js';
 import type { ShareLink } from '#src/domain/shareLink/ShareLink.js';
-import { SHARE_LINK } from '#src/constants.js';
+import { SHARE_LINK } from '#src/use-cases/constants.js';
 
 interface Deps {
   shareLinkRepository: IShareLinkRepository;

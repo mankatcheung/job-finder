@@ -3,7 +3,7 @@ import { builder } from '#src/http/schema/builder.js';
 import { CreateApiTokenPayloadRef } from '#src/http/schema/types/ApiTokenType.js';
 import { ApiTokenScopeEnum } from '#src/http/schema/types/enums/ApiTokenScopeEnum.js';
 import type { ApiTokenScope } from '#src/domain/apiToken/ApiToken.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 builder.mutationField('createApiToken', (t) =>
   t.field({

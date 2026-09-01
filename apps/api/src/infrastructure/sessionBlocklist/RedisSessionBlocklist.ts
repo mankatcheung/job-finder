@@ -3,7 +3,7 @@ import {
   CircuitBreakerOpenError,
 } from '#src/infrastructure/cache/CircuitBreaker.js';
 import type { IRedisClient } from '#src/infrastructure/cache/IRedisClient.js';
-import { SESSION_BLOCKLIST } from '#src/constants.js';
+import { SESSION_BLOCKLIST } from '#src/infrastructure/config/constants.js';
 import { otelMetrics, type IMetrics } from '#src/infrastructure/observability/metrics.js';
 import type { ISessionBlocklist } from '#src/use-cases/ports/ISessionBlocklist.js';
 
