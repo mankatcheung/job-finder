@@ -74,7 +74,7 @@ export class GenerateCompanyBriefingUseCase {
     }
     messages.push({ role: 'user', content: userPrompt });
 
-    const content = await llmProvider.complete(messages, 768);
+    const { content } = await llmProvider.complete(messages, 768);
 
     // Persisted rather than returned and forgotten (JEF-195). Upsert, not
     // insert: one briefing per application, and regenerating replaces it.

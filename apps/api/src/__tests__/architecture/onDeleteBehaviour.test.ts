@@ -34,6 +34,7 @@ const DECLARED_ON_DELETE: Record<string, string> = {
   'InterviewRound -> JobApplication': 'cascade',
   'JobApplication -> User': 'cascade',
   'LlmApiKey -> User': 'cascade',
+  'LlmUsageEvent -> User': 'cascade',
   'LoginEvent -> User': 'cascade', // erasure beats retention — these rows hold IP, device and location
   'McpOAuthAccessToken -> User': 'cascade',
   'McpOAuthAuthorizationCode -> McpOAuthClient': 'cascade',

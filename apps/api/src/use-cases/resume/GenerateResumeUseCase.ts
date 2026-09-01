@@ -136,10 +136,8 @@ export class GenerateResumeUseCase {
     if (user?.customAiPrompt) messages.push({ role: 'system', content: user.customAiPrompt });
     messages.push({ role: 'user', content: this.buildPrompt(app, profile, context) });
 
-    const resume = parseAiJson<ResumeContent>(
-      await llmProvider.complete(messages, 2048),
-      resumeSchema,
-    );
+    const { content: rawResume } = await llmProvider.complete(messages, 2048);
+    const resume = parseAiJson<ResumeContent>(rawResume, resumeSchema);
     assertGrounded(resume, profile);
     return resume;
   }

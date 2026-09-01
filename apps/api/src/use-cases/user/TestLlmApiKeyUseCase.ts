@@ -98,7 +98,14 @@ export class TestLlmApiKeyUseCase implements ITestLlmApiKeyUseCase {
 
   private async resolveSavedProvider(userId: string, providerId: string) {
     assertValidLlmProvider(providerId);
-    const provider = await this.deps.llmProviderFactory.forUser(userId, providerId);
+    // trackUsage: false — this is a connectivity check, not real usage; see
+    // ILLMProviderFactory.forUser's doc comment (JEF-250).
+    const provider = await this.deps.llmProviderFactory.forUser(
+      userId,
+      providerId,
+      undefined,
+      false,
+    );
     if (!provider) {
       throw new AiNotConfiguredError('No API key saved for this provider yet');
     }

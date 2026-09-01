@@ -172,6 +172,7 @@ import type { ListLlmApiKeysUseCase } from '#src/use-cases/user/ListLlmApiKeysUs
 import type { DeleteLlmApiKeyUseCase } from '#src/use-cases/user/DeleteLlmApiKeyUseCase.js';
 import type { SetDefaultLlmProviderUseCase } from '#src/use-cases/user/SetDefaultLlmProviderUseCase.js';
 import type { TestLlmApiKeyUseCase } from '#src/use-cases/user/TestLlmApiKeyUseCase.js';
+import type { GetLlmUsageSummaryUseCase } from '#src/use-cases/user/GetLlmUsageSummaryUseCase.js';
 import type { ImportUserDataUseCase } from '#src/use-cases/user/ImportUserDataUseCase.js';
 import type { GetNotificationPreferencesUseCase } from '#src/use-cases/user/GetNotificationPreferencesUseCase.js';
 import type { UpdateNotificationPreferencesUseCase } from '#src/use-cases/user/UpdateNotificationPreferencesUseCase.js';
@@ -231,7 +232,9 @@ import type { SendPushNotificationsUseCase } from '#src/use-cases/push/SendPushN
 import type { WebPushService } from '#src/infrastructure/push/WebPushService.js';
 import type { DrizzleTransactionManager } from '#src/infrastructure/db/DrizzleTransactionManager.js';
 import type { LlmApiKeyMapper } from '#src/interface-adapters/mappers/LlmApiKeyMapper.js';
+import type { LlmUsageSummaryMapper } from '#src/interface-adapters/mappers/LlmUsageSummaryMapper.js';
 import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
+import type { ILlmUsageEventRepository } from '#src/use-cases/ports/ILlmUsageEventRepository.js';
 import type { ParseJobDescriptionUseCase } from '#src/use-cases/jobDescription/ParseJobDescriptionUseCase.js';
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
 import type { GenerateCoverLetterUseCase } from '#src/use-cases/coverLetter/GenerateCoverLetterUseCase.js';
@@ -332,6 +335,7 @@ export interface Cradle {
   messageRepository: DrizzleMessageRepository;
   conversationRepository: DrizzleConversationRepository;
   llmApiKeyRepository: ILlmApiKeyRepository;
+  llmUsageEventRepository: ILlmUsageEventRepository;
   drizzleSessionRepository: DrizzleSessionRepository;
   sessionRepository: BlocklistingSessionRepository;
   offerRepository: DrizzleOfferRepository;
@@ -379,6 +383,7 @@ export interface Cradle {
   messageMapper: MessageMapper;
   conversationMapper: ConversationMapper;
   llmApiKeyMapper: LlmApiKeyMapper;
+  llmUsageSummaryMapper: LlmUsageSummaryMapper;
   sessionMapper: SessionMapper;
   workExperienceMapper: WorkExperienceMapper;
   educationMapper: EducationMapper;
@@ -487,6 +492,7 @@ export interface Cradle {
   deleteLlmApiKeyUseCase: DeleteLlmApiKeyUseCase;
   setDefaultLlmProviderUseCase: SetDefaultLlmProviderUseCase;
   testLlmApiKeyUseCase: TestLlmApiKeyUseCase;
+  getLlmUsageSummaryUseCase: GetLlmUsageSummaryUseCase;
   importUserDataUseCase: ImportUserDataUseCase;
   getNotificationPreferencesUseCase: GetNotificationPreferencesUseCase;
   updateNotificationPreferencesUseCase: UpdateNotificationPreferencesUseCase;

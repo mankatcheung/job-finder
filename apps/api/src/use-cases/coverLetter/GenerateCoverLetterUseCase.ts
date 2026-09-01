@@ -79,7 +79,7 @@ export class GenerateCoverLetterUseCase {
     }
     messages.push({ role: 'user', content: userPrompt });
 
-    return llmProvider.complete(messages, 1024);
+    return (await llmProvider.complete(messages, 1024)).content;
   }
 
   private buildPrompt(

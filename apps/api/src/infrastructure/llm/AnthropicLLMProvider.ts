@@ -4,6 +4,8 @@ import type {
   LLMToolDefinition,
   LLMToolCall,
   LLMStreamEvent,
+  LLMCompleteResult,
+  LLMUsage,
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { LLM } from '#src/constants.js';
 import {
@@ -26,8 +28,27 @@ interface AnthropicWireMessage {
   content: string | AnthropicContentBlock[];
 }
 
+interface AnthropicWireUsage {
+  input_tokens: number;
+  output_tokens: number;
+  cache_creation_input_tokens?: number;
+  cache_read_input_tokens?: number;
+}
+
 interface AnthropicWireResponse {
   content?: AnthropicContentBlock[];
+  usage?: AnthropicWireUsage;
+}
+
+function toLLMUsage(usage: AnthropicWireUsage | undefined): LLMUsage | null {
+  if (!usage) return null;
+  return {
+    promptTokens:
+      usage.input_tokens +
+      (usage.cache_creation_input_tokens ?? 0) +
+      (usage.cache_read_input_tokens ?? 0),
+    completionTokens: usage.output_tokens,
+  };
 }
 
 /**
@@ -44,6 +65,10 @@ interface AnthropicStreamEvent {
   content_block?: { type: 'text' } | { type: 'tool_use'; id: string; name: string };
   delta?: { type: 'text_delta'; text: string } | { type: 'input_json_delta'; partial_json: string };
   error?: { type: string; message: string };
+  /** Present on `message_start` — initial usage, output_tokens still a placeholder. */
+  message?: { usage?: AnthropicWireUsage };
+  /** Present on `message_delta` — the final, cumulative output_tokens count. */
+  usage?: { output_tokens: number };
 }
 
 export class AnthropicLLMProvider implements ILLMProvider {
@@ -56,7 +81,7 @@ export class AnthropicLLMProvider implements ILLMProvider {
     messages: LLMMessage[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
     signal?: AbortSignal,
-  ): Promise<string> {
+  ): Promise<LLMCompleteResult> {
     if (!this.apiKey) throw new Error('Anthropic API key is not set');
 
     const { system, conversation } = this.splitSystem(messages);
@@ -70,7 +95,10 @@ export class AnthropicLLMProvider implements ILLMProvider {
       signal,
     );
 
-    return json.content?.find((block) => block.type === 'text')?.text ?? '';
+    return {
+      content: json.content?.find((block) => block.type === 'text')?.text ?? '',
+      usage: toLLMUsage(json.usage),
+    };
   }
 
   async *completeWithToolsStream(
@@ -109,12 +137,25 @@ export class AnthropicLLMProvider implements ILLMProvider {
       number,
       { type: 'text'; text: string } | { type: 'tool_use'; id: string; name: string; json: string }
     >();
+    // See toLLMUsage: input tokens (incl. cache) arrive once on message_start;
+    // the final, cumulative output token count arrives once on message_delta.
+    let promptTokens: number | null = null;
+    let completionTokens: number | null = null;
 
     try {
       for await (const frame of parseSSE(body, onChunk)) {
         const event = JSON.parse(frame.data) as AnthropicStreamEvent;
 
         switch (event.type) {
+          case 'message_start': {
+            const usage = toLLMUsage(event.message?.usage);
+            if (usage) promptTokens = usage.promptTokens;
+            break;
+          }
+          case 'message_delta': {
+            if (event.usage) completionTokens = event.usage.output_tokens;
+            break;
+          }
           case 'content_block_start': {
             if (event.index === undefined || !event.content_block) break;
             const cb = event.content_block;
@@ -142,10 +183,10 @@ export class AnthropicLLMProvider implements ILLMProvider {
           case 'error':
             throw new Error(`Anthropic stream error: ${event.error?.message ?? 'unknown error'}`);
           default:
-            // message_start/content_block_stop/message_delta/message_stop/ping
-            // carry nothing this loop needs beyond what's already tracked, and
-            // future event types the docs say may be added should be ignored
-            // rather than treated as an error.
+            // content_block_stop/message_stop/ping carry nothing this loop
+            // needs beyond what's already tracked, and future event types the
+            // docs say may be added should be ignored rather than treated as
+            // an error.
             break;
         }
       }
@@ -167,7 +208,11 @@ export class AnthropicLLMProvider implements ILLMProvider {
       }
     }
 
-    yield { type: 'done', content: text, toolCalls };
+    const usage =
+      promptTokens !== null && completionTokens !== null
+        ? { promptTokens, completionTokens }
+        : null;
+    yield { type: 'done', content: text, toolCalls, usage };
   }
 
   private parseArguments(raw: string): Record<string, unknown> {

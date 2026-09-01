@@ -84,7 +84,9 @@ describe('TestLlmApiKeyUseCase', () => {
       testLlmApiKeyRateLimiter,
     }).execute({ userId: 'user-1', provider: 'openai' });
 
-    expect(llmProviderFactory.forUser).toHaveBeenCalledWith('user-1', 'openai');
+    // trackUsage: false — testing a saved key is a connectivity check, not
+    // real usage (JEF-250).
+    expect(llmProviderFactory.forUser).toHaveBeenCalledWith('user-1', 'openai', undefined, false);
     expect(llmProviderFactory.fromCredentials).not.toHaveBeenCalled();
     expect(provider.complete).toHaveBeenCalledWith(
       [{ role: 'user', content: expect.any(String) }],

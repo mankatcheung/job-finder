@@ -3,8 +3,10 @@ import type {
   LLMMessage,
   LLMToolDefinition,
   LLMCompletionResult,
+  LLMCompleteResult,
   LLMToolCall,
   LLMStreamEvent,
+  LLMUsage,
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { LLM } from '#src/constants.js';
 import { fetchWithRetry } from '#src/infrastructure/llm/fetchWithRetry.js';
@@ -15,8 +17,19 @@ interface GoogleAIPart {
   functionResponse?: { name: string; response: Record<string, unknown> };
 }
 
+interface GoogleAIWireUsage {
+  promptTokenCount: number;
+  candidatesTokenCount: number;
+}
+
 interface GoogleAIWireResponse {
   candidates?: Array<{ content?: { parts?: GoogleAIPart[] } }>;
+  usageMetadata?: GoogleAIWireUsage;
+}
+
+function toLLMUsage(usage: GoogleAIWireUsage | undefined): LLMUsage | null {
+  if (!usage) return null;
+  return { promptTokens: usage.promptTokenCount, completionTokens: usage.candidatesTokenCount };
 }
 
 /**
@@ -52,7 +65,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
     messages: LLMMessage[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
     signal?: AbortSignal,
-  ): Promise<string> {
+  ): Promise<LLMCompleteResult> {
     if (!this.apiKey) throw new Error('Google AI API key is not set');
 
     const contents = messages.map((m) => ({
@@ -68,7 +81,10 @@ export class GoogleAILLMProvider implements ILLMProvider {
       signal,
     );
 
-    return json.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    return {
+      content: json.candidates?.[0]?.content?.parts?.[0]?.text ?? '',
+      usage: toLLMUsage(json.usageMetadata),
+    };
   }
 
   /**
@@ -135,7 +151,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
         arguments: p.functionCall.args ?? {},
       }));
 
-    return { content: text, toolCalls };
+    return { content: text, toolCalls, usage: toLLMUsage(json.usageMetadata) };
   }
 
   /**
