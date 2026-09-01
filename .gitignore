@@ -24,3 +24,10 @@ ds-bundle/
 .design-sync/.cache/
 .design-sync/learnings/
 .design-sync/node_modules
+
+# graphify knowledge graph — generated, machine-specific paths inside;
+# regenerate with /graphify. Findings live in Linear, not here.
+graphify-out/
+
+# agent scratch
+.agents/
