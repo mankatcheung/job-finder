@@ -162,10 +162,8 @@ export class GenerateResumeUseCase {
       content: this.buildPrompt(app, profile, context, crossApplicationContext),
     });
 
-    const resume = parseAiJson<ResumeContent>(
-      await llmProvider.complete(messages, 2048),
-      resumeSchema,
-    );
+    const { content: rawResume } = await llmProvider.complete(messages, 2048);
+    const resume = parseAiJson<ResumeContent>(rawResume, resumeSchema);
     assertGrounded(resume, profile);
     return resume;
   }

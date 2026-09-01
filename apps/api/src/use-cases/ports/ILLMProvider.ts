@@ -30,6 +30,28 @@ export interface LLMToolDefinition {
 }
 
 /**
+ * Token counts for one completed call, as reported by the provider's own
+ * response (JEF-250) — `null` when a response doesn't report usage at all
+ * (a provider outage returning a malformed body, or an OpenAI-compatible
+ * backend that ignores `stream_options.include_usage`), rather than
+ * fabricating a number. Never includes cache-read/cache-write tokens
+ * separately; Anthropic's `cache_creation_input_tokens` and
+ * `cache_read_input_tokens` are folded into `promptTokens` since those are
+ * still real prompt tokens sent for that call, at the cost of the estimated
+ * cost being slightly high on a cache hit (real cache-read pricing is
+ * cheaper) — a known, deliberately-accepted simplification for v1.
+ */
+export interface LLMUsage {
+  promptTokens: number;
+  completionTokens: number;
+}
+
+export interface LLMCompleteResult {
+  content: string;
+  usage: LLMUsage | null;
+}
+
+/**
  * Return shape of a fully-assembled tool-calling completion — not on
  * `ILLMProvider` itself (no provider exposes a non-streaming tool-calling
  * method; see JEF-245), but still the shape `LLMStreamEvent`'s `done` event
@@ -40,6 +62,7 @@ export interface LLMToolDefinition {
 export interface LLMCompletionResult {
   content: string | null;
   toolCalls: LLMToolCall[];
+  usage: LLMUsage | null;
 }
 
 /**
@@ -52,10 +75,14 @@ export interface LLMCompletionResult {
  */
 export type LLMStreamEvent =
   | { type: 'text_delta'; text: string }
-  | { type: 'done'; content: string | null; toolCalls: LLMToolCall[] };
+  | { type: 'done'; content: string | null; toolCalls: LLMToolCall[]; usage: LLMUsage | null };
 
 export interface ILLMProvider {
-  complete(messages: LLMMessage[], maxTokens?: number, signal?: AbortSignal): Promise<string>;
+  complete(
+    messages: LLMMessage[],
+    maxTokens?: number,
+    signal?: AbortSignal,
+  ): Promise<LLMCompleteResult>;
   completeWithToolsStream(
     messages: LLMMessage[],
     tools: LLMToolDefinition[],

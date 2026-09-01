@@ -17,6 +17,7 @@ import { useLocale } from '#/lib/i18n';
 import { Alert, Button, Card, Checkbox, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
 import {
   LLM_API_KEYS_QUERY,
+  LLM_USAGE_SUMMARY_QUERY,
   SAVE_LLM_API_KEY,
   DELETE_LLM_API_KEY,
   SET_DEFAULT_LLM_PROVIDER,
@@ -28,12 +29,25 @@ import {
   type LlmApiKeyForm,
   type CustomAiPromptForm,
   type LlmApiKey,
+  type LlmUsageSummary,
   type TestLlmApiKeyResult,
   LLM_PROVIDER_OPTIONS,
   LLM_PROVIDER_LABEL,
   LLM_PROVIDER_AVATAR,
   extractGqlError,
 } from './shared';
+
+function UsageSummaryLine({ summary }: { summary: LlmUsageSummary }) {
+  const { t, formatNumber } = useLocale();
+  const totalTokens = summary.promptTokens + summary.completionTokens;
+  const parts = [
+    t('integrations.usageThisMonth'),
+    t('integrations.usageRequests', { count: summary.requestCount }),
+    t('integrations.usageTokens', { count: formatNumber(totalTokens) }),
+    t('integrations.usageLastUsed', { date: new Date(summary.lastUsedAt).toLocaleDateString() }),
+  ];
+  return <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{parts.join(' · ')}</p>;
+}
 
 function TestResultLine({ result }: { result: TestLlmApiKeyResult }) {
   const { t } = useLocale();
@@ -75,6 +89,15 @@ export function SettingsAiPage() {
   });
   const llmApiKeys = llmData?.llmApiKeys ?? [];
   const defaultLlmProvider = llmData?.me.defaultLlmProvider ?? null;
+
+  // Usage summary (JEF-250) — separate query so a slow/failed usage lookup
+  // never blocks the keys list itself from rendering.
+  const { data: usageData } = useQuery({
+    queryKey: ['llmUsageSummary'],
+    queryFn: () =>
+      gqlClient.request<{ llmUsageSummary: LlmUsageSummary[] }>(LLM_USAGE_SUMMARY_QUERY),
+  });
+  const usageByProvider = new Map((usageData?.llmUsageSummary ?? []).map((s) => [s.provider, s]));
   const configuredProviders = new Set(llmApiKeys.map((k) => k.provider));
   const availableProviderOptions = LLM_PROVIDER_OPTIONS.filter(
     (o) => !configuredProviders.has(o.value),
@@ -305,6 +328,7 @@ export function SettingsAiPage() {
               const isDefault = key.provider === defaultLlmProvider;
               const avatar = LLM_PROVIDER_AVATAR[key.provider];
               const testResult = savedKeyTestResults[key.provider];
+              const usage = usageByProvider.get(key.provider);
               return (
                 <div
                   key={key.provider}
@@ -333,6 +357,7 @@ export function SettingsAiPage() {
                           {[key.model, key.baseUrl].filter(Boolean).join(' · ')}
                         </p>
                       )}
+                      {usage && <UsageSummaryLine summary={usage} />}
                       {testResult && <TestResultLine result={testResult} />}
                     </div>
                   </div>

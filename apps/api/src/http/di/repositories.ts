@@ -46,6 +46,7 @@ import { DrizzleMcpOAuthGrantRepository } from '#src/infrastructure/db/repositor
 import { DrizzleShareLinkRepository } from '#src/infrastructure/db/repositories/DrizzleShareLinkRepository.js';
 import { DrizzleNotificationRepository } from '#src/infrastructure/db/repositories/DrizzleNotificationRepository.js';
 import { DrizzleLlmApiKeyRepository } from '#src/infrastructure/db/repositories/DrizzleLlmApiKeyRepository.js';
+import { DrizzleLlmUsageEventRepository } from '#src/infrastructure/db/repositories/DrizzleLlmUsageEventRepository.js';
 import { DrizzleOfferRepository } from '#src/infrastructure/db/repositories/DrizzleOfferRepository.js';
 
 import type { Cradle } from './types.js';
@@ -140,6 +141,9 @@ export const repositories = {
     lifetime: Lifetime.SINGLETON,
   }),
   llmApiKeyRepository: asClass(DrizzleLlmApiKeyRepository, { lifetime: Lifetime.SINGLETON }),
+  llmUsageEventRepository: asClass(DrizzleLlmUsageEventRepository, {
+    lifetime: Lifetime.SINGLETON,
+  }),
   drizzleSessionRepository: asClass(DrizzleSessionRepository, { lifetime: Lifetime.SINGLETON }),
   // Decorates the Drizzle repository so every revocation path also
   // blocklists the affected session ids (JEF-164) — see

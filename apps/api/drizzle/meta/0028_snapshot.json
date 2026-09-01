@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "f87a629c-d6c7-47ce-b4ea-8e75d3ae3ed5",
-  "prevId": "ee3702b3-9078-47c7-8a22-5e262a076c5e",
+  "id": "b944fcdd-25af-444a-b45e-b2a9eeb4cb9d",
+  "prevId": "f87a629c-d6c7-47ce-b4ea-8e75d3ae3ed5",
   "tables": {
     "User": {
       "name": "User",
@@ -146,6 +146,14 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
+        },
+        "useCrossApplicationContext": {
+          "name": "useCrossApplicationContext",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
         },
         "backupEmail": {
           "name": "backupEmail",

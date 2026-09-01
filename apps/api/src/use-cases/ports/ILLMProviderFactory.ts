@@ -21,7 +21,18 @@ export interface LLMProviderCredentials {
 }
 
 export interface ILLMProviderFactory {
-  forUser(userId: string, provider?: string, model?: string | null): Promise<ILLMProvider | null>;
+  /**
+   * `trackUsage` (default `true`) gates the `UsageTrackingLLMProvider` wrap
+   * (JEF-250) — every real AI feature leaves it at the default; the one
+   * caller that passes `false` is `TestLlmApiKeyUseCase`'s "test a saved
+   * key" path, which resolves through here too but isn't real usage.
+   */
+  forUser(
+    userId: string,
+    provider?: string,
+    model?: string | null,
+    trackUsage?: boolean,
+  ): Promise<ILLMProvider | null>;
   /**
    * Builds a provider directly from raw, not-yet-persisted credentials —
    * `TestLlmApiKeyUseCase`'s "test before you save" path (JEF-247), which

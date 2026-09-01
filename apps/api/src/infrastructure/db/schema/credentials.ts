@@ -30,6 +30,29 @@ export const llmApiKey = sqliteTable(
   ],
 );
 
+export const llmUsageEvent = sqliteTable(
+  'LlmUsageEvent',
+  {
+    id: text('id').primaryKey(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    /** See LLM_PROVIDER in constants.ts — same id space as LlmApiKey.provider. */
+    provider: text('provider').notNull(),
+    /** The actual model used for this call; null when the provider has none configured. */
+    model: text('model'),
+    promptTokens: integer('promptTokens').notNull(),
+    completionTokens: integer('completionTokens').notNull(),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('LlmUsageEvent_userId_idx').on(table.userId),
+    index('LlmUsageEvent_userId_provider_idx').on(table.userId, table.provider),
+  ],
+);
+
 export const apiToken = sqliteTable(
   'ApiToken',
   {

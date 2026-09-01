@@ -10,6 +10,7 @@ import {
   makeLlmApiKeyCipher,
   makeLlmApiKeyRepository,
   makeLlmApiKey,
+  makeLlmUsageEventRepository,
 } from '#src/__tests__/helpers/mocks.js';
 
 describe('UserLLMProviderFactory', () => {
@@ -21,6 +22,8 @@ describe('UserLLMProviderFactory', () => {
       userRepository,
       llmApiKeyRepository: makeLlmApiKeyRepository(),
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      llmUsageEventRepository: makeLlmUsageEventRepository(),
+      generateId: () => 'evt-id',
     });
 
     expect(await factory.forUser('user-1')).toBeNull();
@@ -32,6 +35,8 @@ describe('UserLLMProviderFactory', () => {
       userRepository,
       llmApiKeyRepository: makeLlmApiKeyRepository(),
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      llmUsageEventRepository: makeLlmUsageEventRepository(),
+      generateId: () => 'evt-id',
     });
 
     expect(await factory.forUser('missing')).toBeNull();
@@ -48,6 +53,8 @@ describe('UserLLMProviderFactory', () => {
       userRepository,
       llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      llmUsageEventRepository: makeLlmUsageEventRepository(),
+      generateId: () => 'evt-id',
     });
 
     expect(await factory.forUser('user-1')).toBeNull();
@@ -63,6 +70,8 @@ describe('UserLLMProviderFactory', () => {
       userRepository: makeUserRepository(),
       llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      llmUsageEventRepository: makeLlmUsageEventRepository(),
+      generateId: () => 'evt-id',
     });
 
     expect(await factory.forUser('user-1', 'not-a-real-provider')).toBeNull();
@@ -81,9 +90,11 @@ describe('UserLLMProviderFactory', () => {
       userRepository,
       llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      llmUsageEventRepository: makeLlmUsageEventRepository(),
+      generateId: () => 'evt-id',
     });
 
-    const provider = await factory.forUser('user-1');
+    const provider = await factory.forUser('user-1', undefined, undefined, false);
 
     expect(llmApiKeyRepository.findByUserIdAndProvider).toHaveBeenCalledWith(
       'user-1',
@@ -106,9 +117,11 @@ describe('UserLLMProviderFactory', () => {
       userRepository,
       llmApiKeyRepository,
       llmApiKeyCipher,
+      llmUsageEventRepository: makeLlmUsageEventRepository(),
+      generateId: () => 'evt-id',
     });
 
-    const provider = await factory.forUser('user-1', LLM_PROVIDER.OPENAI);
+    const provider = await factory.forUser('user-1', LLM_PROVIDER.OPENAI, undefined, false);
 
     expect(userRepository.findById).not.toHaveBeenCalled();
     expect(provider).toBeInstanceOf(OpenAICompatibleLLMProvider);
@@ -125,11 +138,13 @@ describe('UserLLMProviderFactory', () => {
       userRepository: makeUserRepository(),
       llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      llmUsageEventRepository: makeLlmUsageEventRepository(),
+      generateId: () => 'evt-id',
     });
 
-    expect(await factory.forUser('user-1', LLM_PROVIDER.OPENROUTER)).toBeInstanceOf(
-      OpenAICompatibleLLMProvider,
-    );
+    expect(
+      await factory.forUser('user-1', LLM_PROVIDER.OPENROUTER, undefined, false),
+    ).toBeInstanceOf(OpenAICompatibleLLMProvider);
   });
 
   it('returns a GoogleAILLMProvider for the googleai provider', async () => {
@@ -142,9 +157,11 @@ describe('UserLLMProviderFactory', () => {
       userRepository: makeUserRepository(),
       llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      llmUsageEventRepository: makeLlmUsageEventRepository(),
+      generateId: () => 'evt-id',
     });
 
-    expect(await factory.forUser('user-1', LLM_PROVIDER.GOOGLEAI)).toBeInstanceOf(
+    expect(await factory.forUser('user-1', LLM_PROVIDER.GOOGLEAI, undefined, false)).toBeInstanceOf(
       GoogleAILLMProvider,
     );
   });
@@ -163,9 +180,11 @@ describe('UserLLMProviderFactory', () => {
       userRepository: makeUserRepository(),
       llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      llmUsageEventRepository: makeLlmUsageEventRepository(),
+      generateId: () => 'evt-id',
     });
 
-    expect(await factory.forUser('user-1', LLM_PROVIDER.CUSTOM)).toBeInstanceOf(
+    expect(await factory.forUser('user-1', LLM_PROVIDER.CUSTOM, undefined, false)).toBeInstanceOf(
       OpenAICompatibleLLMProvider,
     );
   });
@@ -180,10 +199,51 @@ describe('UserLLMProviderFactory', () => {
       userRepository: makeUserRepository(),
       llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      llmUsageEventRepository: makeLlmUsageEventRepository(),
+      generateId: () => 'evt-id',
     });
 
-    const provider = await factory.forUser('user-1', LLM_PROVIDER.OPENAI, 'gpt-4o-mini');
+    const provider = await factory.forUser('user-1', LLM_PROVIDER.OPENAI, 'gpt-4o-mini', false);
 
     expect((provider as unknown as { model: string }).model).toBe('gpt-4o-mini');
+  });
+
+  describe('usage tracking (JEF-250)', () => {
+    it('wraps the resolved provider so it records usage after a call, by default', async () => {
+      const llmApiKeyRepository = makeLlmApiKeyRepository({
+        findByUserIdAndProvider: vi
+          .fn()
+          .mockResolvedValue(makeLlmApiKey({ provider: LLM_PROVIDER.OPENAI })),
+      });
+      const llmUsageEventRepository = makeLlmUsageEventRepository();
+      const factory = new UserLLMProviderFactory({
+        userRepository: makeUserRepository(),
+        llmApiKeyRepository,
+        llmApiKeyCipher: makeLlmApiKeyCipher(),
+        llmUsageEventRepository,
+        generateId: () => 'evt-id',
+      });
+
+      const provider = await factory.forUser('user-1', LLM_PROVIDER.OPENAI);
+      expect(provider).not.toBeInstanceOf(OpenAICompatibleLLMProvider);
+    });
+
+    it('returns the raw provider, unwrapped, when trackUsage is false', async () => {
+      const llmApiKeyRepository = makeLlmApiKeyRepository({
+        findByUserIdAndProvider: vi
+          .fn()
+          .mockResolvedValue(makeLlmApiKey({ provider: LLM_PROVIDER.OPENAI })),
+      });
+      const factory = new UserLLMProviderFactory({
+        userRepository: makeUserRepository(),
+        llmApiKeyRepository,
+        llmApiKeyCipher: makeLlmApiKeyCipher(),
+        llmUsageEventRepository: makeLlmUsageEventRepository(),
+        generateId: () => 'evt-id',
+      });
+
+      const provider = await factory.forUser('user-1', LLM_PROVIDER.OPENAI, undefined, false);
+      expect(provider).toBeInstanceOf(OpenAICompatibleLLMProvider);
+    });
   });
 });

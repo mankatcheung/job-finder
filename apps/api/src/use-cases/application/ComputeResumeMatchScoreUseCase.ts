@@ -120,7 +120,7 @@ export class ComputeResumeMatchScoreUseCase {
 
     const resumeText = await this.resolveResumeText(input);
 
-    const raw = await llmProvider.complete([
+    const { content: raw } = await llmProvider.complete([
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: USER_PROMPT_TEMPLATE(jobDescription, resumeText) },
     ]);

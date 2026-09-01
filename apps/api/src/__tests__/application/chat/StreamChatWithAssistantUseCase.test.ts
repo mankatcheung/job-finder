@@ -61,7 +61,12 @@ function makeStreamingProvider(
       const round = rounds[call++];
       async function* gen() {
         for (const text of round.deltas ?? []) yield { type: 'text_delta' as const, text };
-        yield { type: 'done' as const, content: round.content, toolCalls: round.toolCalls };
+        yield {
+          type: 'done' as const,
+          content: round.content,
+          toolCalls: round.toolCalls,
+          usage: null,
+        };
       }
       return gen();
     }),

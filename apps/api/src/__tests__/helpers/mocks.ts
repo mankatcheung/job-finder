@@ -51,6 +51,7 @@ import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
 import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
+import type { ILlmUsageEventRepository } from '#src/use-cases/ports/ILlmUsageEventRepository.js';
 import type { LlmApiKey } from '#src/domain/llmApiKey/LlmApiKey.js';
 import type { IDocumentTextExtractor } from '#src/use-cases/ports/IDocumentTextExtractor.js';
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
@@ -627,9 +628,9 @@ export const makeOAuthProviderRegistry = (
 });
 
 export const makeLLMProvider = (response = 'llm response'): ILLMProvider => ({
-  complete: vi.fn().mockResolvedValue(response),
+  complete: vi.fn().mockResolvedValue({ content: response, usage: null }),
   completeWithToolsStream: vi.fn(async function* () {
-    yield { type: 'done' as const, content: response, toolCalls: [] };
+    yield { type: 'done' as const, content: response, toolCalls: [], usage: null };
   }),
 });
 
@@ -654,6 +655,14 @@ export const makeLlmApiKeyRepository = (
   findByUserIdAndProvider: vi.fn().mockResolvedValue(null),
   findAllByUserId: vi.fn().mockResolvedValue([]),
   delete: vi.fn(),
+  ...overrides,
+});
+
+export const makeLlmUsageEventRepository = (
+  overrides?: Partial<ILlmUsageEventRepository>,
+): ILlmUsageEventRepository => ({
+  record: vi.fn().mockResolvedValue(undefined),
+  summarizeByUserId: vi.fn().mockResolvedValue([]),
   ...overrides,
 });
 

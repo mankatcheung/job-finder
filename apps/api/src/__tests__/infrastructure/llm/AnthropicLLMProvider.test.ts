@@ -223,7 +223,7 @@ describe('AnthropicLLMProvider', () => {
       const provider = new AnthropicLLMProvider('secret-key');
       const result = await provider.complete([{ role: 'user', content: 'hi' }]);
 
-      expect(result).toBe('generated response');
+      expect(result.content).toBe('generated response');
     });
 
     it('returns an empty string when there is no text content block', async () => {
@@ -232,7 +232,37 @@ describe('AnthropicLLMProvider', () => {
       const provider = new AnthropicLLMProvider('secret-key');
       const result = await provider.complete([{ role: 'user', content: 'hi' }]);
 
-      expect(result).toBe('');
+      expect(result.content).toBe('');
+    });
+
+    it('returns null usage when the response has no usage field', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ content: [{ type: 'text', text: 'ok' }] }) as never,
+      );
+
+      const provider = new AnthropicLLMProvider('secret-key');
+      const result = await provider.complete([{ role: 'user', content: 'hi' }]);
+
+      expect(result.usage).toBeNull();
+    });
+
+    it('parses usage from the response, folding cache tokens into promptTokens (JEF-250)', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({
+          content: [{ type: 'text', text: 'ok' }],
+          usage: {
+            input_tokens: 100,
+            output_tokens: 40,
+            cache_creation_input_tokens: 10,
+            cache_read_input_tokens: 5,
+          },
+        }) as never,
+      );
+
+      const provider = new AnthropicLLMProvider('secret-key');
+      const result = await provider.complete([{ role: 'user', content: 'hi' }]);
+
+      expect(result.usage).toEqual({ promptTokens: 115, completionTokens: 40 });
     });
 
     it('throws with the status and body when the response is not ok', async () => {
@@ -261,7 +291,7 @@ describe('AnthropicLLMProvider', () => {
         await vi.runAllTimersAsync();
         const result = await promise;
 
-        expect(result).toBe('ok after retry');
+        expect(result.content).toBe('ok after retry');
         expect(fetch).toHaveBeenCalledTimes(2);
       } finally {
         vi.useRealTimers();
@@ -398,8 +428,43 @@ describe('AnthropicLLMProvider', () => {
       expect(events).toEqual([
         { type: 'text_delta', text: 'Hello' },
         { type: 'text_delta', text: ' world' },
-        { type: 'done', content: 'Hello world', toolCalls: [] },
+        { type: 'done', content: 'Hello world', toolCalls: [], usage: null },
       ]);
+    });
+
+    it('parses usage from message_start and message_delta (JEF-250)', async () => {
+      const sse = [
+        'event: message_start',
+        'data: {"type":"message_start","message":{"usage":{"input_tokens":50,"output_tokens":1}}}',
+        '',
+        'event: content_block_start',
+        'data: {"type":"content_block_start","index":0,"content_block":{"type":"text"}}',
+        '',
+        'event: content_block_delta',
+        'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"hi"}}',
+        '',
+        'event: content_block_stop',
+        'data: {"type":"content_block_stop","index":0}',
+        '',
+        'event: message_delta',
+        'data: {"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":12}}',
+        '',
+        'event: message_stop',
+        'data: {"type":"message_stop"}',
+        '',
+        '',
+      ].join('\n');
+      vi.mocked(fetch).mockResolvedValue(streamResponse(sse) as never);
+      const provider = new AnthropicLLMProvider('secret-key');
+
+      const events = await collectStream(provider, [{ role: 'user', content: 'hi' }], []);
+
+      expect(events[events.length - 1]).toEqual({
+        type: 'done',
+        content: 'hi',
+        toolCalls: [],
+        usage: { promptTokens: 50, completionTokens: 12 },
+      });
     });
 
     it('completes a stream that runs well past REQUEST_TIMEOUT_MS in total, as long as chunks keep arriving within the idle window (regression)', async () => {
@@ -437,7 +502,7 @@ describe('AnthropicLLMProvider', () => {
         expect(events).toEqual([
           { type: 'text_delta', text: 'a' },
           { type: 'text_delta', text: 'b' },
-          { type: 'done', content: 'ab', toolCalls: [] },
+          { type: 'done', content: 'ab', toolCalls: [], usage: null },
         ]);
       } finally {
         vi.useRealTimers();
@@ -475,6 +540,7 @@ describe('AnthropicLLMProvider', () => {
           toolCalls: [
             { id: 'toolu_1', name: 'list_applications', arguments: { status: 'applied' } },
           ],
+          usage: null,
         },
       ]);
     });
