@@ -1,5 +1,5 @@
 import { UnlinkIcon, CheckIcon, LogOutIcon, BanIcon } from 'lucide-react';
-import { Alert, Button, FormLabel, Input, Skeleton } from '@trakwyn/ui';
+import { Alert, Button, Card, FormLabel, Input, Skeleton } from '@trakwyn/ui';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -202,10 +202,10 @@ export function SettingsSecurityPage() {
   }, [linkedAccountsLoading, totpLoading, sessionsData, securityActivity]);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {stepUpDialog}
       {/* ── Password ── */}
-      <section className="space-y-4">
+      <Card className="space-y-4 p-5">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             {t('security.passwordTitle')}
@@ -269,12 +269,10 @@ export function SettingsSecurityPage() {
               : t('security.updatePassword')}
           </Button>
         </form>
-      </section>
-
-      <hr className="border-gray-200 dark:border-gray-700" />
+      </Card>
 
       {/* ── Linked accounts ── */}
-      <section className="space-y-4">
+      <Card className="space-y-4 p-5">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             {t('security.linkedAccountsTitle')}
@@ -339,12 +337,10 @@ export function SettingsSecurityPage() {
             })}
           </div>
         )}
-      </section>
-
-      <hr className="border-gray-200 dark:border-gray-700" />
+      </Card>
 
       {/* ── Two-factor authentication ── */}
-      <section className="space-y-4">
+      <Card className="space-y-4 p-5">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             {t('security.twoFactorTitle')}
@@ -513,12 +509,10 @@ export function SettingsSecurityPage() {
             </Button>
           </form>
         )}
-      </section>
-
-      <hr className="border-gray-200 dark:border-gray-700" />
+      </Card>
 
       {/* ── Active sessions ── */}
-      <section className="space-y-4">
+      <Card className="space-y-4 p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
@@ -575,12 +569,10 @@ export function SettingsSecurityPage() {
             </li>
           ))}
         </ul>
-      </section>
-
-      <hr className="border-gray-200 dark:border-gray-700" />
+      </Card>
 
       {/* ── Security activity ── */}
-      <section id="security-activity" className="scroll-mt-4 space-y-4">
+      <Card id="security-activity" className="scroll-mt-4 space-y-4 p-5">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             {t('security.securityActivityTitle')}
@@ -615,7 +607,7 @@ export function SettingsSecurityPage() {
             ))}
           </ul>
         )}
-      </section>
+      </Card>
     </div>
   );
 }

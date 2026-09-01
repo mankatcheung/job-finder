@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { UserIcon, Trash2Icon } from 'lucide-react';
 import { put as putBlob } from '@vercel/blob/client';
 import { gqlClient } from '#/graphql/client';
-import { Alert, Button, FormLabel, Input, Skeleton } from '@trakwyn/ui';
+import { Alert, Button, Card, FormLabel, Input, Skeleton } from '@trakwyn/ui';
 import { useTheme, type Theme } from '#/lib/theme';
 import { LOCALE_OPTIONS, useLocale } from '#/lib/i18n';
 import { useStepUpReauth, STEP_UP_CANCELLED } from './useStepUpReauth';
@@ -175,9 +175,9 @@ export function SettingsProfilePage() {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* ── Profile ── */}
-      <section className="space-y-4">
+      <Card className="space-y-4 p-5">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             {t('profile.profileTitle')}
@@ -294,12 +294,10 @@ export function SettingsProfilePage() {
               : t('profile.saveProfile')}
           </Button>
         </form>
-      </section>
-
-      <hr className="border-gray-200 dark:border-gray-700" />
+      </Card>
 
       {/* ── Email ── */}
-      <section className="space-y-4">
+      <Card className="space-y-4 p-5">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             {t('security.emailTitle')}
@@ -347,12 +345,10 @@ export function SettingsProfilePage() {
             {emailForm.formState.isSubmitting ? t('security.sending') : t('security.updateEmail')}
           </Button>
         </form>
-      </section>
-
-      <hr className="border-gray-200 dark:border-gray-700" />
+      </Card>
 
       {/* ── Backup email ── */}
-      <section className="space-y-4">
+      <Card className="space-y-4 p-5">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             {t('security.backupEmailTitle')}
@@ -446,12 +442,10 @@ export function SettingsProfilePage() {
             </Button>
           </form>
         )}
-      </section>
-
-      <hr className="border-gray-200 dark:border-gray-700" />
+      </Card>
 
       {/* ── Appearance ── */}
-      <section className="space-y-4">
+      <Card className="space-y-4 p-5">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             {t('profile.appearanceTitle')}
@@ -503,7 +497,7 @@ export function SettingsProfilePage() {
             ))}
           </select>
         </div>
-      </section>
+      </Card>
       {stepUpDialog}
     </div>
   );

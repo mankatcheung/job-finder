@@ -167,8 +167,7 @@ describe('SettingsProfilePage', () => {
   describe('avatar', () => {
     const selectAvatarFile = (name = 'me.png', type = 'image/png') => {
       const file = new File(['fake-image-bytes'], name, { type });
-      const section = screen.getByText('Profile').closest('section')!;
-      const input = section.querySelector('input[type="file"]') as HTMLInputElement;
+      const input = document.querySelector('input[type="file"]') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [file] } });
     };
 

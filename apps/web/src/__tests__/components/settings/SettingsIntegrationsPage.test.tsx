@@ -172,6 +172,143 @@ describe('SettingsIntegrationsPage', () => {
     });
   });
 
+  describe('progressive disclosure of the create-token form (redesign)', () => {
+    function respondByOperation(tokens: Array<Record<string, unknown>> = []) {
+      mockGqlRequest.mockImplementation((doc: string) => {
+        if (typeof doc === 'string' && doc.includes('query ApiTokens')) {
+          return Promise.resolve({ apiTokens: tokens });
+        }
+        if (typeof doc === 'string' && doc.includes('mutation CreateApiToken')) {
+          return Promise.resolve({
+            createApiToken: {
+              id: 't1',
+              name: 'n',
+              token: 'trakwyn_secret',
+              scope: 'read',
+              createdAt: '2026-01-01T00:00:00.000Z',
+            },
+          });
+        }
+        return Promise.resolve({
+          me: {
+            id: 'user-1',
+            email: 'a@b.c',
+            name: null,
+            timezone: null,
+            targetRole: null,
+            avatarUrl: null,
+          },
+        });
+      });
+    }
+
+    it('opens the create-token form automatically when no token exists yet', async () => {
+      respondByOperation([]);
+      render(<SettingsIntegrationsPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+
+      expect(screen.getByPlaceholderText('e.g. CI pipeline')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'New token' })).not.toBeInTheDocument();
+    });
+
+    it('collapses the create-token form behind "New token" once a token exists, and expands it on click', async () => {
+      respondByOperation([
+        {
+          id: 'a',
+          name: 'existing',
+          scope: 'read',
+          lastUsedAt: null,
+          createdAt: '2026-01-01T00:00:00.000Z',
+        },
+      ]);
+      render(<SettingsIntegrationsPage />, { wrapper: Wrapper });
+      await screen.findByText('existing');
+
+      expect(screen.queryByPlaceholderText('e.g. CI pipeline')).not.toBeInTheDocument();
+      const newTokenButton = screen.getByRole('button', { name: 'New token' });
+
+      fireEvent.click(newTokenButton);
+
+      expect(screen.getByPlaceholderText('e.g. CI pipeline')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'New token' })).not.toBeInTheDocument();
+    });
+
+    it('collapses the create-token form again via Cancel, discarding what was typed', async () => {
+      respondByOperation([
+        {
+          id: 'a',
+          name: 'existing',
+          scope: 'read',
+          lastUsedAt: null,
+          createdAt: '2026-01-01T00:00:00.000Z',
+        },
+      ]);
+      render(<SettingsIntegrationsPage />, { wrapper: Wrapper });
+      await screen.findByText('existing');
+
+      fireEvent.click(screen.getByRole('button', { name: 'New token' }));
+      fireEvent.change(screen.getByPlaceholderText('e.g. CI pipeline'), {
+        target: { value: 'discard me' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+      expect(screen.queryByPlaceholderText('e.g. CI pipeline')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'New token' })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'New token' }));
+      expect(screen.getByPlaceholderText('e.g. CI pipeline')).toHaveValue('');
+    });
+
+    it('collapses the create-token form again after a successful create', async () => {
+      let created = false;
+      mockGqlRequest.mockImplementation((doc: string) => {
+        if (typeof doc === 'string' && doc.includes('query ApiTokens')) {
+          return Promise.resolve({
+            apiTokens: created
+              ? [
+                  {
+                    id: 't1',
+                    name: 'n',
+                    scope: 'read',
+                    lastUsedAt: null,
+                    createdAt: '2026-01-01T00:00:00.000Z',
+                  },
+                ]
+              : [],
+          });
+        }
+        if (typeof doc === 'string' && doc.includes('mutation CreateApiToken')) {
+          created = true;
+          return Promise.resolve({
+            createApiToken: {
+              id: 't1',
+              name: 'n',
+              token: 'trakwyn_secret',
+              scope: 'read',
+              createdAt: '2026-01-01T00:00:00.000Z',
+            },
+          });
+        }
+        return Promise.resolve({});
+      });
+      render(<SettingsIntegrationsPage />, { wrapper: Wrapper });
+      await waitFor(() =>
+        expect(screen.getByPlaceholderText('e.g. CI pipeline')).toBeInTheDocument(),
+      );
+
+      fireEvent.change(screen.getByPlaceholderText('e.g. CI pipeline'), {
+        target: { value: 'my token' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /create token/i }));
+      await waitFor(() => expect(screen.getByText('trakwyn_secret')).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'New token' })).toBeInTheDocument();
+      });
+    });
+  });
+
   describe('connected MCP clients (JEF-179)', () => {
     const GRANT = {
       id: 'grant-1',
@@ -258,6 +395,50 @@ describe('SettingsIntegrationsPage', () => {
       // Optimistically removing it would tell the user they are safe when the
       // client still has access.
       expect(screen.getByText('Claude Desktop')).toBeInTheDocument();
+    });
+  });
+
+  describe('progressive disclosure of the create-share-link form (redesign)', () => {
+    function respondByOperation(links: Array<Record<string, unknown>> = []) {
+      mockGqlRequest.mockImplementation((doc: string) => {
+        if (typeof doc === 'string' && doc.includes('query ShareLinks')) {
+          return Promise.resolve({ shareLinks: links });
+        }
+        if (typeof doc === 'string' && doc.includes('mutation CreateShareLink')) {
+          return Promise.resolve({
+            createShareLink: {
+              id: 's1',
+              name: 'n',
+              token: 'share_secret',
+              createdAt: '2026-01-01T00:00:00.000Z',
+            },
+          });
+        }
+        return Promise.resolve({});
+      });
+    }
+
+    it('opens the create-link form automatically when no link exists yet', async () => {
+      respondByOperation([]);
+      render(<SettingsIntegrationsPage />, { wrapper: Wrapper });
+      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+
+      expect(screen.getByPlaceholderText('e.g. For my mentor')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'New link' })).not.toBeInTheDocument();
+    });
+
+    it('collapses the create-link form behind "New link" once a link exists, and expands it on click', async () => {
+      respondByOperation([
+        { id: 'a', name: 'existing link', lastUsedAt: null, createdAt: '2026-01-01T00:00:00.000Z' },
+      ]);
+      render(<SettingsIntegrationsPage />, { wrapper: Wrapper });
+      await screen.findByText('existing link');
+
+      expect(screen.queryByPlaceholderText('e.g. For my mentor')).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'New link' }));
+
+      expect(screen.getByPlaceholderText('e.g. For my mentor')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'New link' })).not.toBeInTheDocument();
     });
   });
 });
