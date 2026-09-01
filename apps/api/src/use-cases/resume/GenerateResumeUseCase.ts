@@ -13,7 +13,9 @@ import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRe
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
+import type { IDocumentDraftRepository } from '#src/use-cases/ports/IDocumentDraftRepository.js';
 import { formatApplicationContext } from '#src/use-cases/shared/applicationContext.js';
+import { formatCrossApplicationContext } from '#src/use-cases/shared/crossApplicationContext.js';
 import type { ResumeContent } from '#src/domain/resume/ResumeContent.js';
 import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
 import { parseAiJson } from '#src/use-cases/shared/parseAiJson.js';
@@ -37,6 +39,7 @@ interface Deps extends UserProfileRepositories {
   userRepository: IUserRepository;
   generateResumeRateLimiter: IRateLimiter;
   noteRepository: INoteRepository;
+  documentDraftRepository: IDocumentDraftRepository;
 }
 
 const resumeSchema = z.object({
@@ -132,9 +135,32 @@ export class GenerateResumeUseCase {
     // it belongs in a document asserting this person's history (JEF-205).
     const context = formatApplicationContext({ notes, briefing: null });
 
+    // Only fetched when the user opted in (JEF-249). Voice/phrasing only —
+    // `assertGrounded` below is what actually stops an employer or
+    // institution named in this context from ending up asserted as fact.
+    let crossApplicationContext = '';
+    if (user?.useCrossApplicationContext) {
+      const [otherNotes, otherCoverLetters] = await Promise.all([
+        this.deps.noteRepository.findRecentByUserExcludingApplication(
+          input.userId,
+          input.applicationId,
+          AI_PROMPT_INPUT.CROSS_APPLICATION_CONTEXT_MAX_APPLICATIONS,
+        ),
+        this.deps.documentDraftRepository.findRecentCoverLettersByUserExcludingApplication(
+          input.userId,
+          input.applicationId,
+          AI_PROMPT_INPUT.CROSS_APPLICATION_CONTEXT_MAX_APPLICATIONS,
+        ),
+      ]);
+      crossApplicationContext = formatCrossApplicationContext(otherNotes, otherCoverLetters);
+    }
+
     const messages: LLMMessage[] = [{ role: 'system', content: SYSTEM_PROMPT }];
     if (user?.customAiPrompt) messages.push({ role: 'system', content: user.customAiPrompt });
-    messages.push({ role: 'user', content: this.buildPrompt(app, profile, context) });
+    messages.push({
+      role: 'user',
+      content: this.buildPrompt(app, profile, context, crossApplicationContext),
+    });
 
     const resume = parseAiJson<ResumeContent>(
       await llmProvider.complete(messages, 2048),
@@ -148,6 +174,7 @@ export class GenerateResumeUseCase {
     app: { company: string; role: string; location?: string | null; description?: string | null },
     profile: UserProfile,
     applicationContext: string,
+    crossApplicationContext: string,
   ): string {
     return [
       'Tailor this candidate to the following role.',
@@ -162,6 +189,7 @@ export class GenerateResumeUseCase {
           ]
         : []),
       ...(applicationContext ? [`\n${applicationContext}`] : []),
+      ...(crossApplicationContext ? [`\n${crossApplicationContext}`] : []),
       `\nCandidate background — the only facts you may use:\n${formatUserProfile(profile)}`,
     ].join('\n');
   }

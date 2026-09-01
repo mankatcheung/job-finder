@@ -4,18 +4,23 @@ import { AI_PROMPT_INPUT } from '#src/constants.js';
 
 /**
  * Opt-in context (JEF-249) drawn from the user's *other* applications —
- * recent notes and cover letter drafts — used to help cover letter
- * generation match the user's voice and avoid repeating the same phrasing
- * across applications.
+ * recent notes and cover letter drafts — used to help cover letter and
+ * resume generation match the user's voice and avoid repeating the same
+ * phrasing across applications.
  *
  * Deliberately anonymized: callers pass only `content`/`plainText`, never
  * company or role, and this formatter never surfaces one. That's the actual
- * safeguard against a Company-A detail leaking into a Company-B letter — the
- * same failure class as JEF-205 one level up, since every application here
- * belongs to the same user. An instruction alone ("don't mention other
+ * safeguard against a Company-A detail leaking into a Company-B document —
+ * the same failure class as JEF-205 one level up, since every application
+ * here belongs to the same user. An instruction alone ("don't mention other
  * employers") is easy for a model to slip on if the other employer's name is
  * sitting right there in the prompt; not having the name in the prompt at
- * all is a stronger boundary than reminding the model not to use it.
+ * all is a stronger boundary than reminding the model not to use it. Resume
+ * generation additionally has a structural backstop `formatCrossApplicationContext`
+ * itself has no part in: `GenerateResumeUseCase.assertGrounded` refuses to
+ * save a resume naming any employer or institution the user didn't actually
+ * enter, so even a leaked name here can't end up asserted as this person's
+ * work history.
  */
 export function formatCrossApplicationContext(
   notes: Pick<Note, 'content'>[],
@@ -33,7 +38,7 @@ export function formatCrossApplicationContext(
   const body = entries.join('\n').slice(0, AI_PROMPT_INPUT.CROSS_APPLICATION_CONTEXT_MAX_CHARS);
 
   return [
-    'Notes and cover letters from my other job applications, with the employer deliberately left out — use them only to match my usual voice, tone, and phrasing, and to avoid repeating the same wording again. Do not state or imply anything about another employer, another role, or another application in this letter, even if it seems relevant:',
+    'Notes and cover letters from my other job applications, with the employer deliberately left out — use them only to match my usual voice, tone, and phrasing, and to avoid repeating the same wording again. Do not state or imply anything about another employer, another role, or another application in what you write, even if it seems relevant:',
     '---',
     body,
     '---',
