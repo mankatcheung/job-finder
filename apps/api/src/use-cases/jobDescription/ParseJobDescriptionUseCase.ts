@@ -86,7 +86,7 @@ export class ParseJobDescriptionUseCase {
       throw new ValidationError('No job description content provided');
     }
 
-    const raw = await llmProvider.complete([
+    const { content: raw } = await llmProvider.complete([
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: USER_PROMPT_TEMPLATE(text) },
     ]);

@@ -108,7 +108,7 @@ describe('OpenAICompatibleLLMProvider', () => {
     const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
     const result = await provider.complete([{ role: 'user', content: 'hi' }]);
 
-    expect(result).toBe('generated response');
+    expect(result.content).toBe('generated response');
   });
 
   it('returns an empty string when choices are missing', async () => {
@@ -117,7 +117,32 @@ describe('OpenAICompatibleLLMProvider', () => {
     const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
     const result = await provider.complete([{ role: 'user', content: 'hi' }]);
 
-    expect(result).toBe('');
+    expect(result.content).toBe('');
+  });
+
+  it('returns null usage when the response has no usage field', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse({ choices: [{ message: { content: 'ok' } }] }) as never,
+    );
+
+    const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+    const result = await provider.complete([{ role: 'user', content: 'hi' }]);
+
+    expect(result.usage).toBeNull();
+  });
+
+  it('parses usage from the response (JEF-250)', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse({
+        choices: [{ message: { content: 'ok' } }],
+        usage: { prompt_tokens: 80, completion_tokens: 20 },
+      }) as never,
+    );
+
+    const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+    const result = await provider.complete([{ role: 'user', content: 'hi' }]);
+
+    expect(result.usage).toEqual({ promptTokens: 80, completionTokens: 20 });
   });
 
   it('throws with the status and body when the response is not ok', async () => {
@@ -146,7 +171,7 @@ describe('OpenAICompatibleLLMProvider', () => {
       await vi.runAllTimersAsync();
       const result = await promise;
 
-      expect(result).toBe('ok after retry');
+      expect(result.content).toBe('ok after retry');
       expect(fetch).toHaveBeenCalledTimes(2);
     } finally {
       vi.useRealTimers();
@@ -239,8 +264,42 @@ describe('OpenAICompatibleLLMProvider', () => {
       expect(events).toEqual([
         { type: 'text_delta', text: 'Hello' },
         { type: 'text_delta', text: ' world' },
-        { type: 'done', content: 'Hello world', toolCalls: [] },
+        { type: 'done', content: 'Hello world', toolCalls: [], usage: null },
       ]);
+    });
+
+    it('sends stream_options.include_usage in the request body (JEF-250)', async () => {
+      vi.mocked(fetch).mockResolvedValue(streamResponse('data: [DONE]\n\n') as never);
+      const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+
+      await collectStream(provider, [{ role: 'user', content: 'hi' }], []);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('parses usage from the final, choices-empty chunk (JEF-250)', async () => {
+      const sse = [
+        'data: {"choices":[{"delta":{"content":"hi"}}]}',
+        '',
+        'data: {"choices":[],"usage":{"prompt_tokens":30,"completion_tokens":5}}',
+        '',
+        'data: [DONE]',
+        '',
+        '',
+      ].join('\n');
+      vi.mocked(fetch).mockResolvedValue(streamResponse(sse) as never);
+      const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+
+      const events = await collectStream(provider, [{ role: 'user', content: 'hi' }], []);
+
+      expect(events[events.length - 1]).toEqual({
+        type: 'done',
+        content: 'hi',
+        toolCalls: [],
+        usage: { promptTokens: 30, completionTokens: 5 },
+      });
     });
 
     it('reassembles a streamed tool call from per-index delta fragments', async () => {
@@ -269,6 +328,7 @@ describe('OpenAICompatibleLLMProvider', () => {
           toolCalls: [
             { id: 'call_1', name: 'list_applications', arguments: { status: 'applied' } },
           ],
+          usage: null,
         },
       ]);
     });

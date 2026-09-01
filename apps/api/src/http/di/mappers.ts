@@ -23,6 +23,7 @@ import { McpOAuthGrantMapper } from '#src/interface-adapters/mappers/McpOAuthGra
 import { ShareLinkMapper } from '#src/interface-adapters/mappers/ShareLinkMapper.js';
 import { NotificationMapper } from '#src/interface-adapters/mappers/NotificationMapper.js';
 import { LlmApiKeyMapper } from '#src/interface-adapters/mappers/LlmApiKeyMapper.js';
+import { LlmUsageSummaryMapper } from '#src/interface-adapters/mappers/LlmUsageSummaryMapper.js';
 import { OfferMapper } from '#src/interface-adapters/mappers/OfferMapper.js';
 
 import type { Cradle } from './types.js';
@@ -46,6 +47,7 @@ export const mappers = {
   messageMapper: asClass(MessageMapper, { lifetime: Lifetime.SINGLETON }),
   conversationMapper: asClass(ConversationMapper, { lifetime: Lifetime.SINGLETON }),
   llmApiKeyMapper: asClass(LlmApiKeyMapper, { lifetime: Lifetime.SINGLETON }),
+  llmUsageSummaryMapper: asClass(LlmUsageSummaryMapper, { lifetime: Lifetime.SINGLETON }),
   sessionMapper: asClass(SessionMapper, { lifetime: Lifetime.SINGLETON }),
   workExperienceMapper: asClass(WorkExperienceMapper, { lifetime: Lifetime.SINGLETON }),
   educationMapper: asClass(EducationMapper, { lifetime: Lifetime.SINGLETON }),

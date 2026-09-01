@@ -14,6 +14,7 @@ import type { IListLlmApiKeysUseCase } from '#src/use-cases/user/IListLlmApiKeys
 import type { IDeleteLlmApiKeyUseCase } from '#src/use-cases/user/IDeleteLlmApiKeyUseCase.js';
 import type { ISetDefaultLlmProviderUseCase } from '#src/use-cases/user/ISetDefaultLlmProviderUseCase.js';
 import type { ITestLlmApiKeyUseCase } from '#src/use-cases/user/ITestLlmApiKeyUseCase.js';
+import type { IGetLlmUsageSummaryUseCase } from '#src/use-cases/user/IGetLlmUsageSummaryUseCase.js';
 import type { IImportUserDataUseCase } from '#src/use-cases/user/IImportUserDataUseCase.js';
 import type { IGetNotificationPreferencesUseCase } from '#src/use-cases/user/IGetNotificationPreferencesUseCase.js';
 import type { IUpdateNotificationPreferencesUseCase } from '#src/use-cases/user/IUpdateNotificationPreferencesUseCase.js';
@@ -27,6 +28,7 @@ import type { IConfirmBackupEmailUseCase } from '#src/use-cases/user/IConfirmBac
 import type { IRemoveBackupEmailUseCase } from '#src/use-cases/user/IRemoveBackupEmailUseCase.js';
 import { UserMapper } from '#src/interface-adapters/mappers/UserMapper.js';
 import { LlmApiKeyMapper } from '#src/interface-adapters/mappers/LlmApiKeyMapper.js';
+import { LlmUsageSummaryMapper } from '#src/interface-adapters/mappers/LlmUsageSummaryMapper.js';
 import { makeUser, makeStorageProvider, makeLlmApiKey } from '#src/__tests__/helpers/mocks.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
@@ -67,6 +69,10 @@ const makeDeps = (overrides?: object) => ({
     execute: vi.fn().mockResolvedValue({ ok: true }),
   }),
   llmApiKeyMapper: new LlmApiKeyMapper(),
+  getLlmUsageSummaryUseCase: stub<IGetLlmUsageSummaryUseCase>({
+    execute: vi.fn().mockResolvedValue([]),
+  }),
+  llmUsageSummaryMapper: new LlmUsageSummaryMapper(),
   importUserDataUseCase: stub<IImportUserDataUseCase>({ execute: vi.fn() }),
   getNotificationPreferencesUseCase: stub<IGetNotificationPreferencesUseCase>({
     execute: vi.fn(),
@@ -374,6 +380,38 @@ describe('UserResolver', () => {
 
       expect(deps.listLlmApiKeysUseCase.execute).toHaveBeenCalledWith('user-1');
       expect(result).toEqual([{ provider: 'openai', model: 'gpt-4o', baseUrl: null }]);
+    });
+  });
+
+  describe('getLlmUsageSummary', () => {
+    it('delegates to getLlmUsageSummaryUseCase and maps dates to ISO strings', async () => {
+      const lastUsedAt = new Date('2026-01-01T00:00:00.000Z');
+      const deps = makeDeps({
+        getLlmUsageSummaryUseCase: stub<IGetLlmUsageSummaryUseCase>({
+          execute: vi.fn().mockResolvedValue([
+            {
+              provider: 'openai',
+              requestCount: 3,
+              promptTokens: 100,
+              completionTokens: 40,
+              lastUsedAt,
+            },
+          ]),
+        }),
+      });
+
+      const result = await new UserResolver(deps).getLlmUsageSummary('user-1');
+
+      expect(deps.getLlmUsageSummaryUseCase.execute).toHaveBeenCalledWith('user-1');
+      expect(result).toEqual([
+        {
+          provider: 'openai',
+          requestCount: 3,
+          promptTokens: 100,
+          completionTokens: 40,
+          lastUsedAt: lastUsedAt.toISOString(),
+        },
+      ]);
     });
   });
 

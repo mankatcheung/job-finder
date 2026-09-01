@@ -251,6 +251,18 @@ export const TEST_LLM_API_KEY = `
   }
 `;
 
+export const LLM_USAGE_SUMMARY_QUERY = `
+  query LlmUsageSummary {
+    llmUsageSummary {
+      provider
+      requestCount
+      promptTokens
+      completionTokens
+      lastUsedAt
+    }
+  }
+`;
+
 export const LINKED_OAUTH_ACCOUNTS_QUERY = `
   query LinkedOAuthAccounts {
     linkedOAuthAccounts {
@@ -485,6 +497,14 @@ export type LlmApiKey = {
 export type TestLlmApiKeyResult = {
   ok: boolean;
   error: string | null;
+};
+
+export type LlmUsageSummary = {
+  provider: string;
+  requestCount: number;
+  promptTokens: number;
+  completionTokens: number;
+  lastUsedAt: string;
 };
 
 export const LLM_PROVIDER_OPTIONS: { value: string; label: string }[] = [

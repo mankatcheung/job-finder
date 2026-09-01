@@ -126,7 +126,7 @@ describe('GoogleAILLMProvider', () => {
       const provider = new GoogleAILLMProvider('secret-key');
       const result = await provider.complete([{ role: 'user', content: 'hi' }]);
 
-      expect(result).toBe('generated response');
+      expect(result.content).toBe('generated response');
     });
 
     it('returns an empty string when candidates are missing', async () => {
@@ -135,7 +135,32 @@ describe('GoogleAILLMProvider', () => {
       const provider = new GoogleAILLMProvider('secret-key');
       const result = await provider.complete([{ role: 'user', content: 'hi' }]);
 
-      expect(result).toBe('');
+      expect(result.content).toBe('');
+    });
+
+    it('returns null usage when the response has no usageMetadata field', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }) as never,
+      );
+
+      const provider = new GoogleAILLMProvider('secret-key');
+      const result = await provider.complete([{ role: 'user', content: 'hi' }]);
+
+      expect(result.usage).toBeNull();
+    });
+
+    it('parses usage from usageMetadata (JEF-250)', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({
+          candidates: [{ content: { parts: [{ text: 'ok' }] } }],
+          usageMetadata: { promptTokenCount: 60, candidatesTokenCount: 15 },
+        }) as never,
+      );
+
+      const provider = new GoogleAILLMProvider('secret-key');
+      const result = await provider.complete([{ role: 'user', content: 'hi' }]);
+
+      expect(result.usage).toEqual({ promptTokens: 60, completionTokens: 15 });
     });
 
     it('throws with the status and body when the response is not ok', async () => {
@@ -166,7 +191,7 @@ describe('GoogleAILLMProvider', () => {
         await vi.runAllTimersAsync();
         const result = await promise;
 
-        expect(result).toBe('ok after retry');
+        expect(result.content).toBe('ok after retry');
         expect(fetch).toHaveBeenCalledTimes(2);
       } finally {
         vi.useRealTimers();
@@ -299,6 +324,7 @@ describe('GoogleAILLMProvider', () => {
               arguments: { status: 'applied' },
             },
           ],
+          usage: null,
         },
       ]);
     });
@@ -311,7 +337,9 @@ describe('GoogleAILLMProvider', () => {
       const provider = new GoogleAILLMProvider('secret-key');
       const events = await collectStream(provider, [{ role: 'user', content: 'hi' }], TOOLS);
 
-      expect(events).toEqual([{ type: 'done', content: 'plain answer', toolCalls: [] }]);
+      expect(events).toEqual([
+        { type: 'done', content: 'plain answer', toolCalls: [], usage: null },
+      ]);
     });
 
     it('serializes an assistant tool-call request as a model functionCall part and a tool result by function name', async () => {
@@ -365,7 +393,7 @@ describe('GoogleAILLMProvider', () => {
         events.push(event);
       }
 
-      expect(events).toEqual([{ type: 'done', content: 'ok', toolCalls: [] }]);
+      expect(events).toEqual([{ type: 'done', content: 'ok', toolCalls: [], usage: null }]);
       // Confirms it's the real (non-streaming) endpoint doing the work — no
       // stream:true or SSE parsing involved for this provider.
       expect(fetch).toHaveBeenCalledTimes(1);

@@ -1,7 +1,9 @@
 import { PROVIDER_REGISTRY } from '#src/infrastructure/llm/providerRegistry.js';
+import { UsageTrackingLLMProvider } from '#src/infrastructure/llm/UsageTrackingLLMProvider.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
+import type { ILlmUsageEventRepository } from '#src/use-cases/ports/ILlmUsageEventRepository.js';
 import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
 import type {
   ILLMProviderFactory,
@@ -12,6 +14,8 @@ interface Deps {
   userRepository: IUserRepository;
   llmApiKeyRepository: ILlmApiKeyRepository;
   llmApiKeyCipher: ILlmApiKeyCipher;
+  llmUsageEventRepository: ILlmUsageEventRepository;
+  generateId: () => string;
 }
 
 export class UserLLMProviderFactory implements ILLMProviderFactory {
@@ -21,6 +25,7 @@ export class UserLLMProviderFactory implements ILLMProviderFactory {
     userId: string,
     provider?: string,
     model?: string | null,
+    trackUsage = true,
   ): Promise<ILLMProvider | null> {
     let resolvedProvider = provider;
     if (!resolvedProvider) {
@@ -39,7 +44,18 @@ export class UserLLMProviderFactory implements ILLMProviderFactory {
     if (!entry) return null;
 
     const apiKey = this.deps.llmApiKeyCipher.decrypt(key.apiKey);
-    return entry.create({ apiKey, model: model ?? key.model, baseUrl: key.baseUrl });
+    const resolvedModel = model ?? key.model;
+    const rawProvider = entry.create({ apiKey, model: resolvedModel, baseUrl: key.baseUrl });
+    if (!trackUsage) return rawProvider;
+
+    return new UsageTrackingLLMProvider({
+      inner: rawProvider,
+      usageEventRepository: this.deps.llmUsageEventRepository,
+      generateId: this.deps.generateId,
+      userId,
+      provider: resolvedProvider,
+      model: resolvedModel,
+    });
   }
 
   fromCredentials(credentials: LLMProviderCredentials): ILLMProvider | null {

@@ -3,6 +3,8 @@ import type {
   LLMMessage,
   LLMToolDefinition,
   LLMStreamEvent,
+  LLMCompleteResult,
+  LLMUsage,
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { AUTH_HEADER, LLM } from '#src/constants.js';
 import {
@@ -22,6 +24,11 @@ interface OpenAIWireMessage {
   }>;
 }
 
+interface OpenAIWireUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+}
+
 interface OpenAIWireResponse {
   choices: Array<{
     message: {
@@ -29,6 +36,12 @@ interface OpenAIWireResponse {
       tool_calls?: Array<{ id: string; function: { name: string; arguments: string } }>;
     };
   }>;
+  usage?: OpenAIWireUsage;
+}
+
+function toLLMUsage(usage: OpenAIWireUsage | null | undefined): LLMUsage | null {
+  if (!usage) return null;
+  return { promptTokens: usage.prompt_tokens, completionTokens: usage.completion_tokens };
 }
 
 const OPENAI_STREAM_DONE = '[DONE]';
@@ -52,6 +65,12 @@ interface OpenAIStreamChunk {
       }>;
     };
   }>;
+  /**
+   * Only present on the final chunk, and only when the request opts in via
+   * `stream_options.include_usage` — that chunk's `choices` is empty, so
+   * this must be read independently of the `delta` handling below.
+   */
+  usage?: OpenAIWireUsage | null;
 }
 
 /**
@@ -84,7 +103,7 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     messages: LLMMessage[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
     signal?: AbortSignal,
-  ): Promise<string> {
+  ): Promise<LLMCompleteResult> {
     if (!this.apiKey) throw new Error('API key is not set');
 
     const json = await this.post(
@@ -96,7 +115,10 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
       signal,
     );
 
-    return json.choices[0]?.message?.content ?? '';
+    return {
+      content: json.choices[0]?.message?.content ?? '',
+      usage: toLLMUsage(json.usage),
+    };
   }
 
   async *completeWithToolsStream(
@@ -113,6 +135,7 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
         messages: this.toWireMessages(messages),
         max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
         stream: true,
+        stream_options: { include_usage: true },
         tools: tools.map((t) => ({
           type: 'function',
           function: { name: t.name, description: t.description, parameters: t.parameters },
@@ -123,12 +146,17 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
 
     let content = '';
     const toolCalls = new Map<number, { id: string; name: string; arguments: string }>();
+    let usage: LLMUsage | null = null;
 
     try {
       for await (const frame of parseSSE(body, onChunk)) {
         if (frame.data === OPENAI_STREAM_DONE) break;
 
         const chunk = JSON.parse(frame.data) as OpenAIStreamChunk;
+        // The usage-bearing final chunk has empty `choices` — read it
+        // independently rather than folding it into the `!delta` guard below.
+        if (chunk.usage) usage = toLLMUsage(chunk.usage);
+
         const delta = chunk.choices?.[0]?.delta;
         if (!delta) continue;
 
@@ -158,6 +186,7 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
         name: tc.name,
         arguments: this.parseArguments(tc.arguments),
       })),
+      usage,
     };
   }
 

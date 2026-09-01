@@ -29,6 +29,11 @@ import type {
   ITestLlmApiKeyUseCase,
   TestLlmApiKeyResult,
 } from '#src/use-cases/user/ITestLlmApiKeyUseCase.js';
+import type { IGetLlmUsageSummaryUseCase } from '#src/use-cases/user/IGetLlmUsageSummaryUseCase.js';
+import {
+  LlmUsageSummaryMapper,
+  type LlmUsageSummaryDTO,
+} from '#src/interface-adapters/mappers/LlmUsageSummaryMapper.js';
 import {
   LlmApiKeyMapper,
   type LlmApiKeyDTO,
@@ -76,7 +81,9 @@ interface Deps {
   deleteLlmApiKeyUseCase: IDeleteLlmApiKeyUseCase;
   setDefaultLlmProviderUseCase: ISetDefaultLlmProviderUseCase;
   testLlmApiKeyUseCase: ITestLlmApiKeyUseCase;
+  getLlmUsageSummaryUseCase: IGetLlmUsageSummaryUseCase;
   llmApiKeyMapper: LlmApiKeyMapper;
+  llmUsageSummaryMapper: LlmUsageSummaryMapper;
   importUserDataUseCase: IImportUserDataUseCase;
   getNotificationPreferencesUseCase: IGetNotificationPreferencesUseCase;
   updateNotificationPreferencesUseCase: IUpdateNotificationPreferencesUseCase;
@@ -208,6 +215,11 @@ export class UserResolver {
   async listLlmApiKeys(userId: string): Promise<LlmApiKeyDTO[]> {
     const keys = await this.deps.listLlmApiKeysUseCase.execute(userId);
     return keys.map((key) => this.deps.llmApiKeyMapper.toDTO(key));
+  }
+
+  async getLlmUsageSummary(userId: string): Promise<LlmUsageSummaryDTO[]> {
+    const summary = await this.deps.getLlmUsageSummaryUseCase.execute(userId);
+    return summary.map((s) => this.deps.llmUsageSummaryMapper.toDTO(s));
   }
 
   async deleteLlmApiKey(userId: string, provider: string): Promise<void> {
