@@ -1,6 +1,6 @@
-import { eq, desc, sql } from 'drizzle-orm';
+import { eq, and, ne, isNull, desc, sql } from 'drizzle-orm';
 import type { DrizzleDb, DrizzleClient } from '../client.js';
-import { note } from '../schema.js';
+import { note, jobApplication } from '../schema.js';
 import type { Note } from '#src/domain/note/Note.js';
 import type { INoteRepository } from '#src/use-cases/ports/INoteRepository.js';
 import { getClient } from '../transactionContext.js';
@@ -50,6 +50,27 @@ export class DrizzleNoteRepository implements INoteRepository {
 
   async delete(id: string): Promise<void> {
     await this.db.delete(note).where(eq(note.id, id));
+  }
+
+  async findRecentByUserExcludingApplication(
+    userId: string,
+    excludeApplicationId: string,
+    limit: number,
+  ): Promise<Note[]> {
+    const rows = await this.db
+      .select({ note })
+      .from(note)
+      .innerJoin(jobApplication, eq(note.applicationId, jobApplication.id))
+      .where(
+        and(
+          eq(jobApplication.userId, userId),
+          ne(jobApplication.id, excludeApplicationId),
+          isNull(jobApplication.deletedAt),
+        ),
+      )
+      .orderBy(desc(note.createdAt))
+      .limit(limit);
+    return rows.map((r) => this.toEntity(r.note));
   }
 
   private toEntity(row: typeof note.$inferSelect): Note {

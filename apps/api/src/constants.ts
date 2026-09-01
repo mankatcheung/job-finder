@@ -725,6 +725,10 @@ export const AI_PROMPT_INPUT = {
   APPLICATION_NOTES_MAX_CHARS: 2000,
   /** Cover letter generation — the stored company briefing (JEF-205). */
   APPLICATION_BRIEFING_MAX_CHARS: 2000,
+  /** Cover letter generation — opt-in cross-application context (JEF-249), notes + drafts combined. */
+  CROSS_APPLICATION_CONTEXT_MAX_CHARS: 2000,
+  /** Cover letter generation — how many *other* applications' notes/drafts to pull from, most recent first (JEF-249). */
+  CROSS_APPLICATION_CONTEXT_MAX_APPLICATIONS: 3,
 } as const;
 
 /** In-app AI chat assistant settings. */

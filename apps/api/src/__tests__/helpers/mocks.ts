@@ -115,6 +115,7 @@ export const makeNoteRepository = (overrides?: Partial<INoteRepository>): INoteR
   create: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
+  findRecentByUserExcludingApplication: vi.fn().mockResolvedValue([]),
   ...overrides,
 });
 
@@ -446,6 +447,7 @@ export const makeUser = (overrides?: Partial<User>): User => ({
   totpEnabled: false,
   defaultLlmProvider: null,
   customAiPrompt: null,
+  useCrossApplicationContext: false,
   backupEmail: null,
   backupEmailVerifiedAt: null,
   createdAt: new Date('2024-01-01'),
@@ -565,6 +567,7 @@ export const makeDocumentDraftRepository = (
   updateContent: vi.fn(),
   rename: vi.fn(),
   delete: vi.fn(),
+  findRecentCoverLettersByUserExcludingApplication: vi.fn().mockResolvedValue([]),
   ...overrides,
 });
 

@@ -16,6 +16,8 @@ import {
   makeSkill,
   makeNoteRepository,
   makeNote,
+  makeDocumentDraftRepository,
+  makeDocumentDraft,
 } from '#src/__tests__/helpers/mocks.js';
 
 const WORK = [
@@ -52,6 +54,9 @@ function makeUseCase(over?: {
   edu?: unknown[];
   skills?: unknown[];
   notes?: unknown[];
+  user?: ReturnType<typeof makeUser>;
+  otherNotes?: unknown[];
+  otherCoverLetters?: unknown[];
 }) {
   const llmProvider = makeLLMProvider(over?.response ?? VALID_RESUME);
   const deps = {
@@ -63,7 +68,9 @@ function makeUseCase(over?: {
         .fn()
         .mockResolvedValue(makeApplication({ userId: 'user-1', company: 'Initech' })),
     }),
-    userRepository: makeUserRepository({ findById: vi.fn().mockResolvedValue(makeUser()) }),
+    userRepository: makeUserRepository({
+      findById: vi.fn().mockResolvedValue(over?.user ?? makeUser()),
+    }),
     workExperienceRepository: makeWorkExperienceRepository({
       findAllByUserId: vi.fn().mockResolvedValue(over?.work ?? WORK),
     }),
@@ -76,6 +83,12 @@ function makeUseCase(over?: {
     generateResumeRateLimiter: makeRateLimiter(),
     noteRepository: makeNoteRepository({
       findAllByApplicationId: vi.fn().mockResolvedValue(over?.notes ?? []),
+      findRecentByUserExcludingApplication: vi.fn().mockResolvedValue(over?.otherNotes ?? []),
+    }),
+    documentDraftRepository: makeDocumentDraftRepository({
+      findRecentCoverLettersByUserExcludingApplication: vi
+        .fn()
+        .mockResolvedValue(over?.otherCoverLetters ?? []),
     }),
   };
   return { useCase: new GenerateResumeUseCase(deps), deps, llmProvider };
@@ -236,5 +249,77 @@ describe('GenerateResumeUseCase', () => {
 
     const messages = vi.mocked(ctx.llmProvider.complete).mock.calls[0]![0];
     expect(messages[messages.length - 1]!.content).not.toContain('95,000');
+  });
+
+  describe('cross-application context (JEF-249)', () => {
+    it('does not fetch other applications when the preference is off', async () => {
+      const ctx = makeUseCase({ user: makeUser({ useCrossApplicationContext: false }) });
+
+      await ctx.useCase.execute({ userId: 'user-1', applicationId: 'app-1' });
+
+      expect(ctx.deps.noteRepository.findRecentByUserExcludingApplication).not.toHaveBeenCalled();
+      expect(
+        ctx.deps.documentDraftRepository.findRecentCoverLettersByUserExcludingApplication,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('puts notes and cover letters from other applications in the prompt when the preference is on', async () => {
+      const ctx = makeUseCase({
+        user: makeUser({ useCrossApplicationContext: true }),
+        otherNotes: [makeNote({ content: 'They loved that I mentioned open source work.' })],
+        otherCoverLetters: [
+          makeDocumentDraft({ plainText: 'I thrive in ambiguous, 0-to-1 environments.' }),
+        ],
+      });
+
+      await ctx.useCase.execute({ userId: 'user-1', applicationId: 'app-1' });
+
+      expect(ctx.deps.noteRepository.findRecentByUserExcludingApplication).toHaveBeenCalledWith(
+        'user-1',
+        'app-1',
+        expect.any(Number),
+      );
+      expect(
+        ctx.deps.documentDraftRepository.findRecentCoverLettersByUserExcludingApplication,
+      ).toHaveBeenCalledWith('user-1', 'app-1', expect.any(Number));
+      const messages = vi.mocked(ctx.llmProvider.complete).mock.calls[0]![0];
+      const prompt = messages[messages.length - 1]!.content;
+      expect(prompt).toContain('They loved that I mentioned open source work.');
+      expect(prompt).toContain('I thrive in ambiguous, 0-to-1 environments.');
+    });
+
+    it('still refuses an employer invented from cross-application context, same as any other invented employer', async () => {
+      // The structural backstop: even if a leaked or misread name from
+      // another application's notes made it into the model's output,
+      // assertGrounded refuses to save it, since it isn't in this user's
+      // actual work experience.
+      const ctx = makeUseCase({
+        user: makeUser({ useCrossApplicationContext: true }),
+        otherNotes: [makeNote({ content: 'Mentioned my time at Umbrella Corp.' })],
+        response: JSON.stringify({
+          experience: [{ company: 'Umbrella Corp', title: 'Researcher', bullets: [] }],
+          education: [],
+          skills: [],
+        }),
+      });
+
+      const err = await ctx.useCase
+        .execute({ userId: 'user-1', applicationId: 'app-1' })
+        .catch((e) => e);
+
+      expect((err as { code: string }).code).toBe('AI_RESPONSE_INVALID');
+    });
+
+    it('works exactly as before when the user has no other applications with content', async () => {
+      const ctx = makeUseCase({
+        user: makeUser({ useCrossApplicationContext: true }),
+        otherNotes: [],
+        otherCoverLetters: [],
+      });
+
+      await expect(
+        ctx.useCase.execute({ userId: 'user-1', applicationId: 'app-1' }),
+      ).resolves.toBeTruthy();
+    });
   });
 });

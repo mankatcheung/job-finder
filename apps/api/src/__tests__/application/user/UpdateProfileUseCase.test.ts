@@ -35,6 +35,7 @@ describe('UpdateProfileUseCase', () => {
       timezone: 'America/Los_Angeles',
       targetRole: 'Staff Engineer',
       customAiPrompt: 'Keep it casual and under 200 words.',
+      useCrossApplicationContext: undefined,
     });
   });
 
@@ -49,7 +50,23 @@ describe('UpdateProfileUseCase', () => {
       timezone: undefined,
       targetRole: undefined,
       customAiPrompt: undefined,
+      useCrossApplicationContext: undefined,
     });
+  });
+
+  it('passes useCrossApplicationContext straight through, on or off', async () => {
+    const user = makeUser({ id: 'user-1' });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+
+    await new UpdateProfileUseCase({ userRepository }).execute({
+      userId: 'user-1',
+      useCrossApplicationContext: true,
+    });
+
+    expect(userRepository.update).toHaveBeenCalledWith(
+      'user-1',
+      expect.objectContaining({ useCrossApplicationContext: true }),
+    );
   });
 
   it('clears a field when given an empty or whitespace-only string', async () => {

@@ -564,6 +564,17 @@ describe('UserResolver', () => {
       });
     });
 
+    it('passes useCrossApplicationContext through to the use case', async () => {
+      const deps = makeDeps();
+      const resolver = new UserResolver(deps);
+
+      await resolver.updateProfile('user-1', undefined, undefined, undefined, undefined, true);
+
+      expect(deps.updateProfileUseCase.execute).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: 'user-1', useCrossApplicationContext: true }),
+      );
+    });
+
     it('propagates errors from the use case', async () => {
       const err = Object.assign(new Error('VALIDATION'), { code: 'VALIDATION' });
       const deps = makeDeps({

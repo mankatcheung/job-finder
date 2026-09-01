@@ -66,6 +66,7 @@ export class DrizzleUserRepository implements IUserRepository {
       totpEnabled?: boolean;
       defaultLlmProvider?: string | null;
       customAiPrompt?: string | null;
+      useCrossApplicationContext?: boolean;
       backupEmail?: string | null;
       backupEmailVerifiedAt?: Date | null;
     },
@@ -106,6 +107,7 @@ export class DrizzleUserRepository implements IUserRepository {
       totpEnabled: row.totpEnabled,
       defaultLlmProvider: row.defaultLlmProvider,
       customAiPrompt: row.customAiPrompt,
+      useCrossApplicationContext: row.useCrossApplicationContext,
       backupEmail: row.backupEmail,
       backupEmailVerifiedAt: row.backupEmailVerifiedAt,
       createdAt: row.createdAt,

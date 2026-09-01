@@ -23,4 +23,15 @@ export interface IDocumentDraftRepository {
   updateContent(id: string, data: UpdateDocumentDraftContentData): Promise<DocumentDraft>;
   rename(id: string, title: string): Promise<DocumentDraft>;
   delete(id: string): Promise<void>;
+  /**
+   * The user's most recent cover letter drafts on applications *other than*
+   * `excludeApplicationId` (JEF-249) — backs the opt-in cross-application
+   * context fed into cover letter generation. Excludes trashed applications,
+   * same as every other read path.
+   */
+  findRecentCoverLettersByUserExcludingApplication(
+    userId: string,
+    excludeApplicationId: string,
+    limit: number,
+  ): Promise<DocumentDraft[]>;
 }

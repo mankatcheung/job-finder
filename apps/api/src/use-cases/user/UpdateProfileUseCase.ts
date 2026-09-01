@@ -60,6 +60,7 @@ export class UpdateProfileUseCase implements IUpdateProfileUseCase {
       timezone,
       targetRole,
       customAiPrompt,
+      useCrossApplicationContext: input.useCrossApplicationContext,
     });
   }
 }

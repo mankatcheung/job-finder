@@ -4,6 +4,7 @@ export interface UpdateProfileInput {
   timezone?: string | null;
   targetRole?: string | null;
   customAiPrompt?: string | null;
+  useCrossApplicationContext?: boolean;
 }
 
 export interface IUpdateProfileUseCase {

@@ -12,8 +12,10 @@ import {
   makeUser,
   makeRateLimiter,
   makeNoteRepository,
+  makeDocumentDraftRepository,
   makeCompanyBriefingRepository,
   makeNote,
+  makeDocumentDraft,
 } from '#src/__tests__/helpers/mocks.js';
 
 const COVER_LETTER = 'Dear Hiring Manager,\n\nI am excited to apply…\n\nSincerely,\nJane';
@@ -26,6 +28,7 @@ function baseDeps(overrides?: Record<string, unknown>) {
     userRepository: makeUserRepository({ findById: vi.fn().mockResolvedValue(makeUser()) }),
     generateCoverLetterRateLimiter: makeRateLimiter(),
     noteRepository: makeNoteRepository(),
+    documentDraftRepository: makeDocumentDraftRepository(),
     companyBriefingRepository: makeCompanyBriefingRepository(),
     ...overrides,
   };
@@ -368,6 +371,108 @@ describe('GenerateCoverLetterUseCase', () => {
       await ctx.run();
 
       expect(ctx.prompt().length).toBeLessThan(12_000);
+    });
+  });
+
+  describe('cross-application context (JEF-249)', () => {
+    function runWith(over: {
+      user?: ReturnType<typeof makeUser>;
+      otherNotes?: ReturnType<typeof makeNote>[];
+      otherCoverLetters?: ReturnType<typeof makeDocumentDraft>[];
+    }) {
+      const llmProvider = makeLLMProvider(COVER_LETTER);
+      const noteRepository = makeNoteRepository({
+        findAllByApplicationId: vi.fn().mockResolvedValue([]),
+        findRecentByUserExcludingApplication: vi.fn().mockResolvedValue(over.otherNotes ?? []),
+      });
+      const documentDraftRepository = makeDocumentDraftRepository({
+        findRecentCoverLettersByUserExcludingApplication: vi
+          .fn()
+          .mockResolvedValue(over.otherCoverLetters ?? []),
+      });
+      const useCase = new GenerateCoverLetterUseCase(
+        baseDeps({
+          applicationRepository: makeApplicationRepository({
+            findById: vi.fn().mockResolvedValue(makeApplication()),
+          }),
+          llmProviderFactory: makeLLMProviderFactory({
+            forUser: vi.fn().mockResolvedValue(llmProvider),
+          }),
+          userRepository: makeUserRepository({
+            findById: vi.fn().mockResolvedValue(over.user ?? makeUser()),
+          }),
+          noteRepository,
+          documentDraftRepository,
+        }) as never,
+      );
+      return {
+        noteRepository,
+        documentDraftRepository,
+        run: () => useCase.execute({ applicationId: 'app-1', userId: 'user-1' }),
+        prompt: () => {
+          const messages = vi.mocked(llmProvider.complete).mock.calls[0]![0];
+          return messages[messages.length - 1]!.content;
+        },
+      };
+    }
+
+    it('does not fetch other applications when the preference is off', async () => {
+      const ctx = runWith({ user: makeUser({ useCrossApplicationContext: false }) });
+
+      await ctx.run();
+
+      expect(ctx.noteRepository.findRecentByUserExcludingApplication).not.toHaveBeenCalled();
+      expect(
+        ctx.documentDraftRepository.findRecentCoverLettersByUserExcludingApplication,
+      ).not.toHaveBeenCalled();
+      expect(ctx.prompt()).not.toMatch(/previous application/i);
+    });
+
+    it('puts notes and cover letters from other applications in the prompt when the preference is on', async () => {
+      const ctx = runWith({
+        user: makeUser({ useCrossApplicationContext: true }),
+        otherNotes: [makeNote({ content: 'They loved that I mentioned open source work.' })],
+        otherCoverLetters: [
+          makeDocumentDraft({ plainText: 'I thrive in ambiguous, 0-to-1 environments.' }),
+        ],
+      });
+
+      await ctx.run();
+
+      expect(ctx.noteRepository.findRecentByUserExcludingApplication).toHaveBeenCalledWith(
+        'user-1',
+        'app-1',
+        expect.any(Number),
+      );
+      expect(
+        ctx.documentDraftRepository.findRecentCoverLettersByUserExcludingApplication,
+      ).toHaveBeenCalledWith('user-1', 'app-1', expect.any(Number));
+      expect(ctx.prompt()).toContain('They loved that I mentioned open source work.');
+      expect(ctx.prompt()).toContain('I thrive in ambiguous, 0-to-1 environments.');
+    });
+
+    it('excludes the current application from the cross-application lookup', async () => {
+      // Otherwise this letter's own application would be quoted back at
+      // itself as if it were "a previous application".
+      const ctx = runWith({ user: makeUser({ useCrossApplicationContext: true }) });
+
+      await ctx.run();
+
+      const [, excludedApplicationId] = vi.mocked(
+        ctx.noteRepository.findRecentByUserExcludingApplication,
+      ).mock.calls[0]!;
+      expect(excludedApplicationId).toBe('app-1');
+    });
+
+    it('works exactly as before when the user has no other applications with content', async () => {
+      const ctx = runWith({
+        user: makeUser({ useCrossApplicationContext: true }),
+        otherNotes: [],
+        otherCoverLetters: [],
+      });
+
+      await expect(ctx.run()).resolves.toBe(COVER_LETTER);
+      expect(ctx.prompt()).not.toMatch(/previous application/i);
     });
   });
 });

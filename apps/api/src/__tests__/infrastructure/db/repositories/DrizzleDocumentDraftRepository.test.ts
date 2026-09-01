@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { eq } from 'drizzle-orm';
 import { DrizzleDocumentDraftRepository } from '#src/infrastructure/db/repositories/DrizzleDocumentDraftRepository.js';
 import { createTestDb, type TestDb } from '#src/__tests__/helpers/createTestDb.js';
 import { user, jobApplication, documentDraft } from '#src/infrastructure/db/schema.js';
@@ -62,6 +63,115 @@ describe('DrizzleDocumentDraftRepository', () => {
       const renamed = await repo.rename('draft-1', 'New name');
 
       expect(renamed.updatedAt.getTime()).toBeGreaterThanOrEqual(created.updatedAt.getTime());
+    });
+  });
+
+  describe('findRecentCoverLettersByUserExcludingApplication', () => {
+    beforeAll(async () => {
+      await db.db.insert(user).values({ id: 'u2', email: 'u2@t.com', passwordHash: 'h' });
+      await db.db.insert(jobApplication).values([
+        { id: 'app-2', userId: 'u1', company: 'Beta', role: 'Eng', status: 'draft' },
+        { id: 'app-3', userId: 'u2', company: 'Gamma', role: 'Eng', status: 'draft' },
+      ]);
+    });
+
+    afterAll(async () => {
+      await db.db.delete(jobApplication).where(eq(jobApplication.id, 'app-2'));
+      await db.db.delete(jobApplication).where(eq(jobApplication.id, 'app-3'));
+      await db.db.delete(user).where(eq(user.id, 'u2'));
+    });
+
+    it('excludes drafts on the application passed as excludeApplicationId', async () => {
+      await repo.create({
+        id: 'd-app1',
+        applicationId: 'app-1',
+        type: 'cover_letter',
+        title: 'App 1',
+        plainText: 'On app-1.',
+      });
+      await repo.create({
+        id: 'd-app2',
+        applicationId: 'app-2',
+        type: 'cover_letter',
+        title: 'App 2',
+        plainText: 'On app-2.',
+      });
+
+      const drafts = await repo.findRecentCoverLettersByUserExcludingApplication('u1', 'app-1', 10);
+
+      expect(drafts.map((d) => d.id)).toEqual(['d-app2']);
+    });
+
+    it('excludes resume drafts', async () => {
+      await repo.create({
+        id: 'd-app2-cl',
+        applicationId: 'app-2',
+        type: 'cover_letter',
+        title: 'Cover letter',
+        plainText: 'A cover letter.',
+      });
+      await repo.create({
+        id: 'd-app2-resume',
+        applicationId: 'app-2',
+        type: 'resume',
+        title: 'Resume',
+        plainText: 'A resume.',
+      });
+
+      const drafts = await repo.findRecentCoverLettersByUserExcludingApplication('u1', 'app-1', 10);
+
+      expect(drafts.map((d) => d.id)).toEqual(['d-app2-cl']);
+    });
+
+    it("excludes drafts belonging to a different user's applications", async () => {
+      await repo.create({
+        id: 'd-app2',
+        applicationId: 'app-2',
+        type: 'cover_letter',
+        title: 'Mine',
+        plainText: 'Mine.',
+      });
+      await repo.create({
+        id: 'd-app3',
+        applicationId: 'app-3',
+        type: 'cover_letter',
+        title: "Someone else's",
+        plainText: "Someone else's.",
+      });
+
+      const drafts = await repo.findRecentCoverLettersByUserExcludingApplication('u1', 'app-1', 10);
+
+      expect(drafts.map((d) => d.id)).toEqual(['d-app2']);
+    });
+
+    it('orders newest first and respects the limit', async () => {
+      await repo.create({
+        id: 'd-app2-a',
+        applicationId: 'app-2',
+        type: 'cover_letter',
+        title: 'Older',
+        plainText: 'Older.',
+      });
+      await db.db
+        .update(documentDraft)
+        .set({ updatedAt: new Date('2024-01-01T00:00:00Z') })
+        .where(eq(documentDraft.id, 'd-app2-a'));
+      await repo.create({
+        id: 'd-app2-b',
+        applicationId: 'app-2',
+        type: 'cover_letter',
+        title: 'Newer',
+        plainText: 'Newer.',
+      });
+      await db.db
+        .update(documentDraft)
+        .set({ updatedAt: new Date('2024-06-01T00:00:00Z') })
+        .where(eq(documentDraft.id, 'd-app2-b'));
+
+      const drafts = await repo.findRecentCoverLettersByUserExcludingApplication('u1', 'app-1', 1);
+
+      expect(drafts).toHaveLength(1);
+      expect(drafts[0].id).toBe('d-app2-b');
     });
   });
 });

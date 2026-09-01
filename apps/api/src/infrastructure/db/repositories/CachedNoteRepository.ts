@@ -53,4 +53,17 @@ export class CachedNoteRepository implements INoteRepository {
     await this.cache.delete(CACHE_KEYS.noteById(id));
     await this.cache.delete(CACHE_KEYS.noteList(applicationId));
   }
+
+  /**
+   * Not cached, matching `countByApplicationId` above. Spans every one of
+   * the user's other applications rather than a single `applicationId`, so
+   * there's no natural single key to invalidate on every note write.
+   */
+  async findRecentByUserExcludingApplication(
+    userId: string,
+    excludeApplicationId: string,
+    limit: number,
+  ): Promise<Note[]> {
+    return this.inner.findRecentByUserExcludingApplication(userId, excludeApplicationId, limit);
+  }
 }

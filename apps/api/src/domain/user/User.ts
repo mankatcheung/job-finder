@@ -20,6 +20,8 @@ export interface User {
   defaultLlmProvider: string | null;
   /** User-authored instruction spliced into the system prompt for AI-generated text (cover letters, chat assistant). */
   customAiPrompt: string | null;
+  /** Opt-in (JEF-249): feed a small, recent slice of the user's other applications' notes/cover letters into cover letter generation. */
+  useCrossApplicationContext: boolean;
   /** Secondary email for account recovery when primary inbox is inaccessible. */
   backupEmail: string | null;
   /** When the backup email was verified; null until verification completes. */

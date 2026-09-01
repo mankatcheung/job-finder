@@ -285,6 +285,7 @@ export class UserResolver {
     timezone?: string | null,
     targetRole?: string | null,
     customAiPrompt?: string | null,
+    useCrossApplicationContext?: boolean,
   ): Promise<void> {
     await this.deps.updateProfileUseCase.execute({
       userId,
@@ -292,6 +293,7 @@ export class UserResolver {
       timezone,
       targetRole,
       customAiPrompt,
+      useCrossApplicationContext,
     });
   }
 
