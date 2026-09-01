@@ -366,6 +366,39 @@ describe('SettingsSecurityPage', () => {
       });
     });
 
+    it('renders an MCP OAuth event with its label, not the raw event type (JEF-251)', async () => {
+      // These five shipped without a `security.event.*` key, and the
+      // component's `defaultValue` fallback rendered the constant verbatim.
+      // Worth pinning on the reuse case specifically: it means a detected
+      // token theft revoked the user's access, so it's the row they most
+      // need to be able to read.
+      mockGqlRequest.mockImplementation((query: unknown) => {
+        if (typeof query === 'string' && query.includes('SecurityActivity')) {
+          return Promise.resolve({
+            securityActivity: [
+              {
+                id: 'event-1',
+                eventType: 'mcp_oauth_refresh_reuse_detected',
+                ipAddress: null,
+                userAgent: null,
+                createdAt: '2024-01-01T00:00:00.000Z',
+              },
+            ],
+          });
+        }
+        return Promise.resolve(defaultResponse);
+      });
+
+      render(<SettingsSecurityPage />, { wrapper: Wrapper });
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Suspicious MCP token reuse detected — access revoked'),
+        ).toBeInTheDocument();
+      });
+      expect(screen.queryByText('mcp_oauth_refresh_reuse_detected')).not.toBeInTheDocument();
+    });
+
     it('shows a message when there is no security activity', async () => {
       render(<SettingsSecurityPage />, { wrapper: Wrapper });
 
