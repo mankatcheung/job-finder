@@ -6,7 +6,7 @@ import type {
   NotificationsPage,
 } from '#src/use-cases/ports/INotificationRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { CACHE_KEYS } from '#src/infrastructure/config/constants.js';
 
 interface Deps {
   drizzleNotificationRepository: INotificationRepository;

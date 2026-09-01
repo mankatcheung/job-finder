@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { PROVIDER_REGISTRY } from '#src/infrastructure/llm/providerRegistry.js';
-import { LLM_PROVIDER } from '#src/constants.js';
+import { LLM_PROVIDER } from '#src/use-cases/constants.js';
 
 describe('PROVIDER_REGISTRY', () => {
   it('has an entry for every LLM_PROVIDER value', () => {

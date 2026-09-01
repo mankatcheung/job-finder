@@ -6,7 +6,7 @@ import {
   APPLICATION_STATUSES,
   type ApplicationStatus,
 } from '#src/domain/application/ApplicationStatus.js';
-import { DURATIONS_MS } from '#src/constants.js';
+import { DURATIONS_MS } from '#src/use-cases/constants.js';
 
 interface Deps {
   shareLinkRepository: IShareLinkRepository;

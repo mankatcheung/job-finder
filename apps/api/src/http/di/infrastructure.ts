@@ -36,7 +36,12 @@ import { DocumentTextExtractor } from '#src/infrastructure/documents/DocumentTex
 import { ReactPdfDocumentRenderer } from '#src/infrastructure/pdf/ReactPdfDocumentRenderer.js';
 import { FetchJobPostingSourceResolver } from '#src/infrastructure/jobDescription/FetchJobPostingSourceResolver.js';
 
-import { ENV, EMAIL_PROVIDER, STORAGE_PROVIDER, OAUTH_PROVIDER_MODE } from '#src/constants.js';
+import {
+  EMAIL_PROVIDER,
+  ENV,
+  OAUTH_PROVIDER_MODE,
+  STORAGE_PROVIDER,
+} from '#src/infrastructure/config/constants.js';
 import type { Cradle } from './types.js';
 
 type StorageProviderConstructor = new () => LocalStorageProvider | VercelBlobStorageProvider;

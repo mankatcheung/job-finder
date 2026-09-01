@@ -1,4 +1,4 @@
-import { PAGINATION } from '#src/constants.js';
+import { PAGINATION } from '#src/use-cases/constants.js';
 import type { LLMToolDefinition } from '#src/use-cases/ports/ILLMProvider.js';
 
 /**

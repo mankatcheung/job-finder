@@ -7,7 +7,7 @@ import {
   makeUser,
   makeCreateNotificationUseCase,
 } from '#src/__tests__/helpers/mocks.js';
-import { SESSION } from '#src/constants.js';
+import { SESSION } from '#src/use-cases/constants.js';
 import type { IDeviceLabeler } from '#src/use-cases/ports/IDeviceLabeler.js';
 import type { IIpLocationResolver } from '#src/use-cases/ports/IIpLocationResolver.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';

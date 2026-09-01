@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { BulkRestoreApplicationsUseCase } from '#src/use-cases/jobs/BulkRestoreApplicationsUseCase.js';
 import { NotFoundError, ForbiddenError } from '#src/use-cases/errors/DomainError.js';
-import { BULK_ACTIONS } from '#src/constants.js';
+import { BULK_ACTIONS } from '#src/use-cases/constants.js';
 import type { IRestoreApplicationUseCase } from '#src/use-cases/jobs/IRestoreApplicationUseCase.js';
 
 const makeRestoreUseCase = (execute = vi.fn().mockResolvedValue(undefined)) =>

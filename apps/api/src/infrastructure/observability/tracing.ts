@@ -13,7 +13,7 @@ import {
 // default-import synthesis resolves to that whole namespace rather than the
 // class, so import the named export instead.
 import { FastifyOtelInstrumentation } from '@fastify/otel';
-import { AUTH_HEADER, AXIOM, ENV } from '#src/constants.js';
+import { AUTH_HEADER, AXIOM, ENV } from '#src/infrastructure/config/constants.js';
 
 /**
  * Must be registered as a Fastify plugin in buildApp() *before* routes and

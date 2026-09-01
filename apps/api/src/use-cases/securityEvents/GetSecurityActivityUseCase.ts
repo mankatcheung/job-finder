@@ -4,7 +4,7 @@ import type {
   IGetSecurityActivityUseCase,
   SecurityActivityItem,
 } from '#src/use-cases/securityEvents/IGetSecurityActivityUseCase.js';
-import { SECURITY_ACTIVITY } from '#src/constants.js';
+import { SECURITY_ACTIVITY } from '#src/use-cases/constants.js';
 
 interface Deps {
   loginEventRepository: ILoginEventRepository;

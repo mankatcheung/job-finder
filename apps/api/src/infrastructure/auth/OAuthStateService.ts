@@ -1,6 +1,6 @@
 import { createHmac, randomBytes } from 'crypto';
 import type { OAuthProviderName } from '#src/domain/oauthAccount/OAuthAccount.js';
-import { ENV, OAUTH } from '#src/constants.js';
+import { ENV, OAUTH } from '#src/infrastructure/config/constants.js';
 
 export interface OAuthState {
   provider: OAuthProviderName;

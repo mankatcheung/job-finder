@@ -32,12 +32,12 @@ import {
 } from '#src/infrastructure/observability/tracing.js';
 import {
   ENV,
-  NODE_ENV,
-  ROUTES,
-  STORAGE_PROVIDER,
-  OAUTH_PROVIDER_MODE,
   LLM_PROVIDER_MODE,
-} from '#src/constants.js';
+  NODE_ENV,
+  OAUTH_PROVIDER_MODE,
+  STORAGE_PROVIDER,
+} from '#src/infrastructure/config/constants.js';
+import { ROUTES } from '#src/http/constants.js';
 
 /**
  * Fully configures an already-constructed Fastify instance (cors/cookie/

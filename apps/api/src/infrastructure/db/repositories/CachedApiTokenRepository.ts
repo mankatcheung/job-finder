@@ -4,7 +4,7 @@ import type {
   CreateApiTokenData,
 } from '#src/use-cases/ports/IApiTokenRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE, CACHE_KEYS } from '#src/constants.js';
+import { CACHE, CACHE_KEYS } from '#src/infrastructure/config/constants.js';
 
 interface Deps {
   drizzleApiTokenRepository: IApiTokenRepository;

@@ -6,7 +6,7 @@ import {
   makeSecurityEventRepository,
   makeSecurityEvent,
 } from '#src/__tests__/helpers/mocks.js';
-import { SECURITY_ACTIVITY } from '#src/constants.js';
+import { SECURITY_ACTIVITY } from '#src/use-cases/constants.js';
 
 describe('GetSecurityActivityUseCase', () => {
   it('merges logins and security events into one feed', async () => {

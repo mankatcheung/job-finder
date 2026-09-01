@@ -1,4 +1,4 @@
-import { TRASH } from '#src/constants.js';
+import { TRASH } from '#src/use-cases/constants.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 import type { IPermanentlyDeleteApplicationUseCase } from '#src/use-cases/jobs/IPermanentlyDeleteApplicationUseCase.js';

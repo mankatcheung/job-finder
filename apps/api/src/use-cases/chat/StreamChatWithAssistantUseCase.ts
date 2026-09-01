@@ -10,7 +10,7 @@ import type { IMessageRepository } from '#src/use-cases/ports/IMessageRepository
 import type { IConversationRepository } from '#src/use-cases/ports/IConversationRepository.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { LLMToolCall, LLMToolDefinition } from '#src/use-cases/ports/ILLMProvider.js';
-import { CHAT } from '#src/constants.js';
+import { CHAT } from '#src/use-cases/constants.js';
 import {
   type ChatToolDeps,
   buildChatMessages,

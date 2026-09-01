@@ -1,7 +1,7 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import corsPlugin from '#src/http/adapters/fastify/corsPlugin.js';
-import { ENV } from '#src/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
 
 async function buildApp(corsOrigin: string): Promise<FastifyInstance> {
   process.env[ENV.CORS_ORIGIN] = corsOrigin;

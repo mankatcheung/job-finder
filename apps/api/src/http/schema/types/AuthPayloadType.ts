@@ -6,14 +6,8 @@ export interface UploadUrlPayloadDTO {
 }
 
 import { builder } from '#src/http/schema/builder.js';
-import {
-  COOKIE_MAX_AGE_S,
-  COOKIE_PATH,
-  COOKIE_SAME_SITE,
-  COOKIES,
-  ENV,
-  NODE_ENV,
-} from '#src/constants.js';
+import { ENV, NODE_ENV } from '#src/infrastructure/config/constants.js';
+import { COOKIES, COOKIE_MAX_AGE_S, COOKIE_PATH, COOKIE_SAME_SITE } from '#src/http/constants.js';
 
 export const UploadUrlPayloadRef = builder.objectRef<UploadUrlPayloadDTO>('UploadUrlPayload');
 UploadUrlPayloadRef.implement({

@@ -7,7 +7,7 @@ import type {
   LLMCompleteResult,
   LLMUsage,
 } from '#src/use-cases/ports/ILLMProvider.js';
-import { LLM } from '#src/constants.js';
+import { LLM } from '#src/use-cases/constants.js';
 import {
   fetchWithRetry,
   createIdleAbortController,

@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
 import { OfferRef, OfferComparisonRef } from '#src/http/schema/types/OfferType.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 const CreateOfferInput = builder.inputType('CreateOfferInput', {
   fields: (t) => ({

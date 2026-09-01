@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { buildTestApp, type TestApp } from './helpers/buildTestApp.js';
-import { TRASH } from '#src/constants.js';
+import { TRASH } from '#src/use-cases/constants.js';
 
 const REGISTER_MUTATION = `
   mutation Register($email: String!, $password: String!) {

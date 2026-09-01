@@ -3,7 +3,7 @@ import { UserLLMProviderFactory } from '#src/infrastructure/llm/UserLLMProviderF
 import { OpenAICompatibleLLMProvider } from '#src/infrastructure/llm/OpenAICompatibleLLMProvider.js';
 import { AnthropicLLMProvider } from '#src/infrastructure/llm/AnthropicLLMProvider.js';
 import { GoogleAILLMProvider } from '#src/infrastructure/llm/GoogleAILLMProvider.js';
-import { LLM_PROVIDER } from '#src/constants.js';
+import { LLM_PROVIDER } from '#src/use-cases/constants.js';
 import {
   makeUserRepository,
   makeUser,

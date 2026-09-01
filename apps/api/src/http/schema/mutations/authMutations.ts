@@ -4,7 +4,8 @@ import { setAuthCookies, clearAuthCookies } from '#src/http/schema/types/AuthPay
 import { LoginResultRef } from '#src/http/schema/types/LoginResultType.js';
 import { deviceInfoFrom } from '#src/http/schema/requestDeviceInfo.js';
 import { fromCodedError } from '#src/http/errors/AppError.js';
-import { COOKIES, ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
+import { COOKIES } from '#src/http/constants.js';
 
 builder.mutationField('register', (t) =>
   t.string({

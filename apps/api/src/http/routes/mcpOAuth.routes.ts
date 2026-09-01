@@ -5,7 +5,10 @@ import type { IHttpResponse } from '#src/http/ports/IHttpResponse.js';
 import type { SecurityEventType } from '#src/domain/securityEvent/SecurityEvent.js';
 import type { McpConsentSubject } from '#src/infrastructure/auth/McpOAuthConsentService.js';
 import type { McpOAuthScope } from '#src/domain/mcpOAuth/McpOAuthAccessToken.js';
-import { COOKIES, ENV, MCP, MCP_OAUTH } from '#src/constants.js';
+import { MCP_OAUTH } from '#src/use-cases/constants.js';
+import { MCP } from '#src/interface-adapters/mcp/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
+import { COOKIES, MCP_OAUTH_ROUTES } from '#src/http/constants.js';
 
 /**
  * The issuer this authorization server advertises.
@@ -27,7 +30,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
   return [
     {
       method: 'GET',
-      path: MCP_OAUTH.PROTECTED_RESOURCE_METADATA,
+      path: MCP_OAUTH_ROUTES.PROTECTED_RESOURCE_METADATA,
       handler: (req, res) => {
         const origin = issuerOrigin(req);
         res.send({
@@ -40,15 +43,15 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
     },
     {
       method: 'GET',
-      path: MCP_OAUTH.AUTHORIZATION_SERVER_METADATA,
+      path: MCP_OAUTH_ROUTES.AUTHORIZATION_SERVER_METADATA,
       handler: (req, res) => {
         const origin = issuerOrigin(req);
         res.send({
           issuer: origin,
-          authorization_endpoint: `${origin}${MCP_OAUTH.AUTHORIZE}`,
-          token_endpoint: `${origin}${MCP_OAUTH.TOKEN}`,
-          revocation_endpoint: `${origin}${MCP_OAUTH.REVOKE}`,
-          registration_endpoint: `${origin}${MCP_OAUTH.REGISTER}`,
+          authorization_endpoint: `${origin}${MCP_OAUTH_ROUTES.AUTHORIZE}`,
+          token_endpoint: `${origin}${MCP_OAUTH_ROUTES.TOKEN}`,
+          revocation_endpoint: `${origin}${MCP_OAUTH_ROUTES.REVOKE}`,
+          registration_endpoint: `${origin}${MCP_OAUTH_ROUTES.REGISTER}`,
           response_types_supported: ['code'],
           grant_types_supported: ['authorization_code', 'refresh_token'],
           code_challenge_methods_supported: ['S256'],
@@ -58,7 +61,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
     },
     {
       method: 'POST',
-      path: MCP_OAUTH.REGISTER,
+      path: MCP_OAUTH_ROUTES.REGISTER,
       handler: async (req, res) => {
         if (!(await allowRequest(_getCradle().mcpOAuthRegistrationRateLimiter, req, res))) return;
         const body = asRecord(req.body);
@@ -88,7 +91,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
     },
     {
       method: 'GET',
-      path: MCP_OAUTH.AUTHORIZE,
+      path: MCP_OAUTH_ROUTES.AUTHORIZE,
       handler: async (req, res) => {
         const request = authorizationRequest(req);
         if (
@@ -130,7 +133,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
     },
     {
       method: 'GET',
-      path: MCP_OAUTH.AUTHORIZE_APPROVE,
+      path: MCP_OAUTH_ROUTES.AUTHORIZE_APPROVE,
       handler: async (req, res) => {
         if (!sameSiteAsWebApp(_getCradle(), req, res)) return;
         if (!(await allowRequest(_getCradle().mcpOAuthAuthorizationRateLimiter, req, res))) return;
@@ -158,7 +161,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
     },
     {
       method: 'POST',
-      path: MCP_OAUTH.AUTHORIZE_APPROVE,
+      path: MCP_OAUTH_ROUTES.AUTHORIZE_APPROVE,
       handler: async (req, res) => {
         if (!sameSiteAsWebApp(_getCradle(), req, res)) return;
         if (!(await allowRequest(_getCradle().mcpOAuthAuthorizationRateLimiter, req, res))) return;
@@ -210,7 +213,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
     },
     {
       method: 'POST',
-      path: MCP_OAUTH.TOKEN,
+      path: MCP_OAUTH_ROUTES.TOKEN,
       handler: async (req, res) => {
         if (!(await allowRequest(_getCradle().mcpOAuthTokenRateLimiter, req, res))) return;
         const body = asRecord(req.body);
@@ -261,7 +264,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
     },
     {
       method: 'POST',
-      path: MCP_OAUTH.REVOKE,
+      path: MCP_OAUTH_ROUTES.REVOKE,
       handler: async (req, res) => {
         if (!(await allowRequest(_getCradle().mcpOAuthRevocationRateLimiter, req, res))) return;
         const body = asRecord(req.body);
@@ -280,7 +283,7 @@ export function mcpOAuthMetadataRoutes(_getCradle: () => Cradle): RouteDefinitio
 }
 
 export function protectedResourceMetadataUrl(request: IHttpRequest): string {
-  return `${issuerOrigin(request)}${MCP_OAUTH.PROTECTED_RESOURCE_METADATA}`;
+  return `${issuerOrigin(request)}${MCP_OAUTH_ROUTES.PROTECTED_RESOURCE_METADATA}`;
 }
 
 interface AuthorizationRequest {

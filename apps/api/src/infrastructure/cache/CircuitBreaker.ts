@@ -1,4 +1,4 @@
-import { CACHE } from '#src/constants.js';
+import { CACHE } from '#src/infrastructure/config/constants.js';
 
 export type CircuitState = 'closed' | 'open' | 'half-open';
 

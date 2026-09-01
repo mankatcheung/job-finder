@@ -12,7 +12,7 @@ import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import type { ICompanyBriefingRepository } from '#src/use-cases/ports/ICompanyBriefingRepository.js';
 import type { CompanyBriefing } from '#src/domain/companyBriefing/CompanyBriefing.js';
 import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
-import { AI_PROMPT_INPUT } from '#src/constants.js';
+import { AI_PROMPT_INPUT } from '#src/use-cases/constants.js';
 
 export interface GenerateCompanyBriefingInput {
   applicationId: string;

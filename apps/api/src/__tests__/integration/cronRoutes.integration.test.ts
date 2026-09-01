@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest';
-import { ENV, ROUTES } from '#src/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
+import { ROUTES } from '#src/http/constants.js';
 import { buildTestApp, type TestApp } from './helpers/buildTestApp.js';
 
 describe('cron routes integration', () => {

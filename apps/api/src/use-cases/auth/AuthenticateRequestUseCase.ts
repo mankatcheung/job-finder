@@ -1,4 +1,4 @@
-import { API_TOKEN, API_TOKEN_SCOPE } from '#src/constants.js';
+import { API_TOKEN, API_TOKEN_SCOPE } from '#src/use-cases/constants.js';
 import type { ITokenService } from '#src/use-cases/ports/ITokenService.js';
 import type { ISessionBlocklist } from '#src/use-cases/ports/ISessionBlocklist.js';
 import type { ValidateApiTokenUseCase } from '#src/use-cases/apiTokens/ValidateApiTokenUseCase.js';

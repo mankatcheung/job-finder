@@ -6,7 +6,7 @@ import 'dotenv/config';
 import Fastify from 'fastify';
 import { buildApp } from '#src/http/buildApp.js';
 import { startObservability } from '#src/infrastructure/observability/tracing.js';
-import { ENV, NODE_ENV } from '#src/constants.js';
+import { ENV, NODE_ENV } from '#src/infrastructure/config/constants.js';
 
 startObservability();
 

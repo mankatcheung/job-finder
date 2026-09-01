@@ -3,7 +3,7 @@ import { RestoreApplicationUseCase } from '#src/use-cases/jobs/RestoreApplicatio
 import { PurgeExpiredApplicationsUseCase } from '#src/use-cases/jobs/PurgeExpiredApplicationsUseCase.js';
 import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import { makeApplicationRepository, makeApplication } from '#src/__tests__/helpers/mocks.js';
-import { TRASH } from '#src/constants.js';
+import { TRASH } from '#src/use-cases/constants.js';
 
 const NOW = new Date('2026-08-20T12:00:00.000Z');
 const trashed = (over = {}) =>

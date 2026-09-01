@@ -3,7 +3,7 @@ import { createHash, randomBytes } from 'crypto';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IEmailVerificationTokenRepository } from '#src/use-cases/ports/IEmailVerificationTokenRepository.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
-import { EMAIL_VERIFICATION_TOKEN } from '#src/constants.js';
+import { EMAIL_VERIFICATION_TOKEN } from '#src/use-cases/constants.js';
 import type { ISendEmailVerificationUseCase } from '#src/use-cases/auth/ISendEmailVerificationUseCase.js';
 
 interface Deps {

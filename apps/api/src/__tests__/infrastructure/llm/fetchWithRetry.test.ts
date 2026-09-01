@@ -3,7 +3,7 @@ import {
   fetchWithRetry,
   createIdleAbortController,
 } from '#src/infrastructure/llm/fetchWithRetry.js';
-import { LLM } from '#src/constants.js';
+import { LLM } from '#src/use-cases/constants.js';
 
 const okResponse = (status = 200) => ({ ok: status < 400, status }) as Response;
 

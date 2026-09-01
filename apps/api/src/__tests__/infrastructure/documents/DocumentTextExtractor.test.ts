@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { DocumentTextExtractor } from '#src/infrastructure/documents/DocumentTextExtractor.js';
-import { MIME_TYPE } from '#src/constants.js';
+import { MIME_TYPE } from '#src/use-cases/constants.js';
 
 const FIXTURES_DIR = join(import.meta.dirname, '..', '..', 'fixtures');
 

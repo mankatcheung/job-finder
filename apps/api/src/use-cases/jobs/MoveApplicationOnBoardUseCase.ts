@@ -11,7 +11,7 @@ import type {
   MoveApplicationOnBoardInput,
   MoveApplicationOnBoardOutput,
 } from '#src/use-cases/jobs/IMoveApplicationOnBoardUseCase.js';
-import { BOARD } from '#src/constants.js';
+import { BOARD } from '#src/use-cases/constants.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

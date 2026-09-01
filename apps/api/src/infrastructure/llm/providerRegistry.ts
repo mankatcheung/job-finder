@@ -1,7 +1,7 @@
 import { GoogleAILLMProvider } from '#src/infrastructure/llm/GoogleAILLMProvider.js';
 import { AnthropicLLMProvider } from '#src/infrastructure/llm/AnthropicLLMProvider.js';
 import { OpenAICompatibleLLMProvider } from '#src/infrastructure/llm/OpenAICompatibleLLMProvider.js';
-import { LLM, LLM_PROVIDER } from '#src/constants.js';
+import { LLM, LLM_PROVIDER } from '#src/use-cases/constants.js';
 import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
 
 export interface LLMProviderRegistryEntry {

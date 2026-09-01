@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildTestApp, type TestApp } from './helpers/buildTestApp.js';
-import { ENV } from '#src/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
 
 /**
  * The full happy path for OAuth *login* (not link), driven end-to-end against

@@ -4,7 +4,7 @@ import { unlinkSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { ENV } from '#src/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
 import { applyMigrations } from '#src/infrastructure/db/applyMigrations.js';
 
 export interface TestApp {

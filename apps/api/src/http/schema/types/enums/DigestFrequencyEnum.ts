@@ -1,5 +1,5 @@
 import { builder } from '#src/http/schema/builder.js';
-import { DIGEST_FREQUENCY } from '#src/constants.js';
+import { DIGEST_FREQUENCY } from '#src/use-cases/constants.js';
 
 export const DigestFrequencyEnum = builder.enumType('DigestFrequency', {
   values: {

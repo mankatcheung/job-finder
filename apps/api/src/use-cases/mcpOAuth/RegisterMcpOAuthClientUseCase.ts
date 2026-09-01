@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { MCP_OAUTH } from '#src/constants.js';
+import { MCP_OAUTH } from '#src/use-cases/constants.js';
 import type { McpOAuthClient } from '#src/domain/mcpOAuth/McpOAuthClient.js';
 import type { IMcpOAuthClientRepository } from '#src/use-cases/ports/IMcpOAuthClientRepository.js';
 

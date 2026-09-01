@@ -2,7 +2,7 @@ import type { User } from '#src/domain/user/User.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
 import { BoundedMap } from '#src/infrastructure/cache/BoundedMap.js';
-import { CACHE, CACHE_KEYS } from '#src/constants.js';
+import { CACHE, CACHE_KEYS } from '#src/infrastructure/config/constants.js';
 
 interface Deps {
   drizzleUserRepository: IUserRepository;

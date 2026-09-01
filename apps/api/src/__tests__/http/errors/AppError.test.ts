@@ -10,7 +10,7 @@ import {
   AiResponseInvalidError,
   fromCodedError,
 } from '#src/http/errors/AppError.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 describe('AppError', () => {
   it('sets message, statusCode, code, and name', () => {

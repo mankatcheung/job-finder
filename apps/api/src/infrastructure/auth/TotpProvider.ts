@@ -1,7 +1,7 @@
 import { TOTP, NobleCryptoPlugin, ScureBase32Plugin } from 'otplib';
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto';
 import type { ITotpProvider } from '#src/use-cases/ports/ITotpProvider.js';
-import { ENV, TOTP_CONFIG } from '#src/constants.js';
+import { ENV, TOTP_CONFIG } from '#src/infrastructure/config/constants.js';
 
 const crypto = new NobleCryptoPlugin();
 const base32 = new ScureBase32Plugin();

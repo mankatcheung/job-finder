@@ -5,7 +5,7 @@ import type {
   UpdateWorkExperienceData,
 } from '#src/use-cases/ports/IWorkExperienceRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE_KEYS } from '#src/constants.js';
+import { CACHE_KEYS } from '#src/infrastructure/config/constants.js';
 
 interface Deps {
   drizzleWorkExperienceRepository: IWorkExperienceRepository;

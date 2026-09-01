@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { isSessionFresh } from '#src/use-cases/auth/sessionFreshness.js';
-import { REAUTH } from '#src/constants.js';
+import { REAUTH } from '#src/use-cases/constants.js';
 
 describe('isSessionFresh', () => {
   afterEach(() => {

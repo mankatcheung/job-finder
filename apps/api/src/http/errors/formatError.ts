@@ -1,6 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { fromCodedError } from '#src/http/errors/AppError.js';
-import { ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 
 // Expected client-facing error codes — these are not logged as server errors.

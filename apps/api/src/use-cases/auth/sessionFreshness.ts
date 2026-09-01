@@ -1,4 +1,4 @@
-import { REAUTH } from '#src/constants.js';
+import { REAUTH } from '#src/use-cases/constants.js';
 
 /**
  * `authTime` is the epoch-ms of a session's last full authentication (login

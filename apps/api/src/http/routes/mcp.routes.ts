@@ -2,7 +2,8 @@ import type { IHttpRequest } from '#src/http/ports/IHttpRequest.js';
 import type { IHttpResponse } from '#src/http/ports/IHttpResponse.js';
 import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
 import type { Cradle } from '#src/http/container.js';
-import { AUTH_HEADER, ROUTES } from '#src/constants.js';
+import { AUTH_HEADER } from '#src/infrastructure/config/constants.js';
+import { ROUTES } from '#src/http/constants.js';
 import { protectedResourceMetadataUrl } from './mcpOAuth.routes.js';
 
 /**

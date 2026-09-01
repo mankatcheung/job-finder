@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { CookieOptions, IHttpResponse } from '#src/http/ports/IHttpResponse.js';
-import { ENV, NODE_ENV } from '#src/constants.js';
+import { ENV, NODE_ENV } from '#src/infrastructure/config/constants.js';
 
 function fakeReply(): {
   reply: IHttpResponse;

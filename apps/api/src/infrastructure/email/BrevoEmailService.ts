@@ -4,7 +4,7 @@ import { buildPasswordResetHtml } from './templates/passwordResetTemplate.js';
 import { buildEmailVerificationHtml } from './templates/emailVerificationTemplate.js';
 import { buildBackupEmailVerificationHtml } from './templates/backupEmailVerificationTemplate.js';
 import { buildNewDeviceLoginAlertHtml } from './templates/newDeviceLoginAlertTemplate.js';
-import { EMAIL, ENV } from '#src/constants.js';
+import { EMAIL, ENV } from '#src/infrastructure/config/constants.js';
 
 export class BrevoEmailService implements IEmailService {
   private readonly apiKey: string;

@@ -1,5 +1,5 @@
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
-import { PAGINATION } from '#src/constants.js';
+import { PAGINATION } from '#src/use-cases/constants.js';
 import type {
   IGetApplicationsPageUseCase,
   GetApplicationsPageInput,

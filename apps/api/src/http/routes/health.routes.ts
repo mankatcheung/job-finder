@@ -1,5 +1,5 @@
 import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
-import { ROUTES } from '#src/constants.js';
+import { ROUTES } from '#src/http/constants.js';
 
 export function healthRoutes(): RouteDefinition[] {
   return [

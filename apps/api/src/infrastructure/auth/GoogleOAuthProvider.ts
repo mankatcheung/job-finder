@@ -1,5 +1,5 @@
 import type { IOAuthProvider, OAuthProfile } from '#src/use-cases/ports/IOAuthProvider.js';
-import { ENV, OAUTH } from '#src/constants.js';
+import { ENV, OAUTH } from '#src/infrastructure/config/constants.js';
 
 interface GoogleTokenResponse {
   access_token: string;

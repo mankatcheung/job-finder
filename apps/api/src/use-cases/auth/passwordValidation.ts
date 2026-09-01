@@ -1,5 +1,5 @@
 import { ValidationError } from '#src/use-cases/errors/DomainError.js';
-import { PASSWORD_MIN_LENGTH } from '#src/constants.js';
+import { PASSWORD_MIN_LENGTH } from '#src/use-cases/constants.js';
 
 export function assertValidPassword(password: string): void {
   if (password.length < PASSWORD_MIN_LENGTH) {

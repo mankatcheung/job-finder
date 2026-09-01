@@ -4,7 +4,7 @@ import type {
   IMcpOAuthTokenRepository,
 } from '#src/use-cases/ports/IMcpOAuthTokenRepository.js';
 import type { ICache } from '#src/infrastructure/cache/ICache.js';
-import { CACHE, CACHE_KEYS } from '#src/constants.js';
+import { CACHE, CACHE_KEYS } from '#src/infrastructure/config/constants.js';
 
 interface Deps {
   drizzleMcpOAuthTokenRepository: IMcpOAuthTokenRepository;

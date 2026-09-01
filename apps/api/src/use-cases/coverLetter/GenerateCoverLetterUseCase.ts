@@ -19,7 +19,7 @@ import { formatApplicationContext } from '#src/use-cases/shared/applicationConte
 import { formatCrossApplicationContext } from '#src/use-cases/shared/crossApplicationContext.js';
 import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
 import { loadUserProfile, formatUserProfile } from '#src/use-cases/shared/userProfile.js';
-import { AI_PROMPT_INPUT } from '#src/constants.js';
+import { AI_PROMPT_INPUT } from '#src/use-cases/constants.js';
 
 export interface GenerateCoverLetterInput {
   applicationId: string;

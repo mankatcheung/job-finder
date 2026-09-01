@@ -1,5 +1,5 @@
 import type { INotificationRepository } from '#src/use-cases/ports/INotificationRepository.js';
-import { PAGINATION } from '#src/constants.js';
+import { PAGINATION } from '#src/use-cases/constants.js';
 import type {
   IGetNotificationsPageUseCase,
   GetNotificationsPageInput,

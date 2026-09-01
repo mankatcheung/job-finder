@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetLoginHistoryUseCase } from '#src/use-cases/loginEvents/GetLoginHistoryUseCase.js';
 import { makeLoginEventRepository, makeLoginEvent } from '#src/__tests__/helpers/mocks.js';
-import { LOGIN_HISTORY } from '#src/constants.js';
+import { LOGIN_HISTORY } from '#src/use-cases/constants.js';
 
 describe('GetLoginHistoryUseCase', () => {
   it('returns the recent login events for the user', async () => {

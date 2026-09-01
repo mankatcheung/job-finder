@@ -1,4 +1,4 @@
-import { ENV } from '#src/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
 import type {
   IWebPushService,
   PushPayload,

@@ -6,7 +6,7 @@ import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 import type { IWebPushService } from '#src/use-cases/ports/IWebPushService.js';
 import type { ICreateNotificationUseCase } from '#src/use-cases/notifications/ICreateNotificationUseCase.js';
 import type { NotificationType } from '#src/domain/notification/Notification.js';
-import { REMINDER_WINDOW_MS, NOTIFICATION_TYPE } from '#src/constants.js';
+import { NOTIFICATION_TYPE, REMINDER_WINDOW_MS } from '#src/use-cases/constants.js';
 
 interface Deps {
   applicationRepository: IApplicationRepository;

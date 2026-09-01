@@ -3,7 +3,7 @@ import { asValue, type NameAndRegistrationPair } from 'awilix';
 import { RateLimiter } from '#src/infrastructure/rateLimit/RateLimiter.js';
 import { RedisRateLimiter } from '#src/infrastructure/rateLimit/RedisRateLimiter.js';
 import { getRedisClient } from '#src/infrastructure/cache/redisClient.js';
-import { RATE_LIMIT } from '#src/constants.js';
+import { RATE_LIMIT } from '#src/http/constants.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 
 import type { Cradle } from './types.js';

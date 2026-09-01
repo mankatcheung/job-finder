@@ -1,6 +1,6 @@
 import type { Note } from '#src/domain/note/Note.js';
 import type { CompanyBriefing } from '#src/domain/companyBriefing/CompanyBriefing.js';
-import { AI_PROMPT_INPUT } from '#src/constants.js';
+import { AI_PROMPT_INPUT } from '#src/use-cases/constants.js';
 
 /**
  * What the user has recorded *about this application*, as prompt text.

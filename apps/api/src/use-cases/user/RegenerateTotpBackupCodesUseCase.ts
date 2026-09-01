@@ -9,7 +9,7 @@ import bcrypt from 'bcryptjs';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ITotpBackupCodeRepository } from '#src/use-cases/ports/ITotpBackupCodeRepository.js';
 import type { ISecurityEventRepository } from '#src/use-cases/ports/ISecurityEventRepository.js';
-import { TOTP_BACKUP_CODES } from '#src/constants.js';
+import { TOTP_BACKUP_CODES } from '#src/use-cases/constants.js';
 import { assertHasPassword } from '#src/use-cases/auth/passwordHashGuard.js';
 import { isSessionFresh } from '#src/use-cases/auth/sessionFreshness.js';
 import type {

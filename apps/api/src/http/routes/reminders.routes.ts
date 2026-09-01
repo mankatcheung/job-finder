@@ -1,6 +1,7 @@
 import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
 import type { Cradle } from '#src/http/container.js';
-import { ENV, ROUTES } from '#src/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
+import { ROUTES } from '#src/http/constants.js';
 import { isAuthorizedCronTrigger } from '#src/http/routes/cronAuth.js';
 
 /**

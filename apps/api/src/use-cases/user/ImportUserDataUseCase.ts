@@ -5,7 +5,7 @@ import {
   APPLICATION_STATUSES,
   type ApplicationStatus,
 } from '#src/domain/application/ApplicationStatus.js';
-import { DEFAULTS } from '#src/constants.js';
+import { DEFAULTS } from '#src/use-cases/constants.js';
 import type {
   IImportUserDataUseCase,
   ImportSummary,

@@ -2,7 +2,7 @@ import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IInterviewRoundRepository } from '#src/use-cases/ports/IInterviewRoundRepository.js';
 import type { IActivityLogRepository } from '#src/use-cases/ports/IActivityLogRepository.js';
-import { DEFAULTS } from '#src/constants.js';
+import { DEFAULTS } from '#src/use-cases/constants.js';
 import type {
   ICreateInterviewRoundUseCase,
   CreateInterviewRoundInput,

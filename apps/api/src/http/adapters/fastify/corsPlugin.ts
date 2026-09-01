@@ -1,7 +1,7 @@
 import fp from 'fastify-plugin';
 import cors from '@fastify/cors';
 import type { FastifyInstance } from 'fastify';
-import { ENV } from '#src/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
 
 export default fp(async function corsPlugin(fastify: FastifyInstance) {
   const allowedOrigins = process.env[ENV.CORS_ORIGIN]

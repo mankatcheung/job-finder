@@ -2,7 +2,7 @@ import { createClient, type ResultSet } from '@libsql/client';
 import { drizzle } from 'drizzle-orm/libsql';
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import type { SQLiteTransaction } from 'drizzle-orm/sqlite-core';
-import { ENV } from '#src/constants.js';
+import { ENV } from '#src/infrastructure/config/constants.js';
 import * as schema from './schema.js';
 
 const client = createClient({

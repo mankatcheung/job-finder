@@ -1,6 +1,6 @@
 import type { IDocumentRepository } from '#src/use-cases/ports/IDocumentRepository.js';
 import type { IInterviewRoundRepository } from '#src/use-cases/ports/IInterviewRoundRepository.js';
-import { DOCUMENT_TYPE } from '#src/constants.js';
+import { DOCUMENT_TYPE } from '#src/use-cases/constants.js';
 
 export interface DocumentVersionOutcome {
   documentType: string;

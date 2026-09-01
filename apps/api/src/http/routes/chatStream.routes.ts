@@ -1,6 +1,8 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { DomainError } from '#src/use-cases/errors/DomainError.js';
-import { AUTH_HEADER, COOKIES, ERROR_CODES } from '#src/constants.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
+import { AUTH_HEADER } from '#src/infrastructure/config/constants.js';
+import { COOKIES } from '#src/http/constants.js';
 import { diScopeOf } from '#src/http/adapters/fastify/diScope.js';
 import { abortSignalFor } from '#src/http/adapters/fastify/buildGraphQLContext.js';
 

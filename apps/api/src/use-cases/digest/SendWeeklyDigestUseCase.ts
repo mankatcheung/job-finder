@@ -1,7 +1,7 @@
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IEmailService, WeeklyDigestData } from '#src/use-cases/ports/IEmailService.js';
-import { DURATIONS_MS, DIGEST_WINDOW_MS, DIGEST_FREQUENCY } from '#src/constants.js';
+import { DIGEST_FREQUENCY, DIGEST_WINDOW_MS, DURATIONS_MS } from '#src/use-cases/constants.js';
 import { getWeeklyApplicationGoalStats } from '#src/use-cases/user/weeklyApplicationGoal.js';
 
 interface Deps {

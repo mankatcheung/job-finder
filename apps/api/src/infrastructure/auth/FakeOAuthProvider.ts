@@ -1,6 +1,6 @@
 import type { IOAuthProvider, OAuthProfile } from '#src/use-cases/ports/IOAuthProvider.js';
 import type { OAuthProviderName } from '#src/domain/oauthAccount/OAuthAccount.js';
-import { ROUTES } from '#src/constants.js';
+import { FAKE_OAUTH } from '#src/infrastructure/config/constants.js';
 
 /**
  * A same-origin stand-in for Google/GitHub, selected by
@@ -26,7 +26,7 @@ abstract class FakeOAuthProvider implements IOAuthProvider {
   // token exchange for a challenge to protect.
   getAuthorizationUrl(state: string, _redirectUri: string, _codeChallenge: string): string {
     const params = new URLSearchParams({ provider: this.provider, state });
-    return `${ROUTES.OAUTH_FAKE_CONSENT}?${params.toString()}`;
+    return `${FAKE_OAUTH.CONSENT_PATH}?${params.toString()}`;
   }
 
   async exchangeCodeForProfile(

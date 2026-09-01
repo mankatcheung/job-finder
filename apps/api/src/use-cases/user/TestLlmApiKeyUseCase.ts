@@ -5,7 +5,7 @@ import {
 } from '#src/use-cases/errors/DomainError.js';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
-import { LLM, LLM_PROVIDER } from '#src/constants.js';
+import { LLM, LLM_PROVIDER } from '#src/use-cases/constants.js';
 import {
   assertValidLlmApiKeyShape,
   assertValidLlmProvider,
