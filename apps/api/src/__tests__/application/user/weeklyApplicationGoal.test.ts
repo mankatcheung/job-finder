@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getWeeklyApplicationGoalStats } from '#src/use-cases/user/weeklyApplicationGoal.js';
-import { makeApplication } from '#src/__tests__/helpers/mocks.js';
+import { makeApplication } from '#src/__tests__/helpers/mocks/jobs.js';
 
 const now = new Date('2026-08-12T12:00:00Z');
 const week = 7 * 24 * 60 * 60 * 1000;

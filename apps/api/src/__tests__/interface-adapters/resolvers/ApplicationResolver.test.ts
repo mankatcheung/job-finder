@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ApplicationResolver } from '#src/interface-adapters/resolvers/ApplicationResolver.js';
 import { ApplicationMapper } from '#src/interface-adapters/mappers/ApplicationMapper.js';
-import { makeApplication } from '#src/__tests__/helpers/mocks.js';
+import { makeApplication } from '#src/__tests__/helpers/mocks/jobs.js';
 import type { ICreateApplicationUseCase } from '#src/use-cases/jobs/ICreateApplicationUseCase.js';
 import type { IGetApplicationsUseCase } from '#src/use-cases/jobs/IGetApplicationsUseCase.js';
 import type { IGetApplicationsPageUseCase } from '#src/use-cases/jobs/IGetApplicationsPageUseCase.js';

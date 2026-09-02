@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetSecurityActivityUseCase } from '#src/use-cases/securityEvents/GetSecurityActivityUseCase.js';
 import {
-  makeLoginEventRepository,
   makeLoginEvent,
-  makeSecurityEventRepository,
+  makeLoginEventRepository,
   makeSecurityEvent,
-} from '#src/__tests__/helpers/mocks.js';
+  makeSecurityEventRepository,
+} from '#src/__tests__/helpers/mocks/auth.js';
 import { SECURITY_ACTIVITY } from '#src/use-cases/constants.js';
 
 describe('GetSecurityActivityUseCase', () => {

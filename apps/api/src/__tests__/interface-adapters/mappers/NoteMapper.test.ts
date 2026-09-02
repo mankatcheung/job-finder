@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { NoteMapper } from '#src/interface-adapters/mappers/NoteMapper.js';
-import { makeNote } from '#src/__tests__/helpers/mocks.js';
+import { makeNote } from '#src/__tests__/helpers/mocks/notes.js';
 
 describe('NoteMapper', () => {
   const mapper = new NoteMapper();

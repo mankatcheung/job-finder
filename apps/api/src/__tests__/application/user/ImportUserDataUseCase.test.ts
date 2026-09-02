@@ -1,11 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ImportUserDataUseCase } from '#src/use-cases/user/ImportUserDataUseCase.js';
 import { QuotaExceededError } from '#src/use-cases/errors/DomainError.js';
-import {
-  makeApplicationRepository,
-  makeNoteRepository,
-  makeApplication,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
+import { makeNoteRepository } from '#src/__tests__/helpers/mocks/notes.js';
 
 describe('ImportUserDataUseCase', () => {
   beforeEach(() => {

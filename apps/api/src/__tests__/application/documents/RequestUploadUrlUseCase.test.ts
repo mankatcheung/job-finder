@@ -1,11 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RequestUploadUrlUseCase } from '#src/use-cases/documents/RequestUploadUrlUseCase.js';
 import {
-  makeApplicationRepository,
-  makeStorageProvider,
   makeDocumentRepository,
-  makeApplication,
-} from '#src/__tests__/helpers/mocks.js';
+  makeStorageProvider,
+} from '#src/__tests__/helpers/mocks/documents.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 vi.mock('nanoid', () => ({ nanoid: vi.fn().mockReturnValue('fixed-nanoid') }));
 

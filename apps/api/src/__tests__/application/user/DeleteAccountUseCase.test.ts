@@ -2,12 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import bcrypt from 'bcryptjs';
 import { DeleteAccountUseCase } from '#src/use-cases/user/DeleteAccountUseCase.js';
 import {
-  makeUserRepository,
-  makeUser,
+  makeDocument,
   makeDocumentRepository,
   makeStorageProvider,
-  makeDocument,
-} from '#src/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks/documents.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 vi.mock('bcryptjs', () => ({
   default: {

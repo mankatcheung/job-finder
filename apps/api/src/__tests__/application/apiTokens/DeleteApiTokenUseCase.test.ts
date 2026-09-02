@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { DeleteApiTokenUseCase } from '#src/use-cases/apiTokens/DeleteApiTokenUseCase.js';
-import { makeApiTokenRepository, makeApiToken } from '#src/__tests__/helpers/mocks.js';
+import { makeApiToken, makeApiTokenRepository } from '#src/__tests__/helpers/mocks/apiTokens.js';
 
 describe('DeleteApiTokenUseCase', () => {
   it('throws NOT_FOUND when token does not belong to user', async () => {

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RotateRefreshTokenUseCase } from '#src/use-cases/sessions/RotateRefreshTokenUseCase.js';
-import { makeSessionRepository, makeSession, makeLogger } from '#src/__tests__/helpers/mocks.js';
+import { makeLogger } from '#src/__tests__/helpers/mocks/infrastructure.js';
+import { makeSession, makeSessionRepository } from '#src/__tests__/helpers/mocks/sessions.js';
 import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 import { SESSION } from '#src/use-cases/constants.js';
 

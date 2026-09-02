@@ -1,13 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
 import { LoginOrSignupWithOAuthUseCase } from '#src/use-cases/oauth/LoginOrSignupWithOAuthUseCase.js';
 import {
-  makeUserRepository,
-  makeUser,
-  makeOAuthAccountRepository,
   makeOAuthAccount,
-  makeOAuthProviderRegistry,
+  makeOAuthAccountRepository,
   makeOAuthProvider,
-} from '#src/__tests__/helpers/mocks.js';
+  makeOAuthProviderRegistry,
+} from '#src/__tests__/helpers/mocks/oauth.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 const input = {
   provider: 'google' as const,

@@ -1,11 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { UnlinkOAuthAccountUseCase } from '#src/use-cases/oauth/UnlinkOAuthAccountUseCase.js';
 import {
-  makeUserRepository,
-  makeUser,
-  makeOAuthAccountRepository,
   makeOAuthAccount,
-} from '#src/__tests__/helpers/mocks.js';
+  makeOAuthAccountRepository,
+} from '#src/__tests__/helpers/mocks/oauth.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 const input = { userId: 'user-1', provider: 'google' as const };
 

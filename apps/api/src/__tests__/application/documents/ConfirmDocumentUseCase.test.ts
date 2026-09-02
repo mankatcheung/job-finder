@@ -1,12 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ConfirmDocumentUseCase } from '#src/use-cases/documents/ConfirmDocumentUseCase.js';
 import {
-  makeApplicationRepository,
-  makeDocumentRepository,
-  makeApplication,
   makeDocument,
+  makeDocumentRepository,
   makeStorageProvider,
-} from '#src/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks/documents.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 describe('ConfirmDocumentUseCase', () => {
   it('throws NOT_FOUND when the application does not exist', async () => {

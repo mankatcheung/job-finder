@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { CachedSkillRepository } from '#src/infrastructure/db/repositories/CachedSkillRepository.js';
 import { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
-import { makeSkillRepository, makeSkill } from '#src/__tests__/helpers/mocks.js';
+import { makeSkill, makeSkillRepository } from '#src/__tests__/helpers/mocks/profile.js';
 
 function makeRepo() {
   const inner = makeSkillRepository();

@@ -2,14 +2,13 @@ import { describe, it, expect, vi } from 'vitest';
 import { CHAT_TOOLS, toLlmToolDefinitions } from '#src/interface-adapters/llm/toolCatalogue.js';
 import { StreamChatWithAssistantUseCase } from '#src/use-cases/chat/StreamChatWithAssistantUseCase.js';
 import {
-  makeRateLimiter,
-  makeLLMProviderFactory,
-  makeMessageRepository,
-  makeConversationRepository,
   makeConversation,
-  makeUserRepository,
-  makeUser,
-} from '#src/__tests__/helpers/mocks.js';
+  makeConversationRepository,
+  makeMessageRepository,
+} from '#src/__tests__/helpers/mocks/chat.js';
+import { makeRateLimiter } from '#src/__tests__/helpers/mocks/infrastructure.js';
+import { makeLLMProviderFactory } from '#src/__tests__/helpers/mocks/llm.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 import type {
   ILLMProvider,
   LLMStreamEvent,

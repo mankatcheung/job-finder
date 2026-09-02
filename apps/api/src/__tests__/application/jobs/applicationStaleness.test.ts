@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { makeApplication } from '#src/__tests__/helpers/mocks.js';
+import { makeApplication } from '#src/__tests__/helpers/mocks/jobs.js';
 import { isLikelyGhosted } from '#src/use-cases/jobs/applicationStaleness.js';
 
 const now = new Date('2026-08-20T12:00:00Z');

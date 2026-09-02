@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { NoteResolver } from '#src/interface-adapters/resolvers/NoteResolver.js';
 import { NoteMapper } from '#src/interface-adapters/mappers/NoteMapper.js';
-import { makeNote } from '#src/__tests__/helpers/mocks.js';
+import { makeNote } from '#src/__tests__/helpers/mocks/notes.js';
 import type { ICreateNoteUseCase } from '#src/use-cases/notes/ICreateNoteUseCase.js';
 import type { IGetNotesUseCase } from '#src/use-cases/notes/IGetNotesUseCase.js';
 import type { IUpdateNoteUseCase } from '#src/use-cases/notes/IUpdateNoteUseCase.js';

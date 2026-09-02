@@ -26,10 +26,10 @@ import type { GetApplicationChannelAnalyticsUseCase } from '#src/use-cases/appli
 import type { GetInterviewRoundAnalyticsUseCase } from '#src/use-cases/interviewRounds/GetInterviewRoundAnalyticsUseCase.js';
 import type { GetOfferAnalyticsUseCase } from '#src/use-cases/offers/GetOfferAnalyticsUseCase.js';
 import {
-  makeWorkExperienceRepository,
   makeEducationRepository,
   makeSkillRepository,
-} from '#src/__tests__/helpers/mocks.js';
+  makeWorkExperienceRepository,
+} from '#src/__tests__/helpers/mocks/profile.js';
 
 const USER_ID = 'user-1';
 

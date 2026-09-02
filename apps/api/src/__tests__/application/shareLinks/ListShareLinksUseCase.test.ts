@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ListShareLinksUseCase } from '#src/use-cases/shareLinks/ListShareLinksUseCase.js';
-import { makeShareLinkRepository, makeShareLink } from '#src/__tests__/helpers/mocks.js';
+import { makeShareLink, makeShareLinkRepository } from '#src/__tests__/helpers/mocks/shareLinks.js';
 
 describe('ListShareLinksUseCase', () => {
   it('returns all share links for the given user', async () => {

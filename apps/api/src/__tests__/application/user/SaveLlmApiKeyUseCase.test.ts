@@ -1,11 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { SaveLlmApiKeyUseCase } from '#src/use-cases/user/SaveLlmApiKeyUseCase.js';
-import {
-  makeUserRepository,
-  makeUser,
-  makeLlmApiKeyCipher,
-  makeLlmApiKeyRepository,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeLlmApiKeyCipher, makeLlmApiKeyRepository } from '#src/__tests__/helpers/mocks/llm.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 const generateId = () => 'llm-key-1';
 

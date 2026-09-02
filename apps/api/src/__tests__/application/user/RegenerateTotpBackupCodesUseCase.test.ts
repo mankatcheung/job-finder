@@ -4,9 +4,8 @@ import { RegenerateTotpBackupCodesUseCase } from '#src/use-cases/user/Regenerate
 import {
   makeSecurityEventRepository,
   makeTotpBackupCodeRepository,
-  makeUser,
-  makeUserRepository,
-} from '#src/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks/auth.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 describe('RegenerateTotpBackupCodesUseCase', () => {
   it('requires an enabled TOTP account', async () => {

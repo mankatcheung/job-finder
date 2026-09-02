@@ -1,6 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetNotificationsPageUseCase } from '#src/use-cases/notifications/GetNotificationsPageUseCase.js';
-import { makeNotificationRepository, makeNotification } from '#src/__tests__/helpers/mocks.js';
+import {
+  makeNotification,
+  makeNotificationRepository,
+} from '#src/__tests__/helpers/mocks/notifications.js';
 
 describe('GetNotificationsPageUseCase', () => {
   it('passes the userId and pagination through to the repository, defaulting the limit', async () => {

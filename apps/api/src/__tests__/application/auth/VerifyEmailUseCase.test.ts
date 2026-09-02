@@ -2,10 +2,10 @@ import { createHash } from 'crypto';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { VerifyEmailUseCase } from '#src/use-cases/auth/VerifyEmailUseCase.js';
 import {
-  makeUserRepository,
-  makeEmailVerificationTokenRepository,
   makeEmailVerificationToken,
-} from '#src/__tests__/helpers/mocks.js';
+  makeEmailVerificationTokenRepository,
+} from '#src/__tests__/helpers/mocks/auth.js';
+import { makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 const RAW_TOKEN = 'raw-verify-token';
 const TOKEN_HASH = createHash('sha256').update(RAW_TOKEN).digest('hex');

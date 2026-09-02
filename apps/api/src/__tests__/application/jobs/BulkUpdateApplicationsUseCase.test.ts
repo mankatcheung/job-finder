@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { BulkUpdateApplicationsUseCase } from '#src/use-cases/jobs/BulkUpdateApplicationsUseCase.js';
-import { makeApplication, makeTransactionManager } from '#src/__tests__/helpers/mocks.js';
+import { makeTransactionManager } from '#src/__tests__/helpers/mocks/infrastructure.js';
+import { makeApplication } from '#src/__tests__/helpers/mocks/jobs.js';
 import type { IUpdateApplicationUseCase } from '#src/use-cases/jobs/IUpdateApplicationUseCase.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;

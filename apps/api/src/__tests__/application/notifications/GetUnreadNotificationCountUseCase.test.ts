@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetUnreadNotificationCountUseCase } from '#src/use-cases/notifications/GetUnreadNotificationCountUseCase.js';
-import { makeNotificationRepository } from '#src/__tests__/helpers/mocks.js';
+import { makeNotificationRepository } from '#src/__tests__/helpers/mocks/notifications.js';
 
 describe('GetUnreadNotificationCountUseCase', () => {
   it("returns the repository's unread count for the user", async () => {

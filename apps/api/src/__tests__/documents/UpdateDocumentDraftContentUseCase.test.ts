@@ -1,11 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { UpdateDocumentDraftContentUseCase } from '#src/use-cases/documents/UpdateDocumentDraftContentUseCase.js';
 import {
-  makeApplicationRepository,
-  makeDocumentDraftRepository,
-  makeApplication,
   makeDocumentDraft,
-} from '#src/__tests__/helpers/mocks.js';
+  makeDocumentDraftRepository,
+} from '#src/__tests__/helpers/mocks/documents.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 describe('UpdateDocumentDraftContentUseCase', () => {
   it('throws NOT_FOUND when the draft does not exist', async () => {

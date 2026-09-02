@@ -1,11 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import bcrypt from 'bcryptjs';
 import { LoginUseCase } from '#src/use-cases/auth/LoginUseCase.js';
-import {
-  makeUserRepository,
-  makeUser,
-  makeLoginEventRepository,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeLoginEventRepository } from '#src/__tests__/helpers/mocks/auth.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 vi.mock('bcryptjs', () => ({
   default: {

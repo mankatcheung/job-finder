@@ -1,11 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetDocumentVersionOutcomesUseCase } from '#src/use-cases/documents/GetDocumentVersionOutcomesUseCase.js';
+import { makeDocument, makeDocumentRepository } from '#src/__tests__/helpers/mocks/documents.js';
 import {
-  makeDocumentRepository,
-  makeDocument,
-  makeInterviewRoundRepository,
   makeInterviewRound,
-} from '#src/__tests__/helpers/mocks.js';
+  makeInterviewRoundRepository,
+} from '#src/__tests__/helpers/mocks/interviews.js';
 
 describe('GetDocumentVersionOutcomesUseCase', () => {
   it('returns an empty list when the user has no documents', async () => {

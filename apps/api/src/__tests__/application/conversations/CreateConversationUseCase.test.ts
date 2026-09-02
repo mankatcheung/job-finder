@@ -1,11 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { CreateConversationUseCase } from '#src/use-cases/conversations/CreateConversationUseCase.js';
-import {
-  makeConversationRepository,
-  makeConversation,
-  makeLlmApiKeyRepository,
-  makeLlmApiKey,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeConversation, makeConversationRepository } from '#src/__tests__/helpers/mocks/chat.js';
+import { makeLlmApiKey, makeLlmApiKeyRepository } from '#src/__tests__/helpers/mocks/llm.js';
 
 describe('CreateConversationUseCase', () => {
   it('creates a conversation for the user with a generated id and no locked provider', async () => {

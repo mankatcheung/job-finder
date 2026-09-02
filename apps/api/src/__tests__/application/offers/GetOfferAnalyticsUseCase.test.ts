@@ -1,11 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetOfferAnalyticsUseCase } from '#src/use-cases/offers/GetOfferAnalyticsUseCase.js';
-import {
-  makeOfferRepository,
-  makeOffer,
-  makeApplicationRepository,
-  makeApplication,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
+import { makeOffer, makeOfferRepository } from '#src/__tests__/helpers/mocks/offers.js';
 
 describe('GetOfferAnalyticsUseCase', () => {
   it('returns empty trend and byCurrency when there are no offers', async () => {

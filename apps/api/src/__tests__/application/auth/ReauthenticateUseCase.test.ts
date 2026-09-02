@@ -4,13 +4,12 @@ import { TOTP, NobleCryptoPlugin, ScureBase32Plugin } from 'otplib';
 import bcrypt from 'bcryptjs';
 import { ReauthenticateUseCase } from '#src/use-cases/auth/ReauthenticateUseCase.js';
 import {
-  makeUserRepository,
-  makeUser,
-  makeTotpBackupCodeRepository,
   makeTotpBackupCode,
-  makeRateLimiter,
+  makeTotpBackupCodeRepository,
   makeTotpProvider,
-} from '#src/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks/auth.js';
+import { makeRateLimiter } from '#src/__tests__/helpers/mocks/infrastructure.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 vi.mock('bcryptjs', () => ({
   default: {

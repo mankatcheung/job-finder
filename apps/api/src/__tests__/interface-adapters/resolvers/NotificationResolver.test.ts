@@ -4,7 +4,7 @@ import { NotificationMapper } from '#src/interface-adapters/mappers/Notification
 import type { IGetNotificationsPageUseCase } from '#src/use-cases/notifications/IGetNotificationsPageUseCase.js';
 import type { IMarkNotificationsReadUseCase } from '#src/use-cases/notifications/IMarkNotificationsReadUseCase.js';
 import type { IGetUnreadNotificationCountUseCase } from '#src/use-cases/notifications/IGetUnreadNotificationCountUseCase.js';
-import { makeNotification } from '#src/__tests__/helpers/mocks.js';
+import { makeNotification } from '#src/__tests__/helpers/mocks/notifications.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

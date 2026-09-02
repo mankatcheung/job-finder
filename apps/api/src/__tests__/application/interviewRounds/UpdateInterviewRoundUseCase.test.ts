@@ -1,11 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { UpdateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/UpdateInterviewRoundUseCase.js';
 import {
-  makeApplicationRepository,
-  makeInterviewRoundRepository,
-  makeApplication,
   makeInterviewRound,
-} from '#src/__tests__/helpers/mocks.js';
+  makeInterviewRoundRepository,
+} from '#src/__tests__/helpers/mocks/interviews.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 describe('UpdateInterviewRoundUseCase', () => {
   it('throws NOT_FOUND when the round does not exist', async () => {

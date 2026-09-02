@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { RequestAvatarUploadUrlUseCase } from '#src/use-cases/user/RequestAvatarUploadUrlUseCase.js';
-import { makeStorageProvider } from '#src/__tests__/helpers/mocks.js';
+import { makeStorageProvider } from '#src/__tests__/helpers/mocks/documents.js';
 
 vi.mock('nanoid', () => ({ nanoid: vi.fn().mockReturnValue('fixed-nanoid') }));
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetLlmUsageSummaryUseCase } from '#src/use-cases/user/GetLlmUsageSummaryUseCase.js';
-import { makeLlmUsageEventRepository } from '#src/__tests__/helpers/mocks.js';
+import { makeLlmUsageEventRepository } from '#src/__tests__/helpers/mocks/llm.js';
 
 describe('GetLlmUsageSummaryUseCase', () => {
   it('passes the start of the current UTC month as the cutoff', async () => {

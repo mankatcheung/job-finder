@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { MarkNotificationsReadUseCase } from '#src/use-cases/notifications/MarkNotificationsReadUseCase.js';
-import { makeNotificationRepository } from '#src/__tests__/helpers/mocks.js';
+import { makeNotificationRepository } from '#src/__tests__/helpers/mocks/notifications.js';
 
 describe('MarkNotificationsReadUseCase', () => {
   it('marks the given notifications read for the user', async () => {

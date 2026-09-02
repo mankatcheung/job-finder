@@ -1,12 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CreateSessionUseCase } from '#src/use-cases/sessions/CreateSessionUseCase.js';
-import {
-  makeSessionRepository,
-  makeSession,
-  makeUserRepository,
-  makeUser,
-  makeCreateNotificationUseCase,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeCreateNotificationUseCase } from '#src/__tests__/helpers/mocks/notifications.js';
+import { makeSession, makeSessionRepository } from '#src/__tests__/helpers/mocks/sessions.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 import { SESSION } from '#src/use-cases/constants.js';
 import type { IDeviceLabeler } from '#src/use-cases/ports/IDeviceLabeler.js';
 import type { IIpLocationResolver } from '#src/use-cases/ports/IIpLocationResolver.js';

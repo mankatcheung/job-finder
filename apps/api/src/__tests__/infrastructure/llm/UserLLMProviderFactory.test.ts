@@ -5,13 +5,12 @@ import { AnthropicLLMProvider } from '#src/infrastructure/llm/AnthropicLLMProvid
 import { GoogleAILLMProvider } from '#src/infrastructure/llm/GoogleAILLMProvider.js';
 import { LLM_PROVIDER } from '#src/use-cases/constants.js';
 import {
-  makeUserRepository,
-  makeUser,
+  makeLlmApiKey,
   makeLlmApiKeyCipher,
   makeLlmApiKeyRepository,
-  makeLlmApiKey,
   makeLlmUsageEventRepository,
-} from '#src/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks/llm.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 describe('UserLLMProviderFactory', () => {
   it('returns null when no provider is given and the user has no default configured', async () => {
