@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RegisterUseCase } from '#src/use-cases/auth/RegisterUseCase.js';
-import { makeUserRepository, makeUser } from '#src/__tests__/helpers/mocks.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 import type { ISendEmailVerificationUseCase } from '#src/use-cases/auth/ISendEmailVerificationUseCase.js';
 
 vi.mock('bcryptjs', () => ({

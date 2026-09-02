@@ -3,7 +3,7 @@ import { OAuthResolver } from '#src/interface-adapters/resolvers/OAuthResolver.j
 import { OAuthAccountMapper } from '#src/interface-adapters/mappers/OAuthAccountMapper.js';
 import type { IListLinkedOAuthAccountsUseCase } from '#src/use-cases/oauth/IListLinkedOAuthAccountsUseCase.js';
 import type { IUnlinkOAuthAccountUseCase } from '#src/use-cases/oauth/IUnlinkOAuthAccountUseCase.js';
-import { makeOAuthAccount } from '#src/__tests__/helpers/mocks.js';
+import { makeOAuthAccount } from '#src/__tests__/helpers/mocks/oauth.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

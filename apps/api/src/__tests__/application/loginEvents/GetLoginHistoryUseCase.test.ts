@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetLoginHistoryUseCase } from '#src/use-cases/loginEvents/GetLoginHistoryUseCase.js';
-import { makeLoginEventRepository, makeLoginEvent } from '#src/__tests__/helpers/mocks.js';
+import { makeLoginEvent, makeLoginEventRepository } from '#src/__tests__/helpers/mocks/auth.js';
 import { LOGIN_HISTORY } from '#src/use-cases/constants.js';
 
 describe('GetLoginHistoryUseCase', () => {

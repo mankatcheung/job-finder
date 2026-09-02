@@ -2,12 +2,11 @@ import { createHash } from 'crypto';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ConfirmEmailChangeUseCase } from '#src/use-cases/user/ConfirmEmailChangeUseCase.js';
 import {
-  makeUserRepository,
-  makeUser,
-  makeEmailVerificationTokenRepository,
   makeEmailVerificationToken,
+  makeEmailVerificationTokenRepository,
   makeSecurityEventRepository,
-} from '#src/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks/auth.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 const RAW_TOKEN = 'raw-confirm-token';
 const TOKEN_HASH = createHash('sha256').update(RAW_TOKEN).digest('hex');

@@ -1,11 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { TestLlmApiKeyUseCase } from '#src/use-cases/user/TestLlmApiKeyUseCase.js';
 import { LLM } from '#src/use-cases/constants.js';
-import {
-  makeLLMProviderFactory,
-  makeLLMProvider,
-  makeRateLimiter,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeRateLimiter } from '#src/__tests__/helpers/mocks/infrastructure.js';
+import { makeLLMProvider, makeLLMProviderFactory } from '#src/__tests__/helpers/mocks/llm.js';
 
 describe('TestLlmApiKeyUseCase', () => {
   it('throws RATE_LIMITED when the limiter denies the attempt', async () => {

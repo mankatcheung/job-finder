@@ -1,10 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ParseJobDescriptionUseCase } from '#src/use-cases/jobDescription/ParseJobDescriptionUseCase.js';
-import {
-  makeLLMProvider,
-  makeLLMProviderFactory,
-  makeRateLimiter,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeRateLimiter } from '#src/__tests__/helpers/mocks/infrastructure.js';
+import { makeLLMProvider, makeLLMProviderFactory } from '#src/__tests__/helpers/mocks/llm.js';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IJobPostingSourceResolver } from '#src/use-cases/ports/IJobPostingSourceResolver.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';

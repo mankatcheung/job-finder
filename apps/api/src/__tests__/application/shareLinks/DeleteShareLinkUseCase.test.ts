@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { DeleteShareLinkUseCase } from '#src/use-cases/shareLinks/DeleteShareLinkUseCase.js';
-import { makeShareLinkRepository, makeShareLink } from '#src/__tests__/helpers/mocks.js';
+import { makeShareLink, makeShareLinkRepository } from '#src/__tests__/helpers/mocks/shareLinks.js';
 
 describe('DeleteShareLinkUseCase', () => {
   it('throws NOT_FOUND when the link does not belong to the user', async () => {

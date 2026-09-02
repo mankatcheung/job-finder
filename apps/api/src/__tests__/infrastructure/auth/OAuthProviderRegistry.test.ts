@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { OAuthProviderRegistry } from '#src/infrastructure/auth/OAuthProviderRegistry.js';
-import { makeOAuthProvider } from '#src/__tests__/helpers/mocks.js';
+import { makeOAuthProvider } from '#src/__tests__/helpers/mocks/oauth.js';
 
 describe('OAuthProviderRegistry', () => {
   it('resolves google to the google provider instance', () => {

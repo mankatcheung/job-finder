@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetApplicationsPageUseCase } from '#src/use-cases/jobs/GetApplicationsPageUseCase.js';
-import { makeApplicationRepository, makeApplication } from '#src/__tests__/helpers/mocks.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 describe('GetApplicationsPageUseCase', () => {
   it('passes filters and pagination through to the repository, defaulting the limit', async () => {

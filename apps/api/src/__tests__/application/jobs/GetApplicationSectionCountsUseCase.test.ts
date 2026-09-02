@@ -1,15 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetApplicationSectionCountsUseCase } from '#src/use-cases/jobs/GetApplicationSectionCountsUseCase.js';
+import { makeContactRepository } from '#src/__tests__/helpers/mocks/contacts.js';
 import {
-  makeApplicationRepository,
-  makeApplication,
-  makeNoteRepository,
-  makeInterviewRoundRepository,
-  makeContactRepository,
-  makeOfferRepository,
-  makeDocumentRepository,
   makeDocumentDraftRepository,
-} from '#src/__tests__/helpers/mocks.js';
+  makeDocumentRepository,
+} from '#src/__tests__/helpers/mocks/documents.js';
+import { makeInterviewRoundRepository } from '#src/__tests__/helpers/mocks/interviews.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
+import { makeNoteRepository } from '#src/__tests__/helpers/mocks/notes.js';
+import { makeOfferRepository } from '#src/__tests__/helpers/mocks/offers.js';
 
 function makeUseCase(counts?: Partial<Record<string, number>>, appUserId = 'user-1') {
   const c = (n: number | undefined) => vi.fn().mockResolvedValue(n ?? 0);

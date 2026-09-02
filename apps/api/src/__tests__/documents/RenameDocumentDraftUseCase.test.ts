@@ -1,11 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { RenameDocumentDraftUseCase } from '#src/use-cases/documents/RenameDocumentDraftUseCase.js';
 import {
-  makeApplicationRepository,
-  makeDocumentDraftRepository,
-  makeApplication,
   makeDocumentDraft,
-} from '#src/__tests__/helpers/mocks.js';
+  makeDocumentDraftRepository,
+} from '#src/__tests__/helpers/mocks/documents.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 const makeUseCase = (over?: Parameters<typeof makeDocumentDraftRepository>[0]) => {
   const documentDraftRepository = makeDocumentDraftRepository({

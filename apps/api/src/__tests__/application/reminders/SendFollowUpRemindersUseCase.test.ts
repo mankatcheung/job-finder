@@ -1,11 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { SendFollowUpRemindersUseCase } from '#src/use-cases/reminders/SendFollowUpRemindersUseCase.js';
-import {
-  makeApplicationRepository,
-  makeUserRepository,
-  makeApplication,
-  makeUser,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 
 const makeEmailService = (overrides?: Partial<IEmailService>): IEmailService => ({

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { SearchConversationsUseCase } from '#src/use-cases/conversations/SearchConversationsUseCase.js';
-import { makeConversationRepository, makeConversation } from '#src/__tests__/helpers/mocks.js';
+import { makeConversation, makeConversationRepository } from '#src/__tests__/helpers/mocks/chat.js';
 
 describe('SearchConversationsUseCase', () => {
   it('searches the user’s conversations by the trimmed term', async () => {

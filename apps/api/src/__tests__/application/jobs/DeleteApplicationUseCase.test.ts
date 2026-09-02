@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { DeleteApplicationUseCase } from '#src/use-cases/jobs/DeleteApplicationUseCase.js';
 import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
-import { makeApplicationRepository, makeApplication } from '#src/__tests__/helpers/mocks.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 const NOW = new Date('2026-08-20T12:00:00.000Z');
 

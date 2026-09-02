@@ -1,10 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SendEmailVerificationUseCase } from '#src/use-cases/auth/SendEmailVerificationUseCase.js';
-import {
-  makeUserRepository,
-  makeEmailVerificationTokenRepository,
-  makeUser,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeEmailVerificationTokenRepository } from '#src/__tests__/helpers/mocks/auth.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 
 const makeEmailService = (overrides?: Partial<IEmailService>): IEmailService => ({

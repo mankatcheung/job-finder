@@ -3,11 +3,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import bcrypt from 'bcryptjs';
 import { ResetPasswordUseCase } from '#src/use-cases/auth/ResetPasswordUseCase.js';
 import {
-  makeUserRepository,
-  makePasswordResetTokenRepository,
   makePasswordResetToken,
-  makeSessionRepository,
-} from '#src/__tests__/helpers/mocks.js';
+  makePasswordResetTokenRepository,
+} from '#src/__tests__/helpers/mocks/auth.js';
+import { makeSessionRepository } from '#src/__tests__/helpers/mocks/sessions.js';
+import { makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 vi.mock('bcryptjs', () => ({
   default: {

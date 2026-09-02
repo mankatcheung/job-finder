@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { CachedEducationRepository } from '#src/infrastructure/db/repositories/CachedEducationRepository.js';
 import { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
-import { makeEducationRepository, makeEducation } from '#src/__tests__/helpers/mocks.js';
+import { makeEducation, makeEducationRepository } from '#src/__tests__/helpers/mocks/profile.js';
 
 function makeRepo() {
   const inner = makeEducationRepository();

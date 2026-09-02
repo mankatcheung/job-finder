@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UpdateProfileUseCase } from '#src/use-cases/user/UpdateProfileUseCase.js';
-import { makeUserRepository, makeUser } from '#src/__tests__/helpers/mocks.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 describe('UpdateProfileUseCase', () => {
   beforeEach(() => {

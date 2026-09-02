@@ -1,6 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { CreateNotificationUseCase } from '#src/use-cases/notifications/CreateNotificationUseCase.js';
-import { makeNotificationRepository, makeNotification } from '#src/__tests__/helpers/mocks.js';
+import {
+  makeNotification,
+  makeNotificationRepository,
+} from '#src/__tests__/helpers/mocks/notifications.js';
 
 describe('CreateNotificationUseCase', () => {
   it('generates an id and creates the notification', async () => {

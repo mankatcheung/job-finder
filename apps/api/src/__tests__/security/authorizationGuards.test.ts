@@ -11,14 +11,15 @@ import { RequestEmailChangeUseCase } from '#src/use-cases/user/RequestEmailChang
 import { UpdatePasswordUseCase } from '#src/use-cases/user/UpdatePasswordUseCase.js';
 import { DeleteAccountUseCase } from '#src/use-cases/user/DeleteAccountUseCase.js';
 import {
-  makeUserRepository,
-  makeUser,
   makeEmailVerificationTokenRepository,
-  makeRateLimiter,
   makeSecurityEventRepository,
+} from '#src/__tests__/helpers/mocks/auth.js';
+import {
   makeDocumentRepository,
   makeStorageProvider,
-} from '#src/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks/documents.js';
+import { makeRateLimiter } from '#src/__tests__/helpers/mocks/infrastructure.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 
 vi.mock('bcryptjs', () => ({

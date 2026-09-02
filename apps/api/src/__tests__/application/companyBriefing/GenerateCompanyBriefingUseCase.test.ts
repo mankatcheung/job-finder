@@ -1,15 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GenerateCompanyBriefingUseCase } from '#src/use-cases/companyBriefing/GenerateCompanyBriefingUseCase.js';
+import { makeRateLimiter } from '#src/__tests__/helpers/mocks/infrastructure.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 import {
-  makeApplicationRepository,
-  makeApplication,
+  makeCompanyBriefingRepository,
   makeLLMProvider,
   makeLLMProviderFactory,
-  makeUserRepository,
-  makeUser,
-  makeRateLimiter,
-  makeCompanyBriefingRepository,
-} from '#src/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks/llm.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 const BRIEFING = 'Company overview:\nAcme builds widgets…\n\nTalking points:\n- Ask about X';
 

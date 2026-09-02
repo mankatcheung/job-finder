@@ -1,10 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { MoveApplicationOnBoardUseCase } from '#src/use-cases/jobs/MoveApplicationOnBoardUseCase.js';
-import {
-  makeApplication,
-  makeApplicationRepository,
-  makeTransactionManager,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeTransactionManager } from '#src/__tests__/helpers/mocks/infrastructure.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 import type { IUpdateApplicationUseCase } from '#src/use-cases/jobs/IUpdateApplicationUseCase.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 

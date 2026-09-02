@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { InterviewRoundResolver } from '#src/interface-adapters/resolvers/InterviewRoundResolver.js';
 import { InterviewRoundMapper } from '#src/interface-adapters/mappers/InterviewRoundMapper.js';
-import { makeInterviewRound } from '#src/__tests__/helpers/mocks.js';
+import { makeInterviewRound } from '#src/__tests__/helpers/mocks/interviews.js';
 import type { ICreateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/ICreateInterviewRoundUseCase.js';
 import type { IGetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/IGetInterviewRoundsUseCase.js';
 import type { IUpdateInterviewRoundUseCase } from '#src/use-cases/interviewRounds/IUpdateInterviewRoundUseCase.js';

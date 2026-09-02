@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { BlocklistingSessionRepository } from '#src/infrastructure/db/repositories/BlocklistingSessionRepository.js';
 import { MemorySessionBlocklist } from '#src/infrastructure/sessionBlocklist/MemorySessionBlocklist.js';
-import { makeSessionRepository, makeSession } from '#src/__tests__/helpers/mocks.js';
+import { makeSession, makeSessionRepository } from '#src/__tests__/helpers/mocks/sessions.js';
 
 function makeRepo(innerOverrides?: Parameters<typeof makeSessionRepository>[0]) {
   const drizzleSessionRepository = makeSessionRepository(innerOverrides);

@@ -1,7 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { CachedWorkExperienceRepository } from '#src/infrastructure/db/repositories/CachedWorkExperienceRepository.js';
 import { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
-import { makeWorkExperienceRepository, makeWorkExperience } from '#src/__tests__/helpers/mocks.js';
+import {
+  makeWorkExperience,
+  makeWorkExperienceRepository,
+} from '#src/__tests__/helpers/mocks/profile.js';
 
 function makeRepo() {
   const inner = makeWorkExperienceRepository();

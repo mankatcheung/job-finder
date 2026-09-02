@@ -1,18 +1,18 @@
 import { describe, it, expect, vi } from 'vitest';
 import { SendPushNotificationsUseCase } from '#src/use-cases/push/SendPushNotificationsUseCase.js';
 import type { IWebPushService } from '#src/use-cases/ports/IWebPushService.js';
+import { makeLogger } from '#src/__tests__/helpers/mocks/infrastructure.js';
 import {
-  makeApplicationRepository,
-  makeApplication,
-  makeInterviewRoundRepository,
   makeInterviewRound,
-  makeUserRepository,
-  makeUser,
-  makePushSubscriptionRepository,
+  makeInterviewRoundRepository,
+} from '#src/__tests__/helpers/mocks/interviews.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
+import { makeCreateNotificationUseCase } from '#src/__tests__/helpers/mocks/notifications.js';
+import {
   makePushSubscription,
-  makeLogger,
-  makeCreateNotificationUseCase,
-} from '#src/__tests__/helpers/mocks.js';
+  makePushSubscriptionRepository,
+} from '#src/__tests__/helpers/mocks/push.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

@@ -1,10 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { DeleteLlmApiKeyUseCase } from '#src/use-cases/user/DeleteLlmApiKeyUseCase.js';
-import {
-  makeUserRepository,
-  makeUser,
-  makeLlmApiKeyRepository,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeLlmApiKeyRepository } from '#src/__tests__/helpers/mocks/llm.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 describe('DeleteLlmApiKeyUseCase', () => {
   it('throws NOT_FOUND when the user does not exist', async () => {

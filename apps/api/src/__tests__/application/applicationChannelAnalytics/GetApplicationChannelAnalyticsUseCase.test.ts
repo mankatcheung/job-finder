@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetApplicationChannelAnalyticsUseCase } from '#src/use-cases/application/GetApplicationChannelAnalyticsUseCase.js';
-import { makeApplicationRepository, makeApplication } from '#src/__tests__/helpers/mocks.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 describe('GetApplicationChannelAnalyticsUseCase', () => {
   it('returns empty groups when there are no applications', async () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { LlmApiKeyMapper } from '#src/interface-adapters/mappers/LlmApiKeyMapper.js';
-import { makeLlmApiKey } from '#src/__tests__/helpers/mocks.js';
+import { makeLlmApiKey } from '#src/__tests__/helpers/mocks/llm.js';
 
 describe('LlmApiKeyMapper', () => {
   it('maps provider, model, and baseUrl but omits the encrypted key, id, and userId', () => {

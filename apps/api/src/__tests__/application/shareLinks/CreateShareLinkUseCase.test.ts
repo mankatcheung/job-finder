@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { CreateShareLinkUseCase } from '#src/use-cases/shareLinks/CreateShareLinkUseCase.js';
-import { makeShareLinkRepository, makeShareLink } from '#src/__tests__/helpers/mocks.js';
+import { makeShareLink, makeShareLinkRepository } from '#src/__tests__/helpers/mocks/shareLinks.js';
 
 describe('CreateShareLinkUseCase', () => {
   it('generates a token with jfsl_ prefix and stores its hash', async () => {

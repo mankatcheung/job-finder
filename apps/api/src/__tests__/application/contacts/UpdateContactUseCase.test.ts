@@ -1,11 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { UpdateContactUseCase } from '#src/use-cases/contacts/UpdateContactUseCase.js';
-import {
-  makeApplicationRepository,
-  makeContactRepository,
-  makeApplication,
-  makeContact,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeContact, makeContactRepository } from '#src/__tests__/helpers/mocks/contacts.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 describe('UpdateContactUseCase', () => {
   it('throws NOT_FOUND when contact does not exist', async () => {

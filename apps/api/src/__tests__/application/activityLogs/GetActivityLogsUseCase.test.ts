@@ -1,10 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetActivityLogsUseCase } from '#src/use-cases/activityLogs/GetActivityLogsUseCase.js';
-import {
-  makeApplicationRepository,
-  makeActivityLogRepository,
-  makeApplication,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeActivityLogRepository } from '#src/__tests__/helpers/mocks/activity.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 describe('GetActivityLogsUseCase', () => {
   it('throws NOT_FOUND when the application does not exist', async () => {

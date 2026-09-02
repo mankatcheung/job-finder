@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { RecordCookieConsentUseCase } from '#src/use-cases/cookieConsent/RecordCookieConsentUseCase.js';
-import { makeCookieConsentRepository } from '#src/__tests__/helpers/mocks.js';
+import { makeCookieConsentRepository } from '#src/__tests__/helpers/mocks/cookieConsent.js';
 
 describe('RecordCookieConsentUseCase', () => {
   it('persists the decision with a generated id', async () => {

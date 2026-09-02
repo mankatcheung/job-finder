@@ -1,15 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ExportDocumentDraftToPdfUseCase } from '#src/use-cases/documents/ExportDocumentDraftToPdfUseCase.js';
 import {
-  makeApplicationRepository,
+  makeDocument,
+  makeDocumentDraft,
   makeDocumentDraftRepository,
   makeDocumentRepository,
-  makeStorageProvider,
   makePdfRenderer,
-  makeApplication,
-  makeDocumentDraft,
-  makeDocument,
-} from '#src/__tests__/helpers/mocks.js';
+  makeStorageProvider,
+} from '#src/__tests__/helpers/mocks/documents.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 describe('ExportDocumentDraftToPdfUseCase', () => {
   const generateId = () => 'test-doc-id';

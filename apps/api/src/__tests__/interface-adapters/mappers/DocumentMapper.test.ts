@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { DocumentMapper } from '#src/interface-adapters/mappers/DocumentMapper.js';
-import { makeDocument } from '#src/__tests__/helpers/mocks.js';
+import { makeDocument } from '#src/__tests__/helpers/mocks/documents.js';
 
 describe('DocumentMapper', () => {
   const mapper = new DocumentMapper();

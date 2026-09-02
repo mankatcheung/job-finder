@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { CachedContactRepository } from '#src/infrastructure/db/repositories/CachedContactRepository.js';
 import { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
-import { makeContactRepository, makeContact } from '#src/__tests__/helpers/mocks.js';
+import { makeContact, makeContactRepository } from '#src/__tests__/helpers/mocks/contacts.js';
 
 function makeRepo() {
   const inner = makeContactRepository();

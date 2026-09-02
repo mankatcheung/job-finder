@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { DeleteConversationUseCase } from '#src/use-cases/conversations/DeleteConversationUseCase.js';
-import { makeConversationRepository, makeConversation } from '#src/__tests__/helpers/mocks.js';
+import { makeConversation, makeConversationRepository } from '#src/__tests__/helpers/mocks/chat.js';
 
 describe('DeleteConversationUseCase', () => {
   it('deletes the conversation when it belongs to the user', async () => {

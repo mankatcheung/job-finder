@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { NotificationMapper } from '#src/interface-adapters/mappers/NotificationMapper.js';
-import { makeNotification } from '#src/__tests__/helpers/mocks.js';
+import { makeNotification } from '#src/__tests__/helpers/mocks/notifications.js';
 
 describe('NotificationMapper', () => {
   const mapper = new NotificationMapper();

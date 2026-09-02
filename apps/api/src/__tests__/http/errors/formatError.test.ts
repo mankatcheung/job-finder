@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { GraphQLError } from 'graphql';
 import { formatError } from '#src/http/errors/formatError.js';
-import { makeLogger } from '#src/__tests__/helpers/mocks.js';
+import { makeLogger } from '#src/__tests__/helpers/mocks/infrastructure.js';
 import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 describe('formatError', () => {

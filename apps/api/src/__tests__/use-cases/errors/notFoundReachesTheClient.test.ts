@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { GraphQLError } from 'graphql';
 import { formatError } from '#src/http/errors/formatError.js';
-import { makeLogger } from '#src/__tests__/helpers/mocks.js';
+import { makeLogger } from '#src/__tests__/helpers/mocks/infrastructure.js';
 import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import { UpdateSkillUseCase } from '#src/use-cases/skill/UpdateSkillUseCase.js';
 import { DeleteSkillUseCase } from '#src/use-cases/skill/DeleteSkillUseCase.js';
