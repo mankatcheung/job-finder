@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { FileTextIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
-import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
+import { getGqlErrorCode } from '#/lib/graphqlError';
+import { AiErrorMessage } from '#/components/AiErrorMessage';
 import { useLocale } from '#/lib/i18n';
 import { Button, Card, EmptyState, FormLabel, Skeleton, Spinner, Textarea } from '@trakwyn/ui';
 import { invalidateSectionCounts } from '../-sectionCounts';
@@ -95,17 +96,10 @@ export function CoverLetterTab({ applicationId }: { applicationId: string }) {
         </Button>
         {generate.isError && (
           <p className="text-sm text-red-600 dark:text-red-400">
-            {getGqlErrorCode(generate.error) === AI_NOT_CONFIGURED_CODE ? (
-              <>
-                {t('resumeMatch.addApiKeyPrefix')}{' '}
-                <Link to="/settings/ai" className="underline">
-                  {t('resumeMatch.accountSettingsLinkText')}
-                </Link>{' '}
-                {t('resumeMatch.addApiKeySuffix')}
-              </>
-            ) : (
-              (generate.error as Error).message
-            )}
+            <AiErrorMessage
+              code={getGqlErrorCode(generate.error)}
+              fallback={(generate.error as Error).message}
+            />
           </p>
         )}
       </Card>

@@ -423,7 +423,19 @@ export type LlmApiKey = {
   __typename?: 'LlmApiKey';
   baseUrl?: Maybe<Scalars['String']['output']>;
   model?: Maybe<Scalars['String']['output']>;
+  monthlyTokenLimit?: Maybe<Scalars['Int']['output']>;
   provider?: Maybe<Scalars['String']['output']>;
+};
+
+export type LlmUsageSummary = {
+  __typename?: 'LlmUsageSummary';
+  completionTokens?: Maybe<Scalars['Int']['output']>;
+  lastUsedAt?: Maybe<Scalars['String']['output']>;
+  limitReached?: Maybe<Scalars['Boolean']['output']>;
+  monthlyTokenLimit?: Maybe<Scalars['Int']['output']>;
+  promptTokens?: Maybe<Scalars['Int']['output']>;
+  provider?: Maybe<Scalars['String']['output']>;
+  requestCount?: Maybe<Scalars['Int']['output']>;
 };
 
 export type LoginEvent = {
@@ -543,6 +555,7 @@ export type Mutation = {
   revokeSession?: Maybe<Scalars['Boolean']['output']>;
   saveLlmApiKey?: Maybe<Scalars['Boolean']['output']>;
   setDefaultLlmProvider?: Maybe<Scalars['Boolean']['output']>;
+  setLlmApiKeyMonthlyLimit?: Maybe<Scalars['Boolean']['output']>;
   testLlmApiKey?: Maybe<TestLlmApiKeyResult>;
   unlinkOAuthAccount?: Maybe<Scalars['Boolean']['output']>;
   unregisterPushSubscription?: Maybe<Scalars['Boolean']['output']>;
@@ -950,6 +963,12 @@ export type MutationSetDefaultLlmProviderArgs = {
 };
 
 
+export type MutationSetLlmApiKeyMonthlyLimitArgs = {
+  monthlyTokenLimit?: InputMaybe<Scalars['Int']['input']>;
+  provider: Scalars['String']['input'];
+};
+
+
 export type MutationTestLlmApiKeyArgs = {
   apiKey?: InputMaybe<Scalars['String']['input']>;
   baseUrl?: InputMaybe<Scalars['String']['input']>;
@@ -1033,6 +1052,7 @@ export type MutationUpdateProfileArgs = {
   name?: InputMaybe<Scalars['String']['input']>;
   targetRole?: InputMaybe<Scalars['String']['input']>;
   timezone?: InputMaybe<Scalars['String']['input']>;
+  useCrossApplicationContext?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -1167,6 +1187,7 @@ export type Query = {
   interviewRounds?: Maybe<Array<InterviewRound>>;
   linkedOAuthAccounts?: Maybe<Array<LinkedOAuthAccount>>;
   llmApiKeys?: Maybe<Array<LlmApiKey>>;
+  llmUsageSummary?: Maybe<Array<LlmUsageSummary>>;
   loginHistory?: Maybe<Array<LoginEvent>>;
   mcpOAuthGrants?: Maybe<Array<McpOAuthGrant>>;
   me?: Maybe<User>;
@@ -1479,6 +1500,7 @@ export type User = {
   name?: Maybe<Scalars['String']['output']>;
   targetRole?: Maybe<Scalars['String']['output']>;
   timezone?: Maybe<Scalars['String']['output']>;
+  useCrossApplicationContext?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type WeeklyApplicationGoal = {

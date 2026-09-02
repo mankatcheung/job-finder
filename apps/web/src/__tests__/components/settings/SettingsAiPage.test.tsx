@@ -32,9 +32,42 @@ function Wrapper({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * `Menu` renders a dropdown at `sm` and up and a bottom sheet below it, off
+ * `matchMedia` — which jsdom does not implement. Without this every row menu
+ * would open as a portalled sheet and `within(row)` would stop finding it.
+ */
+function stubWideViewport() {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    configurable: true,
+    value: (query: string) => ({
+      matches: true,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }),
+  });
+}
+
+/** Row actions moved behind a menu in JEF-258. */
+async function chooseRowAction(
+  user: ReturnType<typeof userEvent.setup>,
+  row: HTMLElement,
+  name: string,
+) {
+  await user.click(within(row).getByRole('button', { name: 'Key actions' }));
+  await user.click(within(row).getByRole('menuitem', { name }));
+}
+
 describe('SettingsAiPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    stubWideViewport();
     mockGqlRequest.mockResolvedValue({
       llmApiKeys: [],
       me: { defaultLlmProvider: null, customAiPrompt: null },
@@ -129,7 +162,7 @@ describe('SettingsAiPage', () => {
 
   it("shows an existing key's provider and default badge", async () => {
     mockGqlRequest.mockResolvedValue({
-      llmApiKeys: [{ provider: 'openrouter', model: null, baseUrl: null }],
+      llmApiKeys: [{ provider: 'openrouter', model: null, baseUrl: null, monthlyTokenLimit: null }],
       me: { defaultLlmProvider: 'openrouter', customAiPrompt: null },
     });
     render(<SettingsAiPage />, { wrapper: Wrapper });
@@ -146,7 +179,9 @@ describe('SettingsAiPage', () => {
       mockGqlRequest.mockImplementation((document: string) => {
         if (document.includes('query LlmApiKeys')) {
           return Promise.resolve({
-            llmApiKeys: [{ provider: 'openrouter', model: null, baseUrl: null }],
+            llmApiKeys: [
+              { provider: 'openrouter', model: null, baseUrl: null, monthlyTokenLimit: null },
+            ],
             me: { defaultLlmProvider: 'openrouter', customAiPrompt: null },
           });
         }
@@ -159,7 +194,7 @@ describe('SettingsAiPage', () => {
       render(<SettingsAiPage />, { wrapper: Wrapper });
       const row = await screen.findByTestId('llm-provider-row-openrouter');
 
-      await user.click(within(row).getByRole('button', { name: 'Test' }));
+      await chooseRowAction(user, row, 'Test');
 
       await waitFor(() => {
         expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('testLlmApiKey'), {
@@ -173,7 +208,7 @@ describe('SettingsAiPage', () => {
       render(<SettingsAiPage />, { wrapper: Wrapper });
       const row = await screen.findByTestId('llm-provider-row-openrouter');
 
-      await user.click(within(row).getByRole('button', { name: 'Test' }));
+      await chooseRowAction(user, row, 'Test');
 
       expect(await within(row).findByText('Connection works.')).toBeInTheDocument();
     });
@@ -182,7 +217,9 @@ describe('SettingsAiPage', () => {
       mockGqlRequest.mockImplementation((document: string) => {
         if (document.includes('query LlmApiKeys')) {
           return Promise.resolve({
-            llmApiKeys: [{ provider: 'openrouter', model: null, baseUrl: null }],
+            llmApiKeys: [
+              { provider: 'openrouter', model: null, baseUrl: null, monthlyTokenLimit: null },
+            ],
             me: { defaultLlmProvider: 'openrouter', customAiPrompt: null },
           });
         }
@@ -194,7 +231,7 @@ describe('SettingsAiPage', () => {
       render(<SettingsAiPage />, { wrapper: Wrapper });
       const row = await screen.findByTestId('llm-provider-row-openrouter');
 
-      await user.click(within(row).getByRole('button', { name: 'Test' }));
+      await chooseRowAction(user, row, 'Test');
 
       expect(await within(row).findByText('Invalid API key')).toBeInTheDocument();
     });
@@ -279,7 +316,9 @@ describe('SettingsAiPage', () => {
 
     it('collapses the form behind an "Add provider" button once a key exists, and expands it on click', async () => {
       mockGqlRequest.mockResolvedValue({
-        llmApiKeys: [{ provider: 'openrouter', model: null, baseUrl: null }],
+        llmApiKeys: [
+          { provider: 'openrouter', model: null, baseUrl: null, monthlyTokenLimit: null },
+        ],
         me: { defaultLlmProvider: 'openrouter', customAiPrompt: null },
       });
       const user = userEvent.setup();
@@ -297,7 +336,9 @@ describe('SettingsAiPage', () => {
 
     it('collapses the form again via Cancel, discarding what was typed', async () => {
       mockGqlRequest.mockResolvedValue({
-        llmApiKeys: [{ provider: 'openrouter', model: null, baseUrl: null }],
+        llmApiKeys: [
+          { provider: 'openrouter', model: null, baseUrl: null, monthlyTokenLimit: null },
+        ],
         me: { defaultLlmProvider: 'openrouter', customAiPrompt: null },
       });
       const user = userEvent.setup();
@@ -348,7 +389,9 @@ describe('SettingsAiPage', () => {
       mockGqlRequest.mockImplementation((document: string) => {
         if (document.includes('query LlmApiKeys')) {
           return Promise.resolve({
-            llmApiKeys: [{ provider: 'openrouter', model: null, baseUrl: null }],
+            llmApiKeys: [
+              { provider: 'openrouter', model: null, baseUrl: null, monthlyTokenLimit: null },
+            ],
             me: { defaultLlmProvider: 'openrouter', customAiPrompt: null },
           });
         }
@@ -361,6 +404,8 @@ describe('SettingsAiPage', () => {
                 promptTokens: 100,
                 completionTokens: 40,
                 lastUsedAt: '2026-01-01T00:00:00.000Z',
+                monthlyTokenLimit: null,
+                limitReached: false,
               },
             ],
           });
@@ -395,6 +440,184 @@ describe('SettingsAiPage', () => {
       const row = await screen.findByTestId('llm-provider-row-anthropic');
 
       expect(within(row).queryByText(/requests/)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('monthly token limits (JEF-258)', () => {
+    const respond = (
+      key: { monthlyTokenLimit: number | null },
+      usage: { promptTokens: number; completionTokens: number; limitReached: boolean } | null,
+    ) =>
+      mockGqlRequest.mockImplementation((document: string) => {
+        if (document.includes('query LlmApiKeys')) {
+          return Promise.resolve({
+            llmApiKeys: [
+              {
+                provider: 'openrouter',
+                model: null,
+                baseUrl: null,
+                monthlyTokenLimit: key.monthlyTokenLimit,
+              },
+            ],
+            me: { defaultLlmProvider: 'openrouter', customAiPrompt: null },
+          });
+        }
+        if (document.includes('query LlmUsageSummary')) {
+          return Promise.resolve({
+            llmUsageSummary: usage
+              ? [
+                  {
+                    provider: 'openrouter',
+                    requestCount: 3,
+                    promptTokens: usage.promptTokens,
+                    completionTokens: usage.completionTokens,
+                    lastUsedAt: '2026-01-01T00:00:00.000Z',
+                    monthlyTokenLimit: key.monthlyTokenLimit,
+                    limitReached: usage.limitReached,
+                  },
+                ]
+              : [],
+          });
+        }
+        return Promise.resolve({});
+      });
+
+    const row = () => screen.findByTestId('llm-provider-row-openrouter');
+
+    it('shows no meter for a key with no limit', async () => {
+      respond(
+        { monthlyTokenLimit: null },
+        { promptTokens: 100, completionTokens: 40, limitReached: false },
+      );
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+
+      const el = await row();
+      await within(el).findByText(/This month/);
+      expect(within(el).queryByRole('progressbar')).not.toBeInTheDocument();
+    });
+
+    it('meters usage against the limit when one is set', async () => {
+      respond(
+        { monthlyTokenLimit: 2_000_000 },
+        { promptTokens: 1_000_000, completionTokens: 240_000, limitReached: false },
+      );
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+
+      const el = await row();
+      const meter = await within(el).findByRole('progressbar');
+      expect(meter).toHaveAttribute('aria-valuenow', '1240000');
+      expect(meter).toHaveAttribute('aria-valuemax', '2000000');
+      expect(within(el).getByText(/1,240,000 of 2,000,000 tokens/)).toBeInTheDocument();
+    });
+
+    /** The request count and last-used date survive the meter arriving. */
+    it('keeps the request count and last-used date alongside the meter', async () => {
+      respond(
+        { monthlyTokenLimit: 2_000_000 },
+        { promptTokens: 100, completionTokens: 40, limitReached: false },
+      );
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+
+      const el = await row();
+      expect(await within(el).findByText(/3 requests/)).toBeInTheDocument();
+      expect(within(el).getByText(/last used/)).toBeInTheDocument();
+    });
+
+    it('marks a key at its limit as paused, with a way back', async () => {
+      respond(
+        { monthlyTokenLimit: 2_000_000 },
+        { promptTokens: 2_000_000, completionTokens: 0, limitReached: true },
+      );
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+
+      const el = await row();
+      expect(await within(el).findByText('Paused')).toBeInTheDocument();
+      expect(within(el).getByText(/Monthly limit reached/)).toBeInTheDocument();
+      expect(within(el).getByRole('button', { name: 'Raise limit' })).toBeInTheDocument();
+    });
+
+    it('offers to set a limit when there is none, and to edit one when there is', async () => {
+      const user = userEvent.setup();
+      respond({ monthlyTokenLimit: null }, null);
+      const { unmount } = render(<SettingsAiPage />, { wrapper: Wrapper });
+
+      let el = await row();
+      await user.click(within(el).getByRole('button', { name: 'Key actions' }));
+      expect(within(el).getByRole('menuitem', { name: 'Set limit' })).toBeInTheDocument();
+      unmount();
+
+      respond({ monthlyTokenLimit: 500_000 }, null);
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+      el = await row();
+      await user.click(within(el).getByRole('button', { name: 'Key actions' }));
+      expect(within(el).getByRole('menuitem', { name: 'Edit monthly limit' })).toBeInTheDocument();
+    });
+
+    it('saves a limit and refreshes both queries', async () => {
+      const user = userEvent.setup();
+      respond({ monthlyTokenLimit: null }, null);
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+
+      const el = await row();
+      await chooseRowAction(user, el, 'Set limit');
+      await user.type(within(el).getByLabelText('Monthly token limit'), '250000');
+      await user.click(within(el).getByRole('button', { name: 'Save limit' }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('setLlmApiKeyMonthlyLimit'),
+          { provider: 'openrouter', monthlyTokenLimit: 250000 },
+        );
+      });
+    });
+
+    it('clears the limit when the No limit preset is used', async () => {
+      const user = userEvent.setup();
+      respond({ monthlyTokenLimit: 500_000 }, null);
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+
+      const el = await row();
+      await chooseRowAction(user, el, 'Edit monthly limit');
+      await user.click(within(el).getByRole('button', { name: 'No limit' }));
+      await user.click(within(el).getByRole('button', { name: 'Save limit' }));
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(
+          expect.stringContaining('setLlmApiKeyMonthlyLimit'),
+          { provider: 'openrouter', monthlyTokenLimit: null },
+        );
+      });
+    });
+
+    it('refuses a value that is not a whole number of tokens', async () => {
+      const user = userEvent.setup();
+      respond({ monthlyTokenLimit: null }, null);
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+
+      const el = await row();
+      await chooseRowAction(user, el, 'Set limit');
+      await user.type(within(el).getByLabelText('Monthly token limit'), 'lots');
+      await user.click(within(el).getByRole('button', { name: 'Save limit' }));
+
+      expect(await within(el).findByText(/whole number of tokens/)).toBeInTheDocument();
+      expect(mockGqlRequest).not.toHaveBeenCalledWith(
+        expect.stringContaining('setLlmApiKeyMonthlyLimit'),
+        expect.anything(),
+      );
+    });
+
+    it('labels the save action as resuming when the key is already at its limit', async () => {
+      const user = userEvent.setup();
+      respond(
+        { monthlyTokenLimit: 2_000_000 },
+        { promptTokens: 2_000_000, completionTokens: 0, limitReached: true },
+      );
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+
+      const el = await row();
+      await user.click(await within(el).findByRole('button', { name: 'Raise limit' }));
+
+      expect(within(el).getByRole('button', { name: 'Raise limit & resume' })).toBeInTheDocument();
     });
   });
 });

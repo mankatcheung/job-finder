@@ -1,5 +1,7 @@
 /** GraphQL error `extensions.code` values the frontend branches on. Mirrors apps/api's ERROR_CODES. */
 export const AI_NOT_CONFIGURED_CODE = 'AI_NOT_CONFIGURED';
+/** The key this call would have used has spent its monthly token limit (JEF-258). */
+export const AI_LIMIT_REACHED_CODE = 'AI_LIMIT_REACHED';
 
 /**
  * Extracts the GraphQL `extensions.code` from a graphql-request error —

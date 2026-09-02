@@ -1,12 +1,4 @@
-import {
-  CircleAlertIcon,
-  CircleCheckIcon,
-  PlugZapIcon,
-  PlusIcon,
-  SparklesIcon,
-  StarIcon,
-  Trash2Icon,
-} from 'lucide-react';
+import { CircleAlertIcon, CircleCheckIcon, PlusIcon, SparklesIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -14,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { useLocale } from '#/lib/i18n';
+import { LlmApiKeyRow } from './LlmApiKeyRow';
 import { Alert, Button, Card, Checkbox, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
 import {
   LLM_API_KEYS_QUERY,
@@ -21,6 +14,7 @@ import {
   SAVE_LLM_API_KEY,
   DELETE_LLM_API_KEY,
   SET_DEFAULT_LLM_PROVIDER,
+  SET_LLM_API_KEY_MONTHLY_LIMIT,
   TEST_LLM_API_KEY,
   UPDATE_PROFILE,
   llmApiKeySchema,
@@ -32,22 +26,8 @@ import {
   type LlmUsageSummary,
   type TestLlmApiKeyResult,
   LLM_PROVIDER_OPTIONS,
-  LLM_PROVIDER_LABEL,
-  LLM_PROVIDER_AVATAR,
   extractGqlError,
 } from './shared';
-
-function UsageSummaryLine({ summary }: { summary: LlmUsageSummary }) {
-  const { t, formatNumber } = useLocale();
-  const totalTokens = summary.promptTokens + summary.completionTokens;
-  const parts = [
-    t('integrations.usageThisMonth'),
-    t('integrations.usageRequests', { count: summary.requestCount }),
-    t('integrations.usageTokens', { count: formatNumber(totalTokens) }),
-    t('integrations.usageLastUsed', { date: new Date(summary.lastUsedAt).toLocaleDateString() }),
-  ];
-  return <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{parts.join(' · ')}</p>;
-}
 
 function TestResultLine({ result }: { result: TestLlmApiKeyResult }) {
   const { t } = useLocale();
@@ -252,6 +232,16 @@ export function SettingsAiPage() {
     setFormTestResult(null);
   };
 
+  // Monthly token limits (JEF-258). Both queries are invalidated: the keys
+  // query holds the ceiling, the usage query decides whether it is reached.
+  const onSaveMonthlyLimit = async (provider: string, monthlyTokenLimit: number | null) => {
+    await gqlClient.request(SET_LLM_API_KEY_MONTHLY_LIMIT, { provider, monthlyTokenLimit });
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ['llmApiKeys'] }),
+      qc.invalidateQueries({ queryKey: ['llmUsageSummary'] }),
+    ]);
+  };
+
   // Custom AI prompt
   const customAiPromptForm = useForm<CustomAiPromptForm>({
     resolver: zodResolver(customAiPromptSchema),
@@ -324,96 +314,26 @@ export function SettingsAiPage() {
 
         {llmApiKeys.length > 0 && (
           <div className="mt-4 border-t border-gray-100 dark:border-gray-700/60">
-            {llmApiKeys.map((key) => {
-              const isDefault = key.provider === defaultLlmProvider;
-              const avatar = LLM_PROVIDER_AVATAR[key.provider];
-              const testResult = savedKeyTestResults[key.provider];
-              const usage = usageByProvider.get(key.provider);
-              return (
-                <div
-                  key={key.provider}
-                  data-testid={`llm-provider-row-${key.provider}`}
-                  className="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-4 last:border-b-0 dark:border-gray-700/60"
-                >
-                  <div className="flex min-w-0 items-start gap-3">
-                    {avatar && (
-                      <div
-                        className={`flex size-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${avatar.className}`}
-                      >
-                        {avatar.initials}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {LLM_PROVIDER_LABEL[key.provider] ?? key.provider}
-                        {isDefault && (
-                          <span className="ml-2 text-xs font-normal text-green-600">
-                            {t('integrations.default')}
-                          </span>
-                        )}
-                      </p>
-                      {(key.model || key.baseUrl) && (
-                        <p className="text-xs break-all text-gray-500 dark:text-gray-400">
-                          {[key.model, key.baseUrl].filter(Boolean).join(' · ')}
-                        </p>
-                      )}
-                      {usage && <UsageSummaryLine summary={usage} />}
-                      {testResult && <TestResultLine result={testResult} />}
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={() => onTestSavedLlmApiKey(key.provider)}
-                      disabled={testingProvider === key.provider}
-                      aria-label={t('integrations.testKey')}
-                    >
-                      <span className="flex items-center gap-1">
-                        <PlugZapIcon size={14} />{' '}
-                        <span className="hidden sm:inline">
-                          {testingProvider === key.provider
-                            ? t('integrations.testingKey')
-                            : t('integrations.testKey')}
-                        </span>
-                      </span>
-                    </Button>
-                    {!isDefault && (
-                      <Button
-                        variant="link"
-                        size="sm"
-                        onClick={() => onSetDefaultProvider(key.provider)}
-                        disabled={settingDefaultProvider === key.provider}
-                        aria-label={t('integrations.makeDefault')}
-                      >
-                        <span className="flex items-center gap-1">
-                          <StarIcon size={14} />{' '}
-                          <span className="hidden sm:inline">
-                            {settingDefaultProvider === key.provider
-                              ? t('integrations.settingDefault')
-                              : t('integrations.makeDefault')}
-                          </span>
-                        </span>
-                      </Button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => onRemoveLlmApiKey(key.provider)}
-                      disabled={removingProvider === key.provider}
-                      aria-label={t('integrations.remove')}
-                      className="flex items-center gap-1 text-xs text-red-600 hover:underline disabled:opacity-60"
-                    >
-                      <Trash2Icon size={14} />{' '}
-                      <span className="hidden sm:inline">
-                        {removingProvider === key.provider
-                          ? t('integrations.removing')
-                          : t('integrations.remove')}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+            {llmApiKeys.map((key) => (
+              <LlmApiKeyRow
+                key={key.provider}
+                llmApiKey={key}
+                usage={usageByProvider.get(key.provider)}
+                isDefault={key.provider === defaultLlmProvider}
+                testResult={savedKeyTestResults[key.provider]}
+                busy={
+                  testingProvider === key.provider ||
+                  settingDefaultProvider === key.provider ||
+                  removingProvider === key.provider
+                }
+                onTest={() => onTestSavedLlmApiKey(key.provider)}
+                onMakeDefault={() => onSetDefaultProvider(key.provider)}
+                onRemove={() => onRemoveLlmApiKey(key.provider)}
+                onSaveLimit={(monthlyTokenLimit) =>
+                  onSaveMonthlyLimit(key.provider, monthlyTokenLimit)
+                }
+              />
+            ))}
           </div>
         )}
 

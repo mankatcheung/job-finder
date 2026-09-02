@@ -218,6 +218,7 @@ export const LLM_API_KEYS_QUERY = `
       provider
       model
       baseUrl
+      monthlyTokenLimit
     }
     me {
       defaultLlmProvider
@@ -245,6 +246,12 @@ export const SET_DEFAULT_LLM_PROVIDER = `
   }
 `;
 
+export const SET_LLM_API_KEY_MONTHLY_LIMIT = `
+  mutation SetLlmApiKeyMonthlyLimit($provider: String!, $monthlyTokenLimit: Int) {
+    setLlmApiKeyMonthlyLimit(provider: $provider, monthlyTokenLimit: $monthlyTokenLimit)
+  }
+`;
+
 export const TEST_LLM_API_KEY = `
   mutation TestLlmApiKey($provider: String!, $apiKey: String, $model: String, $baseUrl: String) {
     testLlmApiKey(provider: $provider, apiKey: $apiKey, model: $model, baseUrl: $baseUrl) {
@@ -262,6 +269,8 @@ export const LLM_USAGE_SUMMARY_QUERY = `
       promptTokens
       completionTokens
       lastUsedAt
+      monthlyTokenLimit
+      limitReached
     }
   }
 `;
@@ -495,6 +504,8 @@ export type LlmApiKey = {
   provider: string;
   model: string | null;
   baseUrl: string | null;
+  /** Monthly prompt+completion token ceiling; null means no limit (JEF-258). */
+  monthlyTokenLimit: number | null;
 };
 
 export type TestLlmApiKeyResult = {
@@ -508,6 +519,12 @@ export type LlmUsageSummary = {
   promptTokens: number;
   completionTokens: number;
   lastUsedAt: string;
+  monthlyTokenLimit: number | null;
+  /**
+   * Decided by the API from the same helper the provider factory refuses on,
+   * so this and the meter beside it cannot disagree with what a call does.
+   */
+  limitReached: boolean;
 };
 
 export const LLM_PROVIDER_OPTIONS: { value: string; label: string }[] = [

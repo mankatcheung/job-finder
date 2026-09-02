@@ -1,9 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { streamChatMessage, ChatStreamError } from '#/lib/chatStream';
-import { AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
+import { AiErrorMessage } from '#/components/AiErrorMessage';
 import { getErrorMessage } from '#/lib/errors';
 import { useLocale } from '#/lib/i18n';
 import { Button, Input, Skeleton, Spinner } from '@trakwyn/ui';
@@ -252,19 +251,14 @@ export function ChatConversationView({
 
         {send.isError && !wasCancelled && (
           <p className="text-sm text-red-600 dark:text-red-400">
-            {send.error instanceof ChatStreamError && send.error.code === AI_NOT_CONFIGURED_CODE ? (
-              <>
-                {t('resumeMatch.addApiKeyPrefix')}{' '}
-                <Link to="/settings/ai" className="underline">
-                  {t('resumeMatch.accountSettingsLinkText')}
-                </Link>{' '}
-                {t('resumeMatch.addApiKeySuffix')}
-              </>
-            ) : send.error instanceof ChatStreamError ? (
-              send.error.message
-            ) : (
-              getErrorMessage(send.error)
-            )}
+            <AiErrorMessage
+              code={send.error instanceof ChatStreamError ? send.error.code : undefined}
+              fallback={
+                send.error instanceof ChatStreamError
+                  ? send.error.message
+                  : getErrorMessage(send.error)
+              }
+            />
           </p>
         )}
         <div ref={bottomRef} />
