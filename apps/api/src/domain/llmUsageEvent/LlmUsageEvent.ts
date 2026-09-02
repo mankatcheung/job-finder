@@ -23,3 +23,15 @@ export type LlmUsageSummary = {
   completionTokens: number;
   lastUsedAt: Date;
 };
+
+/**
+ * A provider's usage alongside the ceiling set on its key (JEF-258).
+ *
+ * `limitReached` is computed once, by `GetLlmUsageSummaryUseCase`, from the
+ * same `isLimitReached` the provider factory refuses on — so what the meter
+ * shows and what the API allows cannot disagree.
+ */
+export type LlmUsageSummaryWithLimit = LlmUsageSummary & {
+  monthlyTokenLimit: number | null;
+  limitReached: boolean;
+};

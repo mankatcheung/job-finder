@@ -170,6 +170,7 @@ import type { GetTotpStatusUseCase } from '#src/use-cases/user/GetTotpStatusUseC
 import type { SaveLlmApiKeyUseCase } from '#src/use-cases/user/SaveLlmApiKeyUseCase.js';
 import type { ListLlmApiKeysUseCase } from '#src/use-cases/user/ListLlmApiKeysUseCase.js';
 import type { DeleteLlmApiKeyUseCase } from '#src/use-cases/user/DeleteLlmApiKeyUseCase.js';
+import type { SetLlmApiKeyMonthlyLimitUseCase } from '#src/use-cases/user/SetLlmApiKeyMonthlyLimitUseCase.js';
 import type { SetDefaultLlmProviderUseCase } from '#src/use-cases/user/SetDefaultLlmProviderUseCase.js';
 import type { TestLlmApiKeyUseCase } from '#src/use-cases/user/TestLlmApiKeyUseCase.js';
 import type { GetLlmUsageSummaryUseCase } from '#src/use-cases/user/GetLlmUsageSummaryUseCase.js';
@@ -491,6 +492,7 @@ export interface Cradle {
   listLlmApiKeysUseCase: ListLlmApiKeysUseCase;
   deleteLlmApiKeyUseCase: DeleteLlmApiKeyUseCase;
   setDefaultLlmProviderUseCase: SetDefaultLlmProviderUseCase;
+  setLlmApiKeyMonthlyLimitUseCase: SetLlmApiKeyMonthlyLimitUseCase;
   testLlmApiKeyUseCase: TestLlmApiKeyUseCase;
   getLlmUsageSummaryUseCase: GetLlmUsageSummaryUseCase;
   importUserDataUseCase: ImportUserDataUseCase;
@@ -546,6 +548,7 @@ export interface Cradle {
   sendFollowUpRemindersUseCase: SendFollowUpRemindersUseCase;
   transactionManager: DrizzleTransactionManager;
   llmApiKeyCipher: ILlmApiKeyCipher;
+  userLlmProviderFactory: ILLMProviderFactory;
   llmProviderFactory: ILLMProviderFactory;
   documentTextExtractor: IDocumentTextExtractor;
   pdfRenderer: IPdfRenderer;

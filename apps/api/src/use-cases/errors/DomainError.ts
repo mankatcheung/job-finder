@@ -94,6 +94,24 @@ export class AiNotConfiguredError extends DomainError {
   }
 }
 
+/**
+ * The key this request would have used has spent its monthly token limit.
+ *
+ * Separate from `AiNotConfiguredError` because the remedy is the opposite:
+ * the user has a key, and telling them to add one would be wrong. Carries
+ * the provider and when the limit resets so the client can say which key
+ * stopped and for how long.
+ */
+export class LlmLimitReachedError extends DomainError {
+  constructor(
+    readonly provider: string,
+    readonly resetsAt: Date,
+    message = 'This API key has reached its monthly token limit',
+  ) {
+    super(message, ERROR_CODES.AI_LIMIT_REACHED);
+  }
+}
+
 /** The model replied with something unusable. */
 export class AiResponseInvalidError extends DomainError {
   constructor(message = 'The AI response could not be used') {

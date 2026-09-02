@@ -15,6 +15,7 @@ import { SaveLlmApiKeyUseCase } from '#src/use-cases/user/SaveLlmApiKeyUseCase.j
 import { ListLlmApiKeysUseCase } from '#src/use-cases/user/ListLlmApiKeysUseCase.js';
 import { DeleteLlmApiKeyUseCase } from '#src/use-cases/user/DeleteLlmApiKeyUseCase.js';
 import { SetDefaultLlmProviderUseCase } from '#src/use-cases/user/SetDefaultLlmProviderUseCase.js';
+import { SetLlmApiKeyMonthlyLimitUseCase } from '#src/use-cases/user/SetLlmApiKeyMonthlyLimitUseCase.js';
 import { TestLlmApiKeyUseCase } from '#src/use-cases/user/TestLlmApiKeyUseCase.js';
 import { GetLlmUsageSummaryUseCase } from '#src/use-cases/user/GetLlmUsageSummaryUseCase.js';
 import { GetNotificationPreferencesUseCase } from '#src/use-cases/user/GetNotificationPreferencesUseCase.js';
@@ -54,6 +55,9 @@ export const user = {
   listLlmApiKeysUseCase: asClass(ListLlmApiKeysUseCase, { lifetime: Lifetime.TRANSIENT }),
   deleteLlmApiKeyUseCase: asClass(DeleteLlmApiKeyUseCase, { lifetime: Lifetime.TRANSIENT }),
   setDefaultLlmProviderUseCase: asClass(SetDefaultLlmProviderUseCase, {
+    lifetime: Lifetime.TRANSIENT,
+  }),
+  setLlmApiKeyMonthlyLimitUseCase: asClass(SetLlmApiKeyMonthlyLimitUseCase, {
     lifetime: Lifetime.TRANSIENT,
   }),
   testLlmApiKeyUseCase: asClass(TestLlmApiKeyUseCase, { lifetime: Lifetime.TRANSIENT }),

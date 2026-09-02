@@ -7,5 +7,6 @@ LlmApiKeyRef.implement({
     provider: t.exposeString('provider'),
     model: t.exposeString('model', { nullable: true }),
     baseUrl: t.exposeString('baseUrl', { nullable: true }),
+    monthlyTokenLimit: t.exposeInt('monthlyTokenLimit', { nullable: true }),
   }),
 });

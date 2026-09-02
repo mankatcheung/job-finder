@@ -12,6 +12,7 @@ import type { IGetTotpStatusUseCase } from '#src/use-cases/user/IGetTotpStatusUs
 import type { ISaveLlmApiKeyUseCase } from '#src/use-cases/user/ISaveLlmApiKeyUseCase.js';
 import type { IListLlmApiKeysUseCase } from '#src/use-cases/user/IListLlmApiKeysUseCase.js';
 import type { IDeleteLlmApiKeyUseCase } from '#src/use-cases/user/IDeleteLlmApiKeyUseCase.js';
+import type { ISetLlmApiKeyMonthlyLimitUseCase } from '#src/use-cases/user/ISetLlmApiKeyMonthlyLimitUseCase.js';
 import type { ISetDefaultLlmProviderUseCase } from '#src/use-cases/user/ISetDefaultLlmProviderUseCase.js';
 import type { ITestLlmApiKeyUseCase } from '#src/use-cases/user/ITestLlmApiKeyUseCase.js';
 import type { IGetLlmUsageSummaryUseCase } from '#src/use-cases/user/IGetLlmUsageSummaryUseCase.js';
@@ -65,6 +66,9 @@ const makeDeps = (overrides?: object) => ({
     execute: vi.fn().mockResolvedValue(undefined),
   }),
   setDefaultLlmProviderUseCase: stub<ISetDefaultLlmProviderUseCase>({
+    execute: vi.fn().mockResolvedValue(undefined),
+  }),
+  setLlmApiKeyMonthlyLimitUseCase: stub<ISetLlmApiKeyMonthlyLimitUseCase>({
     execute: vi.fn().mockResolvedValue(undefined),
   }),
   testLlmApiKeyUseCase: stub<ITestLlmApiKeyUseCase>({
@@ -381,7 +385,9 @@ describe('UserResolver', () => {
       const result = await new UserResolver(deps).listLlmApiKeys('user-1');
 
       expect(deps.listLlmApiKeysUseCase.execute).toHaveBeenCalledWith('user-1');
-      expect(result).toEqual([{ provider: 'openai', model: 'gpt-4o', baseUrl: null }]);
+      expect(result).toEqual([
+        { provider: 'openai', model: 'gpt-4o', baseUrl: null, monthlyTokenLimit: null },
+      ]);
     });
   });
 
@@ -439,6 +445,32 @@ describe('UserResolver', () => {
       expect(deps.setDefaultLlmProviderUseCase.execute).toHaveBeenCalledWith({
         userId: 'user-1',
         provider: 'openai',
+      });
+    });
+  });
+
+  describe('setLlmApiKeyMonthlyLimit', () => {
+    it('delegates to setLlmApiKeyMonthlyLimitUseCase with the correct arguments', async () => {
+      const deps = makeDeps();
+
+      await new UserResolver(deps).setLlmApiKeyMonthlyLimit('user-1', 'openai', 2_000_000);
+
+      expect(deps.setLlmApiKeyMonthlyLimitUseCase.execute).toHaveBeenCalledWith({
+        userId: 'user-1',
+        provider: 'openai',
+        monthlyTokenLimit: 2_000_000,
+      });
+    });
+
+    it('passes null through to clear the limit', async () => {
+      const deps = makeDeps();
+
+      await new UserResolver(deps).setLlmApiKeyMonthlyLimit('user-1', 'openai', null);
+
+      expect(deps.setLlmApiKeyMonthlyLimitUseCase.execute).toHaveBeenCalledWith({
+        userId: 'user-1',
+        provider: 'openai',
+        monthlyTokenLimit: null,
       });
     });
   });

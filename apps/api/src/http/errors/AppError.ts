@@ -84,6 +84,18 @@ export class StepUpRequiredError extends AppError {
   }
 }
 
+/**
+ * 429: the user has spent this key's monthly allowance. Same status as a
+ * rate limit — the request is well-formed and would succeed later (or now,
+ * with a higher limit) — but a distinct code, so the client can offer to
+ * raise the limit rather than tell them to slow down.
+ */
+export class LlmLimitReachedAppError extends AppError {
+  constructor(message = 'This API key has reached its monthly token limit') {
+    super(message, 429, ERROR_CODES.AI_LIMIT_REACHED);
+  }
+}
+
 export function fromCodedError(err: unknown): AppError {
   if (err instanceof AppError) return err;
   if (err instanceof Error) {
@@ -113,6 +125,8 @@ export function fromCodedError(err: unknown): AppError {
         return new ServiceUnavailableError(err.message);
       case ERROR_CODES.AI_NOT_CONFIGURED:
         return new AiNotConfiguredError(err.message);
+      case ERROR_CODES.AI_LIMIT_REACHED:
+        return new LlmLimitReachedAppError(err.message);
       case ERROR_CODES.AI_RESPONSE_INVALID:
         return new AiResponseInvalidError(err.message);
       case ERROR_CODES.STEP_UP_REQUIRED:

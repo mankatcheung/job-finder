@@ -42,6 +42,7 @@ export const makeLlmApiKeyRepository = (
   upsert: vi.fn(),
   findByUserIdAndProvider: vi.fn().mockResolvedValue(null),
   findAllByUserId: vi.fn().mockResolvedValue([]),
+  setMonthlyTokenLimit: vi.fn().mockResolvedValue(null),
   delete: vi.fn(),
   ...overrides,
 });
@@ -60,6 +61,7 @@ export const makeLlmApiKey = (overrides?: Partial<LlmApiKey>): LlmApiKey => ({
   provider: 'openai',
   apiKey: 'encrypted:sk-test',
   model: null,
+  monthlyTokenLimit: null,
   baseUrl: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
