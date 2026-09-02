@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { COOKIE_MAX_AGE_S } from '#src/http/constants.js';
@@ -15,18 +15,15 @@ import { TOKEN_LIFETIME_S } from '#src/use-cases/constants.js';
  *
  * Splitting the file into per-layer modules is what makes that existing guard
  * cover constants at all: a use case importing `#src/http/constants.js` is now
- * an ordinary `use-cases -> http` violation and fails there. This file guards
- * the one thing that rule still cannot see — a new root-level module
- * reintroducing the same blind spot.
+ * an ordinary `use-cases -> http` violation and fails there.
  *
- * The general fix, covering every root-level module rather than constants
- * specifically, is JEF-256.
+ * The root of `src/` is kept empty by `dependencyRule.test.ts`, which owns
+ * that rule for every module rather than constants specifically (JEF-256).
+ * What is left here is what that rule cannot express: where each constant
+ * belongs, and that the values stay derived rather than restated.
  */
 
 const SRC = join(process.cwd(), 'src');
-
-/** Entrypoints, not shared modules: nothing imports them for their exports. */
-const ROOT_ENTRYPOINTS = ['index.ts', 'migrate.ts', 'seed.ts'];
 
 const CONSTANTS_MODULES = [
   'use-cases/constants.ts',
@@ -42,15 +39,6 @@ const exportedNames = (relative: string): string[] =>
   );
 
 describe('constants placement', () => {
-  it('has no shared module at the root of src/', () => {
-    const rootModules = readdirSync(SRC)
-      .filter((entry) => !statSync(join(SRC, entry)).isDirectory())
-      .filter((entry) => entry.endsWith('.ts'))
-      .filter((entry) => !ROOT_ENTRYPOINTS.includes(entry));
-
-    expect(rootModules).toEqual([]);
-  });
-
   it.each(CONSTANTS_MODULES)('%s exists', (relative) => {
     expect(() => readFileSync(join(SRC, relative), 'utf8')).not.toThrow();
   });
