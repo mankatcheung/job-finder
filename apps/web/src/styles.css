@@ -1,6 +1,14 @@
 @import 'tailwindcss';
 @import 'nprogress/nprogress.css';
 
+/*
+  Tailwind only scans this app by default, so a utility used *only* inside
+  @trakwyn/ui never reaches this stylesheet. Shared components looked fine
+  because most of their classes are also used here — until Menu's `min-w-56`,
+  which is not, and the dropdown rendered with no width at all.
+*/
+@source '../../../packages/ui/src';
+
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:where(.dark, .dark *));
