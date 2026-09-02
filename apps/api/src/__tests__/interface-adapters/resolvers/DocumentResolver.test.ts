@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { DocumentResolver } from '#src/interface-adapters/resolvers/DocumentResolver.js';
 import { DocumentMapper } from '#src/interface-adapters/mappers/DocumentMapper.js';
-import { makeDocument, makeStorageProvider } from '#src/__tests__/helpers/mocks.js';
+import { makeDocument, makeStorageProvider } from '#src/__tests__/helpers/mocks/documents.js';
 import type { IRequestUploadUrlUseCase } from '#src/use-cases/documents/IRequestUploadUrlUseCase.js';
 import type { IConfirmDocumentUseCase } from '#src/use-cases/documents/IConfirmDocumentUseCase.js';
 import type { IGetDocumentsUseCase } from '#src/use-cases/documents/IGetDocumentsUseCase.js';

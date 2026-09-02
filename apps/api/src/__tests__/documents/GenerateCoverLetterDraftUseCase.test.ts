@@ -1,11 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GenerateCoverLetterDraftUseCase } from '#src/use-cases/documents/GenerateCoverLetterDraftUseCase.js';
 import {
-  makeApplicationRepository,
-  makeDocumentDraftRepository,
-  makeApplication,
   makeDocumentDraft,
-} from '#src/__tests__/helpers/mocks.js';
+  makeDocumentDraftRepository,
+} from '#src/__tests__/helpers/mocks/documents.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 const GENERATED = 'Dear hiring manager,\n\nI am writing to apply.';
 

@@ -1,24 +1,22 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GenerateResumeUseCase } from '#src/use-cases/resume/GenerateResumeUseCase.js';
 import {
-  makeApplicationRepository,
-  makeApplication,
-  makeLLMProvider,
-  makeLLMProviderFactory,
-  makeUserRepository,
-  makeUser,
-  makeRateLimiter,
-  makeWorkExperienceRepository,
+  makeDocumentDraft,
+  makeDocumentDraftRepository,
+} from '#src/__tests__/helpers/mocks/documents.js';
+import { makeRateLimiter } from '#src/__tests__/helpers/mocks/infrastructure.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
+import { makeLLMProvider, makeLLMProviderFactory } from '#src/__tests__/helpers/mocks/llm.js';
+import { makeNote, makeNoteRepository } from '#src/__tests__/helpers/mocks/notes.js';
+import {
+  makeEducation,
   makeEducationRepository,
+  makeSkill,
   makeSkillRepository,
   makeWorkExperience,
-  makeEducation,
-  makeSkill,
-  makeNoteRepository,
-  makeNote,
-  makeDocumentDraftRepository,
-  makeDocumentDraft,
-} from '#src/__tests__/helpers/mocks.js';
+  makeWorkExperienceRepository,
+} from '#src/__tests__/helpers/mocks/profile.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 const WORK = [
   makeWorkExperience({ company: 'Acme', title: 'Engineer' }),

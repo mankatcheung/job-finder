@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ListConversationsUseCase } from '#src/use-cases/conversations/ListConversationsUseCase.js';
-import { makeConversationRepository, makeConversation } from '#src/__tests__/helpers/mocks.js';
+import { makeConversation, makeConversationRepository } from '#src/__tests__/helpers/mocks/chat.js';
 
 describe('ListConversationsUseCase', () => {
   it('returns the conversations for the user', async () => {

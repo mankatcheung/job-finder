@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetApplicationsUseCase } from '#src/use-cases/jobs/GetApplicationsUseCase.js';
-import { makeApplicationRepository, makeApplication } from '#src/__tests__/helpers/mocks.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 describe('GetApplicationsUseCase', () => {
   it('returns all applications for the user', async () => {

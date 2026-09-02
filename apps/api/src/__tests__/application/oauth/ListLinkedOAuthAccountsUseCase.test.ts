@@ -1,6 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ListLinkedOAuthAccountsUseCase } from '#src/use-cases/oauth/ListLinkedOAuthAccountsUseCase.js';
-import { makeOAuthAccountRepository, makeOAuthAccount } from '#src/__tests__/helpers/mocks.js';
+import {
+  makeOAuthAccount,
+  makeOAuthAccountRepository,
+} from '#src/__tests__/helpers/mocks/oauth.js';
 
 describe('ListLinkedOAuthAccountsUseCase', () => {
   it('delegates to the repository and returns the linked accounts', async () => {

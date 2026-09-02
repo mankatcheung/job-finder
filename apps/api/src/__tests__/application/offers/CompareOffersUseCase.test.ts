@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { makeApplication } from '#src/__tests__/helpers/mocks.js';
+import { makeApplication } from '#src/__tests__/helpers/mocks/jobs.js';
 import type { IApplicationRepository } from '#src/use-cases/ports/IApplicationRepository.js';
 import type { IOfferRepository } from '#src/use-cases/ports/IOfferRepository.js';
 import type { Offer } from '#src/domain/offer/Offer.js';

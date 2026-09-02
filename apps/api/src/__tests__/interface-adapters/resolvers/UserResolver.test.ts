@@ -29,7 +29,9 @@ import type { IRemoveBackupEmailUseCase } from '#src/use-cases/user/IRemoveBacku
 import { UserMapper } from '#src/interface-adapters/mappers/UserMapper.js';
 import { LlmApiKeyMapper } from '#src/interface-adapters/mappers/LlmApiKeyMapper.js';
 import { LlmUsageSummaryMapper } from '#src/interface-adapters/mappers/LlmUsageSummaryMapper.js';
-import { makeUser, makeStorageProvider, makeLlmApiKey } from '#src/__tests__/helpers/mocks.js';
+import { makeStorageProvider } from '#src/__tests__/helpers/mocks/documents.js';
+import { makeLlmApiKey } from '#src/__tests__/helpers/mocks/llm.js';
+import { makeUser } from '#src/__tests__/helpers/mocks/user.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
 

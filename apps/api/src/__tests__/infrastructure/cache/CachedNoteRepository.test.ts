@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { CachedNoteRepository } from '#src/infrastructure/db/repositories/CachedNoteRepository.js';
 import { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
-import { makeNoteRepository, makeNote } from '#src/__tests__/helpers/mocks.js';
+import { makeNote, makeNoteRepository } from '#src/__tests__/helpers/mocks/notes.js';
 
 function makeRepo() {
   const inner = makeNoteRepository();

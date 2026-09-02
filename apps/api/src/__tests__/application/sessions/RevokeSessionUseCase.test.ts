@@ -1,10 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RevokeSessionUseCase } from '#src/use-cases/sessions/RevokeSessionUseCase.js';
-import {
-  makeSessionRepository,
-  makeSession,
-  makeSecurityEventRepository,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeSecurityEventRepository } from '#src/__tests__/helpers/mocks/auth.js';
+import { makeSession, makeSessionRepository } from '#src/__tests__/helpers/mocks/sessions.js';
 
 function securityDeps() {
   return { securityEventRepository: makeSecurityEventRepository(), generateId: () => 'evt-1' };

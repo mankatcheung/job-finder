@@ -2,12 +2,11 @@ import { describe, it, expect, vi } from 'vitest';
 import { PermanentlyDeleteApplicationUseCase } from '#src/use-cases/jobs/PermanentlyDeleteApplicationUseCase.js';
 import { ForbiddenError, NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import {
-  makeApplicationRepository,
+  makeDocument,
   makeDocumentRepository,
   makeStorageProvider,
-  makeApplication,
-  makeDocument,
-} from '#src/__tests__/helpers/mocks.js';
+} from '#src/__tests__/helpers/mocks/documents.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 const makeUseCase = (over: Record<string, unknown> = {}) => {
   const applicationRepository = makeApplicationRepository({

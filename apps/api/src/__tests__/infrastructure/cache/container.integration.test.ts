@@ -10,7 +10,7 @@ import { CachedApplicationRepository } from '#src/infrastructure/db/repositories
 import { CachedNoteRepository } from '#src/infrastructure/db/repositories/CachedNoteRepository.js';
 import { CachedDocumentRepository } from '#src/infrastructure/db/repositories/CachedDocumentRepository.js';
 import { GetApplicationsUseCase } from '#src/use-cases/jobs/GetApplicationsUseCase.js';
-import { makeApplicationRepository, makeApplication } from '#src/__tests__/helpers/mocks.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 /**
  * Builds a minimal container matching the real app's registration names,

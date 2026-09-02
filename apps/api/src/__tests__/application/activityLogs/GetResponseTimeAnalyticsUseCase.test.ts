@@ -1,10 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetResponseTimeAnalyticsUseCase } from '#src/use-cases/activityLogs/GetResponseTimeAnalyticsUseCase.js';
-import {
-  makeApplicationRepository,
-  makeApplication,
-  makeActivityLogRepository,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeActivityLogRepository } from '#src/__tests__/helpers/mocks/activity.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 import type { ActivityLog } from '#src/domain/activityLog/ActivityLog.js';
 
 const makeLog = (overrides: Partial<ActivityLog> = {}): ActivityLog => ({

@@ -1,17 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ComputeHealthScoreUseCase } from '#src/use-cases/application/ComputeHealthScoreUseCase.js';
+import { makeContact, makeContactRepository } from '#src/__tests__/helpers/mocks/contacts.js';
+import { makeDocument, makeDocumentRepository } from '#src/__tests__/helpers/mocks/documents.js';
 import {
-  makeApplicationRepository,
-  makeNoteRepository,
-  makeDocumentRepository,
-  makeInterviewRoundRepository,
-  makeContactRepository,
-  makeApplication,
-  makeNote,
-  makeDocument,
   makeInterviewRound,
-  makeContact,
-} from '#src/__tests__/helpers/mocks.js';
+  makeInterviewRoundRepository,
+} from '#src/__tests__/helpers/mocks/interviews.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
+import { makeNote, makeNoteRepository } from '#src/__tests__/helpers/mocks/notes.js';
 
 function makeDeps(
   appOverrides = {},

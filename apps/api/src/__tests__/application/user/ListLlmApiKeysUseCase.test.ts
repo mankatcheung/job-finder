@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ListLlmApiKeysUseCase } from '#src/use-cases/user/ListLlmApiKeysUseCase.js';
-import { makeLlmApiKeyRepository, makeLlmApiKey } from '#src/__tests__/helpers/mocks.js';
+import { makeLlmApiKey, makeLlmApiKeyRepository } from '#src/__tests__/helpers/mocks/llm.js';
 
 describe('ListLlmApiKeysUseCase', () => {
   it('returns all keys configured for the user', async () => {

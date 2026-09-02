@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ListSessionsUseCase } from '#src/use-cases/sessions/ListSessionsUseCase.js';
-import { makeSessionRepository, makeSession } from '#src/__tests__/helpers/mocks.js';
+import { makeSession, makeSessionRepository } from '#src/__tests__/helpers/mocks/sessions.js';
 
 describe('ListSessionsUseCase', () => {
   beforeEach(() => {

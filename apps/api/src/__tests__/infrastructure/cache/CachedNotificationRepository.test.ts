@@ -1,7 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { CachedNotificationRepository } from '#src/infrastructure/db/repositories/CachedNotificationRepository.js';
 import { MemoryCache } from '#src/infrastructure/cache/MemoryCache.js';
-import { makeNotificationRepository, makeNotification } from '#src/__tests__/helpers/mocks.js';
+import {
+  makeNotification,
+  makeNotificationRepository,
+} from '#src/__tests__/helpers/mocks/notifications.js';
 
 function makeRepo() {
   const inner = makeNotificationRepository();

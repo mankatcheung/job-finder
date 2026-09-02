@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ContactResolver } from '#src/interface-adapters/resolvers/ContactResolver.js';
 import { ContactMapper } from '#src/interface-adapters/mappers/ContactMapper.js';
-import { makeContact } from '#src/__tests__/helpers/mocks.js';
+import { makeContact } from '#src/__tests__/helpers/mocks/contacts.js';
 import type { ICreateContactUseCase } from '#src/use-cases/contacts/ICreateContactUseCase.js';
 import type { IGetContactsUseCase } from '#src/use-cases/contacts/IGetContactsUseCase.js';
 import type { IUpdateContactUseCase } from '#src/use-cases/contacts/IUpdateContactUseCase.js';

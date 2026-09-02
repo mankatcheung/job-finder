@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthResolver } from '#src/interface-adapters/resolvers/AuthResolver.js';
-import { makeUser, makeSession, makeSessionRepository } from '#src/__tests__/helpers/mocks.js';
+import { makeSession, makeSessionRepository } from '#src/__tests__/helpers/mocks/sessions.js';
+import { makeUser } from '#src/__tests__/helpers/mocks/user.js';
 import type { IRegisterUseCase } from '#src/use-cases/auth/IRegisterUseCase.js';
 import type { ILoginUseCase } from '#src/use-cases/auth/ILoginUseCase.js';
 import type { ILoginWithTotpUseCase } from '#src/use-cases/auth/ILoginWithTotpUseCase.js';

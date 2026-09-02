@@ -1,11 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetInterviewRoundsUseCase } from '#src/use-cases/interviewRounds/GetInterviewRoundsUseCase.js';
 import {
-  makeApplicationRepository,
-  makeInterviewRoundRepository,
-  makeApplication,
   makeInterviewRound,
-} from '#src/__tests__/helpers/mocks.js';
+  makeInterviewRoundRepository,
+} from '#src/__tests__/helpers/mocks/interviews.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 describe('GetInterviewRoundsUseCase', () => {
   it('throws NOT_FOUND when the application does not exist', async () => {

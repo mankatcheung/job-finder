@@ -1,11 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetCalendarEventsUseCase } from '#src/use-cases/calendar/GetCalendarEventsUseCase.js';
 import {
-  makeApplicationRepository,
-  makeApplication,
-  makeInterviewRoundRepository,
   makeInterviewRound,
-} from '#src/__tests__/helpers/mocks.js';
+  makeInterviewRoundRepository,
+} from '#src/__tests__/helpers/mocks/interviews.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 describe('GetCalendarEventsUseCase', () => {
   it('returns an empty list when there are no applications or interview rounds', async () => {

@@ -1,11 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RequestPasswordResetUseCase } from '#src/use-cases/auth/RequestPasswordResetUseCase.js';
-import {
-  makeUserRepository,
-  makePasswordResetTokenRepository,
-  makeUser,
-  makeRateLimiter,
-} from '#src/__tests__/helpers/mocks.js';
+import { makePasswordResetTokenRepository } from '#src/__tests__/helpers/mocks/auth.js';
+import { makeRateLimiter } from '#src/__tests__/helpers/mocks/infrastructure.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 import type { IEmailService } from '#src/use-cases/ports/IEmailService.js';
 
 const makeEmailService = (overrides?: Partial<IEmailService>): IEmailService => ({

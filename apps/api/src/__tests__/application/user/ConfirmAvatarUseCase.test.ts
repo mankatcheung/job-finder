@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ConfirmAvatarUseCase } from '#src/use-cases/user/ConfirmAvatarUseCase.js';
-import { makeUserRepository, makeUser, makeStorageProvider } from '#src/__tests__/helpers/mocks.js';
+import { makeStorageProvider } from '#src/__tests__/helpers/mocks/documents.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 describe('ConfirmAvatarUseCase', () => {
   const input = {

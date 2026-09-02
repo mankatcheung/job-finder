@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { CreateApiTokenUseCase } from '#src/use-cases/apiTokens/CreateApiTokenUseCase.js';
-import { makeApiTokenRepository, makeApiToken } from '#src/__tests__/helpers/mocks.js';
+import { makeApiToken, makeApiTokenRepository } from '#src/__tests__/helpers/mocks/apiTokens.js';
 
 describe('CreateApiTokenUseCase', () => {
   it('generates a token with trakwyn_ prefix and stores its hash', async () => {

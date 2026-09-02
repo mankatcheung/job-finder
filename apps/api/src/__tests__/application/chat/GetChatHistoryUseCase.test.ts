@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetChatHistoryUseCase } from '#src/use-cases/chat/GetChatHistoryUseCase.js';
 import {
-  makeMessageRepository,
-  makeMessage,
-  makeConversationRepository,
   makeConversation,
-} from '#src/__tests__/helpers/mocks.js';
+  makeConversationRepository,
+  makeMessage,
+  makeMessageRepository,
+} from '#src/__tests__/helpers/mocks/chat.js';
 
 describe('GetChatHistoryUseCase', () => {
   it('returns the messages for the conversation when it belongs to the user', async () => {

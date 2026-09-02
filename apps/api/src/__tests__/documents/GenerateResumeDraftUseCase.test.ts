@@ -1,11 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GenerateResumeDraftUseCase } from '#src/use-cases/documents/GenerateResumeDraftUseCase.js';
 import {
-  makeApplicationRepository,
-  makeDocumentDraftRepository,
-  makeApplication,
   makeDocumentDraft,
-} from '#src/__tests__/helpers/mocks.js';
+  makeDocumentDraftRepository,
+} from '#src/__tests__/helpers/mocks/documents.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 const RESUME = {
   summary: 'Engineer.',

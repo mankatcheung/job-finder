@@ -1,19 +1,19 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ComputeResumeMatchScoreUseCase } from '#src/use-cases/application/ComputeResumeMatchScoreUseCase.js';
 import {
-  makeApplicationRepository,
-  makeApplication,
-  makeDocumentRepository,
   makeDocument,
-  makeStorageProvider,
+  makeDocumentRepository,
   makeDocumentTextExtractor,
-  makeLLMProviderFactory,
-  makeLLMProvider,
-  makeWorkExperienceRepository,
+  makeStorageProvider,
+} from '#src/__tests__/helpers/mocks/documents.js';
+import { makeRateLimiter } from '#src/__tests__/helpers/mocks/infrastructure.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
+import { makeLLMProvider, makeLLMProviderFactory } from '#src/__tests__/helpers/mocks/llm.js';
+import {
   makeEducationRepository,
   makeSkillRepository,
-  makeRateLimiter,
-} from '#src/__tests__/helpers/mocks.js';
+  makeWorkExperienceRepository,
+} from '#src/__tests__/helpers/mocks/profile.js';
 
 const MATCH_RESPONSE = JSON.stringify({
   matchPercentage: 82,

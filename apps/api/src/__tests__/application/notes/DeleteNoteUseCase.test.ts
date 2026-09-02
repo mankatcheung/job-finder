@@ -1,11 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { DeleteNoteUseCase } from '#src/use-cases/notes/DeleteNoteUseCase.js';
-import {
-  makeApplicationRepository,
-  makeNoteRepository,
-  makeApplication,
-  makeNote,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
+import { makeNote, makeNoteRepository } from '#src/__tests__/helpers/mocks/notes.js';
 
 describe('DeleteNoteUseCase', () => {
   it('throws NOT_FOUND when the note does not exist', async () => {

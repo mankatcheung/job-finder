@@ -1,10 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetCompanyBriefingUseCase } from '#src/use-cases/companyBriefing/GetCompanyBriefingUseCase.js';
-import {
-  makeApplicationRepository,
-  makeApplication,
-  makeCompanyBriefingRepository,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
+import { makeCompanyBriefingRepository } from '#src/__tests__/helpers/mocks/llm.js';
 
 const briefing = {
   id: 'b1',

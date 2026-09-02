@@ -1,11 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetInterviewRoundAnalyticsUseCase } from '#src/use-cases/interviewRounds/GetInterviewRoundAnalyticsUseCase.js';
 import {
-  makeApplicationRepository,
-  makeApplication,
-  makeInterviewRoundRepository,
   makeInterviewRound,
-} from '#src/__tests__/helpers/mocks.js';
+  makeInterviewRoundRepository,
+} from '#src/__tests__/helpers/mocks/interviews.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 
 describe('GetInterviewRoundAnalyticsUseCase', () => {
   it('returns empty byType and zero-sample terminal stats when there is no data', async () => {

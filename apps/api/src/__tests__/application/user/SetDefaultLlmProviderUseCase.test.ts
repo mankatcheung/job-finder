@@ -1,11 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { SetDefaultLlmProviderUseCase } from '#src/use-cases/user/SetDefaultLlmProviderUseCase.js';
-import {
-  makeUserRepository,
-  makeUser,
-  makeLlmApiKeyRepository,
-  makeLlmApiKey,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeLlmApiKey, makeLlmApiKeyRepository } from '#src/__tests__/helpers/mocks/llm.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 describe('SetDefaultLlmProviderUseCase', () => {
   it('throws VALIDATION when the user has no key for that provider', async () => {

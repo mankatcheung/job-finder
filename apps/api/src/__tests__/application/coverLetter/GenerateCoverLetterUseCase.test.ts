@@ -1,22 +1,23 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GenerateCoverLetterUseCase } from '#src/use-cases/coverLetter/GenerateCoverLetterUseCase.js';
 import {
-  makeApplicationRepository,
-  makeApplication,
+  makeDocumentDraft,
+  makeDocumentDraftRepository,
+} from '#src/__tests__/helpers/mocks/documents.js';
+import { makeRateLimiter } from '#src/__tests__/helpers/mocks/infrastructure.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
+import {
+  makeCompanyBriefingRepository,
   makeLLMProvider,
   makeLLMProviderFactory,
-  makeWorkExperienceRepository,
+} from '#src/__tests__/helpers/mocks/llm.js';
+import { makeNote, makeNoteRepository } from '#src/__tests__/helpers/mocks/notes.js';
+import {
   makeEducationRepository,
   makeSkillRepository,
-  makeUserRepository,
-  makeUser,
-  makeRateLimiter,
-  makeNoteRepository,
-  makeDocumentDraftRepository,
-  makeCompanyBriefingRepository,
-  makeNote,
-  makeDocumentDraft,
-} from '#src/__tests__/helpers/mocks.js';
+  makeWorkExperienceRepository,
+} from '#src/__tests__/helpers/mocks/profile.js';
+import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 const COVER_LETTER = 'Dear Hiring Manager,\n\nI am excited to apply…\n\nSincerely,\nJane';
 

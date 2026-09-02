@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { ShareLinkMapper } from '#src/interface-adapters/mappers/ShareLinkMapper.js';
-import { makeShareLink } from '#src/__tests__/helpers/mocks.js';
+import { makeShareLink } from '#src/__tests__/helpers/mocks/shareLinks.js';
 
 describe('ShareLinkMapper', () => {
   const mapper = new ShareLinkMapper();

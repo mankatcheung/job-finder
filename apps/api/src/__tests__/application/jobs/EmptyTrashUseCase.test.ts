@@ -1,10 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { EmptyTrashUseCase } from '#src/use-cases/jobs/EmptyTrashUseCase.js';
-import {
-  makeApplicationRepository,
-  makeApplication,
-  makeLogger,
-} from '#src/__tests__/helpers/mocks.js';
+import { makeLogger } from '#src/__tests__/helpers/mocks/infrastructure.js';
+import { makeApplication, makeApplicationRepository } from '#src/__tests__/helpers/mocks/jobs.js';
 import type { IPermanentlyDeleteApplicationUseCase } from '#src/use-cases/jobs/IPermanentlyDeleteApplicationUseCase.js';
 
 const makePermanentDelete = (execute = vi.fn().mockResolvedValue(undefined)) =>
