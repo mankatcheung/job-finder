@@ -10,37 +10,49 @@ import {
 import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
 
 const NOW = new Date('2026-03-15T12:00:00.000Z');
+const NEXT_RESET = new Date('2026-04-01T00:00:00.000Z');
 
-const usage = (promptTokens: number, completionTokens: number, provider = 'openai') => [
-  {
+const spent = (provider: string, promptTokens: number, completionTokens = 0) => ({
+  provider,
+  requestCount: 1,
+  promptTokens,
+  completionTokens,
+  lastUsedAt: NOW,
+});
+
+const key = (provider: string, monthlyTokenLimit: number | null, daysOld = 0) =>
+  makeLlmApiKey({
     provider,
-    requestCount: 1,
-    promptTokens,
-    completionTokens,
-    lastUsedAt: NOW,
-  },
-];
+    monthlyTokenLimit,
+    createdAt: new Date(NOW.getTime() - daysOld * 86_400_000),
+  });
 
 function build({
-  key = makeLlmApiKey({ provider: 'openai', monthlyTokenLimit: null }),
-  summaries = [] as ReturnType<typeof usage>,
+  keys = [key('openai', null)],
+  usage = [] as ReturnType<typeof spent>[],
   defaultLlmProvider = 'openai' as string | null,
+  llmFallbackWhenLimited = false,
 }) {
   const provider = { complete: vi.fn(), completeWithToolsStream: vi.fn() };
   const inner = {
     forUser: vi.fn().mockResolvedValue(provider),
+    resolveForUser: vi.fn().mockImplementation(async (_userId: string, requested?: string) => ({
+      provider,
+      providerId: requested ?? defaultLlmProvider ?? 'openai',
+      fellBackFrom: null,
+    })),
     fromCredentials: vi.fn().mockReturnValue(provider),
   };
   const factory = new LimitEnforcingLLMProviderFactory({
     userLlmProviderFactory: inner,
     userRepository: makeUserRepository({
-      findById: vi.fn().mockResolvedValue(makeUser({ defaultLlmProvider })),
+      findById: vi.fn().mockResolvedValue(makeUser({ defaultLlmProvider, llmFallbackWhenLimited })),
     }),
     llmApiKeyRepository: makeLlmApiKeyRepository({
-      findByUserIdAndProvider: vi.fn().mockResolvedValue(key),
+      findAllByUserId: vi.fn().mockResolvedValue(keys),
     }),
     llmUsageEventRepository: makeLlmUsageEventRepository({
-      summarizeByUserId: vi.fn().mockResolvedValue(summaries),
+      summarizeByUserId: vi.fn().mockResolvedValue(usage),
     }),
     now: () => NOW,
   });
@@ -48,108 +60,177 @@ function build({
 }
 
 describe('LimitEnforcingLLMProviderFactory', () => {
-  it('passes through when the key has no limit', async () => {
-    const { factory, inner, provider } = build({ summaries: usage(9_999_999, 0) });
+  describe('enforcement', () => {
+    it('passes through when the key has no limit', async () => {
+      const { factory, provider } = build({
+        keys: [key('openai', null)],
+        usage: [spent('openai', 9_999_999)],
+      });
 
-    await expect(factory.forUser('user-1', 'openai')).resolves.toBe(provider);
-    expect(inner.forUser).toHaveBeenCalledWith('user-1', 'openai', undefined, true);
-  });
-
-  it('passes through while usage is below the limit', async () => {
-    const { factory, provider } = build({
-      key: makeLlmApiKey({ provider: 'openai', monthlyTokenLimit: 200 }),
-      summaries: usage(100, 99),
+      await expect(factory.forUser('user-1', 'openai')).resolves.toBe(provider);
     });
 
-    await expect(factory.forUser('user-1', 'openai')).resolves.toBe(provider);
-  });
+    it('passes through while usage is below the limit', async () => {
+      const { factory, provider } = build({
+        keys: [key('openai', 200)],
+        usage: [spent('openai', 100, 99)],
+      });
 
-  it('refuses once the combined tokens meet the limit', async () => {
-    const { factory, inner } = build({
-      key: makeLlmApiKey({ provider: 'openai', monthlyTokenLimit: 200 }),
-      summaries: usage(100, 100),
+      await expect(factory.forUser('user-1', 'openai')).resolves.toBe(provider);
     });
 
-    await expect(factory.forUser('user-1', 'openai')).rejects.toThrow(LlmLimitReachedError);
-    expect(inner.forUser).not.toHaveBeenCalled();
-  });
+    it('refuses once the combined tokens meet the limit', async () => {
+      const { factory, inner } = build({
+        keys: [key('openai', 200)],
+        usage: [spent('openai', 100, 100)],
+      });
 
-  it('reports the provider and when the allowance refills', async () => {
-    const { factory } = build({
-      key: makeLlmApiKey({ provider: 'openai', monthlyTokenLimit: 10 }),
-      summaries: usage(10, 0),
+      await expect(factory.forUser('user-1', 'openai')).rejects.toThrow(LlmLimitReachedError);
+      expect(inner.resolveForUser).not.toHaveBeenCalled();
     });
 
-    await expect(factory.forUser('user-1', 'openai')).rejects.toMatchObject({
-      provider: 'openai',
-      resetsAt: new Date('2026-04-01T00:00:00.000Z'),
-      code: ERROR_CODES.AI_LIMIT_REACHED,
+    it('reports the provider and when the allowance refills', async () => {
+      const { factory } = build({ keys: [key('openai', 10)], usage: [spent('openai', 10)] });
+
+      await expect(factory.forUser('user-1', 'openai')).rejects.toMatchObject({
+        provider: 'openai',
+        resetsAt: NEXT_RESET,
+        code: ERROR_CODES.AI_LIMIT_REACHED,
+      });
+    });
+
+    it('resolves the default provider when none is named', async () => {
+      const { factory } = build({ keys: [key('openai', 10)], usage: [spent('openai', 10)] });
+
+      await expect(factory.forUser('user-1')).rejects.toThrow(LlmLimitReachedError);
+    });
+
+    it('defers to the inner factory when the user has no default provider', async () => {
+      const { factory, inner } = build({ defaultLlmProvider: null });
+
+      await factory.forUser('user-1');
+
+      expect(inner.resolveForUser).toHaveBeenCalled();
+    });
+
+    it('ignores another provider’s usage', async () => {
+      const { factory, provider } = build({
+        keys: [key('openai', 200)],
+        usage: [spent('anthropic', 9_999)],
+      });
+
+      await expect(factory.forUser('user-1', 'openai')).resolves.toBe(provider);
+    });
+
+    it('does not enforce a limit on an untracked call', async () => {
+      const { factory, provider } = build({
+        keys: [key('openai', 10)],
+        usage: [spent('openai', 9_999)],
+      });
+
+      await expect(factory.forUser('user-1', 'openai', null, false)).resolves.toBe(provider);
+    });
+
+    it('leaves fromCredentials alone — there is no saved key to have a limit', () => {
+      const { factory, provider } = build({ keys: [key('openai', 1)] });
+
+      expect(factory.fromCredentials({ provider: 'openai', apiKey: 'sk-test' })).toBe(provider);
     });
   });
 
-  it('resolves the default provider when none is named', async () => {
-    const { factory, inner } = build({
-      key: makeLlmApiKey({ provider: 'openai', monthlyTokenLimit: 10 }),
-      summaries: usage(10, 0),
-      defaultLlmProvider: 'openai',
+  describe('opt-in fallback (JEF-258)', () => {
+    it('refuses rather than substituting when the user has not opted in', async () => {
+      const { factory } = build({
+        keys: [key('openai', 10), key('anthropic', null)],
+        usage: [spent('openai', 10)],
+        llmFallbackWhenLimited: false,
+      });
+
+      await expect(factory.forUser('user-1', 'openai')).rejects.toThrow(LlmLimitReachedError);
     });
 
-    await expect(factory.forUser('user-1')).rejects.toThrow(LlmLimitReachedError);
-    expect(inner.forUser).not.toHaveBeenCalled();
-  });
+    it('uses another key with headroom when the user has opted in', async () => {
+      const { factory, inner } = build({
+        keys: [key('openai', 10), key('anthropic', null)],
+        usage: [spent('openai', 10)],
+        llmFallbackWhenLimited: true,
+      });
 
-  /**
-   * "No provider configured" is the inner factory's to report — it returns
-   * null and the caller raises AI_NOT_CONFIGURED. Answering it here would
-   * tell the user to raise a limit on a key they do not have.
-   */
-  it('defers to the inner factory when the user has no default provider', async () => {
-    const { factory, inner } = build({ defaultLlmProvider: null });
+      const resolution = await factory.resolveForUser('user-1', 'openai');
 
-    await factory.forUser('user-1');
-
-    expect(inner.forUser).toHaveBeenCalled();
-  });
-
-  /**
-   * `trackUsage: false` marks a call whose tokens are not counted — today
-   * only "test a saved key". A call that cannot reach the limit must not be
-   * refused by it, or the one button that diagnoses a paused key is gone.
-   */
-  it('does not enforce a limit on an untracked call', async () => {
-    const { factory, provider } = build({
-      key: makeLlmApiKey({ provider: 'openai', monthlyTokenLimit: 10 }),
-      summaries: usage(9_999, 0),
+      expect(resolution).toMatchObject({ providerId: 'anthropic', fellBackFrom: 'openai' });
+      expect(inner.resolveForUser).toHaveBeenCalledWith('user-1', 'anthropic', null, true);
     });
 
-    await expect(factory.forUser('user-1', 'openai', null, false)).resolves.toBe(provider);
-  });
+    /** Oldest first, so the stand-in does not change from call to call. */
+    it('picks the oldest key with headroom', async () => {
+      const { factory } = build({
+        keys: [key('openai', 10), key('mistral', null, 1), key('anthropic', null, 30)],
+        usage: [spent('openai', 10)],
+        llmFallbackWhenLimited: true,
+      });
 
-  it('leaves fromCredentials alone — there is no saved key to have a limit', () => {
-    const { factory, inner, provider } = build({
-      key: makeLlmApiKey({ provider: 'openai', monthlyTokenLimit: 1 }),
-      summaries: usage(9_999, 0),
+      const resolution = await factory.resolveForUser('user-1', 'openai');
+
+      expect(resolution).toMatchObject({ providerId: 'anthropic' });
     });
 
-    expect(factory.fromCredentials({ provider: 'openai', apiKey: 'sk-test' })).toBe(provider);
-    expect(inner.fromCredentials).toHaveBeenCalled();
-  });
+    it('skips a substitute that is itself at its limit', async () => {
+      const { factory } = build({
+        keys: [key('openai', 10), key('anthropic', 50, 30), key('mistral', null, 20)],
+        usage: [spent('openai', 10), spent('anthropic', 50)],
+        llmFallbackWhenLimited: true,
+      });
 
-  it('ignores another provider’s usage', async () => {
-    const { factory, provider } = build({
-      key: makeLlmApiKey({ provider: 'openai', monthlyTokenLimit: 200 }),
-      summaries: usage(9_999, 0, 'anthropic'),
+      const resolution = await factory.resolveForUser('user-1', 'openai');
+
+      expect(resolution).toMatchObject({ providerId: 'mistral' });
     });
 
-    await expect(factory.forUser('user-1', 'openai')).resolves.toBe(provider);
-  });
+    it('refuses when every key is at its limit', async () => {
+      const { factory } = build({
+        keys: [key('openai', 10), key('anthropic', 50)],
+        usage: [spent('openai', 10), spent('anthropic', 50)],
+        llmFallbackWhenLimited: true,
+      });
 
-  it('allows a limited key with no usage yet this month', async () => {
-    const { factory, provider } = build({
-      key: makeLlmApiKey({ provider: 'openai', monthlyTokenLimit: 200 }),
-      summaries: [],
+      await expect(factory.forUser('user-1', 'openai')).rejects.toMatchObject({
+        provider: 'openai',
+      });
     });
 
-    await expect(factory.forUser('user-1', 'openai')).resolves.toBe(provider);
+    it('refuses when there is no other key at all', async () => {
+      const { factory } = build({
+        keys: [key('openai', 10)],
+        usage: [spent('openai', 10)],
+        llmFallbackWhenLimited: true,
+      });
+
+      await expect(factory.forUser('user-1', 'openai')).rejects.toThrow(LlmLimitReachedError);
+    });
+
+    /**
+     * A model name belongs to the provider that defines it, so the caller's
+     * is not carried across to a stand-in that has never heard of it.
+     */
+    it('lets the substitute use its own model, not the paused key’s', async () => {
+      const { factory, inner } = build({
+        keys: [key('openai', 10), key('anthropic', null)],
+        usage: [spent('openai', 10)],
+        llmFallbackWhenLimited: true,
+      });
+
+      await factory.resolveForUser('user-1', 'openai', 'gpt-4o-mini');
+
+      expect(inner.resolveForUser).toHaveBeenCalledWith('user-1', 'anthropic', null, true);
+    });
+
+    it('reports no fallback on the ordinary path', async () => {
+      const { factory } = build({ keys: [key('openai', 200)], usage: [spent('openai', 10)] });
+
+      await expect(factory.resolveForUser('user-1', 'openai')).resolves.toMatchObject({
+        fellBackFrom: null,
+      });
+    });
   });
 });

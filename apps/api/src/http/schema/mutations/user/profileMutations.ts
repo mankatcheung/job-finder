@@ -21,6 +21,7 @@ builder.mutationField('updateProfile', (t) =>
       targetRole: t.arg.string({ required: false }),
       customAiPrompt: t.arg.string({ required: false }),
       useCrossApplicationContext: t.arg.boolean({ required: false }),
+      llmFallbackWhenLimited: t.arg.boolean({ required: false }),
     },
     resolve: async (_root, args, ctx) => {
       if (!ctx.user)
@@ -34,6 +35,7 @@ builder.mutationField('updateProfile', (t) =>
           args.targetRole,
           args.customAiPrompt,
           args.useCrossApplicationContext ?? undefined,
+          args.llmFallbackWhenLimited ?? undefined,
         );
         return true;
       } catch (err) {

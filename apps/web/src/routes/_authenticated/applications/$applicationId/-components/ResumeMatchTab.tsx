@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
 import { EyeIcon } from 'lucide-react';
 import { gqlClient } from '#/graphql/client';
-import { getGqlErrorCode, AI_NOT_CONFIGURED_CODE } from '#/lib/graphqlError';
+import { getGqlErrorCode } from '#/lib/graphqlError';
+import { AiErrorMessage } from '#/components/AiErrorMessage';
 import { getErrorMessage } from '#/lib/errors';
 import { useLocale } from '#/lib/i18n';
 import { DocumentPreviewModal, isPreviewableMimeType } from './DocumentPreviewModal';
@@ -128,17 +128,10 @@ export function ResumeMatchTab({ applicationId }: { applicationId: string }) {
 
         {compute.isError && (
           <p className="text-sm text-red-600 dark:text-red-400">
-            {getGqlErrorCode(compute.error) === AI_NOT_CONFIGURED_CODE ? (
-              <>
-                {t('resumeMatch.addApiKeyPrefix')}{' '}
-                <Link to="/settings/ai" className="underline">
-                  {t('resumeMatch.accountSettingsLinkText')}
-                </Link>{' '}
-                {t('resumeMatch.addApiKeySuffix')}
-              </>
-            ) : (
-              getErrorMessage(compute.error)
-            )}
+            <AiErrorMessage
+              code={getGqlErrorCode(compute.error)}
+              fallback={getErrorMessage(compute.error)}
+            />
           </p>
         )}
       </Card>

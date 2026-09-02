@@ -20,7 +20,32 @@ export interface LLMProviderCredentials {
   baseUrl?: string | null;
 }
 
+/**
+ * What `resolveForUser` answers: the provider to call, which of the user's
+ * keys it is, and — when the one that would normally have run was paused at
+ * its monthly limit — which key it stood in for (JEF-258).
+ *
+ * `forUser` remains for the callers that only need the provider; this exists
+ * for the ones that have to tell the user a different key ran.
+ */
+export interface LLMProviderResolution {
+  provider: ILLMProvider;
+  providerId: string;
+  /** The paused provider this fell back from, or null on the normal path. */
+  fellBackFrom: string | null;
+}
+
 export interface ILLMProviderFactory {
+  /**
+   * `forUser`, plus which key was used. Throws the same limit error when no
+   * key has headroom, and returns null in the same "not configured" cases.
+   */
+  resolveForUser(
+    userId: string,
+    provider?: string,
+    model?: string | null,
+    trackUsage?: boolean,
+  ): Promise<LLMProviderResolution | null>;
   /**
    * `trackUsage` (default `true`) gates the `UsageTrackingLLMProvider` wrap
    * (JEF-250) — every real AI feature leaves it at the default; the one

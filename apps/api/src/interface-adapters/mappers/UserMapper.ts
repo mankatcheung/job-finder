@@ -10,6 +10,7 @@ export interface UserDTO {
   defaultLlmProvider: string | null;
   customAiPrompt: string | null;
   useCrossApplicationContext: boolean;
+  llmFallbackWhenLimited: boolean;
   backupEmail: string | null;
   backupEmailVerifiedAt: Date | null;
 }
@@ -26,6 +27,7 @@ export class UserMapper {
       defaultLlmProvider: user.defaultLlmProvider,
       customAiPrompt: user.customAiPrompt,
       useCrossApplicationContext: user.useCrossApplicationContext,
+      llmFallbackWhenLimited: user.llmFallbackWhenLimited,
       backupEmail: user.backupEmail,
       backupEmailVerifiedAt: user.backupEmailVerifiedAt,
     };

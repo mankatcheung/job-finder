@@ -111,6 +111,8 @@ export async function handleChatStream(
       signal,
     })) {
       if (event.type === 'delta') writeSSE(reply, 'delta', { text: event.text });
+      else if (event.type === 'fallback')
+        writeSSE(reply, 'fallback', { from: event.from, to: event.to });
       else writeSSE(reply, 'done', {});
     }
   } catch (err) {

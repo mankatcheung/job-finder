@@ -67,6 +67,7 @@ export class DrizzleUserRepository implements IUserRepository {
       defaultLlmProvider?: string | null;
       customAiPrompt?: string | null;
       useCrossApplicationContext?: boolean;
+      llmFallbackWhenLimited?: boolean;
       backupEmail?: string | null;
       backupEmailVerifiedAt?: Date | null;
     },
@@ -108,6 +109,7 @@ export class DrizzleUserRepository implements IUserRepository {
       defaultLlmProvider: row.defaultLlmProvider,
       customAiPrompt: row.customAiPrompt,
       useCrossApplicationContext: row.useCrossApplicationContext,
+      llmFallbackWhenLimited: row.llmFallbackWhenLimited,
       backupEmail: row.backupEmail,
       backupEmailVerifiedAt: row.backupEmailVerifiedAt,
       createdAt: row.createdAt,

@@ -61,6 +61,7 @@ export class UpdateProfileUseCase implements IUpdateProfileUseCase {
       targetRole,
       customAiPrompt,
       useCrossApplicationContext: input.useCrossApplicationContext,
+      llmFallbackWhenLimited: input.llmFallbackWhenLimited,
     });
   }
 }
