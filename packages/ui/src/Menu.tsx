@@ -2,15 +2,29 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { Modal } from './Modal';
 import { useIsWideViewport } from './useIsWideViewport';
 
 export type MenuAlign = 'start' | 'end';
+
+/**
+ * Panel width in px, set explicitly rather than by a utility class: the
+ * dropdown is portalled out of the app's own DOM, and its labels are short
+ * and predictable, so a fixed width is both simpler and immune to a host
+ * page's layout.
+ */
+const PANEL_WIDTH = 224;
+
+/** Space between the trigger and the panel. */
+const GAP = 4;
 
 export interface MenuItem {
   /** Stable identity — also what `onSelect` receives. */
@@ -70,6 +84,7 @@ export function Menu({ trigger, items, onSelect, align = 'end', label }: MenuPro
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const isWide = useIsWideViewport();
   const menuId = useId();
+  const [position, setPosition] = useState<CSSProperties | null>(null);
 
   const enabledIndexes = items
     .map((item, index) => (item.disabled ? -1 : index))
@@ -104,6 +119,38 @@ export function Menu({ trigger, items, onSelect, align = 'end', label }: MenuPro
       document.removeEventListener('touchstart', onPointerDown);
     };
   }, [open, isWide, close]);
+
+  /**
+   * The dropdown is portalled to `document.body`, so it is positioned against
+   * the trigger's viewport rect rather than by `absolute` inside the row.
+   * That is what lets it escape an ancestor's `overflow-hidden` — the
+   * settings card clips anything positioned within it, which cut the menu
+   * off mid-item.
+   *
+   * Measured in a layout effect so the panel never paints at the wrong place
+   * first, and re-measured on scroll and resize so it tracks the trigger.
+   */
+  useLayoutEffect(() => {
+    if (!open || !isWide) return;
+
+    const place = () => {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setPosition(
+        align === 'end'
+          ? { top: rect.bottom + GAP, right: window.innerWidth - rect.right }
+          : { top: rect.bottom + GAP, left: rect.left },
+      );
+    };
+
+    place();
+    window.addEventListener('scroll', place, true);
+    window.addEventListener('resize', place);
+    return () => {
+      window.removeEventListener('scroll', place, true);
+      window.removeEventListener('resize', place);
+    };
+  }, [open, isWide, align]);
 
   useEffect(() => {
     if (open && isWide) itemRefs.current[activeIndex]?.focus();
@@ -176,7 +223,7 @@ export function Menu({ trigger, items, onSelect, align = 'end', label }: MenuPro
   const itemClasses = (item: MenuItem, sheet: boolean) =>
     [
       'flex w-full items-center gap-3 text-left transition-colors',
-      sheet ? 'min-h-[52px] px-4 text-base' : 'rounded-md px-2.5 py-2 text-sm',
+      sheet ? 'min-h-[52px] px-4 text-base' : 'rounded-md px-2.5 py-2 text-sm whitespace-nowrap',
       item.disabled
         ? 'cursor-not-allowed opacity-50'
         : 'hover:bg-gray-50 dark:hover:bg-gray-700 focus:bg-gray-50 dark:focus:bg-gray-700 focus:outline-none',
@@ -210,20 +257,27 @@ export function Menu({ trigger, items, onSelect, align = 'end', label }: MenuPro
     <div className="relative inline-flex" onKeyDown={onTriggerKeyDown}>
       {triggerNode}
 
-      {open && isWide && (
-        <div
-          ref={dropdownRef}
-          id={menuId}
-          role="menu"
-          aria-label={label}
-          onKeyDown={onMenuKeyDown}
-          className={`absolute top-full z-40 mt-1 min-w-56 rounded-lg border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-700 dark:bg-gray-800 ${
-            align === 'end' ? 'right-0' : 'left-0'
-          }`}
-        >
-          {renderItems(false)}
-        </div>
-      )}
+      {open &&
+        isWide &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            id={menuId}
+            role="menu"
+            aria-label={label}
+            onKeyDown={onMenuKeyDown}
+            // Position, width and stacking are inline rather than utility
+            // classes: they are what makes the panel land in the right place
+            // and clear its surroundings, and a consumer's CSS build must not
+            // be able to drop them (it dropped `min-w-56`, which is how the
+            // panel shipped with no width at all).
+            style={{ position: 'fixed', zIndex: 50, width: PANEL_WIDTH, ...position }}
+            className="rounded-lg border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
+          >
+            {renderItems(false)}
+          </div>,
+          document.body,
+        )}
 
       {open && !isWide && (
         <Modal open onClose={() => close()} position="bottom" ariaLabel={label}>

@@ -54,14 +54,18 @@ function stubWideViewport() {
   });
 }
 
-/** Row actions moved behind a menu in JEF-258. */
+/**
+ * Row actions moved behind a menu in JEF-258. The dropdown is portalled to
+ * `document.body` so it can escape the settings card's `overflow-hidden`, so
+ * the trigger is found within the row but the items are found on the page.
+ */
 async function chooseRowAction(
   user: ReturnType<typeof userEvent.setup>,
   row: HTMLElement,
   name: string,
 ) {
   await user.click(within(row).getByRole('button', { name: 'Key actions' }));
-  await user.click(within(row).getByRole('menuitem', { name }));
+  await user.click(screen.getByRole('menuitem', { name }));
 }
 
 describe('SettingsAiPage', () => {
@@ -543,14 +547,14 @@ describe('SettingsAiPage', () => {
 
       let el = await row();
       await user.click(within(el).getByRole('button', { name: 'Key actions' }));
-      expect(within(el).getByRole('menuitem', { name: 'Set limit' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Set limit' })).toBeInTheDocument();
       unmount();
 
       respond({ monthlyTokenLimit: 500_000 }, null);
       render(<SettingsAiPage />, { wrapper: Wrapper });
       el = await row();
       await user.click(within(el).getByRole('button', { name: 'Key actions' }));
-      expect(within(el).getByRole('menuitem', { name: 'Edit monthly limit' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Edit monthly limit' })).toBeInTheDocument();
     });
 
     it('saves a limit and refreshes both queries', async () => {

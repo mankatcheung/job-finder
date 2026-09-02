@@ -247,4 +247,62 @@ describe('Menu', () => {
       expect(screen.getByRole('dialog', { name: 'Key actions' })).toBeInTheDocument();
     });
   });
+
+  describe('escaping a clipping ancestor', () => {
+    /**
+     * The settings card that hosts this menu sets `overflow-hidden`, which
+     * cut an absolutely-positioned dropdown off mid-item. Portalling to the
+     * body is what fixes it, so the panel must not live inside the trigger's
+     * subtree.
+     */
+    it('renders the dropdown outside the trigger’s subtree', async () => {
+      stubViewport(true);
+      const { container } = render(
+        <div style={{ overflow: 'hidden' }}>
+          <Menu
+            label="Key actions"
+            items={ITEMS}
+            onSelect={vi.fn()}
+            trigger={(props) => (
+              <button type="button" {...props}>
+                More actions
+              </button>
+            )}
+          />
+        </div>,
+      );
+
+      await openMenu();
+
+      const menu = screen.getByRole('menu', { name: 'Key actions' });
+      expect(container).not.toContainElement(menu);
+      expect(document.body).toContainElement(menu);
+    });
+
+    it('anchors the panel to the viewport rather than to its parent', async () => {
+      stubViewport(true);
+      renderMenu();
+
+      await openMenu();
+
+      expect(screen.getByRole('menu', { name: 'Key actions' })).toHaveStyle({
+        position: 'fixed',
+      });
+    });
+
+    /**
+     * The width came from `min-w-56`, a utility used nowhere in the app, and
+     * the app's Tailwind build never scanned this package — so the panel
+     * rendered with no width and every label wrapped. It is an inline width
+     * now, which no build step can drop.
+     */
+    it('gives the panel a width that does not depend on the host’s CSS build', async () => {
+      stubViewport(true);
+      renderMenu();
+
+      await openMenu();
+
+      expect(screen.getByRole('menu', { name: 'Key actions' })).toHaveStyle({ width: '224px' });
+    });
+  });
 });
