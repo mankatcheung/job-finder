@@ -1,0 +1,1 @@
+ALTER TABLE `User` ADD `llmFallbackWhenLimited` integer DEFAULT false NOT NULL;

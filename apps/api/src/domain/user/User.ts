@@ -22,6 +22,8 @@ export interface User {
   customAiPrompt: string | null;
   /** Opt-in (JEF-249): feed a small, recent slice of the user's other applications' notes/cover letters into cover letter generation. */
   useCrossApplicationContext: boolean;
+  /** Fall through to another key when one hits its monthly limit (JEF-258). */
+  llmFallbackWhenLimited: boolean;
   /** Secondary email for account recovery when primary inbox is inaccessible. */
   backupEmail: string | null;
   /** When the backup email was verified; null until verification completes. */

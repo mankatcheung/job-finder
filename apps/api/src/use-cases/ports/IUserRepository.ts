@@ -32,6 +32,7 @@ export interface IUserRepository {
       defaultLlmProvider?: string | null;
       customAiPrompt?: string | null;
       useCrossApplicationContext?: boolean;
+      llmFallbackWhenLimited?: boolean;
       backupEmail?: string | null;
       backupEmailVerifiedAt?: Date | null;
     },

@@ -39,6 +39,16 @@ export const user = sqliteTable('User', {
   useCrossApplicationContext: integer('useCrossApplicationContext', { mode: 'boolean' })
     .notNull()
     .default(false),
+  /**
+   * When a key hits its monthly token limit (JEF-258), fall through to the
+   * user's next key that still has headroom instead of stopping.
+   *
+   * Off by default: spending on a provider the user did not pick for this
+   * task is the surprising behaviour, so it is opted into rather than out of.
+   */
+  llmFallbackWhenLimited: integer('llmFallbackWhenLimited', { mode: 'boolean' })
+    .notNull()
+    .default(false),
   /** Secondary email for account recovery when primary inbox is inaccessible. */
   backupEmail: text('backupEmail'),
   /** When the backup email was verified; null until verification completes. */

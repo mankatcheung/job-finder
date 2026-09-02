@@ -300,6 +300,7 @@ export class UserResolver {
     targetRole?: string | null,
     customAiPrompt?: string | null,
     useCrossApplicationContext?: boolean,
+    llmFallbackWhenLimited?: boolean,
   ): Promise<void> {
     await this.deps.updateProfileUseCase.execute({
       userId,
@@ -308,6 +309,7 @@ export class UserResolver {
       targetRole,
       customAiPrompt,
       useCrossApplicationContext,
+      llmFallbackWhenLimited,
     });
   }
 

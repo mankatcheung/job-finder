@@ -26,6 +26,11 @@ export const makeLLMProviderFactory = (
   overrides?: Partial<ILLMProviderFactory>,
 ): ILLMProviderFactory => ({
   forUser: vi.fn().mockResolvedValue(makeLLMProvider()),
+  resolveForUser: vi.fn().mockImplementation(async (_userId: string, provider?: string) => ({
+    provider: makeLLMProvider(),
+    providerId: provider ?? 'openai',
+    fellBackFrom: null,
+  })),
   fromCredentials: vi.fn().mockReturnValue(makeLLMProvider()),
   ...overrides,
 });

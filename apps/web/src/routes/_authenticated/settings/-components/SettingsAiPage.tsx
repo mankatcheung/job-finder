@@ -64,6 +64,7 @@ export function SettingsAiPage() {
           defaultLlmProvider: string | null;
           customAiPrompt: string | null;
           useCrossApplicationContext: boolean;
+          llmFallbackWhenLimited: boolean;
         };
       }>(LLM_API_KEYS_QUERY),
   });
@@ -257,6 +258,22 @@ export function SettingsAiPage() {
       customAiPromptForm.setError('root', {
         message: extractGqlError(err) ?? t('integrations.updateCustomInstructionsFailed'),
       });
+    }
+  };
+
+  // Fallback when a key hits its limit (JEF-258)
+  const [fallbackError, setFallbackError] = useState<string | null>(null);
+  const [updatingFallback, setUpdatingFallback] = useState(false);
+  const onToggleFallbackWhenLimited = async (checked: boolean) => {
+    setUpdatingFallback(true);
+    setFallbackError(null);
+    try {
+      await gqlClient.request(UPDATE_PROFILE, { llmFallbackWhenLimited: checked });
+      await qc.invalidateQueries({ queryKey: ['llmApiKeys'] });
+    } catch (err) {
+      setFallbackError(extractGqlError(err) ?? t('integrations.fallbackUpdateFailed'));
+    } finally {
+      setUpdatingFallback(false);
     }
   };
 
@@ -504,6 +521,32 @@ export function SettingsAiPage() {
               : t('integrations.saveInstructions')}
           </Button>
         </form>
+      </Card>
+
+      {/* ── Fallback when a key hits its limit (JEF-258) ── */}
+      <Card className="p-5">
+        <div className="flex items-start justify-between gap-6">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              {t('integrations.fallbackWhenLimitedLabel')}
+            </h2>
+            <p className="mt-1 max-w-xl text-sm text-gray-500 dark:text-gray-400">
+              {t('integrations.fallbackWhenLimitedHelp')}
+            </p>
+          </div>
+          <Checkbox
+            id="llm-fallback-when-limited"
+            aria-label={t('integrations.fallbackWhenLimitedLabel')}
+            checked={llmData?.me.llmFallbackWhenLimited ?? false}
+            disabled={updatingFallback}
+            onChange={(e) => onToggleFallbackWhenLimited(e.target.checked)}
+          />
+        </div>
+        {fallbackError && (
+          <div className="mt-3">
+            <Alert>{fallbackError}</Alert>
+          </div>
+        )}
       </Card>
 
       {/* ── Cross-application context (JEF-249) ── */}

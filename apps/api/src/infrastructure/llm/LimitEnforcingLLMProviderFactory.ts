@@ -1,10 +1,12 @@
 import { LlmLimitReachedError } from '#src/use-cases/errors/DomainError.js';
+import type { LlmApiKey } from '#src/domain/llmApiKey/LlmApiKey.js';
 import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
 import type { ILlmUsageEventRepository } from '#src/use-cases/ports/ILlmUsageEventRepository.js';
 import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
 import type {
   ILLMProviderFactory,
   LLMProviderCredentials,
+  LLMProviderResolution,
 } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import { isLimitReached, startOfUtcMonth } from '#src/use-cases/shared/tokenLimit.js';
@@ -18,13 +20,14 @@ interface Deps {
 }
 
 /**
- * Refuses a key that has spent its monthly token limit (JEF-258).
+ * Refuses a key that has spent its monthly token limit, and — when the user
+ * has opted in — stands another of their keys in for it (JEF-258).
  *
  * A decorator over `ILLMProviderFactory` rather than a check inside each AI
  * use case, following the same inner/outer shape as `Cached*Repository` and
- * `BlocklistingSessionRepository`: `forUser` is the one place every real AI
- * feature resolves a provider through, so every call site is covered by
- * construction and no future one has to remember.
+ * `BlocklistingSessionRepository`: `resolveForUser` is the one place every
+ * real AI feature resolves a provider through, so every call site is covered
+ * by construction and no future one has to remember.
  *
  * **`trackUsage: false` is not enforced.** That flag marks a call whose
  * tokens are deliberately not counted — today only `TestLlmApiKeyUseCase`'s
@@ -51,51 +54,92 @@ export class LimitEnforcingLLMProviderFactory implements ILLMProviderFactory {
     model?: string | null,
     trackUsage = true,
   ): Promise<ILLMProvider | null> {
-    if (trackUsage) {
-      await this.assertWithinLimit(userId, provider);
+    const resolution = await this.resolveForUser(userId, provider, model, trackUsage);
+    return resolution?.provider ?? null;
+  }
+
+  async resolveForUser(
+    userId: string,
+    provider?: string,
+    model?: string | null,
+    trackUsage = true,
+  ): Promise<LLMProviderResolution | null> {
+    if (!trackUsage) {
+      return this.deps.userLlmProviderFactory.resolveForUser(userId, provider, model, trackUsage);
     }
-    return this.deps.userLlmProviderFactory.forUser(userId, provider, model, trackUsage);
+
+    const requested = await this.resolveProviderId(userId, provider);
+    // No provider and no key are the inner factory's cases to report: it
+    // returns null and the caller raises AI_NOT_CONFIGURED.
+    if (!requested) {
+      return this.deps.userLlmProviderFactory.resolveForUser(userId, provider, model, trackUsage);
+    }
+
+    const usedByProvider = await this.usedTokensByProvider(userId);
+    const keys = await this.deps.llmApiKeyRepository.findAllByUserId(userId);
+    const requestedKey = keys.find((key) => key.provider === requested);
+
+    if (!requestedKey || !this.isPaused(requestedKey, usedByProvider)) {
+      return this.deps.userLlmProviderFactory.resolveForUser(userId, provider, model, trackUsage);
+    }
+
+    const user = await this.deps.userRepository.findById(userId);
+    if (!user?.llmFallbackWhenLimited) {
+      throw new LlmLimitReachedError(requested, this.nextReset());
+    }
+
+    // Oldest key first, so the substitute is stable from one call to the
+    // next rather than reshuffling as usage moves around.
+    const substitute = keys
+      .filter((key) => key.provider !== requested)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+      .find((key) => !this.isPaused(key, usedByProvider));
+
+    if (!substitute) {
+      throw new LlmLimitReachedError(requested, this.nextReset());
+    }
+
+    // The substitute's own model, not the caller's — a model name is
+    // provider-specific, and passing one across would ask the stand-in for a
+    // model it does not have.
+    const resolution = await this.deps.userLlmProviderFactory.resolveForUser(
+      userId,
+      substitute.provider,
+      null,
+      trackUsage,
+    );
+    // A key that cannot be built (an unknown provider id, say) is the same as
+    // having no substitute at all.
+    if (!resolution) throw new LlmLimitReachedError(requested, this.nextReset());
+
+    return { ...resolution, fellBackFrom: requested };
   }
 
   fromCredentials(credentials: LLMProviderCredentials): ILLMProvider | null {
     return this.deps.userLlmProviderFactory.fromCredentials(credentials);
   }
 
-  /**
-   * Resolves the same provider the inner factory would, and throws when that
-   * key has passed its limit. Resolving it twice is the price of leaving the
-   * inner factory's own logic untouched; both reads are indexed and the
-   * result is a single row.
-   */
-  private async assertWithinLimit(userId: string, provider?: string): Promise<void> {
-    let resolvedProvider = provider;
-    if (!resolvedProvider) {
-      const user = await this.deps.userRepository.findById(userId);
-      resolvedProvider = user?.defaultLlmProvider ?? undefined;
-    }
-    // No provider and no key are the inner factory's cases to report: it
-    // returns null and the caller raises AI_NOT_CONFIGURED.
-    if (!resolvedProvider) return;
-
-    const key = await this.deps.llmApiKeyRepository.findByUserIdAndProvider(
-      userId,
-      resolvedProvider,
-    );
-    if (!key || key.monthlyTokenLimit === null) return;
-
-    const now = this.deps.now();
-    const since = startOfUtcMonth(now);
-    const summaries = await this.deps.llmUsageEventRepository.summarizeByUserId(userId, since);
-    const used = summaries.find((s) => s.provider === resolvedProvider);
-    const usedTokens = used ? used.promptTokens + used.completionTokens : 0;
-
-    if (isLimitReached(usedTokens, key.monthlyTokenLimit)) {
-      throw new LlmLimitReachedError(resolvedProvider, nextUtcMonth(now));
-    }
+  private async resolveProviderId(userId: string, provider?: string): Promise<string | undefined> {
+    if (provider) return provider;
+    const user = await this.deps.userRepository.findById(userId);
+    return user?.defaultLlmProvider ?? undefined;
   }
-}
 
-/** When the allowance refills — the 1st of the following month, UTC. */
-function nextUtcMonth(now: Date): Date {
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  private async usedTokensByProvider(userId: string): Promise<Map<string, number>> {
+    const summaries = await this.deps.llmUsageEventRepository.summarizeByUserId(
+      userId,
+      startOfUtcMonth(this.deps.now()),
+    );
+    return new Map(summaries.map((s) => [s.provider, s.promptTokens + s.completionTokens]));
+  }
+
+  private isPaused(key: LlmApiKey, usedByProvider: Map<string, number>): boolean {
+    return isLimitReached(usedByProvider.get(key.provider) ?? 0, key.monthlyTokenLimit);
+  }
+
+  /** When the allowance refills — the 1st of the following month, UTC. */
+  private nextReset(): Date {
+    const now = this.deps.now();
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  }
 }

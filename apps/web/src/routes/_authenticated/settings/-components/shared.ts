@@ -45,6 +45,7 @@ export const UPDATE_PROFILE = `
     $targetRole: String
     $customAiPrompt: String
     $useCrossApplicationContext: Boolean
+    $llmFallbackWhenLimited: Boolean
   ) {
     updateProfile(
       name: $name
@@ -52,6 +53,7 @@ export const UPDATE_PROFILE = `
       targetRole: $targetRole
       customAiPrompt: $customAiPrompt
       useCrossApplicationContext: $useCrossApplicationContext
+      llmFallbackWhenLimited: $llmFallbackWhenLimited
     )
   }
 `;
@@ -224,6 +226,7 @@ export const LLM_API_KEYS_QUERY = `
       defaultLlmProvider
       customAiPrompt
       useCrossApplicationContext
+      llmFallbackWhenLimited
     }
   }
 `;

@@ -620,4 +620,64 @@ describe('SettingsAiPage', () => {
       expect(within(el).getByRole('button', { name: 'Raise limit & resume' })).toBeInTheDocument();
     });
   });
+
+  describe('fallback when a key hits its limit (JEF-258)', () => {
+    const withSetting = (llmFallbackWhenLimited: boolean) =>
+      mockGqlRequest.mockImplementation((document: string) => {
+        if (document.includes('query LlmApiKeys')) {
+          return Promise.resolve({
+            llmApiKeys: [],
+            me: {
+              defaultLlmProvider: null,
+              customAiPrompt: null,
+              useCrossApplicationContext: false,
+              llmFallbackWhenLimited,
+            },
+          });
+        }
+        return Promise.resolve({});
+      });
+
+    const toggle = () =>
+      screen.findByRole('checkbox', { name: 'Use another key when one hits its limit' });
+
+    it('is off by default', async () => {
+      withSetting(false);
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+
+      expect(await toggle()).not.toBeChecked();
+    });
+
+    it('reflects the saved setting when it is on', async () => {
+      withSetting(true);
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+
+      // The checkbox renders unchecked before the query lands, so the wait
+      // has to be on the state rather than on the element existing.
+      await waitFor(async () => expect(await toggle()).toBeChecked());
+    });
+
+    it('saves the setting when switched on', async () => {
+      const user = userEvent.setup();
+      withSetting(false);
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+
+      await user.click(await toggle());
+
+      await waitFor(() => {
+        expect(mockGqlRequest).toHaveBeenCalledWith(expect.stringContaining('updateProfile'), {
+          llmFallbackWhenLimited: true,
+        });
+      });
+    });
+
+    it('explains what opting in costs', async () => {
+      withSetting(false);
+      render(<SettingsAiPage />, { wrapper: Wrapper });
+
+      expect(
+        await screen.findByText(/spends money on a provider you did not pick/),
+      ).toBeInTheDocument();
+    });
+  });
 });

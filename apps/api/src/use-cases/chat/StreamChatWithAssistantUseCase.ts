@@ -56,7 +56,15 @@ export interface ChatWithAssistantDeps extends ChatToolDeps {
  * message — mid-conversation narration is real-time UI only, discarded on
  * reload.
  */
-export type ChatStreamEvent = { type: 'delta'; text: string } | { type: 'done' };
+export type ChatStreamEvent =
+  | { type: 'delta'; text: string }
+  /**
+   * The key this turn would have used was paused at its monthly limit, and
+   * the user's opt-in fallback picked another one (JEF-258). Emitted before
+   * any text, so the client can say which key answered.
+   */
+  | { type: 'fallback'; from: string; to: string }
+  | { type: 'done' };
 
 /**
  * Streams the assistant's reply token-by-token (JEF-239): rate limiting,
@@ -92,11 +100,15 @@ export class StreamChatWithAssistantUseCase {
     const messages = buildChatMessages(historyForPrompt, input.message, user);
 
     const providerName = conversation.llmProvider ?? user?.defaultLlmProvider ?? null;
-    const llmProvider = await this.deps.llmProviderFactory.forUser(
+    const resolution = await this.deps.llmProviderFactory.resolveForUser(
       input.userId,
       providerName ?? undefined,
       conversation.llmModel,
     );
+    const llmProvider = resolution?.provider ?? null;
+    if (resolution?.fellBackFrom) {
+      yield { type: 'fallback', from: resolution.fellBackFrom, to: resolution.providerId };
+    }
     if (!llmProvider) {
       throw new AiNotConfiguredError('Add your AI API key in Settings to use this feature');
     }

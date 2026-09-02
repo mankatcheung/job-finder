@@ -8,6 +8,7 @@ import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
 import type {
   ILLMProviderFactory,
   LLMProviderCredentials,
+  LLMProviderResolution,
 } from '#src/use-cases/ports/ILLMProviderFactory.js';
 
 interface Deps {
@@ -27,6 +28,21 @@ export class UserLLMProviderFactory implements ILLMProviderFactory {
     model?: string | null,
     trackUsage = true,
   ): Promise<ILLMProvider | null> {
+    const resolution = await this.resolveForUser(userId, provider, model, trackUsage);
+    return resolution?.provider ?? null;
+  }
+
+  /**
+   * Never falls back — this factory resolves exactly the key it is asked for.
+   * `fellBackFrom` is always null here; the limit-enforcing decorator is what
+   * can substitute a different key (JEF-258).
+   */
+  async resolveForUser(
+    userId: string,
+    provider?: string,
+    model?: string | null,
+    trackUsage = true,
+  ): Promise<LLMProviderResolution | null> {
     let resolvedProvider = provider;
     if (!resolvedProvider) {
       const user = await this.deps.userRepository.findById(userId);
@@ -46,9 +62,11 @@ export class UserLLMProviderFactory implements ILLMProviderFactory {
     const apiKey = this.deps.llmApiKeyCipher.decrypt(key.apiKey);
     const resolvedModel = model ?? key.model;
     const rawProvider = entry.create({ apiKey, model: resolvedModel, baseUrl: key.baseUrl });
-    if (!trackUsage) return rawProvider;
+    if (!trackUsage) {
+      return { provider: rawProvider, providerId: resolvedProvider, fellBackFrom: null };
+    }
 
-    return new UsageTrackingLLMProvider({
+    const tracked = new UsageTrackingLLMProvider({
       inner: rawProvider,
       usageEventRepository: this.deps.llmUsageEventRepository,
       generateId: this.deps.generateId,
@@ -56,6 +74,7 @@ export class UserLLMProviderFactory implements ILLMProviderFactory {
       provider: resolvedProvider,
       model: resolvedModel,
     });
+    return { provider: tracked, providerId: resolvedProvider, fellBackFrom: null };
   }
 
   fromCredentials(credentials: LLMProviderCredentials): ILLMProvider | null {
