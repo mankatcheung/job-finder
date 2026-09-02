@@ -86,6 +86,30 @@ describe('SettingsAiPage', () => {
     expect(screen.getByText('AI features')).toBeInTheDocument();
   });
 
+  it('shows a loading state before the add-key form, instead of flashing it open', async () => {
+    let resolveKeys!: (value: {
+      llmApiKeys: never[];
+      me: { defaultLlmProvider: null; customAiPrompt: null };
+    }) => void;
+    mockGqlRequest.mockReturnValue(
+      new Promise((resolve) => {
+        resolveKeys = resolve;
+      }),
+    );
+
+    render(<SettingsAiPage />, { wrapper: Wrapper });
+
+    expect(screen.queryByPlaceholderText('sk-…')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add provider' })).not.toBeInTheDocument();
+
+    resolveKeys({
+      llmApiKeys: [],
+      me: { defaultLlmProvider: null, customAiPrompt: null },
+    });
+
+    expect(await screen.findByPlaceholderText('sk-…')).toBeInTheDocument();
+  });
+
   describe('cross-application context (JEF-249)', () => {
     it('renders unchecked by default', async () => {
       render(<SettingsAiPage />, { wrapper: Wrapper });
@@ -240,7 +264,7 @@ describe('SettingsAiPage', () => {
   describe('testing the add-key form before saving (JEF-247)', () => {
     it('disables the Test button until an API key is entered', async () => {
       render(<SettingsAiPage />, { wrapper: Wrapper });
-      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+      await screen.findByPlaceholderText('sk-…');
 
       const testButton = screen.getByRole('button', { name: 'Test' });
       expect(testButton).toBeDisabled();
@@ -263,7 +287,7 @@ describe('SettingsAiPage', () => {
       });
       const user = userEvent.setup();
       render(<SettingsAiPage />, { wrapper: Wrapper });
-      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+      await screen.findByPlaceholderText('sk-…');
 
       await user.type(screen.getByPlaceholderText('sk-…'), 'sk-123');
       await user.click(screen.getByRole('button', { name: 'Test' }));
@@ -286,7 +310,7 @@ describe('SettingsAiPage', () => {
     it('keeps the Test button disabled for a custom provider until baseUrl and model are also filled in', async () => {
       const user = userEvent.setup();
       render(<SettingsAiPage />, { wrapper: Wrapper });
-      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
+      await screen.findByPlaceholderText('sk-…');
 
       await user.selectOptions(screen.getByRole('combobox'), 'custom');
       await user.type(screen.getByPlaceholderText('sk-…'), 'sk-123');
@@ -308,9 +332,8 @@ describe('SettingsAiPage', () => {
   describe('progressive disclosure of the add-provider form (redesign)', () => {
     it('opens the form automatically when no provider is configured yet', async () => {
       render(<SettingsAiPage />, { wrapper: Wrapper });
-      await waitFor(() => expect(mockGqlRequest).toHaveBeenCalled());
 
-      expect(screen.getByPlaceholderText('sk-…')).toBeInTheDocument();
+      expect(await screen.findByPlaceholderText('sk-…')).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Add provider' })).not.toBeInTheDocument();
     });
 

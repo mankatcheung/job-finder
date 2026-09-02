@@ -7,7 +7,17 @@ import { Link } from '@tanstack/react-router';
 import { gqlClient } from '#/graphql/client';
 import { useLocale } from '#/lib/i18n';
 import { LlmApiKeyRow } from './LlmApiKeyRow';
-import { Alert, Button, Card, Checkbox, FormLabel, Input, Select, Textarea } from '@trakwyn/ui';
+import {
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  FormLabel,
+  Input,
+  Select,
+  Skeleton,
+  Textarea,
+} from '@trakwyn/ui';
 import {
   LLM_API_KEYS_QUERY,
   LLM_USAGE_SUMMARY_QUERY,
@@ -55,7 +65,7 @@ export function SettingsAiPage() {
   const qc = useQueryClient();
 
   // AI API keys
-  const { data: llmData } = useQuery({
+  const { data: llmData, isLoading: llmKeysLoading } = useQuery({
     queryKey: ['llmApiKeys'],
     queryFn: () =>
       gqlClient.request<{
@@ -329,155 +339,167 @@ export function SettingsAiPage() {
           </div>
         )}
 
-        {llmApiKeys.length > 0 && (
-          <div className="mt-4 border-t border-gray-100 dark:border-gray-700/60">
-            {llmApiKeys.map((key) => (
-              <LlmApiKeyRow
-                key={key.provider}
-                llmApiKey={key}
-                usage={usageByProvider.get(key.provider)}
-                isDefault={key.provider === defaultLlmProvider}
-                testResult={savedKeyTestResults[key.provider]}
-                busy={
-                  testingProvider === key.provider ||
-                  settingDefaultProvider === key.provider ||
-                  removingProvider === key.provider
-                }
-                onTest={() => onTestSavedLlmApiKey(key.provider)}
-                onMakeDefault={() => onSetDefaultProvider(key.provider)}
-                onRemove={() => onRemoveLlmApiKey(key.provider)}
-                onSaveLimit={(monthlyTokenLimit) =>
-                  onSaveMonthlyLimit(key.provider, monthlyTokenLimit)
-                }
-              />
-            ))}
+        {llmKeysLoading ? (
+          <div className="space-y-3 p-5">
+            <Skeleton className="h-14 w-full rounded-lg" />
+            <Skeleton className="h-10 w-40 rounded-lg" />
           </div>
-        )}
-
-        <div className="p-5">
-          {availableProviderOptions.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {t('integrations.allProvidersConfigured')}
-            </p>
-          ) : addProviderOpen ? (
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40">
-              {llmApiKeys.length > 0 && (
-                <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    {t('integrations.addProvider')}
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={closeAddProviderForm}
-                    className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                  >
-                    {t('common.cancel')}
-                  </button>
-                </div>
-              )}
-              <form onSubmit={llmApiKeyForm.handleSubmit(onSaveLlmApiKey)} className="space-y-3">
-                <div>
-                  <FormLabel>{t('integrations.providerLabel')}</FormLabel>
-                  <Select {...llmApiKeyForm.register('provider')}>
-                    {availableProviderOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                <div>
-                  <FormLabel>{t('integrations.apiKeyLabel')}</FormLabel>
-                  <Input
-                    type="password"
-                    {...llmApiKeyForm.register('apiKey')}
-                    invalid={!!llmApiKeyForm.formState.errors.apiKey}
-                    placeholder="sk-…"
+        ) : (
+          <>
+            {llmApiKeys.length > 0 && (
+              <div className="mt-4 border-t border-gray-100 dark:border-gray-700/60">
+                {llmApiKeys.map((key) => (
+                  <LlmApiKeyRow
+                    key={key.provider}
+                    llmApiKey={key}
+                    usage={usageByProvider.get(key.provider)}
+                    isDefault={key.provider === defaultLlmProvider}
+                    testResult={savedKeyTestResults[key.provider]}
+                    busy={
+                      testingProvider === key.provider ||
+                      settingDefaultProvider === key.provider ||
+                      removingProvider === key.provider
+                    }
+                    onTest={() => onTestSavedLlmApiKey(key.provider)}
+                    onMakeDefault={() => onSetDefaultProvider(key.provider)}
+                    onRemove={() => onRemoveLlmApiKey(key.provider)}
+                    onSaveLimit={(monthlyTokenLimit) =>
+                      onSaveMonthlyLimit(key.provider, monthlyTokenLimit)
+                    }
                   />
-                  {llmApiKeyForm.formState.errors.apiKey && (
-                    <p className="mt-1 text-xs text-red-600">
-                      {llmApiKeyForm.formState.errors.apiKey.message}
-                    </p>
+                ))}
+              </div>
+            )}
+
+            <div className="p-5">
+              {availableProviderOptions.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {t('integrations.allProvidersConfigured')}
+                </p>
+              ) : addProviderOpen ? (
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40">
+                  {llmApiKeys.length > 0 && (
+                    <div className="mb-4 flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        {t('integrations.addProvider')}
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={closeAddProviderForm}
+                        className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        {t('common.cancel')}
+                      </button>
+                    </div>
                   )}
-                </div>
-                {isCustomLlmProvider ? (
-                  <>
-                    <div>
-                      <FormLabel>{t('integrations.baseUrlLabel')}</FormLabel>
-                      <Input
-                        type="url"
-                        {...llmApiKeyForm.register('baseUrl')}
-                        invalid={!!llmApiKeyForm.formState.errors.baseUrl}
-                        placeholder="https://your-endpoint.example.com/v1/chat/completions"
-                      />
-                      {llmApiKeyForm.formState.errors.baseUrl && (
-                        <p className="mt-1 text-xs text-red-600">
-                          {llmApiKeyForm.formState.errors.baseUrl.message}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <FormLabel>{t('integrations.modelLabel')}</FormLabel>
-                      <Input
-                        type="text"
-                        {...llmApiKeyForm.register('model')}
-                        invalid={!!llmApiKeyForm.formState.errors.model}
-                        placeholder="e.g. gpt-4o-mini"
-                      />
-                      {llmApiKeyForm.formState.errors.model && (
-                        <p className="mt-1 text-xs text-red-600">
-                          {llmApiKeyForm.formState.errors.model.message}
-                        </p>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <div>
-                    <FormLabel>
-                      {t('integrations.modelLabel')}{' '}
-                      <span className="font-normal text-gray-400">
-                        ({t('integrations.modelOptionalNote')})
-                      </span>
-                    </FormLabel>
-                    <Input
-                      type="text"
-                      {...llmApiKeyForm.register('model')}
-                      placeholder={t('integrations.providerDefaultPlaceholder')}
-                    />
-                  </div>
-                )}
-                {llmApiKeyForm.formState.errors.root && (
-                  <Alert>{llmApiKeyForm.formState.errors.root.message}</Alert>
-                )}
-                {formTestResult && <TestResultLine result={formTestResult} />}
-                <div className="flex items-center gap-3">
-                  <Button type="submit" disabled={llmApiKeyForm.formState.isSubmitting}>
-                    {llmApiKeyForm.formState.isSubmitting
-                      ? t('applicationForm.saving')
-                      : t('integrations.addKey')}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={onTestLlmApiKeyForm}
-                    disabled={!canTestLlmApiKeyForm || testingFormKey}
+                  <form
+                    onSubmit={llmApiKeyForm.handleSubmit(onSaveLlmApiKey)}
+                    className="space-y-3"
                   >
-                    {testingFormKey ? t('integrations.testingKey') : t('integrations.testKey')}
-                  </Button>
+                    <div>
+                      <FormLabel>{t('integrations.providerLabel')}</FormLabel>
+                      <Select {...llmApiKeyForm.register('provider')}>
+                        {availableProviderOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                    <div>
+                      <FormLabel>{t('integrations.apiKeyLabel')}</FormLabel>
+                      <Input
+                        type="password"
+                        {...llmApiKeyForm.register('apiKey')}
+                        invalid={!!llmApiKeyForm.formState.errors.apiKey}
+                        placeholder="sk-…"
+                      />
+                      {llmApiKeyForm.formState.errors.apiKey && (
+                        <p className="mt-1 text-xs text-red-600">
+                          {llmApiKeyForm.formState.errors.apiKey.message}
+                        </p>
+                      )}
+                    </div>
+                    {isCustomLlmProvider ? (
+                      <>
+                        <div>
+                          <FormLabel>{t('integrations.baseUrlLabel')}</FormLabel>
+                          <Input
+                            type="url"
+                            {...llmApiKeyForm.register('baseUrl')}
+                            invalid={!!llmApiKeyForm.formState.errors.baseUrl}
+                            placeholder="https://your-endpoint.example.com/v1/chat/completions"
+                          />
+                          {llmApiKeyForm.formState.errors.baseUrl && (
+                            <p className="mt-1 text-xs text-red-600">
+                              {llmApiKeyForm.formState.errors.baseUrl.message}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <FormLabel>{t('integrations.modelLabel')}</FormLabel>
+                          <Input
+                            type="text"
+                            {...llmApiKeyForm.register('model')}
+                            invalid={!!llmApiKeyForm.formState.errors.model}
+                            placeholder="e.g. gpt-4o-mini"
+                          />
+                          {llmApiKeyForm.formState.errors.model && (
+                            <p className="mt-1 text-xs text-red-600">
+                              {llmApiKeyForm.formState.errors.model.message}
+                            </p>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <div>
+                        <FormLabel>
+                          {t('integrations.modelLabel')}{' '}
+                          <span className="font-normal text-gray-400">
+                            ({t('integrations.modelOptionalNote')})
+                          </span>
+                        </FormLabel>
+                        <Input
+                          type="text"
+                          {...llmApiKeyForm.register('model')}
+                          placeholder={t('integrations.providerDefaultPlaceholder')}
+                        />
+                      </div>
+                    )}
+                    {llmApiKeyForm.formState.errors.root && (
+                      <Alert>{llmApiKeyForm.formState.errors.root.message}</Alert>
+                    )}
+                    {formTestResult && <TestResultLine result={formTestResult} />}
+                    <div className="flex items-center gap-3">
+                      <Button type="submit" disabled={llmApiKeyForm.formState.isSubmitting}>
+                        {llmApiKeyForm.formState.isSubmitting
+                          ? t('applicationForm.saving')
+                          : t('integrations.addKey')}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={onTestLlmApiKeyForm}
+                        disabled={!canTestLlmApiKeyForm || testingFormKey}
+                      >
+                        {testingFormKey ? t('integrations.testingKey') : t('integrations.testKey')}
+                      </Button>
+                    </div>
+                  </form>
                 </div>
-              </form>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAddProviderOverride(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-gray-300 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                >
+                  <PlusIcon size={15} />
+                  {t('integrations.addProvider')}
+                </button>
+              )}
             </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setAddProviderOverride(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-gray-300 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-            >
-              <PlusIcon size={15} />
-              {t('integrations.addProvider')}
-            </button>
-          )}
-        </div>
+          </>
+        )}
       </Card>
 
       {/* ── Custom instructions ── */}
