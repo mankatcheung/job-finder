@@ -16,6 +16,13 @@ export const llmApiKey = sqliteTable(
     model: text('model'),
     /** Base URL; only used (and required) when provider is 'custom'. */
     baseUrl: text('baseUrl'),
+    /**
+     * Monthly ceiling on prompt+completion tokens for this key (JEF-258).
+     * Null means no limit, which is the default and what every key had
+     * before this column existed. Deliberately not touched by the key
+     * upsert, so re-saving an API key keeps the limit already set on it.
+     */
+    monthlyTokenLimit: integer('monthlyTokenLimit'),
     createdAt: integer('createdAt', { mode: 'timestamp_ms' })
       .notNull()
       .$defaultFn(() => new Date()),

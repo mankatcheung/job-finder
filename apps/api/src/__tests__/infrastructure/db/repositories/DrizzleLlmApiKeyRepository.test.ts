@@ -140,4 +140,69 @@ describe('DrizzleLlmApiKeyRepository', () => {
       expect(await repo.findByUserIdAndProvider('u1', 'openai')).toBeNull();
     });
   });
+
+  describe('setMonthlyTokenLimit', () => {
+    const seed = () =>
+      repo.upsert({
+        id: 'key-1',
+        userId: 'u1',
+        provider: 'openai',
+        apiKey: 'encrypted:sk-123',
+        model: null,
+        baseUrl: null,
+      });
+
+    it('defaults a newly saved key to no limit', async () => {
+      const created = await seed();
+
+      expect(created.monthlyTokenLimit).toBeNull();
+    });
+
+    it('sets a limit and reads it back', async () => {
+      await seed();
+
+      const updated = await repo.setMonthlyTokenLimit('u1', 'openai', 2_000_000);
+
+      expect(updated?.monthlyTokenLimit).toBe(2_000_000);
+      expect((await repo.findByUserIdAndProvider('u1', 'openai'))?.monthlyTokenLimit).toBe(
+        2_000_000,
+      );
+    });
+
+    it('clears a limit with null', async () => {
+      await seed();
+      await repo.setMonthlyTokenLimit('u1', 'openai', 2_000_000);
+
+      await repo.setMonthlyTokenLimit('u1', 'openai', null);
+
+      expect((await repo.findByUserIdAndProvider('u1', 'openai'))?.monthlyTokenLimit).toBeNull();
+    });
+
+    it('returns null for a provider the user has no key for', async () => {
+      expect(await repo.setMonthlyTokenLimit('u1', 'mistral', 10)).toBeNull();
+    });
+
+    /**
+     * Rotating an API key must not silently drop the ceiling on it — the
+     * upsert deliberately does not touch this column, and that is easy to
+     * break by adding it to the `set()` alongside the other fields.
+     */
+    it('keeps the limit when the key itself is re-saved', async () => {
+      await seed();
+      await repo.setMonthlyTokenLimit('u1', 'openai', 500_000);
+
+      await repo.upsert({
+        id: 'key-2',
+        userId: 'u1',
+        provider: 'openai',
+        apiKey: 'encrypted:sk-rotated',
+        model: 'gpt-4o-mini',
+        baseUrl: null,
+      });
+
+      const after = await repo.findByUserIdAndProvider('u1', 'openai');
+      expect(after?.apiKey).toBe('encrypted:sk-rotated');
+      expect(after?.monthlyTokenLimit).toBe(500_000);
+    });
+  });
 });

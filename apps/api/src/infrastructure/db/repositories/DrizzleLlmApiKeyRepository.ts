@@ -53,6 +53,19 @@ export class DrizzleLlmApiKeyRepository implements ILlmApiKeyRepository {
     return rows.map((r) => this.toEntity(r));
   }
 
+  async setMonthlyTokenLimit(
+    userId: string,
+    provider: string,
+    monthlyTokenLimit: number | null,
+  ): Promise<LlmApiKey | null> {
+    const [row] = await this.db
+      .update(llmApiKey)
+      .set({ monthlyTokenLimit, updatedAt: new Date() })
+      .where(and(eq(llmApiKey.userId, userId), eq(llmApiKey.provider, provider)))
+      .returning();
+    return row ? this.toEntity(row) : null;
+  }
+
   async delete(userId: string, provider: string): Promise<void> {
     await this.db
       .delete(llmApiKey)
@@ -67,6 +80,7 @@ export class DrizzleLlmApiKeyRepository implements ILlmApiKeyRepository {
       apiKey: row.apiKey,
       model: row.model,
       baseUrl: row.baseUrl,
+      monthlyTokenLimit: row.monthlyTokenLimit,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

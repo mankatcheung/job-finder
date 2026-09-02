@@ -4,6 +4,7 @@ export type LlmApiKeyDTO = {
   provider: string;
   model: string | null;
   baseUrl: string | null;
+  monthlyTokenLimit: number | null;
 };
 
 export class LlmApiKeyMapper {
@@ -12,6 +13,7 @@ export class LlmApiKeyMapper {
       provider: key.provider,
       model: key.model,
       baseUrl: key.baseUrl,
+      monthlyTokenLimit: key.monthlyTokenLimit,
     };
   }
 }

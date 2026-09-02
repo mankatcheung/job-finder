@@ -15,7 +15,12 @@ describe('LlmApiKeyMapper', () => {
 
     const dto = new LlmApiKeyMapper().toDTO(key);
 
-    expect(dto).toEqual({ provider: 'openai', model: 'gpt-4o', baseUrl: null });
+    expect(dto).toEqual({
+      provider: 'openai',
+      model: 'gpt-4o',
+      baseUrl: null,
+      monthlyTokenLimit: null,
+    });
     expect(dto).not.toHaveProperty('apiKey');
     expect(dto).not.toHaveProperty('id');
     expect(dto).not.toHaveProperty('userId');

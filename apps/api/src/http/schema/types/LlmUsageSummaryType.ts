@@ -9,5 +9,7 @@ LlmUsageSummaryRef.implement({
     promptTokens: t.exposeInt('promptTokens'),
     completionTokens: t.exposeInt('completionTokens'),
     lastUsedAt: t.exposeString('lastUsedAt'),
+    monthlyTokenLimit: t.exposeInt('monthlyTokenLimit', { nullable: true }),
+    limitReached: t.exposeBoolean('limitReached'),
   }),
 });

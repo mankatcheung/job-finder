@@ -104,3 +104,28 @@ builder.mutationField('testLlmApiKey', (t) =>
     },
   }),
 );
+
+builder.mutationField('setLlmApiKeyMonthlyLimit', (t) =>
+  t.boolean({
+    args: {
+      provider: t.arg.string({ required: true }),
+      /** Omit (or pass null) to clear the limit. */
+      monthlyTokenLimit: t.arg.int({ required: false }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { userResolver } = ctx.diScope.cradle;
+      try {
+        await userResolver.setLlmApiKeyMonthlyLimit(
+          ctx.user.sub,
+          args.provider,
+          args.monthlyTokenLimit ?? null,
+        );
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
