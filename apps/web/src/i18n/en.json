@@ -1156,5 +1156,10 @@
   "guides.aiMcpSetup.ctaHeadline": "New to Trakwyn? Start free and set this up in minutes.",
   "guides.aiMcpSetup.bannerAiText": "New to bring-your-own-key AI? The setup guide covers picking a provider, adding your key, and what to expect.",
   "guides.aiMcpSetup.bannerIntegrationsText": "New to connecting an MCP client? The setup guide covers OAuth, tokens, scopes, and copy-pasteable client configs.",
-  "guides.aiMcpSetup.bannerLink": "Read the guide"
+  "guides.aiMcpSetup.bannerLink": "Read the guide",
+  "integrations.fallbackWhenLimitedLabel": "Use another key when one hits its limit",
+  "integrations.fallbackWhenLimitedHelp": "When the key an AI feature would use has reached its monthly token limit, fall through to your next key that still has room instead of stopping. You will be told which key answered. Off by default, because it spends money on a provider you did not pick for that task.",
+  "integrations.fallbackUpdateFailed": "Could not update the fallback setting.",
+  "assistant.fallbackNotice": "{{from}} hit its monthly limit — using {{to}} instead.",
+  "assistant.manageLimits": "Manage limits"
 }

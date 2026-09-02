@@ -5,6 +5,7 @@ export interface UpdateProfileInput {
   targetRole?: string | null;
   customAiPrompt?: string | null;
   useCrossApplicationContext?: boolean;
+  llmFallbackWhenLimited?: boolean;
 }
 
 export interface IUpdateProfileUseCase {

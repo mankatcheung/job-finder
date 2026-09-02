@@ -2,7 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { gqlClient } from '#/graphql/client';
 import { streamChatMessage, ChatStreamError } from '#/lib/chatStream';
+import { Link } from '@tanstack/react-router';
 import { AiErrorMessage } from '#/components/AiErrorMessage';
+import { LLM_PROVIDER_LABEL } from '#/routes/_authenticated/settings/-components/shared';
 import { getErrorMessage } from '#/lib/errors';
 import { useLocale } from '#/lib/i18n';
 import { Button, Input, Skeleton, Spinner } from '@trakwyn/ui';
@@ -68,6 +70,12 @@ export function ChatConversationView({
   // react-query's cache. Replaced by the real persisted message once the
   // stream finishes and the history query is refetched.
   const [streamingText, setStreamingText] = useState('');
+  /**
+   * Set when the key this turn would have used was paused and the user's
+   * opt-in fallback picked another (JEF-258). Cleared at the start of each
+   * turn, so it describes the reply on screen rather than an earlier one.
+   */
+  const [fallbackNotice, setFallbackNotice] = useState<{ from: string; to: string } | null>(null);
   const [wasCancelled, setWasCancelled] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -85,12 +93,14 @@ export function ChatConversationView({
   const send = useMutation({
     mutationFn: (vars: { conversationId: string; message: string }) => {
       setStreamingText('');
+      setFallbackNotice(null);
       const controller = new AbortController();
       abortControllerRef.current = controller;
       return streamChatMessage({
         conversationId: vars.conversationId,
         message: vars.message,
         onDelta: (text) => setStreamingText((prev) => prev + text),
+        onFallback: setFallbackNotice,
         signal: controller.signal,
       });
     },
@@ -248,6 +258,20 @@ export function ChatConversationView({
               </div>
             </div>
           ))}
+
+        {fallbackNotice && (
+          <div className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 dark:bg-amber-900/20">
+            <p className="text-xs text-amber-700 dark:text-amber-500">
+              {t('assistant.fallbackNotice', {
+                from: LLM_PROVIDER_LABEL[fallbackNotice.from] ?? fallbackNotice.from,
+                to: LLM_PROVIDER_LABEL[fallbackNotice.to] ?? fallbackNotice.to,
+              })}{' '}
+              <Link to="/settings/ai" className="underline">
+                {t('assistant.manageLimits')}
+              </Link>
+            </p>
+          </div>
+        )}
 
         {send.isError && !wasCancelled && (
           <p className="text-sm text-red-600 dark:text-red-400">

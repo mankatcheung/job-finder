@@ -122,7 +122,9 @@ describe('StreamChatWithAssistantUseCase', () => {
 
   it('throws AI_NOT_CONFIGURED when no provider is available', async () => {
     const deps = makeDeps({
-      llmProviderFactory: makeLLMProviderFactory({ forUser: vi.fn().mockResolvedValue(null) }),
+      llmProviderFactory: makeLLMProviderFactory({
+        resolveForUser: vi.fn().mockResolvedValue(null),
+      }),
     });
 
     await expect(
@@ -138,7 +140,9 @@ describe('StreamChatWithAssistantUseCase', () => {
     });
     const deps = makeDeps({
       llmProviderFactory: makeLLMProviderFactory({
-        forUser: vi.fn().mockResolvedValue(llmProvider),
+        resolveForUser: vi
+          .fn()
+          .mockResolvedValue({ provider: llmProvider, providerId: 'openai', fellBackFrom: null }),
       }),
     });
 
@@ -158,7 +162,9 @@ describe('StreamChatWithAssistantUseCase', () => {
     const llmProvider = makeStreamingProvider({ deltas: ['ok'], content: 'ok', toolCalls: [] });
     const deps = makeDeps({
       llmProviderFactory: makeLLMProviderFactory({
-        forUser: vi.fn().mockResolvedValue(llmProvider),
+        resolveForUser: vi
+          .fn()
+          .mockResolvedValue({ provider: llmProvider, providerId: 'openai', fellBackFrom: null }),
       }),
     });
     const controller = new AbortController();
@@ -178,7 +184,9 @@ describe('StreamChatWithAssistantUseCase', () => {
     const messageRepository = makeMessageRepository();
     const deps = makeDeps({
       llmProviderFactory: makeLLMProviderFactory({
-        forUser: vi.fn().mockResolvedValue(llmProvider),
+        resolveForUser: vi
+          .fn()
+          .mockResolvedValue({ provider: llmProvider, providerId: 'openai', fellBackFrom: null }),
       }),
       messageRepository,
     });
@@ -212,7 +220,9 @@ describe('StreamChatWithAssistantUseCase', () => {
     const messageRepository = makeMessageRepository();
     const deps = makeDeps({
       llmProviderFactory: makeLLMProviderFactory({
-        forUser: vi.fn().mockResolvedValue(llmProvider),
+        resolveForUser: vi
+          .fn()
+          .mockResolvedValue({ provider: llmProvider, providerId: 'openai', fellBackFrom: null }),
       }),
       messageRepository,
     });
@@ -249,7 +259,9 @@ describe('StreamChatWithAssistantUseCase', () => {
     const messageRepository = makeMessageRepository();
     const deps = makeDeps({
       llmProviderFactory: makeLLMProviderFactory({
-        forUser: vi.fn().mockResolvedValue(llmProvider),
+        resolveForUser: vi
+          .fn()
+          .mockResolvedValue({ provider: llmProvider, providerId: 'openai', fellBackFrom: null }),
       }),
       messageRepository,
     });
@@ -274,7 +286,9 @@ describe('StreamChatWithAssistantUseCase', () => {
     });
     const deps = makeDeps({
       llmProviderFactory: makeLLMProviderFactory({
-        forUser: vi.fn().mockResolvedValue(llmProvider),
+        resolveForUser: vi
+          .fn()
+          .mockResolvedValue({ provider: llmProvider, providerId: 'openai', fellBackFrom: null }),
       }),
       conversationRepository,
       messageRepository: makeMessageRepository({

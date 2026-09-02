@@ -15,6 +15,11 @@ export interface StreamChatMessageParams {
   message: string;
   /** Called once per incremental chunk of assistant text, in arrival order. */
   onDelta: (text: string) => void;
+  /**
+   * The key this turn would have used was paused at its monthly limit and the
+   * user's opt-in fallback picked another (JEF-258). Arrives before any text.
+   */
+  onFallback?: (fallback: { from: string; to: string }) => void;
   signal?: AbortSignal;
 }
 
@@ -50,6 +55,7 @@ export async function streamChatMessage({
   conversationId,
   message,
   onDelta,
+  onFallback,
   signal,
 }: StreamChatMessageParams): Promise<void> {
   const response = await fetch(CHAT_STREAM_URL, {
@@ -86,6 +92,8 @@ export async function streamChatMessage({
         if (frame.event === 'delta') {
           const { text } = JSON.parse(frame.data) as { text: string };
           onDelta(text);
+        } else if (frame.event === 'fallback') {
+          onFallback?.(JSON.parse(frame.data) as { from: string; to: string });
         } else if (frame.event === 'error') {
           const err = JSON.parse(frame.data) as { code: string; message: string };
           throw new ChatStreamError(err.message, err.code);

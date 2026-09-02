@@ -330,4 +330,63 @@ describe('ChatConversationView', () => {
       ).toBeInTheDocument(),
     );
   });
+
+  describe('limit fallback (JEF-258)', () => {
+    const sendAndStream = (
+      impl: (params: {
+        onDelta: (text: string) => void;
+        onFallback?: (f: { from: string; to: string }) => void;
+      }) => Promise<void>,
+    ) => {
+      mockGqlRequest.mockImplementation(() => Promise.resolve({ chatHistory: [] }));
+      mockStreamChatMessage.mockImplementation(impl);
+
+      render(
+        <ChatConversationView
+          conversationId="conv-1"
+          provider={null}
+          model=""
+          onConversationCreated={vi.fn()}
+        />,
+        { wrapper: Wrapper },
+      );
+
+      fireEvent.change(screen.getByPlaceholderText('Ask a question…'), { target: { value: 'hi' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+    };
+
+    it('says which key answered when one was substituted', async () => {
+      sendAndStream(async ({ onDelta, onFallback }) => {
+        onFallback?.({ from: 'openai', to: 'anthropic' });
+        onDelta('Answer.');
+      });
+
+      expect(
+        await screen.findByText(
+          /OpenAI hit its monthly limit — using Anthropic \(Claude\) instead/,
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it('links the notice to the AI settings page', async () => {
+      sendAndStream(async ({ onDelta, onFallback }) => {
+        onFallback?.({ from: 'openai', to: 'anthropic' });
+        onDelta('Answer.');
+      });
+
+      const link = await screen.findByRole('link', { name: 'Manage limits' });
+      expect(link).toHaveAttribute('href', '/settings/ai');
+    });
+
+    it('shows nothing when no substitution happened', async () => {
+      sendAndStream(async ({ onDelta }) => {
+        onDelta('Answer.');
+      });
+
+      // The streamed text is transient — it clears once the history refetch
+      // lands — so the send itself is what marks the turn as done here.
+      await waitFor(() => expect(mockStreamChatMessage).toHaveBeenCalled());
+      expect(screen.queryByText(/hit its monthly limit/)).not.toBeInTheDocument();
+    });
+  });
 });
