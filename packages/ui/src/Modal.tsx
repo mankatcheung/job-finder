@@ -113,6 +113,20 @@ export function Modal({
     };
   }, []);
 
+  // A touch-scroll starting on the backdrop has no scrollable target of its
+  // own, so mobile browsers hand it to the page underneath instead — the
+  // background scrolls while the modal sits on top of it. Locking body
+  // scroll for the lifetime of the modal stops that.
+  useEffect(() => {
+    if (!open) return;
+
+    const { overflow } = document.body.style;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = overflow;
+    };
+  }, [open]);
+
   if (!open) return null;
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -201,7 +215,7 @@ export function Modal({
         position === 'bottom' ? 'items-end p-0' : 'items-center p-4'
       }`}
     >
-      <div className="fixed inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
+      <div className="fixed inset-0 bg-black/50 touch-none" onClick={onClose} aria-hidden="true" />
       <div
         ref={panelRef}
         role="dialog"

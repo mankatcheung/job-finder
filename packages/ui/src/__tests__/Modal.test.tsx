@@ -157,6 +157,29 @@ describe('Modal', () => {
     });
   });
 
+  it('locks body scroll while open and restores it on close', () => {
+    const { rerender } = render(
+      <Modal open={false} onClose={vi.fn()} title="Delete application">
+        Body
+      </Modal>,
+    );
+    expect(document.body.style.overflow).toBe('');
+
+    rerender(
+      <Modal open onClose={vi.fn()} title="Delete application">
+        Body
+      </Modal>,
+    );
+    expect(document.body.style.overflow).toBe('hidden');
+
+    rerender(
+      <Modal open={false} onClose={vi.fn()} title="Delete application">
+        Body
+      </Modal>,
+    );
+    expect(document.body.style.overflow).toBe('');
+  });
+
   it('names a title-less dialog from ariaLabel', () => {
     render(
       <Modal open onClose={vi.fn()} position="bottom" ariaLabel="More actions">
