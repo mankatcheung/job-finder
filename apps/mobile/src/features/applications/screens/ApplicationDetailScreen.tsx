@@ -9,14 +9,11 @@ import {
   Text,
   View,
 } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AppStackParamList } from '../../../navigation/types';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApplication } from '../hooks/useApplicationQueries';
 import { useDeleteApplication } from '../hooks/useApplicationMutations';
 import { StatusBadge } from '../components/StatusBadge';
 import { getErrorMessage } from '../../../lib/errors';
-
-type Props = NativeStackScreenProps<AppStackParamList, 'ApplicationDetail'>;
 
 function Field({ label, value }: { label: string; value: string | null }) {
   if (!value) return null;
@@ -28,8 +25,9 @@ function Field({ label, value }: { label: string; value: string | null }) {
   );
 }
 
-export function ApplicationDetailScreen({ route, navigation }: Props) {
-  const { applicationId } = route.params;
+export function ApplicationDetailScreen() {
+  const router = useRouter();
+  const { id: applicationId } = useLocalSearchParams<{ id: string }>();
   const { data: application, isLoading, isError, error } = useApplication(applicationId);
   const deleteApplication = useDeleteApplication();
 
@@ -41,7 +39,7 @@ export function ApplicationDetailScreen({ route, navigation }: Props) {
         style: 'destructive',
         onPress: () => {
           deleteApplication.mutate(applicationId, {
-            onSuccess: () => navigation.goBack(),
+            onSuccess: () => router.back(),
             onError: (err) => Alert.alert('Could not delete', getErrorMessage(err)),
           });
         },
@@ -89,14 +87,14 @@ export function ApplicationDetailScreen({ route, navigation }: Props) {
       <View style={styles.actions}>
         <Pressable
           style={styles.editButton}
-          onPress={() => navigation.navigate('Notes', { applicationId })}
+          onPress={() => router.push(`/applications/${applicationId}/notes`)}
           testID="notes-button"
         >
           <Text style={styles.editButtonText}>Notes</Text>
         </Pressable>
         <Pressable
           style={styles.editButton}
-          onPress={() => navigation.navigate('Documents', { applicationId })}
+          onPress={() => router.push(`/applications/${applicationId}/documents`)}
           testID="documents-button"
         >
           <Text style={styles.editButtonText}>Documents</Text>
@@ -106,7 +104,7 @@ export function ApplicationDetailScreen({ route, navigation }: Props) {
       <View style={styles.actions}>
         <Pressable
           style={styles.editButton}
-          onPress={() => navigation.navigate('ApplicationForm', { applicationId })}
+          onPress={() => router.push(`/applications/${applicationId}/edit`)}
           testID="edit-application-button"
         >
           <Text style={styles.editButtonText}>Edit</Text>

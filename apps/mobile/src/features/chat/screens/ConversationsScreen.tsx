@@ -8,15 +8,13 @@ import {
   Text,
   View,
 } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AppStackParamList } from '../../../navigation/types';
+import { useRouter } from 'expo-router';
 import { useConversations, useDeleteConversation } from '../hooks/useConversations';
 import type { Conversation } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
 
-type Props = NativeStackScreenProps<AppStackParamList, 'Conversations'>;
-
-export function ConversationsScreen({ navigation }: Props) {
+export function ConversationsScreen() {
+  const router = useRouter();
   const { data: conversations, isLoading, isError, error } = useConversations();
   const deleteConversation = useDeleteConversation();
 
@@ -60,7 +58,7 @@ export function ConversationsScreen({ navigation }: Props) {
         renderItem={({ item }) => (
           <Pressable
             style={styles.row}
-            onPress={() => navigation.navigate('Chat', { conversationId: item.id })}
+            onPress={() => router.push(`/conversations/${item.id}`)}
             testID={`conversation-${item.id}`}
           >
             <View style={styles.textColumn}>
@@ -83,7 +81,7 @@ export function ConversationsScreen({ navigation }: Props) {
 
       <Pressable
         style={styles.newButton}
-        onPress={() => navigation.navigate('Chat', { conversationId: null })}
+        onPress={() => router.push('/conversations/new')}
         testID="new-conversation-button"
       >
         <Text style={styles.newButtonText}>New conversation</Text>

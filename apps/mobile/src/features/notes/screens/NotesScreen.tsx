@@ -11,14 +11,11 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AppStackParamList } from '../../../navigation/types';
+import { useLocalSearchParams } from 'expo-router';
 import { useNotes } from '../hooks/useNoteQueries';
 import { useCreateNote, useDeleteNote, useUpdateNote } from '../hooks/useNoteMutations';
 import type { Note } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
-
-type Props = NativeStackScreenProps<AppStackParamList, 'Notes'>;
 
 function NoteRow({
   note,
@@ -92,8 +89,8 @@ function NoteRow({
   );
 }
 
-export function NotesScreen({ route }: Props) {
-  const { applicationId } = route.params;
+export function NotesScreen() {
+  const { id: applicationId } = useLocalSearchParams<{ id: string }>();
   const { data: notes, isLoading, isError, error } = useNotes(applicationId);
   const createNote = useCreateNote(applicationId);
   const updateNote = useUpdateNote(applicationId);

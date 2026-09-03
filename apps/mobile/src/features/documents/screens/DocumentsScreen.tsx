@@ -12,15 +12,12 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AppStackParamList } from '../../../navigation/types';
+import { useLocalSearchParams } from 'expo-router';
 import { useDocuments } from '../hooks/useDocumentQueries';
 import { useDeleteDocument } from '../hooks/useDeleteDocument';
 import { useUploadDocument, type UploadDocumentInput } from '../hooks/useUploadDocument';
 import type { Document } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
-
-type Props = NativeStackScreenProps<AppStackParamList, 'Documents'>;
 
 const DOCUMENT_TYPES = ['other', 'resume', 'cover_letter', 'portfolio'] as const;
 
@@ -60,8 +57,8 @@ function DocumentRow({ document, onDelete }: { document: Document; onDelete: () 
   );
 }
 
-export function DocumentsScreen({ route }: Props) {
-  const { applicationId } = route.params;
+export function DocumentsScreen() {
+  const { id: applicationId } = useLocalSearchParams<{ id: string }>();
   const { data: documents, isLoading, isError, error } = useDocuments(applicationId);
   const uploadDocument = useUploadDocument(applicationId);
   const deleteDocument = useDeleteDocument(applicationId);

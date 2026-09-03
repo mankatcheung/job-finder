@@ -11,8 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AppStackParamList } from '../../../navigation/types';
+import { useLocalSearchParams } from 'expo-router';
 import {
   useChatHistory,
   chatHistoryQueryKey,
@@ -23,14 +22,13 @@ import { ChatStreamError, streamChatMessage } from '../lib/chatStream';
 import type { ChatMessage } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
 
-type Props = NativeStackScreenProps<AppStackParamList, 'Chat'>;
-
 function tempMessageId(): string {
   return `optimistic-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function ChatScreen({ route }: Props) {
-  const [conversationId, setConversationId] = useState<string | null>(route.params.conversationId);
+export function ChatScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [conversationId, setConversationId] = useState<string | null>(id === 'new' ? null : id);
   const queryClient = useQueryClient();
   const { data: history, isLoading } = useChatHistory(conversationId);
   const appendOptimistic = useAppendOptimisticMessage();
