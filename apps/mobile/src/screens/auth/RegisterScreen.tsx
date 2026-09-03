@@ -9,15 +9,13 @@ import {
   Text,
   TextInput,
 } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AuthStackParamList } from '../../navigation/types';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../../auth/AuthContext';
 import { getErrorMessage } from '../../lib/errors';
 import { registerSchema } from './registerSchema';
 
-type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
-
-export function RegisterScreen({ navigation }: Props) {
+export function RegisterScreen() {
+  const router = useRouter();
   const { register } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -86,7 +84,7 @@ export function RegisterScreen({ navigation }: Props) {
           )}
         </Pressable>
 
-        <Pressable onPress={() => navigation.navigate('Login')}>
+        <Pressable onPress={() => router.push('/login')}>
           <Text style={styles.link}>Already have an account? Sign in</Text>
         </Pressable>
       </ScrollView>
