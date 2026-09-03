@@ -8,7 +8,11 @@ jest.mock('../../hooks/useNoteMutations', () => ({
   useUpdateNote: jest.fn(),
   useDeleteNote: jest.fn(),
 }));
+jest.mock('expo-router', () => ({
+  useLocalSearchParams: jest.fn(),
+}));
 
+import { useLocalSearchParams } from 'expo-router';
 import { useNotes } from '../../hooks/useNoteQueries';
 import { useCreateNote, useDeleteNote, useUpdateNote } from '../../hooks/useNoteMutations';
 import { NotesScreen } from '../NotesScreen';
@@ -18,6 +22,7 @@ const mockedUseNotes = jest.mocked(useNotes);
 const mockedUseCreateNote = jest.mocked(useCreateNote);
 const mockedUseUpdateNote = jest.mocked(useUpdateNote);
 const mockedUseDeleteNote = jest.mocked(useDeleteNote);
+const mockedUseLocalSearchParams = jest.mocked(useLocalSearchParams);
 
 const note: Note = {
   id: '1',
@@ -28,12 +33,8 @@ const note: Note = {
 };
 
 function renderScreen() {
-  return render(
-    <NotesScreen
-      navigation={{} as never}
-      route={{ params: { applicationId: 'app-1' } } as never}
-    />,
-  );
+  mockedUseLocalSearchParams.mockReturnValue({ id: 'app-1' } as never);
+  return render(<NotesScreen />);
 }
 
 describe('NotesScreen', () => {

@@ -10,8 +10,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AppStackParamList } from '../../../navigation/types';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApplication } from '../hooks/useApplicationQueries';
 import { useCreateApplication, useUpdateApplication } from '../hooks/useApplicationMutations';
 import { statusLabel } from '../components/StatusBadge';
@@ -23,10 +22,9 @@ import {
   type ApplicationFormValues,
 } from './applicationFormSchema';
 
-type Props = NativeStackScreenProps<AppStackParamList, 'ApplicationForm'>;
-
-export function ApplicationFormScreen({ route, navigation }: Props) {
-  const applicationId = route.params?.applicationId;
+export function ApplicationFormScreen() {
+  const router = useRouter();
+  const { id: applicationId } = useLocalSearchParams<{ id?: string }>();
   const isEditing = Boolean(applicationId);
 
   const { data: existing, isLoading: isLoadingExisting } = useApplication(applicationId ?? '');
@@ -72,7 +70,7 @@ export function ApplicationFormScreen({ route, navigation }: Props) {
       description: parsed.data.description || undefined,
     };
 
-    const onSuccess = () => navigation.goBack();
+    const onSuccess = () => router.back();
     const onMutationError = (err: unknown) => setError(getErrorMessage(err));
 
     if (isEditing && applicationId) {

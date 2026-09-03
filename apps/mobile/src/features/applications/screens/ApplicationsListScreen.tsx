@@ -10,15 +10,13 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AppStackParamList } from '../../../navigation/types';
+import { Stack, useRouter } from 'expo-router';
 import { useApplications } from '../hooks/useApplicationQueries';
 import { ApplicationListItem } from '../components/ApplicationListItem';
+import { ApplicationsListHeaderActions } from '../components/ApplicationsListHeaderActions';
 import { statusLabel } from '../components/StatusBadge';
 import { APPLICATION_STATUSES, type Application, type ApplicationStatus } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
-
-type Props = NativeStackScreenProps<AppStackParamList, 'ApplicationsList'>;
 
 type StatusFilter = 'all' | ApplicationStatus;
 
@@ -31,7 +29,8 @@ function matchesSearch(application: Application, search: string): boolean {
   );
 }
 
-export function ApplicationsListScreen({ navigation }: Props) {
+export function ApplicationsListScreen() {
+  const router = useRouter();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [search, setSearch] = useState('');
 
@@ -46,6 +45,7 @@ export function ApplicationsListScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <Stack.Screen options={{ headerRight: () => <ApplicationsListHeaderActions /> }} />
       <TextInput
         style={styles.search}
         placeholder="Search company or role"
@@ -97,7 +97,7 @@ export function ApplicationsListScreen({ navigation }: Props) {
           renderItem={({ item }) => (
             <ApplicationListItem
               application={item}
-              onPress={() => navigation.navigate('ApplicationDetail', { applicationId: item.id })}
+              onPress={() => router.push(`/applications/${item.id}`)}
             />
           )}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -106,7 +106,7 @@ export function ApplicationsListScreen({ navigation }: Props) {
 
       <Pressable
         style={styles.fab}
-        onPress={() => navigation.navigate('ApplicationForm', undefined)}
+        onPress={() => router.push('/applications/new')}
         testID="add-application-button"
       >
         <Text style={styles.fabText}>+</Text>

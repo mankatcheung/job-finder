@@ -109,6 +109,27 @@ There's also a third, non-HttpOnly `trakwyn_logged_in` hint cookie (`COOKIES.LOG
 
 **Path alias:** `#/*` → `./src/*` (configured in `package.json` `imports` and `tsconfig`).
 
+### Mobile (`apps/mobile`) — Expo Router + React Query + GraphQL
+
+**Framework:** Expo (React Native, web-capable via `react-native-web`). Routes live under `app/` using Expo Router's file-based routing.
+
+**Route layout:**
+
+- `app/_layout.tsx` → root layout; shows a loading indicator while auth state restores, then renders `(app)` or `(auth)` via `Stack.Protected` guards on `isAuthenticated`
+- `(auth)/login`, `(auth)/register` → public auth routes, no header
+- `(app)/index` → applications list (home)
+- `(app)/applications/new`, `(app)/applications/[id]/edit` → create/edit form (same `ApplicationFormScreen`, mode inferred from whether `id` is present)
+- `(app)/applications/[id]`, `(app)/applications/[id]/notes`, `(app)/applications/[id]/documents` → application detail, notes, documents
+- `(app)/applications/trash` → trash
+- `(app)/conversations`, `(app)/conversations/[id]` → assistant chat list and thread (`id` is the literal segment `new` for a not-yet-created conversation)
+- `(app)/settings`, `(app)/settings/profile`, `(app)/settings/security`, `(app)/settings/notifications`, `(app)/settings/ai` → settings and subsections
+
+Each route file is a thin re-export of a screen component from `src/features/*/screens/` or `src/screens/`; screen components use `useRouter`/`useLocalSearchParams`/`Stack.Screen` from `expo-router` directly rather than taking navigation props, so they stay file-path-independent of where the route tree mounts them. Per-route static titles are set centrally in `(app)/_layout.tsx`; the two exceptions needing runtime data (`ApplicationsListScreen`'s header actions, driven by auth/data state) set their own `<Stack.Screen options={{...}} />` inline.
+
+**Data fetching:** `graphql-request` with TanStack Query, mirroring the web app's pattern.
+
+**Path alias:** none — screens import relative to `src/`; route files under `app/` import relative to `../src/...`.
+
 ## Environment Setup
 
 Copy and fill in both env files before running:

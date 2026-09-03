@@ -1,26 +1,22 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { NavigationContainer } from '@react-navigation/native';
 
-jest.mock('../../auth/AuthContext', () => ({
+jest.mock('../../src/auth/AuthContext', () => ({
   useAuth: jest.fn(),
 }));
 
-jest.mock('../AuthStack', () => ({ AuthStack: () => null }));
-jest.mock('../AppStack', () => ({ AppStack: () => null }));
+jest.mock('expo-router', () => {
+  const Stack = ({ children }: { children?: React.ReactNode }) => children;
+  Stack.Screen = () => null;
+  Stack.Protected = ({ guard, children }: { guard: boolean; children?: React.ReactNode }) =>
+    guard ? children : null;
+  return { Stack };
+});
 
-import { useAuth } from '../../auth/AuthContext';
-import { RootNavigator } from '../RootNavigator';
+import { useAuth } from '../../src/auth/AuthContext';
+import { RootNavigator } from '../_layout';
 
 const mockedUseAuth = jest.mocked(useAuth);
-
-function renderNavigator() {
-  return render(
-    <NavigationContainer>
-      <RootNavigator />
-    </NavigationContainer>,
-  );
-}
 
 describe('RootNavigator', () => {
   it('shows a loading indicator while auth state is being restored', async () => {
@@ -33,11 +29,11 @@ describe('RootNavigator', () => {
       logout: jest.fn(),
     });
 
-    const { getByTestId } = await renderNavigator();
+    const { getByTestId } = await render(<RootNavigator />);
     expect(getByTestId('root-loading')).toBeTruthy();
   });
 
-  it('renders the auth stack when not authenticated', async () => {
+  it('hides the loading indicator once auth state is known', async () => {
     mockedUseAuth.mockReturnValue({
       isLoading: false,
       isAuthenticated: false,
@@ -47,11 +43,11 @@ describe('RootNavigator', () => {
       logout: jest.fn(),
     });
 
-    const { queryByTestId } = await renderNavigator();
+    const { queryByTestId } = await render(<RootNavigator />);
     expect(queryByTestId('root-loading')).toBeNull();
   });
 
-  it('renders the app stack when authenticated', async () => {
+  it('hides the loading indicator once authenticated', async () => {
     mockedUseAuth.mockReturnValue({
       isLoading: false,
       isAuthenticated: true,
@@ -61,7 +57,7 @@ describe('RootNavigator', () => {
       logout: jest.fn(),
     });
 
-    const { queryByTestId } = await renderNavigator();
+    const { queryByTestId } = await render(<RootNavigator />);
     expect(queryByTestId('root-loading')).toBeNull();
   });
 });

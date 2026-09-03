@@ -4,7 +4,12 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 jest.mock('../../hooks/useApplicationQueries', () => ({ useApplication: jest.fn() }));
 jest.mock('../../hooks/useApplicationMutations', () => ({ useDeleteApplication: jest.fn() }));
+jest.mock('expo-router', () => ({
+  useRouter: jest.fn(),
+  useLocalSearchParams: jest.fn(),
+}));
 
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApplication } from '../../hooks/useApplicationQueries';
 import { useDeleteApplication } from '../../hooks/useApplicationMutations';
 import { ApplicationDetailScreen } from '../ApplicationDetailScreen';
@@ -12,6 +17,8 @@ import type { Application } from '../../types';
 
 const mockedUseApplication = jest.mocked(useApplication);
 const mockedUseDeleteApplication = jest.mocked(useDeleteApplication);
+const mockedUseRouter = jest.mocked(useRouter);
+const mockedUseLocalSearchParams = jest.mocked(useLocalSearchParams);
 
 const application: Application = {
   id: '1',
@@ -31,13 +38,10 @@ const application: Application = {
   updatedAt: '2026-01-01T00:00:00.000Z',
 };
 
-function renderScreen(navigate = jest.fn(), goBack = jest.fn()) {
-  return render(
-    <ApplicationDetailScreen
-      navigation={{ navigate, goBack } as never}
-      route={{ params: { applicationId: '1' } } as never}
-    />,
-  );
+function renderScreen(push = jest.fn(), back = jest.fn()) {
+  mockedUseRouter.mockReturnValue({ push, back } as never);
+  mockedUseLocalSearchParams.mockReturnValue({ id: '1' } as never);
+  return render(<ApplicationDetailScreen />);
 }
 
 describe('ApplicationDetailScreen', () => {
@@ -66,7 +70,7 @@ describe('ApplicationDetailScreen', () => {
   });
 
   it('navigates to the edit form when Edit is pressed', async () => {
-    const navigate = jest.fn();
+    const push = jest.fn();
     mockedUseApplication.mockReturnValue({
       data: application,
       isLoading: false,
@@ -78,15 +82,15 @@ describe('ApplicationDetailScreen', () => {
       isPending: false,
     } as never);
 
-    const { getByTestId } = await renderScreen(navigate);
+    const { getByTestId } = await renderScreen(push);
 
     await fireEvent.press(getByTestId('edit-application-button'));
 
-    expect(navigate).toHaveBeenCalledWith('ApplicationForm', { applicationId: '1' });
+    expect(push).toHaveBeenCalledWith('/applications/1/edit');
   });
 
   it('confirms and deletes the application, then navigates back', async () => {
-    const goBack = jest.fn();
+    const back = jest.fn();
     const mutate = jest.fn((_id, options) => options?.onSuccess?.());
     jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
       const deleteButton = buttons?.find((b) => b.text === 'Delete');
@@ -100,11 +104,11 @@ describe('ApplicationDetailScreen', () => {
     } as never);
     mockedUseDeleteApplication.mockReturnValue({ mutate, isPending: false } as never);
 
-    const { getByTestId } = await renderScreen(jest.fn(), goBack);
+    const { getByTestId } = await renderScreen(jest.fn(), back);
 
     await fireEvent.press(getByTestId('delete-application-button'));
 
     expect(mutate).toHaveBeenCalledWith('1', expect.any(Object));
-    expect(goBack).toHaveBeenCalled();
+    expect(back).toHaveBeenCalled();
   });
 });

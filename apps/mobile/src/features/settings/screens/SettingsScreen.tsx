@@ -1,28 +1,30 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AppStackParamList } from '../../../navigation/types';
+import { useRouter, type Href } from 'expo-router';
 import { useAuth } from '../../../auth/AuthContext';
 
-type Props = NativeStackScreenProps<AppStackParamList, 'Settings'>;
-
-const MENU: Array<{ label: string; screen: keyof AppStackParamList; testID: string }> = [
-  { label: 'Profile', screen: 'Profile', testID: 'settings-profile-row' },
-  { label: 'Security', screen: 'Security', testID: 'settings-security-row' },
-  { label: 'Notifications', screen: 'Notifications', testID: 'settings-notifications-row' },
-  { label: 'AI', screen: 'AiSettings', testID: 'settings-ai-row' },
+const MENU: Array<{ label: string; href: Href; testID: string }> = [
+  { label: 'Profile', href: '/settings/profile', testID: 'settings-profile-row' },
+  { label: 'Security', href: '/settings/security', testID: 'settings-security-row' },
+  {
+    label: 'Notifications',
+    href: '/settings/notifications',
+    testID: 'settings-notifications-row',
+  },
+  { label: 'AI', href: '/settings/ai', testID: 'settings-ai-row' },
 ];
 
-export function SettingsScreen({ navigation }: Props) {
+export function SettingsScreen() {
+  const router = useRouter();
   const { logout } = useAuth();
 
   return (
     <View style={styles.container}>
       {MENU.map((item) => (
         <Pressable
-          key={item.screen}
+          key={item.testID}
           style={styles.row}
-          onPress={() => navigation.navigate(item.screen as never)}
+          onPress={() => router.push(item.href)}
           testID={item.testID}
         >
           <Text style={styles.label}>{item.label}</Text>

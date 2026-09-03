@@ -2,12 +2,18 @@ import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 jest.mock('../../hooks/useApplicationQueries', () => ({ useApplications: jest.fn() }));
+jest.mock('expo-router', () => ({
+  useRouter: jest.fn(),
+  Stack: { Screen: () => null },
+}));
 
+import { useRouter } from 'expo-router';
 import { useApplications } from '../../hooks/useApplicationQueries';
 import { ApplicationsListScreen } from '../ApplicationsListScreen';
 import type { Application } from '../../types';
 
 const mockedUseApplications = jest.mocked(useApplications);
+const mockedUseRouter = jest.mocked(useRouter);
 
 const applications: Application[] = [
   {
@@ -46,8 +52,9 @@ const applications: Application[] = [
   },
 ];
 
-function renderScreen(navigate = jest.fn()) {
-  return render(<ApplicationsListScreen navigation={{ navigate } as never} route={{} as never} />);
+function renderScreen(push = jest.fn()) {
+  mockedUseRouter.mockReturnValue({ push } as never);
+  return render(<ApplicationsListScreen />);
 }
 
 describe('ApplicationsListScreen', () => {
@@ -72,7 +79,7 @@ describe('ApplicationsListScreen', () => {
   });
 
   it('navigates to the detail screen when an item is pressed', async () => {
-    const navigate = jest.fn();
+    const push = jest.fn();
     mockedUseApplications.mockReturnValue({
       data: applications,
       isLoading: false,
@@ -82,11 +89,11 @@ describe('ApplicationsListScreen', () => {
       isRefetching: false,
     } as never);
 
-    const { getByTestId } = await renderScreen(navigate);
+    const { getByTestId } = await renderScreen(push);
 
     await fireEvent.press(getByTestId('application-item-1'));
 
-    expect(navigate).toHaveBeenCalledWith('ApplicationDetail', { applicationId: '1' });
+    expect(push).toHaveBeenCalledWith('/applications/1');
   });
 
   it('filters the list by search text', async () => {
@@ -108,7 +115,7 @@ describe('ApplicationsListScreen', () => {
   });
 
   it('navigates to the create form when the add button is pressed', async () => {
-    const navigate = jest.fn();
+    const push = jest.fn();
     mockedUseApplications.mockReturnValue({
       data: applications,
       isLoading: false,
@@ -118,11 +125,11 @@ describe('ApplicationsListScreen', () => {
       isRefetching: false,
     } as never);
 
-    const { getByTestId } = await renderScreen(navigate);
+    const { getByTestId } = await renderScreen(push);
 
     await fireEvent.press(getByTestId('add-application-button'));
 
-    expect(navigate).toHaveBeenCalledWith('ApplicationForm', undefined);
+    expect(push).toHaveBeenCalledWith('/applications/new');
   });
 
   it('shows an empty state when there are no applications', async () => {
