@@ -1,7 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Modal } from '../Modal';
+
+function drag(panel: Element, sequence: number[]) {
+  const [startY, ...rest] = sequence;
+  fireEvent.pointerDown(panel, { clientY: startY, pointerId: 1 });
+  for (const clientY of rest) {
+    fireEvent.pointerMove(panel, { clientY, pointerId: 1 });
+  }
+  fireEvent.pointerUp(panel, { clientY: rest[rest.length - 1] ?? startY, pointerId: 1 });
+}
 
 describe('Modal', () => {
   it('renders nothing when closed', () => {
@@ -89,6 +98,62 @@ describe('Modal', () => {
       );
       await userEvent.keyboard('{Escape}');
       expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('dismisses on a swipe down past the distance threshold', async () => {
+      const onClose = vi.fn();
+      render(
+        <Modal open onClose={onClose} position="bottom">
+          <button>Confirm</button>
+        </Modal>,
+      );
+      const panel = screen.getByRole('dialog');
+      drag(panel, [0, 60, 140]);
+      await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+    });
+
+    it('dismisses on a fast flick that does not cross the distance threshold', async () => {
+      // fireEvent's synchronous pointerdown -> pointerup happens in well under
+      // a millisecond of wall-clock time, so a modest distance already reads
+      // as a high-velocity flick.
+      const onClose = vi.fn();
+      render(
+        <Modal open onClose={onClose} position="bottom">
+          <button>Confirm</button>
+        </Modal>,
+      );
+      const panel = screen.getByRole('dialog');
+      drag(panel, [0, 30]);
+      await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+    });
+
+    it('springs back open without closing on a short, slow drag', async () => {
+      const onClose = vi.fn();
+      render(
+        <Modal open onClose={onClose} position="bottom">
+          <button>Confirm</button>
+        </Modal>,
+      );
+      const panel = screen.getByRole('dialog');
+      fireEvent.pointerDown(panel, { clientY: 0, pointerId: 1 });
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      fireEvent.pointerMove(panel, { clientY: 30, pointerId: 1 });
+      fireEvent.pointerUp(panel, { clientY: 30, pointerId: 1 });
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('ignores a drag started on an interactive child', async () => {
+      const onClose = vi.fn();
+      render(
+        <Modal open onClose={onClose} position="bottom">
+          <button>Confirm</button>
+        </Modal>,
+      );
+      const button = screen.getByRole('button', { name: 'Confirm' });
+      drag(button, [0, 60, 140]);
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      expect(onClose).not.toHaveBeenCalled();
     });
   });
 
