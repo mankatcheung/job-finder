@@ -13,6 +13,8 @@ import {
   useNotificationPreferences,
   useUpdateNotificationPreferences,
 } from '../hooks/useNotificationPreferences';
+import { useEnablePushNotifications } from '../../push/hooks/usePushToken';
+import { PushRegistrationError } from '../../push/lib/registerForPushNotifications';
 import type { DigestFrequency } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
 
@@ -25,6 +27,7 @@ const DIGEST_OPTIONS: Array<{ value: DigestFrequency; label: string }> = [
 export function NotificationsScreen() {
   const { data: preferences, isLoading, isError, error } = useNotificationPreferences();
   const updatePreferences = useUpdateNotificationPreferences();
+  const enablePush = useEnablePushNotifications();
 
   const [digestFrequency, setDigestFrequency] = useState<DigestFrequency>('OFF');
   const [followUpRemindersEnabled, setFollowUpRemindersEnabled] = useState(false);
@@ -53,6 +56,24 @@ export function NotificationsScreen() {
       },
       { onError: (err) => setSaveError(getErrorMessage(err)) },
     );
+  };
+
+  const onTogglePush = (value: boolean) => {
+    setSaveError(null);
+    if (!value) {
+      setPushNotificationsEnabled(false);
+      save({ pushNotificationsEnabled: false });
+      return;
+    }
+
+    enablePush.mutate(undefined, {
+      onSuccess: () => {
+        setPushNotificationsEnabled(true);
+        save({ pushNotificationsEnabled: true });
+      },
+      onError: (err) =>
+        setSaveError(err instanceof PushRegistrationError ? err.message : getErrorMessage(err)),
+    });
   };
 
   if (isLoading) {
@@ -112,10 +133,8 @@ export function NotificationsScreen() {
         <Text style={styles.label}>Push notifications</Text>
         <Switch
           value={pushNotificationsEnabled}
-          onValueChange={(value) => {
-            setPushNotificationsEnabled(value);
-            save({ pushNotificationsEnabled: value });
-          }}
+          onValueChange={onTogglePush}
+          disabled={enablePush.isPending}
           testID="push-notifications-switch"
         />
       </View>

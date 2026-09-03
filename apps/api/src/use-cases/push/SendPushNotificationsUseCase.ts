@@ -4,6 +4,7 @@ import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { IPushSubscriptionRepository } from '#src/use-cases/ports/IPushSubscriptionRepository.js';
 import type { ILogger } from '#src/use-cases/ports/ILogger.js';
 import type { IWebPushService } from '#src/use-cases/ports/IWebPushService.js';
+import type { IExpoPushService } from '#src/use-cases/ports/IExpoPushService.js';
 import type { ICreateNotificationUseCase } from '#src/use-cases/notifications/ICreateNotificationUseCase.js';
 import type { NotificationType } from '#src/domain/notification/Notification.js';
 import { NOTIFICATION_TYPE, REMINDER_WINDOW_MS } from '#src/use-cases/constants.js';
@@ -15,6 +16,7 @@ interface Deps {
   pushSubscriptionRepository: IPushSubscriptionRepository;
   logger: ILogger;
   webPushService: IWebPushService;
+  expoPushService: IExpoPushService;
   createNotificationUseCase: ICreateNotificationUseCase;
 }
 
@@ -102,19 +104,25 @@ export class SendPushNotificationsUseCase {
       for (const notification of notifications) {
         for (const sub of subscriptions) {
           try {
-            await this.deps.webPushService.send(
-              { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
-              notification,
-            );
+            if (sub.provider === 'expo') {
+              await this.deps.expoPushService.send(sub.endpoint, notification);
+            } else {
+              await this.deps.webPushService.send(
+                { endpoint: sub.endpoint, p256dh: sub.p256dh!, auth: sub.auth! },
+                notification,
+              );
+            }
           } catch (err) {
             this.deps.logger.error('Failed to send push notification', err);
-            // If the subscription is expired/invalid, remove it
-            if (
-              typeof err === 'object' &&
-              err !== null &&
-              'statusCode' in err &&
-              (err as { statusCode: number }).statusCode === 410
-            ) {
+            // If the subscription is expired/invalid, remove it — a web-push
+            // 410 or an Expo 'DeviceNotRegistered' ticket both mean the same
+            // thing: nothing will ever be delivered to this endpoint again.
+            const code =
+              typeof err === 'object' && err !== null
+                ? ((err as { statusCode?: number; code?: string }).statusCode ??
+                  (err as { code?: string }).code)
+                : undefined;
+            if (code === 410 || code === 'DeviceNotRegistered') {
               await this.deps.pushSubscriptionRepository.deleteByEndpoint(sub.endpoint);
             }
           }
