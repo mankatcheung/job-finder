@@ -22,7 +22,7 @@ export function SettingsScreen() {
     <View style={styles.container}>
       {MENU.map((item) => (
         <Pressable
-          key={item.href}
+          key={item.testID}
           style={styles.row}
           onPress={() => router.push(item.href)}
           testID={item.testID}
