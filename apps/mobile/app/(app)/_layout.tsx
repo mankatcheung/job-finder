@@ -5,6 +5,7 @@ export default function AppLayout() {
     <Stack>
       <Stack.Screen name="index" options={{ title: 'Applications' }} />
       <Stack.Screen name="applications/new" options={{ title: 'New application' }} />
+      <Stack.Screen name="analytics" options={{ title: 'Analytics' }} />
       <Stack.Screen name="applications/trash" options={{ title: 'Trash' }} />
       <Stack.Screen name="applications/[id]/index" options={{ title: 'Application' }} />
       <Stack.Screen name="applications/[id]/edit" options={{ title: 'Edit application' }} />

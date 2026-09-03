@@ -7,6 +7,9 @@ export function ApplicationsListHeaderActions() {
 
   return (
     <View style={styles.container}>
+      <Pressable onPress={() => router.push('/analytics')} testID="header-analytics-button">
+        <Text style={styles.action}>Analytics</Text>
+      </Pressable>
       <Pressable onPress={() => router.push('/applications/trash')} testID="header-trash-button">
         <Text style={styles.action}>Trash</Text>
       </Pressable>
