@@ -89,6 +89,23 @@ export function ApplicationDetailScreen({ route, navigation }: Props) {
       <View style={styles.actions}>
         <Pressable
           style={styles.editButton}
+          onPress={() => navigation.navigate('Notes', { applicationId })}
+          testID="notes-button"
+        >
+          <Text style={styles.editButtonText}>Notes</Text>
+        </Pressable>
+        <Pressable
+          style={styles.editButton}
+          onPress={() => navigation.navigate('Documents', { applicationId })}
+          testID="documents-button"
+        >
+          <Text style={styles.editButtonText}>Documents</Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.actions}>
+        <Pressable
+          style={styles.editButton}
           onPress={() => navigation.navigate('ApplicationForm', { applicationId })}
           testID="edit-application-button"
         >

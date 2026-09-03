@@ -5,6 +5,8 @@ import { ApplicationsListScreen } from '../features/applications/screens/Applica
 import { ApplicationDetailScreen } from '../features/applications/screens/ApplicationDetailScreen';
 import { ApplicationFormScreen } from '../features/applications/screens/ApplicationFormScreen';
 import { TrashScreen } from '../features/applications/screens/TrashScreen';
+import { NotesScreen } from '../features/notes/screens/NotesScreen';
+import { DocumentsScreen } from '../features/documents/screens/DocumentsScreen';
 import { ApplicationsListHeaderActions } from './ApplicationsListHeaderActions';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -33,6 +35,8 @@ export function AppStack() {
         })}
       />
       <Stack.Screen name="Trash" component={TrashScreen} options={{ title: 'Trash' }} />
+      <Stack.Screen name="Notes" component={NotesScreen} options={{ title: 'Notes' }} />
+      <Stack.Screen name="Documents" component={DocumentsScreen} options={{ title: 'Documents' }} />
     </Stack.Navigator>
   );
 }

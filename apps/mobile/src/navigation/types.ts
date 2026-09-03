@@ -8,4 +8,6 @@ export type AppStackParamList = {
   ApplicationDetail: { applicationId: string };
   ApplicationForm: { applicationId?: string } | undefined;
   Trash: undefined;
+  Notes: { applicationId: string };
+  Documents: { applicationId: string };
 };
