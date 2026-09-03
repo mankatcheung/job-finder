@@ -36,6 +36,7 @@ export class DrizzlePushSubscriptionRepository implements IPushSubscriptionRepos
       .values({
         id: sub.id,
         userId: sub.userId,
+        provider: sub.provider,
         endpoint: sub.endpoint,
         p256dh: sub.p256dh,
         auth: sub.auth,
@@ -45,6 +46,7 @@ export class DrizzlePushSubscriptionRepository implements IPushSubscriptionRepos
       .onConflictDoUpdate({
         target: pushSubscription.endpoint,
         set: {
+          provider: sub.provider,
           p256dh: sub.p256dh,
           auth: sub.auth,
           userId: sub.userId,
@@ -66,6 +68,7 @@ export class DrizzlePushSubscriptionRepository implements IPushSubscriptionRepos
     return {
       id: row.id,
       userId: row.userId,
+      provider: row.provider,
       endpoint: row.endpoint,
       p256dh: row.p256dh,
       auth: row.auth,

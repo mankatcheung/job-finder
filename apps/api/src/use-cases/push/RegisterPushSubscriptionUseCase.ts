@@ -19,6 +19,7 @@ export class RegisterPushSubscriptionUseCase {
     await this.deps.pushSubscriptionRepository.upsert({
       id: this.deps.generateId(),
       userId: input.userId,
+      provider: 'web',
       endpoint: input.endpoint,
       p256dh: input.p256dh,
       auth: input.auth,

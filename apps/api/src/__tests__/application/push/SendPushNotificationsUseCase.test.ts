@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { SendPushNotificationsUseCase } from '#src/use-cases/push/SendPushNotificationsUseCase.js';
 import type { IWebPushService } from '#src/use-cases/ports/IWebPushService.js';
+import type { IExpoPushService } from '#src/use-cases/ports/IExpoPushService.js';
 import { makeLogger } from '#src/__tests__/helpers/mocks/infrastructure.js';
 import {
   makeInterviewRound,
@@ -22,6 +23,12 @@ const makeWebPushService = (overrides?: Partial<IWebPushService>): IWebPushServi
     ...overrides,
   });
 
+const makeExpoPushService = (overrides?: Partial<IExpoPushService>): IExpoPushService =>
+  stub<IExpoPushService>({
+    send: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
+  });
+
 const makeDeps = (overrides?: object) => ({
   applicationRepository: makeApplicationRepository(),
   interviewRoundRepository: makeInterviewRoundRepository(),
@@ -29,6 +36,7 @@ const makeDeps = (overrides?: object) => ({
   pushSubscriptionRepository: makePushSubscriptionRepository(),
   logger: makeLogger(),
   webPushService: makeWebPushService(),
+  expoPushService: makeExpoPushService(),
   createNotificationUseCase: makeCreateNotificationUseCase(),
   ...overrides,
 });
@@ -205,6 +213,76 @@ describe('SendPushNotificationsUseCase', () => {
 
     expect(pushSubscriptionRepository.deleteByEndpoint).toHaveBeenCalledWith(
       'https://push/expired',
+    );
+  });
+
+  it('delivers to an expo-provider subscription via expoPushService instead of webPushService', async () => {
+    const app = makeApplication({ id: 'app-2', userId: 'user-2' });
+    const sub = makePushSubscription({
+      provider: 'expo',
+      endpoint: 'ExponentPushToken[abc123]',
+      p256dh: null,
+      auth: null,
+    });
+    const pushSubscriptionRepository = makePushSubscriptionRepository({
+      findByUserId: vi.fn().mockResolvedValue([sub]),
+    });
+    const webPushService = makeWebPushService();
+    const expoPushService = makeExpoPushService();
+    const deps = makeDeps({
+      applicationRepository: makeApplicationRepository({
+        findDueForReminder: vi.fn().mockResolvedValue([app]),
+      }),
+      userRepository: makeUserRepository({
+        findById: vi.fn().mockResolvedValue(makeUser({ pushNotificationsEnabled: true })),
+      }),
+      pushSubscriptionRepository,
+      webPushService,
+      expoPushService,
+    });
+
+    await new SendPushNotificationsUseCase(deps).execute();
+
+    expect(expoPushService.send).toHaveBeenCalledWith(
+      'ExponentPushToken[abc123]',
+      expect.objectContaining({ title: expect.any(String) }),
+    );
+    expect(webPushService.send).not.toHaveBeenCalled();
+  });
+
+  it('removes an expo subscription whose delivery failed with DeviceNotRegistered', async () => {
+    const app = makeApplication({ id: 'app-2', userId: 'user-2' });
+    const sub = makePushSubscription({
+      provider: 'expo',
+      endpoint: 'ExponentPushToken[dead]',
+      p256dh: null,
+      auth: null,
+    });
+    const pushSubscriptionRepository = makePushSubscriptionRepository({
+      findByUserId: vi.fn().mockResolvedValue([sub]),
+    });
+    const expoPushService = makeExpoPushService({
+      send: vi.fn().mockRejectedValue(
+        Object.assign(new Error('dead token'), {
+          code: 'DeviceNotRegistered',
+        }),
+      ),
+    });
+    const deps = makeDeps({
+      applicationRepository: makeApplicationRepository({
+        findDueForReminder: vi.fn().mockResolvedValue([app]),
+      }),
+      userRepository: makeUserRepository({
+        findById: vi.fn().mockResolvedValue(makeUser({ pushNotificationsEnabled: true })),
+      }),
+      pushSubscriptionRepository,
+      expoPushService,
+    });
+
+    await expect(new SendPushNotificationsUseCase(deps).execute()).resolves.toBeUndefined();
+
+    expect(pushSubscriptionRepository.deleteByEndpoint).toHaveBeenCalledWith(
+      'ExponentPushToken[dead]',
     );
   });
 });

@@ -29,6 +29,31 @@ builder.mutationField('registerPushSubscription', (t) =>
   }),
 );
 
+builder.mutationField('registerExpoPushToken', (t) =>
+  t.boolean({
+    args: {
+      token: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { registerExpoPushTokenUseCase } = ctx.diScope.cradle;
+      try {
+        await registerExpoPushTokenUseCase.execute({
+          userId: ctx.user.sub,
+          token: args.token,
+        });
+        return true;
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
+// Mobile reuses this mutation as-is to unregister an Expo push token: it
+// deletes by endpoint regardless of provider, and an Expo token is stored
+// as the endpoint (see RegisterExpoPushTokenUseCase).
 builder.mutationField('unregisterPushSubscription', (t) =>
   t.boolean({
     args: {

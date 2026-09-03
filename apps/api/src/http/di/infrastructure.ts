@@ -29,6 +29,7 @@ import { ConsoleEmailService } from '#src/infrastructure/email/ConsoleEmailServi
 import { DeviceLabelService } from '#src/infrastructure/device/DeviceLabelService.js';
 import { IpLocationService } from '#src/infrastructure/device/IpLocationService.js';
 import { WebPushService } from '#src/infrastructure/push/WebPushService.js';
+import { ExpoPushService } from '#src/infrastructure/push/ExpoPushService.js';
 import { DrizzleTransactionManager } from '#src/infrastructure/db/DrizzleTransactionManager.js';
 import { LlmApiKeyCipher } from '#src/infrastructure/llm/LlmApiKeyCipher.js';
 import { UserLLMProviderFactory } from '#src/infrastructure/llm/UserLLMProviderFactory.js';
@@ -109,6 +110,7 @@ export const infrastructure = {
   deviceLabeler: asClass(DeviceLabelService, { lifetime: Lifetime.SINGLETON }),
   ipLocationResolver: asClass(IpLocationService, { lifetime: Lifetime.SINGLETON }),
   webPushService: asClass(WebPushService, { lifetime: Lifetime.SINGLETON }),
+  expoPushService: asClass(ExpoPushService, { lifetime: Lifetime.SINGLETON }),
   llmApiKeyCipher: asClass(LlmApiKeyCipher, { lifetime: Lifetime.SINGLETON }),
   userLlmProviderFactory: asClass(UserLLMProviderFactory, { lifetime: Lifetime.SINGLETON }),
   // Decorates the factory so a key past its monthly token limit is refused

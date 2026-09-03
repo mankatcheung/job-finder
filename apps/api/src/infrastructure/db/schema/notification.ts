@@ -8,9 +8,18 @@ export const pushSubscription = sqliteTable(
     userId: text('userId')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
+    /**
+     * 'web' subscriptions carry a real endpoint URL plus VAPID key material
+     * (p256dh/auth). 'expo' subscriptions (the mobile app) have neither —
+     * `endpoint` holds the Expo push token itself, which is all
+     * ExpoPushService needs to deliver to it.
+     */
+    provider: text('provider', { enum: ['web', 'expo'] })
+      .notNull()
+      .default('web'),
     endpoint: text('endpoint').notNull().unique(),
-    p256dh: text('p256dh').notNull(),
-    auth: text('auth').notNull(),
+    p256dh: text('p256dh'),
+    auth: text('auth'),
     createdAt: integer('createdAt', { mode: 'timestamp_ms' })
       .notNull()
       .$defaultFn(() => new Date()),

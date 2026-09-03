@@ -24,6 +24,7 @@ export const makePushSubscriptionRepository = (
 export const makePushSubscription = (overrides?: Partial<PushSubscription>): PushSubscription => ({
   id: 'push-sub-1',
   userId: 'user-1',
+  provider: 'web',
   endpoint: 'https://push.example.com/sub-1',
   p256dh: 'p256dh-key',
   auth: 'auth-key',
