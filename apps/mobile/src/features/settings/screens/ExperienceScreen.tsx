@@ -1,0 +1,482 @@
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import {
+  useCreateEducation,
+  useCreateSkill,
+  useCreateWorkExperience,
+  useDeleteEducation,
+  useDeleteSkill,
+  useDeleteWorkExperience,
+  useEducations,
+  useSkills,
+  useUpdateEducation,
+  useUpdateWorkExperience,
+  useWorkExperiences,
+} from '../hooks/useExperience';
+import { getErrorMessage } from '../../../lib/errors';
+import type { Education, Skill, WorkExperience } from '../types';
+
+function dateRange(start: string, end: string | null): string {
+  return `${start.slice(0, 10)} – ${end ? end.slice(0, 10) : 'Present'}`;
+}
+
+export function ExperienceScreen() {
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <WorkExperienceSection />
+      <EducationSection />
+      <SkillsSection />
+    </ScrollView>
+  );
+}
+
+function WorkExperienceSection() {
+  const { data: items = [], isLoading } = useWorkExperiences();
+  const create = useCreateWorkExperience();
+  const update = useUpdateWorkExperience();
+  const remove = useDeleteWorkExperience();
+
+  const [editing, setEditing] = useState<WorkExperience | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [company, setCompany] = useState('');
+  const [title, setTitle] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const openCreate = () => {
+    setEditing(null);
+    setCompany('');
+    setTitle('');
+    setStartDate('');
+    setEndDate('');
+    setFormOpen(true);
+  };
+
+  const openEdit = (item: WorkExperience) => {
+    setEditing(item);
+    setCompany(item.company);
+    setTitle(item.title);
+    setStartDate(item.startDate.slice(0, 10));
+    setEndDate(item.endDate?.slice(0, 10) ?? '');
+    setFormOpen(true);
+  };
+
+  const onSave = async () => {
+    if (!company.trim() || !title.trim() || !startDate.trim()) return;
+    setError(null);
+    const input = {
+      company: company.trim(),
+      title: title.trim(),
+      startDate,
+      endDate: endDate || undefined,
+    };
+    try {
+      if (editing) {
+        await update.mutateAsync({ id: editing.id, input });
+      } else {
+        await create.mutateAsync(input);
+      }
+      setFormOpen(false);
+      setEditing(null);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
+  };
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.title}>Work experience</Text>
+        {!formOpen && (
+          <Pressable onPress={openCreate} testID="add-work-experience-button">
+            <Text style={styles.link}>+ Add</Text>
+          </Pressable>
+        )}
+      </View>
+
+      {isLoading ? (
+        <ActivityIndicator color="#2563eb" />
+      ) : (
+        !formOpen &&
+        items.length === 0 && <Text style={styles.emptyText}>No work experience yet.</Text>
+      )}
+
+      {items.map((item) => (
+        <View key={item.id} style={styles.row} testID={`work-experience-${item.id}`}>
+          <View style={styles.rowText}>
+            <Text style={styles.rowTitle}>
+              {item.title} at {item.company}
+            </Text>
+            <Text style={styles.rowMeta}>{dateRange(item.startDate, item.endDate)}</Text>
+          </View>
+          <View style={styles.rowActions}>
+            <Pressable onPress={() => openEdit(item)} testID={`edit-work-experience-${item.id}`}>
+              <Text style={styles.link}>Edit</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => remove.mutate(item.id)}
+              testID={`delete-work-experience-${item.id}`}
+            >
+              <Text style={styles.linkDanger}>Delete</Text>
+            </Pressable>
+          </View>
+        </View>
+      ))}
+
+      {formOpen && (
+        <View style={styles.form}>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <TextInput
+            style={styles.input}
+            placeholder="Company"
+            value={company}
+            onChangeText={setCompany}
+            testID="work-experience-company-input"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Title"
+            value={title}
+            onChangeText={setTitle}
+            testID="work-experience-title-input"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Start date (YYYY-MM-DD)"
+            value={startDate}
+            onChangeText={setStartDate}
+            testID="work-experience-start-input"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="End date (blank if current)"
+            value={endDate}
+            onChangeText={setEndDate}
+            testID="work-experience-end-input"
+          />
+          <View style={styles.formActions}>
+            <Pressable
+              style={styles.button}
+              onPress={onSave}
+              disabled={create.isPending || update.isPending}
+              testID="save-work-experience-button"
+            >
+              <Text style={styles.buttonText}>{editing ? 'Update' : 'Add'}</Text>
+            </Pressable>
+            <Pressable onPress={() => setFormOpen(false)} testID="cancel-work-experience-button">
+              <Text style={styles.link}>Cancel</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function EducationSection() {
+  const { data: items = [], isLoading } = useEducations();
+  const create = useCreateEducation();
+  const update = useUpdateEducation();
+  const remove = useDeleteEducation();
+
+  const [editing, setEditing] = useState<Education | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [institution, setInstitution] = useState('');
+  const [degree, setDegree] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const openCreate = () => {
+    setEditing(null);
+    setInstitution('');
+    setDegree('');
+    setStartDate('');
+    setEndDate('');
+    setFormOpen(true);
+  };
+
+  const openEdit = (item: Education) => {
+    setEditing(item);
+    setInstitution(item.institution);
+    setDegree(item.degree ?? '');
+    setStartDate(item.startDate.slice(0, 10));
+    setEndDate(item.endDate?.slice(0, 10) ?? '');
+    setFormOpen(true);
+  };
+
+  const onSave = async () => {
+    if (!institution.trim() || !startDate.trim()) return;
+    setError(null);
+    const input = {
+      institution: institution.trim(),
+      degree: degree.trim() || undefined,
+      startDate,
+      endDate: endDate || undefined,
+    };
+    try {
+      if (editing) {
+        await update.mutateAsync({ id: editing.id, input });
+      } else {
+        await create.mutateAsync(input);
+      }
+      setFormOpen(false);
+      setEditing(null);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
+  };
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.title}>Education</Text>
+        {!formOpen && (
+          <Pressable onPress={openCreate} testID="add-education-button">
+            <Text style={styles.link}>+ Add</Text>
+          </Pressable>
+        )}
+      </View>
+
+      {isLoading ? (
+        <ActivityIndicator color="#2563eb" />
+      ) : (
+        !formOpen && items.length === 0 && <Text style={styles.emptyText}>No education yet.</Text>
+      )}
+
+      {items.map((item) => (
+        <View key={item.id} style={styles.row} testID={`education-${item.id}`}>
+          <View style={styles.rowText}>
+            <Text style={styles.rowTitle}>
+              {item.institution}
+              {item.degree ? ` — ${item.degree}` : ''}
+            </Text>
+            <Text style={styles.rowMeta}>{dateRange(item.startDate, item.endDate)}</Text>
+          </View>
+          <View style={styles.rowActions}>
+            <Pressable onPress={() => openEdit(item)} testID={`edit-education-${item.id}`}>
+              <Text style={styles.link}>Edit</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => remove.mutate(item.id)}
+              testID={`delete-education-${item.id}`}
+            >
+              <Text style={styles.linkDanger}>Delete</Text>
+            </Pressable>
+          </View>
+        </View>
+      ))}
+
+      {formOpen && (
+        <View style={styles.form}>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <TextInput
+            style={styles.input}
+            placeholder="Institution"
+            value={institution}
+            onChangeText={setInstitution}
+            testID="education-institution-input"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Degree"
+            value={degree}
+            onChangeText={setDegree}
+            testID="education-degree-input"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Start date (YYYY-MM-DD)"
+            value={startDate}
+            onChangeText={setStartDate}
+            testID="education-start-input"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="End date (blank if current)"
+            value={endDate}
+            onChangeText={setEndDate}
+            testID="education-end-input"
+          />
+          <View style={styles.formActions}>
+            <Pressable
+              style={styles.button}
+              onPress={onSave}
+              disabled={create.isPending || update.isPending}
+              testID="save-education-button"
+            >
+              <Text style={styles.buttonText}>{editing ? 'Update' : 'Add'}</Text>
+            </Pressable>
+            <Pressable onPress={() => setFormOpen(false)} testID="cancel-education-button">
+              <Text style={styles.link}>Cancel</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function SkillsSection() {
+  const { data: skills = [], isLoading } = useSkills();
+  const create = useCreateSkill();
+  const remove = useDeleteSkill();
+
+  const [formOpen, setFormOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const onSave = async () => {
+    if (!name.trim()) return;
+    setError(null);
+    try {
+      await create.mutateAsync({ name: name.trim() });
+      setName('');
+      setFormOpen(false);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
+  };
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.title}>Skills</Text>
+        {!formOpen && (
+          <Pressable onPress={() => setFormOpen(true)} testID="add-skill-button">
+            <Text style={styles.link}>+ Add</Text>
+          </Pressable>
+        )}
+      </View>
+
+      {isLoading ? (
+        <ActivityIndicator color="#2563eb" />
+      ) : (
+        !formOpen && skills.length === 0 && <Text style={styles.emptyText}>No skills yet.</Text>
+      )}
+
+      {skills.length > 0 && (
+        <View style={styles.skillsWrap}>
+          {skills.map((skill: Skill) => (
+            <View key={skill.id} style={styles.skillChip} testID={`skill-${skill.id}`}>
+              <Text style={styles.skillText}>{skill.name}</Text>
+              <Pressable
+                onPress={() => remove.mutate(skill.id)}
+                testID={`delete-skill-${skill.id}`}
+              >
+                <Text style={styles.skillDelete}>×</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {formOpen && (
+        <View style={styles.form}>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <TextInput
+            style={styles.input}
+            placeholder="e.g. TypeScript"
+            value={name}
+            onChangeText={setName}
+            testID="skill-name-input"
+          />
+          <View style={styles.formActions}>
+            <Pressable
+              style={styles.button}
+              onPress={onSave}
+              disabled={create.isPending}
+              testID="save-skill-button"
+            >
+              <Text style={styles.buttonText}>Add</Text>
+            </Pressable>
+            <Pressable onPress={() => setFormOpen(false)} testID="cancel-skill-button">
+              <Text style={styles.link}>Cancel</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f9fafb' },
+  content: { padding: 20, gap: 16 },
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    padding: 16,
+    gap: 12,
+  },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  title: { fontSize: 15, fontWeight: '700', color: '#111827' },
+  link: { color: '#2563eb', fontSize: 13, fontWeight: '600' },
+  linkDanger: { color: '#b91c1c', fontSize: 13, fontWeight: '600' },
+  emptyText: { fontSize: 13, color: '#9ca3af' },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+    paddingTop: 10,
+    gap: 8,
+  },
+  rowText: { flex: 1, gap: 2 },
+  rowTitle: { fontSize: 13, fontWeight: '600', color: '#111827' },
+  rowMeta: { fontSize: 11, color: '#9ca3af' },
+  rowActions: { flexDirection: 'row', gap: 12 },
+  form: { gap: 8, borderTopWidth: 1, borderTopColor: '#f3f4f6', paddingTop: 10 },
+  formActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  input: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 15,
+    backgroundColor: '#ffffff',
+  },
+  button: {
+    alignSelf: 'flex-start',
+    minHeight: 40,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+  },
+  buttonText: { color: '#111827', fontSize: 14, fontWeight: '600' },
+  error: {
+    color: '#b91c1c',
+    backgroundColor: '#fef2f2',
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 13,
+  },
+  skillsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  skillChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  skillText: { fontSize: 13, color: '#111827' },
+  skillDelete: { fontSize: 14, color: '#9ca3af', fontWeight: '700' },
+});
