@@ -1,0 +1,158 @@
+import React from 'react';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
+
+jest.mock('../../../applications/hooks/useApplicationQueries', () => ({
+  useApplications: jest.fn(),
+}));
+jest.mock('../../hooks/useDashboardQueries', () => ({
+  useDashboardCalendarEvents: jest.fn(),
+  useWeeklyApplicationGoal: jest.fn(),
+}));
+jest.mock('expo-router', () => ({ useRouter: jest.fn() }));
+
+import { useRouter } from 'expo-router';
+import { useApplications } from '../../../applications/hooks/useApplicationQueries';
+import {
+  useDashboardCalendarEvents,
+  useWeeklyApplicationGoal,
+} from '../../hooks/useDashboardQueries';
+import { DashboardScreen } from '../DashboardScreen';
+import type { Application } from '../../../applications/types';
+
+const mockedUseApplications = jest.mocked(useApplications);
+const mockedUseCalendarEvents = jest.mocked(useDashboardCalendarEvents);
+const mockedUseGoal = jest.mocked(useWeeklyApplicationGoal);
+const mockedUseRouter = jest.mocked(useRouter);
+
+const applications: Application[] = [
+  {
+    id: '1',
+    company: 'Acme',
+    role: 'Backend Engineer',
+    status: 'applied',
+    jobUrl: null,
+    location: null,
+    salaryRange: null,
+    description: null,
+    appliedAt: null,
+    starred: true,
+    source: null,
+    followUpAt: null,
+    tags: [],
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  },
+];
+
+function renderScreen(push = jest.fn()) {
+  mockedUseRouter.mockReturnValue({ push } as never);
+  return render(<DashboardScreen />);
+}
+
+describe('DashboardScreen', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedUseCalendarEvents.mockReturnValue({ data: [] } as never);
+    mockedUseGoal.mockReturnValue({ data: undefined } as never);
+  });
+
+  it('shows stat counts and recent applications', async () => {
+    mockedUseApplications.mockReturnValue({
+      data: applications,
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    } as never);
+
+    const { findByText, getByTestId } = await renderScreen();
+
+    await findByText('★ Acme');
+    expect(getByTestId('stat-card-Total')).toBeTruthy();
+  });
+
+  it('navigates to new application form', async () => {
+    mockedUseApplications.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    } as never);
+    const push = jest.fn();
+
+    const { getByTestId } = await renderScreen(push);
+
+    await fireEvent.press(getByTestId('dashboard-new-application-button'));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/applications/new'));
+  });
+
+  it('shows the weekly goal progress when present', async () => {
+    mockedUseApplications.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    } as never);
+    mockedUseGoal.mockReturnValue({
+      data: {
+        weeklyApplicationGoal: 5,
+        currentWeekCount: 2,
+        currentWeekStart: '2026-01-01T00:00:00.000Z',
+        streakWeeks: 3,
+      },
+    } as never);
+
+    const { findByText } = await renderScreen();
+
+    await findByText('2 of 5 applications this week');
+    await findByText('3-week streak');
+  });
+
+  it('shows upcoming events and navigates to the linked application', async () => {
+    mockedUseApplications.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    } as never);
+    mockedUseCalendarEvents.mockReturnValue({
+      data: [
+        {
+          id: 'evt-1',
+          applicationId: 'app-1',
+          company: 'Stripe',
+          role: 'Engineer',
+          type: 'interview',
+          date: new Date(Date.now() + 86_400_000).toISOString(),
+          interviewRoundType: null,
+        },
+      ],
+    } as never);
+    const push = jest.fn();
+
+    const { findByTestId } = await renderScreen(push);
+
+    const row = await findByTestId('upcoming-event-evt-1');
+    await fireEvent.press(row);
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/applications/app-1'));
+  });
+
+  it('shows an empty state when there are no applications', async () => {
+    mockedUseApplications.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    } as never);
+
+    const { findByText } = await renderScreen();
+
+    await findByText('No applications yet. Add your first one.');
+  });
+});
