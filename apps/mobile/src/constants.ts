@@ -6,6 +6,9 @@ export const DEFAULT_API_URL = 'http://localhost:3001/graphql';
 
 export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_API_URL;
 
+/** Sibling of the GraphQL endpoint for the chat streaming SSE route (mirrors apps/web's CHAT_STREAM_URL) — not itself a GraphQL endpoint. */
+export const CHAT_STREAM_URL = API_URL.replace(/\/graphql$/, '/chat/stream');
+
 export const ERROR_CODES = {
   UNAUTHORIZED: 'UNAUTHORIZED',
 } as const;

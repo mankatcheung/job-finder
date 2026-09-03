@@ -29,6 +29,11 @@ export function setAccessToken(token: string | null): void {
   accessToken = token;
 }
 
+/** For non-GraphQL callers (e.g. the chat SSE stream) that need the current bearer token directly. */
+export function getAccessToken(): string | null {
+  return accessToken;
+}
+
 const rawClient = new GraphQLClient(API_URL);
 
 let isRefreshing = false;
@@ -79,10 +84,7 @@ function authHeaders(token: string | null): HeadersInit | undefined {
  * before retrying — refreshTokenMobile itself is called via the raw client
  * so a failed refresh can't recurse back into this same retry path.
  */
-export async function gqlRequest<T>(
-  query: string,
-  variables?: Record<string, unknown>,
-): Promise<T> {
+export async function gqlRequest<T>(query: string, variables?: object): Promise<T> {
   try {
     return await rawClient.request<T>(query, variables, authHeaders(accessToken));
   } catch (error) {

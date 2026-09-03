@@ -10,4 +10,11 @@ export type AppStackParamList = {
   Trash: undefined;
   Notes: { applicationId: string };
   Documents: { applicationId: string };
+  Conversations: undefined;
+  Chat: { conversationId: string | null };
+  Settings: undefined;
+  Profile: undefined;
+  Security: undefined;
+  Notifications: undefined;
+  AiSettings: undefined;
 };
