@@ -1,14 +1,38 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { AppStackParamList } from './types';
-import { HomeScreen } from '../screens/HomeScreen';
+import { ApplicationsListScreen } from '../features/applications/screens/ApplicationsListScreen';
+import { ApplicationDetailScreen } from '../features/applications/screens/ApplicationDetailScreen';
+import { ApplicationFormScreen } from '../features/applications/screens/ApplicationFormScreen';
+import { TrashScreen } from '../features/applications/screens/TrashScreen';
+import { ApplicationsListHeaderActions } from './ApplicationsListHeaderActions';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
 export function AppStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Home" component={HomeScreen} />
+    <Stack.Navigator>
+      <Stack.Screen
+        name="ApplicationsList"
+        component={ApplicationsListScreen}
+        options={({ navigation }) => ({
+          title: 'Applications',
+          headerRight: () => <ApplicationsListHeaderActions navigation={navigation} />,
+        })}
+      />
+      <Stack.Screen
+        name="ApplicationDetail"
+        component={ApplicationDetailScreen}
+        options={{ title: 'Application' }}
+      />
+      <Stack.Screen
+        name="ApplicationForm"
+        component={ApplicationFormScreen}
+        options={({ route }) => ({
+          title: route.params?.applicationId ? 'Edit application' : 'New application',
+        })}
+      />
+      <Stack.Screen name="Trash" component={TrashScreen} options={{ title: 'Trash' }} />
     </Stack.Navigator>
   );
 }

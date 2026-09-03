@@ -1,0 +1,43 @@
+export const APPLICATION_STATUSES = [
+  'draft',
+  'applied',
+  'interviewing',
+  'offered',
+  'accepted',
+  'rejected',
+  'withdrawn',
+] as const;
+
+export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
+
+export interface Application {
+  id: string;
+  company: string;
+  role: string;
+  status: ApplicationStatus;
+  jobUrl: string | null;
+  location: string | null;
+  salaryRange: string | null;
+  description: string | null;
+  appliedAt: string | null;
+  starred: boolean;
+  source: string | null;
+  followUpAt: string | null;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
+  purgeAt?: string | null;
+}
+
+export interface CreateApplicationInput {
+  company: string;
+  role: string;
+  status?: ApplicationStatus;
+  jobUrl?: string;
+  location?: string;
+  salaryRange?: string;
+  description?: string;
+}
+
+export type UpdateApplicationInput = Partial<CreateApplicationInput>;

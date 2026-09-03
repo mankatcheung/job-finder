@@ -4,5 +4,8 @@ export type AuthStackParamList = {
 };
 
 export type AppStackParamList = {
-  Home: undefined;
+  ApplicationsList: undefined;
+  ApplicationDetail: { applicationId: string };
+  ApplicationForm: { applicationId?: string } | undefined;
+  Trash: undefined;
 };

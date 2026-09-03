@@ -1,0 +1,110 @@
+import React from 'react';
+import { Alert } from 'react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
+
+jest.mock('../../hooks/useApplicationQueries', () => ({ useApplication: jest.fn() }));
+jest.mock('../../hooks/useApplicationMutations', () => ({ useDeleteApplication: jest.fn() }));
+
+import { useApplication } from '../../hooks/useApplicationQueries';
+import { useDeleteApplication } from '../../hooks/useApplicationMutations';
+import { ApplicationDetailScreen } from '../ApplicationDetailScreen';
+import type { Application } from '../../types';
+
+const mockedUseApplication = jest.mocked(useApplication);
+const mockedUseDeleteApplication = jest.mocked(useDeleteApplication);
+
+const application: Application = {
+  id: '1',
+  company: 'Acme',
+  role: 'Backend Engineer',
+  status: 'applied',
+  jobUrl: 'https://example.com/job',
+  location: 'Remote',
+  salaryRange: '$100k-$120k',
+  description: 'Build things.',
+  appliedAt: null,
+  starred: false,
+  source: null,
+  followUpAt: null,
+  tags: [],
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
+
+function renderScreen(navigate = jest.fn(), goBack = jest.fn()) {
+  return render(
+    <ApplicationDetailScreen
+      navigation={{ navigate, goBack } as never}
+      route={{ params: { applicationId: '1' } } as never}
+    />,
+  );
+}
+
+describe('ApplicationDetailScreen', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders the application fields', async () => {
+    mockedUseApplication.mockReturnValue({
+      data: application,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as never);
+    mockedUseDeleteApplication.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+    } as never);
+
+    const { getByText } = await renderScreen();
+
+    await waitFor(() => expect(getByText('Backend Engineer')).toBeTruthy());
+    expect(getByText('Acme')).toBeTruthy();
+    expect(getByText('Remote')).toBeTruthy();
+    expect(getByText('$100k-$120k')).toBeTruthy();
+  });
+
+  it('navigates to the edit form when Edit is pressed', async () => {
+    const navigate = jest.fn();
+    mockedUseApplication.mockReturnValue({
+      data: application,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as never);
+    mockedUseDeleteApplication.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+    } as never);
+
+    const { getByTestId } = await renderScreen(navigate);
+
+    await fireEvent.press(getByTestId('edit-application-button'));
+
+    expect(navigate).toHaveBeenCalledWith('ApplicationForm', { applicationId: '1' });
+  });
+
+  it('confirms and deletes the application, then navigates back', async () => {
+    const goBack = jest.fn();
+    const mutate = jest.fn((_id, options) => options?.onSuccess?.());
+    jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
+      const deleteButton = buttons?.find((b) => b.text === 'Delete');
+      deleteButton?.onPress?.();
+    });
+    mockedUseApplication.mockReturnValue({
+      data: application,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as never);
+    mockedUseDeleteApplication.mockReturnValue({ mutate, isPending: false } as never);
+
+    const { getByTestId } = await renderScreen(jest.fn(), goBack);
+
+    await fireEvent.press(getByTestId('delete-application-button'));
+
+    expect(mutate).toHaveBeenCalledWith('1', expect.any(Object));
+    expect(goBack).toHaveBeenCalled();
+  });
+});
