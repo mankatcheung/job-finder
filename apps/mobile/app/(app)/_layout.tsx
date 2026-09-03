@@ -10,6 +10,8 @@ export default function AppLayout() {
       <Stack.Screen name="applications/[id]/edit" options={{ title: 'Edit application' }} />
       <Stack.Screen name="applications/[id]/notes" options={{ title: 'Notes' }} />
       <Stack.Screen name="applications/[id]/documents" options={{ title: 'Documents' }} />
+      <Stack.Screen name="applications/[id]/offers/index" options={{ title: 'Offers' }} />
+      <Stack.Screen name="applications/[id]/offers/compare" options={{ title: 'Compare offers' }} />
       <Stack.Screen name="conversations/index" options={{ title: 'Assistant' }} />
       <Stack.Screen name="conversations/[id]" options={{ title: 'Assistant' }} />
       <Stack.Screen name="settings/index" options={{ title: 'Settings' }} />

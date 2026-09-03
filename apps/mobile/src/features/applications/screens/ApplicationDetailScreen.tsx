@@ -99,6 +99,13 @@ export function ApplicationDetailScreen() {
         >
           <Text style={styles.editButtonText}>Documents</Text>
         </Pressable>
+        <Pressable
+          style={styles.editButton}
+          onPress={() => router.push(`/applications/${applicationId}/offers`)}
+          testID="offers-button"
+        >
+          <Text style={styles.editButtonText}>Offers</Text>
+        </Pressable>
       </View>
 
       <View style={styles.actions}>
