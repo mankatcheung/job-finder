@@ -7,7 +7,7 @@ import { AuthProvider, useAuth } from '../src/auth/AuthContext';
 
 const queryClient = new QueryClient();
 
-function RootNavigator() {
+export function RootNavigator() {
   const { isLoading, isAuthenticated } = useAuth();
 
   if (isLoading) {

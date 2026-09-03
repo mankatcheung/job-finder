@@ -2,7 +2,6 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 jest.mock('../../src/auth/AuthContext', () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
   useAuth: jest.fn(),
 }));
 
@@ -15,11 +14,11 @@ jest.mock('expo-router', () => {
 });
 
 import { useAuth } from '../../src/auth/AuthContext';
-import RootLayout from '../_layout';
+import { RootNavigator } from '../_layout';
 
 const mockedUseAuth = jest.mocked(useAuth);
 
-describe('RootLayout', () => {
+describe('RootNavigator', () => {
   it('shows a loading indicator while auth state is being restored', async () => {
     mockedUseAuth.mockReturnValue({
       isLoading: true,
@@ -30,7 +29,7 @@ describe('RootLayout', () => {
       logout: jest.fn(),
     });
 
-    const { getByTestId } = await render(<RootLayout />);
+    const { getByTestId } = await render(<RootNavigator />);
     expect(getByTestId('root-loading')).toBeTruthy();
   });
 
@@ -44,7 +43,7 @@ describe('RootLayout', () => {
       logout: jest.fn(),
     });
 
-    const { queryByTestId } = await render(<RootLayout />);
+    const { queryByTestId } = await render(<RootNavigator />);
     expect(queryByTestId('root-loading')).toBeNull();
   });
 
@@ -58,7 +57,7 @@ describe('RootLayout', () => {
       logout: jest.fn(),
     });
 
-    const { queryByTestId } = await render(<RootLayout />);
+    const { queryByTestId } = await render(<RootNavigator />);
     expect(queryByTestId('root-loading')).toBeNull();
   });
 });
