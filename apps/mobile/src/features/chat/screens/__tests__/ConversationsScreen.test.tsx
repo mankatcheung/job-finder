@@ -5,13 +5,18 @@ jest.mock('../../hooks/useConversations', () => ({
   useConversations: jest.fn(),
   useDeleteConversation: jest.fn(),
 }));
+jest.mock('expo-router', () => ({
+  useRouter: jest.fn(),
+}));
 
+import { useRouter } from 'expo-router';
 import { useConversations, useDeleteConversation } from '../../hooks/useConversations';
 import { ConversationsScreen } from '../ConversationsScreen';
 import type { Conversation } from '../../types';
 
 const mockedUseConversations = jest.mocked(useConversations);
 const mockedUseDeleteConversation = jest.mocked(useDeleteConversation);
+const mockedUseRouter = jest.mocked(useRouter);
 
 const conversation: Conversation = {
   id: '1',
@@ -22,8 +27,9 @@ const conversation: Conversation = {
   updatedAt: '2026-01-01T00:00:00.000Z',
 };
 
-function renderScreen(navigate = jest.fn()) {
-  return render(<ConversationsScreen navigation={{ navigate } as never} route={{} as never} />);
+function renderScreen(push = jest.fn()) {
+  mockedUseRouter.mockReturnValue({ push } as never);
+  return render(<ConversationsScreen />);
 }
 
 describe('ConversationsScreen', () => {
@@ -33,7 +39,7 @@ describe('ConversationsScreen', () => {
   });
 
   it('renders conversations and navigates to Chat on press', async () => {
-    const navigate = jest.fn();
+    const push = jest.fn();
     mockedUseConversations.mockReturnValue({
       data: [conversation],
       isLoading: false,
@@ -41,16 +47,16 @@ describe('ConversationsScreen', () => {
       error: null,
     } as never);
 
-    const { getByTestId, getByText } = await renderScreen(navigate);
+    const { getByTestId, getByText } = await renderScreen(push);
 
     await waitFor(() => expect(getByText('Stripe interview prep')).toBeTruthy());
     await fireEvent.press(getByTestId('conversation-1'));
 
-    expect(navigate).toHaveBeenCalledWith('Chat', { conversationId: '1' });
+    expect(push).toHaveBeenCalledWith('/conversations/1');
   });
 
   it('starts a new conversation with a null id', async () => {
-    const navigate = jest.fn();
+    const push = jest.fn();
     mockedUseConversations.mockReturnValue({
       data: [],
       isLoading: false,
@@ -58,10 +64,10 @@ describe('ConversationsScreen', () => {
       error: null,
     } as never);
 
-    const { getByTestId } = await renderScreen(navigate);
+    const { getByTestId } = await renderScreen(push);
 
     await fireEvent.press(getByTestId('new-conversation-button'));
 
-    expect(navigate).toHaveBeenCalledWith('Chat', { conversationId: null });
+    expect(push).toHaveBeenCalledWith('/conversations/new');
   });
 });

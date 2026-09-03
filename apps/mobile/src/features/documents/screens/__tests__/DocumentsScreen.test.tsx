@@ -6,8 +6,12 @@ jest.mock('expo-document-picker', () => ({ getDocumentAsync: jest.fn() }));
 jest.mock('../../hooks/useDocumentQueries', () => ({ useDocuments: jest.fn() }));
 jest.mock('../../hooks/useDeleteDocument', () => ({ useDeleteDocument: jest.fn() }));
 jest.mock('../../hooks/useUploadDocument', () => ({ useUploadDocument: jest.fn() }));
+jest.mock('expo-router', () => ({
+  useLocalSearchParams: jest.fn(),
+}));
 
 import * as DocumentPicker from 'expo-document-picker';
+import { useLocalSearchParams } from 'expo-router';
 import { useDocuments } from '../../hooks/useDocumentQueries';
 import { useDeleteDocument } from '../../hooks/useDeleteDocument';
 import { useUploadDocument } from '../../hooks/useUploadDocument';
@@ -18,6 +22,7 @@ const mockedGetDocumentAsync = jest.mocked(DocumentPicker.getDocumentAsync);
 const mockedUseDocuments = jest.mocked(useDocuments);
 const mockedUseDeleteDocument = jest.mocked(useDeleteDocument);
 const mockedUseUploadDocument = jest.mocked(useUploadDocument);
+const mockedUseLocalSearchParams = jest.mocked(useLocalSearchParams);
 
 const document: Document = {
   id: '1',
@@ -32,12 +37,8 @@ const document: Document = {
 };
 
 function renderScreen() {
-  return render(
-    <DocumentsScreen
-      navigation={{} as never}
-      route={{ params: { applicationId: 'app-1' } } as never}
-    />,
-  );
+  mockedUseLocalSearchParams.mockReturnValue({ id: 'app-1' } as never);
+  return render(<DocumentsScreen />);
 }
 
 describe('DocumentsScreen', () => {

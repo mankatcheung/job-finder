@@ -15,7 +15,11 @@ jest.mock('../../lib/chatStream', () => ({
   streamChatMessage: jest.fn(),
   ChatStreamError: class ChatStreamError extends Error {},
 }));
+jest.mock('expo-router', () => ({
+  useLocalSearchParams: jest.fn(),
+}));
 
+import { useLocalSearchParams } from 'expo-router';
 import { useAppendOptimisticMessage, useChatHistory } from '../../hooks/useChatHistory';
 import { useCreateConversation } from '../../hooks/useConversations';
 import { streamChatMessage } from '../../lib/chatStream';
@@ -26,6 +30,7 @@ const mockedUseChatHistory = jest.mocked(useChatHistory);
 const mockedUseAppendOptimisticMessage = jest.mocked(useAppendOptimisticMessage);
 const mockedUseCreateConversation = jest.mocked(useCreateConversation);
 const mockedStreamChatMessage = jest.mocked(streamChatMessage);
+const mockedUseLocalSearchParams = jest.mocked(useLocalSearchParams);
 
 const message: ChatMessage = {
   id: '1',
@@ -35,10 +40,11 @@ const message: ChatMessage = {
 };
 
 function renderScreen(conversationId: string | null) {
+  mockedUseLocalSearchParams.mockReturnValue({ id: conversationId ?? 'new' } as never);
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={queryClient}>
-      <ChatScreen navigation={{} as never} route={{ params: { conversationId } } as never} />
+      <ChatScreen />
     </QueryClientProvider>,
   );
 }

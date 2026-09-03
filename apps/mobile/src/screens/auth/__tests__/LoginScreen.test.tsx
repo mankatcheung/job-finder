@@ -4,14 +4,20 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 jest.mock('../../../auth/AuthContext', () => ({
   useAuth: jest.fn(),
 }));
+jest.mock('expo-router', () => ({
+  useRouter: jest.fn(),
+}));
 
+import { useRouter } from 'expo-router';
 import { useAuth } from '../../../auth/AuthContext';
 import { LoginScreen } from '../LoginScreen';
 
 const mockedUseAuth = jest.mocked(useAuth);
+const mockedUseRouter = jest.mocked(useRouter);
 
-function renderScreen(navigate = jest.fn()) {
-  return render(<LoginScreen navigation={{ navigate } as never} route={{} as never} />);
+function renderScreen(push = jest.fn()) {
+  mockedUseRouter.mockReturnValue({ push } as never);
+  return render(<LoginScreen />);
 }
 
 describe('LoginScreen', () => {
