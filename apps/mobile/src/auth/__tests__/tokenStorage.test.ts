@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { getTokens, setTokens, clearTokens } from '../tokenStorage';
 
@@ -12,6 +13,41 @@ const mockedSecureStore = jest.mocked(SecureStore);
 describe('tokenStorage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('on web', () => {
+    const store = new Map<string, string>();
+    const fakeLocalStorage = {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => store.set(key, value),
+      removeItem: (key: string) => store.delete(key),
+      clear: () => store.clear(),
+    };
+
+    beforeEach(() => {
+      Object.defineProperty(Platform, 'OS', { value: 'web', configurable: true });
+      Object.defineProperty(globalThis, 'localStorage', {
+        value: fakeLocalStorage,
+        configurable: true,
+      });
+      store.clear();
+    });
+
+    afterEach(() => {
+      Object.defineProperty(Platform, 'OS', { value: 'ios', configurable: true });
+    });
+
+    it('reads and writes tokens via localStorage instead of SecureStore', async () => {
+      await setTokens({ accessToken: 'a', refreshToken: 'r' });
+
+      expect(mockedSecureStore.setItemAsync).not.toHaveBeenCalled();
+      await expect(getTokens()).resolves.toEqual({ accessToken: 'a', refreshToken: 'r' });
+
+      await clearTokens();
+
+      expect(mockedSecureStore.deleteItemAsync).not.toHaveBeenCalled();
+      await expect(getTokens()).resolves.toBeNull();
+    });
   });
 
   it('returns null when either token is missing', async () => {
