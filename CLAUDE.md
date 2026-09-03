@@ -41,7 +41,7 @@ cd apps/web && pnpm codegen
 
 ## Architecture
 
-**Monorepo layout:** `apps/api` (backend), `apps/web` (frontend), `packages/shared` (constants/utilities — currently minimal; API types flow through codegen instead).
+**Monorepo layout:** `apps/api` (backend), `apps/web` (frontend), `packages/ui` (`@trakwyn/ui` — shared React component library, styled with Tailwind CSS v4 and developed/tested in isolation via Storybook; consumed by `apps/web`). API types flow through GraphQL codegen rather than a shared package.
 
 ### API (`apps/api`) — Clean Architecture + GraphQL
 
