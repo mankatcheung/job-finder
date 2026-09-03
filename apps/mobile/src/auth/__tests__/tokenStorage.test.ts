@@ -10,6 +10,9 @@ jest.mock('expo-secure-store', () => ({
 
 const mockedSecureStore = jest.mocked(SecureStore);
 
+const SESSION_KEY = 'trakwyn_session';
+const pair = { accessToken: 'access-token', refreshToken: 'refresh-token' };
+
 describe('tokenStorage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -37,11 +40,11 @@ describe('tokenStorage', () => {
       Object.defineProperty(Platform, 'OS', { value: 'ios', configurable: true });
     });
 
-    it('reads and writes tokens via localStorage instead of SecureStore', async () => {
-      await setTokens({ accessToken: 'a', refreshToken: 'r' });
+    it('reads and writes the pair via localStorage instead of SecureStore', async () => {
+      await setTokens(pair);
 
       expect(mockedSecureStore.setItemAsync).not.toHaveBeenCalled();
-      await expect(getTokens()).resolves.toEqual({ accessToken: 'a', refreshToken: 'r' });
+      await expect(getTokens()).resolves.toEqual(pair);
 
       await clearTokens();
 
@@ -50,34 +53,53 @@ describe('tokenStorage', () => {
     });
   });
 
-  it('returns null when either token is missing', async () => {
-    mockedSecureStore.getItemAsync.mockResolvedValueOnce('access-token');
+  it('writes the pair as a single entry, so it can never be half-updated', async () => {
+    await setTokens(pair);
+
+    expect(mockedSecureStore.setItemAsync).toHaveBeenCalledTimes(1);
+    expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(SESSION_KEY, JSON.stringify(pair));
+  });
+
+  it('reads the pair back', async () => {
+    mockedSecureStore.getItemAsync.mockResolvedValueOnce(JSON.stringify(pair));
+
+    await expect(getTokens()).resolves.toEqual(pair);
+    expect(mockedSecureStore.getItemAsync).toHaveBeenCalledWith(SESSION_KEY);
+  });
+
+  it('returns null when nothing is stored', async () => {
     mockedSecureStore.getItemAsync.mockResolvedValueOnce(null);
 
     await expect(getTokens()).resolves.toBeNull();
+    expect(mockedSecureStore.deleteItemAsync).not.toHaveBeenCalled();
   });
 
-  it('returns both tokens when present', async () => {
-    mockedSecureStore.getItemAsync.mockResolvedValueOnce('access-token');
-    mockedSecureStore.getItemAsync.mockResolvedValueOnce('refresh-token');
+  it('treats a corrupt entry as no session and removes it', async () => {
+    mockedSecureStore.getItemAsync.mockResolvedValueOnce('{not json');
 
-    await expect(getTokens()).resolves.toEqual({
-      accessToken: 'access-token',
-      refreshToken: 'refresh-token',
-    });
+    await expect(getTokens()).resolves.toBeNull();
+    expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith(SESSION_KEY);
   });
 
-  it('writes both tokens to secure storage', async () => {
-    await setTokens({ accessToken: 'a', refreshToken: 'r' });
+  it('treats an incomplete pair as no session and removes it', async () => {
+    mockedSecureStore.getItemAsync.mockResolvedValueOnce(JSON.stringify({ accessToken: 'a' }));
 
-    expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith('trakwyn_access_token', 'a');
-    expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith('trakwyn_refresh_token', 'r');
+    await expect(getTokens()).resolves.toBeNull();
+    expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith(SESSION_KEY);
   });
 
-  it('deletes both tokens from secure storage', async () => {
+  it('propagates a SecureStore read failure to the caller', async () => {
+    mockedSecureStore.getItemAsync.mockRejectedValueOnce(
+      new Error("Could not decrypt the value for key 'trakwyn_session'"),
+    );
+
+    await expect(getTokens()).rejects.toThrow('Could not decrypt');
+  });
+
+  it('deletes the single entry', async () => {
     await clearTokens();
 
-    expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith('trakwyn_access_token');
-    expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith('trakwyn_refresh_token');
+    expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledTimes(1);
+    expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith(SESSION_KEY);
   });
 });

@@ -19,6 +19,7 @@ import {
 } from '../hooks/useSessions';
 import type { Session } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
+import { StepUpCancelledError, useStepUpReauth } from '../../../auth/useStepUpReauth';
 
 function SessionRow({ session, onRevoke }: { session: Session; onRevoke: () => void }) {
   return (
@@ -49,30 +50,31 @@ export function SecurityScreen() {
   const revokeSession = useRevokeSession();
   const revokeOthers = useRevokeOtherSessions();
   const updatePassword = useUpdatePassword();
+  const { withStepUp, dialog: stepUpDialog } = useStepUpReauth();
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSaved, setPasswordSaved] = useState(false);
 
-  const onChangePassword = () => {
+  const onChangePassword = async () => {
     setPasswordError(null);
     setPasswordSaved(false);
     if (newPassword.length < 8) {
       setPasswordError('New password must be at least 8 characters');
       return;
     }
-    updatePassword.mutate(
-      { currentPassword, newPassword },
-      {
-        onSuccess: () => {
-          setPasswordSaved(true);
-          setCurrentPassword('');
-          setNewPassword('');
-        },
-        onError: (err) => setPasswordError(getErrorMessage(err)),
-      },
-    );
+    try {
+      // A TOTP-enabled account with a stale session gets STEP_UP_REQUIRED
+      // here; withStepUp prompts for a fresh sign-in and retries.
+      await withStepUp(() => updatePassword.mutateAsync({ currentPassword, newPassword }));
+      setPasswordSaved(true);
+      setCurrentPassword('');
+      setNewPassword('');
+    } catch (err) {
+      if (err instanceof StepUpCancelledError) return;
+      setPasswordError(getErrorMessage(err));
+    }
   };
 
   const onRevokeOthers = () => {
@@ -147,7 +149,7 @@ export function SecurityScreen() {
         />
         <Pressable
           style={[styles.saveButton, updatePassword.isPending && styles.saveButtonDisabled]}
-          onPress={onChangePassword}
+          onPress={() => void onChangePassword()}
           disabled={updatePassword.isPending}
           testID="change-password-button"
         >
@@ -156,6 +158,7 @@ export function SecurityScreen() {
           </Text>
         </Pressable>
       </ScrollView>
+      {stepUpDialog}
     </KeyboardAvoidingView>
   );
 }

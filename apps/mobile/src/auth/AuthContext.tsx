@@ -1,6 +1,13 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { getTokens, setTokens, clearTokens, type TokenPair } from './tokenStorage';
-import { gqlRequest, setAccessToken, onSessionExpired } from '../graphql/client';
+import {
+  gqlRequest,
+  getValidAccessToken,
+  setAccessToken,
+  onSessionExpired,
+} from '../graphql/client';
+import { RESTORE_REFRESH_WAIT_MS } from '../constants';
 
 const REGISTER_MOBILE_MUTATION = `
   mutation RegisterMobile($email: String!, $password: String!) {
@@ -31,6 +38,17 @@ const LOGIN_WITH_TOTP_MOBILE_MUTATION = `
   }
 `;
 
+const REAUTHENTICATE_MOBILE_MUTATION = `
+  mutation ReauthenticateMobile($password: String!, $code: String) {
+    reauthenticateMobile(password: $password, code: $code) {
+      success
+      totpRequired
+      accessToken
+      refreshToken
+    }
+  }
+`;
+
 const LOGOUT_MUTATION = `mutation Logout { logout }`;
 
 interface LoginMobileResult {
@@ -47,30 +65,87 @@ export interface LoginOutcome {
 interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
+  /**
+   * True once the session has died underneath the user (a rejected refresh),
+   * as opposed to a deliberate sign-out — the navigator uses it to put them
+   * back where they were after they sign in again.
+   */
+  sessionExpired: boolean;
   login: (email: string, password: string) => Promise<LoginOutcome>;
   loginWithTotp: (email: string, password: string, code: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  /**
+   * Step-up re-authentication for the current session (JEF-44): the password,
+   * plus a TOTP code once `totpRequired` has come back. The API re-signs the
+   * existing session's tokens with a fresh authTime — same user, same session,
+   * so unlike login this keeps the cache.
+   */
+  reauthenticate: (password: string, code?: string) => Promise<LoginOutcome>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** Resolves to undefined once `ms` have passed, if `promise` hasn't settled by then. */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | undefined> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(undefined), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      () => {
+        clearTimeout(timer);
+        resolve(undefined);
+      },
+    );
+  });
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  // AuthProvider is mounted inside QueryClientProvider (app/_layout.tsx), so
+  // the cache is reachable from every session boundary below.
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   useEffect(() => {
-    return onSessionExpired(() => setIsAuthenticated(false));
-  }, []);
+    return onSessionExpired(() => {
+      // Mirrors apps/web (graphql/client.ts): nothing the dead session loaded
+      // should survive into whichever account signs in next.
+      queryClient.clear();
+      setSessionExpired(true);
+      setIsAuthenticated(false);
+    });
+  }, [queryClient]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const tokens = await getTokens();
+      let tokens: TokenPair | null = null;
+      try {
+        tokens = await getTokens();
+      } catch {
+        // expo-secure-store can throw on read — on Android, any keystore
+        // failure it does not recognise surfaces as a DecryptException. An
+        // unreadable pair is no session: clear it and start clean, rather
+        // than leave isLoading true and the app on its launch spinner forever.
+        await clearTokens().catch(() => {});
+      }
       if (cancelled) return;
       if (tokens) {
         setAccessToken(tokens.accessToken);
-        setIsAuthenticated(true);
+        // The restored access token has almost always outlived its 15 minutes.
+        // Refreshing it now, within a bounded wait, spares every first-screen
+        // query a failed round-trip; if the refresh is slow the app opens
+        // anyway and those queries join the same in-flight refresh. Only a
+        // rejected refresh (null) means there is no session; a timeout
+        // (undefined) just means "still waiting".
+        const valid = await withTimeout(getValidAccessToken(), RESTORE_REFRESH_WAIT_MS);
+        if (cancelled) return;
+        setIsAuthenticated(valid !== null);
       }
       setIsLoading(false);
     })();
@@ -79,11 +154,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const applyTokens = useCallback(async (tokens: TokenPair) => {
-    await setTokens(tokens);
-    setAccessToken(tokens.accessToken);
-    setIsAuthenticated(true);
-  }, []);
+  const applyTokens = useCallback(
+    async (tokens: TokenPair) => {
+      await setTokens(tokens);
+      setAccessToken(tokens.accessToken);
+      // Nothing cached before this point belongs to the account signing in —
+      // apps/web does the same with resetQueries() on its login page.
+      queryClient.clear();
+      setSessionExpired(false);
+      setIsAuthenticated(true);
+    },
+    [queryClient],
+  );
 
   const login = useCallback(
     async (email: string, password: string): Promise<LoginOutcome> => {
@@ -123,18 +205,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [applyTokens],
   );
 
+  const reauthenticate = useCallback(
+    async (password: string, code?: string): Promise<LoginOutcome> => {
+      const data = await gqlRequest<{ reauthenticateMobile: LoginMobileResult }>(
+        REAUTHENTICATE_MOBILE_MUTATION,
+        { password, code: code ?? null },
+        // A wrong password here is UNAUTHORIZED too — it must not read as an
+        // expired token and be replayed.
+        { refreshOnUnauthorized: false },
+      );
+      const result = data.reauthenticateMobile;
+      if (result.totpRequired || !result.accessToken || !result.refreshToken) {
+        return { totpRequired: result.totpRequired };
+      }
+      await setTokens({ accessToken: result.accessToken, refreshToken: result.refreshToken });
+      setAccessToken(result.accessToken);
+      return { totpRequired: false };
+    },
+    [],
+  );
+
   const logout = useCallback(async (): Promise<void> => {
     await gqlRequest(LOGOUT_MUTATION).catch(() => {
       // Best-effort — an already-expired/missing session shouldn't block logout.
     });
     await clearTokens();
     setAccessToken(null);
+    // Mirrors apps/web (AuthenticatedLayout.tsx): the tokens are gone, but
+    // every application, note, document and message this account loaded is
+    // still in the cache until this runs — and the next account to sign in
+    // on this device would see it.
+    queryClient.clear();
+    setSessionExpired(false);
     setIsAuthenticated(false);
-  }, []);
+  }, [queryClient]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ isLoading, isAuthenticated, login, loginWithTotp, register, logout }),
-    [isLoading, isAuthenticated, login, loginWithTotp, register, logout],
+    () => ({
+      isLoading,
+      isAuthenticated,
+      sessionExpired,
+      login,
+      loginWithTotp,
+      register,
+      logout,
+      reauthenticate,
+    }),
+    [
+      isLoading,
+      isAuthenticated,
+      sessionExpired,
+      login,
+      loginWithTotp,
+      register,
+      logout,
+      reauthenticate,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
