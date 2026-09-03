@@ -106,8 +106,21 @@ export async function applyMigrations(client: Client): Promise<ApplyMigrationsRe
         // (e.g. drizzle-kit migrate) recorded the migration without actually
         // creating the objects, or the migration was applied by an earlier
         // run of this script. Either way, the DDL is safe to skip.
-        if (msg.includes('already exists') || msg.includes('duplicate column name')) {
-          console.log(`    (already exists, skipping: ${stmt.slice(0, 80)}…)`);
+        //
+        // The inverse also happens: drizzle-kit's SQLite dialect regenerates
+        // DROP INDEX/DROP TABLE statements for objects whose on-disk name
+        // has drifted from what the migration history expects (e.g. an
+        // index that no longer exists under the name a later migration
+        // expects to drop). A "no such X" on a DROP means the end state is
+        // already what the migration wants, so it's equally safe to skip.
+        if (
+          msg.includes('already exists') ||
+          msg.includes('duplicate column name') ||
+          msg.includes('no such index') ||
+          msg.includes('no such table') ||
+          msg.includes('no such column')
+        ) {
+          console.log(`    (drift-tolerant skip: ${stmt.slice(0, 80)}…)`);
           continue;
         }
         throw err;
