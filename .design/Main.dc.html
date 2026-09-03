@@ -1,0 +1,169 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f9fafb;
+      color: #111827;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #2563eb; text-decoration: none; }
+    a:hover { color: #1d4ed8; text-decoration: underline; }
+  </style>
+</helmet>
+
+<div style="padding: 32px; display: flex; flex-direction: column; gap: 40px">
+
+  <!-- AI/MCP setup banner — existing, unchanged -->
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; border-radius: 12px; border: 1px solid #bfdbfe; background: #eff6ff; padding: 12px 16px">
+    <div style="display: flex; align-items: center; gap: 12px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0">
+        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path>
+      </svg>
+      <p style="margin: 0; font-size: 14px; line-height: 20px; color: #1e3a8a">Connect Trakwyn to Claude, Cursor or ChatGPT with your own key.</p>
+    </div>
+    <a href="#" style="flex-shrink: 0; font-size: 14px; font-weight: 600; color: #1d4ed8">Set up</a>
+  </div>
+
+  <!-- AI features card -->
+  <div style="background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden">
+
+    <div style="padding: 20px 20px 4px">
+      <h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; color: #111827">AI features</h2>
+      <p style="margin: 0; font-size: 14px; line-height: 20px; color: #6b7280">Bring your own provider key. Trakwyn never charges for AI — you pay your provider directly.</p>
+    </div>
+
+    <div style="margin-top: 16px; border-top: 1px solid #f3f4f6">
+
+      <!-- ── Row: under limit ───────────────────────────────── -->
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid #f3f4f6; padding: 16px 20px">
+        <div style="display: flex; min-width: 0; align-items: flex-start; gap: 12px; flex-grow: 1">
+          <div style="display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; font-weight: 700; background: #f3e8ff; color: #7e22ce">OR</div>
+          <div style="min-width: 0; flex-grow: 1">
+            <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: #111827">
+              OpenRouter<span style="margin-left: 8px; font-size: 12px; font-weight: 400; color: #16a34a">Default</span>
+            </p>
+            <p style="margin: 0; font-size: 12px; line-height: 16px; color: #6b7280">openai/gpt-4o-mini</p>
+
+            <!-- usage meter -->
+            <div style="margin-top: 8px; max-width: 340px">
+              <div style="height: 8px; overflow: hidden; border-radius: 9999px; background: #e5e7eb">
+                <div style="height: 100%; width: 62%; border-radius: 9999px; background: #2563eb"></div>
+              </div>
+              <p style="margin: 6px 0 0; font-size: 12px; line-height: 16px; color: #6b7280">
+                <span style="color: #374151">1,240,000</span> of 2,000,000 tokens · resets 1 Oct
+              </p>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-shrink: 0; align-items: center; gap: 4px">
+          <button type="button" aria-label="More actions" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex-shrink: 0; border: 0; border-radius: 8px; background: none; color: #6b7280">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Row: nearing limit ─────────────────────────────── -->
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid #f3f4f6; padding: 16px 20px">
+        <div style="display: flex; min-width: 0; align-items: flex-start; gap: 12px; flex-grow: 1">
+          <div style="display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; font-weight: 700; background: #ffedd5; color: #c2410c">AN</div>
+          <div style="min-width: 0; flex-grow: 1">
+            <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: #111827">
+              Anthropic
+              <span style="margin-left: 8px; display: inline-flex; align-items: center; border-radius: 9999px; background: #fef3c7; padding: 2px 8px; font-size: 12px; font-weight: 500; color: #a16207">87% used</span>
+            </p>
+            <p style="margin: 0; font-size: 12px; line-height: 16px; color: #6b7280">claude-3-5-haiku-latest</p>
+
+            <div style="margin-top: 8px; max-width: 340px">
+              <div style="height: 8px; overflow: hidden; border-radius: 9999px; background: #e5e7eb">
+                <div style="height: 100%; width: 87%; border-radius: 9999px; background: #d97706"></div>
+              </div>
+              <p style="margin: 6px 0 0; font-size: 12px; line-height: 16px; color: #6b7280">
+                <span style="color: #374151">1,730,000</span> of 2,000,000 tokens · resets 1 Oct
+              </p>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-shrink: 0; align-items: center; gap: 4px">
+          <button type="button" aria-label="More actions" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex-shrink: 0; border: 0; border-radius: 8px; background: none; color: #6b7280">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Row: limit reached, key paused ─────────────────── -->
+      <div style="border-bottom: 1px solid #f3f4f6; background: #fef2f2">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 16px 20px 12px">
+          <div style="display: flex; min-width: 0; align-items: flex-start; gap: 12px; flex-grow: 1">
+            <div style="display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; font-weight: 700; background: #d1fae5; color: #047857; opacity: 0.6">AI</div>
+            <div style="min-width: 0; flex-grow: 1">
+              <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: #111827">
+                OpenAI
+                <span style="margin-left: 8px; display: inline-flex; align-items: center; border-radius: 9999px; background: #fee2e2; padding: 2px 8px; font-size: 12px; font-weight: 500; color: #b91c1c">Paused</span>
+              </p>
+              <p style="margin: 0; font-size: 12px; line-height: 16px; color: #6b7280">gpt-4o-mini</p>
+
+              <div style="margin-top: 8px; max-width: 340px">
+                <div style="height: 8px; overflow: hidden; border-radius: 9999px; background: #e5e7eb">
+                  <div style="height: 100%; width: 100%; border-radius: 9999px; background: #dc2626"></div>
+                </div>
+                <p style="margin: 6px 0 0; font-size: 12px; line-height: 16px; color: #6b7280">
+                  <span style="color: #b91c1c; font-weight: 500">2,000,000</span> of 2,000,000 tokens · resets 1 Oct
+                </p>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; flex-shrink: 0; align-items: center; gap: 8px">
+            <button type="button" style="border: 1px solid #d1d5db; border-radius: 8px; background: #ffffff; padding: 6px 12px; font-family: inherit; font-size: 12px; font-weight: 500; color: #374151">Raise limit</button>
+            <button type="button" aria-label="More actions" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex-shrink: 0; border: 0; border-radius: 8px; background: none; color: #6b7280">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
+            </button>
+          </div>
+        </div>
+        <p style="margin: 0; display: flex; align-items: center; gap: 6px; padding: 0 20px 14px 68px; font-size: 12px; line-height: 16px; color: #b91c1c">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+          Monthly limit reached — this key is paused until 1 Oct. AI features will use your next available key.
+        </p>
+      </div>
+
+      <!-- ── Row: no limit set ──────────────────────────────── -->
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 16px 20px">
+        <div style="display: flex; min-width: 0; align-items: flex-start; gap: 12px; flex-grow: 1">
+          <div style="display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; font-weight: 700; background: #dbeafe; color: #1d4ed8">G</div>
+          <div style="min-width: 0; flex-grow: 1">
+            <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: #111827">Google AI</p>
+            <p style="margin: 0; font-size: 12px; line-height: 16px; color: #6b7280">gemini-2.0-flash</p>
+            <p style="margin: 2px 0 0; font-size: 12px; line-height: 16px; color: #9ca3af">
+              412,000 tokens this month · no limit set
+            </p>
+          </div>
+        </div>
+        <div style="display: flex; flex-shrink: 0; align-items: center; gap: 4px">
+          <button type="button" aria-label="More actions" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex-shrink: 0; border: 0; border-radius: 8px; background: none; color: #6b7280">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="border-top: 1px solid #f3f4f6; padding: 16px 20px">
+      <button type="button" style="display: inline-flex; align-items: center; gap: 6px; border: 1px solid #d1d5db; border-radius: 8px; background: none; padding: 6px 12px; font-family: inherit; font-size: 12px; font-weight: 500; color: #374151">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+        Add another provider
+      </button>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
