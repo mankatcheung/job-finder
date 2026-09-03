@@ -77,6 +77,7 @@ import './queries/shareLinkQueries.js';
 
 // Mutations
 import './mutations/authMutations.js';
+import './mutations/mobileAuthMutations.js';
 import './mutations/applicationMutations.js';
 import './mutations/noteMutations.js';
 import './mutations/documentMutations.js';
