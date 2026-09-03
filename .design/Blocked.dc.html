@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f9fafb;
+      color: #111827;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #2563eb; text-decoration: underline; }
+    a:hover { color: #1d4ed8; }
+  </style>
+</helmet>
+
+<div style="padding: 32px; display: flex; flex-direction: column; gap: 28px">
+
+  <!-- ── 1. Assistant chat ─────────────────────────────────── -->
+  <div>
+    <p style="margin: 0 0 10px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #9ca3af">Assistant — every key is paused</p>
+
+    <div style="background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden">
+      <div style="padding: 16px 16px 12px; display: flex; flex-direction: column; gap: 12px">
+
+        <div style="display: flex; justify-content: flex-end">
+          <div style="max-width: 80%; border-radius: 12px; background: #2563eb; padding: 8px 12px; font-size: 14px; line-height: 20px; color: #ffffff">Which of my applications have gone quiet?</div>
+        </div>
+
+        <!-- error line — matches ChatConversationView's existing red text + link -->
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #dc2626">
+          Your OpenAI key has reached its 2,000,000-token monthly limit and is paused until 1 Oct.
+          <a href="#">Raise the limit or add another key</a> to keep using AI features.
+        </p>
+      </div>
+
+      <div style="border-top: 1px solid #e5e7eb; background: #f9fafb; padding: 12px 16px; display: flex; gap: 8px">
+        <div style="flex-grow: 1; border-radius: 8px; border: 1px solid #d1d5db; background: #ffffff; padding: 8px 12px; font-size: 14px; line-height: 20px; color: #9ca3af">Ask about your applications…</div>
+        <button type="button" style="border: 0; border-radius: 8px; background: #2563eb; padding: 8px 16px; font-family: inherit; font-size: 14px; line-height: 20px; font-weight: 500; color: #ffffff; opacity: 0.6">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 2. Fell back to another key ───────────────────────── -->
+  <div>
+    <p style="margin: 0 0 10px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #9ca3af">Assistant — the default key is paused, another is available</p>
+
+    <div style="background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden">
+      <div style="padding: 16px 16px 12px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: flex-start; gap: 8px; border-radius: 8px; background: #fffbeb; padding: 10px 12px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a16207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+          <p style="margin: 0; font-size: 12px; line-height: 16px; color: #a16207">
+            OpenAI hit its monthly limit — using Anthropic instead. <a href="#" style="color: #a16207">Manage limits</a>
+          </p>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end">
+          <div style="max-width: 80%; border-radius: 12px; background: #2563eb; padding: 8px 12px; font-size: 14px; line-height: 20px; color: #ffffff">Which of my applications have gone quiet?</div>
+        </div>
+        <div style="display: flex; justify-content: flex-start">
+          <div style="max-width: 80%; border-radius: 12px; background: #f3f4f6; padding: 8px 12px; font-size: 14px; line-height: 20px; color: #111827">Three applications have had no response for over two weeks — Stripe, Linear and Vercel.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3. A one-shot AI action ───────────────────────────── -->
+  <div>
+    <p style="margin: 0 0 10px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #9ca3af">One-shot AI action — cover letter tab</p>
+
+    <div style="background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; padding: 20px">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
+        <div>
+          <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: #111827">Cover letter</p>
+          <p style="margin: 2px 0 0; font-size: 12px; line-height: 16px; color: #6b7280">Generated from this job description and your experience.</p>
+        </div>
+        <button type="button" style="border: 0; border-radius: 8px; background: #2563eb; padding: 8px 16px; font-family: inherit; font-size: 14px; line-height: 20px; font-weight: 500; color: #ffffff; opacity: 0.6">Generate</button>
+      </div>
+
+      <p style="margin: 16px 0 0; border-radius: 8px; background: #fef2f2; padding: 8px 12px; font-size: 14px; line-height: 20px; color: #dc2626">
+        Your OpenAI key has reached its monthly limit and is paused until 1 Oct.
+        <a href="#" style="color: #dc2626">Raise the limit</a> or add another provider key.
+      </p>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

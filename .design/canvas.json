@@ -1,0 +1,62 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 880,
+      "h": 800,
+      "title": "Settings → AI, with limits"
+    },
+    { "file": "RowStates.dc.html", "x": 980, "y": 0, "w": 760, "h": 800, "title": "Key states" },
+    { "file": "Mobile.dc.html", "x": 1840, "y": 0, "w": 390, "h": 844, "title": "Phone — 390px" },
+    {
+      "file": "SetLimit.dc.html",
+      "x": 0,
+      "y": 980,
+      "w": 880,
+      "h": 720,
+      "title": "Setting / raising a limit"
+    },
+    {
+      "file": "Blocked.dc.html",
+      "x": 980,
+      "y": 980,
+      "w": 760,
+      "h": 900,
+      "title": "What the user is told"
+    },
+    { "file": "Actions.dc.html", "x": 1840, "y": 980, "w": 620, "h": 900, "title": "Row actions" }
+  ],
+  "annotations": [
+    {
+      "id": "decision-fallback",
+      "x": 0,
+      "y": -190,
+      "w": 420,
+      "text": "Open decision 1 — fallback.\n\nWhen the DEFAULT key is paused, do we silently fall back to another key that still has headroom (shown in 'What the user is told'), or refuse and make the user choose?\n\nFalling back is kinder but spends money on a provider they didn't pick for this task."
+    },
+    {
+      "id": "decision-midflight",
+      "x": 460,
+      "y": -190,
+      "w": 420,
+      "text": "Open decision 2 — mid-request overrun.\n\nA limit can only be checked BEFORE a call; the tokens are known after. A single long chat turn can push 1.9M over a 2M cap.\n\nSo the limit is a stop-line, not a hard ceiling. Worth saying so in the UI copy ('paused once you pass') rather than implying an exact cut-off."
+    },
+    {
+      "id": "note-reset",
+      "x": 980,
+      "y": -190,
+      "w": 400,
+      "text": "Reset is calendar-monthly (1st, UTC) to match how LlmUsageSummary already aggregates 'this month'. Not a rolling 30 days, and not aligned to the provider's own billing date — we can't know that."
+    },
+    {
+      "id": "note-menu-cost",
+      "x": 1840,
+      "y": -190,
+      "w": 420,
+      "text": "The menu is new shared UI: packages/ui has no Menu primitive today (Modal is the nearest). Trigger + items, click-outside, Esc and arrow keys, plus a bottom-sheet layout for phones.\n\nCost that before committing — it's the one part of this design that isn't assembled from components you already have."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

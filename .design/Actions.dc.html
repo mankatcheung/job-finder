@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f9fafb;
+      color: #111827;
+      -webkit-font-smoothing: antialiased;
+    }
+    .label { margin: 0 0 8px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #9ca3af; }
+    .note { margin: 8px 0 0; font-size: 12px; line-height: 16px; color: #6b7280; }
+    .menu { width: 220px; border-radius: 8px; border: 1px solid #e5e7eb; background: #ffffff; padding: 4px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
+    .item { display: flex; width: 100%; align-items: center; gap: 10px; border: 0; border-radius: 6px; background: none; padding: 8px 10px; font-family: inherit; font-size: 14px; line-height: 20px; color: #374151; text-align: left; }
+    .item.danger { color: #dc2626; }
+    .sep { margin: 4px 0; height: 1px; background: #f3f4f6; }
+    .sheetitem { display: flex; width: 100%; align-items: center; gap: 12px; border: 0; background: none; padding: 0 4px; min-height: 52px; font-family: inherit; font-size: 16px; line-height: 24px; color: #111827; text-align: left; }
+  </style>
+</helmet>
+
+<div style="padding: 32px; display: flex; flex-direction: column; gap: 28px">
+
+  <div>
+    <h2 style="margin: 0 0 4px; font-size: 16px; line-height: 24px; font-weight: 600; color: #111827">Row actions</h2>
+    <p style="margin: 0; font-size: 14px; line-height: 20px; color: #6b7280">Four links didn't fit — they already collapse to unlabeled icons under <code style="font-size: 12px">sm</code>. One menu instead, with labels back at every width.</p>
+  </div>
+
+  <!-- desktop menus -->
+  <div>
+    <p class="label">Desktop — menu contents by state</p>
+    <div style="display: flex; gap: 20px; align-items: flex-start">
+
+      <div>
+        <div class="menu">
+          <button type="button" class="item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+            Edit monthly limit
+          </button>
+          <button type="button" class="item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 2v6.4L2 12.8l3.2 3.2h13.6L22 12.8l-4.4-4.4V2"></path><path d="m13 12-3 5h4l-3 5"></path></svg>
+            Test key
+          </button>
+          <button type="button" class="item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"></path></svg>
+            Make default
+          </button>
+          <div class="sep"></div>
+          <button type="button" class="item danger">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            Remove key
+          </button>
+        </div>
+        <p class="note" style="width: 220px">Normal key. “Make default” is absent on the key that already is.</p>
+      </div>
+
+      <div>
+        <div class="menu">
+          <button type="button" class="item" style="color: #b91c1c; font-weight: 500">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+            Raise limit &amp; resume
+          </button>
+          <button type="button" class="item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 2v6.4L2 12.8l3.2 3.2h13.6L22 12.8l-4.4-4.4V2"></path><path d="m13 12-3 5h4l-3 5"></path></svg>
+            Test key
+          </button>
+          <div class="sep"></div>
+          <button type="button" class="item danger">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            Remove key
+          </button>
+        </div>
+        <p class="note" style="width: 220px">Paused key. Recovery leads, and also stays a visible button in the row — not buried.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- mobile sheet -->
+  <div>
+    <p class="label">Mobile — the same menu as a bottom sheet</p>
+    <div style="width: 358px; border-radius: 12px 12px 0 0; border: 1px solid #e5e7eb; border-bottom: 0; background: #ffffff; padding: 8px 16px 16px">
+      <div style="margin: 0 auto 12px; height: 4px; width: 36px; border-radius: 9999px; background: #e5e7eb"></div>
+      <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 1px solid #f3f4f6">
+        <div style="display: flex; width: 32px; height: 32px; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; font-weight: 700; background: #f3e8ff; color: #7e22ce">OR</div>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: #111827">OpenRouter</p>
+      </div>
+      <button type="button" class="sheetitem">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+        Edit monthly limit
+      </button>
+      <button type="button" class="sheetitem">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 2v6.4L2 12.8l3.2 3.2h13.6L22 12.8l-4.4-4.4V2"></path><path d="m13 12-3 5h4l-3 5"></path></svg>
+        Test key
+      </button>
+      <button type="button" class="sheetitem">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"></path></svg>
+        Make default
+      </button>
+      <button type="button" class="sheetitem" style="color: #dc2626">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        Remove key
+      </button>
+    </div>
+    <p class="note">52px rows, 16px labels — comfortably past the 44px minimum, and reachable one-handed at the bottom of the screen.</p>
+  </div>
+
+  <div style="border-radius: 8px; background: #eff6ff; padding: 12px 14px">
+    <p style="margin: 0; font-size: 12px; line-height: 18px; color: #1e3a8a">
+      There's no menu primitive in <code>packages/ui</code> yet — <code>Modal</code> is the closest thing.
+      A small <code>Menu</code> (trigger + items, click-outside, Esc, arrow keys) would be new shared UI,
+      and the bottom-sheet variant is a second layout on top of it. Worth costing before committing to this pattern.
+    </p>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

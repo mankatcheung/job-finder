@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f9fafb;
+      color: #111827;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #2563eb; text-decoration: none; }
+    a:hover { color: #1d4ed8; text-decoration: underline; }
+  </style>
+</helmet>
+
+<div style="padding: 32px; display: flex; flex-direction: column; gap: 24px">
+
+  <p style="margin: 0; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #9ca3af">Setting a limit — inline, in the row</p>
+
+  <div style="background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden">
+
+    <!-- the row, in its normal state, with the editor expanded beneath -->
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 16px 20px 12px">
+      <div style="display: flex; min-width: 0; align-items: flex-start; gap: 12px">
+        <div style="display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; font-weight: 700; background: #dbeafe; color: #1d4ed8">G</div>
+        <div style="min-width: 0">
+          <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: #111827">Google AI</p>
+          <p style="margin: 0; font-size: 12px; line-height: 16px; color: #6b7280">gemini-2.0-flash</p>
+        </div>
+      </div>
+      <a href="#" style="flex-shrink: 0; font-size: 12px; font-weight: 500">Cancel</a>
+    </div>
+
+    <!-- expanded editor -->
+    <div style="margin: 0 20px 16px 68px; border-radius: 8px; border: 1px solid #e5e7eb; background: #f9fafb; padding: 16px">
+
+      <label style="display: block; margin-bottom: 6px; font-size: 14px; line-height: 20px; font-weight: 500; color: #374151">Monthly token limit</label>
+
+      <div style="display: flex; align-items: center; gap: 8px">
+        <input type="text" value="2,000,000" style="width: 180px; border-radius: 8px; border: 1px solid #d1d5db; background: #ffffff; padding: 8px 12px; font-family: inherit; font-size: 14px; line-height: 20px; color: #111827" />
+        <span style="font-size: 14px; line-height: 20px; color: #6b7280">tokens</span>
+      </div>
+
+      <!-- quick presets -->
+      <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px">
+        <button type="button" style="border: 1px solid #d1d5db; border-radius: 9999px; background: #ffffff; padding: 4px 10px; font-family: inherit; font-size: 12px; color: #374151">500K</button>
+        <button type="button" style="border: 1px solid #d1d5db; border-radius: 9999px; background: #ffffff; padding: 4px 10px; font-family: inherit; font-size: 12px; color: #374151">1M</button>
+        <button type="button" style="border: 1px solid #2563eb; border-radius: 9999px; background: #eff6ff; padding: 4px 10px; font-family: inherit; font-size: 12px; font-weight: 500; color: #1d4ed8">2M</button>
+        <button type="button" style="border: 1px solid #d1d5db; border-radius: 9999px; background: #ffffff; padding: 4px 10px; font-family: inherit; font-size: 12px; color: #374151">5M</button>
+        <button type="button" style="border: 1px solid #d1d5db; border-radius: 9999px; background: #ffffff; padding: 4px 10px; font-family: inherit; font-size: 12px; color: #374151">No limit</button>
+      </div>
+
+      <p style="margin: 12px 0 0; font-size: 12px; line-height: 16px; color: #6b7280">
+        Counts prompt + completion tokens across every AI feature. Resets on the 1st of each month.
+        You've used <span style="color: #374151">412,000</span> so far in September.
+      </p>
+
+      <div style="margin-top: 16px; display: flex; align-items: center; gap: 8px">
+        <button type="button" style="border: 0; border-radius: 8px; background: #2563eb; padding: 8px 16px; font-family: inherit; font-size: 14px; line-height: 20px; font-weight: 500; color: #ffffff">Save limit</button>
+        <button type="button" style="border: 1px solid #d1d5db; border-radius: 8px; background: none; padding: 8px 16px; font-family: inherit; font-size: 14px; line-height: 20px; font-weight: 500; color: #374151">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- raising a limit that has already been hit -->
+  <p style="margin: 8px 0 0; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #9ca3af">Raising a limit that's already been hit</p>
+
+  <div style="background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden">
+    <div style="display: flex; align-items: flex-start; gap: 12px; padding: 16px 20px 12px">
+      <div style="display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; font-weight: 700; background: #d1fae5; color: #047857; opacity: 0.6">AI</div>
+      <div style="min-width: 0">
+        <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: #111827">
+          OpenAI
+          <span style="margin-left: 8px; display: inline-flex; align-items: center; border-radius: 9999px; background: #fee2e2; padding: 2px 8px; font-size: 12px; font-weight: 500; color: #b91c1c">Paused</span>
+        </p>
+        <p style="margin: 0; font-size: 12px; line-height: 16px; color: #6b7280">gpt-4o-mini</p>
+      </div>
+    </div>
+
+    <div style="margin: 0 20px 16px 68px; border-radius: 8px; border: 1px solid #fecaca; background: #fef2f2; padding: 16px">
+      <p style="margin: 0 0 12px; display: flex; align-items: flex-start; gap: 6px; font-size: 12px; line-height: 16px; color: #b91c1c">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+        <span>You've used all 2,000,000 tokens this month. Raise the limit to start using this key again — it resumes immediately.</span>
+      </p>
+
+      <label style="display: block; margin-bottom: 6px; font-size: 14px; line-height: 20px; font-weight: 500; color: #374151">Monthly token limit</label>
+      <div style="display: flex; align-items: center; gap: 8px">
+        <input type="text" value="3,000,000" style="width: 180px; border-radius: 8px; border: 1px solid #d1d5db; background: #ffffff; padding: 8px 12px; font-family: inherit; font-size: 14px; line-height: 20px; color: #111827" />
+        <span style="font-size: 14px; line-height: 20px; color: #6b7280">tokens</span>
+      </div>
+
+      <div style="margin-top: 16px; display: flex; align-items: center; gap: 8px">
+        <button type="button" style="border: 0; border-radius: 8px; background: #2563eb; padding: 8px 16px; font-family: inherit; font-size: 14px; line-height: 20px; font-weight: 500; color: #ffffff">Raise limit &amp; resume</button>
+        <button type="button" style="border: 1px solid #d1d5db; border-radius: 8px; background: none; padding: 8px 16px; font-family: inherit; font-size: 14px; line-height: 20px; font-weight: 500; color: #374151">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

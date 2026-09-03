@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f9fafb;
+      color: #111827;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #2563eb; text-decoration: none; }
+    a:hover { color: #1d4ed8; text-decoration: underline; }
+    /* 44px tap target, 16px glyph — the button is the target, not the icon */
+    .kebab {
+      display: flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; margin: -10px -10px 0 0;
+      flex-shrink: 0; border: 0; border-radius: 8px; background: none; color: #6b7280;
+    }
+    .sub { padding-left: 48px; }
+  </style>
+</helmet>
+
+<div style="padding: 16px; display: flex; flex-direction: column; gap: 16px">
+
+  <h1 style="margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; color: #111827">AI</h1>
+
+  <div style="background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden">
+
+    <div style="padding: 16px 16px 4px">
+      <h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; color: #111827">AI features</h2>
+      <p style="margin: 0; font-size: 14px; line-height: 20px; color: #6b7280">Bring your own provider key.</p>
+    </div>
+
+    <div style="margin-top: 12px; border-top: 1px solid #f3f4f6">
+
+      <!-- under limit -->
+      <div style="border-bottom: 1px solid #f3f4f6; padding: 14px 16px">
+        <div style="display: flex; align-items: flex-start; gap: 12px">
+          <div style="display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; font-weight: 700; background: #f3e8ff; color: #7e22ce">OR</div>
+          <div style="min-width: 0; flex-grow: 1">
+            <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: #111827">
+              OpenRouter<span style="margin-left: 8px; font-size: 12px; font-weight: 400; color: #16a34a">Default</span>
+            </p>
+            <p style="margin: 0; font-size: 12px; line-height: 16px; color: #6b7280">openai/gpt-4o-mini</p>
+          </div>
+          <button type="button" aria-label="More actions" class="kebab">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
+          </button>
+        </div>
+        <div class="sub" style="margin-top: 10px">
+          <div style="height: 8px; overflow: hidden; border-radius: 9999px; background: #e5e7eb">
+            <div style="height: 100%; width: 62%; border-radius: 9999px; background: #2563eb"></div>
+          </div>
+          <p style="margin: 6px 0 0; font-size: 12px; line-height: 16px; color: #6b7280">
+            <span style="color: #374151">1,240,000</span> of 2,000,000 · resets 1 Oct
+          </p>
+        </div>
+      </div>
+
+      <!-- nearing limit -->
+      <div style="border-bottom: 1px solid #f3f4f6; padding: 14px 16px">
+        <div style="display: flex; align-items: flex-start; gap: 12px">
+          <div style="display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; font-weight: 700; background: #ffedd5; color: #c2410c">AN</div>
+          <div style="min-width: 0; flex-grow: 1">
+            <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: #111827">
+              Anthropic
+              <span style="margin-left: 6px; display: inline-flex; align-items: center; border-radius: 9999px; background: #fef3c7; padding: 2px 8px; font-size: 12px; font-weight: 500; color: #a16207">87%</span>
+            </p>
+            <p style="margin: 0; font-size: 12px; line-height: 16px; color: #6b7280">claude-3-5-haiku-latest</p>
+          </div>
+          <button type="button" aria-label="More actions" class="kebab">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
+          </button>
+        </div>
+        <div class="sub" style="margin-top: 10px">
+          <div style="height: 8px; overflow: hidden; border-radius: 9999px; background: #e5e7eb">
+            <div style="height: 100%; width: 87%; border-radius: 9999px; background: #d97706"></div>
+          </div>
+          <p style="margin: 6px 0 0; font-size: 12px; line-height: 16px; color: #6b7280">
+            <span style="color: #374151">1,730,000</span> of 2,000,000 · resets 1 Oct
+          </p>
+        </div>
+      </div>
+
+      <!-- paused -->
+      <div style="border-bottom: 1px solid #f3f4f6; background: #fef2f2; padding: 14px 16px">
+        <div style="display: flex; align-items: flex-start; gap: 12px">
+          <div style="display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; font-weight: 700; background: #d1fae5; color: #047857; opacity: 0.6">AI</div>
+          <div style="min-width: 0; flex-grow: 1">
+            <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: #111827">
+              OpenAI
+              <span style="margin-left: 6px; display: inline-flex; align-items: center; border-radius: 9999px; background: #fee2e2; padding: 2px 8px; font-size: 12px; font-weight: 500; color: #b91c1c">Paused</span>
+            </p>
+            <p style="margin: 0; font-size: 12px; line-height: 16px; color: #6b7280">gpt-4o-mini</p>
+          </div>
+          <button type="button" aria-label="More actions" class="kebab">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
+          </button>
+        </div>
+        <div class="sub" style="margin-top: 10px">
+          <div style="height: 8px; overflow: hidden; border-radius: 9999px; background: #e5e7eb">
+            <div style="height: 100%; width: 100%; border-radius: 9999px; background: #dc2626"></div>
+          </div>
+          <p style="margin: 6px 0 0; font-size: 12px; line-height: 16px; color: #b91c1c">
+            Limit reached — paused until 1 Oct.
+          </p>
+          <!-- recovery stays a real, full-width target on mobile -->
+          <button type="button" style="margin-top: 10px; width: 100%; min-height: 44px; border: 1px solid #d1d5db; border-radius: 8px; background: #ffffff; font-family: inherit; font-size: 14px; font-weight: 500; color: #374151">Raise limit</button>
+        </div>
+      </div>
+
+      <!-- no limit -->
+      <div style="padding: 14px 16px">
+        <div style="display: flex; align-items: flex-start; gap: 12px">
+          <div style="display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; font-weight: 700; background: #dbeafe; color: #1d4ed8">G</div>
+          <div style="min-width: 0; flex-grow: 1">
+            <p style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: #111827">Google AI</p>
+            <p style="margin: 0; font-size: 12px; line-height: 16px; color: #6b7280">gemini-2.0-flash</p>
+            <p style="margin: 2px 0 0; font-size: 12px; line-height: 16px; color: #9ca3af">412,000 this month · no limit</p>
+          </div>
+          <button type="button" aria-label="More actions" class="kebab">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="border-top: 1px solid #f3f4f6; padding: 12px 16px">
+      <button type="button" style="display: flex; width: 100%; min-height: 44px; align-items: center; justify-content: center; gap: 6px; border: 1px solid #d1d5db; border-radius: 8px; background: none; font-family: inherit; font-size: 14px; font-weight: 500; color: #374151">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+        Add another provider
+      </button>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
