@@ -7,6 +7,9 @@ export function ApplicationsListHeaderActions() {
 
   return (
     <View style={styles.container}>
+      <Pressable onPress={() => router.push('/calendar')} testID="header-calendar-button">
+        <Text style={styles.action}>Calendar</Text>
+      </Pressable>
       <Pressable onPress={() => router.push('/applications/trash')} testID="header-trash-button">
         <Text style={styles.action}>Trash</Text>
       </Pressable>
