@@ -39,6 +39,8 @@ const applications: Application[] = [
     source: null,
     followUpAt: null,
     tags: [],
+    boardPosition: 0,
+    likelyGhosted: false,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   },
