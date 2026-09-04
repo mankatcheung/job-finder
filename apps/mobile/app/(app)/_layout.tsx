@@ -19,6 +19,10 @@ export default function AppLayout() {
       <Stack.Screen name="settings/security" options={{ title: 'Security' }} />
       <Stack.Screen name="settings/notifications" options={{ title: 'Notifications' }} />
       <Stack.Screen name="settings/ai" options={{ title: 'AI' }} />
+      <Stack.Screen name="settings/experience" options={{ title: 'Experience' }} />
+      <Stack.Screen name="settings/integrations" options={{ title: 'Integrations' }} />
+      <Stack.Screen name="settings/data" options={{ title: 'Data' }} />
+      <Stack.Screen name="settings/danger-zone" options={{ title: 'Danger zone' }} />
     </Stack>
   );
 }
