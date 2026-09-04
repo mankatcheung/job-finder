@@ -6,6 +6,7 @@ import {
   DELETE_APPLICATION_MUTATION,
   RESTORE_APPLICATION_MUTATION,
   PERMANENTLY_DELETE_APPLICATION_MUTATION,
+  MOVE_APPLICATION_ON_BOARD_MUTATION,
 } from '../graphql/operations';
 import type { Application, CreateApplicationInput, UpdateApplicationInput } from '../types';
 
@@ -63,6 +64,15 @@ export function usePermanentlyDeleteApplication() {
         PERMANENTLY_DELETE_APPLICATION_MUTATION,
         { id },
       ),
+    onSuccess: invalidate,
+  });
+}
+
+export function useMoveApplicationOnBoard() {
+  const invalidate = useInvalidateApplications();
+  return useMutation({
+    mutationFn: (input: { applicationId: string; toStatus: string; orderedIds: string[] }) =>
+      gqlRequest(MOVE_APPLICATION_ON_BOARD_MUTATION, { input }),
     onSuccess: invalidate,
   });
 }

@@ -28,6 +28,9 @@ export interface Application {
   updatedAt: string;
   deletedAt?: string | null;
   purgeAt?: string | null;
+  /** Rank within its status column on the board, ascending. */
+  boardPosition: number;
+  likelyGhosted: boolean;
 }
 
 export interface CreateApplicationInput {
