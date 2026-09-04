@@ -38,6 +38,10 @@ export function useRevokeOtherSessions() {
 export function useUpdatePassword() {
   return useMutation({
     mutationFn: (input: { currentPassword: string; newPassword: string }) =>
-      gqlRequest<{ updatePassword: boolean }>(UPDATE_PASSWORD_MUTATION, input),
+      gqlRequest<{ updatePassword: boolean }>(UPDATE_PASSWORD_MUTATION, input, {
+        // A wrong current password is UNAUTHORIZED too — it must not read as
+        // an expired token and be replayed against the rate limit.
+        refreshOnUnauthorized: false,
+      }),
   });
 }

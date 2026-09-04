@@ -21,6 +21,8 @@ const APPLICATION_FIELDS = `
   updatedAt
   deletedAt
   purgeAt
+  boardPosition
+  likelyGhosted
 `;
 
 export const APPLICATIONS_QUERY = `
@@ -78,5 +80,15 @@ export const RESTORE_APPLICATION_MUTATION = `
 export const PERMANENTLY_DELETE_APPLICATION_MUTATION = `
   mutation PermanentlyDeleteApplication($id: ID!) {
     permanentlyDeleteApplication(id: $id)
+  }
+`;
+
+export const MOVE_APPLICATION_ON_BOARD_MUTATION = `
+  mutation MoveApplicationOnBoard($input: MoveApplicationOnBoardInput!) {
+    moveApplicationOnBoard(input: $input) {
+      id
+      status
+      boardPosition
+    }
   }
 `;

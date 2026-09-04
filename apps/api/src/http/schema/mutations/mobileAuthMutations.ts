@@ -1,9 +1,12 @@
+import { GraphQLError } from 'graphql';
 import { builder } from '#src/http/schema/builder.js';
 import {
   MobileAuthPayloadRef,
   MobileLoginResultRef,
 } from '#src/http/schema/types/MobileAuthPayloadType.js';
 import { deviceInfoFrom } from '#src/http/schema/requestDeviceInfo.js';
+import { fromCodedError } from '#src/http/errors/AppError.js';
+import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 
 /**
  * Mobile counterparts of authMutations.ts. React Native has no cookie jar
@@ -82,6 +85,39 @@ builder.mutationField('refreshTokenMobile', (t) =>
     resolve: async (_root, args, ctx) => {
       const { authResolver } = ctx.diScope.cradle;
       return authResolver.refreshToken(args.refreshToken);
+    },
+  }),
+);
+
+builder.mutationField('reauthenticateMobile', (t) =>
+  t.field({
+    type: MobileLoginResultRef,
+    args: {
+      password: t.arg.string({ required: true }),
+      code: t.arg.string({ required: false }),
+    },
+    resolve: async (_root, args, ctx) => {
+      if (!ctx.user || !ctx.user.sid)
+        throw new GraphQLError('Unauthorized', { extensions: { code: ERROR_CODES.UNAUTHORIZED } });
+      const { authResolver } = ctx.diScope.cradle;
+      try {
+        // Same session, re-signed with a fresh authTime — the step-up the
+        // cookie `reauthenticate` performs, with the tokens in the body.
+        const result = await authResolver.reauthenticate(
+          ctx.user.sub,
+          ctx.user.sid,
+          args.password,
+          args.code ?? undefined,
+        );
+        return {
+          success: !result.totpRequired,
+          totpRequired: result.totpRequired,
+          accessToken: result.tokens?.accessToken ?? null,
+          refreshToken: result.tokens?.refreshToken ?? null,
+        };
+      } catch (err) {
+        throw fromCodedError(err);
+      }
     },
   }),
 );

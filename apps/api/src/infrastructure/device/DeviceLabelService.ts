@@ -12,6 +12,9 @@ export class DeviceLabelService {
   describe(userAgent: string | null): string {
     if (!userAgent) return 'Unknown device';
 
+    const app = this.parseMobileApp(userAgent);
+    if (app) return app;
+
     const os = this.parseOs(userAgent);
     const browser = this.parseBrowser(userAgent);
 
@@ -19,6 +22,20 @@ export class DeviceLabelService {
     if (os) return os;
     if (browser) return browser;
     return 'Unknown device';
+  }
+
+  // ── Trakwyn mobile app ────────────────────────────────────────────────
+
+  /**
+   * apps/mobile sends `TrakwynMobile/<version> (<model>; <os> <version>)`
+   * (src/lib/userAgent.ts). Without this the phone arrives as OkHttp's or
+   * CFNetwork's default string, which nothing below recognises.
+   */
+  private parseMobileApp(ua: string): string | null {
+    const m = ua.match(/^TrakwynMobile\/\S+\s+\(([^;)]*);([^)]*)\)/);
+    if (!m) return null;
+    const device = m[1]?.trim() || m[2]?.trim();
+    return device ? `${device} — Trakwyn app` : 'Trakwyn app';
   }
 
   // ── OS detection ──────────────────────────────────────────────────────

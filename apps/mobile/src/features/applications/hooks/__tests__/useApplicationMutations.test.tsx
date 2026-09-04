@@ -8,6 +8,7 @@ import { gqlRequest } from '../../../../graphql/client';
 import {
   useCreateApplication,
   useDeleteApplication,
+  useMoveApplicationOnBoard,
   usePermanentlyDeleteApplication,
   useRestoreApplication,
   useUpdateApplication,
@@ -32,6 +33,8 @@ const application: Application = {
   tags: [],
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
+  boardPosition: 0,
+  likelyGhosted: false,
 };
 
 function wrapper({ children }: { children: React.ReactNode }) {
@@ -103,5 +106,24 @@ describe('useApplicationMutations', () => {
     });
 
     expect(mockedGqlRequest).toHaveBeenCalledWith(expect.any(String), { id: '1' });
+  });
+
+  it('moves an application to a new board column', async () => {
+    mockedGqlRequest.mockResolvedValueOnce({
+      moveApplicationOnBoard: { id: '1', status: 'interviewing', boardPosition: 2 },
+    });
+    const { result } = await renderHook(() => useMoveApplicationOnBoard(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        applicationId: '1',
+        toStatus: 'interviewing',
+        orderedIds: ['2', '1'],
+      });
+    });
+
+    expect(mockedGqlRequest).toHaveBeenCalledWith(expect.any(String), {
+      input: { applicationId: '1', toStatus: 'interviewing', orderedIds: ['2', '1'] },
+    });
   });
 });

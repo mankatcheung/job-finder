@@ -11,7 +11,7 @@ function isGraphQLErrorLike(error: unknown): error is GraphQLErrorLike {
 }
 
 const GENERIC_MESSAGE = 'Something went wrong. Please try again.';
-const NETWORK_MESSAGE = 'Could not reach the server. Check your connection and try again.';
+export const NETWORK_MESSAGE = 'Could not reach the server. Check your connection and try again.';
 
 /** Turns any thrown error (GraphQL, network, or otherwise) into a single user-facing message. */
 export function getErrorMessage(error: unknown): string {
@@ -23,4 +23,10 @@ export function getErrorMessage(error: unknown): string {
   if (error instanceof TypeError) return NETWORK_MESSAGE;
 
   return GENERIC_MESSAGE;
+}
+
+/** The API's error code (`ERROR_CODES.*`) on a GraphQL error, or null for anything else — mirrors apps/web's extractGqlErrorCode. */
+export function getErrorCode(error: unknown): string | null {
+  if (!isGraphQLErrorLike(error)) return null;
+  return error.response.errors?.[0]?.extensions?.code ?? null;
 }

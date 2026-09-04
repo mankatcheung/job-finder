@@ -1,4 +1,5 @@
-import { Stack } from 'expo-router';
+import { useEffect, useRef } from 'react';
+import { Stack, usePathname, useRouter, type Href } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -8,7 +9,33 @@ import { AuthProvider, useAuth } from '../src/auth/AuthContext';
 const queryClient = new QueryClient();
 
 export function RootNavigator() {
-  const { isLoading, isAuthenticated } = useAuth();
+  const { isLoading, isAuthenticated, sessionExpired } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const lastAppPath = useRef<string | null>(null);
+  const returnTo = useRef<string | null>(null);
+
+  // Remember where the user is while signed in, so a session that dies
+  // underneath them (as opposed to a deliberate sign-out) can put them back
+  // there once they sign in again — apps/web's returnTo (JEF-233).
+  useEffect(() => {
+    if (isAuthenticated) lastAppPath.current = pathname;
+  }, [isAuthenticated, pathname]);
+
+  useEffect(() => {
+    if (isAuthenticated || !sessionExpired) return;
+    if (lastAppPath.current && lastAppPath.current !== '/') returnTo.current = lastAppPath.current;
+  }, [isAuthenticated, sessionExpired]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !returnTo.current) return;
+    const target = returnTo.current;
+    returnTo.current = null;
+    // Deferred a tick so Stack.Protected has mounted the (app) group before
+    // the navigation into it is dispatched.
+    const timer = setTimeout(() => router.replace(target as Href), 0);
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, router]);
 
   if (isLoading) {
     return (
