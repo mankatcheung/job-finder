@@ -74,9 +74,11 @@ describe('useSessions', () => {
       await result.current.mutateAsync({ currentPassword: 'old', newPassword: 'new-password-1' });
     });
 
-    expect(mockedGqlRequest).toHaveBeenCalledWith(expect.any(String), {
-      currentPassword: 'old',
-      newPassword: 'new-password-1',
-    });
+    // A wrong current password is UNAUTHORIZED too: this must never refresh-and-replay.
+    expect(mockedGqlRequest).toHaveBeenCalledWith(
+      expect.any(String),
+      { currentPassword: 'old', newPassword: 'new-password-1' },
+      { refreshOnUnauthorized: false },
+    );
   });
 });

@@ -1,6 +1,10 @@
 import fetch from './expoFetch';
-import { CHAT_STREAM_URL } from '../../../constants';
-import { getAccessToken } from '../../../graphql/client';
+import { CHAT_STREAM_URL, ERROR_CODES } from '../../../constants';
+import { getValidAccessToken, recoverFromUnauthorized } from '../../../graphql/client';
+import { NETWORK_MESSAGE } from '../../../lib/errors';
+import { buildUserAgent } from '../../../lib/userAgent';
+
+const SESSION_EXPIRED_MESSAGE = 'Your session has expired. Sign in again to continue.';
 
 export class ChatStreamError extends Error {
   constructor(
@@ -34,6 +38,21 @@ function parseFrame(raw: string): SSEFrame | null {
   return { event: eventLine.slice(6).trim(), data: dataLine.slice(5).trim() };
 }
 
+const userAgent = buildUserAgent();
+
+function openStream(accessToken: string | null, body: string, signal?: AbortSignal) {
+  return fetch(CHAT_STREAM_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(userAgent ? { 'user-agent': userAgent } : {}),
+      ...(accessToken ? { authorization: `Bearer ${accessToken}` } : {}),
+    },
+    body,
+    signal,
+  });
+}
+
 /**
  * Consumes the `/chat/stream` SSE endpoint, ported from apps/web's
  * lib/chatStream.ts. React Native's stock global `fetch` buffers the whole
@@ -50,17 +69,28 @@ export async function streamChatMessage({
   onFallback,
   signal,
 }: StreamChatMessageParams): Promise<void> {
-  const accessToken = getAccessToken();
-  const response = await fetch(CHAT_STREAM_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(accessToken ? { authorization: `Bearer ${accessToken}` } : {}),
-    },
-    body: JSON.stringify({ conversationId, message }),
-    signal,
-  });
+  const body = JSON.stringify({ conversationId, message });
 
+  // This is not gqlRequest, so none of its refresh-on-UNAUTHORIZED applies:
+  // the route answers an expired bearer with a plain 401 JSON body, and a
+  // user who has sat in the chat screen for fifteen minutes holds exactly
+  // that. Ask for a known-good token first, and recover the same way
+  // gqlRequest does if the server still says no (a session revoked elsewhere).
+  const sentWith = await getValidAccessToken();
+  let response = await openStream(sentWith, body, signal);
+  if (response.status === 401 && sentWith) {
+    const recovery = await recoverFromUnauthorized(sentWith);
+    if (recovery.kind === 'unreachable') {
+      throw new ChatStreamError(NETWORK_MESSAGE, ERROR_CODES.NETWORK_ERROR);
+    }
+    if (recovery.kind === 'retry') response = await openStream(recovery.token, body, signal);
+  }
+
+  // A 401 that survived recovery means the session really is gone — say so,
+  // instead of the generic "Something went wrong" a bare Error turns into.
+  if (response.status === 401) {
+    throw new ChatStreamError(SESSION_EXPIRED_MESSAGE, ERROR_CODES.UNAUTHORIZED);
+  }
   if (!response.ok || !response.body) {
     throw new Error(`Chat stream request failed with status ${response.status}`);
   }

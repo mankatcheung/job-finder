@@ -1,6 +1,7 @@
 import { GraphQLClient, ClientError } from 'graphql-request';
-import { API_URL, ERROR_CODES } from '../constants';
+import { ACCESS_TOKEN_REFRESH_LEEWAY_S, API_URL, ERROR_CODES } from '../constants';
 import { getTokens, setTokens, clearTokens, type TokenPair } from '../auth/tokenStorage';
+import { buildUserAgent } from '../lib/userAgent';
 
 const REFRESH_TOKEN_MOBILE_MUTATION = `
   mutation RefreshTokenMobile($refreshToken: String!) {
@@ -14,7 +15,7 @@ const REFRESH_TOKEN_MOBILE_MUTATION = `
 type SessionExpiredListener = () => void;
 let sessionExpiredListener: SessionExpiredListener | null = null;
 
-/** AuthContext subscribes here to learn when a refresh attempt has failed outright, so it can drop back to the auth stack. */
+/** AuthContext subscribes here to learn when the session is over for good (a rejected refresh token), so it can drop back to the auth stack. */
 export function onSessionExpired(listener: SessionExpiredListener): () => void {
   sessionExpiredListener = listener;
   return () => {
@@ -29,44 +30,139 @@ export function setAccessToken(token: string | null): void {
   accessToken = token;
 }
 
-/** For non-GraphQL callers (e.g. the chat SSE stream) that need the current bearer token directly. */
+/** The raw in-memory token. Prefer getValidAccessToken() for anything about to open a request. */
 export function getAccessToken(): string | null {
   return accessToken;
 }
 
-const rawClient = new GraphQLClient(API_URL);
-
-let isRefreshing = false;
-let refreshPromise: Promise<TokenPair | null> | null = null;
-
-async function doRefresh(): Promise<TokenPair | null> {
-  const tokens = await getTokens();
-  if (!tokens) return null;
+/**
+ * Reads `exp` from the JWT payload without verifying it — the server does
+ * that; the client only needs to know whether a round-trip is worth making.
+ * Anything unparseable counts as expiring, which routes it through a refresh.
+ */
+function expiresWithin(token: string, seconds: number): boolean {
   try {
-    const data = await rawClient.request<{ refreshTokenMobile: TokenPair }>(
+    const [, payload = ''] = token.split('.');
+    const claims = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) as {
+      exp?: unknown;
+    };
+    return typeof claims.exp !== 'number' || claims.exp * 1000 - Date.now() < seconds * 1000;
+  } catch {
+    return true;
+  }
+}
+
+const userAgent = buildUserAgent();
+const rawClient = new GraphQLClient(API_URL, {
+  headers: userAgent ? { 'user-agent': userAgent } : undefined,
+});
+
+type RefreshOutcome =
+  | { status: 'refreshed'; tokens: TokenPair }
+  /** The session is genuinely over: the server rejected the refresh token, or there is none to present. */
+  | { status: 'rejected' }
+  /** The request never landed. Says nothing about whether the token is still good. */
+  | { status: 'unreachable' };
+
+let refreshPromise: Promise<RefreshOutcome> | null = null;
+
+async function endSession(): Promise<void> {
+  await clearTokens().catch(() => {
+    // The pair is being abandoned either way; a storage error must not stop
+    // the rest of the app from hearing that the session is over.
+  });
+  setAccessToken(null);
+  sessionExpiredListener?.();
+}
+
+async function doRefresh(): Promise<RefreshOutcome> {
+  let tokens: TokenPair | null;
+  try {
+    tokens = await getTokens();
+  } catch {
+    tokens = null;
+  }
+  if (!tokens) return { status: 'rejected' };
+
+  let data: { refreshTokenMobile: TokenPair };
+  try {
+    data = await rawClient.request<{ refreshTokenMobile: TokenPair }>(
       REFRESH_TOKEN_MOBILE_MUTATION,
       { refreshToken: tokens.refreshToken },
     );
+  } catch (error) {
+    // Deleting a still-valid refresh token because the subway ate the request
+    // costs the user the whole session — so only an actual rejection ends it.
+    return isUnauthorized(error) ? { status: 'rejected' } : { status: 'unreachable' };
+  }
+
+  setAccessToken(data.refreshTokenMobile.accessToken);
+  try {
     await setTokens(data.refreshTokenMobile);
-    setAccessToken(data.refreshTokenMobile.accessToken);
-    return data.refreshTokenMobile;
   } catch {
+    // The server has already rotated. If the device cannot keep the new pair,
+    // the old one on disk will be presented on the next launch and — past the
+    // API's 10-second rotation grace — read as a stolen token: the session
+    // gets revoked and an error logged. A deliberate sign-out is the better
+    // outcome, so this reports the session as over.
+    return { status: 'rejected' };
+  }
+  return { status: 'refreshed', tokens: data.refreshTokenMobile };
+}
+
+/** Single-flights the refresh: concurrent callers share one refreshTokenMobile round-trip. */
+function getOrStartRefresh(): Promise<RefreshOutcome> {
+  refreshPromise ??= doRefresh().finally(() => {
+    refreshPromise = null;
+  });
+  return refreshPromise;
+}
+
+/**
+ * The token to attach to a request, refreshed first if it is about to lapse.
+ * For callers that cannot recover from UNAUTHORIZED after the fact — the
+ * chat SSE stream, whose 401 is a plain JSON body — and for a cold start,
+ * whose restored token is almost always past its 15 minutes. Returns the
+ * stale token when the refresh cannot reach the server, and null once the
+ * session is over.
+ */
+export async function getValidAccessToken(): Promise<string | null> {
+  if (!accessToken || !expiresWithin(accessToken, ACCESS_TOKEN_REFRESH_LEEWAY_S)) {
+    return accessToken;
+  }
+  const outcome = await getOrStartRefresh();
+  if (outcome.status === 'refreshed') return outcome.tokens.accessToken;
+  if (outcome.status === 'rejected') {
+    await endSession();
     return null;
   }
+  return accessToken;
 }
 
-function getOrStartRefresh(): Promise<TokenPair | null> {
-  if (!isRefreshing) {
-    isRefreshing = true;
-    refreshPromise = doRefresh().finally(() => {
-      isRefreshing = false;
-      refreshPromise = null;
-    });
+export type UnauthorizedRecovery =
+  { kind: 'retry'; token: string } | { kind: 'ended' } | { kind: 'unreachable' };
+
+/**
+ * Shared recovery for a request that carried `sentWith` and came back
+ * UNAUTHORIZED — gqlRequest and the chat SSE stream make the same decision:
+ * retry with a fresh token, give up on the session, or report that the
+ * refresh never reached the server.
+ */
+export async function recoverFromUnauthorized(sentWith: string): Promise<UnauthorizedRecovery> {
+  // Another request already refreshed while this one was in flight — retry
+  // with the token that is current now rather than rotate the session again.
+  if (accessToken && accessToken !== sentWith) return { kind: 'retry', token: accessToken };
+
+  const outcome = await getOrStartRefresh();
+  if (outcome.status === 'refreshed') return { kind: 'retry', token: outcome.tokens.accessToken };
+  if (outcome.status === 'rejected') {
+    await endSession();
+    return { kind: 'ended' };
   }
-  return refreshPromise!;
+  return { kind: 'unreachable' };
 }
 
-function isUnauthorized(error: unknown): boolean {
+export function isUnauthorized(error: unknown): boolean {
   if (!(error instanceof ClientError)) return false;
   return (
     error.response.errors?.some((e) => e.extensions?.code === ERROR_CODES.UNAUTHORIZED) ?? false
@@ -79,25 +175,33 @@ function authHeaders(token: string | null): HeadersInit | undefined {
 
 /**
  * Every mobile screen goes through this instead of graphql-request directly:
- * it attaches the current access token, and on an UNAUTHORIZED response
- * transparently refreshes once (mirroring apps/web's responseMiddleware)
- * before retrying — refreshTokenMobile itself is called via the raw client
- * so a failed refresh can't recurse back into this same retry path.
+ * it attaches the current access token and, when a request that carried one
+ * comes back UNAUTHORIZED, refreshes once and retries — refreshTokenMobile
+ * itself goes through the raw client so a failed refresh can't recurse back
+ * into this same path.
+ *
+ * `refreshOnUnauthorized: false` is for mutations where UNAUTHORIZED is the
+ * answer to the request rather than a statement about the token —
+ * updatePassword and reauthenticateMobile reject a wrong password with the
+ * same code, and replaying one would spend its rate limit twice. Those
+ * requests get a proactively refreshed token instead, so an expired one is
+ * still never mistaken for a wrong password. loginMobile and registerMobile
+ * need no flag: they run without a token, and only a request that carried
+ * one can have an expired one.
  */
-export async function gqlRequest<T>(query: string, variables?: object): Promise<T> {
+export async function gqlRequest<T>(
+  query: string,
+  variables?: object,
+  { refreshOnUnauthorized = true }: { refreshOnUnauthorized?: boolean } = {},
+): Promise<T> {
+  const sentWith = refreshOnUnauthorized ? accessToken : await getValidAccessToken();
   try {
-    return await rawClient.request<T>(query, variables, authHeaders(accessToken));
+    return await rawClient.request<T>(query, variables, authHeaders(sentWith));
   } catch (error) {
-    if (!isUnauthorized(error)) throw error;
+    if (!isUnauthorized(error) || !sentWith || !refreshOnUnauthorized) throw error;
 
-    const refreshed = await getOrStartRefresh();
-    if (!refreshed) {
-      await clearTokens();
-      setAccessToken(null);
-      sessionExpiredListener?.();
-      throw error;
-    }
-
-    return rawClient.request<T>(query, variables, authHeaders(refreshed.accessToken));
+    const recovery = await recoverFromUnauthorized(sentWith);
+    if (recovery.kind !== 'retry') throw error;
+    return rawClient.request<T>(query, variables, authHeaders(recovery.token));
   }
 }

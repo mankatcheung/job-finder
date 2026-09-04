@@ -34,6 +34,8 @@ describe('LoginScreen', () => {
       logout: jest.fn(),
       isLoading: false,
       isAuthenticated: false,
+      sessionExpired: false,
+      reauthenticate: jest.fn(),
     });
 
     const { getByTestId } = await renderScreen();
@@ -54,6 +56,8 @@ describe('LoginScreen', () => {
       logout: jest.fn(),
       isLoading: false,
       isAuthenticated: false,
+      sessionExpired: false,
+      reauthenticate: jest.fn(),
     });
 
     const { getByTestId, findByText } = await renderScreen();
@@ -76,6 +80,8 @@ describe('LoginScreen', () => {
       logout: jest.fn(),
       isLoading: false,
       isAuthenticated: false,
+      sessionExpired: false,
+      reauthenticate: jest.fn(),
     });
 
     const { getByTestId, findByTestId } = await renderScreen();

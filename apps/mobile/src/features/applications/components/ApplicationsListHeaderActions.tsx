@@ -1,14 +1,19 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useUnreadNotificationCount } from '../../notifications/hooks/useNotificationQueries';
 
 export function ApplicationsListHeaderActions() {
   const router = useRouter();
+  const { data: unreadCount = 0 } = useUnreadNotificationCount();
 
   return (
     <View style={styles.container}>
       <Pressable onPress={() => router.push('/dashboard')} testID="header-dashboard-button">
         <Text style={styles.action}>Dashboard</Text>
+      </Pressable>
+      <Pressable onPress={() => router.push('/notifications')} testID="header-notifications-button">
+        <Text style={styles.action}>Alerts{unreadCount > 0 ? ` (${unreadCount})` : ''}</Text>
       </Pressable>
       <Pressable onPress={() => router.push('/applications/trash')} testID="header-trash-button">
         <Text style={styles.action}>Trash</Text>
