@@ -4,6 +4,9 @@ export default function AppLayout() {
   return (
     <Stack>
       <Stack.Screen name="index" options={{ title: 'Applications' }} />
+      <Stack.Screen name="calendar" options={{ title: 'Calendar' }} />
+      <Stack.Screen name="dashboard" options={{ title: 'Dashboard' }} />
+      <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
       <Stack.Screen name="applications/new" options={{ title: 'New application' }} />
       <Stack.Screen name="applications/board" options={{ title: 'Board' }} />
       <Stack.Screen name="applications/trash" options={{ title: 'Trash' }} />
@@ -11,6 +14,8 @@ export default function AppLayout() {
       <Stack.Screen name="applications/[id]/edit" options={{ title: 'Edit application' }} />
       <Stack.Screen name="applications/[id]/notes" options={{ title: 'Notes' }} />
       <Stack.Screen name="applications/[id]/documents" options={{ title: 'Documents' }} />
+      <Stack.Screen name="applications/[id]/offers/index" options={{ title: 'Offers' }} />
+      <Stack.Screen name="applications/[id]/offers/compare" options={{ title: 'Compare offers' }} />
       <Stack.Screen name="conversations/index" options={{ title: 'Assistant' }} />
       <Stack.Screen name="conversations/[id]" options={{ title: 'Assistant' }} />
       <Stack.Screen name="settings/index" options={{ title: 'Settings' }} />
@@ -18,6 +23,10 @@ export default function AppLayout() {
       <Stack.Screen name="settings/security" options={{ title: 'Security' }} />
       <Stack.Screen name="settings/notifications" options={{ title: 'Notifications' }} />
       <Stack.Screen name="settings/ai" options={{ title: 'AI' }} />
+      <Stack.Screen name="settings/experience" options={{ title: 'Experience' }} />
+      <Stack.Screen name="settings/integrations" options={{ title: 'Integrations' }} />
+      <Stack.Screen name="settings/data" options={{ title: 'Data' }} />
+      <Stack.Screen name="settings/danger-zone" options={{ title: 'Danger zone' }} />
     </Stack>
   );
 }

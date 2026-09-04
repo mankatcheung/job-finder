@@ -31,6 +31,17 @@ const REFRESH_TOKEN_MOBILE_MUTATION = `
   }
 `;
 
+const REAUTHENTICATE_MOBILE_MUTATION = `
+  mutation ReauthenticateMobile($password: String!, $code: String) {
+    reauthenticateMobile(password: $password, code: $code) {
+      success
+      totpRequired
+      accessToken
+      refreshToken
+    }
+  }
+`;
+
 const ME_QUERY = `
   query Me {
     me {
@@ -189,5 +200,76 @@ describe('mobile auth integration', () => {
     const body = res.json() as GraphQLResponse<{ refreshTokenMobile: null }>;
     expect(body.data).toEqual({ refreshTokenMobile: null });
     expect(body.errors?.[0]?.extensions?.code).toBe('UNAUTHORIZED');
+  });
+
+  it('reauthenticateMobile re-signs the current session with a fresh token pair, without cookies, and rejects the wrong password', async () => {
+    const email = `${randomUUID()}@example.com`;
+    const password = 'correct-horse-5';
+
+    const registerRes = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      payload: { query: REGISTER_MOBILE_MUTATION, variables: { email, password } },
+    });
+    const { accessToken } = (
+      registerRes.json() as GraphQLResponse<{
+        registerMobile: { accessToken: string; refreshToken: string };
+      }>
+    ).data!.registerMobile;
+
+    const reauthRes = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      headers: { authorization: `Bearer ${accessToken}` },
+      payload: { query: REAUTHENTICATE_MOBILE_MUTATION, variables: { password } },
+    });
+    const reauthBody = reauthRes.json() as GraphQLResponse<{
+      reauthenticateMobile: {
+        success: boolean;
+        totpRequired: boolean;
+        accessToken: string | null;
+        refreshToken: string | null;
+      };
+    }>;
+    expect(reauthBody.errors).toBeUndefined();
+    expect(reauthBody.data!.reauthenticateMobile).toEqual({
+      success: true,
+      totpRequired: false,
+      accessToken: expect.any(String),
+      refreshToken: expect.any(String),
+    });
+    for (const name of COOKIE_NAMES) {
+      expect(reauthRes.cookies.find((c) => c.name === name)).toBeUndefined();
+    }
+
+    // The re-signed access token belongs to the same account.
+    const meRes = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      headers: { authorization: `Bearer ${reauthBody.data!.reauthenticateMobile.accessToken}` },
+      payload: { query: ME_QUERY },
+    });
+    expect((meRes.json() as GraphQLResponse<{ me: { email: string } }>).data!.me.email).toBe(email);
+
+    const wrongRes = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      headers: { authorization: `Bearer ${accessToken}` },
+      payload: {
+        query: REAUTHENTICATE_MOBILE_MUTATION,
+        variables: { password: 'wrong-password' },
+      },
+    });
+    const wrongBody = wrongRes.json() as GraphQLResponse<{ reauthenticateMobile: null }>;
+    expect(wrongBody.data).toEqual({ reauthenticateMobile: null });
+    expect(wrongBody.errors?.[0]?.extensions?.code).toBe('UNAUTHORIZED');
+
+    const anonRes = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      payload: { query: REAUTHENTICATE_MOBILE_MUTATION, variables: { password } },
+    });
+    const anonBody = anonRes.json() as GraphQLResponse<{ reauthenticateMobile: null }>;
+    expect(anonBody.errors?.[0]?.extensions?.code).toBe('UNAUTHORIZED');
   });
 });

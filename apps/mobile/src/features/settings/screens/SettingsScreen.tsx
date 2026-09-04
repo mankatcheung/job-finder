@@ -12,6 +12,13 @@ const MENU: Array<{ label: string; href: Href; testID: string }> = [
     testID: 'settings-notifications-row',
   },
   { label: 'AI', href: '/settings/ai', testID: 'settings-ai-row' },
+  { label: 'Experience', href: '/settings/experience', testID: 'settings-experience-row' },
+  { label: 'Integrations', href: '/settings/integrations', testID: 'settings-integrations-row' },
+  { label: 'Data', href: '/settings/data', testID: 'settings-data-row' },
+];
+
+const DANGER_MENU: Array<{ label: string; href: Href; testID: string }> = [
+  { label: 'Danger zone', href: '/settings/danger-zone', testID: 'settings-danger-zone-row' },
 ];
 
 export function SettingsScreen() {
@@ -28,6 +35,18 @@ export function SettingsScreen() {
           testID={item.testID}
         >
           <Text style={styles.label}>{item.label}</Text>
+          <Text style={styles.chevron}>{'>'}</Text>
+        </Pressable>
+      ))}
+
+      {DANGER_MENU.map((item) => (
+        <Pressable
+          key={item.testID}
+          style={[styles.row, styles.dangerRow]}
+          onPress={() => router.push(item.href)}
+          testID={item.testID}
+        >
+          <Text style={styles.dangerLabel}>{item.label}</Text>
           <Text style={styles.chevron}>{'>'}</Text>
         </Pressable>
       ))}
@@ -58,6 +77,8 @@ const styles = StyleSheet.create({
   },
   label: { fontSize: 15, fontWeight: '500', color: '#111827' },
   chevron: { color: '#9ca3af', fontSize: 16 },
+  dangerRow: { marginTop: 12, borderColor: '#fecaca', backgroundColor: '#fef2f2' },
+  dangerLabel: { fontSize: 15, fontWeight: '500', color: '#b91c1c' },
   signOutRow: {
     justifyContent: 'center',
     marginTop: 12,

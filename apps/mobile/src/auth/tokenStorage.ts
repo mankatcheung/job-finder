@@ -1,8 +1,15 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
-const ACCESS_TOKEN_KEY = 'trakwyn_access_token';
-const REFRESH_TOKEN_KEY = 'trakwyn_refresh_token';
+/**
+ * One key for the pair. Two keys meant two independent writes, and a fresh
+ * access token beside a stale refresh token is exactly what the API's
+ * RotateRefreshTokenUseCase classifies as reuse — past its 10-second
+ * rotation grace it revokes the whole session and logs "Refresh token reuse
+ * detected". A pair that cannot be half-written cannot be mistaken for a
+ * stolen one.
+ */
+const SESSION_KEY = 'trakwyn_session';
 
 export interface TokenPair {
   accessToken: string;
@@ -11,6 +18,13 @@ export interface TokenPair {
 
 // expo-secure-store has no web implementation, so on web we fall back to
 // localStorage instead of calling its native-only APIs.
+//
+// That makes the web target a development preview only: a refresh token in
+// localStorage is readable by any script on the page, which is the exact
+// exposure apps/web moved to HttpOnly cookies to remove. Shipping this
+// target means switching it to the cookie mutations (`login`/`refreshToken`
+// with `credentials: 'include'`) rather than storing tokens at all — see
+// CLAUDE.md, Mobile.
 const storage = {
   getItem: (key: string): Promise<string | null> =>
     Platform.OS === 'web'
@@ -33,21 +47,24 @@ const storage = {
 };
 
 export async function getTokens(): Promise<TokenPair | null> {
-  const [accessToken, refreshToken] = await Promise.all([
-    storage.getItem(ACCESS_TOKEN_KEY),
-    storage.getItem(REFRESH_TOKEN_KEY),
-  ]);
-  if (!accessToken || !refreshToken) return null;
-  return { accessToken, refreshToken };
+  const raw = await storage.getItem(SESSION_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<TokenPair> | null;
+    if (typeof parsed?.accessToken === 'string' && typeof parsed.refreshToken === 'string') {
+      return { accessToken: parsed.accessToken, refreshToken: parsed.refreshToken };
+    }
+  } catch {
+    // Unparseable — fall through and treat it as no session.
+  }
+  await storage.deleteItem(SESSION_KEY);
+  return null;
 }
 
 export async function setTokens(tokens: TokenPair): Promise<void> {
-  await Promise.all([
-    storage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken),
-    storage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken),
-  ]);
+  await storage.setItem(SESSION_KEY, JSON.stringify(tokens));
 }
 
 export async function clearTokens(): Promise<void> {
-  await Promise.all([storage.deleteItem(ACCESS_TOKEN_KEY), storage.deleteItem(REFRESH_TOKEN_KEY)]);
+  await storage.deleteItem(SESSION_KEY);
 }

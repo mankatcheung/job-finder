@@ -1,0 +1,199 @@
+import React, { useState } from 'react';
+import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { gqlRequest } from '../../../graphql/client';
+import { getErrorMessage } from '../../../lib/errors';
+import { REAUTHENTICATE_MUTATION } from '../graphql/operations';
+import type { ReauthenticateResult } from '../types';
+
+/** Thrown to the caller of `withStepUp` when the user dismisses the reauth dialog instead of completing it. */
+export const STEP_UP_CANCELLED = 'step-up-cancelled';
+
+/** Extracts the GraphQL `extensions.code` from a graphql-request error, e.g. `STEP_UP_REQUIRED` (JEF-44). */
+function extractGqlErrorCode(err: unknown): string | null {
+  if (typeof err === 'object' && err !== null && 'response' in err) {
+    const r = (err as { response?: { errors?: Array<{ extensions?: { code?: string } }> } })
+      .response;
+    return r?.errors?.[0]?.extensions?.code ?? null;
+  }
+  return null;
+}
+
+interface PendingStepUp {
+  retry: () => void;
+  reject: (err: unknown) => void;
+}
+
+/**
+ * Wraps a mutation call so a STEP_UP_REQUIRED error — thrown when a
+ * TOTP-enabled account's session is stale (JEF-44) — transparently opens a
+ * "confirm it's you" dialog and retries the original call once reauth
+ * succeeds, instead of surfacing a raw GraphQL error to the caller. Ported
+ * from apps/web's settings/-components/useStepUpReauth.tsx.
+ */
+export function useStepUpReauth(): {
+  withStepUp: <T>(fn: () => Promise<T>) => Promise<T>;
+  dialog: React.ReactNode;
+} {
+  const [pending, setPending] = useState<PendingStepUp | null>(null);
+
+  function withStepUp<T>(fn: () => Promise<T>): Promise<T> {
+    return fn().catch((err: unknown) => {
+      if (extractGqlErrorCode(err) !== 'STEP_UP_REQUIRED') throw err;
+      return new Promise<T>((resolve, reject) => {
+        setPending({
+          retry: () => {
+            setPending(null);
+            fn().then(resolve, reject);
+          },
+          reject: (cancelErr) => {
+            setPending(null);
+            reject(cancelErr);
+          },
+        });
+      });
+    });
+  }
+
+  const dialog = pending ? (
+    <StepUpReauthDialog
+      onSuccess={pending.retry}
+      onCancel={() => pending.reject(new Error(STEP_UP_CANCELLED))}
+    />
+  ) : null;
+
+  return { withStepUp, dialog };
+}
+
+function StepUpReauthDialog({
+  onSuccess,
+  onCancel,
+}: {
+  onSuccess: () => void;
+  onCancel: () => void;
+}) {
+  const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
+  const [totpRequired, setTotpRequired] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const onSubmit = async () => {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      const res = await gqlRequest<{ reauthenticate: ReauthenticateResult }>(
+        REAUTHENTICATE_MUTATION,
+        { password, code: code || undefined },
+      );
+      if (res.reauthenticate.totpRequired) {
+        setTotpRequired(true);
+        return;
+      }
+      onSuccess();
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal transparent animationType="fade" onRequestClose={onCancel} testID="step-up-reauth-modal">
+      <View style={styles.backdrop}>
+        <View style={styles.dialog}>
+          <Text style={styles.title}>Confirm it&apos;s you</Text>
+          <Text style={styles.subtitle}>Re-enter your password to continue.</Text>
+
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            autoFocus
+            testID="step-up-password-input"
+          />
+
+          {totpRequired && (
+            <TextInput
+              style={styles.input}
+              placeholder="6-digit code"
+              keyboardType="number-pad"
+              value={code}
+              onChangeText={setCode}
+              autoFocus
+              testID="step-up-code-input"
+            />
+          )}
+
+          <View style={styles.actions}>
+            <Pressable onPress={onCancel} testID="step-up-cancel-button">
+              <Text style={styles.cancelText}>Cancel</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.confirmButton, isSubmitting && styles.confirmButtonDisabled]}
+              onPress={onSubmit}
+              disabled={isSubmitting}
+              testID="step-up-confirm-button"
+            >
+              <Text style={styles.confirmText}>
+                {isSubmitting ? 'Verifying…' : totpRequired ? 'Verify code' : 'Confirm'}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  dialog: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 20,
+    gap: 12,
+  },
+  title: { fontSize: 16, fontWeight: '700', color: '#111827' },
+  subtitle: { fontSize: 13, color: '#6b7280' },
+  input: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 15,
+    backgroundColor: '#ffffff',
+  },
+  error: {
+    color: '#b91c1c',
+    backgroundColor: '#fef2f2',
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 13,
+  },
+  actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 16, marginTop: 4 },
+  cancelText: { color: '#6b7280', fontSize: 14, fontWeight: '600', paddingVertical: 10 },
+  confirmButton: {
+    minWidth: 100,
+    minHeight: 40,
+    borderRadius: 8,
+    backgroundColor: '#2563eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+  },
+  confirmButtonDisabled: { opacity: 0.6 },
+  confirmText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
+});
