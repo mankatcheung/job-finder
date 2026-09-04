@@ -9,6 +9,9 @@ export function ApplicationsListHeaderActions() {
 
   return (
     <View style={styles.container}>
+      <Pressable onPress={() => router.push('/dashboard')} testID="header-dashboard-button">
+        <Text style={styles.action}>Dashboard</Text>
+      </Pressable>
       <Pressable onPress={() => router.push('/notifications')} testID="header-notifications-button">
         <Text style={styles.action}>Alerts{unreadCount > 0 ? ` (${unreadCount})` : ''}</Text>
       </Pressable>
