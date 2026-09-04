@@ -8,6 +8,7 @@ export default function AppLayout() {
       <Stack.Screen name="dashboard" options={{ title: 'Dashboard' }} />
       <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
       <Stack.Screen name="applications/new" options={{ title: 'New application' }} />
+      <Stack.Screen name="analytics" options={{ title: 'Analytics' }} />
       <Stack.Screen name="applications/board" options={{ title: 'Board' }} />
       <Stack.Screen name="applications/trash" options={{ title: 'Trash' }} />
       <Stack.Screen name="applications/[id]/index" options={{ title: 'Application' }} />
