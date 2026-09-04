@@ -3,6 +3,7 @@ import { OAuthResolver } from '#src/interface-adapters/resolvers/OAuthResolver.j
 import { OAuthAccountMapper } from '#src/interface-adapters/mappers/OAuthAccountMapper.js';
 import type { IListLinkedOAuthAccountsUseCase } from '#src/use-cases/oauth/IListLinkedOAuthAccountsUseCase.js';
 import type { IUnlinkOAuthAccountUseCase } from '#src/use-cases/oauth/IUnlinkOAuthAccountUseCase.js';
+import type { IExchangeMobileOAuthCodeUseCase } from '#src/use-cases/oauth/IExchangeMobileOAuthCodeUseCase.js';
 import { makeOAuthAccount } from '#src/__tests__/helpers/mocks/oauth.js';
 
 const stub = <T>(methods: Partial<T>): T => methods as T;
@@ -13,6 +14,9 @@ const makeDeps = (overrides?: object) => ({
   }),
   unlinkOAuthAccountUseCase: stub<IUnlinkOAuthAccountUseCase>({
     execute: vi.fn().mockResolvedValue(undefined),
+  }),
+  exchangeMobileOAuthCodeUseCase: stub<IExchangeMobileOAuthCodeUseCase>({
+    execute: vi.fn().mockResolvedValue({ accessToken: 'access-1', refreshToken: 'refresh-1' }),
   }),
   oauthAccountMapper: new OAuthAccountMapper(),
   ...overrides,
@@ -46,6 +50,19 @@ describe('OAuthResolver', () => {
         provider: 'github',
       });
       expect(result).toBe(true);
+    });
+  });
+
+  describe('exchangeMobileCode', () => {
+    it('delegates to exchangeMobileOAuthCodeUseCase and returns the tokens', async () => {
+      const deps = makeDeps();
+
+      const result = await new OAuthResolver(deps).exchangeMobileCode('handoff-code');
+
+      expect(deps.exchangeMobileOAuthCodeUseCase.execute).toHaveBeenCalledWith({
+        code: 'handoff-code',
+      });
+      expect(result).toEqual({ accessToken: 'access-1', refreshToken: 'refresh-1' });
     });
   });
 });

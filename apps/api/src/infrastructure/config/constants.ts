@@ -74,6 +74,15 @@ export const OAUTH = {
   GITHUB_EMAILS_URL: 'https://api.github.com/user/emails',
   /** How long the signed `state` redirect param stays valid, in milliseconds. */
   STATE_TTL_MS: 5 * 60 * 1000, // 5 minutes
+  /**
+   * How long a mobile login's handoff code stays valid, in milliseconds
+   * (JEF-275). It carries the finished session's tokens from the OAuth
+   * callback (a browser redirect) to the app (a GraphQL mutation) across the
+   * custom-scheme handoff, so it only needs to survive that one immediate
+   * round-trip — short on purpose, unlike STATE_TTL_MS which spans the whole
+   * provider detour.
+   */
+  MOBILE_HANDOFF_TTL_MS: 60 * 1000, // 1 minute
   /** Builds the concrete callback path (Fastify's `:provider` filled in) used as the OAuth redirect_uri. */
   callbackPath: (provider: string) => `/auth/oauth/${provider}/callback`,
   startPath: (provider: string) => `/auth/oauth/${provider}/start`,

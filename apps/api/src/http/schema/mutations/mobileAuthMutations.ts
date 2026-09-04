@@ -89,6 +89,31 @@ builder.mutationField('refreshTokenMobile', (t) =>
   }),
 );
 
+/**
+ * Redeems the short-lived code the OAuth callback hands back through the
+ * custom-scheme redirect (JEF-275) — see MobileOAuthHandoffService. The
+ * browser leg of Google/GitHub sign-in is server-mediated same as web; this
+ * is purely the last hop, getting the resulting tokens from that redirect
+ * into the app's own storage over a normal authenticated-transport request
+ * instead of a URL.
+ */
+builder.mutationField('exchangeMobileOAuthCode', (t) =>
+  t.field({
+    type: MobileAuthPayloadRef,
+    args: {
+      code: t.arg.string({ required: true }),
+    },
+    resolve: async (_root, args, ctx) => {
+      const { oauthResolver } = ctx.diScope.cradle;
+      try {
+        return await oauthResolver.exchangeMobileCode(args.code);
+      } catch (err) {
+        throw fromCodedError(err);
+      }
+    },
+  }),
+);
+
 builder.mutationField('reauthenticateMobile', (t) =>
   t.field({
     type: MobileLoginResultRef,

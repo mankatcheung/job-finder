@@ -42,6 +42,15 @@ const REAUTHENTICATE_MOBILE_MUTATION = `
   }
 `;
 
+const EXCHANGE_MOBILE_OAUTH_CODE_MUTATION = `
+  mutation ExchangeMobileOAuthCode($code: String!) {
+    exchangeMobileOAuthCode(code: $code) {
+      accessToken
+      refreshToken
+    }
+  }
+`;
+
 const ME_QUERY = `
   query Me {
     me {
@@ -271,5 +280,55 @@ describe('mobile auth integration', () => {
     });
     const anonBody = anonRes.json() as GraphQLResponse<{ reauthenticateMobile: null }>;
     expect(anonBody.errors?.[0]?.extensions?.code).toBe('UNAUTHORIZED');
+  });
+
+  it('exchangeMobileOAuthCode redeems a handoff code from the OAuth callback for a usable token pair', async () => {
+    // The callback itself (oauth.routes.integration.test.ts) already covers
+    // minting this code and sending it to trakwyn://oauth-callback — this
+    // covers the app's side of the handoff: redeeming what it received.
+    const { mobileOAuthHandoffService } = (
+      testApp.app as unknown as {
+        diContainer: {
+          cradle: { mobileOAuthHandoffService: { issue: (a: string, r: string) => string } };
+        };
+      }
+    ).diContainer.cradle;
+    const code = mobileOAuthHandoffService.issue('access-from-oauth', 'refresh-from-oauth');
+
+    const res = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      payload: {
+        query: EXCHANGE_MOBILE_OAUTH_CODE_MUTATION,
+        variables: { code },
+      },
+    });
+
+    const body = res.json() as GraphQLResponse<{
+      exchangeMobileOAuthCode: { accessToken: string; refreshToken: string };
+    }>;
+    expect(body.errors).toBeUndefined();
+    expect(body.data!.exchangeMobileOAuthCode).toEqual({
+      accessToken: 'access-from-oauth',
+      refreshToken: 'refresh-from-oauth',
+    });
+    for (const name of COOKIE_NAMES) {
+      expect(res.cookies.find((c) => c.name === name)).toBeUndefined();
+    }
+  });
+
+  it('exchangeMobileOAuthCode rejects an invalid code', async () => {
+    const res = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      payload: {
+        query: EXCHANGE_MOBILE_OAUTH_CODE_MUTATION,
+        variables: { code: 'not-a-real-code' },
+      },
+    });
+
+    const body = res.json() as GraphQLResponse<{ exchangeMobileOAuthCode: null }>;
+    expect(body.data).toEqual({ exchangeMobileOAuthCode: null });
+    expect(body.errors?.[0]?.extensions?.code).toBe('UNAUTHORIZED');
   });
 });

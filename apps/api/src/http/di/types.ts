@@ -54,11 +54,13 @@ import type { ITotpProvider } from '#src/use-cases/ports/ITotpProvider.js';
 import type { OAuthProviderRegistry } from '#src/infrastructure/auth/OAuthProviderRegistry.js';
 import type { McpOAuthConsentService } from '#src/infrastructure/auth/McpOAuthConsentService.js';
 import type { OAuthStateService } from '#src/infrastructure/auth/OAuthStateService.js';
+import type { MobileOAuthHandoffService } from '#src/infrastructure/auth/MobileOAuthHandoffService.js';
 import type { IOAuthProvider } from '#src/use-cases/ports/IOAuthProvider.js';
 import type { LoginOrSignupWithOAuthUseCase } from '#src/use-cases/oauth/LoginOrSignupWithOAuthUseCase.js';
 import type { LinkOAuthAccountUseCase } from '#src/use-cases/oauth/LinkOAuthAccountUseCase.js';
 import type { UnlinkOAuthAccountUseCase } from '#src/use-cases/oauth/UnlinkOAuthAccountUseCase.js';
 import type { ListLinkedOAuthAccountsUseCase } from '#src/use-cases/oauth/ListLinkedOAuthAccountsUseCase.js';
+import type { ExchangeMobileOAuthCodeUseCase } from '#src/use-cases/oauth/ExchangeMobileOAuthCodeUseCase.js';
 import type { OAuthAccountMapper } from '#src/interface-adapters/mappers/OAuthAccountMapper.js';
 import type { OAuthResolver } from '#src/interface-adapters/resolvers/OAuthResolver.js';
 import type { WorkExperienceResolver } from '#src/interface-adapters/resolvers/WorkExperienceResolver.js';
@@ -367,6 +369,7 @@ export interface Cradle {
   gitHubOAuthProvider: IOAuthProvider;
   oauthProviderRegistry: OAuthProviderRegistry;
   oauthStateService: OAuthStateService;
+  mobileOAuthHandoffService: MobileOAuthHandoffService;
   mcpOAuthConsentService: McpOAuthConsentService;
 
   applicationMapper: ApplicationMapper;
@@ -422,6 +425,7 @@ export interface Cradle {
   linkOAuthAccountUseCase: LinkOAuthAccountUseCase;
   unlinkOAuthAccountUseCase: UnlinkOAuthAccountUseCase;
   listLinkedOAuthAccountsUseCase: ListLinkedOAuthAccountsUseCase;
+  exchangeMobileOAuthCodeUseCase: ExchangeMobileOAuthCodeUseCase;
 
   authenticateRequestUseCase: AuthenticateRequestUseCase;
   authenticateMcpRequestUseCase: AuthenticateMcpRequestUseCase;

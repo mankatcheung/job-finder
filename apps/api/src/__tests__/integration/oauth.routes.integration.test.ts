@@ -247,6 +247,83 @@ describe('oauth routes — PKCE', () => {
   });
 });
 
+describe('oauth routes — mobile platform (JEF-275)', () => {
+  let testApp: TestApp;
+  const originalClientId = process.env[ENV.GITHUB_OAUTH_CLIENT_ID];
+
+  beforeAll(async () => {
+    testApp = await buildTestApp();
+    process.env[ENV.GITHUB_OAUTH_CLIENT_ID] = 'test-github-client-id';
+  }, 30_000);
+
+  afterAll(async () => {
+    if (originalClientId === undefined) delete process.env[ENV.GITHUB_OAUTH_CLIENT_ID];
+    else process.env[ENV.GITHUB_OAUTH_CLIENT_ID] = originalClientId;
+    await testApp.cleanup();
+  });
+
+  async function beginMobileFlow(): Promise<{ state: string; stateCookie: string | undefined }> {
+    const res = await testApp.app.inject({
+      method: 'GET',
+      url: '/auth/oauth/github/start?platform=mobile',
+      headers: { host: 'api.trakwyn.com', 'x-forwarded-proto': 'https' },
+    });
+    const state = new URL(res.headers.location as string).searchParams.get('state')!;
+    const cookies = res.cookies as Array<{ name: string; value: string }>;
+    return { state, stateCookie: cookies.find((c) => c.name === 'trakwyn_oauth_state')?.value };
+  }
+
+  it('carries the mobile platform in the redirect cookie', async () => {
+    const { stateCookie } = await beginMobileFlow();
+
+    expect(stateCookie?.split('.')[2]).toBe('mobile');
+  });
+
+  it('sends a mobile flow that fails before state is verified to the app deep link, not the web login page', async () => {
+    const { stateCookie } = await beginMobileFlow();
+
+    const res = await testApp.app.inject({
+      method: 'GET',
+      url: '/auth/oauth/github/callback?error=access_denied',
+      headers: { host: 'api.trakwyn.com', 'x-forwarded-proto': 'https' },
+      cookies: { trakwyn_oauth_state: stateCookie! },
+    });
+
+    expect(res.headers.location).toMatch(/^trakwyn:\/\/oauth-callback\?oauthError=access_denied$/);
+  });
+
+  it('sends a mobile flow that fails the token exchange to the app deep link with an error code', async () => {
+    const { state, stateCookie } = await beginMobileFlow();
+
+    const res = await testApp.app.inject({
+      method: 'GET',
+      url: `/auth/oauth/github/callback?code=some-code&state=${encodeURIComponent(state)}`,
+      headers: { host: 'api.trakwyn.com', 'x-forwarded-proto': 'https' },
+      cookies: { trakwyn_oauth_state: stateCookie! },
+    });
+
+    // No real GitHub here, so the token exchange fails — the point is *where*
+    // the failure lands, not that it succeeds.
+    expect(res.headers.location).toMatch(/^trakwyn:\/\/oauth-callback\?oauthError=/);
+    const names = (res.cookies as Array<{ name: string; value: string }>)
+      .filter((c) => c.value !== '')
+      .map((c) => c.name);
+    expect(names).not.toContain('trakwyn_access_token');
+    expect(names).not.toContain('trakwyn_refresh_token');
+  });
+
+  it('a web flow is unaffected — still lands on the web login page', async () => {
+    const res = await testApp.app.inject({
+      method: 'GET',
+      url: '/auth/oauth/github/callback?error=access_denied',
+      headers: { host: 'api.trakwyn.com', 'x-forwarded-proto': 'https' },
+    });
+
+    expect(res.headers.location).toContain('/login?oauthError=access_denied');
+    expect(res.headers.location).not.toContain('trakwyn://');
+  });
+});
+
 describe('oauth routes — the callback never leaks internal error detail', () => {
   let testApp: TestApp;
   const originalClientId = process.env[ENV.GITHUB_OAUTH_CLIENT_ID];

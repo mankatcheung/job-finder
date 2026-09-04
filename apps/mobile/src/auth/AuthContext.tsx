@@ -1,5 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import { getTokens, setTokens, clearTokens, type TokenPair } from './tokenStorage';
 import {
   gqlRequest,
@@ -7,7 +9,10 @@ import {
   setAccessToken,
   onSessionExpired,
 } from '../graphql/client';
-import { RESTORE_REFRESH_WAIT_MS } from '../constants';
+import { API_ORIGIN, OAUTH_MOBILE_CALLBACK_URL, RESTORE_REFRESH_WAIT_MS } from '../constants';
+import { oauthErrorMessage } from '../screens/auth/oauthErrorMessage';
+
+export type OAuthProviderName = 'google' | 'github';
 
 const REGISTER_MOBILE_MUTATION = `
   mutation RegisterMobile($email: String!, $password: String!) {
@@ -49,6 +54,15 @@ const REAUTHENTICATE_MOBILE_MUTATION = `
   }
 `;
 
+const EXCHANGE_MOBILE_OAUTH_CODE_MUTATION = `
+  mutation ExchangeMobileOAuthCode($code: String!) {
+    exchangeMobileOAuthCode(code: $code) {
+      accessToken
+      refreshToken
+    }
+  }
+`;
+
 const LOGOUT_MUTATION = `mutation Logout { logout }`;
 
 interface LoginMobileResult {
@@ -73,6 +87,13 @@ interface AuthContextValue {
   sessionExpired: boolean;
   login: (email: string, password: string) => Promise<LoginOutcome>;
   loginWithTotp: (email: string, password: string, code: string) => Promise<void>;
+  /**
+   * Opens the system browser on the API's OAuth start route and waits for it
+   * to hand control back via the app's own URL scheme (JEF-275). Resolves
+   * quietly if the user backs out of the browser — that's not a failure —
+   * and throws a user-facing message for anything that is one.
+   */
+  loginWithOAuth: (provider: OAuthProviderName) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   /**
@@ -194,6 +215,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [applyTokens],
   );
 
+  const loginWithOAuth = useCallback(
+    async (provider: OAuthProviderName): Promise<void> => {
+      const startUrl = `${API_ORIGIN}/auth/oauth/${provider}/start?platform=mobile`;
+      const result = await WebBrowser.openAuthSessionAsync(startUrl, OAUTH_MOBILE_CALLBACK_URL);
+
+      // The user backed out of the browser (system back gesture, swipe-down,
+      // or the provider's own cancel button before it ever redirects back) —
+      // not a failure, nothing to report.
+      if (result.type !== 'success') return;
+
+      const { queryParams } = Linking.parse(result.url);
+      const oauthError = queryParams?.oauthError;
+      if (typeof oauthError === 'string') {
+        throw new Error(oauthErrorMessage(oauthError));
+      }
+      const code = queryParams?.code;
+      if (typeof code !== 'string') {
+        throw new Error("Sign-in didn't work. Please try again.");
+      }
+
+      let data: { exchangeMobileOAuthCode: { accessToken: string; refreshToken: string } };
+      try {
+        data = await gqlRequest(EXCHANGE_MOBILE_OAUTH_CODE_MUTATION, { code });
+      } catch {
+        // The handoff code has already been redeemed once, expired, or the
+        // request never landed — none of that is worth distinguishing for
+        // the user, unlike the oauthError slugs above which are.
+        throw new Error("Sign-in didn't work. Please try again.");
+      }
+      await applyTokens(data.exchangeMobileOAuthCode);
+    },
+    [applyTokens],
+  );
+
   const register = useCallback(
     async (email: string, password: string): Promise<void> => {
       const data = await gqlRequest<{ registerMobile: TokenPair }>(REGISTER_MOBILE_MUTATION, {
@@ -247,6 +302,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       sessionExpired,
       login,
       loginWithTotp,
+      loginWithOAuth,
       register,
       logout,
       reauthenticate,
@@ -257,6 +313,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       sessionExpired,
       login,
       loginWithTotp,
+      loginWithOAuth,
       register,
       logout,
       reauthenticate,

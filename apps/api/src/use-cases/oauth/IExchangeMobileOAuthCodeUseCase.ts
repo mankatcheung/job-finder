@@ -1,0 +1,9 @@
+import type { MobileOAuthTokens } from '#src/use-cases/ports/IMobileOAuthHandoffService.js';
+
+export interface ExchangeMobileOAuthCodeInput {
+  code: string;
+}
+
+export interface IExchangeMobileOAuthCodeUseCase {
+  execute(input: ExchangeMobileOAuthCodeInput): Promise<MobileOAuthTokens>;
+}

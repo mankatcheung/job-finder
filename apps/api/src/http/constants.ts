@@ -160,6 +160,25 @@ export const OAUTH_PROVIDER = {
 } as const;
 
 /**
+ * Which client started an OAuth login (JEF-275) — carried in the redirect
+ * cookie set at `/start`, not the signed `state`, so it survives every
+ * failure branch of `/callback`, including ones that never get far enough to
+ * verify `state` at all.
+ */
+export const OAUTH_PLATFORM = {
+  WEB: 'web',
+  MOBILE: 'mobile',
+} as const;
+
+/**
+ * Where the API sends a mobile OAuth login when it's done — the app's own
+ * custom URL scheme (`app.json`'s `scheme`), handled by expo-router's linking
+ * config rather than a web route. Fixed regardless of environment: it names
+ * the installed app, not a server.
+ */
+export const MOBILE_OAUTH_CALLBACK = 'trakwyn://oauth-callback';
+
+/**
  * Cookie `maxAge` values, in seconds — the lifetime of the token each cookie
  * carries, so the cookie expires exactly when its token does.
  */

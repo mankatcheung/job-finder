@@ -4,9 +4,22 @@ import type { Cradle } from '#src/http/container.js';
 import { setAuthCookies } from '#src/http/schema/types/AuthPayloadType.js';
 import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 import { ENV, NODE_ENV, OAUTH } from '#src/infrastructure/config/constants.js';
-import { COOKIES, COOKIE_PATH, OAUTH_PROVIDER, ROUTES } from '#src/http/constants.js';
+import {
+  COOKIES,
+  COOKIE_PATH,
+  MOBILE_OAUTH_CALLBACK,
+  OAUTH_PLATFORM,
+  OAUTH_PROVIDER,
+  ROUTES,
+} from '#src/http/constants.js';
 import type { OAuthProviderName } from '#src/domain/oauthAccount/OAuthAccount.js';
 import { createPkcePair } from '#src/infrastructure/auth/pkce.js';
+
+type OAuthPlatform = (typeof OAUTH_PLATFORM)[keyof typeof OAUTH_PLATFORM];
+
+function isMobilePlatform(value: unknown): boolean {
+  return value === OAUTH_PLATFORM.MOBILE;
+}
 
 const KNOWN_PROVIDERS = new Set<string>(Object.values(OAUTH_PROVIDER));
 
@@ -107,30 +120,40 @@ function providerErrorSlug(error: string): OAuthErrorSlug {
 }
 
 /**
- * The redirect cookie carries two things the callback needs and the browser
- * must not be able to tamper with: the state's nonce (JEF-198) and the PKCE
- * verifier (JEF-200).
+ * The redirect cookie carries three things the callback needs and the
+ * browser must not be able to tamper with: the state's nonce (JEF-198), the
+ * PKCE verifier (JEF-200), and which client started the flow (JEF-275) — the
+ * last one specifically so every failure branch below can send the user back
+ * to the right place even when it never gets far enough to verify `state`.
  *
- * One cookie rather than two, deliberately. They are created together, read
- * together and cleared together, and combining them makes it impossible to
- * arrive with one but not the other — a partial state that would otherwise
- * need its own handling on every path. Both halves are base64url or hex, so
- * neither can contain the separator.
+ * One cookie rather than several, deliberately. They are created together,
+ * read together and cleared together, and combining them makes it impossible
+ * to arrive with some but not others — a partial state that would otherwise
+ * need its own handling on every path. Every part is base64url, hex, or one
+ * of the fixed OAUTH_PLATFORM values, so none can contain the separator.
  */
 const COOKIE_SEPARATOR = '.';
 
-function encodeRedirectCookie(nonce: string, codeVerifier: string): string {
-  return `${nonce}${COOKIE_SEPARATOR}${codeVerifier}`;
+function encodeRedirectCookie(
+  nonce: string,
+  codeVerifier: string,
+  platform: OAuthPlatform,
+): string {
+  return `${nonce}${COOKIE_SEPARATOR}${codeVerifier}${COOKIE_SEPARATOR}${platform}`;
 }
 
 function decodeRedirectCookie(
   request: IHttpRequest,
-): { nonce: string; codeVerifier: string } | null {
+): { nonce: string; codeVerifier: string; platform: OAuthPlatform } | null {
   const raw = request.cookies[COOKIES.OAUTH_STATE];
   if (typeof raw !== 'string') return null;
-  const [nonce, codeVerifier] = raw.split(COOKIE_SEPARATOR);
+  const [nonce, codeVerifier, platform] = raw.split(COOKIE_SEPARATOR);
   if (!nonce || !codeVerifier) return null;
-  return { nonce, codeVerifier };
+  return {
+    nonce,
+    codeVerifier,
+    platform: isMobilePlatform(platform) ? OAUTH_PLATFORM.MOBILE : OAUTH_PLATFORM.WEB,
+  };
 }
 
 /**
@@ -160,6 +183,12 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
         }
 
         const mode = req.query.mode === 'link' ? 'link' : 'login';
+        // Only meaningful for mode 'login' — linking only ever starts from the
+        // web settings page — but read unconditionally so it's always in the
+        // cookie the callback reads back.
+        const platform: OAuthPlatform = isMobilePlatform(req.query.platform)
+          ? OAUTH_PLATFORM.MOBILE
+          : OAUTH_PLATFORM.WEB;
 
         let userId: string | undefined;
         const { tokenService } = getCradle();
@@ -203,7 +232,7 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
         // through the provider and back — see the cookie note above.
         res.setCookie(
           COOKIES.OAUTH_STATE,
-          encodeRedirectCookie(nonce, verifier),
+          encodeRedirectCookie(nonce, verifier, platform),
           STATE_COOKIE_OPTIONS,
         );
         res.redirect(authorizationUrl);
@@ -220,10 +249,21 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
           return;
         }
 
+        // Read before clearing (clearCookie only affects the response, not the
+        // `req` object) — every early-exit branch below needs it to know
+        // where to send the user, including ones that never reach a verified
+        // `state`, which is exactly why platform lives here and not in it.
+        const redirectCookie = decodeRedirectCookie(req);
+        const platform = redirectCookie?.platform ?? OAUTH_PLATFORM.WEB;
+        const loginError = (slug: OAuthErrorSlug): string =>
+          platform === OAUTH_PLATFORM.MOBILE
+            ? `${MOBILE_OAUTH_CALLBACK}?oauthError=${slug}`
+            : `${webAppOrigin}/login?oauthError=${slug}`;
+
         // Cleared once here rather than on each branch below: this handler has
         // seven ways out, and a stale nonce left behind would block the user's
         // next attempt. The value is read from the request, so clearing the
-        // response cookie now does not affect the checks that follow.
+        // response cookie now does not affect the checks above or below.
         res.clearCookie(COOKIES.OAUTH_STATE, { path: COOKIE_PATH });
 
         const code = typeof req.query.code === 'string' ? req.query.code : undefined;
@@ -231,11 +271,11 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
         const error = typeof req.query.error === 'string' ? req.query.error : undefined;
 
         if (error) {
-          res.redirect(`${webAppOrigin}/login?oauthError=${providerErrorSlug(error)}`);
+          res.redirect(loginError(providerErrorSlug(error)));
           return;
         }
         if (!code || !state) {
-          res.redirect(`${webAppOrigin}/login?oauthError=${OAUTH_ERROR.MISSING_CODE}`);
+          res.redirect(loginError(OAUTH_ERROR.MISSING_CODE));
           return;
         }
 
@@ -243,16 +283,15 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
         try {
           parsedState = oauthStateService.verify(state);
         } catch {
-          res.redirect(`${webAppOrigin}/login?oauthError=${OAUTH_ERROR.INVALID_STATE}`);
+          res.redirect(loginError(OAUTH_ERROR.INVALID_STATE));
           return;
         }
         if (parsedState.provider !== provider) {
-          res.redirect(`${webAppOrigin}/login?oauthError=${OAUTH_ERROR.PROVIDER_MISMATCH}`);
+          res.redirect(loginError(OAUTH_ERROR.PROVIDER_MISMATCH));
           return;
         }
-        const redirectCookie = decodeRedirectCookie(req);
         if (!redirectCookie || !stateMatchesBrowser(parsedState.nonce, redirectCookie.nonce)) {
-          res.redirect(`${webAppOrigin}/login?oauthError=${OAUTH_ERROR.INVALID_STATE}`);
+          res.redirect(loginError(OAUTH_ERROR.INVALID_STATE));
           return;
         }
 
@@ -291,7 +330,12 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
         }
 
         try {
-          const { loginOrSignupWithOAuthUseCase, createSessionUseCase, tokenService } = getCradle();
+          const {
+            loginOrSignupWithOAuthUseCase,
+            createSessionUseCase,
+            tokenService,
+            mobileOAuthHandoffService,
+          } = getCradle();
           const { user } = await loginOrSignupWithOAuthUseCase.execute({
             provider,
             code,
@@ -312,11 +356,23 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
             session.currentRefreshTokenId!,
             Date.now(),
           );
-          setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
-          res.redirect(returnToUrl(webAppOrigin, parsedState.returnTo));
+          if (platform === OAUTH_PLATFORM.MOBILE) {
+            // No cookies — React Native has no cookie jar tied to the API,
+            // same reasoning as mobileAuthMutations.ts. The tokens cross the
+            // custom-scheme redirect as an opaque, short-lived handoff code
+            // instead; exchangeMobileOAuthCode redeems it.
+            const handoffCode = mobileOAuthHandoffService.issue(
+              tokens.accessToken,
+              tokens.refreshToken,
+            );
+            res.redirect(`${MOBILE_OAUTH_CALLBACK}?code=${encodeURIComponent(handoffCode)}`);
+          } else {
+            setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
+            res.redirect(returnToUrl(webAppOrigin, parsedState.returnTo));
+          }
         } catch (err) {
           getCradle().logger.error(`OAuth login failed for ${provider}`, err);
-          res.redirect(`${webAppOrigin}/login?oauthError=${loginErrorSlug(err)}`);
+          res.redirect(loginError(loginErrorSlug(err)));
         }
       },
     },

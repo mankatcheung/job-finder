@@ -30,6 +30,7 @@ function authState(overrides: Partial<AuthState> = {}): AuthState {
     sessionExpired: false,
     login: jest.fn(),
     loginWithTotp: jest.fn(),
+    loginWithOAuth: jest.fn(),
     register: jest.fn(),
     logout: jest.fn(),
     reauthenticate: jest.fn(),
