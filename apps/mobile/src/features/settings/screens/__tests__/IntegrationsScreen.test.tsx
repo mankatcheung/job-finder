@@ -53,15 +53,13 @@ describe('IntegrationsScreen', () => {
   });
 
   it('creates an API token and shows the created token value', async () => {
-    const mutateAsync = jest
-      .fn()
-      .mockResolvedValue({
-        id: '1',
-        name: 'CI',
-        token: 'tok_abc',
-        scope: 'read',
-        createdAt: '2026-01-01T00:00:00.000Z',
-      });
+    const mutateAsync = jest.fn().mockResolvedValue({
+      id: '1',
+      name: 'CI',
+      token: 'tok_abc',
+      scope: 'read',
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
     mockedUseCreateApiToken.mockReturnValue({ mutateAsync, isPending: false } as never);
 
     const { getByTestId, findByTestId } = await render(<IntegrationsScreen />);
@@ -120,14 +118,12 @@ describe('IntegrationsScreen', () => {
   });
 
   it('creates a share link and can share its token', async () => {
-    const mutateAsync = jest
-      .fn()
-      .mockResolvedValue({
-        id: '1',
-        name: 'Mentor',
-        token: 'share_abc',
-        createdAt: '2026-01-01T00:00:00.000Z',
-      });
+    const mutateAsync = jest.fn().mockResolvedValue({
+      id: '1',
+      name: 'Mentor',
+      token: 'share_abc',
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
     mockedUseCreateShareLink.mockReturnValue({ mutateAsync, isPending: false } as never);
 
     const { getByTestId, findByTestId } = await render(<IntegrationsScreen />);
