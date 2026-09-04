@@ -11,4 +11,23 @@ export const CHAT_STREAM_URL = API_URL.replace(/\/graphql$/, '/chat/stream');
 
 export const ERROR_CODES = {
   UNAUTHORIZED: 'UNAUTHORIZED',
+  /** A TOTP-enabled account's session is too old for a sensitive change; the API wants a fresh reauthentication first (JEF-44). */
+  STEP_UP_REQUIRED: 'STEP_UP_REQUIRED',
+  /** Client-side only: the request never reached the server. */
+  NETWORK_ERROR: 'NETWORK_ERROR',
 } as const;
+
+/**
+ * An access token this close to its `exp` is refreshed before being used
+ * rather than after the API rejects it — wide enough to absorb clock skew
+ * and the request's own travel time.
+ */
+export const ACCESS_TOKEN_REFRESH_LEEWAY_S = 30;
+
+/**
+ * How long a cold start waits for a proactive refresh of the restored (and
+ * by then almost always expired) access token before showing the app anyway.
+ * Bounded so a flaky network delays launch by at most this much; past it the
+ * first queries simply 401 and join the same in-flight refresh.
+ */
+export const RESTORE_REFRESH_WAIT_MS = 3000;
