@@ -162,7 +162,9 @@ function McpGrantsSection() {
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Connected MCP clients</Text>
-      <Text style={styles.description}>Apps you've authorized to access your data via MCP.</Text>
+      <Text style={styles.description}>
+        Apps you&apos;ve authorized to access your data via MCP.
+      </Text>
 
       {isLoading ? (
         <ActivityIndicator color="#2563eb" />

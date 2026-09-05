@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -18,7 +18,7 @@ import { PushRegistrationError } from '../../push/lib/registerForPushNotificatio
 import type { DigestFrequency } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
 
-const DIGEST_OPTIONS: Array<{ value: DigestFrequency; label: string }> = [
+const DIGEST_OPTIONS: { value: DigestFrequency; label: string }[] = [
   { value: 'OFF', label: 'Off' },
   { value: 'DAILY', label: 'Daily' },
   { value: 'WEEKLY', label: 'Weekly' },
@@ -34,14 +34,15 @@ export function NotificationsScreen() {
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(false);
   const [weeklyGoal, setWeeklyGoal] = useState('');
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [syncedPreferences, setSyncedPreferences] = useState<typeof preferences>(undefined);
 
-  useEffect(() => {
-    if (!preferences) return;
+  if (preferences && preferences !== syncedPreferences) {
+    setSyncedPreferences(preferences);
     setDigestFrequency(preferences.digestFrequency);
     setFollowUpRemindersEnabled(preferences.followUpRemindersEnabled);
     setPushNotificationsEnabled(preferences.pushNotificationsEnabled);
     setWeeklyGoal(preferences.weeklyApplicationGoal?.toString() ?? '');
-  }, [preferences]);
+  }
 
   const save = (overrides: Partial<Record<string, unknown>> = {}) => {
     setSaveError(null);

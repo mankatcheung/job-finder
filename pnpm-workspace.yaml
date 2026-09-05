@@ -8,6 +8,7 @@ allowBuilds:
   esbuild: true
   prisma: true
   protobufjs: true
+  unrs-resolver: true
 minimumReleaseAgeExclude:
   - '@prisma/adapter-libsql@7.9.1'
   - '@prisma/client-runtime-utils@7.9.1'

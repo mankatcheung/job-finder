@@ -20,7 +20,7 @@ function formatEventDate(iso: string): string {
 
 export function DashboardScreen() {
   const router = useRouter();
-  const { data: applications, isLoading, isError, error, refetch } = useApplications();
+  const { data: applications, isLoading, isError, error } = useApplications();
   const { data: calendarEvents } = useDashboardCalendarEvents();
   const { data: goal } = useWeeklyApplicationGoal();
 
