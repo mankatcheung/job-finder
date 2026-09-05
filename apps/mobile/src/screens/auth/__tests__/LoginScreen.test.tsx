@@ -30,6 +30,7 @@ describe('LoginScreen', () => {
     mockedUseAuth.mockReturnValue({
       login,
       loginWithTotp: jest.fn(),
+      loginWithOAuth: jest.fn(),
       register: jest.fn(),
       logout: jest.fn(),
       isLoading: false,
@@ -52,6 +53,7 @@ describe('LoginScreen', () => {
     mockedUseAuth.mockReturnValue({
       login,
       loginWithTotp: jest.fn(),
+      loginWithOAuth: jest.fn(),
       register: jest.fn(),
       logout: jest.fn(),
       isLoading: false,
@@ -76,6 +78,7 @@ describe('LoginScreen', () => {
     mockedUseAuth.mockReturnValue({
       login,
       loginWithTotp,
+      loginWithOAuth: jest.fn(),
       register: jest.fn(),
       logout: jest.fn(),
       isLoading: false,
@@ -97,5 +100,70 @@ describe('LoginScreen', () => {
     await waitFor(() =>
       expect(loginWithTotp).toHaveBeenCalledWith('user@example.com', 'password123', '123456'),
     );
+  });
+
+  it('starts the Google OAuth flow when its button is pressed', async () => {
+    const loginWithOAuth = jest.fn().mockResolvedValue(undefined);
+    mockedUseAuth.mockReturnValue({
+      login: jest.fn(),
+      loginWithTotp: jest.fn(),
+      loginWithOAuth,
+      register: jest.fn(),
+      logout: jest.fn(),
+      isLoading: false,
+      isAuthenticated: false,
+      sessionExpired: false,
+      reauthenticate: jest.fn(),
+    });
+
+    const { getByTestId, findByText } = await renderScreen();
+
+    await findByText('Sign in with Google');
+    await fireEvent.press(getByTestId('oauth-google-button'));
+
+    await waitFor(() => expect(loginWithOAuth).toHaveBeenCalledWith('google'));
+  });
+
+  it('starts the GitHub OAuth flow when its button is pressed', async () => {
+    const loginWithOAuth = jest.fn().mockResolvedValue(undefined);
+    mockedUseAuth.mockReturnValue({
+      login: jest.fn(),
+      loginWithTotp: jest.fn(),
+      loginWithOAuth,
+      register: jest.fn(),
+      logout: jest.fn(),
+      isLoading: false,
+      isAuthenticated: false,
+      sessionExpired: false,
+      reauthenticate: jest.fn(),
+    });
+
+    const { getByTestId, findByText } = await renderScreen();
+
+    await findByText('Sign in with GitHub');
+    await fireEvent.press(getByTestId('oauth-github-button'));
+
+    await waitFor(() => expect(loginWithOAuth).toHaveBeenCalledWith('github'));
+  });
+
+  it('shows an error message when the OAuth flow fails', async () => {
+    const loginWithOAuth = jest.fn().mockRejectedValue(new Error('That sign-in link has expired.'));
+    mockedUseAuth.mockReturnValue({
+      login: jest.fn(),
+      loginWithTotp: jest.fn(),
+      loginWithOAuth,
+      register: jest.fn(),
+      logout: jest.fn(),
+      isLoading: false,
+      isAuthenticated: false,
+      sessionExpired: false,
+      reauthenticate: jest.fn(),
+    });
+
+    const { getByTestId, findByText } = await renderScreen();
+
+    await fireEvent.press(getByTestId('oauth-google-button'));
+
+    await findByText('That sign-in link has expired.');
   });
 });

@@ -11,13 +11,14 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../../auth/AuthContext';
+import { useAuth, type OAuthProviderName } from '../../auth/AuthContext';
 import { getErrorMessage } from '../../lib/errors';
 import { loginSchema, totpSchema } from './loginSchema';
+import { OAuthProviderLogo } from './OAuthProviderLogo';
 
 export function LoginScreen() {
   const router = useRouter();
-  const { login, loginWithTotp } = useAuth();
+  const { login, loginWithTotp, loginWithOAuth } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,6 +26,22 @@ export function LoginScreen() {
   const [totpRequired, setTotpRequired] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [oauthProvider, setOAuthProvider] = useState<OAuthProviderName | null>(null);
+
+  const onPressOAuth = async (provider: OAuthProviderName) => {
+    setError(null);
+    setOAuthProvider(provider);
+    try {
+      await loginWithOAuth(provider);
+    } catch (err) {
+      // AuthContext.loginWithOAuth always throws a plain Error with an
+      // already user-facing message (an oauthError slug's copy, or a fixed
+      // fallback) — not the GraphQL/network shapes getErrorMessage handles.
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+    } finally {
+      setOAuthProvider(null);
+    }
+  };
 
   const onSubmit = async () => {
     setError(null);
@@ -157,6 +174,44 @@ export function LoginScreen() {
         <Pressable onPress={() => router.push('/forgot-password')}>
           <Text style={styles.link}>Forgot your password?</Text>
         </Pressable>
+
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>or</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <Pressable
+          style={[styles.oauthButton, oauthProvider !== null && styles.buttonDisabled]}
+          onPress={() => onPressOAuth('google')}
+          disabled={oauthProvider !== null}
+          testID="oauth-google-button"
+        >
+          {oauthProvider === 'google' ? (
+            <ActivityIndicator color="#111827" />
+          ) : (
+            <>
+              <OAuthProviderLogo provider="google" />
+              <Text style={styles.oauthButtonText}>Sign in with Google</Text>
+            </>
+          )}
+        </Pressable>
+
+        <Pressable
+          style={[styles.oauthButton, oauthProvider !== null && styles.buttonDisabled]}
+          onPress={() => onPressOAuth('github')}
+          disabled={oauthProvider !== null}
+          testID="oauth-github-button"
+        >
+          {oauthProvider === 'github' ? (
+            <ActivityIndicator color="#111827" />
+          ) : (
+            <>
+              <OAuthProviderLogo provider="github" />
+              <Text style={styles.oauthButtonText}>Sign in with GitHub</Text>
+            </>
+          )}
+        </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -194,4 +249,19 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 14,
   },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12, gap: 8 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: '#e5e7eb' },
+  dividerText: { color: '#6b7280', fontSize: 12 },
+  oauthButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    minHeight: 44,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    backgroundColor: '#ffffff',
+  },
+  oauthButtonText: { color: '#374151', fontSize: 15, fontWeight: '600' },
 });

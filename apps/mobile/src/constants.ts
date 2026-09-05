@@ -9,6 +9,16 @@ export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_API_URL;
 /** Sibling of the GraphQL endpoint for the chat streaming SSE route (mirrors apps/web's CHAT_STREAM_URL) — not itself a GraphQL endpoint. */
 export const CHAT_STREAM_URL = API_URL.replace(/\/graphql$/, '/chat/stream');
 
+/** The API's own origin, with no path — used to build the OAuth start URL (apps/api's /auth/oauth/:provider/start). */
+export const API_ORIGIN = API_URL.replace(/\/graphql$/, '');
+
+/**
+ * The app's own custom URL scheme (app.json's `scheme`), matching
+ * apps/api's `MOBILE_OAUTH_CALLBACK` — where the OAuth callback redirects
+ * once a mobile login finishes.
+ */
+export const OAUTH_MOBILE_CALLBACK_URL = 'trakwyn://oauth-callback';
+
 export const ERROR_CODES = {
   UNAUTHORIZED: 'UNAUTHORIZED',
   /** A TOTP-enabled account's session is too old for a sensitive change; the API wants a fresh reauthentication first (JEF-44). */

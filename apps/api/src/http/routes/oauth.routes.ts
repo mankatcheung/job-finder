@@ -2,11 +2,30 @@ import type { IHttpRequest } from '#src/http/ports/IHttpRequest.js';
 import type { RouteDefinition } from '#src/http/ports/RouteDefinition.js';
 import type { Cradle } from '#src/http/container.js';
 import { setAuthCookies } from '#src/http/schema/types/AuthPayloadType.js';
-import { ERROR_CODES } from '#src/use-cases/errors/errorCodes.js';
 import { ENV, NODE_ENV, OAUTH } from '#src/infrastructure/config/constants.js';
-import { COOKIES, COOKIE_PATH, OAUTH_PROVIDER, ROUTES } from '#src/http/constants.js';
+import {
+  COOKIES,
+  COOKIE_PATH,
+  MOBILE_OAUTH_CALLBACK,
+  OAUTH_PLATFORM,
+  OAUTH_PROVIDER,
+  ROUTES,
+} from '#src/http/constants.js';
 import type { OAuthProviderName } from '#src/domain/oauthAccount/OAuthAccount.js';
-import { createPkcePair } from '#src/infrastructure/auth/pkce.js';
+import { createPkcePair, isWellFormedPkceValue } from '#src/infrastructure/auth/pkce.js';
+import {
+  OAUTH_ERROR,
+  type OAuthErrorSlug,
+  linkErrorSlug,
+  loginErrorSlug,
+  providerErrorSlug,
+} from '#src/http/routes/oauthErrorSlug.js';
+
+type OAuthPlatform = (typeof OAUTH_PLATFORM)[keyof typeof OAUTH_PLATFORM];
+
+function isMobilePlatform(value: unknown): boolean {
+  return value === OAUTH_PLATFORM.MOBILE;
+}
 
 const KNOWN_PROVIDERS = new Set<string>(Object.values(OAUTH_PROVIDER));
 
@@ -36,101 +55,45 @@ const STATE_COOKIE_OPTIONS = {
 } as const;
 
 /**
- * Every failure the callback can report, as a closed set of slugs — never
- * forward a raw `err.message` (or any other free-text detail) into the
- * query string instead. An unexpected throw's message can contain upstream
- * status codes, provider error slugs, or this deployment's own environment
- * variable names, and the query string ends up in the URL bar, browser
- * history, and Referer header. Only a value from this list crosses that
- * boundary; the client translates it into user-facing text.
- */
-export const OAUTH_ERROR = {
-  /** The user pressed Cancel at the provider. Not a fault. */
-  ACCESS_DENIED: 'access_denied',
-  MISSING_CODE: 'missing_code',
-  INVALID_STATE: 'invalid_state',
-  PROVIDER_MISMATCH: 'provider_mismatch',
-  MISSING_USER: 'missing_user',
-  /** Linking: this provider account already belongs to someone else. */
-  ALREADY_LINKED: 'already_linked',
-  /** Signing up: the email is taken, and auto-linking would be a takeover vector. */
-  EMAIL_IN_USE: 'email_in_use',
-  /** Signing up: the provider shared no verified email. */
-  EMAIL_NOT_VERIFIED: 'email_not_verified',
-  /** Signing in: the link exists but its user does not. */
-  ACCOUNT_NOT_FOUND: 'account_not_found',
-  /** Anything else. The real error is logged, never shown. */
-  FAILED: 'failed',
-} as const;
-
-type OAuthErrorSlug = (typeof OAUTH_ERROR)[keyof typeof OAUTH_ERROR];
-
-function codeOf(error: unknown): string | undefined {
-  return typeof error === 'object' && error !== null && 'code' in error
-    ? String((error as { code: unknown }).code)
-    : undefined;
-}
-
-/**
- * Maps a thrown error to a slug, by `code` rather than by message — matching
- * on prose would break the moment someone rewords a use case.
+ * The redirect cookie carries four things the callback needs and the
+ * browser must not be able to tamper with: the state's nonce (JEF-198), the
+ * provider-facing PKCE verifier (JEF-200), which client started the flow
+ * (JEF-275, read even by branches that never verify `state`), and, mobile
+ * only, the app's own PKCE code_challenge for the handoff code (JEF-275) —
+ * empty for web, which has no handoff code to bind.
  *
- * The same code means different things in the two flows (a CONFLICT while
- * linking is not a CONFLICT while signing up), so the caller says which flow
- * it is in rather than this guessing.
- */
-function loginErrorSlug(error: unknown): OAuthErrorSlug {
-  switch (codeOf(error)) {
-    case ERROR_CODES.CONFLICT:
-      return OAUTH_ERROR.EMAIL_IN_USE;
-    case ERROR_CODES.VALIDATION:
-      return OAUTH_ERROR.EMAIL_NOT_VERIFIED;
-    case ERROR_CODES.NOT_FOUND:
-      return OAUTH_ERROR.ACCOUNT_NOT_FOUND;
-    default:
-      return OAUTH_ERROR.FAILED;
-  }
-}
-
-function linkErrorSlug(error: unknown): OAuthErrorSlug {
-  return codeOf(error) === ERROR_CODES.CONFLICT ? OAUTH_ERROR.ALREADY_LINKED : OAUTH_ERROR.FAILED;
-}
-
-/**
- * The provider's own `error` param is attacker-influencable text, so it is
- * allow-listed rather than echoed. Only "the user declined" is distinct enough
- * to be worth its own message; every other provider error is a failure the
- * user can do nothing about.
- */
-function providerErrorSlug(error: string): OAuthErrorSlug {
-  return error === OAUTH_ERROR.ACCESS_DENIED ? OAUTH_ERROR.ACCESS_DENIED : OAUTH_ERROR.FAILED;
-}
-
-/**
- * The redirect cookie carries two things the callback needs and the browser
- * must not be able to tamper with: the state's nonce (JEF-198) and the PKCE
- * verifier (JEF-200).
- *
- * One cookie rather than two, deliberately. They are created together, read
- * together and cleared together, and combining them makes it impossible to
- * arrive with one but not the other — a partial state that would otherwise
- * need its own handling on every path. Both halves are base64url or hex, so
- * neither can contain the separator.
+ * One cookie rather than several: created, read and cleared together, so it
+ * cannot arrive with some parts but not others. Every part is base64url,
+ * hex, empty, or a fixed OAUTH_PLATFORM value, so none can contain the
+ * separator.
  */
 const COOKIE_SEPARATOR = '.';
 
-function encodeRedirectCookie(nonce: string, codeVerifier: string): string {
-  return `${nonce}${COOKIE_SEPARATOR}${codeVerifier}`;
+function encodeRedirectCookie(
+  nonce: string,
+  codeVerifier: string,
+  platform: OAuthPlatform,
+  mobileCodeChallenge: string,
+): string {
+  return [nonce, codeVerifier, platform, mobileCodeChallenge].join(COOKIE_SEPARATOR);
 }
 
-function decodeRedirectCookie(
-  request: IHttpRequest,
-): { nonce: string; codeVerifier: string } | null {
+function decodeRedirectCookie(request: IHttpRequest): {
+  nonce: string;
+  codeVerifier: string;
+  platform: OAuthPlatform;
+  mobileCodeChallenge: string;
+} | null {
   const raw = request.cookies[COOKIES.OAUTH_STATE];
   if (typeof raw !== 'string') return null;
-  const [nonce, codeVerifier] = raw.split(COOKIE_SEPARATOR);
+  const [nonce, codeVerifier, platform, mobileCodeChallenge] = raw.split(COOKIE_SEPARATOR);
   if (!nonce || !codeVerifier) return null;
-  return { nonce, codeVerifier };
+  return {
+    nonce,
+    codeVerifier,
+    platform: isMobilePlatform(platform) ? OAUTH_PLATFORM.MOBILE : OAUTH_PLATFORM.WEB,
+    mobileCodeChallenge: mobileCodeChallenge ?? '',
+  };
 }
 
 /**
@@ -160,6 +123,24 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
         }
 
         const mode = req.query.mode === 'link' ? 'link' : 'login';
+        // Only meaningful for mode 'login' — linking only ever starts from the
+        // web settings page — but read unconditionally so it's always in the
+        // cookie the callback reads back.
+        const platform: OAuthPlatform = isMobilePlatform(req.query.platform)
+          ? OAUTH_PLATFORM.MOBILE
+          : OAUTH_PLATFORM.WEB;
+
+        // Mobile's own PKCE, over the handoff code — distinct from the
+        // provider-facing pair below. Required, not optional (JEF-275): an
+        // app that omitted it would get a handoff code nothing binds to it.
+        let mobileCodeChallenge = '';
+        if (platform === OAUTH_PLATFORM.MOBILE) {
+          if (!isWellFormedPkceValue(req.query.codeChallenge)) {
+            res.status(400).send({ error: 'Missing or malformed codeChallenge' });
+            return;
+          }
+          mobileCodeChallenge = req.query.codeChallenge;
+        }
 
         let userId: string | undefined;
         const { tokenService } = getCradle();
@@ -203,7 +184,7 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
         // through the provider and back — see the cookie note above.
         res.setCookie(
           COOKIES.OAUTH_STATE,
-          encodeRedirectCookie(nonce, verifier),
+          encodeRedirectCookie(nonce, verifier, platform, mobileCodeChallenge),
           STATE_COOKIE_OPTIONS,
         );
         res.redirect(authorizationUrl);
@@ -220,10 +201,21 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
           return;
         }
 
+        // Read before clearing (clearCookie only affects the response, not the
+        // `req` object) — every early-exit branch below needs it to know
+        // where to send the user, including ones that never reach a verified
+        // `state`, which is exactly why platform lives here and not in it.
+        const redirectCookie = decodeRedirectCookie(req);
+        const platform = redirectCookie?.platform ?? OAUTH_PLATFORM.WEB;
+        const loginError = (slug: OAuthErrorSlug): string =>
+          platform === OAUTH_PLATFORM.MOBILE
+            ? `${MOBILE_OAUTH_CALLBACK}?oauthError=${slug}`
+            : `${webAppOrigin}/login?oauthError=${slug}`;
+
         // Cleared once here rather than on each branch below: this handler has
         // seven ways out, and a stale nonce left behind would block the user's
         // next attempt. The value is read from the request, so clearing the
-        // response cookie now does not affect the checks that follow.
+        // response cookie now does not affect the checks above or below.
         res.clearCookie(COOKIES.OAUTH_STATE, { path: COOKIE_PATH });
 
         const code = typeof req.query.code === 'string' ? req.query.code : undefined;
@@ -231,11 +223,11 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
         const error = typeof req.query.error === 'string' ? req.query.error : undefined;
 
         if (error) {
-          res.redirect(`${webAppOrigin}/login?oauthError=${providerErrorSlug(error)}`);
+          res.redirect(loginError(providerErrorSlug(error)));
           return;
         }
         if (!code || !state) {
-          res.redirect(`${webAppOrigin}/login?oauthError=${OAUTH_ERROR.MISSING_CODE}`);
+          res.redirect(loginError(OAUTH_ERROR.MISSING_CODE));
           return;
         }
 
@@ -243,16 +235,15 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
         try {
           parsedState = oauthStateService.verify(state);
         } catch {
-          res.redirect(`${webAppOrigin}/login?oauthError=${OAUTH_ERROR.INVALID_STATE}`);
+          res.redirect(loginError(OAUTH_ERROR.INVALID_STATE));
           return;
         }
         if (parsedState.provider !== provider) {
-          res.redirect(`${webAppOrigin}/login?oauthError=${OAUTH_ERROR.PROVIDER_MISMATCH}`);
+          res.redirect(loginError(OAUTH_ERROR.PROVIDER_MISMATCH));
           return;
         }
-        const redirectCookie = decodeRedirectCookie(req);
         if (!redirectCookie || !stateMatchesBrowser(parsedState.nonce, redirectCookie.nonce)) {
-          res.redirect(`${webAppOrigin}/login?oauthError=${OAUTH_ERROR.INVALID_STATE}`);
+          res.redirect(loginError(OAUTH_ERROR.INVALID_STATE));
           return;
         }
 
@@ -291,7 +282,12 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
         }
 
         try {
-          const { loginOrSignupWithOAuthUseCase, createSessionUseCase, tokenService } = getCradle();
+          const {
+            loginOrSignupWithOAuthUseCase,
+            createSessionUseCase,
+            tokenService,
+            mobileOAuthHandoffService,
+          } = getCradle();
           const { user } = await loginOrSignupWithOAuthUseCase.execute({
             provider,
             code,
@@ -312,11 +308,25 @@ export function oauthRoutes(getCradle: () => Cradle): RouteDefinition[] {
             session.currentRefreshTokenId!,
             Date.now(),
           );
-          setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
-          res.redirect(returnToUrl(webAppOrigin, parsedState.returnTo));
+          if (platform === OAUTH_PLATFORM.MOBILE) {
+            // No cookies — React Native has no cookie jar tied to the API,
+            // same reasoning as mobileAuthMutations.ts. The tokens cross the
+            // custom-scheme redirect as an opaque, short-lived handoff code
+            // instead; exchangeMobileOAuthCode redeems it. The challenge came
+            // from the cookie — /start already required it for this platform.
+            const handoffCode = mobileOAuthHandoffService.issue(
+              tokens.accessToken,
+              tokens.refreshToken,
+              redirectCookie.mobileCodeChallenge,
+            );
+            res.redirect(`${MOBILE_OAUTH_CALLBACK}?code=${encodeURIComponent(handoffCode)}`);
+          } else {
+            setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
+            res.redirect(returnToUrl(webAppOrigin, parsedState.returnTo));
+          }
         } catch (err) {
           getCradle().logger.error(`OAuth login failed for ${provider}`, err);
-          res.redirect(`${webAppOrigin}/login?oauthError=${loginErrorSlug(err)}`);
+          res.redirect(loginError(loginErrorSlug(err)));
         }
       },
     },

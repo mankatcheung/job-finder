@@ -24,6 +24,7 @@ import {
 import { OAuthProviderRegistry } from '#src/infrastructure/auth/OAuthProviderRegistry.js';
 import { McpOAuthConsentService } from '#src/infrastructure/auth/McpOAuthConsentService.js';
 import { OAuthStateService } from '#src/infrastructure/auth/OAuthStateService.js';
+import { MobileOAuthHandoffService } from '#src/infrastructure/auth/MobileOAuthHandoffService.js';
 import { BrevoEmailService } from '#src/infrastructure/email/BrevoEmailService.js';
 import { ConsoleEmailService } from '#src/infrastructure/email/ConsoleEmailService.js';
 import { DeviceLabelService } from '#src/infrastructure/device/DeviceLabelService.js';
@@ -105,6 +106,7 @@ export const infrastructure = {
   gitHubOAuthProvider: asClass(GitHubOAuthProviderImpl, { lifetime: Lifetime.SINGLETON }),
   oauthProviderRegistry: asClass(OAuthProviderRegistry, { lifetime: Lifetime.SINGLETON }),
   oauthStateService: asClass(OAuthStateService, { lifetime: Lifetime.SINGLETON }),
+  mobileOAuthHandoffService: asClass(MobileOAuthHandoffService, { lifetime: Lifetime.SINGLETON }),
   mcpOAuthConsentService: asClass(McpOAuthConsentService, { lifetime: Lifetime.SINGLETON }),
   emailService: asClass(EmailService, { lifetime: Lifetime.SINGLETON }),
   deviceLabeler: asClass(DeviceLabelService, { lifetime: Lifetime.SINGLETON }),

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { buildTestApp, type TestApp } from './helpers/buildTestApp.js';
+import { createPkcePair } from '#src/infrastructure/auth/pkce.js';
 
 const REGISTER_MOBILE_MUTATION = `
   mutation RegisterMobile($email: String!, $password: String!) {
@@ -36,6 +37,15 @@ const REAUTHENTICATE_MOBILE_MUTATION = `
     reauthenticateMobile(password: $password, code: $code) {
       success
       totpRequired
+      accessToken
+      refreshToken
+    }
+  }
+`;
+
+const EXCHANGE_MOBILE_OAUTH_CODE_MUTATION = `
+  mutation ExchangeMobileOAuthCode($code: String!, $codeVerifier: String!) {
+    exchangeMobileOAuthCode(code: $code, codeVerifier: $codeVerifier) {
       accessToken
       refreshToken
     }
@@ -271,5 +281,98 @@ describe('mobile auth integration', () => {
     });
     const anonBody = anonRes.json() as GraphQLResponse<{ reauthenticateMobile: null }>;
     expect(anonBody.errors?.[0]?.extensions?.code).toBe('UNAUTHORIZED');
+  });
+
+  it('exchangeMobileOAuthCode redeems a handoff code from the OAuth callback for a usable token pair', async () => {
+    // The callback itself (oauth.routes.integration.test.ts) already covers
+    // minting this code and sending it to trakwyn://oauth-callback — this
+    // covers the app's side of the handoff: redeeming what it received.
+    const { mobileOAuthHandoffService } = (
+      testApp.app as unknown as {
+        diContainer: {
+          cradle: {
+            mobileOAuthHandoffService: { issue: (a: string, r: string, c: string) => string };
+          };
+        };
+      }
+    ).diContainer.cradle;
+    const { verifier, challenge } = createPkcePair();
+    const code = mobileOAuthHandoffService.issue(
+      'access-from-oauth',
+      'refresh-from-oauth',
+      challenge,
+    );
+
+    const res = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      payload: {
+        query: EXCHANGE_MOBILE_OAUTH_CODE_MUTATION,
+        variables: { code, codeVerifier: verifier },
+      },
+    });
+
+    const body = res.json() as GraphQLResponse<{
+      exchangeMobileOAuthCode: { accessToken: string; refreshToken: string };
+    }>;
+    expect(body.errors).toBeUndefined();
+    expect(body.data!.exchangeMobileOAuthCode).toEqual({
+      accessToken: 'access-from-oauth',
+      refreshToken: 'refresh-from-oauth',
+    });
+    for (const name of COOKIE_NAMES) {
+      expect(res.cookies.find((c) => c.name === name)).toBeUndefined();
+    }
+  });
+
+  it('exchangeMobileOAuthCode rejects an invalid code', async () => {
+    const { verifier } = createPkcePair();
+    const res = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      payload: {
+        query: EXCHANGE_MOBILE_OAUTH_CODE_MUTATION,
+        variables: { code: 'not-a-real-code', codeVerifier: verifier },
+      },
+    });
+
+    const body = res.json() as GraphQLResponse<{ exchangeMobileOAuthCode: null }>;
+    expect(body.data).toEqual({ exchangeMobileOAuthCode: null });
+    expect(body.errors?.[0]?.extensions?.code).toBe('UNAUTHORIZED');
+  });
+
+  it('exchangeMobileOAuthCode rejects a code redeemed with the wrong PKCE verifier', async () => {
+    // Proof the PKCE binding is actually enforced end-to-end, not just at the
+    // unit level: a genuine handoff code, presented with a verifier that was
+    // never used to derive its challenge.
+    const { mobileOAuthHandoffService } = (
+      testApp.app as unknown as {
+        diContainer: {
+          cradle: {
+            mobileOAuthHandoffService: { issue: (a: string, r: string, c: string) => string };
+          };
+        };
+      }
+    ).diContainer.cradle;
+    const { challenge } = createPkcePair();
+    const { verifier: wrongVerifier } = createPkcePair();
+    const code = mobileOAuthHandoffService.issue(
+      'access-from-oauth',
+      'refresh-from-oauth',
+      challenge,
+    );
+
+    const res = await testApp.app.inject({
+      method: 'POST',
+      url: '/graphql',
+      payload: {
+        query: EXCHANGE_MOBILE_OAUTH_CODE_MUTATION,
+        variables: { code, codeVerifier: wrongVerifier },
+      },
+    });
+
+    const body = res.json() as GraphQLResponse<{ exchangeMobileOAuthCode: null }>;
+    expect(body.data).toEqual({ exchangeMobileOAuthCode: null });
+    expect(body.errors?.[0]?.extensions?.code).toBe('UNAUTHORIZED');
   });
 });
