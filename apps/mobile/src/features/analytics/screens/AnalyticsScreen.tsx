@@ -15,7 +15,7 @@ import { getErrorMessage } from '../../../lib/errors';
 export function AnalyticsScreen() {
   const { data: applications, isLoading, isError, error } = useAnalyticsApplications();
 
-  const apps = applications ?? [];
+  const apps = useMemo(() => applications ?? [], [applications]);
   const stats = useMemo(() => computeSummaryStats(apps), [apps]);
   const weeklyData = useMemo(() => buildWeeklyData(apps), [apps]);
   const funnelData = useMemo(() => buildFunnelData(apps), [apps]);

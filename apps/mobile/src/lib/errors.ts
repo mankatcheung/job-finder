@@ -1,6 +1,6 @@
 interface GraphQLErrorLike {
   response: {
-    errors?: Array<{ message?: string; extensions?: { code?: string } }>;
+    errors?: { message?: string; extensions?: { code?: string } }[];
   };
 }
 

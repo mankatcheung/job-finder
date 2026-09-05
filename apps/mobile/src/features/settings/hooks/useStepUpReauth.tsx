@@ -11,8 +11,7 @@ export const STEP_UP_CANCELLED = 'step-up-cancelled';
 /** Extracts the GraphQL `extensions.code` from a graphql-request error, e.g. `STEP_UP_REQUIRED` (JEF-44). */
 function extractGqlErrorCode(err: unknown): string | null {
   if (typeof err === 'object' && err !== null && 'response' in err) {
-    const r = (err as { response?: { errors?: Array<{ extensions?: { code?: string } }> } })
-      .response;
+    const r = (err as { response?: { errors?: { extensions?: { code?: string } }[] } }).response;
     return r?.errors?.[0]?.extensions?.code ?? null;
   }
   return null;

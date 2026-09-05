@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -22,13 +22,14 @@ export function ProfileScreen() {
   const [targetRole, setTargetRole] = useState('');
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [syncedProfile, setSyncedProfile] = useState<typeof profile>(undefined);
 
-  useEffect(() => {
-    if (!profile) return;
+  if (profile && profile !== syncedProfile) {
+    setSyncedProfile(profile);
     setName(profile.name ?? '');
     setTimezone(profile.timezone ?? '');
     setTargetRole(profile.targetRole ?? '');
-  }, [profile]);
+  }
 
   const onSave = () => {
     setSaveError(null);

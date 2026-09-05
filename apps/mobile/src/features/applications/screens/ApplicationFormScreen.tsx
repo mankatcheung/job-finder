@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -33,9 +33,10 @@ export function ApplicationFormScreen() {
 
   const [values, setValues] = useState<ApplicationFormValues>(EMPTY_APPLICATION_FORM_VALUES);
   const [error, setError] = useState<string | null>(null);
+  const [syncedExisting, setSyncedExisting] = useState<typeof existing>(undefined);
 
-  useEffect(() => {
-    if (!existing) return;
+  if (existing && existing !== syncedExisting) {
+    setSyncedExisting(existing);
     setValues({
       company: existing.company,
       role: existing.role,
@@ -45,7 +46,7 @@ export function ApplicationFormScreen() {
       salaryRange: existing.salaryRange ?? '',
       description: existing.description ?? '',
     });
-  }, [existing]);
+  }
 
   const update = <K extends keyof ApplicationFormValues>(key: K, value: ApplicationFormValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: value }));

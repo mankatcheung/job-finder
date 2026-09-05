@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import { useAuth } from '../../../auth/AuthContext';
 
-const MENU: Array<{ label: string; href: Href; testID: string }> = [
+const MENU: { label: string; href: Href; testID: string }[] = [
   { label: 'Profile', href: '/settings/profile', testID: 'settings-profile-row' },
   { label: 'Security', href: '/settings/security', testID: 'settings-security-row' },
   {
@@ -17,7 +17,7 @@ const MENU: Array<{ label: string; href: Href; testID: string }> = [
   { label: 'Data', href: '/settings/data', testID: 'settings-data-row' },
 ];
 
-const DANGER_MENU: Array<{ label: string; href: Href; testID: string }> = [
+const DANGER_MENU: { label: string; href: Href; testID: string }[] = [
   { label: 'Danger zone', href: '/settings/danger-zone', testID: 'settings-danger-zone-row' },
 ];
 

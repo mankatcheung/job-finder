@@ -26,7 +26,7 @@ export function BoardScreen() {
   const [movingApp, setMovingApp] = useState<Application | null>(null);
   const [moveError, setMoveError] = useState<string | null>(null);
 
-  const apps = applications ?? [];
+  const apps = useMemo(() => applications ?? [], [applications]);
   const appsById = useMemo(() => new Map(apps.map((a) => [a.id, a])), [apps]);
   const columns = useMemo(() => groupByStatus(apps, APPLICATION_STATUSES), [apps]);
 
