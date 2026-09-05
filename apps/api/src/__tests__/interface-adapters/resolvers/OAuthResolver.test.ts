@@ -57,10 +57,11 @@ describe('OAuthResolver', () => {
     it('delegates to exchangeMobileOAuthCodeUseCase and returns the tokens', async () => {
       const deps = makeDeps();
 
-      const result = await new OAuthResolver(deps).exchangeMobileCode('handoff-code');
+      const result = await new OAuthResolver(deps).exchangeMobileCode('handoff-code', 'verifier-1');
 
       expect(deps.exchangeMobileOAuthCodeUseCase.execute).toHaveBeenCalledWith({
         code: 'handoff-code',
+        codeVerifier: 'verifier-1',
       });
       expect(result).toEqual({ accessToken: 'access-1', refreshToken: 'refresh-1' });
     });

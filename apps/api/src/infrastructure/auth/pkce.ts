@@ -9,9 +9,10 @@ import { createHash, randomBytes } from 'crypto';
  * still cannot redeem the code, which is what protects against authorization
  * code injection (JEF-200).
  *
- * Note this runs the opposite direction to `matchesPkce` in
- * `ExchangeMcpOAuthAuthorizationCodeUseCase` — there trakwyn is the
- * authorization server *verifying* a challenge someone else minted.
+ * Note this runs the opposite direction to the two places trakwyn is instead
+ * the authorization server *verifying* a challenge someone else minted:
+ * `ExchangeMcpOAuthAuthorizationCodeUseCase` and `MobileOAuthHandoffService`.
+ * `isWellFormedPkceValue` below is shared with both.
  */
 
 /** 32 random bytes → 43 base64url characters, inside RFC 7636's 43–128 range. */
@@ -27,4 +28,9 @@ export function createPkcePair(): { verifier: string; challenge: string } {
   // separator the state cookie uses.
   const verifier = randomBytes(VERIFIER_BYTES).toString('base64url');
   return { verifier, challenge: deriveCodeChallenge(verifier) };
+}
+
+/** RFC 7636 s4.1: 43-128 characters from the unreserved set (restricted here to base64url's subset of it). */
+export function isWellFormedPkceValue(value: unknown): value is string {
+  return typeof value === 'string' && /^[A-Za-z0-9\-_]{43,128}$/.test(value);
 }

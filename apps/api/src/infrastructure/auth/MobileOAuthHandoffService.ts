@@ -1,14 +1,22 @@
-import { createHmac } from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { ENV, OAUTH } from '#src/infrastructure/config/constants.js';
+import { deriveCodeChallenge, isWellFormedPkceValue } from '#src/infrastructure/auth/pkce.js';
 
 export interface MobileOAuthHandoff {
   accessToken: string;
   refreshToken: string;
   exp: number;
+  codeChallenge: string;
 }
 
 function base64url(input: Buffer | string): string {
   return Buffer.from(input).toString('base64url');
+}
+
+function matchesPkce(verifier: string, expectedChallenge: string): boolean {
+  const actual = Buffer.from(deriveCodeChallenge(verifier));
+  const expected = Buffer.from(expectedChallenge);
+  return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 
 /**
@@ -26,24 +34,33 @@ function base64url(input: Buffer | string): string {
  * carries, but only for the ~60 seconds it's valid, which is the same
  * exposure window a raw token-bearing redirect URL would have — this adds no
  * capability beyond that, just a shorter one.
+ *
+ * PKCE-bound on top of that: the custom-scheme redirect this code travels
+ * through is OS-mediated, not API-mediated, so another app registering the
+ * same `trakwyn://` scheme could in principle intercept it (the RFC 8252
+ * native-app threat PKCE exists for). Binding the code to a `code_challenge`
+ * the app chose *before* opening the browser means an interceptor holding
+ * only the code — not the verifier the legitimate app kept in memory — still
+ * cannot redeem it.
  */
 export class MobileOAuthHandoffService {
   private get secret(): string {
     return process.env[ENV.JWT_SECRET] ?? '';
   }
 
-  issue(accessToken: string, refreshToken: string): string {
+  issue(accessToken: string, refreshToken: string, codeChallenge: string): string {
     const payload: MobileOAuthHandoff = {
       accessToken,
       refreshToken,
       exp: Date.now() + OAUTH.MOBILE_HANDOFF_TTL_MS,
+      codeChallenge,
     };
     const encodedPayload = base64url(JSON.stringify(payload));
     const signature = createHmac('sha256', this.secret).update(encodedPayload).digest('base64url');
     return `${encodedPayload}.${signature}`;
   }
 
-  verify(code: string): { accessToken: string; refreshToken: string } {
+  verify(code: string, codeVerifier: string): { accessToken: string; refreshToken: string } {
     const [encodedPayload, signature] = code.split('.');
     if (!encodedPayload || !signature) {
       throw new Error('Malformed OAuth handoff code');
@@ -59,6 +76,9 @@ export class MobileOAuthHandoffService {
     ) as MobileOAuthHandoff;
     if (payload.exp < Date.now()) {
       throw new Error('OAuth handoff code expired');
+    }
+    if (!isWellFormedPkceValue(codeVerifier) || !matchesPkce(codeVerifier, payload.codeChallenge)) {
+      throw new Error('Invalid OAuth handoff PKCE verifier');
     }
     return { accessToken: payload.accessToken, refreshToken: payload.refreshToken };
   }

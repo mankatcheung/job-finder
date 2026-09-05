@@ -2,6 +2,7 @@ import type { MobileOAuthTokens } from '#src/use-cases/ports/IMobileOAuthHandoff
 
 export interface ExchangeMobileOAuthCodeInput {
   code: string;
+  codeVerifier: string;
 }
 
 export interface IExchangeMobileOAuthCodeUseCase {

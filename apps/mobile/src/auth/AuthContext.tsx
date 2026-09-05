@@ -11,6 +11,7 @@ import {
 } from '../graphql/client';
 import { API_ORIGIN, OAUTH_MOBILE_CALLBACK_URL, RESTORE_REFRESH_WAIT_MS } from '../constants';
 import { oauthErrorMessage } from '../screens/auth/oauthErrorMessage';
+import { createPkcePair } from './pkce';
 
 export type OAuthProviderName = 'google' | 'github';
 
@@ -55,8 +56,8 @@ const REAUTHENTICATE_MOBILE_MUTATION = `
 `;
 
 const EXCHANGE_MOBILE_OAUTH_CODE_MUTATION = `
-  mutation ExchangeMobileOAuthCode($code: String!) {
-    exchangeMobileOAuthCode(code: $code) {
+  mutation ExchangeMobileOAuthCode($code: String!, $codeVerifier: String!) {
+    exchangeMobileOAuthCode(code: $code, codeVerifier: $codeVerifier) {
       accessToken
       refreshToken
     }
@@ -217,7 +218,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithOAuth = useCallback(
     async (provider: OAuthProviderName): Promise<void> => {
-      const startUrl = `${API_ORIGIN}/auth/oauth/${provider}/start?platform=mobile`;
+      // Generated before the browser ever opens: `challenge` rides the
+      // `/start` redirect, `verifier` stays in this call's closure until the
+      // exchange below presents it. Binds redemption of the handoff code to
+      // this call, not just to whoever's holding the custom-scheme redirect
+      // (JEF-275) — see MobileOAuthHandoffService on the API side.
+      const { verifier, challenge } = await createPkcePair();
+      const startUrl = `${API_ORIGIN}/auth/oauth/${provider}/start?platform=mobile&codeChallenge=${encodeURIComponent(challenge)}`;
       const result = await WebBrowser.openAuthSessionAsync(startUrl, OAUTH_MOBILE_CALLBACK_URL);
 
       // The user backed out of the browser (system back gesture, swipe-down,
@@ -237,11 +244,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       let data: { exchangeMobileOAuthCode: { accessToken: string; refreshToken: string } };
       try {
-        data = await gqlRequest(EXCHANGE_MOBILE_OAUTH_CODE_MUTATION, { code });
+        data = await gqlRequest(EXCHANGE_MOBILE_OAUTH_CODE_MUTATION, {
+          code,
+          codeVerifier: verifier,
+        });
       } catch {
-        // The handoff code has already been redeemed once, expired, or the
-        // request never landed — none of that is worth distinguishing for
-        // the user, unlike the oauthError slugs above which are.
+        // The handoff code has already been redeemed once, expired, was
+        // presented with the wrong verifier, or the request never landed —
+        // none of that is worth distinguishing for the user, unlike the
+        // oauthError slugs above which are.
         throw new Error("Sign-in didn't work. Please try again.");
       }
       await applyTokens(data.exchangeMobileOAuthCode);

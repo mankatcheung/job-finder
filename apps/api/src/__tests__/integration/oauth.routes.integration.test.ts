@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { buildTestApp, type TestApp } from './helpers/buildTestApp.js';
 import { ENV } from '#src/infrastructure/config/constants.js';
 import { createHash } from 'crypto';
+import { createPkcePair } from '#src/infrastructure/auth/pkce.js';
 
 describe('oauth routes — redirect_uri behind Vercel-style reverse proxy', () => {
   let testApp: TestApp;
@@ -262,10 +263,12 @@ describe('oauth routes — mobile platform (JEF-275)', () => {
     await testApp.cleanup();
   });
 
-  async function beginMobileFlow(): Promise<{ state: string; stateCookie: string | undefined }> {
+  async function beginMobileFlow(
+    codeChallenge = createPkcePair().challenge,
+  ): Promise<{ state: string; stateCookie: string | undefined }> {
     const res = await testApp.app.inject({
       method: 'GET',
-      url: '/auth/oauth/github/start?platform=mobile',
+      url: `/auth/oauth/github/start?platform=mobile&codeChallenge=${encodeURIComponent(codeChallenge)}`,
       headers: { host: 'api.trakwyn.com', 'x-forwarded-proto': 'https' },
     });
     const state = new URL(res.headers.location as string).searchParams.get('state')!;
@@ -277,6 +280,44 @@ describe('oauth routes — mobile platform (JEF-275)', () => {
     const { stateCookie } = await beginMobileFlow();
 
     expect(stateCookie?.split('.')[2]).toBe('mobile');
+  });
+
+  it('carries the mobile PKCE code_challenge in the redirect cookie', async () => {
+    const { challenge } = createPkcePair();
+
+    const { stateCookie } = await beginMobileFlow(challenge);
+
+    expect(stateCookie?.split('.')[3]).toBe(challenge);
+  });
+
+  it('refuses to start a mobile flow with no codeChallenge', async () => {
+    const res = await testApp.app.inject({
+      method: 'GET',
+      url: '/auth/oauth/github/start?platform=mobile',
+      headers: { host: 'api.trakwyn.com', 'x-forwarded-proto': 'https' },
+    });
+
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('refuses to start a mobile flow with a malformed codeChallenge', async () => {
+    const res = await testApp.app.inject({
+      method: 'GET',
+      url: '/auth/oauth/github/start?platform=mobile&codeChallenge=too-short',
+      headers: { host: 'api.trakwyn.com', 'x-forwarded-proto': 'https' },
+    });
+
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('does not require a codeChallenge for a web flow', async () => {
+    const res = await testApp.app.inject({
+      method: 'GET',
+      url: '/auth/oauth/github/start',
+      headers: { host: 'api.trakwyn.com', 'x-forwarded-proto': 'https' },
+    });
+
+    expect(res.statusCode).toBe(302);
   });
 
   it('sends a mobile flow that fails before state is verified to the app deep link, not the web login page', async () => {

@@ -26,7 +26,7 @@ export class OAuthResolver {
     return true;
   }
 
-  async exchangeMobileCode(code: string): Promise<MobileOAuthTokens> {
-    return this.deps.exchangeMobileOAuthCodeUseCase.execute({ code });
+  async exchangeMobileCode(code: string, codeVerifier: string): Promise<MobileOAuthTokens> {
+    return this.deps.exchangeMobileOAuthCodeUseCase.execute({ code, codeVerifier });
   }
 }

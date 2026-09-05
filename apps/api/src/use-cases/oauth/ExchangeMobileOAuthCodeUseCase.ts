@@ -15,7 +15,7 @@ export class ExchangeMobileOAuthCodeUseCase implements IExchangeMobileOAuthCodeU
 
   async execute(input: ExchangeMobileOAuthCodeInput): Promise<MobileOAuthTokens> {
     try {
-      return this.deps.mobileOAuthHandoffService.verify(input.code);
+      return this.deps.mobileOAuthHandoffService.verify(input.code, input.codeVerifier);
     } catch {
       // The signature/expiry error is infra detail (see MobileOAuthHandoffService) —
       // to the client this is just "that code doesn't work any more".
