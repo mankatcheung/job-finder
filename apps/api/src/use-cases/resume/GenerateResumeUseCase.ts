@@ -162,7 +162,7 @@ export class GenerateResumeUseCase {
       content: this.buildPrompt(app, profile, context, crossApplicationContext),
     });
 
-    const result = await llmProvider.complete(messages, 2048);
+    const result = await llmProvider.complete(messages, 2048, undefined, { json: true });
     assertNotTruncated(result);
     const resume = parseAiJson<ResumeContent>(result.content, resumeSchema);
     assertGrounded(resume, profile);

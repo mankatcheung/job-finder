@@ -3,6 +3,7 @@ import type {
   LLMMessage,
   LLMToolDefinition,
   LLMStreamEvent,
+  LLMCompleteOptions,
   LLMCompleteResult,
   LLMUsage,
 } from '#src/use-cases/ports/ILLMProvider.js';
@@ -121,6 +122,7 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     messages: LLMMessage[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
     signal?: AbortSignal,
+    options?: LLMCompleteOptions,
   ): Promise<LLMCompleteResult> {
     if (!this.apiKey) throw new Error('API key is not set');
     await this.outboundUrlPolicy?.assertAllowed(this.baseUrl, 'llm-provider');
@@ -130,6 +132,10 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
         model: this.model,
         messages: this.toWireMessages(messages),
         max_tokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
+        // OpenAI's JSON mode (F6); requires the word "JSON" in the prompt,
+        // which every caller that asks for it already has. Compatible
+        // backends that do not know the field ignore it.
+        ...(options?.json ? { response_format: { type: 'json_object' } } : {}),
       },
       signal,
     );

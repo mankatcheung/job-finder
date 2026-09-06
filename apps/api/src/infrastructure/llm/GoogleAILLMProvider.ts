@@ -3,6 +3,7 @@ import type {
   LLMMessage,
   LLMToolDefinition,
   LLMCompletionResult,
+  LLMCompleteOptions,
   LLMCompleteResult,
   LLMToolCall,
   LLMStreamEvent,
@@ -76,6 +77,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
     messages: LLMMessage[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
     signal?: AbortSignal,
+    options?: LLMCompleteOptions,
   ): Promise<LLMCompleteResult> {
     if (!this.apiKey) throw new Error('Google AI API key is not set');
 
@@ -95,7 +97,11 @@ export class GoogleAILLMProvider implements ILLMProvider {
         ...(systemInstruction
           ? { systemInstruction: { parts: [{ text: systemInstruction }] } }
           : {}),
-        generationConfig: { maxOutputTokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP) },
+        generationConfig: {
+          maxOutputTokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP),
+          // Gemini's JSON mode (F6): the reply is a bare JSON document, never fenced.
+          ...(options?.json ? { responseMimeType: 'application/json' } : {}),
+        },
       },
       signal,
     );

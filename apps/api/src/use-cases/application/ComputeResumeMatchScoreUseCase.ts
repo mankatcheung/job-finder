@@ -121,10 +121,15 @@ export class ComputeResumeMatchScoreUseCase {
 
     const resumeText = await this.resolveResumeText(input);
 
-    const result = await llmProvider.complete([
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: USER_PROMPT_TEMPLATE(jobDescription, resumeText) },
-    ]);
+    const result = await llmProvider.complete(
+      [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: USER_PROMPT_TEMPLATE(jobDescription, resumeText) },
+      ],
+      undefined,
+      undefined,
+      { json: true },
+    );
     assertNotTruncated(result);
 
     return this.parseResponse(result.content);

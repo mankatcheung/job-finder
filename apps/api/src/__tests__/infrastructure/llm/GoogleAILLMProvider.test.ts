@@ -109,6 +109,24 @@ describe('GoogleAILLMProvider', () => {
       expect(body.contents).toEqual([{ role: 'user', parts: [{ text: 'hello' }] }]);
     });
 
+    it('asks for a JSON reply only when the caller opts in (F6)', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ candidates: [{ content: { parts: [{ text: '{}' }] } }] }) as never,
+      );
+      const provider = new GoogleAILLMProvider('test-key');
+
+      await provider.complete([{ role: 'user', content: 'JSON' }], undefined, undefined, {
+        json: true,
+      });
+      await provider.complete([{ role: 'user', content: 'prose' }]);
+
+      const bodies = vi
+        .mocked(fetch)
+        .mock.calls.map(([, o]) => JSON.parse((o as RequestInit).body as string));
+      expect(bodies[0].generationConfig.responseMimeType).toBe('application/json');
+      expect(bodies[1].generationConfig.responseMimeType).toBeUndefined();
+    });
+
     it('defaults maxTokens to 512 when not provided', async () => {
       vi.mocked(fetch).mockResolvedValue(
         jsonResponse({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }) as never,

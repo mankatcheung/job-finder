@@ -123,6 +123,24 @@ describe('OpenAICompatibleLLMProvider', () => {
     expect(body.max_tokens).toBe(256);
   });
 
+  it('asks for JSON mode only when the caller opts in (F6)', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse({ choices: [{ message: { content: '{}' } }] }) as never,
+    );
+    const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+
+    await provider.complete([{ role: 'user', content: 'JSON please' }], undefined, undefined, {
+      json: true,
+    });
+    await provider.complete([{ role: 'user', content: 'prose please' }]);
+
+    const bodies = vi
+      .mocked(fetch)
+      .mock.calls.map(([, o]) => JSON.parse((o as RequestInit).body as string));
+    expect(bodies[0].response_format).toEqual({ type: 'json_object' });
+    expect(bodies[1].response_format).toBeUndefined();
+  });
+
   it('defaults maxTokens to 512 when not provided', async () => {
     vi.mocked(fetch).mockResolvedValue(
       jsonResponse({ choices: [{ message: { content: 'ok' } }] }) as never,

@@ -102,11 +102,23 @@ export type LLMStreamEvent =
   | { type: 'prompt_usage'; promptTokens: number }
   | { type: 'done'; content: string | null; toolCalls: LLMToolCall[]; usage: LLMUsage | null };
 
+/**
+ * Per-call switches for `complete()` (F6). `json` asks the provider to
+ * constrain the reply to a JSON object where it has such a mode — OpenAI's
+ * `response_format`, Gemini's `responseMimeType` — so the callers that
+ * parse the reply get fewer fenced or chatty answers. Providers without a
+ * matching switch ignore it; the prompt still says "return only JSON".
+ */
+export interface LLMCompleteOptions {
+  json?: boolean;
+}
+
 export interface ILLMProvider {
   complete(
     messages: LLMMessage[],
     maxTokens?: number,
     signal?: AbortSignal,
+    options?: LLMCompleteOptions,
   ): Promise<LLMCompleteResult>;
   completeWithToolsStream(
     messages: LLMMessage[],

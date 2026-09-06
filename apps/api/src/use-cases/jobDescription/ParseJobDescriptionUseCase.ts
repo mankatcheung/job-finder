@@ -86,10 +86,15 @@ export class ParseJobDescriptionUseCase {
       throw new ValidationError('No job description content provided');
     }
 
-    const result = await llmProvider.complete([
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: USER_PROMPT_TEMPLATE(text) },
-    ]);
+    const result = await llmProvider.complete(
+      [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: USER_PROMPT_TEMPLATE(text) },
+      ],
+      undefined,
+      undefined,
+      { json: true },
+    );
     assertNotTruncated(result);
 
     return this.parseResponse(result.content);

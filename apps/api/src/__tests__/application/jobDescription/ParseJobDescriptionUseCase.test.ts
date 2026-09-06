@@ -73,6 +73,20 @@ describe('ParseJobDescriptionUseCase', () => {
     expect(result.role).toBe('SWE');
   });
 
+  it('asks the provider for JSON mode (F6)', async () => {
+    const provider = makeLLMProvider(JSON.stringify({ company: 'Acme' }));
+    llmProviderFactory = makeLLMProviderFactory({ forUser: vi.fn().mockResolvedValue(provider) });
+    const useCase = new ParseJobDescriptionUseCase({
+      llmProviderFactory,
+      jobPostingSourceResolver,
+      parseJobDescriptionRateLimiter,
+    });
+
+    await useCase.execute({ userId: 'user-1', text: 'some text' });
+
+    expect(vi.mocked(provider.complete).mock.calls[0][3]).toEqual({ json: true });
+  });
+
   it('throws AI_RESPONSE_INVALID when the LLM returns invalid JSON', async () => {
     llmProviderFactory = makeLLMProviderFactory({
       forUser: vi.fn().mockResolvedValue(makeLLMProvider('Sorry, I cannot parse this.')),

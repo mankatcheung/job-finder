@@ -3,6 +3,7 @@ import type {
   LLMMessage,
   LLMToolDefinition,
   LLMStreamEvent,
+  LLMCompleteOptions,
   LLMCompleteResult,
   LLMUsage,
 } from '#src/use-cases/ports/ILLMProvider.js';
@@ -46,8 +47,9 @@ export class UsageTrackingLLMProvider implements ILLMProvider {
     messages: LLMMessage[],
     maxTokens?: number,
     signal?: AbortSignal,
+    options?: LLMCompleteOptions,
   ): Promise<LLMCompleteResult> {
-    const result = await this.deps.inner.complete(messages, maxTokens, signal);
+    const result = await this.deps.inner.complete(messages, maxTokens, signal, options);
     await this.record(result.usage);
     return result;
   }

@@ -4,6 +4,7 @@ import type {
   LLMToolDefinition,
   LLMToolCall,
   LLMStreamEvent,
+  LLMCompleteOptions,
   LLMCompleteResult,
   LLMUsage,
 } from '#src/use-cases/ports/ILLMProvider.js';
@@ -81,10 +82,16 @@ export class AnthropicLLMProvider implements ILLMProvider {
     private readonly model: string = LLM.ANTHROPIC_DEFAULT_MODEL,
   ) {}
 
+  /**
+   * `options.json` is accepted and ignored (F6): Anthropic's structured
+   * outputs need a schema, not a flag, and the prompt-level "return only
+   * JSON" plus `parseAiJson`'s fence stripping already cover Claude.
+   */
   async complete(
     messages: LLMMessage[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
     signal?: AbortSignal,
+    _options?: LLMCompleteOptions,
   ): Promise<LLMCompleteResult> {
     if (!this.apiKey) throw new Error('Anthropic API key is not set');
 
