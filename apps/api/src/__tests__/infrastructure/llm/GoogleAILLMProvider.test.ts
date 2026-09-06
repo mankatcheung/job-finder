@@ -64,7 +64,7 @@ describe('GoogleAILLMProvider', () => {
       expect(fetch).not.toHaveBeenCalled();
     });
 
-    it('sends the API key as a query param and the messages as contents', async () => {
+    it('sends the API key as a header, never in the URL, and the messages as contents', async () => {
       vi.mocked(fetch).mockResolvedValue(
         jsonResponse({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }) as never,
       );
@@ -78,7 +78,10 @@ describe('GoogleAILLMProvider', () => {
       await provider.complete(messages, 256);
 
       const [url, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
-      expect(url).toContain('key=secret-key');
+      // Outbound fetch spans and proxy logs record the URL verbatim, so the
+      // secret must not be part of it.
+      expect(url).not.toContain('secret-key');
+      expect((options.headers as Record<string, string>)['x-goog-api-key']).toBe('secret-key');
       expect(options.method).toBe('POST');
 
       const body = JSON.parse(options.body as string);
@@ -147,6 +150,24 @@ describe('GoogleAILLMProvider', () => {
       const result = await provider.complete([{ role: 'user', content: 'hi' }]);
 
       expect(result.usage).toBeNull();
+    });
+
+    it('keeps the cached share of the prompt when Gemini reports it (T3)', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({
+          candidates: [{ content: { parts: [{ text: 'ok' }] } }],
+          usageMetadata: {
+            promptTokenCount: 60,
+            candidatesTokenCount: 15,
+            cachedContentTokenCount: 40,
+          },
+        }) as never,
+      );
+
+      const provider = new GoogleAILLMProvider('test-key');
+      const result = await provider.complete([{ role: 'user', content: 'hi' }]);
+
+      expect(result.usage).toEqual({ promptTokens: 60, completionTokens: 15, cacheReadTokens: 40 });
     });
 
     it('parses usage from usageMetadata (JEF-250)', async () => {

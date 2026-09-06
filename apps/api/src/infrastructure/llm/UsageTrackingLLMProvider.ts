@@ -28,6 +28,14 @@ interface Deps {
  * records nothing rather than a fabricated zero. Recording itself fails
  * open: a broken usage log must never break the AI feature the user is
  * actually here for.
+ *
+ * A stream that ends without `done` — the client disconnected, the idle
+ * timeout fired — is still charged for its prompt when the provider
+ * reported it up front (`prompt_usage`), with zero output tokens. Without
+ * that, aborting a reply after the first byte was a way past the monthly
+ * limit: the provider had billed the whole prompt and the ledger saw
+ * nothing (S8). Providers that only report usage at the end are not
+ * estimated; a guessed number is worse than a documented gap.
  */
 export class UsageTrackingLLMProvider implements ILLMProvider {
   constructor(private readonly deps: Deps) {}
@@ -48,14 +56,26 @@ export class UsageTrackingLLMProvider implements ILLMProvider {
     maxTokens?: number,
     signal?: AbortSignal,
   ): AsyncGenerator<LLMStreamEvent> {
-    for await (const event of this.deps.inner.completeWithToolsStream(
-      messages,
-      tools,
-      maxTokens,
-      signal,
-    )) {
-      if (event.type === 'done') await this.record(event.usage);
-      yield event;
+    let promptTokens: number | null = null;
+    let recorded = false;
+    try {
+      for await (const event of this.deps.inner.completeWithToolsStream(
+        messages,
+        tools,
+        maxTokens,
+        signal,
+      )) {
+        if (event.type === 'prompt_usage') promptTokens = event.promptTokens;
+        if (event.type === 'done') {
+          recorded = true;
+          await this.record(event.usage);
+        }
+        yield event;
+      }
+    } finally {
+      if (!recorded && promptTokens !== null) {
+        await this.record({ promptTokens, completionTokens: 0 });
+      }
     }
   }
 
@@ -69,6 +89,8 @@ export class UsageTrackingLLMProvider implements ILLMProvider {
         model: this.deps.model,
         promptTokens: usage.promptTokens,
         completionTokens: usage.completionTokens,
+        cacheReadTokens: usage.cacheReadTokens ?? null,
+        cacheWriteTokens: usage.cacheWriteTokens ?? null,
       });
     } catch (err) {
       console.error('[llm-usage] failed to record usage event — continuing', err);

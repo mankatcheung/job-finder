@@ -7,6 +7,9 @@ export interface RecordLlmUsageEventData {
   model: string | null;
   promptTokens: number;
   completionTokens: number;
+  /** See `LLMUsage` — null when the provider reported no split. */
+  cacheReadTokens?: number | null;
+  cacheWriteTokens?: number | null;
 }
 
 export interface ILlmUsageEventRepository {

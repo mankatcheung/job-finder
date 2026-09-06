@@ -11,6 +11,7 @@ import {
   makeLlmUsageEventRepository,
 } from '#src/__tests__/helpers/mocks/llm.js';
 import { makeUser, makeUserRepository } from '#src/__tests__/helpers/mocks/user.js';
+import { makeOutboundUrlPolicy } from '#src/__tests__/helpers/mocks/infrastructure.js';
 
 describe('UserLLMProviderFactory', () => {
   it('returns null when no provider is given and the user has no default configured', async () => {
@@ -21,6 +22,7 @@ describe('UserLLMProviderFactory', () => {
       userRepository,
       llmApiKeyRepository: makeLlmApiKeyRepository(),
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      outboundUrlPolicy: makeOutboundUrlPolicy(),
       llmUsageEventRepository: makeLlmUsageEventRepository(),
       generateId: () => 'evt-id',
     });
@@ -34,6 +36,7 @@ describe('UserLLMProviderFactory', () => {
       userRepository,
       llmApiKeyRepository: makeLlmApiKeyRepository(),
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      outboundUrlPolicy: makeOutboundUrlPolicy(),
       llmUsageEventRepository: makeLlmUsageEventRepository(),
       generateId: () => 'evt-id',
     });
@@ -52,6 +55,7 @@ describe('UserLLMProviderFactory', () => {
       userRepository,
       llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      outboundUrlPolicy: makeOutboundUrlPolicy(),
       llmUsageEventRepository: makeLlmUsageEventRepository(),
       generateId: () => 'evt-id',
     });
@@ -69,6 +73,7 @@ describe('UserLLMProviderFactory', () => {
       userRepository: makeUserRepository(),
       llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      outboundUrlPolicy: makeOutboundUrlPolicy(),
       llmUsageEventRepository: makeLlmUsageEventRepository(),
       generateId: () => 'evt-id',
     });
@@ -89,6 +94,7 @@ describe('UserLLMProviderFactory', () => {
       userRepository,
       llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      outboundUrlPolicy: makeOutboundUrlPolicy(),
       llmUsageEventRepository: makeLlmUsageEventRepository(),
       generateId: () => 'evt-id',
     });
@@ -116,6 +122,7 @@ describe('UserLLMProviderFactory', () => {
       userRepository,
       llmApiKeyRepository,
       llmApiKeyCipher,
+      outboundUrlPolicy: makeOutboundUrlPolicy(),
       llmUsageEventRepository: makeLlmUsageEventRepository(),
       generateId: () => 'evt-id',
     });
@@ -124,7 +131,7 @@ describe('UserLLMProviderFactory', () => {
 
     expect(userRepository.findById).not.toHaveBeenCalled();
     expect(provider).toBeInstanceOf(OpenAICompatibleLLMProvider);
-    expect(llmApiKeyCipher.decrypt).toHaveBeenCalledWith('encrypted:my-key');
+    expect(llmApiKeyCipher.decrypt).toHaveBeenCalledWith('encrypted:my-key', 'user-1:openai');
   });
 
   it('returns an OpenAICompatibleLLMProvider for openrouter', async () => {
@@ -137,6 +144,7 @@ describe('UserLLMProviderFactory', () => {
       userRepository: makeUserRepository(),
       llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      outboundUrlPolicy: makeOutboundUrlPolicy(),
       llmUsageEventRepository: makeLlmUsageEventRepository(),
       generateId: () => 'evt-id',
     });
@@ -156,6 +164,7 @@ describe('UserLLMProviderFactory', () => {
       userRepository: makeUserRepository(),
       llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      outboundUrlPolicy: makeOutboundUrlPolicy(),
       llmUsageEventRepository: makeLlmUsageEventRepository(),
       generateId: () => 'evt-id',
     });
@@ -179,6 +188,7 @@ describe('UserLLMProviderFactory', () => {
       userRepository: makeUserRepository(),
       llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      outboundUrlPolicy: makeOutboundUrlPolicy(),
       llmUsageEventRepository: makeLlmUsageEventRepository(),
       generateId: () => 'evt-id',
     });
@@ -198,6 +208,7 @@ describe('UserLLMProviderFactory', () => {
       userRepository: makeUserRepository(),
       llmApiKeyRepository,
       llmApiKeyCipher: makeLlmApiKeyCipher(),
+      outboundUrlPolicy: makeOutboundUrlPolicy(),
       llmUsageEventRepository: makeLlmUsageEventRepository(),
       generateId: () => 'evt-id',
     });
@@ -219,6 +230,7 @@ describe('UserLLMProviderFactory', () => {
         userRepository: makeUserRepository(),
         llmApiKeyRepository,
         llmApiKeyCipher: makeLlmApiKeyCipher(),
+        outboundUrlPolicy: makeOutboundUrlPolicy(),
         llmUsageEventRepository,
         generateId: () => 'evt-id',
       });
@@ -237,6 +249,7 @@ describe('UserLLMProviderFactory', () => {
         userRepository: makeUserRepository(),
         llmApiKeyRepository,
         llmApiKeyCipher: makeLlmApiKeyCipher(),
+        outboundUrlPolicy: makeOutboundUrlPolicy(),
         llmUsageEventRepository: makeLlmUsageEventRepository(),
         generateId: () => 'evt-id',
       });

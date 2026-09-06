@@ -13,6 +13,10 @@ function makeInner(overrides?: Partial<ILLMProvider>): ILLMProvider {
   };
 }
 
+async function drain(stream: AsyncGenerator<LLMStreamEvent>): Promise<void> {
+  for await (const event of stream) void event;
+}
+
 function makeRepo(overrides?: Partial<ILlmUsageEventRepository>): ILlmUsageEventRepository {
   return {
     record: vi.fn().mockResolvedValue(undefined),
@@ -55,6 +59,8 @@ describe('UsageTrackingLLMProvider', () => {
         model: 'gpt-4o-mini',
         promptTokens: 10,
         completionTokens: 5,
+        cacheReadTokens: null,
+        cacheWriteTokens: null,
       });
     });
 
@@ -139,7 +145,101 @@ describe('UsageTrackingLLMProvider', () => {
         model: null,
         promptTokens: 20,
         completionTokens: 8,
+        cacheReadTokens: null,
+        cacheWriteTokens: null,
       });
+    });
+
+    it('charges the prompt when the stream ends without done (client aborted mid-reply) — S8', async () => {
+      const inner = makeInner({
+        completeWithToolsStream: vi.fn(async function* (): AsyncGenerator<LLMStreamEvent> {
+          yield { type: 'prompt_usage', promptTokens: 1234 };
+          yield { type: 'text_delta', text: 'partial' };
+          throw new DOMException('The operation was aborted.', 'AbortError');
+        }),
+      });
+      const usageEventRepository = makeRepo();
+      const provider = new UsageTrackingLLMProvider({
+        inner,
+        usageEventRepository,
+        generateId: () => 'evt-3',
+        userId: 'user-1',
+        provider: 'anthropic',
+        model: null,
+      });
+
+      const events: LLMStreamEvent[] = [];
+      const err = await (async () => {
+        for await (const event of provider.completeWithToolsStream(
+          [{ role: 'user', content: 'hi' }],
+          [],
+        )) {
+          events.push(event);
+        }
+      })().catch((e) => e);
+
+      expect((err as Error).name).toBe('AbortError');
+      expect(events).toEqual([
+        { type: 'prompt_usage', promptTokens: 1234 },
+        { type: 'text_delta', text: 'partial' },
+      ]);
+      expect(usageEventRepository.record).toHaveBeenCalledTimes(1);
+      expect(usageEventRepository.record).toHaveBeenCalledWith(
+        expect.objectContaining({ promptTokens: 1234, completionTokens: 0 }),
+      );
+    });
+
+    it('does not double-count when done follows prompt_usage', async () => {
+      const inner = makeInner({
+        completeWithToolsStream: vi.fn(async function* (): AsyncGenerator<LLMStreamEvent> {
+          yield { type: 'prompt_usage', promptTokens: 20 };
+          yield {
+            type: 'done',
+            content: 'hi',
+            toolCalls: [],
+            usage: { promptTokens: 20, completionTokens: 8 },
+          };
+        }),
+      });
+      const usageEventRepository = makeRepo();
+      const provider = new UsageTrackingLLMProvider({
+        inner,
+        usageEventRepository,
+        generateId: () => 'evt-4',
+        userId: 'user-1',
+        provider: 'anthropic',
+        model: null,
+      });
+
+      await drain(provider.completeWithToolsStream([{ role: 'user', content: 'hi' }], []));
+
+      expect(usageEventRepository.record).toHaveBeenCalledTimes(1);
+      expect(usageEventRepository.record).toHaveBeenCalledWith(
+        expect.objectContaining({ promptTokens: 20, completionTokens: 8 }),
+      );
+    });
+
+    it('records nothing for an aborted stream whose provider never reported the prompt', async () => {
+      const inner = makeInner({
+        completeWithToolsStream: vi.fn(async function* (): AsyncGenerator<LLMStreamEvent> {
+          yield { type: 'text_delta', text: 'partial' };
+          throw new Error('boom');
+        }),
+      });
+      const usageEventRepository = makeRepo();
+      const provider = new UsageTrackingLLMProvider({
+        inner,
+        usageEventRepository,
+        generateId: () => 'evt-5',
+        userId: 'user-1',
+        provider: 'openai',
+        model: null,
+      });
+
+      await expect(
+        drain(provider.completeWithToolsStream([{ role: 'user', content: 'hi' }], [])),
+      ).rejects.toThrow('boom');
+      expect(usageEventRepository.record).not.toHaveBeenCalled();
     });
   });
 });

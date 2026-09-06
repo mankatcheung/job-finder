@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OpenAICompatibleLLMProvider } from '#src/infrastructure/llm/OpenAICompatibleLLMProvider.js';
 import { LLM } from '#src/use-cases/constants.js';
+import { LlmProviderError, ValidationError } from '#src/use-cases/errors/DomainError.js';
 import type { LLMMessage } from '#src/use-cases/ports/ILLMProvider.js';
+import { makeOutboundUrlPolicy } from '#src/__tests__/helpers/mocks/infrastructure.js';
 
 const BASE_URL = 'https://api.example.com/v1/chat/completions';
 const MODEL = 'example-model';
@@ -41,6 +43,53 @@ describe('OpenAICompatibleLLMProvider', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  describe('outbound URL policy', () => {
+    it('asks the policy before every call and never fetches when it refuses', async () => {
+      const policy = makeOutboundUrlPolicy({
+        assertAllowed: vi.fn().mockRejectedValue(new ValidationError('URL host is not allowed')),
+      });
+      const provider = new OpenAICompatibleLLMProvider('key', 'http://10.0.0.5/v1', MODEL, policy);
+
+      await expect(provider.complete([{ role: 'user', content: 'hi' }])).rejects.toMatchObject({
+        code: 'VALIDATION',
+      });
+      await expect(
+        collectStream(provider, [{ role: 'user', content: 'hi' }], []),
+      ).rejects.toMatchObject({ code: 'VALIDATION' });
+      expect(policy.assertAllowed).toHaveBeenCalledWith('http://10.0.0.5/v1', 'llm-provider');
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it('proceeds when the policy allows the base URL', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ choices: [{ message: { content: 'ok' } }] }) as never,
+      );
+      const policy = makeOutboundUrlPolicy();
+      const provider = new OpenAICompatibleLLMProvider('key', BASE_URL, MODEL, policy);
+
+      await provider.complete([{ role: 'user', content: 'hi' }]);
+
+      expect(policy.assertAllowed).toHaveBeenCalledWith(BASE_URL, 'llm-provider');
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('turns a non-2xx response into a coded LlmProviderError with a truncated excerpt', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      status: 401,
+      text: () => Promise.resolve(`<html>${'secret '.repeat(200)}</html>`),
+    } as never);
+    const provider = new OpenAICompatibleLLMProvider('key', BASE_URL, MODEL);
+
+    const err = await provider.complete([{ role: 'user', content: 'hi' }]).catch((e) => e);
+
+    expect(err).toBeInstanceOf(LlmProviderError);
+    expect(err.kind).toBe('auth');
+    expect(err.code).toBe('AI_PROVIDER_ERROR');
+    expect(err.message.length).toBeLessThan(400);
   });
 
   it('throws when the API key is empty', async () => {
@@ -129,6 +178,24 @@ describe('OpenAICompatibleLLMProvider', () => {
     const result = await provider.complete([{ role: 'user', content: 'hi' }]);
 
     expect(result.usage).toBeNull();
+  });
+
+  it('keeps the cached share of the prompt when the backend reports it (T3)', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse({
+        choices: [{ message: { content: 'ok' } }],
+        usage: {
+          prompt_tokens: 80,
+          completion_tokens: 20,
+          prompt_tokens_details: { cached_tokens: 64 },
+        },
+      }) as never,
+    );
+
+    const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+    const result = await provider.complete([{ role: 'user', content: 'hi' }]);
+
+    expect(result.usage).toEqual({ promptTokens: 80, completionTokens: 20, cacheReadTokens: 64 });
   });
 
   it('parses usage from the response (JEF-250)', async () => {

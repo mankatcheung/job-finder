@@ -10,6 +10,7 @@ import type {
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { LLM } from '#src/use-cases/constants.js';
 import { fetchWithRetry } from '#src/infrastructure/llm/fetchWithRetry.js';
+import { providerHttpError } from '#src/infrastructure/llm/providerError.js';
 
 interface GoogleAIPart {
   text?: string;
@@ -20,6 +21,8 @@ interface GoogleAIPart {
 interface GoogleAIWireUsage {
   promptTokenCount: number;
   candidatesTokenCount: number;
+  /** Prompt tokens served from Gemini's implicit or explicit cache; part of promptTokenCount. */
+  cachedContentTokenCount?: number;
 }
 
 interface GoogleAIWireResponse {
@@ -29,7 +32,13 @@ interface GoogleAIWireResponse {
 
 function toLLMUsage(usage: GoogleAIWireUsage | undefined): LLMUsage | null {
   if (!usage) return null;
-  return { promptTokens: usage.promptTokenCount, completionTokens: usage.candidatesTokenCount };
+  return {
+    promptTokens: usage.promptTokenCount,
+    completionTokens: usage.candidatesTokenCount,
+    ...(typeof usage.cachedContentTokenCount === 'number'
+      ? { cacheReadTokens: usage.cachedContentTokenCount }
+      : {}),
+  };
 }
 
 /**
@@ -37,13 +46,15 @@ function toLLMUsage(usage: GoogleAIWireUsage | undefined): LLMUsage | null {
  * `cache_control` (JEF-238 investigation):
  *
  * - Gemini's *implicit* (automatic, no-code) caching only applies to Gemini
- *   2.5+ models — `LLM.GOOGLEAI_DEFAULT_MODEL` is `gemini-2.0-flash`, which
- *   isn't eligible at all regardless of anything this provider does.
+ *   2.5+ models — which is why `LLM.GOOGLEAI_DEFAULT_MODEL` moved from
+ *   `gemini-2.0-flash` (not eligible at all) to `gemini-2.5-flash` (T4).
  * - Even on a 2.5+ model, implicit caching needs a minimum prefix (2,048
  *   tokens for 2.5 Flash/Pro, 4,096 for newer Flash/Pro Preview tiers) — our
  *   system prompt plus the read-tool catalogue chat actually sends is only
- *   ~2,000–2,500 tokens by rough estimate, so it sits right at that floor
- *   even on 2.5, not comfortably above it.
+ *   ~2,000–2,500 tokens by rough estimate, so it sits right at that floor,
+ *   not comfortably above it; a conversation with any history clears it.
+ *   `usage.cachedContentTokenCount` is recorded per event (T3), so whether
+ *   it actually hits is now visible in the usage summary.
  * - Gemini's *explicit* caching (a durable, named `CachedContents` resource,
  *   created/refreshed via a separate API call with its own TTL) would work
  *   regardless of model/size, but is a real feature to build — resource
@@ -197,13 +208,18 @@ export class GoogleAILLMProvider implements ILLMProvider {
     body: Record<string, unknown>,
     signal?: AbortSignal,
   ): Promise<GoogleAIWireResponse> {
-    const url = `${LLM.GOOGLEAI_API_URL}/${this.model}:generateContent?key=${this.apiKey}`;
+    // The key travels in a header, never the query string: outbound fetch
+    // spans (OTel's undici instrumentation records `url.full`), proxy access
+    // logs and error causes all keep the URL verbatim. Google accepts the
+    // same key as `x-goog-api-key`. The model id is validated on the way in
+    // (`assertValidLlmModelId`), so it cannot re-target the path.
+    const url = `${LLM.GOOGLEAI_API_URL}/${this.model}:generateContent`;
 
     const response = await fetchWithRetry(
       url,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': this.apiKey },
         body: JSON.stringify(body),
       },
       signal,
@@ -211,7 +227,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`Google AI error ${response.status}: ${text}`);
+      throw providerHttpError('Google AI', response.status, text);
     }
 
     return response.json() as Promise<GoogleAIWireResponse>;
