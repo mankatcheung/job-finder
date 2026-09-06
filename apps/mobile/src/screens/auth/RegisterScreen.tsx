@@ -20,12 +20,13 @@ export function RegisterScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSubmit = async () => {
     setError(null);
-    const parsed = registerSchema.safeParse({ email, password });
+    const parsed = registerSchema.safeParse({ email, password, confirmPassword });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? 'Invalid input');
       return;
@@ -69,6 +70,15 @@ export function RegisterScreen() {
           secureTextEntry
           autoComplete="password-new"
           testID="register-password-input"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Confirm password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
+          autoComplete="password-new"
+          testID="register-confirm-password-input"
         />
 
         <Pressable
