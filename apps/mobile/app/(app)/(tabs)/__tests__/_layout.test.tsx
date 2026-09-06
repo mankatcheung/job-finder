@@ -5,7 +5,17 @@ jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) =>
 jest.mock('../../../../src/theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 jest.mock('expo-router', () => {
   const { View } = require('react-native');
-  const Tabs = ({ children }: { children?: React.ReactNode }) => <View>{children}</View>;
+  const Tabs = ({
+    children,
+    screenOptions,
+  }: {
+    children?: React.ReactNode;
+    screenOptions?: { headerShown?: boolean };
+  }) => (
+    <View testID="tabs-root" headerShown={screenOptions?.headerShown}>
+      {children}
+    </View>
+  );
   Tabs.Screen = ({ options }: { options?: { tabBarButtonTestID?: string } }) => (
     <View testID={options?.tabBarButtonTestID} />
   );
@@ -36,5 +46,11 @@ describe('TabsLayout', () => {
     expect(getByTestId('tab-calendar')).toBeTruthy();
     expect(getByTestId('tab-assistant')).toBeTruthy();
     expect(getByTestId('tab-settings')).toBeTruthy();
+  });
+
+  it("hides the Tabs navigator's own header, so each tab's own themed Stack header is the only app bar", async () => {
+    const { getByTestId } = await render(<TabsLayout />);
+
+    expect(getByTestId('tabs-root').props.headerShown).toBe(false);
   });
 });
