@@ -126,7 +126,12 @@ export const LLM_PROVIDER = {
 /** LLM provider API URLs, default models, and other per-provider settings. */
 export const LLM = {
   OPENAI_API_URL: 'https://api.openai.com/v1/chat/completions',
-  OPENAI_DEFAULT_MODEL: 'gpt-4o-mini',
+  /**
+   * OpenAI's cost-tier model per its current model list (F11, checked
+   * 2026-09-06); `gpt-4o-mini` is no longer listed there. OpenRouter keeps
+   * its own id below until its catalogue is confirmed.
+   */
+  OPENAI_DEFAULT_MODEL: 'gpt-5.6-luna',
   ANTHROPIC_API_URL: 'https://api.anthropic.com/v1/messages',
   /**
    * Haiku 4.5 (T4). Haiku 3.5 was cheaper per token than it looked: its
@@ -146,7 +151,8 @@ export const LLM = {
   GROQ_API_URL: 'https://api.groq.com/openai/v1/chat/completions',
   GROQ_DEFAULT_MODEL: 'llama-3.3-70b-versatile',
   XAI_API_URL: 'https://api.x.ai/v1/chat/completions',
-  XAI_DEFAULT_MODEL: 'grok-2-latest',
+  /** xAI's cheapest general-purpose Grok per its model list (F11, checked 2026-09-06); `grok-2-latest` is gone from it. */
+  XAI_DEFAULT_MODEL: 'grok-4.3',
   DEEPSEEK_API_URL: 'https://api.deepseek.com/chat/completions',
   DEEPSEEK_DEFAULT_MODEL: 'deepseek-chat',
   NVIDIA_API_URL: 'https://integrate.api.nvidia.com/v1/chat/completions',
