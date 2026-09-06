@@ -353,4 +353,50 @@ describe('SaveLlmApiKeyUseCase', () => {
 
     expect(outboundUrlPolicy.assertAllowed).not.toHaveBeenCalled();
   });
+  it('refuses a model id with path or query characters', async () => {
+    const user = makeUser({ id: 'user-1' });
+    const userRepository = makeUserRepository({ findById: vi.fn().mockResolvedValue(user) });
+    const llmApiKeyRepository = makeLlmApiKeyRepository();
+
+    const err = await new SaveLlmApiKeyUseCase({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher: makeLlmApiKeyCipher(),
+      outboundUrlPolicy: makeOutboundUrlPolicy(),
+      generateId,
+    })
+      .execute({ userId: 'user-1', provider: 'googleai', apiKey: 'k', model: '../other:predict?x' })
+      .catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('VALIDATION');
+    expect(llmApiKeyRepository.upsert).not.toHaveBeenCalled();
+  });
+
+  it('accepts the model ids providers actually use', async () => {
+    const user = makeUser({ id: 'user-1', defaultLlmProvider: 'openai' });
+    const userRepository = makeUserRepository({
+      findById: vi.fn().mockResolvedValue(user),
+      update: vi.fn().mockResolvedValue(user),
+    });
+    const llmApiKeyRepository = makeLlmApiKeyRepository();
+    const useCase = new SaveLlmApiKeyUseCase({
+      userRepository,
+      llmApiKeyRepository,
+      llmApiKeyCipher: makeLlmApiKeyCipher(),
+      outboundUrlPolicy: makeOutboundUrlPolicy(),
+      generateId,
+    });
+
+    for (const model of [
+      'gpt-4o-mini',
+      'claude-haiku-4-5',
+      'openai/gpt-4o-mini',
+      'models/gemini-2.5-flash',
+      'llama3.1:8b',
+    ]) {
+      await expect(
+        useCase.execute({ userId: 'user-1', provider: 'openrouter', apiKey: 'k', model }),
+      ).resolves.toBeUndefined();
+    }
+  });
 });

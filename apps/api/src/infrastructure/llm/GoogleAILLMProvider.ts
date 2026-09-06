@@ -198,13 +198,18 @@ export class GoogleAILLMProvider implements ILLMProvider {
     body: Record<string, unknown>,
     signal?: AbortSignal,
   ): Promise<GoogleAIWireResponse> {
-    const url = `${LLM.GOOGLEAI_API_URL}/${this.model}:generateContent?key=${this.apiKey}`;
+    // The key travels in a header, never the query string: outbound fetch
+    // spans (OTel's undici instrumentation records `url.full`), proxy access
+    // logs and error causes all keep the URL verbatim. Google accepts the
+    // same key as `x-goog-api-key`. The model id is validated on the way in
+    // (`assertValidLlmModelId`), so it cannot re-target the path.
+    const url = `${LLM.GOOGLEAI_API_URL}/${this.model}:generateContent`;
 
     const response = await fetchWithRetry(
       url,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': this.apiKey },
         body: JSON.stringify(body),
       },
       signal,
