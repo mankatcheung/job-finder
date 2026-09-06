@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -22,6 +22,8 @@ import type { LinkedOAuthAccount, OAuthProvider, Session } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
 import { StepUpCancelledError, useStepUpReauth } from '../../../auth/useStepUpReauth';
 import { OAuthProviderLogo } from '../../../screens/auth/OAuthProviderLogo';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 const OAUTH_PROVIDERS: OAuthProvider[] = ['google', 'github'];
 
@@ -41,6 +43,8 @@ function LinkedAccountRow({
   onUnlink: () => void;
   isUnlinking: boolean;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const providerLabel = OAUTH_PROVIDER_LABEL[provider];
   return (
     <View style={styles.oauthRow} testID={`linked-account-${provider}`}>
@@ -65,6 +69,8 @@ function LinkedAccountRow({
 }
 
 function SessionRow({ session, onRevoke }: { session: Session; onRevoke: () => void }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.sessionRow} testID={`session-${session.id}`}>
       <View style={styles.textColumn}>
@@ -89,6 +95,8 @@ function SessionRow({ session, onRevoke }: { session: Session; onRevoke: () => v
 }
 
 export function SecurityScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: sessions, isLoading, isError, error } = useSessions();
   const revokeSession = useRevokeSession();
   const revokeOthers = useRevokeOtherSessions();
@@ -165,7 +173,7 @@ export function SecurityScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.sectionTitle}>Sessions</Text>
         {isLoading ? (
-          <ActivityIndicator color="#2563eb" testID="sessions-loading" />
+          <ActivityIndicator color={colors.primary} testID="sessions-loading" />
         ) : isError ? (
           <Text style={styles.error}>{getErrorMessage(error)}</Text>
         ) : (
@@ -195,7 +203,7 @@ export function SecurityScreen() {
 
         <Text style={[styles.sectionTitle, styles.sectionSpacing]}>Linked accounts</Text>
         {linkedAccountsLoading ? (
-          <ActivityIndicator color="#2563eb" testID="linked-accounts-loading" />
+          <ActivityIndicator color={colors.primary} testID="linked-accounts-loading" />
         ) : linkedAccountsError ? (
           <Text style={styles.error}>{getErrorMessage(linkedAccountsErrorObj)}</Text>
         ) : (
@@ -247,79 +255,81 @@ export function SecurityScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  content: { padding: 20, gap: 8 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
-  sectionSpacing: { marginTop: 24 },
-  error: {
-    color: '#b91c1c',
-    backgroundColor: '#fef2f2',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
-  },
-  success: {
-    color: '#047857',
-    backgroundColor: '#d1fae5',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
-  },
-  sessionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 14,
-    gap: 8,
-  },
-  textColumn: { flex: 1, gap: 2 },
-  oauthRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 14,
-    gap: 8,
-  },
-  oauthRowMain: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  sessionTitle: { fontSize: 14, fontWeight: '600', color: '#111827' },
-  sessionMeta: { fontSize: 12, color: '#6b7280' },
-  linkDanger: { color: '#b91c1c', fontSize: 13, fontWeight: '600' },
-  revokeOthersButton: {
-    minHeight: 44,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#fecaca',
-    backgroundColor: '#fef2f2',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  revokeOthersText: { color: '#b91c1c', fontSize: 14, fontWeight: '600' },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
-    backgroundColor: '#ffffff',
-  },
-  saveButton: {
-    minHeight: 44,
-    borderRadius: 8,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-  saveButtonDisabled: { opacity: 0.6 },
-  saveButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { padding: 20, gap: 8 },
+    sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text },
+    sectionSpacing: { marginTop: 24 },
+    error: {
+      color: colors.danger,
+      backgroundColor: colors.dangerSurface,
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 14,
+    },
+    success: {
+      color: '#047857',
+      backgroundColor: '#d1fae5',
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 14,
+    },
+    sessionRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 14,
+      gap: 8,
+    },
+    textColumn: { flex: 1, gap: 2 },
+    oauthRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 14,
+      gap: 8,
+    },
+    oauthRowMain: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+    sessionTitle: { fontSize: 14, fontWeight: '600', color: colors.text },
+    sessionMeta: { fontSize: 12, color: colors.textSubtle },
+    linkDanger: { color: colors.danger, fontSize: 13, fontWeight: '600' },
+    revokeOthersButton: {
+      minHeight: 44,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.dangerBorder,
+      backgroundColor: colors.dangerSurface,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    revokeOthersText: { color: colors.danger, fontSize: 14, fontWeight: '600' },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      fontSize: 15,
+      backgroundColor: colors.surface,
+    },
+    saveButton: {
+      minHeight: 44,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+    },
+    saveButtonDisabled: { opacity: 0.6 },
+    saveButtonText: { color: colors.surface, fontSize: 16, fontWeight: '600' },
+  });
+}

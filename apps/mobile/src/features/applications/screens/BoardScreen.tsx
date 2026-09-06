@@ -15,10 +15,14 @@ import { groupByStatus } from '../lib/boardOrder';
 import { statusLabel } from '../components/StatusBadge';
 import { APPLICATION_STATUSES, type Application, type ApplicationStatus } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 const COLUMN_WIDTH = 220;
 
 export function BoardScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const { data: applications, isLoading, isError, error } = useApplications();
   const moveOnBoard = useMoveApplicationOnBoard();
@@ -47,7 +51,7 @@ export function BoardScreen() {
   };
 
   if (isLoading) {
-    return <ActivityIndicator style={styles.loading} size="large" color="#2563eb" />;
+    return <ActivityIndicator style={styles.loading} size="large" color={colors.primary} />;
   }
 
   if (isError) {
@@ -141,79 +145,81 @@ export function BoardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    paddingBottom: 8,
-  },
-  title: { fontSize: 20, fontWeight: '700', color: '#111827' },
-  link: { color: '#2563eb', fontSize: 13, fontWeight: '600' },
-  loading: { marginTop: 40 },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  error: {
-    color: '#b91c1c',
-    backgroundColor: '#fef2f2',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 13,
-  },
-  board: { flex: 1, paddingHorizontal: 12 },
-  column: {
-    width: COLUMN_WIDTH,
-    marginHorizontal: 4,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 12,
-    padding: 8,
-  },
-  columnHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-    paddingBottom: 8,
-  },
-  columnTitle: { fontSize: 12, fontWeight: '700', color: '#374151' },
-  countBadge: {
-    backgroundColor: '#e5e7eb',
-    borderRadius: 9999,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-  },
-  countText: { fontSize: 11, color: '#6b7280' },
-  columnList: { gap: 8 },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 10,
-    marginBottom: 8,
-  },
-  cardCompany: { fontSize: 13, fontWeight: '600', color: '#111827' },
-  cardRole: { fontSize: 12, color: '#6b7280', marginTop: 2 },
-  moveButton: { alignSelf: 'flex-end', marginTop: 6 },
-  moveButtonText: { fontSize: 11, color: '#2563eb', fontWeight: '600' },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  modalCard: {
-    width: '100%',
-    maxWidth: 320,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    gap: 4,
-  },
-  modalTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 8 },
-  modalOption: { paddingVertical: 10 },
-  modalOptionText: { fontSize: 14, color: '#111827' },
-  modalCancel: { fontSize: 14, color: '#6b7280', fontWeight: '600', marginTop: 8 },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    headerRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 16,
+      paddingBottom: 8,
+    },
+    title: { fontSize: 20, fontWeight: '700', color: colors.text },
+    link: { color: colors.primary, fontSize: 13, fontWeight: '600' },
+    loading: { marginTop: 40 },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+    error: {
+      color: colors.danger,
+      backgroundColor: colors.dangerSurface,
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 13,
+    },
+    board: { flex: 1, paddingHorizontal: 12 },
+    column: {
+      width: COLUMN_WIDTH,
+      marginHorizontal: 4,
+      backgroundColor: colors.surfaceAlt,
+      borderRadius: 12,
+      padding: 8,
+    },
+    columnHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 4,
+      paddingBottom: 8,
+    },
+    columnTitle: { fontSize: 12, fontWeight: '700', color: colors.textMuted },
+    countBadge: {
+      backgroundColor: colors.border,
+      borderRadius: 9999,
+      paddingHorizontal: 6,
+      paddingVertical: 1,
+    },
+    countText: { fontSize: 11, color: colors.textSubtle },
+    columnList: { gap: 8 },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 10,
+      marginBottom: 8,
+    },
+    cardCompany: { fontSize: 13, fontWeight: '600', color: colors.text },
+    cardRole: { fontSize: 12, color: colors.textSubtle, marginTop: 2 },
+    moveButton: { alignSelf: 'flex-end', marginTop: 6 },
+    moveButtonText: { fontSize: 11, color: colors.primary, fontWeight: '600' },
+    modalBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 24,
+    },
+    modalCard: {
+      width: '100%',
+      maxWidth: 320,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 16,
+      gap: 4,
+    },
+    modalTitle: { fontSize: 15, fontWeight: '700', color: colors.text, marginBottom: 8 },
+    modalOption: { paddingVertical: 10 },
+    modalOptionText: { fontSize: 14, color: colors.text },
+    modalCancel: { fontSize: 14, color: colors.textSubtle, fontWeight: '600', marginTop: 8 },
+  });
+}

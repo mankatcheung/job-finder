@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { gqlRequest } from '../../../graphql/client';
 import { getErrorMessage } from '../../../lib/errors';
 import { REAUTHENTICATE_MUTATION } from '../graphql/operations';
 import type { ReauthenticateResult } from '../types';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 /** Thrown to the caller of `withStepUp` when the user dismisses the reauth dialog instead of completing it. */
 export const STEP_UP_CANCELLED = 'step-up-cancelled';
@@ -70,6 +72,8 @@ function StepUpReauthDialog({
   onSuccess: () => void;
   onCancel: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
   const [totpRequired, setTotpRequired] = useState(false);
@@ -148,51 +152,53 @@ function StepUpReauthDialog({
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  dialog: {
-    width: '100%',
-    maxWidth: 360,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 20,
-    gap: 12,
-  },
-  title: { fontSize: 16, fontWeight: '700', color: '#111827' },
-  subtitle: { fontSize: 13, color: '#6b7280' },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
-    backgroundColor: '#ffffff',
-  },
-  error: {
-    color: '#b91c1c',
-    backgroundColor: '#fef2f2',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 13,
-  },
-  actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 16, marginTop: 4 },
-  cancelText: { color: '#6b7280', fontSize: 14, fontWeight: '600', paddingVertical: 10 },
-  confirmButton: {
-    minWidth: 100,
-    minHeight: 40,
-    borderRadius: 8,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 14,
-  },
-  confirmButtonDisabled: { opacity: 0.6 },
-  confirmText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    backdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 24,
+    },
+    dialog: {
+      width: '100%',
+      maxWidth: 360,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 20,
+      gap: 12,
+    },
+    title: { fontSize: 16, fontWeight: '700', color: colors.text },
+    subtitle: { fontSize: 13, color: colors.textSubtle },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      fontSize: 15,
+      backgroundColor: colors.surface,
+    },
+    error: {
+      color: colors.danger,
+      backgroundColor: colors.dangerSurface,
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 13,
+    },
+    actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 16, marginTop: 4 },
+    cancelText: { color: colors.textSubtle, fontSize: 14, fontWeight: '600', paddingVertical: 10 },
+    confirmButton: {
+      minWidth: 100,
+      minHeight: 40,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 14,
+    },
+    confirmButtonDisabled: { opacity: 0.6 },
+    confirmText: { color: colors.onPrimary, fontSize: 14, fontWeight: '600' },
+  });
+}

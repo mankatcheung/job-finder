@@ -15,6 +15,7 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(),
 }));
 
+jest.mock('../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useRouter, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../../auth/AuthContext';
@@ -22,6 +23,8 @@ import { useProfile } from '../../../features/settings/hooks/useProfile';
 import { useUnreadNotificationCount } from '../../../features/notifications/hooks/useNotificationQueries';
 import { AppSidebar } from '../AppSidebar';
 import { useSidebar } from '../SidebarContext';
+import { useTheme } from '../../../theme/ThemeContext';
+import { lightColors } from '../../../theme/colors';
 
 const mockedUseRouter = jest.mocked(useRouter);
 const mockedUsePathname = jest.mocked(usePathname);
@@ -30,9 +33,16 @@ const mockedUseProfile = jest.mocked(useProfile);
 const mockedUseUnreadCount = jest.mocked(useUnreadNotificationCount);
 const mockedUseSidebar = jest.mocked(useSidebar);
 const mockedUseSafeAreaInsets = jest.mocked(useSafeAreaInsets);
+const mockedUseTheme = jest.mocked(useTheme);
 
 describe('AppSidebar', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     mockedUsePathname.mockReturnValue('/');
     mockedUseSidebar.mockReturnValue({ isOpen: true, open: jest.fn(), close: jest.fn() });
     mockedUseSafeAreaInsets.mockReturnValue({ top: 44, right: 0, bottom: 34, left: 0 });

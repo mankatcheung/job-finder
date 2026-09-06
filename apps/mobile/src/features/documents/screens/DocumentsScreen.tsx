@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import {
   ActivityIndicator,
@@ -18,6 +18,8 @@ import { useDeleteDocument } from '../hooks/useDeleteDocument';
 import { useUploadDocument, type UploadDocumentInput } from '../hooks/useUploadDocument';
 import type { Document } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 const DOCUMENT_TYPES = ['other', 'resume', 'cover_letter', 'portfolio'] as const;
 
@@ -26,6 +28,8 @@ function formatSize(bytes: number): string {
 }
 
 function DocumentRow({ document, onDelete }: { document: Document; onDelete: () => void }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.card} testID={`document-${document.id}`}>
       <View style={styles.rowBetween}>
@@ -58,6 +62,8 @@ function DocumentRow({ document, onDelete }: { document: Document; onDelete: () 
 }
 
 export function DocumentsScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { id: applicationId } = useLocalSearchParams<{ id: string }>();
   const { data: documents, isLoading, isError, error } = useDocuments(applicationId);
   const uploadDocument = useUploadDocument(applicationId);
@@ -99,7 +105,7 @@ export function DocumentsScreen() {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2563eb" testID="documents-loading" />
+        <ActivityIndicator size="large" color={colors.primary} testID="documents-loading" />
       </View>
     );
   }
@@ -191,103 +197,105 @@ export function DocumentsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  error: {
-    color: '#b91c1c',
-    backgroundColor: '#fef2f2',
-    borderRadius: 8,
-    padding: 10,
-    margin: 16,
-    marginBottom: 0,
-    fontSize: 14,
-  },
-  list: { padding: 16 },
-  separator: { height: 10 },
-  emptyText: { fontSize: 14, color: '#6b7280', textAlign: 'center', marginTop: 20 },
-  pickButton: {
-    margin: 16,
-    minHeight: 56,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#d1d5db',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-  },
-  pickButtonText: { color: '#2563eb', fontSize: 14, fontWeight: '600' },
-  pendingCard: {
-    margin: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    backgroundColor: '#ffffff',
-    padding: 14,
-    gap: 10,
-  },
-  typeRow: { flexGrow: 0 },
-  typeChip: {
-    borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    marginRight: 8,
-    backgroundColor: '#ffffff',
-  },
-  typeChipActive: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
-  typeChipText: { fontSize: 12, color: '#374151', fontWeight: '500' },
-  typeChipTextActive: { color: '#ffffff' },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 14,
-    backgroundColor: '#ffffff',
-  },
-  rowActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  confirmButton: {
-    minHeight: 40,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  disabled: { opacity: 0.6 },
-  confirmButtonText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
-  linkMuted: { color: '#6b7280', fontSize: 13, fontWeight: '600' },
-  linkDanger: { color: '#b91c1c', fontSize: 13, fontWeight: '600' },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 14,
-    gap: 6,
-  },
-  rowBetween: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 12,
-  },
-  textColumn: { flex: 1, gap: 2 },
-  name: { fontSize: 14, fontWeight: '600', color: '#111827' },
-  meta: { fontSize: 12, color: '#6b7280' },
-  typeBadge: {
-    alignSelf: 'flex-start',
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#1d4ed8',
-    backgroundColor: '#dbeafe',
-    borderRadius: 9999,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    textTransform: 'capitalize',
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+    error: {
+      color: colors.danger,
+      backgroundColor: colors.dangerSurface,
+      borderRadius: 8,
+      padding: 10,
+      margin: 16,
+      marginBottom: 0,
+      fontSize: 14,
+    },
+    list: { padding: 16 },
+    separator: { height: 10 },
+    emptyText: { fontSize: 14, color: colors.textSubtle, textAlign: 'center', marginTop: 20 },
+    pickButton: {
+      margin: 16,
+      minHeight: 56,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: colors.borderStrong,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surface,
+    },
+    pickButtonText: { color: colors.primary, fontSize: 14, fontWeight: '600' },
+    pendingCard: {
+      margin: 16,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.primarySurface,
+      backgroundColor: colors.surface,
+      padding: 14,
+      gap: 10,
+    },
+    typeRow: { flexGrow: 0 },
+    typeChip: {
+      borderRadius: 9999,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      paddingHorizontal: 12,
+      paddingVertical: 5,
+      marginRight: 8,
+      backgroundColor: colors.surface,
+    },
+    typeChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+    typeChipText: { fontSize: 12, color: colors.textMuted, fontWeight: '500' },
+    typeChipTextActive: { color: colors.surface },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      fontSize: 14,
+      backgroundColor: colors.surface,
+    },
+    rowActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+    confirmButton: {
+      minHeight: 40,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    disabled: { opacity: 0.6 },
+    confirmButtonText: { color: colors.surface, fontSize: 14, fontWeight: '600' },
+    linkMuted: { color: colors.textSubtle, fontSize: 13, fontWeight: '600' },
+    linkDanger: { color: colors.danger, fontSize: 13, fontWeight: '600' },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 14,
+      gap: 6,
+    },
+    rowBetween: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 12,
+    },
+    textColumn: { flex: 1, gap: 2 },
+    name: { fontSize: 14, fontWeight: '600', color: colors.text },
+    meta: { fontSize: 12, color: colors.textSubtle },
+    typeBadge: {
+      alignSelf: 'flex-start',
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.primary,
+      backgroundColor: colors.primarySurface,
+      borderRadius: 9999,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      textTransform: 'capitalize',
+    },
+  });
+}

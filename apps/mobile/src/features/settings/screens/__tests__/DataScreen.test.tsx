@@ -11,16 +11,26 @@ jest.mock('expo-file-system', () => ({
   File: jest.fn().mockImplementation(() => ({ text: () => Promise.resolve('{}') })),
 }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import * as DocumentPicker from 'expo-document-picker';
 import { useExportUserData, useImportUserData } from '../../hooks/useAccountData';
 import { DataScreen } from '../DataScreen';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseExport = jest.mocked(useExportUserData);
 const mockedUseImport = jest.mocked(useImportUserData);
+const mockedUseTheme = jest.mocked(useTheme);
 const mockedGetDocumentAsync = jest.mocked(DocumentPicker.getDocumentAsync);
 
 describe('DataScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
     jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' } as never);
   });

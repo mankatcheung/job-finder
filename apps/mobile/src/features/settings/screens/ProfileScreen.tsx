@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -12,8 +12,12 @@ import {
 } from 'react-native';
 import { useProfile, useUpdateProfile } from '../hooks/useProfile';
 import { getErrorMessage } from '../../../lib/errors';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 export function ProfileScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: profile, isLoading, isError, error } = useProfile();
   const updateProfile = useUpdateProfile();
 
@@ -46,7 +50,7 @@ export function ProfileScreen() {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2563eb" testID="profile-loading" />
+        <ActivityIndicator size="large" color={colors.primary} testID="profile-loading" />
       </View>
     );
   }
@@ -113,45 +117,47 @@ export function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  content: { padding: 20, gap: 6 },
-  error: {
-    color: '#b91c1c',
-    backgroundColor: '#fef2f2',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  success: {
-    color: '#047857',
-    backgroundColor: '#d1fae5',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  label: { fontSize: 13, fontWeight: '600', color: '#374151', marginTop: 10 },
-  readOnly: { fontSize: 15, color: '#6b7280', paddingVertical: 8 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
-    backgroundColor: '#ffffff',
-  },
-  saveButton: {
-    minHeight: 44,
-    borderRadius: 8,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  saveButtonDisabled: { opacity: 0.6 },
-  saveButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+    content: { padding: 20, gap: 6 },
+    error: {
+      color: colors.danger,
+      backgroundColor: colors.dangerSurface,
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 14,
+      marginBottom: 8,
+    },
+    success: {
+      color: '#047857',
+      backgroundColor: '#d1fae5',
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 14,
+      marginBottom: 8,
+    },
+    label: { fontSize: 13, fontWeight: '600', color: colors.textMuted, marginTop: 10 },
+    readOnly: { fontSize: 15, color: colors.textSubtle, paddingVertical: 8 },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      fontSize: 15,
+      backgroundColor: colors.surface,
+    },
+    saveButton: {
+      minHeight: 44,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 20,
+    },
+    saveButtonDisabled: { opacity: 0.6 },
+    saveButtonText: { color: colors.surface, fontSize: 16, fontWeight: '600' },
+  });
+}

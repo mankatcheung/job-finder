@@ -7,15 +7,19 @@ jest.mock('../../hooks/useApplicationMutations', () => ({
 }));
 jest.mock('expo-router', () => ({ useRouter: jest.fn() }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useRouter } from 'expo-router';
 import { useApplications } from '../../hooks/useApplicationQueries';
 import { useMoveApplicationOnBoard } from '../../hooks/useApplicationMutations';
 import { BoardScreen } from '../BoardScreen';
 import type { Application } from '../../types';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseApplications = jest.mocked(useApplications);
 const mockedUseMoveApplicationOnBoard = jest.mocked(useMoveApplicationOnBoard);
 const mockedUseRouter = jest.mocked(useRouter);
+const mockedUseTheme = jest.mocked(useTheme);
 
 const applications: Application[] = [
   {
@@ -65,6 +69,12 @@ function renderScreen(push = jest.fn()) {
 
 describe('BoardScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
     mockedUseApplications.mockReturnValue({
       data: applications,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -13,6 +13,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { gqlRequest } from '../../graphql/client';
 import { getErrorMessage } from '../../lib/errors';
 import { resetPasswordSchema } from './resetPasswordSchema';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
 
 const RESET_PASSWORD_MUTATION = `
   mutation ResetPassword($token: String!, $newPassword: String!) {
@@ -21,6 +23,8 @@ const RESET_PASSWORD_MUTATION = `
 `;
 
 export function ResetPasswordScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const { token } = useLocalSearchParams<{ token?: string }>();
 
@@ -99,7 +103,7 @@ export function ResetPasswordScreen() {
               testID="reset-password-submit-button"
             >
               {isSubmitting ? (
-                <ActivityIndicator color="#ffffff" />
+                <ActivityIndicator color={colors.surface} />
               ) : (
                 <Text style={styles.buttonText}>Reset password</Text>
               )}
@@ -115,42 +119,44 @@ export function ResetPasswordScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  content: { flexGrow: 1, justifyContent: 'center', padding: 24, gap: 12 },
-  title: { fontSize: 24, fontWeight: '700', color: '#111827', textAlign: 'center' },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    backgroundColor: '#ffffff',
-  },
-  button: {
-    minHeight: 44,
-    borderRadius: 8,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
-  link: { color: '#2563eb', textAlign: 'center', marginTop: 12 },
-  error: {
-    color: '#b91c1c',
-    backgroundColor: '#fef2f2',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
-  },
-  success: {
-    color: '#166534',
-    backgroundColor: '#f0fdf4',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { flexGrow: 1, justifyContent: 'center', padding: 24, gap: 12 },
+    title: { fontSize: 24, fontWeight: '700', color: colors.text, textAlign: 'center' },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 16,
+      backgroundColor: colors.surface,
+    },
+    button: {
+      minHeight: 44,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+    },
+    buttonDisabled: { opacity: 0.6 },
+    buttonText: { color: colors.surface, fontSize: 16, fontWeight: '600' },
+    link: { color: colors.primary, textAlign: 'center', marginTop: 12 },
+    error: {
+      color: colors.danger,
+      backgroundColor: colors.dangerSurface,
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 14,
+    },
+    success: {
+      color: '#166534',
+      backgroundColor: '#f0fdf4',
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 14,
+    },
+  });
+}

@@ -13,6 +13,7 @@ jest.mock('../../hooks/useIntegrations', () => ({
   useDeleteShareLink: jest.fn(),
 }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import {
   useApiTokens,
   useCreateApiToken,
@@ -24,6 +25,8 @@ import {
   useShareLinks,
 } from '../../hooks/useIntegrations';
 import { IntegrationsScreen } from '../IntegrationsScreen';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseApiTokens = jest.mocked(useApiTokens);
 const mockedUseCreateApiToken = jest.mocked(useCreateApiToken);
@@ -33,6 +36,7 @@ const mockedUseRevokeMcpOAuthGrant = jest.mocked(useRevokeMcpOAuthGrant);
 const mockedUseShareLinks = jest.mocked(useShareLinks);
 const mockedUseCreateShareLink = jest.mocked(useCreateShareLink);
 const mockedUseDeleteShareLink = jest.mocked(useDeleteShareLink);
+const mockedUseTheme = jest.mocked(useTheme);
 
 function setDefaults() {
   mockedUseApiTokens.mockReturnValue({ data: [] } as never);
@@ -47,6 +51,12 @@ function setDefaults() {
 
 describe('IntegrationsScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
     setDefaults();
     jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' } as never);

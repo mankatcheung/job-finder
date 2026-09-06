@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -16,6 +16,8 @@ import { useNotes } from '../hooks/useNoteQueries';
 import { useCreateNote, useDeleteNote, useUpdateNote } from '../hooks/useNoteMutations';
 import type { Note } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 function NoteRow({
   note,
@@ -28,6 +30,8 @@ function NoteRow({
   onDelete: () => void;
   isSaving: boolean;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(note.content);
 
@@ -90,6 +94,8 @@ function NoteRow({
 }
 
 export function NotesScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { id: applicationId } = useLocalSearchParams<{ id: string }>();
   const { data: notes, isLoading, isError, error } = useNotes(applicationId);
   const createNote = useCreateNote(applicationId);
@@ -110,7 +116,7 @@ export function NotesScreen() {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2563eb" testID="notes-loading" />
+        <ActivityIndicator size="large" color={colors.primary} testID="notes-loading" />
       </View>
     );
   }
@@ -175,54 +181,56 @@ export function NotesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  error: { fontSize: 14, color: '#b91c1c', textAlign: 'center' },
-  list: { padding: 16 },
-  separator: { height: 10 },
-  emptyText: { fontSize: 14, color: '#6b7280', textAlign: 'center', marginTop: 20 },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 14,
-    gap: 8,
-  },
-  content: { fontSize: 14, color: '#111827', lineHeight: 20 },
-  rowActions: { flexDirection: 'row', gap: 16 },
-  link: { color: '#2563eb', fontSize: 13, fontWeight: '600' },
-  linkMuted: { color: '#6b7280', fontSize: 13, fontWeight: '600' },
-  linkDanger: { color: '#b91c1c', fontSize: 13, fontWeight: '600' },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    backgroundColor: '#ffffff',
-  },
-  multiline: { minHeight: 70, textAlignVertical: 'top' },
-  addRow: {
-    flexDirection: 'row',
-    gap: 8,
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    backgroundColor: '#f9fafb',
-    alignItems: 'flex-end',
-  },
-  addInput: { flex: 1, minHeight: 44, maxHeight: 100 },
-  addButton: {
-    minHeight: 44,
-    paddingHorizontal: 18,
-    borderRadius: 8,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addButtonDisabled: { opacity: 0.6 },
-  addButtonText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+    error: { fontSize: 14, color: colors.danger, textAlign: 'center' },
+    list: { padding: 16 },
+    separator: { height: 10 },
+    emptyText: { fontSize: 14, color: colors.textSubtle, textAlign: 'center', marginTop: 20 },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 14,
+      gap: 8,
+    },
+    content: { fontSize: 14, color: colors.text, lineHeight: 20 },
+    rowActions: { flexDirection: 'row', gap: 16 },
+    link: { color: colors.primary, fontSize: 13, fontWeight: '600' },
+    linkMuted: { color: colors.textSubtle, fontSize: 13, fontWeight: '600' },
+    linkDanger: { color: colors.danger, fontSize: 13, fontWeight: '600' },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 14,
+      backgroundColor: colors.surface,
+    },
+    multiline: { minHeight: 70, textAlignVertical: 'top' },
+    addRow: {
+      flexDirection: 'row',
+      gap: 8,
+      padding: 16,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      backgroundColor: colors.background,
+      alignItems: 'flex-end',
+    },
+    addInput: { flex: 1, minHeight: 44, maxHeight: 100 },
+    addButton: {
+      minHeight: 44,
+      paddingHorizontal: 18,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    addButtonDisabled: { opacity: 0.6 },
+    addButtonText: { color: colors.surface, fontSize: 14, fontWeight: '600' },
+  });
+}

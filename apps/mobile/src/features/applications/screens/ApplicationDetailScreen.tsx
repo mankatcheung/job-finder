@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -14,8 +14,12 @@ import { useApplication } from '../hooks/useApplicationQueries';
 import { useDeleteApplication } from '../hooks/useApplicationMutations';
 import { StatusBadge } from '../components/StatusBadge';
 import { getErrorMessage } from '../../../lib/errors';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 function Field({ label, value }: { label: string; value: string | null }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   if (!value) return null;
   return (
     <View style={styles.field}>
@@ -26,6 +30,8 @@ function Field({ label, value }: { label: string; value: string | null }) {
 }
 
 export function ApplicationDetailScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const { id: applicationId } = useLocalSearchParams<{ id: string }>();
   const { data: application, isLoading, isError, error } = useApplication(applicationId);
@@ -50,7 +56,11 @@ export function ApplicationDetailScreen() {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2563eb" testID="application-detail-loading" />
+        <ActivityIndicator
+          size="large"
+          color={colors.primary}
+          testID="application-detail-loading"
+        />
       </View>
     );
   }
@@ -131,40 +141,47 @@ export function ApplicationDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  content: { padding: 20, gap: 16 },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  error: { fontSize: 14, color: '#b91c1c', textAlign: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  headerText: { flex: 1, gap: 2 },
-  role: { fontSize: 20, fontWeight: '700', color: '#111827' },
-  company: { fontSize: 15, color: '#374151' },
-  field: { gap: 2 },
-  fieldLabel: { fontSize: 12, color: '#6b7280', fontWeight: '600', textTransform: 'uppercase' },
-  fieldValue: { fontSize: 15, color: '#111827' },
-  link: { fontSize: 14, color: '#2563eb' },
-  actions: { flexDirection: 'row', gap: 12, marginTop: 12 },
-  editButton: {
-    flex: 1,
-    minHeight: 44,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-  },
-  editButtonText: { fontSize: 15, fontWeight: '600', color: '#374151' },
-  deleteButton: {
-    flex: 1,
-    minHeight: 44,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fef2f2',
-    borderWidth: 1,
-    borderColor: '#fecaca',
-  },
-  deleteButtonText: { fontSize: 15, fontWeight: '600', color: '#b91c1c' },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { padding: 20, gap: 16 },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+    error: { fontSize: 14, color: colors.danger, textAlign: 'center' },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+    headerText: { flex: 1, gap: 2 },
+    role: { fontSize: 20, fontWeight: '700', color: colors.text },
+    company: { fontSize: 15, color: colors.textMuted },
+    field: { gap: 2 },
+    fieldLabel: {
+      fontSize: 12,
+      color: colors.textSubtle,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+    },
+    fieldValue: { fontSize: 15, color: colors.text },
+    link: { fontSize: 14, color: colors.primary },
+    actions: { flexDirection: 'row', gap: 12, marginTop: 12 },
+    editButton: {
+      flex: 1,
+      minHeight: 44,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surface,
+    },
+    editButtonText: { fontSize: 15, fontWeight: '600', color: colors.textMuted },
+    deleteButton: {
+      flex: 1,
+      minHeight: 44,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.dangerSurface,
+      borderWidth: 1,
+      borderColor: colors.dangerBorder,
+    },
+    deleteButtonText: { fontSize: 15, fontWeight: '600', color: colors.danger },
+  });
+}

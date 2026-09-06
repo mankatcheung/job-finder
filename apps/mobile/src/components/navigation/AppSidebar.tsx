@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, usePathname, type Href } from 'expo-router';
@@ -6,6 +6,8 @@ import { useAuth } from '../../auth/AuthContext';
 import { useProfile } from '../../features/settings/hooks/useProfile';
 import { useUnreadNotificationCount } from '../../features/notifications/hooks/useNotificationQueries';
 import { useSidebar } from './SidebarContext';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
 import {
   AnalyticsIcon,
   ApplicationsIcon,
@@ -128,8 +130,10 @@ function NavRow({
   pathname: string;
   onPress: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const active = item.isActive(pathname);
-  const color = active ? '#2563eb' : '#374151';
+  const color = active ? colors.primary : colors.textMuted;
 
   return (
     <Pressable
@@ -147,6 +151,8 @@ function NavRow({
 }
 
 function NotificationsBadge() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: unreadCount = 0 } = useUnreadNotificationCount();
   if (unreadCount === 0) return null;
   return (
@@ -157,6 +163,8 @@ function NotificationsBadge() {
 }
 
 export function AppSidebar() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { isOpen, close } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
@@ -197,7 +205,7 @@ export function AppSidebar() {
                 </Text>
               </View>
               <Pressable onPress={close} testID="sidebar-close" hitSlop={8}>
-                <CloseIcon color="#6b7280" />
+                <CloseIcon color={colors.textSubtle} />
               </Pressable>
             </View>
             {profile && (
@@ -233,8 +241,8 @@ export function AppSidebar() {
             ))}
 
             <Pressable style={styles.navRow} onPress={signOut} testID="sidebar-sign-out">
-              <SignOutIcon color="#b91c1c" />
-              <Text style={[styles.navLabel, { color: '#b91c1c', fontWeight: '600' }]}>
+              <SignOutIcon color={colors.danger} />
+              <Text style={[styles.navLabel, { color: colors.danger, fontWeight: '600' }]}>
                 Sign out
               </Text>
             </Pressable>
@@ -245,66 +253,68 @@ export function AppSidebar() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, flexDirection: 'row' },
-  scrim: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(17, 24, 39, 0.5)',
-  },
-  panel: {
-    width: 300,
-    maxWidth: '80%',
-    backgroundColor: '#ffffff',
-    height: '100%',
-  },
-  profileSection: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    gap: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  profileRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#eff6ff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: { fontSize: 17, fontWeight: '700', color: '#2563eb' },
-  profileName: { fontSize: 15, fontWeight: '700', color: '#111827' },
-  profileEmail: { fontSize: 12, color: '#6b7280' },
-  primaryNav: { flex: 1, padding: 12, gap: 2 },
-  secondaryNav: {
-    padding: 12,
-    gap: 2,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-  },
-  navRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    height: 48,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-  },
-  navRowActive: { backgroundColor: '#eff6ff' },
-  navLabel: { fontSize: 14, flex: 1 },
-  badge: {
-    minWidth: 18,
-    height: 18,
-    paddingHorizontal: 4,
-    borderRadius: 9,
-    backgroundColor: '#dc2626',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeText: { fontSize: 10, fontWeight: '700', color: '#ffffff' },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, flexDirection: 'row' },
+    scrim: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(17, 24, 39, 0.5)',
+    },
+    panel: {
+      width: 300,
+      maxWidth: '80%',
+      backgroundColor: colors.surface,
+      height: '100%',
+    },
+    profileSection: {
+      paddingHorizontal: 20,
+      paddingBottom: 20,
+      gap: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    profileRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    avatar: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.primarySurface,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    avatarText: { fontSize: 17, fontWeight: '700', color: colors.primary },
+    profileName: { fontSize: 15, fontWeight: '700', color: colors.text },
+    profileEmail: { fontSize: 12, color: colors.textSubtle },
+    primaryNav: { flex: 1, padding: 12, gap: 2 },
+    secondaryNav: {
+      padding: 12,
+      gap: 2,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    navRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+      height: 48,
+      paddingHorizontal: 12,
+      borderRadius: 10,
+    },
+    navRowActive: { backgroundColor: colors.primarySurface },
+    navLabel: { fontSize: 14, flex: 1 },
+    badge: {
+      minWidth: 18,
+      height: 18,
+      paddingHorizontal: 4,
+      borderRadius: 9,
+      backgroundColor: colors.danger,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    badgeText: { fontSize: 10, fontWeight: '700', color: colors.surface },
+  });
+}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -16,6 +16,8 @@ import { useCreateApplication, useUpdateApplication } from '../hooks/useApplicat
 import { statusLabel } from '../components/StatusBadge';
 import { APPLICATION_STATUSES, type ApplicationStatus } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 import {
   applicationFormSchema,
   EMPTY_APPLICATION_FORM_VALUES,
@@ -23,6 +25,8 @@ import {
 } from './applicationFormSchema';
 
 export function ApplicationFormScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const { id: applicationId } = useLocalSearchParams<{ id?: string }>();
   const isEditing = Boolean(applicationId);
@@ -87,7 +91,7 @@ export function ApplicationFormScreen() {
   if (isEditing && isLoadingExisting) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2563eb" testID="application-form-loading" />
+        <ActivityIndicator size="large" color={colors.primary} testID="application-form-loading" />
       </View>
     );
   }
@@ -188,6 +192,8 @@ function StatusChip({
   active: boolean;
   onPress: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <Pressable
       style={[styles.chip, active && styles.chipActive]}
@@ -199,50 +205,52 @@ function StatusChip({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  content: { padding: 20, gap: 6 },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  label: { fontSize: 13, fontWeight: '600', color: '#374151', marginTop: 10 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
-    backgroundColor: '#ffffff',
-  },
-  multiline: { minHeight: 90, textAlignVertical: 'top' },
-  statusRow: { marginBottom: 4 },
-  chip: {
-    borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    marginRight: 8,
-    backgroundColor: '#ffffff',
-  },
-  chipActive: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
-  chipText: { fontSize: 13, color: '#374151', fontWeight: '500' },
-  chipTextActive: { color: '#ffffff' },
-  submitButton: {
-    minHeight: 44,
-    borderRadius: 8,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  submitButtonDisabled: { opacity: 0.6 },
-  submitButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
-  error: {
-    color: '#b91c1c',
-    backgroundColor: '#fef2f2',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
-    marginBottom: 4,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { padding: 20, gap: 6 },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+    label: { fontSize: 13, fontWeight: '600', color: colors.textMuted, marginTop: 10 },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      fontSize: 15,
+      backgroundColor: colors.surface,
+    },
+    multiline: { minHeight: 90, textAlignVertical: 'top' },
+    statusRow: { marginBottom: 4 },
+    chip: {
+      borderRadius: 9999,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      marginRight: 8,
+      backgroundColor: colors.surface,
+    },
+    chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+    chipText: { fontSize: 13, color: colors.textMuted, fontWeight: '500' },
+    chipTextActive: { color: colors.surface },
+    submitButton: {
+      minHeight: 44,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 20,
+    },
+    submitButtonDisabled: { opacity: 0.6 },
+    submitButtonText: { color: colors.surface, fontSize: 16, fontWeight: '600' },
+    error: {
+      color: colors.danger,
+      backgroundColor: colors.dangerSurface,
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 14,
+      marginBottom: 4,
+    },
+  });
+}

@@ -3,6 +3,7 @@ import { ActivityIndicator, Text } from 'react-native';
 import { useDocumentVersionOutcomes } from '../hooks/useAnalyticsQueries';
 import { AnalyticsCard } from './AnalyticsCard';
 import { RatioBar } from './RatioBar';
+import { useTheme } from '../../../theme/ThemeContext';
 
 const DOCUMENT_TYPE_LABEL: Record<string, string> = {
   resume: 'Resume',
@@ -10,9 +11,10 @@ const DOCUMENT_TYPE_LABEL: Record<string, string> = {
 };
 
 export function DocumentVersionOutcomesSection() {
+  const { colors } = useTheme();
   const { data, isLoading } = useDocumentVersionOutcomes();
 
-  if (isLoading) return <ActivityIndicator color="#2563eb" />;
+  if (isLoading) return <ActivityIndicator color={colors.primary} />;
   if (!data) return null;
 
   return (
@@ -22,7 +24,9 @@ export function DocumentVersionOutcomesSection() {
       testID="document-version-outcomes-section"
     >
       {data.length === 0 ? (
-        <Text style={{ fontSize: 12, color: '#9ca3af' }}>No document versions tracked yet.</Text>
+        <Text style={{ fontSize: 12, color: colors.textFaint }}>
+          No document versions tracked yet.
+        </Text>
       ) : (
         data.map((o) => (
           <RatioBar

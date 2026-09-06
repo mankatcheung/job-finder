@@ -19,18 +19,22 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: jest.fn(),
 }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useLocalSearchParams } from 'expo-router';
 import { useAppendOptimisticMessage, useChatHistory } from '../../hooks/useChatHistory';
 import { useCreateConversation } from '../../hooks/useConversations';
 import { streamChatMessage } from '../../lib/chatStream';
 import { ChatScreen } from '../ChatScreen';
 import type { ChatMessage } from '../../types';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseChatHistory = jest.mocked(useChatHistory);
 const mockedUseAppendOptimisticMessage = jest.mocked(useAppendOptimisticMessage);
 const mockedUseCreateConversation = jest.mocked(useCreateConversation);
 const mockedStreamChatMessage = jest.mocked(streamChatMessage);
 const mockedUseLocalSearchParams = jest.mocked(useLocalSearchParams);
+const mockedUseTheme = jest.mocked(useTheme);
 
 const message: ChatMessage = {
   id: '1',
@@ -51,6 +55,12 @@ function renderScreen(conversationId: string | null) {
 
 describe('ChatScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
     mockedUseAppendOptimisticMessage.mockReturnValue(jest.fn());
   });

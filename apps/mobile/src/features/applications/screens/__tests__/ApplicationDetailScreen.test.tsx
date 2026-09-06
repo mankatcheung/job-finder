@@ -9,16 +9,20 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: jest.fn(),
 }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useApplication } from '../../hooks/useApplicationQueries';
 import { useDeleteApplication } from '../../hooks/useApplicationMutations';
 import { ApplicationDetailScreen } from '../ApplicationDetailScreen';
 import type { Application } from '../../types';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseApplication = jest.mocked(useApplication);
 const mockedUseDeleteApplication = jest.mocked(useDeleteApplication);
 const mockedUseRouter = jest.mocked(useRouter);
 const mockedUseLocalSearchParams = jest.mocked(useLocalSearchParams);
+const mockedUseTheme = jest.mocked(useTheme);
 
 const application: Application = {
   id: '1',
@@ -48,6 +52,12 @@ function renderScreen(push = jest.fn(), back = jest.fn()) {
 
 describe('ApplicationDetailScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
   });
 

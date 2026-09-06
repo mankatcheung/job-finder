@@ -3,12 +3,16 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 jest.mock('../../hooks/useProfile', () => ({ useProfile: jest.fn(), useUpdateProfile: jest.fn() }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useProfile, useUpdateProfile } from '../../hooks/useProfile';
 import { ProfileScreen } from '../ProfileScreen';
 import type { Profile } from '../../types';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseProfile = jest.mocked(useProfile);
 const mockedUseUpdateProfile = jest.mocked(useUpdateProfile);
+const mockedUseTheme = jest.mocked(useTheme);
 
 const profile: Profile = {
   id: '1',
@@ -20,6 +24,12 @@ const profile: Profile = {
 
 describe('ProfileScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
   });
 

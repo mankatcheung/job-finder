@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -15,8 +15,12 @@ import { NotificationListItem } from '../components/NotificationListItem';
 import { resolveNotificationRoute } from '../lib/resolveNotificationRoute';
 import { getErrorMessage } from '../../../lib/errors';
 import type { NotificationItem } from '../types';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 export function NotificationsScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const {
     data,
@@ -56,7 +60,7 @@ export function NotificationsScreen() {
       )}
 
       {isLoading ? (
-        <ActivityIndicator style={styles.loading} size="large" color="#2563eb" />
+        <ActivityIndicator style={styles.loading} size="large" color={colors.primary} />
       ) : isError ? (
         <View style={styles.centered}>
           <Text style={styles.error}>{getErrorMessage(error)}</Text>
@@ -82,7 +86,7 @@ export function NotificationsScreen() {
           onEndReachedThreshold={0.4}
           ListFooterComponent={
             isFetchingNextPage ? (
-              <ActivityIndicator style={styles.footerLoading} color="#2563eb" />
+              <ActivityIndicator style={styles.footerLoading} color={colors.primary} />
             ) : null
           }
         />
@@ -91,22 +95,24 @@ export function NotificationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  headerBar: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  headerAction: { color: '#2563eb', fontSize: 13, fontWeight: '600' },
-  loading: { marginTop: 40 },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  emptyText: { fontSize: 14, color: '#6b7280' },
-  error: { fontSize: 14, color: '#b91c1c', textAlign: 'center' },
-  separator: { height: 1, backgroundColor: '#e5e7eb', marginLeft: 42 },
-  footerLoading: { paddingVertical: 16 },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    headerBar: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    headerAction: { color: colors.primary, fontSize: 13, fontWeight: '600' },
+    loading: { marginTop: 40 },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+    emptyText: { fontSize: 14, color: colors.textSubtle },
+    error: { fontSize: 14, color: colors.danger, textAlign: 'center' },
+    separator: { height: 1, backgroundColor: colors.border, marginLeft: 42 },
+    footerLoading: { paddingVertical: 16 },
+  });
+}
