@@ -1,10 +1,14 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import '../../../../i18n';
 
 jest.mock('../../hooks/useCalendarQueries', () => ({ useCalendarEvents: jest.fn() }));
 jest.mock('expo-router', () => ({ useRouter: jest.fn() }));
 
 jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
+jest.mock('../../../../i18n/LanguageContext', () => ({
+  useLanguage: jest.fn(() => ({ mode: 'system', resolvedLanguage: 'en', setMode: jest.fn() })),
+}));
 import { useRouter } from 'expo-router';
 import { useCalendarEvents } from '../../hooks/useCalendarQueries';
 import { CalendarScreen } from '../CalendarScreen';

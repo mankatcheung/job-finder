@@ -1,6 +1,7 @@
 import React from 'react';
 import { Alert, Text } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import '../../../../i18n';
 
 jest.mock('../../hooks/useSessions', () => ({
   useSessions: jest.fn(),

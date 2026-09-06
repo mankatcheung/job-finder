@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { Share } from 'react-native';
+import '../../../../i18n';
 
 jest.mock('../../hooks/useIntegrations', () => ({
   useApiTokens: jest.fn(),

@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useNotes } from '../hooks/useNoteQueries';
 import { useCreateNote, useDeleteNote, useUpdateNote } from '../hooks/useNoteMutations';
 import type { Note } from '../types';
@@ -30,6 +31,7 @@ function NoteRow({
   onDelete: () => void;
   isSaving: boolean;
 }) {
+  const { t } = useTranslation('notes');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [isEditing, setIsEditing] = useState(false);
@@ -54,7 +56,7 @@ function NoteRow({
             }}
             testID={`note-save-${note.id}`}
           >
-            <Text style={styles.link}>Save</Text>
+            <Text style={styles.link}>{t('save')}</Text>
           </Pressable>
           <Pressable
             onPress={() => {
@@ -62,7 +64,7 @@ function NoteRow({
               setIsEditing(false);
             }}
           >
-            <Text style={styles.linkMuted}>Cancel</Text>
+            <Text style={styles.linkMuted}>{t('cancel')}</Text>
           </Pressable>
         </View>
       </View>
@@ -74,19 +76,19 @@ function NoteRow({
       <Text style={styles.content}>{note.content}</Text>
       <View style={styles.rowActions}>
         <Pressable onPress={() => setIsEditing(true)} testID={`note-edit-${note.id}`}>
-          <Text style={styles.link}>Edit</Text>
+          <Text style={styles.link}>{t('edit')}</Text>
         </Pressable>
         <Pressable
           onPress={() =>
-            Alert.alert('Delete note', 'This cannot be undone.', [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'Delete', style: 'destructive', onPress: onDelete },
+            Alert.alert(t('deleteNoteTitle'), t('deleteNoteMessage'), [
+              { text: t('cancel'), style: 'cancel' },
+              { text: t('delete'), style: 'destructive', onPress: onDelete },
             ])
           }
           disabled={isSaving}
           testID={`note-delete-${note.id}`}
         >
-          <Text style={styles.linkDanger}>Delete</Text>
+          <Text style={styles.linkDanger}>{t('delete')}</Text>
         </Pressable>
       </View>
     </View>
@@ -94,6 +96,7 @@ function NoteRow({
 }
 
 export function NotesScreen() {
+  const { t } = useTranslation('notes');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { id: applicationId } = useLocalSearchParams<{ id: string }>();
@@ -109,7 +112,7 @@ export function NotesScreen() {
     if (!content) return;
     createNote.mutate(content, {
       onSuccess: () => setDraft(''),
-      onError: (err) => Alert.alert('Could not add note', getErrorMessage(err)),
+      onError: (err) => Alert.alert(t('couldNotAddNoteTitle'), getErrorMessage(err)),
     });
   };
 
@@ -138,7 +141,7 @@ export function NotesScreen() {
         data={notes ?? []}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={<Text style={styles.emptyText}>No notes yet.</Text>}
+        ListEmptyComponent={<Text style={styles.emptyText}>{t('emptyText')}</Text>}
         renderItem={({ item }) => (
           <NoteRow
             note={item}
@@ -146,12 +149,12 @@ export function NotesScreen() {
             onUpdate={(content) =>
               updateNote.mutate(
                 { id: item.id, content },
-                { onError: (err) => Alert.alert('Could not save', getErrorMessage(err)) },
+                { onError: (err) => Alert.alert(t('couldNotSaveTitle'), getErrorMessage(err)) },
               )
             }
             onDelete={() =>
               deleteNote.mutate(item.id, {
-                onError: (err) => Alert.alert('Could not delete', getErrorMessage(err)),
+                onError: (err) => Alert.alert(t('couldNotDeleteTitle'), getErrorMessage(err)),
               })
             }
           />
@@ -162,7 +165,7 @@ export function NotesScreen() {
       <View style={styles.addRow}>
         <TextInput
           style={[styles.input, styles.addInput]}
-          placeholder="Add a note"
+          placeholder={t('addNotePlaceholder')}
           value={draft}
           onChangeText={setDraft}
           multiline
@@ -174,7 +177,7 @@ export function NotesScreen() {
           disabled={createNote.isPending}
           testID="add-note-button"
         >
-          <Text style={styles.addButtonText}>Add</Text>
+          <Text style={styles.addButtonText}>{t('add')}</Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>

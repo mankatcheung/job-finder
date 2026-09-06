@@ -1,5 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, Text } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useResponseTimeAnalytics } from '../hooks/useAnalyticsQueries';
 import { statusLabel } from '../../applications/components/StatusBadge';
 import type { ApplicationStatus } from '../../applications/types';
@@ -13,6 +14,7 @@ function formatDays(n: number | null): string {
 }
 
 export function ResponseTimeAnalyticsSection() {
+  const { t } = useTranslation('analytics');
   const { colors } = useTheme();
   const { data, isLoading } = useResponseTimeAnalytics();
 
@@ -23,20 +25,22 @@ export function ResponseTimeAnalyticsSection() {
 
   return (
     <AnalyticsCard
-      title="Response times"
-      description="How long applications sit in each stage, and time to first response."
+      title={t('cards.responseTimes')}
+      description={t('cards.responseTimesDescription')}
       testID="response-time-analytics-section"
     >
       <Text style={{ fontSize: 11, color: colors.textFaint }}>
-        First response: {formatDays(data.timeToFirstResponse.medianDays)} median (
-        {data.timeToFirstResponse.sampleSize > 0
-          ? `${data.timeToFirstResponse.sampleSize} applications`
-          : 'no responses yet'}
-        )
+        {t('firstResponseSummary', {
+          value: formatDays(data.timeToFirstResponse.medianDays),
+          detail:
+            data.timeToFirstResponse.sampleSize > 0
+              ? t('applicationsCount', { count: data.timeToFirstResponse.sampleSize })
+              : t('noResponsesYet'),
+        })}
       </Text>
 
       {data.timeInStage.length === 0 ? (
-        <Text style={{ fontSize: 12, color: colors.textFaint }}>No stage durations yet.</Text>
+        <Text style={{ fontSize: 12, color: colors.textFaint }}>{t('noStageDurationsYet')}</Text>
       ) : (
         data.timeInStage.map((stat) => (
           <RatioBar

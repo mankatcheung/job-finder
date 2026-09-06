@@ -8,6 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../auth/AuthContext';
 import { getErrorMessage } from '../../../lib/errors';
 import { useDeleteAccount } from '../hooks/useDeleteAccount';
@@ -21,6 +22,7 @@ import type { ThemeColors } from '../../../theme/colors';
  * password-gated, so it shouldn't be reachable by accident.
  */
 export function DangerZoneScreen() {
+  const { t } = useTranslation('settings');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { logout } = useAuth();
@@ -44,17 +46,14 @@ export function DangerZoneScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.card}>
-        <Text style={styles.title}>Danger zone</Text>
-        <Text style={styles.description}>
-          Deleting your account is permanent. All your applications, notes, and documents will be
-          removed.
-        </Text>
+        <Text style={styles.title}>{t('danger.title')}</Text>
+        <Text style={styles.description}>{t('danger.description')}</Text>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <TextInput
           style={styles.input}
-          placeholder="Confirm your password"
+          placeholder={t('danger.confirmPasswordPlaceholder')}
           secureTextEntry
           value={password}
           onChangeText={setPassword}
@@ -70,7 +69,7 @@ export function DangerZoneScreen() {
           {deleteAccount.isPending ? (
             <ActivityIndicator color={colors.surface} />
           ) : (
-            <Text style={styles.deleteButtonText}>Delete my account</Text>
+            <Text style={styles.deleteButtonText}>{t('danger.deleteMyAccount')}</Text>
           )}
         </Pressable>
       </View>

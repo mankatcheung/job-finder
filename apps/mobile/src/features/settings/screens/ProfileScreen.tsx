@@ -10,12 +10,14 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useProfile, useUpdateProfile } from '../hooks/useProfile';
 import { getErrorMessage } from '../../../lib/errors';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
 
 export function ProfileScreen() {
+  const { t } = useTranslation('settings');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: profile, isLoading, isError, error } = useProfile();
@@ -59,7 +61,7 @@ export function ProfileScreen() {
     return (
       <View style={styles.centered}>
         <Text style={styles.error}>
-          {error ? getErrorMessage(error) : 'Could not load profile'}
+          {error ? getErrorMessage(error) : t('profile.couldNotLoad')}
         </Text>
       </View>
     );
@@ -72,12 +74,12 @@ export function ProfileScreen() {
     >
       <ScrollView contentContainerStyle={styles.content}>
         {saveError ? <Text style={styles.error}>{saveError}</Text> : null}
-        {saved ? <Text style={styles.success}>Saved.</Text> : null}
+        {saved ? <Text style={styles.success}>{t('profile.saved')}</Text> : null}
 
-        <Text style={styles.label}>Email</Text>
+        <Text style={styles.label}>{t('profile.emailLabel')}</Text>
         <Text style={styles.readOnly}>{profile.email}</Text>
 
-        <Text style={styles.label}>Name</Text>
+        <Text style={styles.label}>{t('profile.nameLabel')}</Text>
         <TextInput
           style={styles.input}
           value={name}
@@ -85,16 +87,16 @@ export function ProfileScreen() {
           testID="profile-name-input"
         />
 
-        <Text style={styles.label}>Timezone</Text>
+        <Text style={styles.label}>{t('profile.timezoneLabel')}</Text>
         <TextInput
           style={styles.input}
           value={timezone}
           onChangeText={setTimezone}
-          placeholder="e.g. Europe/London"
+          placeholder={t('profile.timezonePlaceholder')}
           testID="profile-timezone-input"
         />
 
-        <Text style={styles.label}>Target role</Text>
+        <Text style={styles.label}>{t('profile.targetRoleLabel')}</Text>
         <TextInput
           style={styles.input}
           value={targetRole}
@@ -109,7 +111,7 @@ export function ProfileScreen() {
           testID="profile-save-button"
         >
           <Text style={styles.saveButtonText}>
-            {updateProfile.isPending ? 'Saving...' : 'Save'}
+            {updateProfile.isPending ? t('profile.saving') : t('profile.save')}
           </Text>
         </Pressable>
       </ScrollView>

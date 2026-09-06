@@ -1,18 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useCalendarEvents } from '../hooks/useCalendarQueries';
 import { buildGrid, dateFromDayKey, dayKey, goToPeriod } from '../lib/calendarGrid';
 import { getErrorMessage } from '../../../lib/errors';
 import type { CalendarEvent, CalendarEventKind, CalendarViewMode } from '../types';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
-
-const EVENT_LABEL: Record<CalendarEventKind, string> = {
-  applied: 'Applied',
-  followUp: 'Follow-up',
-  interview: 'Interview',
-};
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 function eventDotColor(colors: ThemeColors): Record<CalendarEventKind, string> {
   return {
@@ -22,31 +18,32 @@ function eventDotColor(colors: ThemeColors): Record<CalendarEventKind, string> {
   };
 }
 
-const WEEKDAY_LABELS = Array.from({ length: 7 }, (_, i) =>
+function weekdayLabels(locale: string): string[] {
   // Jan 4, 2026 is a Sunday — used purely as a stable weekday-index anchor.
-  new Date(2026, 0, 4 + i).toLocaleDateString(undefined, { weekday: 'short' }),
-);
+  return Array.from({ length: 7 }, (_, i) =>
+    new Date(2026, 0, 4 + i).toLocaleDateString(locale, { weekday: 'short' }),
+  );
+}
 
-const VIEW_MODES: { mode: CalendarViewMode; label: string }[] = [
-  { mode: 'month', label: 'Month' },
-  { mode: 'week', label: 'Week' },
-  { mode: 'day', label: 'Day' },
-];
-
-function periodLabel(viewMode: CalendarViewMode, anchor: Date, grid: Date[]): string {
+function periodLabel(
+  viewMode: CalendarViewMode,
+  anchor: Date,
+  grid: Date[],
+  locale: string,
+): string {
   if (viewMode === 'month') {
-    return anchor.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    return anchor.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
   }
   if (viewMode === 'week') {
-    const start = grid[0].toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    const end = grid[6].toLocaleDateString(undefined, {
+    const start = grid[0].toLocaleDateString(locale, { month: 'short', day: 'numeric' });
+    const end = grid[6].toLocaleDateString(locale, {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     });
     return `${start} – ${end}`;
   }
-  return anchor.toLocaleDateString(undefined, {
+  return anchor.toLocaleDateString(locale, {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -55,9 +52,22 @@ function periodLabel(viewMode: CalendarViewMode, anchor: Date, grid: Date[]): st
 }
 
 export function CalendarScreen() {
+  const { t } = useTranslation('calendar');
+  const { resolvedLanguage } = useLanguage();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const eventDotColorMap = useMemo(() => eventDotColor(colors), [colors]);
+  const weekdayLabelList = useMemo(() => weekdayLabels(resolvedLanguage), [resolvedLanguage]);
+  const EVENT_LABEL: Record<CalendarEventKind, string> = {
+    applied: t('eventLabel.applied'),
+    followUp: t('eventLabel.followUp'),
+    interview: t('eventLabel.interview'),
+  };
+  const VIEW_MODES: { mode: CalendarViewMode; label: string }[] = [
+    { mode: 'month', label: t('viewModes.month') },
+    { mode: 'week', label: t('viewModes.week') },
+    { mode: 'day', label: t('viewModes.day') },
+  ];
   const router = useRouter();
   const { data: events, isLoading, isError, error, refetch } = useCalendarEvents();
 
@@ -119,7 +129,9 @@ export function CalendarScreen() {
           <Pressable onPress={() => changePeriod(-1)} testID="calendar-previous-period" hitSlop={8}>
             <Text style={styles.periodArrow}>‹</Text>
           </Pressable>
-          <Text style={styles.periodLabel}>{periodLabel(viewMode, anchorDate, grid)}</Text>
+          <Text style={styles.periodLabel}>
+            {periodLabel(viewMode, anchorDate, grid, resolvedLanguage)}
+          </Text>
           <Pressable onPress={() => changePeriod(1)} testID="calendar-next-period" hitSlop={8}>
             <Text style={styles.periodArrow}>›</Text>
           </Pressable>
@@ -132,7 +144,7 @@ export function CalendarScreen() {
         <View style={styles.centered}>
           <Text style={styles.error}>{getErrorMessage(error)}</Text>
           <Pressable onPress={() => void refetch()}>
-            <Text style={styles.link}>Retry</Text>
+            <Text style={styles.link}>{t('retry')}</Text>
           </Pressable>
         </View>
       ) : (
@@ -140,8 +152,8 @@ export function CalendarScreen() {
           {viewMode !== 'day' && (
             <>
               <View style={styles.weekdayRow}>
-                {WEEKDAY_LABELS.map((label) => (
-                  <Text key={label} style={styles.weekdayLabel}>
+                {weekdayLabelList.map((label, i) => (
+                  <Text key={`${label}-${i}`} style={styles.weekdayLabel}>
                     {label}
                   </Text>
                 ))}
@@ -188,9 +200,9 @@ export function CalendarScreen() {
           )}
 
           <View style={styles.eventsSection}>
-            {!dayInFocus && <Text style={styles.hintText}>Select a day to see its events.</Text>}
+            {!dayInFocus && <Text style={styles.hintText}>{t('selectDayHint')}</Text>}
             {dayInFocus && focusedEvents.length === 0 && (
-              <Text style={styles.hintText}>No events on this day.</Text>
+              <Text style={styles.hintText}>{t('noEventsOnDay')}</Text>
             )}
             {dayInFocus &&
               focusedEvents.map((event) => (
@@ -203,11 +215,16 @@ export function CalendarScreen() {
                   <View style={[styles.dot, { backgroundColor: eventDotColorMap[event.type] }]} />
                   <View style={styles.eventText}>
                     <Text style={styles.eventTitle}>
-                      {EVENT_LABEL[event.type]}
                       {event.type === 'interview' && event.interviewRoundType
-                        ? ` (${event.interviewRoundType})`
-                        : ''}{' '}
-                      — {event.company}
+                        ? t('eventTitleWithRound', {
+                            label: EVENT_LABEL[event.type],
+                            round: event.interviewRoundType,
+                            company: event.company,
+                          })
+                        : t('eventTitlePlain', {
+                            label: EVENT_LABEL[event.type],
+                            company: event.company,
+                          })}
                     </Text>
                     <Text style={styles.eventRole}>{event.role}</Text>
                   </View>

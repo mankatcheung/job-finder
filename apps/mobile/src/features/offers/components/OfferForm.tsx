@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { CURRENCIES, PERIODS, type Offer, type OfferFormData, type OfferPeriod } from '../types';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
@@ -12,6 +13,7 @@ interface OfferFormProps {
 }
 
 export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFormProps) {
+  const { t } = useTranslation('offers');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [baseSalary, setBaseSalary] = useState(String(initialData?.baseSalary ?? ''));
@@ -46,7 +48,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
     <View style={styles.form}>
       <View style={styles.row}>
         <View style={styles.half}>
-          <Text style={styles.label}>Base salary</Text>
+          <Text style={styles.label}>{t('baseSalaryLabel')}</Text>
           <TextInput
             style={styles.input}
             value={baseSalary}
@@ -56,7 +58,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
           />
         </View>
         <View style={styles.half}>
-          <Text style={styles.label}>Bonus</Text>
+          <Text style={styles.label}>{t('bonusLabel')}</Text>
           <TextInput
             style={styles.input}
             value={bonus}
@@ -67,7 +69,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
         </View>
       </View>
 
-      <Text style={styles.label}>Currency</Text>
+      <Text style={styles.label}>{t('currencyLabel')}</Text>
       <View style={styles.chipRow} testID="offer-currency-picker">
         {CURRENCIES.map((c) => (
           <Pressable
@@ -81,7 +83,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
         ))}
       </View>
 
-      <Text style={styles.label}>Period</Text>
+      <Text style={styles.label}>{t('periodLabel')}</Text>
       <View style={styles.chipRow} testID="offer-period-picker">
         {PERIODS.map((p) => (
           <Pressable
@@ -95,16 +97,16 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
         ))}
       </View>
 
-      <Text style={styles.label}>Equity</Text>
+      <Text style={styles.label}>{t('equityFieldLabel')}</Text>
       <TextInput
         style={styles.input}
         value={equity}
         onChangeText={setEquity}
-        placeholder="e.g. 0.1% over 4 years"
+        placeholder={t('equityPlaceholder')}
         testID="offer-equity-input"
       />
 
-      <Text style={styles.label}>Benefits</Text>
+      <Text style={styles.label}>{t('benefitsFieldLabel')}</Text>
       <TextInput
         style={[styles.input, styles.multiline]}
         value={benefits}
@@ -113,7 +115,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
         testID="offer-benefits-input"
       />
 
-      <Text style={styles.label}>Cost of living adjustment</Text>
+      <Text style={styles.label}>{t('costOfLivingLabel')}</Text>
       <TextInput
         style={styles.input}
         value={costOfLiving}
@@ -122,7 +124,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
         testID="offer-col-input"
       />
 
-      <Text style={styles.label}>Notes</Text>
+      <Text style={styles.label}>{t('notesLabel')}</Text>
       <TextInput
         style={[styles.input, styles.multiline]}
         value={notes}
@@ -133,7 +135,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
 
       <View style={styles.actions}>
         <Pressable onPress={onCancel} testID="offer-form-cancel-button">
-          <Text style={styles.cancelText}>Cancel</Text>
+          <Text style={styles.cancelText}>{t('cancel')}</Text>
         </Pressable>
         <Pressable
           style={[styles.saveButton, (!canSubmit || loading) && styles.saveButtonDisabled]}
@@ -144,7 +146,7 @@ export function OfferForm({ initialData, onSubmit, onCancel, loading }: OfferFor
           {loading ? (
             <ActivityIndicator color={colors.surface} />
           ) : (
-            <Text style={styles.saveText}>Save offer</Text>
+            <Text style={styles.saveText}>{t('saveOffer')}</Text>
           )}
         </Pressable>
       </View>

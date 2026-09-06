@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useAuth, type OAuthProviderName } from '../../auth/AuthContext';
 import { getErrorMessage } from '../../lib/errors';
 import { loginSchema, totpSchema } from './loginSchema';
@@ -19,6 +20,7 @@ import { useTheme } from '../../theme/ThemeContext';
 import type { ThemeColors } from '../../theme/colors';
 
 export function LoginScreen() {
+  const { t } = useTranslation(['auth', 'common']);
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
@@ -41,7 +43,7 @@ export function LoginScreen() {
       // AuthContext.loginWithOAuth always throws a plain Error with an
       // already user-facing message (an oauthError slug's copy, or a fixed
       // fallback) — not the GraphQL/network shapes getErrorMessage handles.
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      setError(err instanceof Error ? err.message : t('common:errorGeneric'));
     } finally {
       setOAuthProvider(null);
     }
@@ -51,7 +53,7 @@ export function LoginScreen() {
     setError(null);
     const parsed = loginSchema.safeParse({ email, password });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'Invalid input');
+      setError(parsed.error.issues[0]?.message ?? t('auth:validation.invalidInput'));
       return;
     }
 
@@ -70,7 +72,7 @@ export function LoginScreen() {
     setError(null);
     const parsed = totpSchema.safeParse({ code });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'Invalid code');
+      setError(parsed.error.issues[0]?.message ?? t('auth:validation.invalidCode'));
       return;
     }
 
@@ -91,14 +93,14 @@ export function LoginScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Text style={styles.title}>Two-factor authentication</Text>
-          <Text style={styles.subtitle}>Enter the 6-digit code from your authenticator app.</Text>
+          <Text style={styles.title}>{t('auth:totp.title')}</Text>
+          <Text style={styles.subtitle}>{t('auth:totp.subtitle')}</Text>
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <TextInput
             style={styles.input}
-            placeholder="123456"
+            placeholder={t('auth:totp.codePlaceholder')}
             value={code}
             onChangeText={setCode}
             keyboardType="number-pad"
@@ -115,12 +117,12 @@ export function LoginScreen() {
             {isSubmitting ? (
               <ActivityIndicator color={colors.surface} />
             ) : (
-              <Text style={styles.buttonText}>Verify</Text>
+              <Text style={styles.buttonText}>{t('auth:totp.verify')}</Text>
             )}
           </Pressable>
 
           <Pressable onPress={() => setTotpRequired(false)}>
-            <Text style={styles.link}>Back</Text>
+            <Text style={styles.link}>{t('auth:totp.back')}</Text>
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -133,14 +135,14 @@ export function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Trakwyn</Text>
-        <Text style={styles.subtitle}>Sign in to your account</Text>
+        <Text style={styles.title}>{t('auth:appName')}</Text>
+        <Text style={styles.subtitle}>{t('auth:login.subtitle')}</Text>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <TextInput
           style={styles.input}
-          placeholder="Email"
+          placeholder={t('auth:login.emailPlaceholder')}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -150,7 +152,7 @@ export function LoginScreen() {
         />
         <TextInput
           style={styles.input}
-          placeholder="Password"
+          placeholder={t('auth:login.passwordPlaceholder')}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -167,21 +169,21 @@ export function LoginScreen() {
           {isSubmitting ? (
             <ActivityIndicator color={colors.surface} />
           ) : (
-            <Text style={styles.buttonText}>Sign in</Text>
+            <Text style={styles.buttonText}>{t('auth:login.submit')}</Text>
           )}
         </Pressable>
 
         <Pressable onPress={() => router.push('/register')}>
-          <Text style={styles.link}>Don&apos;t have an account? Sign up</Text>
+          <Text style={styles.link}>{t('auth:login.noAccount')}</Text>
         </Pressable>
 
         <Pressable onPress={() => router.push('/forgot-password')}>
-          <Text style={styles.link}>Forgot your password?</Text>
+          <Text style={styles.link}>{t('auth:login.forgotPassword')}</Text>
         </Pressable>
 
         <View style={styles.dividerRow}>
           <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or</Text>
+          <Text style={styles.dividerText}>{t('auth:login.or')}</Text>
           <View style={styles.dividerLine} />
         </View>
 
@@ -196,7 +198,7 @@ export function LoginScreen() {
           ) : (
             <>
               <OAuthProviderLogo provider="google" />
-              <Text style={styles.oauthButtonText}>Sign in with Google</Text>
+              <Text style={styles.oauthButtonText}>{t('auth:login.googleSignIn')}</Text>
             </>
           )}
         </Pressable>
@@ -212,7 +214,7 @@ export function LoginScreen() {
           ) : (
             <>
               <OAuthProviderLogo provider="github" />
-              <Text style={styles.oauthButtonText}>Sign in with GitHub</Text>
+              <Text style={styles.oauthButtonText}>{t('auth:login.githubSignIn')}</Text>
             </>
           )}
         </Pressable>

@@ -9,6 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import {
   useApiTokens,
   useCreateApiToken,
@@ -41,6 +42,7 @@ export function IntegrationsScreen() {
 }
 
 function ApiTokensSection() {
+  const { t } = useTranslation('settings');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: tokens = [] } = useApiTokens();
@@ -71,14 +73,12 @@ function ApiTokensSection() {
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.cardHeaderText}>
-          <Text style={styles.title}>API tokens</Text>
-          <Text style={styles.description}>
-            Used to authenticate MCP and API access on your behalf.
-          </Text>
+          <Text style={styles.title}>{t('integrations.apiTokensTitle')}</Text>
+          <Text style={styles.description}>{t('integrations.apiTokensDescription')}</Text>
         </View>
         {!formOpen && !created && (
           <Pressable onPress={() => setFormOpen(true)} testID="new-api-token-button">
-            <Text style={styles.link}>+ New</Text>
+            <Text style={styles.link}>{t('integrations.new')}</Text>
           </Pressable>
         )}
       </View>
@@ -90,10 +90,10 @@ function ApiTokensSection() {
           </Text>
           <View style={styles.tokenActions}>
             <Pressable onPress={() => void Share.share({ message: created.token })}>
-              <Text style={styles.link}>Share</Text>
+              <Text style={styles.link}>{t('integrations.share')}</Text>
             </Pressable>
             <Pressable onPress={() => setCreated(null)} testID="dismiss-new-token-button">
-              <Text style={styles.link}>Done</Text>
+              <Text style={styles.link}>{t('integrations.done')}</Text>
             </Pressable>
           </View>
         </View>
@@ -104,7 +104,7 @@ function ApiTokensSection() {
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <TextInput
             style={styles.input}
-            placeholder="e.g. CI pipeline"
+            placeholder={t('integrations.apiTokenNamePlaceholder')}
             value={name}
             onChangeText={setName}
             testID="api-token-name-input"
@@ -118,7 +118,7 @@ function ApiTokensSection() {
                 testID={`api-token-scope-${s}`}
               >
                 <Text style={[styles.scopeChipText, scope === s && styles.scopeChipTextActive]}>
-                  {s === 'read' ? 'Read-only' : 'Full access'}
+                  {s === 'read' ? t('integrations.readOnly') : t('integrations.fullAccess')}
                 </Text>
               </Pressable>
             ))}
@@ -132,7 +132,7 @@ function ApiTokensSection() {
             {createToken.isPending ? (
               <ActivityIndicator color={colors.text} />
             ) : (
-              <Text style={styles.buttonText}>Create token</Text>
+              <Text style={styles.buttonText}>{t('integrations.createToken')}</Text>
             )}
           </Pressable>
         </View>
@@ -142,18 +142,21 @@ function ApiTokensSection() {
         <View key={token.id} style={styles.row} testID={`api-token-${token.id}`}>
           <View style={styles.rowText}>
             <Text style={styles.rowTitle}>
-              {token.name} · {token.scope === 'read' ? 'Read-only' : 'Full access'}
+              {token.name} ·{' '}
+              {token.scope === 'read' ? t('integrations.readOnly') : t('integrations.fullAccess')}
             </Text>
             <Text style={styles.rowMeta}>
-              Created {formatDate(token.createdAt)}
-              {token.lastUsedAt ? ` · last used ${formatDate(token.lastUsedAt)}` : ''}
+              {t('integrations.created', { date: formatDate(token.createdAt) })}
+              {token.lastUsedAt
+                ? t('integrations.lastUsed', { date: formatDate(token.lastUsedAt) })
+                : ''}
             </Text>
           </View>
           <Pressable
             onPress={() => deleteToken.mutate(token.id)}
             testID={`revoke-api-token-${token.id}`}
           >
-            <Text style={styles.linkDanger}>Revoke</Text>
+            <Text style={styles.linkDanger}>{t('integrations.revoke')}</Text>
           </Pressable>
         </View>
       ))}
@@ -162,6 +165,7 @@ function ApiTokensSection() {
 }
 
 function McpGrantsSection() {
+  const { t } = useTranslation('settings');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: grants = [], isLoading } = useMcpOAuthGrants();
@@ -169,29 +173,30 @@ function McpGrantsSection() {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>Connected MCP clients</Text>
-      <Text style={styles.description}>
-        Apps you&apos;ve authorized to access your data via MCP.
-      </Text>
+      <Text style={styles.title}>{t('integrations.mcpClientsTitle')}</Text>
+      <Text style={styles.description}>{t('integrations.mcpClientsDescription')}</Text>
 
       {isLoading ? (
         <ActivityIndicator color={colors.primary} />
       ) : grants.length === 0 ? (
-        <Text style={styles.emptyText}>No connected clients yet.</Text>
+        <Text style={styles.emptyText}>{t('integrations.noConnectedClientsYet')}</Text>
       ) : (
         grants.map((grant) => (
           <View key={grant.id} style={styles.row} testID={`mcp-grant-${grant.id}`}>
             <View style={styles.rowText}>
               <Text style={styles.rowTitle}>
-                {grant.clientName} · {grant.scope === 'read' ? 'Read-only' : 'Full access'}
+                {grant.clientName} ·{' '}
+                {grant.scope === 'read' ? t('integrations.readOnly') : t('integrations.fullAccess')}
               </Text>
-              <Text style={styles.rowMeta}>Authorized {formatDate(grant.authorizedAt)}</Text>
+              <Text style={styles.rowMeta}>
+                {t('integrations.authorized', { date: formatDate(grant.authorizedAt) })}
+              </Text>
             </View>
             <Pressable
               onPress={() => revokeGrant.mutate(grant.id)}
               testID={`revoke-mcp-grant-${grant.id}`}
             >
-              <Text style={styles.linkDanger}>Revoke</Text>
+              <Text style={styles.linkDanger}>{t('integrations.revoke')}</Text>
             </Pressable>
           </View>
         ))
@@ -201,6 +206,7 @@ function McpGrantsSection() {
 }
 
 function ShareLinksSection() {
+  const { t } = useTranslation('settings');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: links = [] } = useShareLinks();
@@ -229,12 +235,12 @@ function ShareLinksSection() {
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.cardHeaderText}>
-          <Text style={styles.title}>Share links</Text>
-          <Text style={styles.description}>Share a read-only summary of your job search.</Text>
+          <Text style={styles.title}>{t('integrations.shareLinksTitle')}</Text>
+          <Text style={styles.description}>{t('integrations.shareLinksDescription')}</Text>
         </View>
         {!formOpen && !created && (
           <Pressable onPress={() => setFormOpen(true)} testID="new-share-link-button">
-            <Text style={styles.link}>+ New</Text>
+            <Text style={styles.link}>{t('integrations.new')}</Text>
           </Pressable>
         )}
       </View>
@@ -246,10 +252,10 @@ function ShareLinksSection() {
           </Text>
           <View style={styles.tokenActions}>
             <Pressable onPress={() => void Share.share({ message: created.token })}>
-              <Text style={styles.link}>Share</Text>
+              <Text style={styles.link}>{t('integrations.share')}</Text>
             </Pressable>
             <Pressable onPress={() => setCreated(null)} testID="dismiss-new-share-link-button">
-              <Text style={styles.link}>Done</Text>
+              <Text style={styles.link}>{t('integrations.done')}</Text>
             </Pressable>
           </View>
         </View>
@@ -260,7 +266,7 @@ function ShareLinksSection() {
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <TextInput
             style={styles.input}
-            placeholder="e.g. For my mentor"
+            placeholder={t('integrations.shareLinkNamePlaceholder')}
             value={name}
             onChangeText={setName}
             testID="share-link-name-input"
@@ -274,7 +280,7 @@ function ShareLinksSection() {
             {createLink.isPending ? (
               <ActivityIndicator color={colors.text} />
             ) : (
-              <Text style={styles.buttonText}>Create link</Text>
+              <Text style={styles.buttonText}>{t('integrations.createLink')}</Text>
             )}
           </Pressable>
         </View>
@@ -284,13 +290,15 @@ function ShareLinksSection() {
         <View key={link.id} style={styles.row} testID={`share-link-${link.id}`}>
           <View style={styles.rowText}>
             <Text style={styles.rowTitle}>{link.name}</Text>
-            <Text style={styles.rowMeta}>Created {formatDate(link.createdAt)}</Text>
+            <Text style={styles.rowMeta}>
+              {t('integrations.created', { date: formatDate(link.createdAt) })}
+            </Text>
           </View>
           <Pressable
             onPress={() => deleteLink.mutate(link.id)}
             testID={`delete-share-link-${link.id}`}
           >
-            <Text style={styles.linkDanger}>Delete</Text>
+            <Text style={styles.linkDanger}>{t('integrations.delete')}</Text>
           </Pressable>
         </View>
       ))}

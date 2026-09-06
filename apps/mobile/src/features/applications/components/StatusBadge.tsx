@@ -1,18 +1,10 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import type { ApplicationStatus } from '../types';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
-
-const STATUS_LABELS: Record<ApplicationStatus, string> = {
-  draft: 'Draft',
-  applied: 'Applied',
-  interviewing: 'Interviewing',
-  offered: 'Offered',
-  accepted: 'Accepted',
-  rejected: 'Rejected',
-  withdrawn: 'Withdrawn',
-};
+import i18n from '../../../i18n';
 
 function statusColors(colors: ThemeColors): Record<ApplicationStatus, { bg: string; fg: string }> {
   return {
@@ -27,7 +19,7 @@ function statusColors(colors: ThemeColors): Record<ApplicationStatus, { bg: stri
 }
 
 export function statusLabel(status: ApplicationStatus): string {
-  return STATUS_LABELS[status];
+  return i18n.t(`applications:status.${status}`);
 }
 
 interface Props {
@@ -35,12 +27,13 @@ interface Props {
 }
 
 export function StatusBadge({ status }: Props) {
+  const { t } = useTranslation('applications');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const statusColor = statusColors(colors)[status];
   return (
     <View style={[styles.badge, { backgroundColor: statusColor.bg }]}>
-      <Text style={[styles.text, { color: statusColor.fg }]}>{STATUS_LABELS[status]}</Text>
+      <Text style={[styles.text, { color: statusColor.fg }]}>{t(`status.${status}`)}</Text>
     </View>
   );
 }

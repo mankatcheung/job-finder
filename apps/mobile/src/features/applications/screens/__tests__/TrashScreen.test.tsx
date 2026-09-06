@@ -1,6 +1,7 @@
 import React from 'react';
 import { Alert } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
+import '../../../../i18n';
 
 jest.mock('../../hooks/useApplicationQueries', () => ({ useTrashedApplications: jest.fn() }));
 jest.mock('../../hooks/useApplicationMutations', () => ({

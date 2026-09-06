@@ -1,6 +1,7 @@
 import React from 'react';
 import { Alert } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import '../../../../i18n';
 
 jest.mock('../../hooks/useApplicationQueries', () => ({ useApplication: jest.fn() }));
 jest.mock('../../hooks/useApplicationMutations', () => ({ useDeleteApplication: jest.fn() }));

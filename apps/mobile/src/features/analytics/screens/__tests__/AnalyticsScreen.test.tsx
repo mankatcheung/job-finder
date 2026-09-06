@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
+import '../../../../i18n';
 
 jest.mock('../../hooks/useAnalyticsQueries', () => ({
   useAnalyticsApplications: jest.fn(),
@@ -11,6 +12,9 @@ jest.mock('../../hooks/useAnalyticsQueries', () => ({
 }));
 
 jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
+jest.mock('../../../../i18n/LanguageContext', () => ({
+  useLanguage: jest.fn(() => ({ mode: 'system', resolvedLanguage: 'en', setMode: jest.fn() })),
+}));
 import {
   useAnalyticsApplications,
   useApplicationChannelAnalytics,

@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import '../../../i18n';
 
 jest.mock('../../../graphql/client', () => ({ gqlRequest: jest.fn() }));
 jest.mock('expo-router', () => ({ useRouter: jest.fn() }));

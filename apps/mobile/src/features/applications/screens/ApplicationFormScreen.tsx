@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useApplication } from '../hooks/useApplicationQueries';
 import { useCreateApplication, useUpdateApplication } from '../hooks/useApplicationMutations';
 import { statusLabel } from '../components/StatusBadge';
@@ -18,13 +19,15 @@ import { APPLICATION_STATUSES, type ApplicationStatus } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
+import i18n from '../../../i18n';
 import {
-  applicationFormSchema,
+  getApplicationFormSchema,
   EMPTY_APPLICATION_FORM_VALUES,
   type ApplicationFormValues,
 } from './applicationFormSchema';
 
 export function ApplicationFormScreen() {
+  const { t } = useTranslation('applications');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
@@ -59,9 +62,9 @@ export function ApplicationFormScreen() {
 
   const onSubmit = () => {
     setError(null);
-    const parsed = applicationFormSchema.safeParse(values);
+    const parsed = getApplicationFormSchema().safeParse(values);
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'Invalid input');
+      setError(parsed.error.issues[0]?.message ?? i18n.t('applications:form.invalidInput'));
       return;
     }
 
@@ -104,7 +107,7 @@ export function ApplicationFormScreen() {
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <Text style={styles.label}>Company</Text>
+        <Text style={styles.label}>{t('form.companyLabel')}</Text>
         <TextInput
           style={styles.input}
           value={values.company}
@@ -112,7 +115,7 @@ export function ApplicationFormScreen() {
           testID="form-company-input"
         />
 
-        <Text style={styles.label}>Role</Text>
+        <Text style={styles.label}>{t('form.roleLabel')}</Text>
         <TextInput
           style={styles.input}
           value={values.role}
@@ -120,7 +123,7 @@ export function ApplicationFormScreen() {
           testID="form-role-input"
         />
 
-        <Text style={styles.label}>Status</Text>
+        <Text style={styles.label}>{t('form.statusLabel')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statusRow}>
           {APPLICATION_STATUSES.map((status) => (
             <StatusChip
@@ -132,7 +135,7 @@ export function ApplicationFormScreen() {
           ))}
         </ScrollView>
 
-        <Text style={styles.label}>Job URL</Text>
+        <Text style={styles.label}>{t('form.jobUrlLabel')}</Text>
         <TextInput
           style={styles.input}
           value={values.jobUrl}
@@ -142,7 +145,7 @@ export function ApplicationFormScreen() {
           testID="form-joburl-input"
         />
 
-        <Text style={styles.label}>Location</Text>
+        <Text style={styles.label}>{t('form.locationLabel')}</Text>
         <TextInput
           style={styles.input}
           value={values.location}
@@ -150,7 +153,7 @@ export function ApplicationFormScreen() {
           testID="form-location-input"
         />
 
-        <Text style={styles.label}>Salary range</Text>
+        <Text style={styles.label}>{t('form.salaryRangeLabel')}</Text>
         <TextInput
           style={styles.input}
           value={values.salaryRange}
@@ -158,7 +161,7 @@ export function ApplicationFormScreen() {
           testID="form-salary-input"
         />
 
-        <Text style={styles.label}>Description</Text>
+        <Text style={styles.label}>{t('form.descriptionLabel')}</Text>
         <TextInput
           style={[styles.input, styles.multiline]}
           value={values.description}
@@ -175,7 +178,11 @@ export function ApplicationFormScreen() {
           testID="form-submit-button"
         >
           <Text style={styles.submitButtonText}>
-            {isSubmitting ? 'Saving...' : isEditing ? 'Save changes' : 'Create application'}
+            {isSubmitting
+              ? t('form.saving')
+              : isEditing
+                ? t('form.saveChanges')
+                : t('form.createApplication')}
           </Text>
         </Pressable>
       </ScrollView>

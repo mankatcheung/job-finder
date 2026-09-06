@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import '../../../../i18n';
 
 jest.mock('../../hooks/useChatHistory', () => ({
   useChatHistory: jest.fn(),

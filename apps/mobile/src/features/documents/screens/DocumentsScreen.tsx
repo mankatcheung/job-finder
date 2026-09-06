@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useDocuments } from '../hooks/useDocumentQueries';
 import { useDeleteDocument } from '../hooks/useDeleteDocument';
 import { useUploadDocument, type UploadDocumentInput } from '../hooks/useUploadDocument';
@@ -28,6 +29,7 @@ function formatSize(bytes: number): string {
 }
 
 function DocumentRow({ document, onDelete }: { document: Document; onDelete: () => void }) {
+  const { t } = useTranslation('documents');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
@@ -44,14 +46,18 @@ function DocumentRow({ document, onDelete }: { document: Document; onDelete: () 
         </Pressable>
         <Pressable
           onPress={() =>
-            Alert.alert('Delete document', `Delete ${document.name}?`, [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'Delete', style: 'destructive', onPress: onDelete },
-            ])
+            Alert.alert(
+              t('deleteDocumentTitle'),
+              t('deleteDocumentMessage', { name: document.name }),
+              [
+                { text: t('cancel'), style: 'cancel' },
+                { text: t('delete'), style: 'destructive', onPress: onDelete },
+              ],
+            )
           }
           testID={`delete-document-${document.id}`}
         >
-          <Text style={styles.linkDanger}>Delete</Text>
+          <Text style={styles.linkDanger}>{t('delete')}</Text>
         </Pressable>
       </View>
       {document.documentType !== 'other' ? (
@@ -62,6 +68,7 @@ function DocumentRow({ document, onDelete }: { document: Document; onDelete: () 
 }
 
 export function DocumentsScreen() {
+  const { t } = useTranslation('documents');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { id: applicationId } = useLocalSearchParams<{ id: string }>();
@@ -145,7 +152,7 @@ export function DocumentsScreen() {
           </ScrollView>
           <TextInput
             style={styles.input}
-            placeholder="Version (optional)"
+            placeholder={t('versionPlaceholder')}
             value={version}
             onChangeText={setVersion}
             testID="document-version-input"
@@ -158,11 +165,11 @@ export function DocumentsScreen() {
               testID="confirm-upload-button"
             >
               <Text style={styles.confirmButtonText}>
-                {uploadDocument.isPending ? 'Uploading...' : 'Upload'}
+                {uploadDocument.isPending ? t('uploading') : t('upload')}
               </Text>
             </Pressable>
             <Pressable onPress={() => setPending(null)} disabled={uploadDocument.isPending}>
-              <Text style={styles.linkMuted}>Cancel</Text>
+              <Text style={styles.linkMuted}>{t('cancel')}</Text>
             </Pressable>
           </View>
         </View>
@@ -172,7 +179,7 @@ export function DocumentsScreen() {
           onPress={() => void onPick()}
           testID="pick-document-button"
         >
-          <Text style={styles.pickButtonText}>Choose a file to upload</Text>
+          <Text style={styles.pickButtonText}>{t('chooseFile')}</Text>
         </Pressable>
       )}
 
@@ -180,13 +187,13 @@ export function DocumentsScreen() {
         data={documents ?? []}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={<Text style={styles.emptyText}>No documents yet.</Text>}
+        ListEmptyComponent={<Text style={styles.emptyText}>{t('emptyText')}</Text>}
         renderItem={({ item }) => (
           <DocumentRow
             document={item}
             onDelete={() =>
               deleteDocument.mutate(item.id, {
-                onError: (err) => Alert.alert('Could not delete', getErrorMessage(err)),
+                onError: (err) => Alert.alert(t('couldNotDeleteTitle'), getErrorMessage(err)),
               })
             }
           />

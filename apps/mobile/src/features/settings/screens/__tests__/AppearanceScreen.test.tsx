@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import '../../../../i18n';
 
 jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 

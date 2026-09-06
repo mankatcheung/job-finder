@@ -8,6 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from './AuthContext';
 import { ERROR_CODES } from '../constants';
 import { getErrorCode, getErrorMessage } from '../lib/errors';
@@ -71,6 +72,7 @@ function StepUpReauthPrompt({
   onSuccess: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation('auth');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { reauthenticate } = useAuth();
@@ -83,11 +85,11 @@ function StepUpReauthPrompt({
   const onSubmit = async () => {
     setError(null);
     if (!password) {
-      setError('Enter your password');
+      setError(t('stepUp.passwordRequired'));
       return;
     }
     if (totpRequired && !code.trim()) {
-      setError('Enter your 6-digit code or a backup code');
+      setError(t('validation.totpCode'));
       return;
     }
     setIsSubmitting(true);
@@ -109,17 +111,16 @@ function StepUpReauthPrompt({
     <Modal visible transparent animationType="fade" onRequestClose={onCancel}>
       <View style={styles.backdrop}>
         <View style={styles.sheet} testID="step-up-reauth">
-          <Text style={styles.title}>Confirm it&apos;s you</Text>
+          <Text style={styles.title}>{t('stepUp.title')}</Text>
           <Text style={styles.subtitle}>
-            This change needs a recent sign-in. Enter your password
-            {totpRequired ? ' and your authenticator code' : ''} to continue.
+            {totpRequired ? t('stepUp.subtitleWithTotp') : t('stepUp.subtitle')}
           </Text>
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder={t('stepUp.passwordPlaceholder')}
             secureTextEntry
             autoComplete="password"
             value={password}
@@ -130,7 +131,7 @@ function StepUpReauthPrompt({
           {totpRequired ? (
             <TextInput
               style={styles.input}
-              placeholder="123456"
+              placeholder={t('stepUp.codePlaceholder')}
               keyboardType="number-pad"
               value={code}
               onChangeText={setCode}
@@ -141,7 +142,7 @@ function StepUpReauthPrompt({
 
           <View style={styles.actions}>
             <Pressable onPress={onCancel} disabled={isSubmitting} testID="step-up-cancel-button">
-              <Text style={styles.cancelText}>Cancel</Text>
+              <Text style={styles.cancelText}>{t('stepUp.cancel')}</Text>
             </Pressable>
             <Pressable
               style={[styles.confirmButton, isSubmitting && styles.disabled]}
@@ -152,7 +153,9 @@ function StepUpReauthPrompt({
               {isSubmitting ? (
                 <ActivityIndicator color={colors.onPrimary} />
               ) : (
-                <Text style={styles.confirmText}>{totpRequired ? 'Verify code' : 'Confirm'}</Text>
+                <Text style={styles.confirmText}>
+                  {totpRequired ? t('stepUp.verifyCode') : t('stepUp.confirm')}
+                </Text>
               )}
             </Pressable>
           </View>

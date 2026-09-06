@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, usePathname, type Href } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../auth/AuthContext';
 import { useProfile } from '../../features/settings/hooks/useProfile';
 import { useUnreadNotificationCount } from '../../features/notifications/hooks/useNotificationQueries';
@@ -32,83 +33,87 @@ interface NavItem {
   isActive: (pathname: string) => boolean;
 }
 
-const PRIMARY_NAV: NavItem[] = [
-  {
-    key: 'dashboard',
-    label: 'Dashboard',
-    href: '/',
-    testID: 'sidebar-dashboard',
-    Icon: DashboardIcon,
-    isActive: (pathname) => pathname === '/',
-  },
-  {
-    key: 'applications',
-    label: 'Applications',
-    href: '/applications',
-    testID: 'sidebar-applications',
-    Icon: ApplicationsIcon,
-    isActive: (pathname) => pathname === '/applications',
-  },
-  {
-    key: 'board',
-    label: 'Board',
-    href: '/applications/board',
-    testID: 'sidebar-board',
-    Icon: BoardIcon,
-    isActive: (pathname) => pathname.startsWith('/applications/board'),
-  },
-  {
-    key: 'calendar',
-    label: 'Calendar',
-    href: '/calendar',
-    testID: 'sidebar-calendar',
-    Icon: CalendarIcon,
-    isActive: (pathname) => pathname.startsWith('/calendar'),
-  },
-  {
-    key: 'analytics',
-    label: 'Analytics',
-    href: '/analytics',
-    testID: 'sidebar-analytics',
-    Icon: AnalyticsIcon,
-    isActive: (pathname) => pathname.startsWith('/analytics'),
-  },
-  {
-    key: 'assistant',
-    label: 'Assistant',
-    href: '/conversations',
-    testID: 'sidebar-assistant',
-    Icon: AssistantIcon,
-    isActive: (pathname) => pathname.startsWith('/conversations'),
-  },
-  {
-    key: 'notifications',
-    label: 'Notifications',
-    href: '/notifications',
-    testID: 'sidebar-notifications',
-    Icon: NotificationsIcon,
-    isActive: (pathname) => pathname.startsWith('/notifications'),
-  },
-];
+function buildPrimaryNav(t: (key: string) => string): NavItem[] {
+  return [
+    {
+      key: 'dashboard',
+      label: t('sidebar.dashboard'),
+      href: '/',
+      testID: 'sidebar-dashboard',
+      Icon: DashboardIcon,
+      isActive: (pathname) => pathname === '/',
+    },
+    {
+      key: 'applications',
+      label: t('sidebar.applications'),
+      href: '/applications',
+      testID: 'sidebar-applications',
+      Icon: ApplicationsIcon,
+      isActive: (pathname) => pathname === '/applications',
+    },
+    {
+      key: 'board',
+      label: t('sidebar.board'),
+      href: '/applications/board',
+      testID: 'sidebar-board',
+      Icon: BoardIcon,
+      isActive: (pathname) => pathname.startsWith('/applications/board'),
+    },
+    {
+      key: 'calendar',
+      label: t('sidebar.calendar'),
+      href: '/calendar',
+      testID: 'sidebar-calendar',
+      Icon: CalendarIcon,
+      isActive: (pathname) => pathname.startsWith('/calendar'),
+    },
+    {
+      key: 'analytics',
+      label: t('sidebar.analytics'),
+      href: '/analytics',
+      testID: 'sidebar-analytics',
+      Icon: AnalyticsIcon,
+      isActive: (pathname) => pathname.startsWith('/analytics'),
+    },
+    {
+      key: 'assistant',
+      label: t('sidebar.assistant'),
+      href: '/conversations',
+      testID: 'sidebar-assistant',
+      Icon: AssistantIcon,
+      isActive: (pathname) => pathname.startsWith('/conversations'),
+    },
+    {
+      key: 'notifications',
+      label: t('sidebar.notifications'),
+      href: '/notifications',
+      testID: 'sidebar-notifications',
+      Icon: NotificationsIcon,
+      isActive: (pathname) => pathname.startsWith('/notifications'),
+    },
+  ];
+}
 
-const SECONDARY_NAV: NavItem[] = [
-  {
-    key: 'settings',
-    label: 'Settings',
-    href: '/settings',
-    testID: 'sidebar-settings',
-    Icon: SettingsIcon,
-    isActive: (pathname) => pathname.startsWith('/settings'),
-  },
-  {
-    key: 'trash',
-    label: 'Trash',
-    href: '/applications/trash',
-    testID: 'sidebar-trash',
-    Icon: TrashIcon,
-    isActive: (pathname) => pathname.startsWith('/applications/trash'),
-  },
-];
+function buildSecondaryNav(t: (key: string) => string): NavItem[] {
+  return [
+    {
+      key: 'settings',
+      label: t('sidebar.settings'),
+      href: '/settings',
+      testID: 'sidebar-settings',
+      Icon: SettingsIcon,
+      isActive: (pathname) => pathname.startsWith('/settings'),
+    },
+    {
+      key: 'trash',
+      label: t('sidebar.trash'),
+      href: '/applications/trash',
+      testID: 'sidebar-trash',
+      Icon: TrashIcon,
+      isActive: (pathname) => pathname.startsWith('/applications/trash'),
+    },
+  ];
+}
 
 function initials(name: string | null, email: string): string {
   if (name) {
@@ -163,6 +168,7 @@ function NotificationsBadge() {
 }
 
 export function AppSidebar() {
+  const { t } = useTranslation('navigation');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { isOpen, close } = useSidebar();
@@ -171,6 +177,8 @@ export function AppSidebar() {
   const { logout } = useAuth();
   const { data: profile } = useProfile();
   const insets = useSafeAreaInsets();
+  const primaryNav = useMemo(() => buildPrimaryNav(t), [t]);
+  const secondaryNav = useMemo(() => buildSecondaryNav(t), [t]);
 
   const navigate = (href: Href) => {
     close();
@@ -217,7 +225,7 @@ export function AppSidebar() {
           </View>
 
           <View style={styles.primaryNav}>
-            {PRIMARY_NAV.map((item) => (
+            {primaryNav.map((item) => (
               <NavRow
                 key={item.key}
                 item={item}
@@ -231,7 +239,7 @@ export function AppSidebar() {
             style={[styles.secondaryNav, { paddingBottom: insets.bottom + 12 }]}
             testID="sidebar-secondary-nav"
           >
-            {SECONDARY_NAV.map((item) => (
+            {secondaryNav.map((item) => (
               <NavRow
                 key={item.key}
                 item={item}
@@ -243,7 +251,7 @@ export function AppSidebar() {
             <Pressable style={styles.navRow} onPress={signOut} testID="sidebar-sign-out">
               <SignOutIcon color={colors.danger} />
               <Text style={[styles.navLabel, { color: colors.danger, fontWeight: '600' }]}>
-                Sign out
+                {t('sidebar.signOut')}
               </Text>
             </Pressable>
           </View>

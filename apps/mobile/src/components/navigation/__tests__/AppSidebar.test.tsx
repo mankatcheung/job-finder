@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import '../../../i18n';
 
 jest.mock('../../../auth/AuthContext', () => ({ useAuth: jest.fn() }));
 jest.mock('../../../features/settings/hooks/useProfile', () => ({ useProfile: jest.fn() }));

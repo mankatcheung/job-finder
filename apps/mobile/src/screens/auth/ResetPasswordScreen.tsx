@@ -10,6 +10,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { gqlRequest } from '../../graphql/client';
 import { getErrorMessage } from '../../lib/errors';
 import { resetPasswordSchema } from './resetPasswordSchema';
@@ -23,6 +24,7 @@ const RESET_PASSWORD_MUTATION = `
 `;
 
 export function ResetPasswordScreen() {
+  const { t } = useTranslation('auth');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
@@ -38,7 +40,7 @@ export function ResetPasswordScreen() {
     setError(null);
     const parsed = resetPasswordSchema.safeParse({ newPassword, confirmPassword });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'Invalid input');
+      setError(parsed.error.issues[0]?.message ?? t('validation.invalidInput'));
       return;
     }
     if (!token) return;
@@ -63,15 +65,15 @@ export function ResetPasswordScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Set a new password</Text>
+        <Text style={styles.title}>{t('resetPassword.title')}</Text>
 
         {!token ? (
           <Text style={styles.error} testID="reset-password-invalid-link">
-            This reset link is invalid or has expired. Request a new one.
+            {t('resetPassword.invalidLink')}
           </Text>
         ) : isSubmitted ? (
           <Text style={styles.success} testID="reset-password-success">
-            Your password has been reset. You can now sign in.
+            {t('resetPassword.successMessage')}
           </Text>
         ) : (
           <>
@@ -79,7 +81,7 @@ export function ResetPasswordScreen() {
 
             <TextInput
               style={styles.input}
-              placeholder="New password"
+              placeholder={t('resetPassword.newPasswordPlaceholder')}
               value={newPassword}
               onChangeText={setNewPassword}
               secureTextEntry
@@ -88,7 +90,7 @@ export function ResetPasswordScreen() {
             />
             <TextInput
               style={styles.input}
-              placeholder="Confirm new password"
+              placeholder={t('resetPassword.confirmPasswordPlaceholder')}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
@@ -105,14 +107,14 @@ export function ResetPasswordScreen() {
               {isSubmitting ? (
                 <ActivityIndicator color={colors.surface} />
               ) : (
-                <Text style={styles.buttonText}>Reset password</Text>
+                <Text style={styles.buttonText}>{t('resetPassword.submit')}</Text>
               )}
             </Pressable>
           </>
         )}
 
         <Pressable onPress={() => router.push('/login')}>
-          <Text style={styles.link}>Back to sign in</Text>
+          <Text style={styles.link}>{t('resetPassword.backToSignIn')}</Text>
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
 
@@ -27,6 +28,7 @@ export function RatioBar({
   sampleSize,
   testID,
 }: RatioBarProps) {
+  const { t } = useTranslation('analytics');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const resolvedColor = color ?? colors.primary;
@@ -49,7 +51,7 @@ export function RatioBar({
         />
       </View>
       <Text style={styles.percent}>{percentLabel ?? (percent != null ? `${percent}%` : '—')}</Text>
-      {smallSample ? <Text style={styles.smallSample}>small sample</Text> : null}
+      {smallSample ? <Text style={styles.smallSample}>{t('smallSample')}</Text> : null}
     </View>
   );
 }
