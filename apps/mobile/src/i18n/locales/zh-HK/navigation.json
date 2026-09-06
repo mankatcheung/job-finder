@@ -23,7 +23,8 @@
     "integrations": "整合",
     "data": "資料",
     "dangerZone": "危險區域",
-    "language": "語言"
+    "language": "語言",
+    "appearance": "外觀"
   },
   "sidebar": {
     "dashboard": "主頁",
@@ -36,5 +37,12 @@
     "settings": "設定",
     "trash": "垃圾桶",
     "signOut": "登出"
+  },
+  "tabs": {
+    "home": "主頁",
+    "applications": "求職申請",
+    "calendar": "日曆",
+    "assistant": "助理",
+    "settings": "設定"
   }
 }

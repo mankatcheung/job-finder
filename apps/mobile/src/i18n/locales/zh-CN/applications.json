@@ -46,7 +46,6 @@
   },
   "board": {
     "title": "看板",
-    "listView": "列表视图",
     "move": "移动",
     "moveModalTitle": "移动 {{company}}",
     "cancel": "取消"
@@ -65,6 +64,8 @@
   "list": {
     "searchPlaceholder": "搜索公司或职位",
     "all": "全部",
-    "empty": "还没有求职申请。"
+    "empty": "还没有求职申请。",
+    "viewList": "列表",
+    "viewBoard": "看板"
   }
 }

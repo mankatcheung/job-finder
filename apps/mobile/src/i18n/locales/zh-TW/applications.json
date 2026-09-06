@@ -46,7 +46,6 @@
   },
   "board": {
     "title": "看板",
-    "listView": "列表檢視",
     "move": "移動",
     "moveModalTitle": "移動 {{company}}",
     "cancel": "取消"
@@ -65,6 +64,8 @@
   "list": {
     "searchPlaceholder": "搜尋公司或職位",
     "all": "全部",
-    "empty": "尚無求職申請。"
+    "empty": "尚無求職申請。",
+    "viewList": "列表",
+    "viewBoard": "看板"
   }
 }

@@ -63,8 +63,8 @@ const applications: Application[] = [
   },
 ];
 
-function renderScreen(push = jest.fn(), replace = jest.fn()) {
-  mockedUseRouter.mockReturnValue({ push, replace } as never);
+function renderScreen(push = jest.fn()) {
+  mockedUseRouter.mockReturnValue({ push } as never);
   return render(<BoardScreen />);
 }
 
@@ -109,7 +109,7 @@ describe('BoardScreen', () => {
 
     await fireEvent.press(getByTestId('board-card-app-1'));
 
-    expect(push).toHaveBeenCalledWith('/applications/app-1');
+    expect(push).toHaveBeenCalledWith('./app-1');
   });
 
   it('moves a card to a different column via the move modal', async () => {
@@ -128,21 +128,5 @@ describe('BoardScreen', () => {
         orderedIds: ['app-2', 'app-1'],
       }),
     );
-  });
-
-  it('replaces the stack with the list view instead of pushing on top of the board', async () => {
-    mockedUseMoveApplicationOnBoard.mockReturnValue({
-      mutateAsync: jest.fn(),
-      isPending: false,
-    } as never);
-    const push = jest.fn();
-    const replace = jest.fn();
-
-    const { getByTestId } = await renderScreen(push, replace);
-
-    await fireEvent.press(getByTestId('switch-to-list-view'));
-
-    expect(replace).toHaveBeenCalledWith('/applications');
-    expect(push).not.toHaveBeenCalledWith('/applications');
   });
 });

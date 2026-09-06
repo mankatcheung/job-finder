@@ -68,10 +68,6 @@ export function BoardScreen() {
     <View style={styles.container}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>{t('board.title')}</Text>
-        {/* Replace, not push: list view is Board's own sidebar sibling section root (JEF-290). */}
-        <Pressable onPress={() => router.replace('/applications')} testID="switch-to-list-view">
-          <Text style={styles.link}>{t('board.listView')}</Text>
-        </Pressable>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.board}>
@@ -91,7 +87,7 @@ export function BoardScreen() {
                   <Pressable
                     key={id}
                     style={styles.card}
-                    onPress={() => router.push(`/applications/${id}`)}
+                    onPress={() => router.push(`./${id}`)}
                     onLongPress={() => setMovingApp(app)}
                     testID={`board-card-${id}`}
                   >
@@ -161,7 +157,6 @@ function createStyles(colors: ThemeColors) {
       paddingBottom: 8,
     },
     title: { fontSize: 20, fontWeight: '700', color: colors.text },
-    link: { color: colors.primary, fontSize: 13, fontWeight: '600' },
     loading: { marginTop: 40 },
     centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
     error: {

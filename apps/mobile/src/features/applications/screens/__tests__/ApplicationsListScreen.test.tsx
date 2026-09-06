@@ -3,6 +3,9 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import '../../../../i18n';
 
 jest.mock('../../hooks/useApplicationQueries', () => ({ useApplications: jest.fn() }));
+jest.mock('../../hooks/useApplicationMutations', () => ({
+  useMoveApplicationOnBoard: jest.fn(),
+}));
 jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
   Stack: { Screen: () => null },
@@ -11,12 +14,14 @@ jest.mock('expo-router', () => ({
 jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useRouter } from 'expo-router';
 import { useApplications } from '../../hooks/useApplicationQueries';
+import { useMoveApplicationOnBoard } from '../../hooks/useApplicationMutations';
 import { ApplicationsListScreen } from '../ApplicationsListScreen';
 import type { Application } from '../../types';
 import { useTheme } from '../../../../theme/ThemeContext';
 import { lightColors } from '../../../../theme/colors';
 
 const mockedUseApplications = jest.mocked(useApplications);
+const mockedUseMoveApplicationOnBoard = jest.mocked(useMoveApplicationOnBoard);
 const mockedUseRouter = jest.mocked(useRouter);
 const mockedUseTheme = jest.mocked(useTheme);
 
@@ -75,6 +80,10 @@ describe('ApplicationsListScreen', () => {
       setMode: jest.fn(),
     } as never);
     jest.clearAllMocks();
+    mockedUseMoveApplicationOnBoard.mockReturnValue({
+      mutateAsync: jest.fn(),
+      isPending: false,
+    } as never);
   });
 
   it('renders the list of applications', async () => {
@@ -108,7 +117,7 @@ describe('ApplicationsListScreen', () => {
 
     await fireEvent.press(getByTestId('application-item-1'));
 
-    expect(push).toHaveBeenCalledWith('/applications/1');
+    expect(push).toHaveBeenCalledWith('./1');
   });
 
   it('filters the list by search text', async () => {
@@ -144,7 +153,7 @@ describe('ApplicationsListScreen', () => {
 
     await fireEvent.press(getByTestId('add-application-button'));
 
-    expect(push).toHaveBeenCalledWith('/applications/new');
+    expect(push).toHaveBeenCalledWith('./new');
   });
 
   it('shows an empty state when there are no applications', async () => {
@@ -160,5 +169,25 @@ describe('ApplicationsListScreen', () => {
     const { findByText } = await renderScreen();
 
     await findByText('No applications yet.');
+  });
+
+  it('toggles to the board view without navigating', async () => {
+    const push = jest.fn();
+    mockedUseApplications.mockReturnValue({
+      data: applications,
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+      isRefetching: false,
+    } as never);
+
+    const { getByTestId, findByTestId, queryByTestId } = await renderScreen(push);
+
+    await fireEvent.press(getByTestId('applications-view-board'));
+
+    await findByTestId('board-column-applied');
+    expect(queryByTestId('applications-search-input')).toBeNull();
+    expect(push).not.toHaveBeenCalled();
   });
 });

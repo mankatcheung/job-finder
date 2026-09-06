@@ -18,7 +18,7 @@ import {
   chatHistoryQueryKey,
   useAppendOptimisticMessage,
 } from '../hooks/useChatHistory';
-import { conversationsQueryKey, useCreateConversation } from '../hooks/useConversations';
+import { conversationsQueryKey } from '../hooks/useConversations';
 import { ChatStreamError, streamChatMessage } from '../lib/chatStream';
 import type { ChatMessage } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
@@ -33,18 +33,20 @@ export function ChatScreen() {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const [conversationId, setConversationId] = useState<string | null>(id === 'new' ? null : id);
+  const { id: conversationId, initialMessage } = useLocalSearchParams<{
+    id: string;
+    initialMessage?: string;
+  }>();
   const queryClient = useQueryClient();
   const { data: history, isLoading } = useChatHistory(conversationId);
   const appendOptimistic = useAppendOptimisticMessage();
-  const createConversation = useCreateConversation();
 
   const [input, setInput] = useState('');
   const [streamingText, setStreamingText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
+  const autoSentInitialMessage = useRef(false);
 
   const messages = history ?? [];
 
@@ -52,23 +54,14 @@ export function ChatScreen() {
     listRef.current?.scrollToEnd({ animated: true });
   }, [messages.length, streamingText]);
 
-  const handleSend = async () => {
-    const trimmed = input.trim();
+  const sendMessage = async (trimmed: string) => {
     if (!trimmed || isSending) return;
-    setInput('');
     setSendError(null);
     setIsSending(true);
     setStreamingText('');
 
     try {
-      let targetConversationId = conversationId;
-      if (!targetConversationId) {
-        const created = await createConversation.mutateAsync({});
-        targetConversationId = created.id;
-        setConversationId(created.id);
-      }
-
-      appendOptimistic(targetConversationId, {
+      appendOptimistic(conversationId, {
         id: tempMessageId(),
         role: 'user',
         content: trimmed,
@@ -76,14 +69,12 @@ export function ChatScreen() {
       });
 
       await streamChatMessage({
-        conversationId: targetConversationId,
+        conversationId,
         message: trimmed,
         onDelta: (text) => setStreamingText((prev) => prev + text),
       });
 
-      await queryClient.invalidateQueries({
-        queryKey: chatHistoryQueryKey(targetConversationId),
-      });
+      await queryClient.invalidateQueries({ queryKey: chatHistoryQueryKey(conversationId) });
       void queryClient.invalidateQueries({ queryKey: conversationsQueryKey });
     } catch (err) {
       setSendError(err instanceof ChatStreamError ? err.message : getErrorMessage(err));
@@ -91,6 +82,24 @@ export function ChatScreen() {
       setIsSending(false);
       setStreamingText('');
     }
+  };
+
+  const sendMessageRef = useRef(sendMessage);
+  useEffect(() => {
+    sendMessageRef.current = sendMessage;
+  });
+
+  useEffect(() => {
+    if (!initialMessage || autoSentInitialMessage.current) return;
+    autoSentInitialMessage.current = true;
+    void sendMessageRef.current(initialMessage);
+  }, [initialMessage]);
+
+  const handleSend = () => {
+    const trimmed = input.trim();
+    if (!trimmed) return;
+    setInput('');
+    void sendMessage(trimmed);
   };
 
   return (
@@ -160,7 +169,7 @@ export function ChatScreen() {
         />
         <Pressable
           style={[styles.sendButton, (isSending || !input.trim()) && styles.sendButtonDisabled]}
-          onPress={() => void handleSend()}
+          onPress={handleSend}
           disabled={isSending || !input.trim()}
           testID="chat-send-button"
         >

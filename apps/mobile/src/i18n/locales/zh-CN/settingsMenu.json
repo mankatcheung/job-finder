@@ -9,5 +9,7 @@
   "integrations": "集成",
   "data": "数据",
   "dangerZone": "危险区域",
+  "analytics": "分析",
+  "trash": "回收站",
   "signOut": "退出登录"
 }

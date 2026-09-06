@@ -52,7 +52,7 @@ export function DashboardScreen() {
         <Text style={styles.title}>{t('title')}</Text>
         <Pressable
           style={styles.newButton}
-          onPress={() => router.push('/applications/new')}
+          onPress={() => router.push('./applications/new')}
           testID="dashboard-new-application-button"
         >
           <Text style={styles.newButtonText}>{t('newButton')}</Text>
@@ -130,8 +130,10 @@ export function DashboardScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>{t('upcoming.title')}</Text>
-            {/* Replace, not push: Calendar is its own sidebar section root (JEF-290). */}
-            <Pressable onPress={() => router.replace('/calendar')} testID="dashboard-view-calendar">
+            <Pressable
+              onPress={() => router.push('/(tabs)/calendar')}
+              testID="dashboard-view-calendar"
+            >
               <Text style={styles.link}>{t('upcoming.viewCalendar')}</Text>
             </Pressable>
           </View>
@@ -139,7 +141,7 @@ export function DashboardScreen() {
             <Pressable
               key={event.id}
               style={styles.eventRow}
-              onPress={() => router.push(`/applications/${event.applicationId}`)}
+              onPress={() => router.push(`./applications/${event.applicationId}`)}
               testID={`upcoming-event-${event.id}`}
             >
               <Text style={styles.eventMeta}>
@@ -159,7 +161,7 @@ export function DashboardScreen() {
         ) : isError ? (
           <Text style={styles.error}>{getErrorMessage(error)}</Text>
         ) : recentApps.length === 0 ? (
-          <Pressable onPress={() => router.push('/applications/new')}>
+          <Pressable onPress={() => router.push('./applications/new')}>
             <Text style={styles.emptyText}>{t('recent.empty')}</Text>
           </Pressable>
         ) : (
@@ -169,7 +171,7 @@ export function DashboardScreen() {
               <Pressable
                 key={app.id}
                 style={styles.appRow}
-                onPress={() => router.push(`/applications/${app.id}`)}
+                onPress={() => router.push(`./applications/${app.id}`)}
                 testID={`recent-application-${app.id}`}
               >
                 <View style={styles.appRowText}>

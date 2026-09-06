@@ -123,6 +123,6 @@ describe('OffersScreen', () => {
 
     await fireEvent.press(getByTestId('compare-offers-button'));
 
-    expect(push).toHaveBeenCalledWith('/applications/app-1/offers/compare');
+    expect(push).toHaveBeenCalledWith('./compare');
   });
 });

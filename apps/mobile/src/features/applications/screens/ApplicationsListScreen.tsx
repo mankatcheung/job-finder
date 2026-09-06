@@ -15,12 +15,14 @@ import { useTranslation } from 'react-i18next';
 import { useApplications } from '../hooks/useApplicationQueries';
 import { ApplicationListItem } from '../components/ApplicationListItem';
 import { statusLabel } from '../components/StatusBadge';
+import { BoardScreen } from './BoardScreen';
 import { APPLICATION_STATUSES, type Application, type ApplicationStatus } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
 
 type StatusFilter = 'all' | ApplicationStatus;
+type ViewMode = 'list' | 'board';
 
 function matchesSearch(application: Application, search: string): boolean {
   if (!search) return true;
@@ -38,6 +40,7 @@ export function ApplicationsListScreen() {
   const router = useRouter();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
 
   const { data, isLoading, isError, error, refetch, isRefetching } = useApplications(
     statusFilter === 'all' ? undefined : statusFilter,
@@ -50,72 +53,101 @@ export function ApplicationsListScreen() {
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.search}
-        placeholder={t('list.searchPlaceholder')}
-        value={search}
-        onChangeText={setSearch}
-        autoCapitalize="none"
-        testID="applications-search-input"
-      />
+      <View style={styles.viewToggle} testID="applications-view-toggle">
+        <Pressable
+          style={[styles.viewToggleOption, viewMode === 'list' && styles.viewToggleOptionActive]}
+          onPress={() => setViewMode('list')}
+          testID="applications-view-list"
+        >
+          <Text style={[styles.viewToggleText, viewMode === 'list' && styles.viewToggleTextActive]}>
+            {t('list.viewList')}
+          </Text>
+        </Pressable>
+        <Pressable
+          style={[styles.viewToggleOption, viewMode === 'board' && styles.viewToggleOptionActive]}
+          onPress={() => setViewMode('board')}
+          testID="applications-view-board"
+        >
+          <Text
+            style={[styles.viewToggleText, viewMode === 'board' && styles.viewToggleTextActive]}
+          >
+            {t('list.viewBoard')}
+          </Text>
+        </Pressable>
+      </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filtersScroll}
-        contentContainerStyle={styles.filters}
-        testID="applications-status-filters"
-      >
-        <FilterChip
-          label={t('list.all')}
-          active={statusFilter === 'all'}
-          onPress={() => setStatusFilter('all')}
-        />
-        {APPLICATION_STATUSES.map((status) => (
-          <FilterChip
-            key={status}
-            label={statusLabel(status)}
-            active={statusFilter === status}
-            onPress={() => setStatusFilter(status)}
-          />
-        ))}
-      </ScrollView>
-
-      {isLoading ? (
-        <ActivityIndicator style={styles.loading} size="large" color={colors.primary} />
-      ) : isError ? (
-        <View style={styles.centered}>
-          <Text style={styles.error}>{getErrorMessage(error)}</Text>
-        </View>
-      ) : applications.length === 0 ? (
-        <View style={styles.centered}>
-          <Text style={styles.emptyText}>{t('list.empty')}</Text>
-        </View>
+      {viewMode === 'board' ? (
+        <BoardScreen />
       ) : (
-        <FlatList
-          data={applications}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          refreshControl={
-            <RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} />
-          }
-          renderItem={({ item }) => (
-            <ApplicationListItem
-              application={item}
-              onPress={() => router.push(`/applications/${item.id}`)}
+        <>
+          <TextInput
+            style={styles.search}
+            placeholder={t('list.searchPlaceholder')}
+            value={search}
+            onChangeText={setSearch}
+            autoCapitalize="none"
+            testID="applications-search-input"
+          />
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filtersScroll}
+            contentContainerStyle={styles.filters}
+            testID="applications-status-filters"
+          >
+            <FilterChip
+              label={t('list.all')}
+              active={statusFilter === 'all'}
+              onPress={() => setStatusFilter('all')}
+            />
+            {APPLICATION_STATUSES.map((status) => (
+              <FilterChip
+                key={status}
+                label={statusLabel(status)}
+                active={statusFilter === status}
+                onPress={() => setStatusFilter(status)}
+              />
+            ))}
+          </ScrollView>
+
+          {isLoading ? (
+            <ActivityIndicator style={styles.loading} size="large" color={colors.primary} />
+          ) : isError ? (
+            <View style={styles.centered}>
+              <Text style={styles.error}>{getErrorMessage(error)}</Text>
+            </View>
+          ) : applications.length === 0 ? (
+            <View style={styles.centered}>
+              <Text style={styles.emptyText}>{t('list.empty')}</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={applications}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.list}
+              refreshControl={
+                <RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} />
+              }
+              renderItem={({ item }) => (
+                <ApplicationListItem
+                  application={item}
+                  onPress={() => router.push(`./${item.id}`)}
+                />
+              )}
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
             />
           )}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-        />
-      )}
 
-      <Pressable
-        style={styles.fab}
-        onPress={() => router.push('/applications/new')}
-        testID="add-application-button"
-      >
-        <Text style={styles.fabText}>+</Text>
-      </Pressable>
+          <Pressable
+            style={styles.fab}
+            onPress={() => router.push('./new')}
+            testID="add-application-button"
+          >
+            <Text style={styles.fabText}>+</Text>
+          </Pressable>
+        </>
+      )}
     </View>
   );
 }
@@ -145,6 +177,19 @@ function FilterChip({
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
+    viewToggle: {
+      flexDirection: 'row',
+      margin: 16,
+      marginBottom: 0,
+      backgroundColor: colors.surfaceAlt,
+      borderRadius: 8,
+      padding: 3,
+      alignSelf: 'flex-start',
+    },
+    viewToggleOption: { paddingHorizontal: 16, paddingVertical: 6, borderRadius: 6 },
+    viewToggleOptionActive: { backgroundColor: colors.surface },
+    viewToggleText: { fontSize: 13, color: colors.textSubtle, fontWeight: '500' },
+    viewToggleTextActive: { color: colors.text, fontWeight: '700' },
     search: {
       margin: 16,
       marginBottom: 8,

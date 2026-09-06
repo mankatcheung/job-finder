@@ -46,7 +46,6 @@
   },
   "board": {
     "title": "Board",
-    "listView": "List view",
     "move": "Move",
     "moveModalTitle": "Move {{company}}",
     "cancel": "Cancel"
@@ -65,6 +64,8 @@
   "list": {
     "searchPlaceholder": "Search company or role",
     "all": "All",
-    "empty": "No applications yet."
+    "empty": "No applications yet.",
+    "viewList": "List",
+    "viewBoard": "Board"
   }
 }
