@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import '../../../../i18n';
 
 jest.mock('../../hooks/useExperience', () => ({
   useWorkExperiences: jest.fn(),

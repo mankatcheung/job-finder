@@ -11,6 +11,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import {
   useRevokeOtherSessions,
   useRevokeSession,
@@ -27,10 +28,9 @@ import type { ThemeColors } from '../../../theme/colors';
 
 const OAUTH_PROVIDERS: OAuthProvider[] = ['google', 'github'];
 
-const OAUTH_PROVIDER_LABEL: Record<OAuthProvider, string> = {
-  google: 'Google',
-  github: 'GitHub',
-};
+function oauthProviderLabel(t: (key: string) => string, provider: OAuthProvider): string {
+  return provider === 'google' ? t('security.providerGoogle') : t('security.providerGithub');
+}
 
 function LinkedAccountRow({
   provider,
@@ -43,9 +43,10 @@ function LinkedAccountRow({
   onUnlink: () => void;
   isUnlinking: boolean;
 }) {
+  const { t } = useTranslation('settings');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const providerLabel = OAUTH_PROVIDER_LABEL[provider];
+  const providerLabel = oauthProviderLabel(t, provider);
   return (
     <View style={styles.oauthRow} testID={`linked-account-${provider}`}>
       <View style={styles.oauthRowMain}>
@@ -54,14 +55,19 @@ function LinkedAccountRow({
           <Text style={styles.sessionTitle}>{providerLabel}</Text>
           <Text style={styles.sessionMeta}>
             {linked
-              ? `${linked.email ?? 'Linked'} · since ${new Date(linked.createdAt).toLocaleDateString()}`
-              : 'Not linked'}
+              ? t('security.linkedSince', {
+                  email: linked.email ?? t('security.linkedDefault'),
+                  date: new Date(linked.createdAt).toLocaleDateString(),
+                })
+              : t('security.notLinked')}
           </Text>
         </View>
       </View>
       {linked ? (
         <Pressable onPress={onUnlink} disabled={isUnlinking} testID={`unlink-oauth-${provider}`}>
-          <Text style={styles.linkDanger}>{isUnlinking ? 'Unlinking...' : 'Unlink'}</Text>
+          <Text style={styles.linkDanger}>
+            {isUnlinking ? t('security.unlinking') : t('security.unlink')}
+          </Text>
         </Pressable>
       ) : null}
     </View>
@@ -69,25 +75,26 @@ function LinkedAccountRow({
 }
 
 function SessionRow({ session, onRevoke }: { session: Session; onRevoke: () => void }) {
+  const { t } = useTranslation('settings');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.sessionRow} testID={`session-${session.id}`}>
       <View style={styles.textColumn}>
         <Text style={styles.sessionTitle}>
-          {session.deviceLabel ?? session.userAgent ?? 'Unknown device'}
-          {session.current ? ' (this device)' : ''}
+          {session.deviceLabel ?? session.userAgent ?? t('security.unknownDevice')}
+          {session.current ? t('security.thisDevice') : ''}
         </Text>
         <Text style={styles.sessionMeta}>
           {[session.location, session.ipAddress].filter(Boolean).join(' · ')}
         </Text>
         <Text style={styles.sessionMeta}>
-          Last used {new Date(session.lastUsedAt).toLocaleString()}
+          {t('security.lastUsed', { date: new Date(session.lastUsedAt).toLocaleString() })}
         </Text>
       </View>
       {!session.current ? (
         <Pressable onPress={onRevoke} testID={`revoke-session-${session.id}`}>
-          <Text style={styles.linkDanger}>Revoke</Text>
+          <Text style={styles.linkDanger}>{t('security.revoke')}</Text>
         </Pressable>
       ) : null}
     </View>
@@ -95,6 +102,7 @@ function SessionRow({ session, onRevoke }: { session: Session; onRevoke: () => v
 }
 
 export function SecurityScreen() {
+  const { t } = useTranslation('settings');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: sessions, isLoading, isError, error } = useSessions();
@@ -119,7 +127,7 @@ export function SecurityScreen() {
     setPasswordError(null);
     setPasswordSaved(false);
     if (newPassword.length < 8) {
-      setPasswordError('New password must be at least 8 characters');
+      setPasswordError(t('security.newPasswordTooShort'));
       return;
     }
     try {
@@ -136,33 +144,41 @@ export function SecurityScreen() {
   };
 
   const onRevokeOthers = () => {
-    Alert.alert('Sign out other sessions', 'This will sign you out everywhere else.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign out others',
-        style: 'destructive',
-        onPress: () =>
-          revokeOthers.mutate(undefined, {
-            onError: (err) =>
-              Alert.alert('Could not sign out other sessions', getErrorMessage(err)),
-          }),
-      },
-    ]);
+    Alert.alert(
+      t('security.signOutOtherSessionsTitle'),
+      t('security.signOutOtherSessionsMessage'),
+      [
+        { text: t('security.cancel'), style: 'cancel' },
+        {
+          text: t('security.signOutOtherSessions'),
+          style: 'destructive',
+          onPress: () =>
+            revokeOthers.mutate(undefined, {
+              onError: (err) =>
+                Alert.alert(t('security.couldNotSignOutOthers'), getErrorMessage(err)),
+            }),
+        },
+      ],
+    );
   };
 
   const onUnlink = (provider: OAuthProvider) => {
-    const providerLabel = OAUTH_PROVIDER_LABEL[provider];
-    Alert.alert(`Unlink ${providerLabel}`, `This will unlink your ${providerLabel} account.`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Unlink',
-        style: 'destructive',
-        onPress: () =>
-          unlinkOAuthAccount.mutate(provider, {
-            onError: (err) => Alert.alert('Could not unlink', getErrorMessage(err)),
-          }),
-      },
-    ]);
+    const providerLabel = oauthProviderLabel(t, provider);
+    Alert.alert(
+      t('security.unlinkTitle', { provider: providerLabel }),
+      t('security.unlinkMessage', { provider: providerLabel }),
+      [
+        { text: t('security.cancel'), style: 'cancel' },
+        {
+          text: t('security.unlink'),
+          style: 'destructive',
+          onPress: () =>
+            unlinkOAuthAccount.mutate(provider, {
+              onError: (err) => Alert.alert(t('security.couldNotUnlink'), getErrorMessage(err)),
+            }),
+        },
+      ],
+    );
   };
 
   return (
@@ -171,7 +187,7 @@ export function SecurityScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionTitle}>Sessions</Text>
+        <Text style={styles.sectionTitle}>{t('security.sessionsTitle')}</Text>
         {isLoading ? (
           <ActivityIndicator color={colors.primary} testID="sessions-loading" />
         ) : isError ? (
@@ -184,7 +200,8 @@ export function SecurityScreen() {
                 session={session}
                 onRevoke={() =>
                   revokeSession.mutate(session.id, {
-                    onError: (err) => Alert.alert('Could not revoke', getErrorMessage(err)),
+                    onError: (err) =>
+                      Alert.alert(t('security.couldNotRevoke'), getErrorMessage(err)),
                   })
                 }
               />
@@ -195,13 +212,15 @@ export function SecurityScreen() {
                 onPress={onRevokeOthers}
                 testID="revoke-other-sessions-button"
               >
-                <Text style={styles.revokeOthersText}>Sign out other sessions</Text>
+                <Text style={styles.revokeOthersText}>{t('security.signOutOtherSessions')}</Text>
               </Pressable>
             ) : null}
           </>
         )}
 
-        <Text style={[styles.sectionTitle, styles.sectionSpacing]}>Linked accounts</Text>
+        <Text style={[styles.sectionTitle, styles.sectionSpacing]}>
+          {t('security.linkedAccountsTitle')}
+        </Text>
         {linkedAccountsLoading ? (
           <ActivityIndicator color={colors.primary} testID="linked-accounts-loading" />
         ) : linkedAccountsError ? (
@@ -220,12 +239,14 @@ export function SecurityScreen() {
           ))
         )}
 
-        <Text style={[styles.sectionTitle, styles.sectionSpacing]}>Change password</Text>
+        <Text style={[styles.sectionTitle, styles.sectionSpacing]}>
+          {t('security.changePasswordTitle')}
+        </Text>
         {passwordError ? <Text style={styles.error}>{passwordError}</Text> : null}
-        {passwordSaved ? <Text style={styles.success}>Password updated.</Text> : null}
+        {passwordSaved ? <Text style={styles.success}>{t('security.passwordUpdated')}</Text> : null}
         <TextInput
           style={styles.input}
-          placeholder="Current password"
+          placeholder={t('security.currentPasswordPlaceholder')}
           secureTextEntry
           value={currentPassword}
           onChangeText={setCurrentPassword}
@@ -233,7 +254,7 @@ export function SecurityScreen() {
         />
         <TextInput
           style={styles.input}
-          placeholder="New password"
+          placeholder={t('security.newPasswordPlaceholder')}
           secureTextEntry
           value={newPassword}
           onChangeText={setNewPassword}
@@ -246,7 +267,7 @@ export function SecurityScreen() {
           testID="change-password-button"
         >
           <Text style={styles.saveButtonText}>
-            {updatePassword.isPending ? 'Saving...' : 'Update password'}
+            {updatePassword.isPending ? t('security.saving') : t('security.updatePassword')}
           </Text>
         </Pressable>
       </ScrollView>

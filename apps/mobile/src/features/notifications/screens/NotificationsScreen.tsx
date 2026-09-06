@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useNotificationsPage } from '../hooks/useNotificationQueries';
 import { useMarkNotificationsRead } from '../hooks/useNotificationMutations';
 import { NotificationListItem } from '../components/NotificationListItem';
@@ -19,6 +20,7 @@ import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
 
 export function NotificationsScreen() {
+  const { t } = useTranslation('notifications');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
@@ -54,7 +56,7 @@ export function NotificationsScreen() {
             onPress={() => markRead.mutate({ ids: unreadIds, isRead: true })}
             testID="mark-all-read-button"
           >
-            <Text style={styles.headerAction}>Mark all as read</Text>
+            <Text style={styles.headerAction}>{t('markAllRead')}</Text>
           </Pressable>
         </View>
       )}
@@ -67,7 +69,7 @@ export function NotificationsScreen() {
         </View>
       ) : items.length === 0 ? (
         <View style={styles.centered}>
-          <Text style={styles.emptyText}>You&apos;re all caught up.</Text>
+          <Text style={styles.emptyText}>{t('allCaughtUp')}</Text>
         </View>
       ) : (
         <FlatList

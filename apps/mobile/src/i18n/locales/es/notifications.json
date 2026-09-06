@@ -1,0 +1,11 @@
+{
+  "markAllRead": "Marcar todo como leído",
+  "allCaughtUp": "Estás al día.",
+  "justNow": "Justo ahora",
+  "minutesAgo_one": "hace {{count}}m",
+  "minutesAgo_other": "hace {{count}}m",
+  "hoursAgo_one": "hace {{count}}h",
+  "hoursAgo_other": "hace {{count}}h",
+  "daysAgo_one": "hace {{count}}d",
+  "daysAgo_other": "hace {{count}}d"
+}

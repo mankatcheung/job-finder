@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import '../../i18n';
 
 jest.mock('../AuthContext', () => ({ useAuth: jest.fn() }));
 

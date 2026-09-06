@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { Share } from 'react-native';
+import '../../../../i18n';
 
 jest.mock('../../hooks/useAccountData', () => ({
   useExportUserData: jest.fn(),

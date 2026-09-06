@@ -1,0 +1,14 @@
+{
+  "deleteNoteTitle": "Eliminar nota",
+  "deleteNoteMessage": "Esto no se puede deshacer.",
+  "cancel": "Cancelar",
+  "delete": "Eliminar",
+  "save": "Guardar",
+  "edit": "Editar",
+  "emptyText": "Aún no hay notas.",
+  "addNotePlaceholder": "Añadir una nota",
+  "add": "Añadir",
+  "couldNotAddNoteTitle": "No se pudo añadir la nota",
+  "couldNotSaveTitle": "No se pudo guardar",
+  "couldNotDeleteTitle": "No se pudo eliminar"
+}

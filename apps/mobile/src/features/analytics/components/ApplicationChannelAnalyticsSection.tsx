@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useApplicationChannelAnalytics } from '../hooks/useAnalyticsQueries';
 import { AnalyticsCard } from './AnalyticsCard';
 import { RatioBar } from './RatioBar';
@@ -8,6 +9,7 @@ import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
 
 function GroupRow({ stat }: { stat: ApplicationGroupStat }) {
+  const { t } = useTranslation('analytics');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
@@ -17,13 +19,13 @@ function GroupRow({ stat }: { stat: ApplicationGroupStat }) {
       </Text>
       <Text style={styles.groupCount}>{stat.applicationCount}</Text>
       <RatioBar
-        label="Response"
+        label={t('responseLabel')}
         percent={stat.responseRate}
         color="#a855f7"
         sampleSize={stat.applicationCount}
       />
       <RatioBar
-        label="Offer"
+        label={t('cards.offers')}
         percent={stat.offerRate}
         color="#22c55e"
         sampleSize={stat.applicationCount}
@@ -33,6 +35,7 @@ function GroupRow({ stat }: { stat: ApplicationGroupStat }) {
 }
 
 export function ApplicationChannelAnalyticsSection() {
+  const { t } = useTranslation('analytics');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { data, isLoading } = useApplicationChannelAnalytics();
@@ -42,20 +45,20 @@ export function ApplicationChannelAnalyticsSection() {
 
   return (
     <AnalyticsCard
-      title="Channels & tags"
-      description="Which source or tag is actually working."
+      title={t('cards.channelsAndTags')}
+      description={t('cards.channelsAndTagsDescription')}
       testID="application-channel-analytics-section"
     >
-      <Text style={styles.subheading}>By source</Text>
+      <Text style={styles.subheading}>{t('bySource')}</Text>
       {data.bySource.length === 0 ? (
-        <Text style={styles.empty}>No sources tracked yet.</Text>
+        <Text style={styles.empty}>{t('noSourcesTracked')}</Text>
       ) : (
         data.bySource.map((stat) => <GroupRow key={stat.label} stat={stat} />)
       )}
 
-      <Text style={styles.subheading}>By tag</Text>
+      <Text style={styles.subheading}>{t('byTag')}</Text>
       {data.byTag.length === 0 ? (
-        <Text style={styles.empty}>No tags used yet.</Text>
+        <Text style={styles.empty}>{t('noTagsUsed')}</Text>
       ) : (
         data.byTag.map((stat) => <GroupRow key={stat.label} stat={stat} />)
       )}

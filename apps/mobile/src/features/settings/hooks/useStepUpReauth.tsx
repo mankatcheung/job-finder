@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { gqlRequest } from '../../../graphql/client';
 import { getErrorMessage } from '../../../lib/errors';
 import { REAUTHENTICATE_MUTATION } from '../graphql/operations';
@@ -72,6 +73,7 @@ function StepUpReauthDialog({
   onSuccess: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation('settings');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [password, setPassword] = useState('');
@@ -104,14 +106,14 @@ function StepUpReauthDialog({
     <Modal transparent animationType="fade" onRequestClose={onCancel} testID="step-up-reauth-modal">
       <View style={styles.backdrop}>
         <View style={styles.dialog}>
-          <Text style={styles.title}>Confirm it&apos;s you</Text>
-          <Text style={styles.subtitle}>Re-enter your password to continue.</Text>
+          <Text style={styles.title}>{t('stepUp.title')}</Text>
+          <Text style={styles.subtitle}>{t('stepUp.subtitle')}</Text>
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder={t('stepUp.passwordPlaceholder')}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
@@ -122,7 +124,7 @@ function StepUpReauthDialog({
           {totpRequired && (
             <TextInput
               style={styles.input}
-              placeholder="6-digit code"
+              placeholder={t('stepUp.codePlaceholder')}
               keyboardType="number-pad"
               value={code}
               onChangeText={setCode}
@@ -133,7 +135,7 @@ function StepUpReauthDialog({
 
           <View style={styles.actions}>
             <Pressable onPress={onCancel} testID="step-up-cancel-button">
-              <Text style={styles.cancelText}>Cancel</Text>
+              <Text style={styles.cancelText}>{t('stepUp.cancel')}</Text>
             </Pressable>
             <Pressable
               style={[styles.confirmButton, isSubmitting && styles.confirmButtonDisabled]}
@@ -142,7 +144,11 @@ function StepUpReauthDialog({
               testID="step-up-confirm-button"
             >
               <Text style={styles.confirmText}>
-                {isSubmitting ? 'Verifying…' : totpRequired ? 'Verify code' : 'Confirm'}
+                {isSubmitting
+                  ? t('stepUp.verifying')
+                  : totpRequired
+                    ? t('stepUp.verifyCode')
+                    : t('stepUp.confirm')}
               </Text>
             </Pressable>
           </View>

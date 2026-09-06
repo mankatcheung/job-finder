@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n';
 import { useExportUserData, useImportUserData } from '../hooks/useAccountData';
 import { getErrorMessage } from '../../../lib/errors';
 import type { ImportSummary } from '../types';
@@ -18,19 +20,20 @@ import type { ThemeColors } from '../../../theme/colors';
 
 function summaryText(summary: ImportSummary): string {
   const parts = [
-    `${summary.applicationsImported} application${summary.applicationsImported === 1 ? '' : 's'} imported`,
-    `${summary.notesImported} note${summary.notesImported === 1 ? '' : 's'} imported`,
+    i18n.t('settings:data.applicationsImported', { count: summary.applicationsImported }),
+    i18n.t('settings:data.notesImported', { count: summary.notesImported }),
   ];
   if (summary.applicationsSkipped > 0) {
-    parts.push(`${summary.applicationsSkipped} application(s) skipped`);
+    parts.push(i18n.t('settings:data.applicationsSkipped', { count: summary.applicationsSkipped }));
   }
   if (summary.documentsSkipped > 0) {
-    parts.push(`${summary.documentsSkipped} document(s) skipped`);
+    parts.push(i18n.t('settings:data.documentsSkipped', { count: summary.documentsSkipped }));
   }
   return parts.join(', ');
 }
 
 export function DataScreen() {
+  const { t } = useTranslation('settings');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const exportUserData = useExportUserData();
@@ -41,7 +44,7 @@ export function DataScreen() {
   const onExport = async () => {
     try {
       const json = await exportUserData.mutateAsync();
-      await Share.share({ message: json, title: 'Trakwyn data export' });
+      await Share.share({ message: json, title: t('data.exportShareTitle') });
     } catch {
       // Silent — export errors are non-critical, matching apps/web.
     }
@@ -68,10 +71,8 @@ export function DataScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.card}>
-        <Text style={styles.title}>Export your data</Text>
-        <Text style={styles.description}>
-          Download all your applications, notes, and documents as a JSON file.
-        </Text>
+        <Text style={styles.title}>{t('data.exportTitle')}</Text>
+        <Text style={styles.description}>{t('data.exportDescription')}</Text>
         <Pressable
           style={styles.button}
           onPress={onExport}
@@ -81,16 +82,14 @@ export function DataScreen() {
           {exportUserData.isPending ? (
             <ActivityIndicator color={colors.text} />
           ) : (
-            <Text style={styles.buttonText}>Download export</Text>
+            <Text style={styles.buttonText}>{t('data.downloadExport')}</Text>
           )}
         </Pressable>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.title}>Import data</Text>
-        <Text style={styles.description}>
-          Restore applications and notes from a previously exported JSON file.
-        </Text>
+        <Text style={styles.title}>{t('data.importTitle')}</Text>
+        <Text style={styles.description}>{t('data.importDescription')}</Text>
         {importError ? <Text style={styles.error}>{importError}</Text> : null}
         {importResult ? (
           <Text style={styles.success} testID="import-result">
@@ -106,7 +105,7 @@ export function DataScreen() {
           {importUserData.isPending ? (
             <ActivityIndicator color={colors.text} />
           ) : (
-            <Text style={styles.buttonText}>Choose file to import</Text>
+            <Text style={styles.buttonText}>{t('data.chooseFileToImport')}</Text>
           )}
         </Pressable>
       </View>

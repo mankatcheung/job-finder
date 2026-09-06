@@ -10,6 +10,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../auth/AuthContext';
 import { getErrorMessage } from '../../lib/errors';
 import { registerSchema } from './registerSchema';
@@ -17,6 +18,7 @@ import { useTheme } from '../../theme/ThemeContext';
 import type { ThemeColors } from '../../theme/colors';
 
 export function RegisterScreen() {
+  const { t } = useTranslation('auth');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
@@ -32,7 +34,7 @@ export function RegisterScreen() {
     setError(null);
     const parsed = registerSchema.safeParse({ email, password, confirmPassword });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'Invalid input');
+      setError(parsed.error.issues[0]?.message ?? t('validation.invalidInput'));
       return;
     }
 
@@ -52,13 +54,13 @@ export function RegisterScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Create your account</Text>
+        <Text style={styles.title}>{t('register.title')}</Text>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <TextInput
           style={styles.input}
-          placeholder="Email"
+          placeholder={t('register.emailPlaceholder')}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -68,7 +70,7 @@ export function RegisterScreen() {
         />
         <TextInput
           style={styles.input}
-          placeholder="Password"
+          placeholder={t('register.passwordPlaceholder')}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -77,7 +79,7 @@ export function RegisterScreen() {
         />
         <TextInput
           style={styles.input}
-          placeholder="Confirm password"
+          placeholder={t('register.confirmPasswordPlaceholder')}
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           secureTextEntry
@@ -94,12 +96,12 @@ export function RegisterScreen() {
           {isSubmitting ? (
             <ActivityIndicator color={colors.surface} />
           ) : (
-            <Text style={styles.buttonText}>Sign up</Text>
+            <Text style={styles.buttonText}>{t('register.submit')}</Text>
           )}
         </Pressable>
 
         <Pressable onPress={() => router.push('/login')}>
-          <Text style={styles.link}>Already have an account? Sign in</Text>
+          <Text style={styles.link}>{t('register.haveAccount')}</Text>
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>

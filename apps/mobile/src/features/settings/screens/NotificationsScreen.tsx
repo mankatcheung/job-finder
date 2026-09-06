@@ -9,6 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import {
   useNotificationPreferences,
   useUpdateNotificationPreferences,
@@ -20,15 +21,15 @@ import { getErrorMessage } from '../../../lib/errors';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
 
-const DIGEST_OPTIONS: { value: DigestFrequency; label: string }[] = [
-  { value: 'OFF', label: 'Off' },
-  { value: 'DAILY', label: 'Daily' },
-  { value: 'WEEKLY', label: 'Weekly' },
-];
-
 export function NotificationsScreen() {
+  const { t } = useTranslation('settings');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const DIGEST_OPTIONS: { value: DigestFrequency; label: string }[] = [
+    { value: 'OFF', label: t('notifications.digestOff') },
+    { value: 'DAILY', label: t('notifications.digestDaily') },
+    { value: 'WEEKLY', label: t('notifications.digestWeekly') },
+  ];
   const { data: preferences, isLoading, isError, error } = useNotificationPreferences();
   const updatePreferences = useUpdateNotificationPreferences();
   const enablePush = useEnablePushNotifications();
@@ -101,7 +102,7 @@ export function NotificationsScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {saveError ? <Text style={styles.error}>{saveError}</Text> : null}
 
-      <Text style={styles.label}>Digest emails</Text>
+      <Text style={styles.label}>{t('notifications.digestEmails')}</Text>
       <View style={styles.chipRow}>
         {DIGEST_OPTIONS.map((option) => (
           <Pressable
@@ -123,7 +124,7 @@ export function NotificationsScreen() {
       </View>
 
       <View style={styles.switchRow}>
-        <Text style={styles.label}>Follow-up reminders</Text>
+        <Text style={styles.label}>{t('notifications.followUpReminders')}</Text>
         <Switch
           value={followUpRemindersEnabled}
           onValueChange={(value) => {
@@ -135,7 +136,7 @@ export function NotificationsScreen() {
       </View>
 
       <View style={styles.switchRow}>
-        <Text style={styles.label}>Push notifications</Text>
+        <Text style={styles.label}>{t('notifications.pushNotifications')}</Text>
         <Switch
           value={pushNotificationsEnabled}
           onValueChange={onTogglePush}
@@ -144,7 +145,7 @@ export function NotificationsScreen() {
         />
       </View>
 
-      <Text style={styles.label}>Weekly application goal</Text>
+      <Text style={styles.label}>{t('notifications.weeklyGoal')}</Text>
       <TextInput
         style={styles.input}
         value={weeklyGoal}

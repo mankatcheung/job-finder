@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import '../../../../i18n';
 
 jest.mock('../../../../auth/AuthContext', () => ({ useAuth: jest.fn() }));
 jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
@@ -42,6 +43,9 @@ describe('SettingsScreen', () => {
 
     await fireEvent.press(getByTestId('settings-appearance-row'));
     expect(push).toHaveBeenCalledWith('/settings/appearance');
+
+    await fireEvent.press(getByTestId('settings-language-row'));
+    expect(push).toHaveBeenCalledWith('/settings/language');
 
     await fireEvent.press(getByTestId('settings-ai-row'));
     expect(push).toHaveBeenCalledWith('/settings/ai');

@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useConversations, useDeleteConversation } from '../hooks/useConversations';
 import type { Conversation } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
@@ -16,6 +17,7 @@ import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
 
 export function ConversationsScreen() {
+  const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
@@ -23,14 +25,15 @@ export function ConversationsScreen() {
   const deleteConversation = useDeleteConversation();
 
   const onDelete = (conversation: Conversation) => {
-    Alert.alert('Delete conversation', 'This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('conversations.deleteTitle'), t('conversations.deleteMessage'), [
+      { text: t('conversations.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('conversations.delete'),
         style: 'destructive',
         onPress: () =>
           deleteConversation.mutate(conversation.id, {
-            onError: (err) => Alert.alert('Could not delete', getErrorMessage(err)),
+            onError: (err) =>
+              Alert.alert(t('conversations.couldNotDeleteTitle'), getErrorMessage(err)),
           }),
       },
     ]);
@@ -58,7 +61,7 @@ export function ConversationsScreen() {
         data={conversations ?? []}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={<Text style={styles.emptyText}>No conversations yet.</Text>}
+        ListEmptyComponent={<Text style={styles.emptyText}>{t('conversations.empty')}</Text>}
         renderItem={({ item }) => (
           <Pressable
             style={styles.row}
@@ -67,7 +70,7 @@ export function ConversationsScreen() {
           >
             <View style={styles.textColumn}>
               <Text style={styles.title} numberOfLines={1}>
-                {item.title ?? 'New conversation'}
+                {item.title ?? t('conversations.newConversation')}
               </Text>
               <Text style={styles.meta}>{new Date(item.updatedAt).toLocaleDateString()}</Text>
             </View>
@@ -76,7 +79,7 @@ export function ConversationsScreen() {
               hitSlop={8}
               testID={`delete-conversation-${item.id}`}
             >
-              <Text style={styles.linkDanger}>Delete</Text>
+              <Text style={styles.linkDanger}>{t('conversations.delete')}</Text>
             </Pressable>
           </Pressable>
         )}
@@ -88,7 +91,7 @@ export function ConversationsScreen() {
         onPress={() => router.push('/conversations/new')}
         testID="new-conversation-button"
       >
-        <Text style={styles.newButtonText}>New conversation</Text>
+        <Text style={styles.newButtonText}>{t('conversations.newConversation')}</Text>
       </Pressable>
     </View>
   );

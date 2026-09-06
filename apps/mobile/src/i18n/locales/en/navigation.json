@@ -1,0 +1,40 @@
+{
+  "screenTitles": {
+    "dashboard": "Dashboard",
+    "calendar": "Calendar",
+    "notifications": "Notifications",
+    "applications": "Applications",
+    "newApplication": "New application",
+    "analytics": "Analytics",
+    "board": "Board",
+    "trash": "Trash",
+    "application": "Application",
+    "editApplication": "Edit application",
+    "notes": "Notes",
+    "documents": "Documents",
+    "offers": "Offers",
+    "compareOffers": "Compare offers",
+    "assistant": "Assistant",
+    "settings": "Settings",
+    "profile": "Profile",
+    "security": "Security",
+    "ai": "AI",
+    "experience": "Experience",
+    "integrations": "Integrations",
+    "data": "Data",
+    "dangerZone": "Danger zone",
+    "language": "Language"
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "applications": "Applications",
+    "board": "Board",
+    "calendar": "Calendar",
+    "analytics": "Analytics",
+    "assistant": "Assistant",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "trash": "Trash",
+    "signOut": "Sign out"
+  }
+}

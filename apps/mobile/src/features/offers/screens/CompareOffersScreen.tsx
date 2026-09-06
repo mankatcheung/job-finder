@@ -1,16 +1,20 @@
 import React, { useState, useMemo } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useCompareOffers, useOffers } from '../hooks/useOfferQueries';
 import { formatSalary } from '../lib/formatSalary';
 import { getErrorMessage } from '../../../lib/errors';
 import type { OfferComparison } from '../types';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 export function CompareOffersScreen() {
+  const { t } = useTranslation('offers');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { resolvedLanguage } = useLanguage();
   const { id: applicationId } = useLocalSearchParams<{ id: string }>();
   const { data: offers, isLoading } = useOffers(applicationId);
   const compareOffers = useCompareOffers();
@@ -38,15 +42,15 @@ export function CompareOffersScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Compare offers</Text>
+      <Text style={styles.title}>{t('compareOffersTitle')}</Text>
 
       {isLoading ? (
         <ActivityIndicator size="large" color={colors.primary} />
       ) : items.length === 0 ? (
-        <Text style={styles.emptyText}>No offers to compare.</Text>
+        <Text style={styles.emptyText}>{t('noOffersToCompare')}</Text>
       ) : (
         <>
-          <Text style={styles.hint}>Select two or more offers to compare.</Text>
+          <Text style={styles.hint}>{t('selectHint')}</Text>
           <View style={styles.optionsGrid}>
             {items.map((offer) => {
               const selected = selectedIds.includes(offer.id);
@@ -58,14 +62,21 @@ export function CompareOffersScreen() {
                   testID={`compare-offer-option-${offer.id}`}
                 >
                   <Text style={styles.optionSalary}>
-                    {formatSalary(offer.baseSalary, offer.currency, offer.period)}
+                    {formatSalary(offer.baseSalary, offer.currency, offer.period, resolvedLanguage)}
                   </Text>
                   {offer.bonus ? (
                     <Text style={styles.optionMeta}>
-                      +{formatSalary(offer.bonus, offer.currency)} bonus
+                      {t('bonusSuffixCompact', {
+                        amount: formatSalary(
+                          offer.bonus,
+                          offer.currency,
+                          undefined,
+                          resolvedLanguage,
+                        ),
+                      })}
                     </Text>
                   ) : null}
-                  {selected && <Text style={styles.checkmark}>✓ selected</Text>}
+                  {selected && <Text style={styles.checkmark}>{t('selected')}</Text>}
                 </Pressable>
               );
             })}
@@ -83,7 +94,9 @@ export function CompareOffersScreen() {
             {compareOffers.isPending ? (
               <ActivityIndicator color={colors.surface} />
             ) : (
-              <Text style={styles.compareButtonText}>Compare {selectedIds.length} offers</Text>
+              <Text style={styles.compareButtonText}>
+                {t('compareCount', { count: selectedIds.length })}
+              </Text>
             )}
           </Pressable>
 
@@ -98,21 +111,32 @@ export function CompareOffersScreen() {
               <View style={styles.resultHeader}>
                 <Text style={styles.resultCompany}>
                   {comp.company}
-                  {index === 0 ? '  · Best' : ''}
+                  {index === 0 ? t('bestSuffix') : ''}
                 </Text>
                 <Text style={styles.resultTotal}>
-                  {formatSalary(comp.totalCompensation, 'USD')}
+                  {formatSalary(comp.totalCompensation, 'USD', undefined, resolvedLanguage)}
                 </Text>
               </View>
               <Text style={styles.resultRole}>{comp.role}</Text>
               <Text style={styles.resultMeta}>
-                Base (normalized/yr): {formatSalary(comp.normalizedYearlySalary, 'USD')}
+                {t('baseNormalizedLabel', {
+                  amount: formatSalary(
+                    comp.normalizedYearlySalary,
+                    'USD',
+                    undefined,
+                    resolvedLanguage,
+                  ),
+                })}
               </Text>
               {comp.offer.equity ? (
-                <Text style={styles.resultMeta}>Equity: {comp.offer.equity}</Text>
+                <Text style={styles.resultMeta}>
+                  {t('equityLabel', { value: comp.offer.equity })}
+                </Text>
               ) : null}
               {comp.offer.benefits ? (
-                <Text style={styles.resultMeta}>Benefits: {comp.offer.benefits}</Text>
+                <Text style={styles.resultMeta}>
+                  {t('benefitsLabel', { value: comp.offer.benefits })}
+                </Text>
               ) : null}
             </View>
           ))}

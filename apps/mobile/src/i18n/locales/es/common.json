@@ -1,0 +1,13 @@
+{
+  "save": "Guardar",
+  "cancel": "Cancelar",
+  "delete": "Eliminar",
+  "edit": "Editar",
+  "close": "Cerrar",
+  "retry": "Reintentar",
+  "loading": "Cargando…",
+  "errorGeneric": "Algo salió mal. Inténtalo de nuevo.",
+  "errorNetwork": "No se pudo conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.",
+  "confirm": "Confirmar",
+  "back": "Atrás"
+}

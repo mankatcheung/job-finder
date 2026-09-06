@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useApplications } from '../hooks/useApplicationQueries';
 import { ApplicationListItem } from '../components/ApplicationListItem';
 import { statusLabel } from '../components/StatusBadge';
@@ -31,6 +32,7 @@ function matchesSearch(application: Application, search: string): boolean {
 }
 
 export function ApplicationsListScreen() {
+  const { t } = useTranslation('applications');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
@@ -50,7 +52,7 @@ export function ApplicationsListScreen() {
     <View style={styles.container}>
       <TextInput
         style={styles.search}
-        placeholder="Search company or role"
+        placeholder={t('list.searchPlaceholder')}
         value={search}
         onChangeText={setSearch}
         autoCapitalize="none"
@@ -65,7 +67,7 @@ export function ApplicationsListScreen() {
         testID="applications-status-filters"
       >
         <FilterChip
-          label="All"
+          label={t('list.all')}
           active={statusFilter === 'all'}
           onPress={() => setStatusFilter('all')}
         />
@@ -87,7 +89,7 @@ export function ApplicationsListScreen() {
         </View>
       ) : applications.length === 0 ? (
         <View style={styles.centered}>
-          <Text style={styles.emptyText}>No applications yet.</Text>
+          <Text style={styles.emptyText}>{t('list.empty')}</Text>
         </View>
       ) : (
         <FlatList

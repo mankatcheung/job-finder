@@ -1,0 +1,6 @@
+{
+  "requiresPhysicalDevice": "Las notificaciones push requieren un dispositivo físico.",
+  "permissionNotGranted": "No se concedió el permiso de notificaciones.",
+  "noEasProject": "Esta compilación no tiene un proyecto EAS configurado, por lo que no puede registrarse para notificaciones push.",
+  "couldNotObtainToken": "No se pudo obtener un token de push."
+}

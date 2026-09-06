@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import {
   useChatHistory,
   chatHistoryQueryKey,
@@ -29,6 +30,7 @@ function tempMessageId(): string {
 }
 
 export function ChatScreen() {
+  const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -109,11 +111,7 @@ export function ChatScreen() {
           data={messages}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>
-              Ask about your applications, next steps, or anything else.
-            </Text>
-          }
+          ListEmptyComponent={<Text style={styles.emptyText}>{t('emptyPrompt')}</Text>}
           renderItem={({ item }) => (
             <View style={[styles.bubbleRow, item.role === 'user' && styles.bubbleRowUser]}>
               <View
@@ -154,7 +152,7 @@ export function ChatScreen() {
       <View style={styles.composer}>
         <TextInput
           style={styles.input}
-          placeholder="Message the assistant"
+          placeholder={t('inputPlaceholder')}
           value={input}
           onChangeText={setInput}
           multiline
@@ -166,7 +164,7 @@ export function ChatScreen() {
           disabled={isSending || !input.trim()}
           testID="chat-send-button"
         >
-          <Text style={styles.sendButtonText}>Send</Text>
+          <Text style={styles.sendButtonText}>{t('send')}</Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>

@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useApplication } from '../hooks/useApplicationQueries';
 import { useDeleteApplication } from '../hooks/useApplicationMutations';
 import { StatusBadge } from '../components/StatusBadge';
@@ -30,6 +31,7 @@ function Field({ label, value }: { label: string; value: string | null }) {
 }
 
 export function ApplicationDetailScreen() {
+  const { t } = useTranslation('applications');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
@@ -38,15 +40,15 @@ export function ApplicationDetailScreen() {
   const deleteApplication = useDeleteApplication();
 
   const onDelete = () => {
-    Alert.alert('Move to Trash', 'This application will be moved to Trash.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('detail.moveToTrashTitle'), t('detail.moveToTrashMessage'), [
+      { text: t('detail.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('detail.delete'),
         style: 'destructive',
         onPress: () => {
           deleteApplication.mutate(applicationId, {
             onSuccess: () => router.back(),
-            onError: (err) => Alert.alert('Could not delete', getErrorMessage(err)),
+            onError: (err) => Alert.alert(t('detail.couldNotDeleteTitle'), getErrorMessage(err)),
           });
         },
       },
@@ -68,7 +70,7 @@ export function ApplicationDetailScreen() {
   if (isError || !application) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.error}>{error ? getErrorMessage(error) : 'Application not found'}</Text>
+        <Text style={styles.error}>{error ? getErrorMessage(error) : t('detail.notFound')}</Text>
       </View>
     );
   }
@@ -83,10 +85,10 @@ export function ApplicationDetailScreen() {
         <StatusBadge status={application.status} />
       </View>
 
-      <Field label="Location" value={application.location} />
-      <Field label="Salary range" value={application.salaryRange} />
-      <Field label="Source" value={application.source} />
-      <Field label="Description" value={application.description} />
+      <Field label={t('detail.locationLabel')} value={application.location} />
+      <Field label={t('detail.salaryRangeLabel')} value={application.salaryRange} />
+      <Field label={t('detail.sourceLabel')} value={application.source} />
+      <Field label={t('detail.descriptionLabel')} value={application.description} />
 
       {application.jobUrl ? (
         <Pressable onPress={() => void Linking.openURL(application.jobUrl!)}>
@@ -100,21 +102,21 @@ export function ApplicationDetailScreen() {
           onPress={() => router.push(`/applications/${applicationId}/notes`)}
           testID="notes-button"
         >
-          <Text style={styles.editButtonText}>Notes</Text>
+          <Text style={styles.editButtonText}>{t('detail.notes')}</Text>
         </Pressable>
         <Pressable
           style={styles.editButton}
           onPress={() => router.push(`/applications/${applicationId}/documents`)}
           testID="documents-button"
         >
-          <Text style={styles.editButtonText}>Documents</Text>
+          <Text style={styles.editButtonText}>{t('detail.documents')}</Text>
         </Pressable>
         <Pressable
           style={styles.editButton}
           onPress={() => router.push(`/applications/${applicationId}/offers`)}
           testID="offers-button"
         >
-          <Text style={styles.editButtonText}>Offers</Text>
+          <Text style={styles.editButtonText}>{t('detail.offers')}</Text>
         </Pressable>
       </View>
 
@@ -124,7 +126,7 @@ export function ApplicationDetailScreen() {
           onPress={() => router.push(`/applications/${applicationId}/edit`)}
           testID="edit-application-button"
         >
-          <Text style={styles.editButtonText}>Edit</Text>
+          <Text style={styles.editButtonText}>{t('detail.edit')}</Text>
         </Pressable>
         <Pressable
           style={styles.deleteButton}
@@ -133,7 +135,7 @@ export function ApplicationDetailScreen() {
           testID="delete-application-button"
         >
           <Text style={styles.deleteButtonText}>
-            {deleteApplication.isPending ? 'Deleting...' : 'Move to Trash'}
+            {deleteApplication.isPending ? t('detail.deleting') : t('detail.moveToTrash')}
           </Text>
         </Pressable>
       </View>

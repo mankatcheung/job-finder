@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import {
   useCreateOffer,
   useDeleteOffer,
@@ -13,10 +14,13 @@ import { getErrorMessage } from '../../../lib/errors';
 import type { Offer, OfferFormData } from '../types';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 export function OffersScreen() {
+  const { t } = useTranslation('offers');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { resolvedLanguage } = useLanguage();
   const router = useRouter();
   const { id: applicationId } = useLocalSearchParams<{ id: string }>();
   const { data: offers, isLoading, isError, error } = useOffers(applicationId);
@@ -58,19 +62,19 @@ export function OffersScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.headerRow}>
-        <Text style={styles.title}>Offers</Text>
+        <Text style={styles.title}>{t('title')}</Text>
         <View style={styles.headerActions}>
           {items.length >= 2 && (
             <Pressable
               onPress={() => router.push(`/applications/${applicationId}/offers/compare`)}
               testID="compare-offers-button"
             >
-              <Text style={styles.link}>Compare</Text>
+              <Text style={styles.link}>{t('compare')}</Text>
             </Pressable>
           )}
           {!formOpen && (
             <Pressable onPress={openCreate} testID="add-offer-button">
-              <Text style={styles.link}>+ Add offer</Text>
+              <Text style={styles.link}>{t('addOffer')}</Text>
             </Pressable>
           )}
         </View>
@@ -78,7 +82,9 @@ export function OffersScreen() {
 
       {formOpen && (
         <View style={styles.formCard}>
-          <Text style={styles.formTitle}>{editingOffer ? 'Edit offer' : 'New offer'}</Text>
+          <Text style={styles.formTitle}>
+            {editingOffer ? t('editOfferTitle') : t('newOfferTitle')}
+          </Text>
           {saveError ? <Text style={styles.error}>{saveError}</Text> : null}
           <OfferForm
             initialData={editingOffer}
@@ -97,35 +103,46 @@ export function OffersScreen() {
       ) : isError ? (
         <Text style={styles.error}>{getErrorMessage(error)}</Text>
       ) : items.length === 0 && !formOpen ? (
-        <Text style={styles.emptyText}>No offers yet.</Text>
+        <Text style={styles.emptyText}>{t('emptyText')}</Text>
       ) : (
         items.map((offer) => (
           <View key={offer.id} style={styles.offerCard} testID={`offer-${offer.id}`}>
             <View style={styles.offerCardHeader}>
               <View>
                 <Text style={styles.offerSalary}>
-                  {formatSalary(offer.baseSalary, offer.currency, offer.period)}
+                  {formatSalary(offer.baseSalary, offer.currency, offer.period, resolvedLanguage)}
                 </Text>
                 {offer.bonus ? (
                   <Text style={styles.offerMeta}>
-                    + {formatSalary(offer.bonus, offer.currency, offer.period)} bonus
+                    {t('bonusSuffix', {
+                      amount: formatSalary(
+                        offer.bonus,
+                        offer.currency,
+                        offer.period,
+                        resolvedLanguage,
+                      ),
+                    })}
                   </Text>
                 ) : null}
-                {offer.equity ? <Text style={styles.offerMeta}>Equity: {offer.equity}</Text> : null}
+                {offer.equity ? (
+                  <Text style={styles.offerMeta}>{t('equityLabel', { value: offer.equity })}</Text>
+                ) : null}
                 {offer.benefits ? (
-                  <Text style={styles.offerMeta}>Benefits: {offer.benefits}</Text>
+                  <Text style={styles.offerMeta}>
+                    {t('benefitsLabel', { value: offer.benefits })}
+                  </Text>
                 ) : null}
                 {offer.notes ? <Text style={styles.offerNotes}>{offer.notes}</Text> : null}
               </View>
               <View style={styles.offerActions}>
                 <Pressable onPress={() => openEdit(offer)} testID={`edit-offer-${offer.id}`}>
-                  <Text style={styles.link}>Edit</Text>
+                  <Text style={styles.link}>{t('edit')}</Text>
                 </Pressable>
                 <Pressable
                   onPress={() => deleteOffer.mutate(offer.id)}
                   testID={`delete-offer-${offer.id}`}
                 >
-                  <Text style={styles.linkDanger}>Delete</Text>
+                  <Text style={styles.linkDanger}>{t('delete')}</Text>
                 </Pressable>
               </View>
             </View>

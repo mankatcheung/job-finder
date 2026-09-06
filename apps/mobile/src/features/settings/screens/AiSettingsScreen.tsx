@@ -11,6 +11,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import {
   useDeleteLlmApiKey,
   useLlmApiKeys,
@@ -32,23 +33,24 @@ function KeyRow({
   onSetDefault: () => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation('settings');
   return (
     <View style={styles.keyRow} testID={`llm-key-${apiKey.provider}`}>
       <View style={styles.textColumn}>
         <Text style={styles.keyProvider}>
           {LLM_PROVIDER_LABEL[apiKey.provider] ?? apiKey.provider}
-          {isDefault ? ' · Default' : ''}
+          {isDefault ? t('ai.default') : ''}
         </Text>
         {apiKey.model ? <Text style={styles.keyMeta}>{apiKey.model}</Text> : null}
       </View>
       <View style={styles.keyActions}>
         {!isDefault ? (
           <Pressable onPress={onSetDefault} testID={`set-default-${apiKey.provider}`}>
-            <Text style={styles.link}>Make default</Text>
+            <Text style={styles.link}>{t('ai.makeDefault')}</Text>
           </Pressable>
         ) : null}
         <Pressable onPress={onDelete} testID={`delete-llm-key-${apiKey.provider}`}>
-          <Text style={styles.linkDanger}>Delete</Text>
+          <Text style={styles.linkDanger}>{t('ai.delete')}</Text>
         </Pressable>
       </View>
     </View>
@@ -56,6 +58,7 @@ function KeyRow({
 }
 
 export function AiSettingsScreen() {
+  const { t } = useTranslation('settings');
   const { data, isLoading, isError, error } = useLlmApiKeys();
   const saveKey = useSaveLlmApiKey();
   const deleteKey = useDeleteLlmApiKey();
@@ -81,7 +84,7 @@ export function AiSettingsScreen() {
       },
       {
         onSuccess: (result) =>
-          setTestResult(result.ok ? 'Key works.' : (result.error ?? 'Test failed')),
+          setTestResult(result.ok ? t('ai.keyWorks') : (result.error ?? t('ai.testFailed'))),
         onError: (err) => setFormError(getErrorMessage(err)),
       },
     );
@@ -90,7 +93,7 @@ export function AiSettingsScreen() {
   const onSave = () => {
     setFormError(null);
     if (!apiKeyValue.trim()) {
-      setFormError('API key is required');
+      setFormError(t('ai.apiKeyRequired'));
       return;
     }
     saveKey.mutate(
@@ -129,9 +132,9 @@ export function AiSettingsScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionTitle}>Configured providers</Text>
+        <Text style={styles.sectionTitle}>{t('ai.configuredProviders')}</Text>
         {(data?.keys ?? []).length === 0 ? (
-          <Text style={styles.emptyText}>No providers configured yet.</Text>
+          <Text style={styles.emptyText}>{t('ai.noProvidersYet')}</Text>
         ) : (
           data?.keys.map((key) => (
             <KeyRow
@@ -141,16 +144,19 @@ export function AiSettingsScreen() {
               onSetDefault={() => setDefault.mutate(key.provider)}
               onDelete={() =>
                 Alert.alert(
-                  'Delete key',
-                  `Remove your ${LLM_PROVIDER_LABEL[key.provider] ?? key.provider} key?`,
+                  t('ai.deleteKeyTitle'),
+                  t('ai.deleteKeyMessage', {
+                    provider: LLM_PROVIDER_LABEL[key.provider] ?? key.provider,
+                  }),
                   [
-                    { text: 'Cancel', style: 'cancel' },
+                    { text: t('ai.cancel'), style: 'cancel' },
                     {
-                      text: 'Delete',
+                      text: t('ai.delete'),
                       style: 'destructive',
                       onPress: () =>
                         deleteKey.mutate(key.provider, {
-                          onError: (err) => Alert.alert('Could not delete', getErrorMessage(err)),
+                          onError: (err) =>
+                            Alert.alert(t('ai.couldNotDelete'), getErrorMessage(err)),
                         }),
                     },
                   ],
@@ -160,7 +166,7 @@ export function AiSettingsScreen() {
           ))
         )}
 
-        <Text style={[styles.sectionTitle, styles.sectionSpacing]}>Add a provider</Text>
+        <Text style={[styles.sectionTitle, styles.sectionSpacing]}>{t('ai.addProvider')}</Text>
         {formError ? <Text style={styles.error}>{formError}</Text> : null}
         {testResult ? <Text style={styles.testResult}>{testResult}</Text> : null}
 
@@ -181,7 +187,7 @@ export function AiSettingsScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="API key"
+          placeholder={t('ai.apiKeyPlaceholder')}
           value={apiKeyValue}
           onChangeText={setApiKeyValue}
           secureTextEntry
@@ -190,7 +196,7 @@ export function AiSettingsScreen() {
         />
         <TextInput
           style={styles.input}
-          placeholder="Model (optional)"
+          placeholder={t('ai.modelPlaceholder')}
           value={model}
           onChangeText={setModel}
           autoCapitalize="none"
@@ -199,7 +205,7 @@ export function AiSettingsScreen() {
         {provider === 'custom' ? (
           <TextInput
             style={styles.input}
-            placeholder="Base URL"
+            placeholder={t('ai.baseUrlPlaceholder')}
             value={baseUrl}
             onChangeText={setBaseUrl}
             autoCapitalize="none"
@@ -214,7 +220,9 @@ export function AiSettingsScreen() {
             disabled={testKey.isPending}
             testID="test-llm-key-button"
           >
-            <Text style={styles.testButtonText}>{testKey.isPending ? 'Testing...' : 'Test'}</Text>
+            <Text style={styles.testButtonText}>
+              {testKey.isPending ? t('ai.testing') : t('ai.test')}
+            </Text>
           </Pressable>
           <Pressable
             style={[styles.saveButton, saveKey.isPending && styles.saveButtonDisabled]}
@@ -222,7 +230,9 @@ export function AiSettingsScreen() {
             disabled={saveKey.isPending}
             testID="save-llm-key-button"
           >
-            <Text style={styles.saveButtonText}>{saveKey.isPending ? 'Saving...' : 'Save'}</Text>
+            <Text style={styles.saveButtonText}>
+              {saveKey.isPending ? t('ai.saving') : t('ai.save')}
+            </Text>
           </Pressable>
         </View>
       </ScrollView>

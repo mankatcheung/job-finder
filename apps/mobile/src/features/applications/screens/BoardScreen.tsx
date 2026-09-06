@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useApplications } from '../hooks/useApplicationQueries';
 import { useMoveApplicationOnBoard } from '../hooks/useApplicationMutations';
 import { groupByStatus } from '../lib/boardOrder';
@@ -21,6 +22,7 @@ import type { ThemeColors } from '../../../theme/colors';
 const COLUMN_WIDTH = 220;
 
 export function BoardScreen() {
+  const { t } = useTranslation('applications');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
@@ -65,9 +67,9 @@ export function BoardScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.title}>Board</Text>
+        <Text style={styles.title}>{t('board.title')}</Text>
         <Pressable onPress={() => router.push('/applications')} testID="switch-to-list-view">
-          <Text style={styles.link}>List view</Text>
+          <Text style={styles.link}>{t('board.listView')}</Text>
         </Pressable>
       </View>
 
@@ -104,7 +106,7 @@ export function BoardScreen() {
                       onPress={() => setMovingApp(app)}
                       testID={`move-card-${id}`}
                     >
-                      <Text style={styles.moveButtonText}>Move</Text>
+                      <Text style={styles.moveButtonText}>{t('board.move')}</Text>
                     </Pressable>
                   </Pressable>
                 );
@@ -122,7 +124,9 @@ export function BoardScreen() {
       >
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Move {movingApp?.company}</Text>
+            <Text style={styles.modalTitle}>
+              {t('board.moveModalTitle', { company: movingApp?.company })}
+            </Text>
             {moveError ? <Text style={styles.error}>{moveError}</Text> : null}
             {APPLICATION_STATUSES.filter((s) => s !== movingApp?.status).map((status) => (
               <Pressable
@@ -136,7 +140,7 @@ export function BoardScreen() {
               </Pressable>
             ))}
             <Pressable onPress={() => setMovingApp(null)} testID="cancel-move-button">
-              <Text style={styles.modalCancel}>Cancel</Text>
+              <Text style={styles.modalCancel}>{t('board.cancel')}</Text>
             </Pressable>
           </View>
         </View>

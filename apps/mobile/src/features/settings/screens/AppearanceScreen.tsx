@@ -1,21 +1,23 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors, ThemeMode } from '../../../theme/colors';
 
-const MODE_OPTIONS: { value: ThemeMode; label: string }[] = [
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
-  { value: 'system', label: 'System' },
-];
-
 export function AppearanceScreen() {
+  const { t } = useTranslation('appearance');
   const { mode, colors, setMode } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  const MODE_OPTIONS: { value: ThemeMode; label: string }[] = [
+    { value: 'light', label: t('light') },
+    { value: 'dark', label: t('dark') },
+    { value: 'system', label: t('system') },
+  ];
+
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Theme</Text>
+      <Text style={styles.label}>{t('themeLabel')}</Text>
       <View style={styles.chipRow}>
         {MODE_OPTIONS.map((option) => (
           <Pressable

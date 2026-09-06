@@ -1,0 +1,29 @@
+{
+  "title": "Panel",
+  "newButton": "+ Nueva",
+  "stats": {
+    "total": "Total",
+    "applied": "Enviadas",
+    "interviewing": "Entrevistando",
+    "offered": "Ofertas",
+    "followUpDue": "Seguimiento pendiente"
+  },
+  "goal": {
+    "title": "Objetivo semanal",
+    "progress": "{{current}} de {{goal}} solicitudes esta semana",
+    "streak": "racha de {{count}} semanas"
+  },
+  "upcoming": {
+    "title": "Próximos",
+    "viewCalendar": "Ver calendario"
+  },
+  "eventLabel": {
+    "interview": "Entrevista",
+    "followUp": "Seguimiento",
+    "applied": "Enviada"
+  },
+  "recent": {
+    "title": "Solicitudes recientes",
+    "empty": "Aún no hay solicitudes. Añade la primera."
+  }
+}

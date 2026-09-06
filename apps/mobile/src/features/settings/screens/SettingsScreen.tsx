@@ -1,34 +1,41 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../auth/AuthContext';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
 
-const MENU: { label: string; href: Href; testID: string }[] = [
-  { label: 'Profile', href: '/settings/profile', testID: 'settings-profile-row' },
-  { label: 'Security', href: '/settings/security', testID: 'settings-security-row' },
-  {
-    label: 'Notifications',
-    href: '/settings/notifications',
-    testID: 'settings-notifications-row',
-  },
-  { label: 'Appearance', href: '/settings/appearance', testID: 'settings-appearance-row' },
-  { label: 'AI', href: '/settings/ai', testID: 'settings-ai-row' },
-  { label: 'Experience', href: '/settings/experience', testID: 'settings-experience-row' },
-  { label: 'Integrations', href: '/settings/integrations', testID: 'settings-integrations-row' },
-  { label: 'Data', href: '/settings/data', testID: 'settings-data-row' },
-];
-
-const DANGER_MENU: { label: string; href: Href; testID: string }[] = [
-  { label: 'Danger zone', href: '/settings/danger-zone', testID: 'settings-danger-zone-row' },
-];
-
 export function SettingsScreen() {
+  const { t } = useTranslation('settingsMenu');
   const router = useRouter();
   const { logout } = useAuth();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const MENU: { label: string; href: Href; testID: string }[] = [
+    { label: t('profile'), href: '/settings/profile', testID: 'settings-profile-row' },
+    { label: t('security'), href: '/settings/security', testID: 'settings-security-row' },
+    {
+      label: t('notifications'),
+      href: '/settings/notifications',
+      testID: 'settings-notifications-row',
+    },
+    { label: t('appearance'), href: '/settings/appearance', testID: 'settings-appearance-row' },
+    { label: t('language'), href: '/settings/language', testID: 'settings-language-row' },
+    { label: t('ai'), href: '/settings/ai', testID: 'settings-ai-row' },
+    { label: t('experience'), href: '/settings/experience', testID: 'settings-experience-row' },
+    {
+      label: t('integrations'),
+      href: '/settings/integrations',
+      testID: 'settings-integrations-row',
+    },
+    { label: t('data'), href: '/settings/data', testID: 'settings-data-row' },
+  ];
+
+  const DANGER_MENU: { label: string; href: Href; testID: string }[] = [
+    { label: t('dangerZone'), href: '/settings/danger-zone', testID: 'settings-danger-zone-row' },
+  ];
 
   return (
     <View style={styles.container}>
@@ -61,7 +68,7 @@ export function SettingsScreen() {
         onPress={() => void logout()}
         testID="settings-signout-button"
       >
-        <Text style={styles.signOutLabel}>Sign out</Text>
+        <Text style={styles.signOutLabel}>{t('signOut')}</Text>
       </Pressable>
     </View>
   );

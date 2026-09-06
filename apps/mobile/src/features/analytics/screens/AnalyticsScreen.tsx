@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAnalyticsApplications } from '../hooks/useAnalyticsQueries';
 import { buildFunnelData, buildWeeklyData, computeSummaryStats } from '../lib/analyticsSummary';
 import { AnalyticsCard } from '../components/AnalyticsCard';
@@ -15,6 +16,7 @@ import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
 
 export function AnalyticsScreen() {
+  const { t } = useTranslation('analytics');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: applications, isLoading, isError, error } = useAnalyticsApplications();
@@ -37,16 +39,16 @@ export function AnalyticsScreen() {
   }
 
   const statItems = [
-    { label: 'Total', value: String(stats.totalApps) },
-    { label: 'Active', value: String(stats.activeApps) },
-    { label: 'Response rate', value: `${stats.responseRate}%` },
-    { label: 'Offer rate', value: `${stats.successRate}%` },
-    { label: 'Ghosting rate', value: `${stats.ghostingRate}%` },
+    { label: t('stats.total'), value: String(stats.totalApps) },
+    { label: t('stats.active'), value: String(stats.activeApps) },
+    { label: t('stats.responseRate'), value: `${stats.responseRate}%` },
+    { label: t('stats.offerRate'), value: `${stats.successRate}%` },
+    { label: t('stats.ghostingRate'), value: `${stats.ghostingRate}%` },
   ];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Analytics</Text>
+      <Text style={styles.title}>{t('title')}</Text>
 
       <ScrollView
         horizontal
@@ -61,17 +63,17 @@ export function AnalyticsScreen() {
         ))}
       </ScrollView>
 
-      <AnalyticsCard title="Applications per week" testID="weekly-applications-card">
+      <AnalyticsCard title={t('cards.applicationsPerWeek')} testID="weekly-applications-card">
         {weeklyData.length === 0 ? (
-          <Text style={styles.empty}>No data yet.</Text>
+          <Text style={styles.empty}>{t('noDataYet')}</Text>
         ) : (
           <WeeklyBarChart data={weeklyData} />
         )}
       </AnalyticsCard>
 
-      <AnalyticsCard title="Stage funnel" testID="stage-funnel-card">
+      <AnalyticsCard title={t('cards.stageFunnel')} testID="stage-funnel-card">
         {apps.length === 0 ? (
-          <Text style={styles.empty}>No data yet.</Text>
+          <Text style={styles.empty}>{t('noDataYet')}</Text>
         ) : (
           <StageFunnelChart data={funnelData} />
         )}

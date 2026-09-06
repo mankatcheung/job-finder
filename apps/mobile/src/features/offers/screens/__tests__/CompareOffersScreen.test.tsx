@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import '../../../../i18n';
 
 jest.mock('../../hooks/useOfferQueries', () => ({
   useOffers: jest.fn(),
@@ -8,17 +9,20 @@ jest.mock('../../hooks/useOfferQueries', () => ({
 jest.mock('expo-router', () => ({ useLocalSearchParams: jest.fn() }));
 
 jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
+jest.mock('../../../../i18n/LanguageContext', () => ({ useLanguage: jest.fn() }));
 import { useLocalSearchParams } from 'expo-router';
 import { useCompareOffers, useOffers } from '../../hooks/useOfferQueries';
 import { CompareOffersScreen } from '../CompareOffersScreen';
 import type { Offer } from '../../types';
 import { useTheme } from '../../../../theme/ThemeContext';
 import { lightColors } from '../../../../theme/colors';
+import { useLanguage } from '../../../../i18n/LanguageContext';
 
 const mockedUseOffers = jest.mocked(useOffers);
 const mockedUseCompareOffers = jest.mocked(useCompareOffers);
 const mockedUseLocalSearchParams = jest.mocked(useLocalSearchParams);
 const mockedUseTheme = jest.mocked(useTheme);
+const mockedUseLanguage = jest.mocked(useLanguage);
 
 const offers: Offer[] = [
   {
@@ -64,6 +68,12 @@ describe('CompareOffersScreen', () => {
       colors: lightColors,
       setMode: jest.fn(),
     } as never);
+    mockedUseLanguage.mockReturnValue({
+      mode: 'en',
+      resolvedLanguage: 'en',
+      supportedLanguages: [],
+      setMode: jest.fn(),
+    });
   });
 
   beforeEach(() => jest.clearAllMocks());

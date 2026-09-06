@@ -10,6 +10,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { gqlRequest } from '../../graphql/client';
 import { getErrorMessage } from '../../lib/errors';
 import { forgotPasswordSchema } from './forgotPasswordSchema';
@@ -31,6 +32,7 @@ const REQUEST_BACKUP_EMAIL_RECOVERY_MUTATION = `
 type RecoveryMode = 'primary' | 'backup';
 
 export function ForgotPasswordScreen() {
+  const { t } = useTranslation('auth');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
@@ -45,7 +47,7 @@ export function ForgotPasswordScreen() {
     setError(null);
     const parsed = forgotPasswordSchema.safeParse({ email });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'Invalid input');
+      setError(parsed.error.issues[0]?.message ?? t('validation.invalidInput'));
       return;
     }
 
@@ -74,24 +76,24 @@ export function ForgotPasswordScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Reset your password</Text>
+        <Text style={styles.title}>{t('forgotPassword.title')}</Text>
         <Text style={styles.subtitle}>
           {recoveryMode === 'backup'
-            ? 'Enter your backup email and we will send you a recovery link.'
-            : 'Enter your email and we will send you a link to reset your password.'}
+            ? t('forgotPassword.subtitleBackup')
+            : t('forgotPassword.subtitlePrimary')}
         </Text>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         {isSubmitted ? (
           <Text style={styles.success} testID="forgot-password-success">
-            If an account exists for that email, we have sent a link to reset your password.
+            {t('forgotPassword.successMessage')}
           </Text>
         ) : (
           <>
             <TextInput
               style={styles.input}
-              placeholder="Email"
+              placeholder={t('forgotPassword.emailPlaceholder')}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -110,7 +112,9 @@ export function ForgotPasswordScreen() {
                 <ActivityIndicator color={colors.surface} />
               ) : (
                 <Text style={styles.buttonText}>
-                  {recoveryMode === 'backup' ? 'Send recovery link' : 'Send reset link'}
+                  {recoveryMode === 'backup'
+                    ? t('forgotPassword.sendRecoveryLink')
+                    : t('forgotPassword.sendResetLink')}
                 </Text>
               )}
             </Pressable>
@@ -121,12 +125,14 @@ export function ForgotPasswordScreen() {
           onPress={() => setRecoveryMode((mode) => (mode === 'primary' ? 'backup' : 'primary'))}
         >
           <Text style={styles.link}>
-            {recoveryMode === 'primary' ? 'Use backup email instead' : 'Use primary email instead'}
+            {recoveryMode === 'primary'
+              ? t('forgotPassword.useBackupEmail')
+              : t('forgotPassword.usePrimaryEmail')}
           </Text>
         </Pressable>
 
         <Pressable onPress={() => router.push('/login')}>
-          <Text style={styles.link}>Back to sign in</Text>
+          <Text style={styles.link}>{t('forgotPassword.backToSignIn')}</Text>
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>

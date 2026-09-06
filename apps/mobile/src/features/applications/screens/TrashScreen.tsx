@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTrashedApplications } from '../hooks/useApplicationQueries';
 import {
   usePermanentlyDeleteApplication,
@@ -19,6 +20,7 @@ import { useTheme } from '../../../theme/ThemeContext';
 import type { ThemeColors } from '../../../theme/colors';
 
 function TrashRow({ application }: { application: Application }) {
+  const { t } = useTranslation('applications');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const restore = useRestoreApplication();
@@ -26,16 +28,19 @@ function TrashRow({ application }: { application: Application }) {
 
   const onPermanentlyDelete = () => {
     Alert.alert(
-      'Delete permanently',
-      `${application.role} at ${application.company} will be deleted forever. This cannot be undone.`,
+      t('trash.deletePermanentlyTitle'),
+      t('trash.deletePermanentlyMessage', {
+        role: application.role,
+        company: application.company,
+      }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('trash.cancel'), style: 'cancel' },
         {
-          text: 'Delete forever',
+          text: t('trash.deleteForever'),
           style: 'destructive',
           onPress: () =>
             permanentlyDelete.mutate(application.id, {
-              onError: (err) => Alert.alert('Could not delete', getErrorMessage(err)),
+              onError: (err) => Alert.alert(t('trash.couldNotDeleteTitle'), getErrorMessage(err)),
             }),
         },
       ],
@@ -57,13 +62,13 @@ function TrashRow({ application }: { application: Application }) {
           style={styles.restoreButton}
           onPress={() =>
             restore.mutate(application.id, {
-              onError: (err) => Alert.alert('Could not restore', getErrorMessage(err)),
+              onError: (err) => Alert.alert(t('trash.couldNotRestoreTitle'), getErrorMessage(err)),
             })
           }
           disabled={restore.isPending}
           testID={`restore-button-${application.id}`}
         >
-          <Text style={styles.restoreButtonText}>Restore</Text>
+          <Text style={styles.restoreButtonText}>{t('trash.restore')}</Text>
         </Pressable>
         <Pressable
           style={styles.deleteButton}
@@ -71,7 +76,7 @@ function TrashRow({ application }: { application: Application }) {
           disabled={permanentlyDelete.isPending}
           testID={`permanently-delete-button-${application.id}`}
         >
-          <Text style={styles.deleteButtonText}>Delete</Text>
+          <Text style={styles.deleteButtonText}>{t('trash.delete')}</Text>
         </Pressable>
       </View>
     </View>
@@ -79,6 +84,7 @@ function TrashRow({ application }: { application: Application }) {
 }
 
 export function TrashScreen() {
+  const { t } = useTranslation('applications');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { data, isLoading, isError, error } = useTrashedApplications();
@@ -102,7 +108,7 @@ export function TrashScreen() {
   if (!data || data.length === 0) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.emptyText}>Trash is empty.</Text>
+        <Text style={styles.emptyText}>{t('trash.empty')}</Text>
       </View>
     );
   }
