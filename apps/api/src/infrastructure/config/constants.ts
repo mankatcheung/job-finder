@@ -190,6 +190,20 @@ export const OUTBOUND_URL = {
 } as const;
 
 /**
+ * Fetching a job posting the user linked to (`FetchJobPostingSourceResolver`).
+ * The byte cap bounds memory for an arbitrary URL — the parser only reads
+ * the first `AI_PROMPT_INPUT.JOB_POSTING_MAX_CHARS` of the stripped text
+ * anyway, and 1 MB of HTML is far more than that.
+ */
+export const JOB_POSTING_FETCH = {
+  USER_AGENT: 'Mozilla/5.0 (compatible; TrakwynBot/1.0)',
+  TIMEOUT_MS: 10_000,
+  MAX_BYTES: 1024 * 1024,
+  /** Each hop is re-checked against the outbound URL policy. */
+  MAX_REDIRECTS: 3,
+} as const;
+
+/**
  * How much of an upstream error body is kept when a provider call fails.
  * Enough to diagnose ("invalid x-api-key", "model not found"), not enough to
  * carry a page of HTML — and never repeated verbatim to a client (JEF-S1).
