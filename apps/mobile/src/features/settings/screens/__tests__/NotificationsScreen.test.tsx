@@ -9,6 +9,7 @@ jest.mock('../../../push/hooks/usePushToken', () => ({
   useEnablePushNotifications: jest.fn(),
 }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import {
   useNotificationPreferences,
   useUpdateNotificationPreferences,
@@ -17,10 +18,13 @@ import { useEnablePushNotifications } from '../../../push/hooks/usePushToken';
 import { PushRegistrationError } from '../../../push/lib/registerForPushNotifications';
 import { NotificationsScreen } from '../NotificationsScreen';
 import type { NotificationPreferences } from '../../types';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUsePreferences = jest.mocked(useNotificationPreferences);
 const mockedUseUpdatePreferences = jest.mocked(useUpdateNotificationPreferences);
 const mockedUseEnablePush = jest.mocked(useEnablePushNotifications);
+const mockedUseTheme = jest.mocked(useTheme);
 
 const preferences: NotificationPreferences = {
   digestFrequency: 'WEEKLY',
@@ -31,6 +35,12 @@ const preferences: NotificationPreferences = {
 
 describe('NotificationsScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
     mockedUseEnablePush.mockReturnValue({ mutate: jest.fn(), isPending: false } as never);
   });

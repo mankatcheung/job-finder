@@ -7,13 +7,17 @@ jest.mock('expo-router', () => ({
   Stack: { Screen: () => null },
 }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useRouter } from 'expo-router';
 import { useApplications } from '../../hooks/useApplicationQueries';
 import { ApplicationsListScreen } from '../ApplicationsListScreen';
 import type { Application } from '../../types';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseApplications = jest.mocked(useApplications);
 const mockedUseRouter = jest.mocked(useRouter);
+const mockedUseTheme = jest.mocked(useTheme);
 
 const applications: Application[] = [
   {
@@ -63,6 +67,12 @@ function renderScreen(push = jest.fn()) {
 
 describe('ApplicationsListScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
   });
 

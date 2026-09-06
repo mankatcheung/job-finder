@@ -8,6 +8,7 @@ jest.mock('../../hooks/useApplicationMutations', () => ({
   usePermanentlyDeleteApplication: jest.fn(),
 }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useTrashedApplications } from '../../hooks/useApplicationQueries';
 import {
   usePermanentlyDeleteApplication,
@@ -15,10 +16,13 @@ import {
 } from '../../hooks/useApplicationMutations';
 import { TrashScreen } from '../TrashScreen';
 import type { Application } from '../../types';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseTrashedApplications = jest.mocked(useTrashedApplications);
 const mockedUseRestoreApplication = jest.mocked(useRestoreApplication);
 const mockedUsePermanentlyDeleteApplication = jest.mocked(usePermanentlyDeleteApplication);
+const mockedUseTheme = jest.mocked(useTheme);
 
 const trashed: Application = {
   id: '1',
@@ -43,6 +47,12 @@ const trashed: Application = {
 
 describe('TrashScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
   });
 

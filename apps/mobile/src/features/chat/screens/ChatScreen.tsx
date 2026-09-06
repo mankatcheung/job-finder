@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -21,12 +21,16 @@ import { conversationsQueryKey, useCreateConversation } from '../hooks/useConver
 import { ChatStreamError, streamChatMessage } from '../lib/chatStream';
 import type { ChatMessage } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 function tempMessageId(): string {
   return `optimistic-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export function ChatScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const [conversationId, setConversationId] = useState<string | null>(id === 'new' ? null : id);
   const queryClient = useQueryClient();
@@ -96,7 +100,7 @@ export function ChatScreen() {
         <ActivityIndicator
           style={styles.loading}
           size="large"
-          color="#2563eb"
+          color={colors.primary}
           testID="chat-loading"
         />
       ) : (
@@ -135,7 +139,11 @@ export function ChatScreen() {
             {streamingText ? (
               <Text style={styles.bubbleTextAssistant}>{streamingText}</Text>
             ) : (
-              <ActivityIndicator size="small" color="#6b7280" testID="chat-sending-indicator" />
+              <ActivityIndicator
+                size="small"
+                color={colors.textSubtle}
+                testID="chat-sending-indicator"
+              />
             )}
           </View>
         </View>
@@ -165,55 +173,61 @@ export function ChatScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  loading: { marginTop: 40 },
-  list: { padding: 16, gap: 8 },
-  emptyText: { fontSize: 14, color: '#6b7280', textAlign: 'center', marginTop: 20 },
-  bubbleRow: { flexDirection: 'row', marginBottom: 8 },
-  bubbleRowUser: { justifyContent: 'flex-end' },
-  bubble: { maxWidth: '80%', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10 },
-  bubbleUser: { backgroundColor: '#2563eb', alignSelf: 'flex-end' },
-  bubbleAssistant: { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e5e7eb' },
-  bubbleTextUser: { color: '#ffffff', fontSize: 14 },
-  bubbleTextAssistant: { color: '#111827', fontSize: 14 },
-  error: {
-    color: '#b91c1c',
-    backgroundColor: '#fef2f2',
-    borderRadius: 8,
-    padding: 10,
-    marginHorizontal: 16,
-    fontSize: 13,
-  },
-  composer: {
-    flexDirection: 'row',
-    gap: 8,
-    padding: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    backgroundColor: '#f9fafb',
-    alignItems: 'flex-end',
-  },
-  input: {
-    flex: 1,
-    minHeight: 44,
-    maxHeight: 100,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    backgroundColor: '#ffffff',
-  },
-  sendButton: {
-    minHeight: 44,
-    paddingHorizontal: 18,
-    borderRadius: 8,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sendButtonDisabled: { opacity: 0.5 },
-  sendButtonText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    loading: { marginTop: 40 },
+    list: { padding: 16, gap: 8 },
+    emptyText: { fontSize: 14, color: colors.textSubtle, textAlign: 'center', marginTop: 20 },
+    bubbleRow: { flexDirection: 'row', marginBottom: 8 },
+    bubbleRowUser: { justifyContent: 'flex-end' },
+    bubble: { maxWidth: '80%', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10 },
+    bubbleUser: { backgroundColor: colors.primary, alignSelf: 'flex-end' },
+    bubbleAssistant: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    bubbleTextUser: { color: colors.surface, fontSize: 14 },
+    bubbleTextAssistant: { color: colors.text, fontSize: 14 },
+    error: {
+      color: colors.danger,
+      backgroundColor: colors.dangerSurface,
+      borderRadius: 8,
+      padding: 10,
+      marginHorizontal: 16,
+      fontSize: 13,
+    },
+    composer: {
+      flexDirection: 'row',
+      gap: 8,
+      padding: 12,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      backgroundColor: colors.background,
+      alignItems: 'flex-end',
+    },
+    input: {
+      flex: 1,
+      minHeight: 44,
+      maxHeight: 100,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 14,
+      backgroundColor: colors.surface,
+    },
+    sendButton: {
+      minHeight: 44,
+      paddingHorizontal: 18,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sendButtonDisabled: { opacity: 0.5 },
+    sendButtonText: { color: colors.surface, fontSize: 14, fontWeight: '600' },
+  });
+}

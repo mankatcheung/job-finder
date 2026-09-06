@@ -5,6 +5,8 @@ import { useCalendarEvents } from '../hooks/useCalendarQueries';
 import { buildGrid, dateFromDayKey, dayKey, goToPeriod } from '../lib/calendarGrid';
 import { getErrorMessage } from '../../../lib/errors';
 import type { CalendarEvent, CalendarEventKind, CalendarViewMode } from '../types';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 const EVENT_LABEL: Record<CalendarEventKind, string> = {
   applied: 'Applied',
@@ -12,11 +14,13 @@ const EVENT_LABEL: Record<CalendarEventKind, string> = {
   interview: 'Interview',
 };
 
-const EVENT_DOT_COLOR: Record<CalendarEventKind, string> = {
-  applied: '#3b82f6',
-  followUp: '#f59e0b',
-  interview: '#a855f7',
-};
+function eventDotColor(colors: ThemeColors): Record<CalendarEventKind, string> {
+  return {
+    applied: colors.primary,
+    followUp: '#f59e0b',
+    interview: '#a855f7',
+  };
+}
 
 const WEEKDAY_LABELS = Array.from({ length: 7 }, (_, i) =>
   // Jan 4, 2026 is a Sunday — used purely as a stable weekday-index anchor.
@@ -51,6 +55,9 @@ function periodLabel(viewMode: CalendarViewMode, anchor: Date, grid: Date[]): st
 }
 
 export function CalendarScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const eventDotColorMap = useMemo(() => eventDotColor(colors), [colors]);
   const router = useRouter();
   const { data: events, isLoading, isError, error, refetch } = useCalendarEvents();
 
@@ -120,7 +127,7 @@ export function CalendarScreen() {
       </View>
 
       {isLoading ? (
-        <ActivityIndicator style={styles.loading} size="large" color="#2563eb" />
+        <ActivityIndicator style={styles.loading} size="large" color={colors.primary} />
       ) : isError ? (
         <View style={styles.centered}>
           <Text style={styles.error}>{getErrorMessage(error)}</Text>
@@ -168,7 +175,7 @@ export function CalendarScreen() {
                           {eventTypes.map((type) => (
                             <View
                               key={type}
-                              style={[styles.dot, { backgroundColor: EVENT_DOT_COLOR[type] }]}
+                              style={[styles.dot, { backgroundColor: eventDotColorMap[type] }]}
                             />
                           ))}
                         </View>
@@ -193,7 +200,7 @@ export function CalendarScreen() {
                   onPress={() => router.push(`/applications/${event.applicationId}`)}
                   testID={`calendar-event-${event.id}`}
                 >
-                  <View style={[styles.dot, { backgroundColor: EVENT_DOT_COLOR[event.type] }]} />
+                  <View style={[styles.dot, { backgroundColor: eventDotColorMap[event.type] }]} />
                   <View style={styles.eventText}>
                     <Text style={styles.eventTitle}>
                       {EVENT_LABEL[event.type]}
@@ -213,77 +220,79 @@ export function CalendarScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  toolbar: {
-    padding: 16,
-    gap: 12,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  viewModeRow: {
-    flexDirection: 'row',
-    backgroundColor: '#f3f4f6',
-    borderRadius: 8,
-    padding: 3,
-    alignSelf: 'flex-start',
-  },
-  viewModeChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
-  viewModeChipActive: { backgroundColor: '#ffffff' },
-  viewModeText: { fontSize: 13, color: '#6b7280', fontWeight: '500' },
-  viewModeTextActive: { color: '#111827' },
-  periodRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
-  periodArrow: { fontSize: 22, color: '#374151', paddingHorizontal: 8 },
-  periodLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    minWidth: 160,
-    textAlign: 'center',
-  },
-  loading: { marginTop: 40 },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 8 },
-  error: { color: '#b91c1c', fontSize: 14, textAlign: 'center' },
-  link: { color: '#2563eb', fontSize: 13, fontWeight: '600' },
-  scrollContent: { padding: 12, paddingBottom: 40 },
-  weekdayRow: { flexDirection: 'row' },
-  weekdayLabel: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#9ca3af',
-    paddingVertical: 4,
-  },
-  grid: { flexDirection: 'row', flexWrap: 'wrap' },
-  dayCell: {
-    width: '14.2857%',
-    aspectRatio: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-    borderRadius: 8,
-  },
-  dayCellSelected: { backgroundColor: '#eff6ff' },
-  dayNumber: { fontSize: 13, color: '#374151' },
-  dayNumberDim: { color: '#d1d5db' },
-  dayNumberToday: { fontWeight: '700', color: '#2563eb' },
-  dotRow: { flexDirection: 'row', gap: 2 },
-  dot: { width: 6, height: 6, borderRadius: 3 },
-  eventsSection: { marginTop: 16, gap: 8 },
-  hintText: { textAlign: 'center', color: '#9ca3af', fontSize: 13, paddingVertical: 16 },
-  eventRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#ffffff',
-    padding: 12,
-  },
-  eventText: { flex: 1, gap: 2 },
-  eventTitle: { fontSize: 14, fontWeight: '600', color: '#111827' },
-  eventRole: { fontSize: 12, color: '#6b7280' },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    toolbar: {
+      padding: 16,
+      gap: 12,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    viewModeRow: {
+      flexDirection: 'row',
+      backgroundColor: colors.surfaceAlt,
+      borderRadius: 8,
+      padding: 3,
+      alignSelf: 'flex-start',
+    },
+    viewModeChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
+    viewModeChipActive: { backgroundColor: colors.surface },
+    viewModeText: { fontSize: 13, color: colors.textSubtle, fontWeight: '500' },
+    viewModeTextActive: { color: colors.text },
+    periodRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
+    periodArrow: { fontSize: 22, color: colors.textMuted, paddingHorizontal: 8 },
+    periodLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textMuted,
+      minWidth: 160,
+      textAlign: 'center',
+    },
+    loading: { marginTop: 40 },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 8 },
+    error: { color: colors.danger, fontSize: 14, textAlign: 'center' },
+    link: { color: colors.primary, fontSize: 13, fontWeight: '600' },
+    scrollContent: { padding: 12, paddingBottom: 40 },
+    weekdayRow: { flexDirection: 'row' },
+    weekdayLabel: {
+      flex: 1,
+      textAlign: 'center',
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.textFaint,
+      paddingVertical: 4,
+    },
+    grid: { flexDirection: 'row', flexWrap: 'wrap' },
+    dayCell: {
+      width: '14.2857%',
+      aspectRatio: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 2,
+      borderRadius: 8,
+    },
+    dayCellSelected: { backgroundColor: colors.primarySurface },
+    dayNumber: { fontSize: 13, color: colors.textMuted },
+    dayNumberDim: { color: colors.borderStrong },
+    dayNumberToday: { fontWeight: '700', color: colors.primary },
+    dotRow: { flexDirection: 'row', gap: 2 },
+    dot: { width: 6, height: 6, borderRadius: 3 },
+    eventsSection: { marginTop: 16, gap: 8 },
+    hintText: { textAlign: 'center', color: colors.textFaint, fontSize: 13, paddingVertical: 16 },
+    eventRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      padding: 12,
+    },
+    eventText: { flex: 1, gap: 2 },
+    eventTitle: { fontSize: 14, fontWeight: '600', color: colors.text },
+    eventRole: { fontSize: 12, color: colors.textSubtle },
+  });
+}

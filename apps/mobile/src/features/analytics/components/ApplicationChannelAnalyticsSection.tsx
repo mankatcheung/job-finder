@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useApplicationChannelAnalytics } from '../hooks/useAnalyticsQueries';
 import { AnalyticsCard } from './AnalyticsCard';
 import { RatioBar } from './RatioBar';
 import type { ApplicationGroupStat } from '../types';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 function GroupRow({ stat }: { stat: ApplicationGroupStat }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.groupRow} testID={`channel-group-${stat.label}`}>
       <Text style={styles.groupLabel} numberOfLines={1}>
@@ -29,9 +33,11 @@ function GroupRow({ stat }: { stat: ApplicationGroupStat }) {
 }
 
 export function ApplicationChannelAnalyticsSection() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data, isLoading } = useApplicationChannelAnalytics();
 
-  if (isLoading) return <ActivityIndicator color="#2563eb" />;
+  if (isLoading) return <ActivityIndicator color={colors.primary} />;
   if (!data) return null;
 
   return (
@@ -57,16 +63,18 @@ export function ApplicationChannelAnalyticsSection() {
   );
 }
 
-const styles = StyleSheet.create({
-  subheading: { fontSize: 11, fontWeight: '600', color: '#6b7280', marginTop: 8 },
-  empty: { fontSize: 12, color: '#9ca3af' },
-  groupRow: {
-    gap: 2,
-    borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
-    paddingTop: 6,
-    marginTop: 4,
-  },
-  groupLabel: { fontSize: 13, fontWeight: '600', color: '#111827' },
-  groupCount: { fontSize: 10, color: '#9ca3af' },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    subheading: { fontSize: 11, fontWeight: '600', color: colors.textSubtle, marginTop: 8 },
+    empty: { fontSize: 12, color: colors.textFaint },
+    groupRow: {
+      gap: 2,
+      borderTopWidth: 1,
+      borderTopColor: colors.surfaceAlt,
+      paddingTop: 6,
+      marginTop: 4,
+    },
+    groupLabel: { fontSize: 13, fontWeight: '600', color: colors.text },
+    groupCount: { fontSize: 10, color: colors.textFaint },
+  });
+}

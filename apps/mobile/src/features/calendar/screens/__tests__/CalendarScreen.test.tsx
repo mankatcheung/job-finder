@@ -4,14 +4,18 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 jest.mock('../../hooks/useCalendarQueries', () => ({ useCalendarEvents: jest.fn() }));
 jest.mock('expo-router', () => ({ useRouter: jest.fn() }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useRouter } from 'expo-router';
 import { useCalendarEvents } from '../../hooks/useCalendarQueries';
 import { CalendarScreen } from '../CalendarScreen';
 import { dayKey } from '../../lib/calendarGrid';
 import type { CalendarEvent } from '../../types';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseCalendarEvents = jest.mocked(useCalendarEvents);
 const mockedUseRouter = jest.mocked(useRouter);
+const mockedUseTheme = jest.mocked(useTheme);
 
 const today = new Date();
 const todayKey = dayKey(today);
@@ -35,6 +39,12 @@ function renderScreen(push = jest.fn()) {
 
 describe('CalendarScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
     mockedUseCalendarEvents.mockReturnValue({
       data: events,

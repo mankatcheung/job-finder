@@ -7,14 +7,18 @@ jest.mock('../../hooks/useOfferQueries', () => ({
 }));
 jest.mock('expo-router', () => ({ useLocalSearchParams: jest.fn() }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useLocalSearchParams } from 'expo-router';
 import { useCompareOffers, useOffers } from '../../hooks/useOfferQueries';
 import { CompareOffersScreen } from '../CompareOffersScreen';
 import type { Offer } from '../../types';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseOffers = jest.mocked(useOffers);
 const mockedUseCompareOffers = jest.mocked(useCompareOffers);
 const mockedUseLocalSearchParams = jest.mocked(useLocalSearchParams);
+const mockedUseTheme = jest.mocked(useTheme);
 
 const offers: Offer[] = [
   {
@@ -53,6 +57,15 @@ function renderScreen() {
 }
 
 describe('CompareOffersScreen', () => {
+  beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
+  });
+
   beforeEach(() => jest.clearAllMocks());
 
   it('shows an empty state when there are no offers', async () => {

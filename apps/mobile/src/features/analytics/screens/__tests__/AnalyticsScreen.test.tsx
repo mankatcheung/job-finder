@@ -10,6 +10,7 @@ jest.mock('../../hooks/useAnalyticsQueries', () => ({
   useResponseTimeAnalytics: jest.fn(),
 }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import {
   useAnalyticsApplications,
   useApplicationChannelAnalytics,
@@ -20,6 +21,8 @@ import {
 } from '../../hooks/useAnalyticsQueries';
 import { AnalyticsScreen } from '../AnalyticsScreen';
 import type { AnalyticsApplication } from '../../types';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseAnalyticsApplications = jest.mocked(useAnalyticsApplications);
 const mockedUseDocumentVersionOutcomes = jest.mocked(useDocumentVersionOutcomes);
@@ -27,6 +30,7 @@ const mockedUseInterviewRoundAnalytics = jest.mocked(useInterviewRoundAnalytics)
 const mockedUseOfferAnalytics = jest.mocked(useOfferAnalytics);
 const mockedUseApplicationChannelAnalytics = jest.mocked(useApplicationChannelAnalytics);
 const mockedUseResponseTimeAnalytics = jest.mocked(useResponseTimeAnalytics);
+const mockedUseTheme = jest.mocked(useTheme);
 
 const apps: AnalyticsApplication[] = [
   {
@@ -75,6 +79,12 @@ function setEmptyPanelDefaults() {
 
 describe('AnalyticsScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
     setEmptyPanelDefaults();
   });

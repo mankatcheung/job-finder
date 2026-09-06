@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -23,12 +23,16 @@ import {
 } from '../hooks/useExperience';
 import { getErrorMessage } from '../../../lib/errors';
 import type { Education, Skill, WorkExperience } from '../types';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 function dateRange(start: string, end: string | null): string {
   return `${start.slice(0, 10)} – ${end ? end.slice(0, 10) : 'Present'}`;
 }
 
 export function ExperienceScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <WorkExperienceSection />
@@ -39,6 +43,8 @@ export function ExperienceScreen() {
 }
 
 function WorkExperienceSection() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: items = [], isLoading } = useWorkExperiences();
   const create = useCreateWorkExperience();
   const update = useUpdateWorkExperience();
@@ -104,7 +110,7 @@ function WorkExperienceSection() {
       </View>
 
       {isLoading ? (
-        <ActivityIndicator color="#2563eb" />
+        <ActivityIndicator color={colors.primary} />
       ) : (
         !formOpen &&
         items.length === 0 && <Text style={styles.emptyText}>No work experience yet.</Text>
@@ -183,6 +189,8 @@ function WorkExperienceSection() {
 }
 
 function EducationSection() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: items = [], isLoading } = useEducations();
   const create = useCreateEducation();
   const update = useUpdateEducation();
@@ -248,7 +256,7 @@ function EducationSection() {
       </View>
 
       {isLoading ? (
-        <ActivityIndicator color="#2563eb" />
+        <ActivityIndicator color={colors.primary} />
       ) : (
         !formOpen && items.length === 0 && <Text style={styles.emptyText}>No education yet.</Text>
       )}
@@ -327,6 +335,8 @@ function EducationSection() {
 }
 
 function SkillsSection() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: skills = [], isLoading } = useSkills();
   const create = useCreateSkill();
   const remove = useDeleteSkill();
@@ -359,7 +369,7 @@ function SkillsSection() {
       </View>
 
       {isLoading ? (
-        <ActivityIndicator color="#2563eb" />
+        <ActivityIndicator color={colors.primary} />
       ) : (
         !formOpen && skills.length === 0 && <Text style={styles.emptyText}>No skills yet.</Text>
       )}
@@ -409,74 +419,76 @@ function SkillsSection() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  content: { padding: 20, gap: 16 },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 16,
-    gap: 12,
-  },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title: { fontSize: 15, fontWeight: '700', color: '#111827' },
-  link: { color: '#2563eb', fontSize: 13, fontWeight: '600' },
-  linkDanger: { color: '#b91c1c', fontSize: 13, fontWeight: '600' },
-  emptyText: { fontSize: 13, color: '#9ca3af' },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
-    paddingTop: 10,
-    gap: 8,
-  },
-  rowText: { flex: 1, gap: 2 },
-  rowTitle: { fontSize: 13, fontWeight: '600', color: '#111827' },
-  rowMeta: { fontSize: 11, color: '#9ca3af' },
-  rowActions: { flexDirection: 'row', gap: 12 },
-  form: { gap: 8, borderTopWidth: 1, borderTopColor: '#f3f4f6', paddingTop: 10 },
-  formActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
-    backgroundColor: '#ffffff',
-  },
-  button: {
-    alignSelf: 'flex-start',
-    minHeight: 40,
-    borderRadius: 8,
-    backgroundColor: '#f3f4f6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 14,
-  },
-  buttonText: { color: '#111827', fontSize: 14, fontWeight: '600' },
-  error: {
-    color: '#b91c1c',
-    backgroundColor: '#fef2f2',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 13,
-  },
-  skillsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  skillChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  skillText: { fontSize: 13, color: '#111827' },
-  skillDelete: { fontSize: 14, color: '#9ca3af', fontWeight: '700' },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { padding: 20, gap: 16 },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 16,
+      gap: 12,
+    },
+    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    title: { fontSize: 15, fontWeight: '700', color: colors.text },
+    link: { color: colors.primary, fontSize: 13, fontWeight: '600' },
+    linkDanger: { color: colors.danger, fontSize: 13, fontWeight: '600' },
+    emptyText: { fontSize: 13, color: colors.textFaint },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderTopWidth: 1,
+      borderTopColor: colors.surfaceAlt,
+      paddingTop: 10,
+      gap: 8,
+    },
+    rowText: { flex: 1, gap: 2 },
+    rowTitle: { fontSize: 13, fontWeight: '600', color: colors.text },
+    rowMeta: { fontSize: 11, color: colors.textFaint },
+    rowActions: { flexDirection: 'row', gap: 12 },
+    form: { gap: 8, borderTopWidth: 1, borderTopColor: colors.surfaceAlt, paddingTop: 10 },
+    formActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      fontSize: 15,
+      backgroundColor: colors.surface,
+    },
+    button: {
+      alignSelf: 'flex-start',
+      minHeight: 40,
+      borderRadius: 8,
+      backgroundColor: colors.surfaceAlt,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 14,
+    },
+    buttonText: { color: colors.text, fontSize: 14, fontWeight: '600' },
+    error: {
+      color: colors.danger,
+      backgroundColor: colors.dangerSurface,
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 13,
+    },
+    skillsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    skillChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      borderRadius: 9999,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+    },
+    skillText: { fontSize: 13, color: colors.text },
+    skillDelete: { fontSize: 14, color: colors.textFaint, fontWeight: '700' },
+  });
+}

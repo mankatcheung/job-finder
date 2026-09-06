@@ -8,12 +8,16 @@ jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
 }));
 
+jest.mock('../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../../auth/AuthContext';
 import { LoginScreen } from '../LoginScreen';
+import { useTheme } from '../../../theme/ThemeContext';
+import { lightColors } from '../../../theme/colors';
 
 const mockedUseAuth = jest.mocked(useAuth);
 const mockedUseRouter = jest.mocked(useRouter);
+const mockedUseTheme = jest.mocked(useTheme);
 
 function renderScreen(push = jest.fn()) {
   mockedUseRouter.mockReturnValue({ push } as never);
@@ -22,6 +26,12 @@ function renderScreen(push = jest.fn()) {
 
 describe('LoginScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
   });
 

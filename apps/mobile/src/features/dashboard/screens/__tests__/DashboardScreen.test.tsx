@@ -10,6 +10,7 @@ jest.mock('../../hooks/useDashboardQueries', () => ({
 }));
 jest.mock('expo-router', () => ({ useRouter: jest.fn() }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useRouter } from 'expo-router';
 import { useApplications } from '../../../applications/hooks/useApplicationQueries';
 import {
@@ -18,11 +19,14 @@ import {
 } from '../../hooks/useDashboardQueries';
 import { DashboardScreen } from '../DashboardScreen';
 import type { Application } from '../../../applications/types';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseApplications = jest.mocked(useApplications);
 const mockedUseCalendarEvents = jest.mocked(useDashboardCalendarEvents);
 const mockedUseGoal = jest.mocked(useWeeklyApplicationGoal);
 const mockedUseRouter = jest.mocked(useRouter);
+const mockedUseTheme = jest.mocked(useTheme);
 
 const applications: Application[] = [
   {
@@ -53,6 +57,12 @@ function renderScreen(push = jest.fn()) {
 
 describe('DashboardScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
     mockedUseCalendarEvents.mockReturnValue({ data: [] } as never);
     mockedUseGoal.mockReturnValue({ data: undefined } as never);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,8 +12,12 @@ import { useRouter } from 'expo-router';
 import { useConversations, useDeleteConversation } from '../hooks/useConversations';
 import type { Conversation } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 export function ConversationsScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const { data: conversations, isLoading, isError, error } = useConversations();
   const deleteConversation = useDeleteConversation();
@@ -35,7 +39,7 @@ export function ConversationsScreen() {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2563eb" testID="conversations-loading" />
+        <ActivityIndicator size="large" color={colors.primary} testID="conversations-loading" />
       </View>
     );
   }
@@ -90,38 +94,40 @@ export function ConversationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  error: { fontSize: 14, color: '#b91c1c', textAlign: 'center' },
-  list: { padding: 16, paddingBottom: 96 },
-  separator: { height: 10 },
-  emptyText: { fontSize: 14, color: '#6b7280', textAlign: 'center', marginTop: 20 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 14,
-  },
-  textColumn: { flex: 1, gap: 2 },
-  title: { fontSize: 14, fontWeight: '600', color: '#111827' },
-  meta: { fontSize: 12, color: '#6b7280' },
-  linkDanger: { color: '#b91c1c', fontSize: 13, fontWeight: '600' },
-  newButton: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    bottom: 20,
-    minHeight: 48,
-    borderRadius: 10,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  newButtonText: { color: '#ffffff', fontSize: 15, fontWeight: '600' },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+    error: { fontSize: 14, color: colors.danger, textAlign: 'center' },
+    list: { padding: 16, paddingBottom: 96 },
+    separator: { height: 10 },
+    emptyText: { fontSize: 14, color: colors.textSubtle, textAlign: 'center', marginTop: 20 },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 14,
+    },
+    textColumn: { flex: 1, gap: 2 },
+    title: { fontSize: 14, fontWeight: '600', color: colors.text },
+    meta: { fontSize: 12, color: colors.textSubtle },
+    linkDanger: { color: colors.danger, fontSize: 13, fontWeight: '600' },
+    newButton: {
+      position: 'absolute',
+      left: 16,
+      right: 16,
+      bottom: 20,
+      minHeight: 48,
+      borderRadius: 10,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    newButtonText: { color: colors.surface, fontSize: 15, fontWeight: '600' },
+  });
+}

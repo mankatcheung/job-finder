@@ -7,15 +7,19 @@ jest.mock('../../hooks/useNotificationMutations', () => ({
 }));
 jest.mock('expo-router', () => ({ useRouter: jest.fn() }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useRouter } from 'expo-router';
 import { useNotificationsPage } from '../../hooks/useNotificationQueries';
 import { useMarkNotificationsRead } from '../../hooks/useNotificationMutations';
 import { NotificationsScreen } from '../NotificationsScreen';
 import type { NotificationItem } from '../../types';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseNotificationsPage = jest.mocked(useNotificationsPage);
 const mockedUseMarkNotificationsRead = jest.mocked(useMarkNotificationsRead);
 const mockedUseRouter = jest.mocked(useRouter);
+const mockedUseTheme = jest.mocked(useTheme);
 
 const notifications: NotificationItem[] = [
   {
@@ -61,6 +65,12 @@ function renderScreen(push = jest.fn(), mutate = jest.fn()) {
 
 describe('NotificationsScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
   });
 

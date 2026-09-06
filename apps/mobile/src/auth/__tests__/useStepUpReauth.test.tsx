@@ -4,10 +4,14 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 jest.mock('../AuthContext', () => ({ useAuth: jest.fn() }));
 
+jest.mock('../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useAuth } from '../AuthContext';
 import { StepUpCancelledError, useStepUpReauth } from '../useStepUpReauth';
+import { useTheme } from '../../theme/ThemeContext';
+import { lightColors } from '../../theme/colors';
 
 const mockedUseAuth = jest.mocked(useAuth);
+const mockedUseTheme = jest.mocked(useTheme);
 
 const stepUpRequired = () => ({
   response: {
@@ -46,6 +50,12 @@ describe('useStepUpReauth', () => {
   const reauthenticate = jest.fn();
 
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
     mockedUseAuth.mockReturnValue({ reauthenticate } as never);
   });

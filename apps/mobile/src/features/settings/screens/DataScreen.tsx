@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -13,6 +13,8 @@ import { File } from 'expo-file-system';
 import { useExportUserData, useImportUserData } from '../hooks/useAccountData';
 import { getErrorMessage } from '../../../lib/errors';
 import type { ImportSummary } from '../types';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 function summaryText(summary: ImportSummary): string {
   const parts = [
@@ -29,6 +31,8 @@ function summaryText(summary: ImportSummary): string {
 }
 
 export function DataScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const exportUserData = useExportUserData();
   const importUserData = useImportUserData();
   const [importError, setImportError] = useState<string | null>(null);
@@ -75,7 +79,7 @@ export function DataScreen() {
           testID="export-data-button"
         >
           {exportUserData.isPending ? (
-            <ActivityIndicator color="#111827" />
+            <ActivityIndicator color={colors.text} />
           ) : (
             <Text style={styles.buttonText}>Download export</Text>
           )}
@@ -100,7 +104,7 @@ export function DataScreen() {
           testID="import-data-button"
         >
           {importUserData.isPending ? (
-            <ActivityIndicator color="#111827" />
+            <ActivityIndicator color={colors.text} />
           ) : (
             <Text style={styles.buttonText}>Choose file to import</Text>
           )}
@@ -110,35 +114,37 @@ export function DataScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  content: { padding: 20, gap: 16 },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 16,
-    gap: 10,
-  },
-  title: { fontSize: 15, fontWeight: '700', color: '#111827' },
-  description: { fontSize: 13, color: '#6b7280' },
-  button: {
-    alignSelf: 'flex-start',
-    minHeight: 40,
-    borderRadius: 8,
-    backgroundColor: '#f3f4f6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 14,
-  },
-  buttonText: { color: '#111827', fontSize: 14, fontWeight: '600' },
-  error: {
-    color: '#b91c1c',
-    backgroundColor: '#fef2f2',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 13,
-  },
-  success: { color: '#047857', fontSize: 13 },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { padding: 20, gap: 16 },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 16,
+      gap: 10,
+    },
+    title: { fontSize: 15, fontWeight: '700', color: colors.text },
+    description: { fontSize: 13, color: colors.textSubtle },
+    button: {
+      alignSelf: 'flex-start',
+      minHeight: 40,
+      borderRadius: 8,
+      backgroundColor: colors.surfaceAlt,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 14,
+    },
+    buttonText: { color: colors.text, fontSize: 14, fontWeight: '600' },
+    error: {
+      color: colors.danger,
+      backgroundColor: colors.dangerSurface,
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 13,
+    },
+    success: { color: '#047857', fontSize: 13 },
+  });
+}

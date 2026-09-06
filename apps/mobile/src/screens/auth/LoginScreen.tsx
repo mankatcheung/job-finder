@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -15,8 +15,12 @@ import { useAuth, type OAuthProviderName } from '../../auth/AuthContext';
 import { getErrorMessage } from '../../lib/errors';
 import { loginSchema, totpSchema } from './loginSchema';
 import { OAuthProviderLogo } from './OAuthProviderLogo';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
 
 export function LoginScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const { login, loginWithTotp, loginWithOAuth } = useAuth();
 
@@ -109,7 +113,7 @@ export function LoginScreen() {
             testID="totp-submit-button"
           >
             {isSubmitting ? (
-              <ActivityIndicator color="#ffffff" />
+              <ActivityIndicator color={colors.surface} />
             ) : (
               <Text style={styles.buttonText}>Verify</Text>
             )}
@@ -161,7 +165,7 @@ export function LoginScreen() {
           testID="login-submit-button"
         >
           {isSubmitting ? (
-            <ActivityIndicator color="#ffffff" />
+            <ActivityIndicator color={colors.surface} />
           ) : (
             <Text style={styles.buttonText}>Sign in</Text>
           )}
@@ -188,7 +192,7 @@ export function LoginScreen() {
           testID="oauth-google-button"
         >
           {oauthProvider === 'google' ? (
-            <ActivityIndicator color="#111827" />
+            <ActivityIndicator color={colors.text} />
           ) : (
             <>
               <OAuthProviderLogo provider="google" />
@@ -204,7 +208,7 @@ export function LoginScreen() {
           testID="oauth-github-button"
         >
           {oauthProvider === 'github' ? (
-            <ActivityIndicator color="#111827" />
+            <ActivityIndicator color={colors.text} />
           ) : (
             <>
               <OAuthProviderLogo provider="github" />
@@ -217,51 +221,53 @@ export function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  content: { flexGrow: 1, justifyContent: 'center', padding: 24, gap: 12 },
-  title: { fontSize: 28, fontWeight: '700', color: '#111827', textAlign: 'center' },
-  subtitle: { fontSize: 14, color: '#6b7280', textAlign: 'center', marginBottom: 12 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    backgroundColor: '#ffffff',
-  },
-  button: {
-    minHeight: 44,
-    borderRadius: 8,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
-  link: { color: '#2563eb', textAlign: 'center', marginTop: 12 },
-  error: {
-    color: '#b91c1c',
-    backgroundColor: '#fef2f2',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
-  },
-  dividerRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12, gap: 8 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#e5e7eb' },
-  dividerText: { color: '#6b7280', fontSize: 12 },
-  oauthButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    minHeight: 44,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    backgroundColor: '#ffffff',
-  },
-  oauthButtonText: { color: '#374151', fontSize: 15, fontWeight: '600' },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { flexGrow: 1, justifyContent: 'center', padding: 24, gap: 12 },
+    title: { fontSize: 28, fontWeight: '700', color: colors.text, textAlign: 'center' },
+    subtitle: { fontSize: 14, color: colors.textSubtle, textAlign: 'center', marginBottom: 12 },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 16,
+      backgroundColor: colors.surface,
+    },
+    button: {
+      minHeight: 44,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+    },
+    buttonDisabled: { opacity: 0.6 },
+    buttonText: { color: colors.surface, fontSize: 16, fontWeight: '600' },
+    link: { color: colors.primary, textAlign: 'center', marginTop: 12 },
+    error: {
+      color: colors.danger,
+      backgroundColor: colors.dangerSurface,
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 14,
+    },
+    dividerRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12, gap: 8 },
+    dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
+    dividerText: { color: colors.textSubtle, fontSize: 12 },
+    oauthButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      minHeight: 44,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.surface,
+    },
+    oauthButtonText: { color: colors.textMuted, fontSize: 15, fontWeight: '600' },
+  });
+}

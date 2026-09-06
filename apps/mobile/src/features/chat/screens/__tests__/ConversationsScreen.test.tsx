@@ -9,14 +9,18 @@ jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
 }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useRouter } from 'expo-router';
 import { useConversations, useDeleteConversation } from '../../hooks/useConversations';
 import { ConversationsScreen } from '../ConversationsScreen';
 import type { Conversation } from '../../types';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseConversations = jest.mocked(useConversations);
 const mockedUseDeleteConversation = jest.mocked(useDeleteConversation);
 const mockedUseRouter = jest.mocked(useRouter);
+const mockedUseTheme = jest.mocked(useTheme);
 
 const conversation: Conversation = {
   id: '1',
@@ -34,6 +38,12 @@ function renderScreen(push = jest.fn()) {
 
 describe('ConversationsScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
     mockedUseDeleteConversation.mockReturnValue({ mutate: jest.fn(), isPending: false } as never);
   });

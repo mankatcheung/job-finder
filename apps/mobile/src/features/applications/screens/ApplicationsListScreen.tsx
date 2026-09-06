@@ -16,6 +16,8 @@ import { ApplicationListItem } from '../components/ApplicationListItem';
 import { statusLabel } from '../components/StatusBadge';
 import { APPLICATION_STATUSES, type Application, type ApplicationStatus } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 type StatusFilter = 'all' | ApplicationStatus;
 
@@ -29,6 +31,8 @@ function matchesSearch(application: Application, search: string): boolean {
 }
 
 export function ApplicationsListScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [search, setSearch] = useState('');
@@ -76,7 +80,7 @@ export function ApplicationsListScreen() {
       </ScrollView>
 
       {isLoading ? (
-        <ActivityIndicator style={styles.loading} size="large" color="#2563eb" />
+        <ActivityIndicator style={styles.loading} size="large" color={colors.primary} />
       ) : isError ? (
         <View style={styles.centered}>
           <Text style={styles.error}>{getErrorMessage(error)}</Text>
@@ -123,6 +127,8 @@ function FilterChip({
   active: boolean;
   onPress: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <Pressable
       style={[styles.chip, active && styles.chipActive]}
@@ -134,54 +140,56 @@ function FilterChip({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  search: {
-    margin: 16,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
-    backgroundColor: '#ffffff',
-  },
-  filtersScroll: { flexGrow: 0, flexShrink: 0, height: 36, marginBottom: 12 },
-  filters: { paddingHorizontal: 16, gap: 8, alignItems: 'center' },
-  chip: {
-    borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    marginRight: 8,
-    backgroundColor: '#ffffff',
-  },
-  chipActive: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
-  chipText: { fontSize: 13, color: '#374151', fontWeight: '500' },
-  chipTextActive: { color: '#ffffff' },
-  list: { paddingHorizontal: 16, paddingBottom: 96 },
-  separator: { height: 10 },
-  loading: { marginTop: 40 },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  emptyText: { fontSize: 14, color: '#6b7280' },
-  error: { fontSize: 14, color: '#b91c1c', textAlign: 'center' },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 28,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 4,
-  },
-  fabText: { color: '#ffffff', fontSize: 28, lineHeight: 30, fontWeight: '400' },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    search: {
+      margin: 16,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      fontSize: 15,
+      backgroundColor: colors.surface,
+    },
+    filtersScroll: { flexGrow: 0, flexShrink: 0, height: 36, marginBottom: 12 },
+    filters: { paddingHorizontal: 16, gap: 8, alignItems: 'center' },
+    chip: {
+      borderRadius: 9999,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      marginRight: 8,
+      backgroundColor: colors.surface,
+    },
+    chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+    chipText: { fontSize: 13, color: colors.textMuted, fontWeight: '500' },
+    chipTextActive: { color: colors.surface },
+    list: { paddingHorizontal: 16, paddingBottom: 96 },
+    separator: { height: 10 },
+    loading: { marginTop: 40 },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+    emptyText: { fontSize: 14, color: colors.textSubtle },
+    error: { fontSize: 14, color: colors.danger, textAlign: 'center' },
+    fab: {
+      position: 'absolute',
+      right: 20,
+      bottom: 28,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 3 },
+      elevation: 4,
+    },
+    fabText: { color: colors.surface, fontSize: 28, lineHeight: 30, fontWeight: '400' },
+  });
+}

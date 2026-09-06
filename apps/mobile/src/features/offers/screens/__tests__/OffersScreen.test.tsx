@@ -9,6 +9,7 @@ jest.mock('../../hooks/useOfferQueries', () => ({
 }));
 jest.mock('expo-router', () => ({ useLocalSearchParams: jest.fn(), useRouter: jest.fn() }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   useCreateOffer,
@@ -18,6 +19,8 @@ import {
 } from '../../hooks/useOfferQueries';
 import { OffersScreen } from '../OffersScreen';
 import type { Offer } from '../../types';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseOffers = jest.mocked(useOffers);
 const mockedUseCreateOffer = jest.mocked(useCreateOffer);
@@ -25,6 +28,7 @@ const mockedUseUpdateOffer = jest.mocked(useUpdateOffer);
 const mockedUseDeleteOffer = jest.mocked(useDeleteOffer);
 const mockedUseLocalSearchParams = jest.mocked(useLocalSearchParams);
 const mockedUseRouter = jest.mocked(useRouter);
+const mockedUseTheme = jest.mocked(useTheme);
 
 const offers: Offer[] = [
   {
@@ -51,6 +55,12 @@ function renderScreen(push = jest.fn()) {
 
 describe('OffersScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
     mockedUseCreateOffer.mockReturnValue({ mutateAsync: jest.fn(), isPending: false } as never);
     mockedUseUpdateOffer.mockReturnValue({ mutateAsync: jest.fn(), isPending: false } as never);

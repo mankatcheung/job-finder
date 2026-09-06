@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -15,8 +15,12 @@ import {
 } from '../hooks/useApplicationMutations';
 import type { Application } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 function TrashRow({ application }: { application: Application }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const restore = useRestoreApplication();
   const permanentlyDelete = usePermanentlyDeleteApplication();
 
@@ -75,12 +79,14 @@ function TrashRow({ application }: { application: Application }) {
 }
 
 export function TrashScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data, isLoading, isError, error } = useTrashedApplications();
 
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2563eb" testID="trash-loading" />
+        <ActivityIndicator size="large" color={colors.primary} testID="trash-loading" />
       </View>
     );
   }
@@ -112,53 +118,55 @@ export function TrashScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  list: { padding: 16, backgroundColor: '#f9fafb' },
-  separator: { height: 10 },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-    backgroundColor: '#f9fafb',
-  },
-  emptyText: { fontSize: 14, color: '#6b7280' },
-  error: { fontSize: 14, color: '#b91c1c', textAlign: 'center' },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 14,
-  },
-  textColumn: { flex: 1, gap: 2 },
-  role: { fontSize: 15, fontWeight: '600', color: '#111827' },
-  company: { fontSize: 13, color: '#374151' },
-  actions: { flexDirection: 'row', gap: 8 },
-  restoreButton: {
-    minHeight: 36,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-  },
-  restoreButtonText: { fontSize: 13, fontWeight: '600', color: '#374151' },
-  deleteButton: {
-    minHeight: 36,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fef2f2',
-    borderWidth: 1,
-    borderColor: '#fecaca',
-  },
-  deleteButtonText: { fontSize: 13, fontWeight: '600', color: '#b91c1c' },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    list: { padding: 16, backgroundColor: colors.background },
+    separator: { height: 10 },
+    centered: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 24,
+      backgroundColor: colors.background,
+    },
+    emptyText: { fontSize: 14, color: colors.textSubtle },
+    error: { fontSize: 14, color: colors.danger, textAlign: 'center' },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 14,
+    },
+    textColumn: { flex: 1, gap: 2 },
+    role: { fontSize: 15, fontWeight: '600', color: colors.text },
+    company: { fontSize: 13, color: colors.textMuted },
+    actions: { flexDirection: 'row', gap: 8 },
+    restoreButton: {
+      minHeight: 36,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surface,
+    },
+    restoreButtonText: { fontSize: 13, fontWeight: '600', color: colors.textMuted },
+    deleteButton: {
+      minHeight: 36,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.dangerSurface,
+      borderWidth: 1,
+      borderColor: colors.dangerBorder,
+    },
+    deleteButtonText: { fontSize: 13, fontWeight: '600', color: colors.danger },
+  });
+}

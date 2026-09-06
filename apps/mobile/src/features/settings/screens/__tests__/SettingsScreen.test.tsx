@@ -2,18 +2,31 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 
 jest.mock('../../../../auth/AuthContext', () => ({ useAuth: jest.fn() }));
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
 }));
 
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../../../auth/AuthContext';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 import { SettingsScreen } from '../SettingsScreen';
 
 const mockedUseAuth = jest.mocked(useAuth);
 const mockedUseRouter = jest.mocked(useRouter);
+const mockedUseTheme = jest.mocked(useTheme);
 
 describe('SettingsScreen', () => {
+  beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
+  });
+
   it('navigates to each settings section', async () => {
     const push = jest.fn();
     mockedUseRouter.mockReturnValue({ push } as never);
@@ -26,6 +39,9 @@ describe('SettingsScreen', () => {
 
     await fireEvent.press(getByTestId('settings-security-row'));
     expect(push).toHaveBeenCalledWith('/settings/security');
+
+    await fireEvent.press(getByTestId('settings-appearance-row'));
+    expect(push).toHaveBeenCalledWith('/settings/appearance');
 
     await fireEvent.press(getByTestId('settings-ai-row'));
     expect(push).toHaveBeenCalledWith('/settings/ai');

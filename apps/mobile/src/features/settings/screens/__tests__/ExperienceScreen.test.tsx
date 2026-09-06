@@ -15,6 +15,7 @@ jest.mock('../../hooks/useExperience', () => ({
   useDeleteSkill: jest.fn(),
 }));
 
+jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import {
   useCreateEducation,
   useCreateSkill,
@@ -29,6 +30,8 @@ import {
   useWorkExperiences,
 } from '../../hooks/useExperience';
 import { ExperienceScreen } from '../ExperienceScreen';
+import { useTheme } from '../../../../theme/ThemeContext';
+import { lightColors } from '../../../../theme/colors';
 
 const mockedUseWorkExperiences = jest.mocked(useWorkExperiences);
 const mockedUseCreateWorkExperience = jest.mocked(useCreateWorkExperience);
@@ -41,6 +44,7 @@ const mockedUseDeleteEducation = jest.mocked(useDeleteEducation);
 const mockedUseSkills = jest.mocked(useSkills);
 const mockedUseCreateSkill = jest.mocked(useCreateSkill);
 const mockedUseDeleteSkill = jest.mocked(useDeleteSkill);
+const mockedUseTheme = jest.mocked(useTheme);
 
 function setDefaults() {
   mockedUseWorkExperiences.mockReturnValue({ data: [], isLoading: false } as never);
@@ -64,6 +68,12 @@ function setDefaults() {
 
 describe('ExperienceScreen', () => {
   beforeEach(() => {
+    mockedUseTheme.mockReturnValue({
+      mode: 'light',
+      resolvedScheme: 'light',
+      colors: lightColors,
+      setMode: jest.fn(),
+    } as never);
     jest.clearAllMocks();
     setDefaults();
   });

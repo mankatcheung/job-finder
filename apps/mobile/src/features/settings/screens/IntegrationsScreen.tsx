@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -21,12 +21,16 @@ import {
 } from '../hooks/useIntegrations';
 import { getErrorMessage } from '../../../lib/errors';
 import type { ApiTokenScope, CreateApiTokenPayload, CreateShareLinkPayload } from '../types';
+import { useTheme } from '../../../theme/ThemeContext';
+import type { ThemeColors } from '../../../theme/colors';
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString();
 }
 
 export function IntegrationsScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <ApiTokensSection />
@@ -37,6 +41,8 @@ export function IntegrationsScreen() {
 }
 
 function ApiTokensSection() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: tokens = [] } = useApiTokens();
   const createToken = useCreateApiToken();
   const deleteToken = useDeleteApiToken();
@@ -124,7 +130,7 @@ function ApiTokensSection() {
             testID="create-api-token-button"
           >
             {createToken.isPending ? (
-              <ActivityIndicator color="#111827" />
+              <ActivityIndicator color={colors.text} />
             ) : (
               <Text style={styles.buttonText}>Create token</Text>
             )}
@@ -156,6 +162,8 @@ function ApiTokensSection() {
 }
 
 function McpGrantsSection() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: grants = [], isLoading } = useMcpOAuthGrants();
   const revokeGrant = useRevokeMcpOAuthGrant();
 
@@ -167,7 +175,7 @@ function McpGrantsSection() {
       </Text>
 
       {isLoading ? (
-        <ActivityIndicator color="#2563eb" />
+        <ActivityIndicator color={colors.primary} />
       ) : grants.length === 0 ? (
         <Text style={styles.emptyText}>No connected clients yet.</Text>
       ) : (
@@ -193,6 +201,8 @@ function McpGrantsSection() {
 }
 
 function ShareLinksSection() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: links = [] } = useShareLinks();
   const createLink = useCreateShareLink();
   const deleteLink = useDeleteShareLink();
@@ -262,7 +272,7 @@ function ShareLinksSection() {
             testID="create-share-link-button"
           >
             {createLink.isPending ? (
-              <ActivityIndicator color="#111827" />
+              <ActivityIndicator color={colors.text} />
             ) : (
               <Text style={styles.buttonText}>Create link</Text>
             )}
@@ -288,75 +298,77 @@ function ShareLinksSection() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  content: { padding: 20, gap: 16 },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 16,
-    gap: 12,
-  },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
-  cardHeaderText: { flex: 1, gap: 2 },
-  title: { fontSize: 15, fontWeight: '700', color: '#111827' },
-  description: { fontSize: 13, color: '#6b7280' },
-  link: { color: '#2563eb', fontSize: 13, fontWeight: '600' },
-  linkDanger: { color: '#b91c1c', fontSize: 13, fontWeight: '600' },
-  emptyText: { fontSize: 13, color: '#9ca3af' },
-  form: { gap: 8 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
-    backgroundColor: '#ffffff',
-  },
-  scopeRow: { flexDirection: 'row', gap: 8 },
-  scopeChip: {
-    borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  scopeChipActive: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
-  scopeChipText: { fontSize: 12, color: '#374151', fontWeight: '500' },
-  scopeChipTextActive: { color: '#ffffff' },
-  button: {
-    alignSelf: 'flex-start',
-    minHeight: 40,
-    borderRadius: 8,
-    backgroundColor: '#f3f4f6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 14,
-  },
-  buttonText: { color: '#111827', fontSize: 14, fontWeight: '600' },
-  error: {
-    color: '#b91c1c',
-    backgroundColor: '#fef2f2',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 13,
-  },
-  tokenBox: { gap: 8, backgroundColor: '#f9fafb', borderRadius: 8, padding: 12 },
-  tokenValue: { fontFamily: 'monospace', fontSize: 12, color: '#111827' },
-  tokenActions: { flexDirection: 'row', gap: 16 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
-    paddingTop: 10,
-    gap: 8,
-  },
-  rowText: { flex: 1, gap: 2 },
-  rowTitle: { fontSize: 13, fontWeight: '600', color: '#111827' },
-  rowMeta: { fontSize: 11, color: '#9ca3af' },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { padding: 20, gap: 16 },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 16,
+      gap: 12,
+    },
+    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+    cardHeaderText: { flex: 1, gap: 2 },
+    title: { fontSize: 15, fontWeight: '700', color: colors.text },
+    description: { fontSize: 13, color: colors.textSubtle },
+    link: { color: colors.primary, fontSize: 13, fontWeight: '600' },
+    linkDanger: { color: colors.danger, fontSize: 13, fontWeight: '600' },
+    emptyText: { fontSize: 13, color: colors.textFaint },
+    form: { gap: 8 },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      fontSize: 15,
+      backgroundColor: colors.surface,
+    },
+    scopeRow: { flexDirection: 'row', gap: 8 },
+    scopeChip: {
+      borderRadius: 9999,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+    },
+    scopeChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+    scopeChipText: { fontSize: 12, color: colors.textMuted, fontWeight: '500' },
+    scopeChipTextActive: { color: colors.surface },
+    button: {
+      alignSelf: 'flex-start',
+      minHeight: 40,
+      borderRadius: 8,
+      backgroundColor: colors.surfaceAlt,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 14,
+    },
+    buttonText: { color: colors.text, fontSize: 14, fontWeight: '600' },
+    error: {
+      color: colors.danger,
+      backgroundColor: colors.dangerSurface,
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 13,
+    },
+    tokenBox: { gap: 8, backgroundColor: colors.background, borderRadius: 8, padding: 12 },
+    tokenValue: { fontFamily: 'monospace', fontSize: 12, color: colors.text },
+    tokenActions: { flexDirection: 'row', gap: 16 },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderTopWidth: 1,
+      borderTopColor: colors.surfaceAlt,
+      paddingTop: 10,
+      gap: 8,
+    },
+    rowText: { flex: 1, gap: 2 },
+    rowTitle: { fontSize: 13, fontWeight: '600', color: colors.text },
+    rowMeta: { fontSize: 11, color: colors.textFaint },
+  });
+}
