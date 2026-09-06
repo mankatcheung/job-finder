@@ -59,10 +59,10 @@ describe('AppSidebar', () => {
     mockedUseUnreadCount.mockReturnValue({ data: 0 } as never);
   });
 
-  it('navigates to the pressed item and closes the sidebar', async () => {
-    const push = jest.fn();
+  it('replaces the stack with the pressed item and closes the sidebar', async () => {
+    const replace = jest.fn();
     const close = jest.fn();
-    mockedUseRouter.mockReturnValue({ push } as never);
+    mockedUseRouter.mockReturnValue({ replace } as never);
     mockedUseSidebar.mockReturnValue({ isOpen: true, open: jest.fn(), close });
     mockedUseAuth.mockReturnValue({ logout: jest.fn() } as never);
 
@@ -70,13 +70,29 @@ describe('AppSidebar', () => {
 
     fireEvent.press(getByTestId('sidebar-applications'));
 
-    expect(push).toHaveBeenCalledWith('/applications');
+    expect(replace).toHaveBeenCalledWith('/applications');
+    expect(close).toHaveBeenCalled();
+  });
+
+  it('does not navigate when pressing the item for the section already active', async () => {
+    const replace = jest.fn();
+    const close = jest.fn();
+    mockedUsePathname.mockReturnValue('/applications');
+    mockedUseRouter.mockReturnValue({ replace } as never);
+    mockedUseSidebar.mockReturnValue({ isOpen: true, open: jest.fn(), close });
+    mockedUseAuth.mockReturnValue({ logout: jest.fn() } as never);
+
+    const { getByTestId } = await render(<AppSidebar />);
+
+    fireEvent.press(getByTestId('sidebar-applications'));
+
+    expect(replace).not.toHaveBeenCalled();
     expect(close).toHaveBeenCalled();
   });
 
   it('highlights the active nav item for the current route', async () => {
     mockedUsePathname.mockReturnValue('/');
-    mockedUseRouter.mockReturnValue({ push: jest.fn() } as never);
+    mockedUseRouter.mockReturnValue({ replace: jest.fn() } as never);
     mockedUseAuth.mockReturnValue({ logout: jest.fn() } as never);
 
     const { getByTestId } = await render(<AppSidebar />);
@@ -90,7 +106,7 @@ describe('AppSidebar', () => {
 
   it('closes when the scrim is pressed', async () => {
     const close = jest.fn();
-    mockedUseRouter.mockReturnValue({ push: jest.fn() } as never);
+    mockedUseRouter.mockReturnValue({ replace: jest.fn() } as never);
     mockedUseSidebar.mockReturnValue({ isOpen: true, open: jest.fn(), close });
     mockedUseAuth.mockReturnValue({ logout: jest.fn() } as never);
 
@@ -104,7 +120,7 @@ describe('AppSidebar', () => {
   it('signs out and closes when sign out is pressed', async () => {
     const logout = jest.fn();
     const close = jest.fn();
-    mockedUseRouter.mockReturnValue({ push: jest.fn() } as never);
+    mockedUseRouter.mockReturnValue({ replace: jest.fn() } as never);
     mockedUseSidebar.mockReturnValue({ isOpen: true, open: jest.fn(), close });
     mockedUseAuth.mockReturnValue({ logout } as never);
 
@@ -117,7 +133,7 @@ describe('AppSidebar', () => {
   });
 
   it('shows the unread notifications badge', async () => {
-    mockedUseRouter.mockReturnValue({ push: jest.fn() } as never);
+    mockedUseRouter.mockReturnValue({ replace: jest.fn() } as never);
     mockedUseAuth.mockReturnValue({ logout: jest.fn() } as never);
     mockedUseUnreadCount.mockReturnValue({ data: 3 } as never);
 
@@ -128,7 +144,7 @@ describe('AppSidebar', () => {
   });
 
   it('hides the notifications badge when there are no unread notifications', async () => {
-    mockedUseRouter.mockReturnValue({ push: jest.fn() } as never);
+    mockedUseRouter.mockReturnValue({ replace: jest.fn() } as never);
     mockedUseAuth.mockReturnValue({ logout: jest.fn() } as never);
 
     const { queryByTestId } = await render(<AppSidebar />);
@@ -137,7 +153,7 @@ describe('AppSidebar', () => {
   });
 
   it('shows the profile name and email', async () => {
-    mockedUseRouter.mockReturnValue({ push: jest.fn() } as never);
+    mockedUseRouter.mockReturnValue({ replace: jest.fn() } as never);
     mockedUseAuth.mockReturnValue({ logout: jest.fn() } as never);
 
     const { getByText } = await render(<AppSidebar />);
@@ -147,7 +163,7 @@ describe('AppSidebar', () => {
   });
 
   it('pads the profile section and secondary nav by the safe-area insets', async () => {
-    mockedUseRouter.mockReturnValue({ push: jest.fn() } as never);
+    mockedUseRouter.mockReturnValue({ replace: jest.fn() } as never);
     mockedUseAuth.mockReturnValue({ logout: jest.fn() } as never);
     mockedUseSafeAreaInsets.mockReturnValue({ top: 44, right: 0, bottom: 34, left: 0 });
 

@@ -51,8 +51,8 @@ const applications: Application[] = [
   },
 ];
 
-function renderScreen(push = jest.fn()) {
-  mockedUseRouter.mockReturnValue({ push } as never);
+function renderScreen(push = jest.fn(), replace = jest.fn()) {
+  mockedUseRouter.mockReturnValue({ push, replace } as never);
   return render(<DashboardScreen />);
 }
 
@@ -153,6 +153,39 @@ describe('DashboardScreen', () => {
     await fireEvent.press(row);
 
     await waitFor(() => expect(push).toHaveBeenCalledWith('/applications/app-1'));
+  });
+
+  it('replaces the stack when viewing the calendar instead of pushing on top of the dashboard', async () => {
+    mockedUseApplications.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    } as never);
+    mockedUseCalendarEvents.mockReturnValue({
+      data: [
+        {
+          id: 'evt-1',
+          applicationId: 'app-1',
+          company: 'Stripe',
+          role: 'Engineer',
+          type: 'interview',
+          date: new Date(Date.now() + 86_400_000).toISOString(),
+          interviewRoundType: null,
+        },
+      ],
+    } as never);
+    const push = jest.fn();
+    const replace = jest.fn();
+
+    const { findByTestId } = await renderScreen(push, replace);
+
+    const link = await findByTestId('dashboard-view-calendar');
+    await fireEvent.press(link);
+
+    expect(replace).toHaveBeenCalledWith('/calendar');
+    expect(push).not.toHaveBeenCalledWith('/calendar');
   });
 
   it('shows an empty state when there are no applications', async () => {

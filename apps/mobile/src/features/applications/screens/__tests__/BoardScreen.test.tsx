@@ -63,8 +63,8 @@ const applications: Application[] = [
   },
 ];
 
-function renderScreen(push = jest.fn()) {
-  mockedUseRouter.mockReturnValue({ push } as never);
+function renderScreen(push = jest.fn(), replace = jest.fn()) {
+  mockedUseRouter.mockReturnValue({ push, replace } as never);
   return render(<BoardScreen />);
 }
 
@@ -130,17 +130,19 @@ describe('BoardScreen', () => {
     );
   });
 
-  it('navigates back to the list view', async () => {
+  it('replaces the stack with the list view instead of pushing on top of the board', async () => {
     mockedUseMoveApplicationOnBoard.mockReturnValue({
       mutateAsync: jest.fn(),
       isPending: false,
     } as never);
     const push = jest.fn();
+    const replace = jest.fn();
 
-    const { getByTestId } = await renderScreen(push);
+    const { getByTestId } = await renderScreen(push, replace);
 
     await fireEvent.press(getByTestId('switch-to-list-view'));
 
-    expect(push).toHaveBeenCalledWith('/applications');
+    expect(replace).toHaveBeenCalledWith('/applications');
+    expect(push).not.toHaveBeenCalledWith('/applications');
   });
 });

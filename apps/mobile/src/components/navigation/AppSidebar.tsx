@@ -133,7 +133,7 @@ function NavRow({
 }: {
   item: NavItem;
   pathname: string;
-  onPress: () => void;
+  onPress: (item: NavItem) => void;
 }) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -143,7 +143,7 @@ function NavRow({
   return (
     <Pressable
       style={[styles.navRow, active && styles.navRowActive]}
-      onPress={onPress}
+      onPress={() => onPress(item)}
       testID={item.testID}
     >
       <item.Icon color={color} />
@@ -180,9 +180,14 @@ export function AppSidebar() {
   const primaryNav = useMemo(() => buildPrimaryNav(t), [t]);
   const secondaryNav = useMemo(() => buildSecondaryNav(t), [t]);
 
-  const navigate = (href: Href) => {
+  const navigate = (item: NavItem) => {
     close();
-    router.push(href);
+    if (item.isActive(pathname)) return;
+    // Replace, not push: sidebar items are section roots, so switching
+    // sections should reset to that section rather than stacking on top of
+    // wherever the user was — otherwise the stack (and back-gesture history)
+    // grows without bound as the user hops between sections (JEF-290).
+    router.replace(item.href);
   };
 
   const signOut = () => {
@@ -226,12 +231,7 @@ export function AppSidebar() {
 
           <View style={styles.primaryNav}>
             {primaryNav.map((item) => (
-              <NavRow
-                key={item.key}
-                item={item}
-                pathname={pathname}
-                onPress={() => navigate(item.href)}
-              />
+              <NavRow key={item.key} item={item} pathname={pathname} onPress={navigate} />
             ))}
           </View>
 
@@ -240,12 +240,7 @@ export function AppSidebar() {
             testID="sidebar-secondary-nav"
           >
             {secondaryNav.map((item) => (
-              <NavRow
-                key={item.key}
-                item={item}
-                pathname={pathname}
-                onPress={() => navigate(item.href)}
-              />
+              <NavRow key={item.key} item={item} pathname={pathname} onPress={navigate} />
             ))}
 
             <Pressable style={styles.navRow} onPress={signOut} testID="sidebar-sign-out">
