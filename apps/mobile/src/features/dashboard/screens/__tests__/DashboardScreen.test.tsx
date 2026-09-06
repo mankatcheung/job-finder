@@ -51,8 +51,8 @@ const applications: Application[] = [
   },
 ];
 
-function renderScreen(push = jest.fn()) {
-  mockedUseRouter.mockReturnValue({ push } as never);
+function renderScreen(push = jest.fn(), replace = jest.fn()) {
+  mockedUseRouter.mockReturnValue({ push, replace } as never);
   return render(<DashboardScreen />);
 }
 
