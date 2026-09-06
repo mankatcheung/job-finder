@@ -5,22 +5,37 @@ import type {
   IOutboundUrlPolicy,
   OutboundUrlPurpose,
 } from '#src/use-cases/ports/IOutboundUrlPolicy.js';
-import { ENV, NODE_ENV, OUTBOUND_URL } from '#src/infrastructure/config/constants.js';
+import {
+  ENV,
+  NODE_ENV,
+  OUTBOUND_URL,
+  OUTBOUND_URL_POLICY,
+} from '#src/infrastructure/config/constants.js';
 
 type Lookup = (hostname: string) => Promise<string[]>;
 
 export interface OutboundUrlPolicyOptions {
   /**
-   * Refuse private, loopback and link-local destinations. Defaults to
-   * `NODE_ENV === 'production'`: in production the server's own network is
-   * exactly what an SSRF is after, while a developer's laptop or CI is theirs
-   * to point at — the e2e suite runs the "Custom (OpenAI-compatible)" provider
-   * against the API's own fake completions route on localhost, and a
-   * developer running Ollama does the same.
+   * Refuse private, loopback and link-local destinations. Defaults to the
+   * `OUTBOUND_URL_POLICY` env var when set (`strict` | `permissive`), else
+   * to `NODE_ENV === 'production'`: in production the server's own network
+   * is exactly what an SSRF is after, while a developer's laptop or CI is
+   * theirs to point at — the e2e suite runs the "Custom (OpenAI-compatible)"
+   * provider against the API's own fake completions route on localhost, and
+   * a developer running Ollama does the same. The env override is for a
+   * self-hosted production instance that deliberately wants a local model
+   * reachable (F13).
    */
   strict?: boolean;
   /** Injectable for tests; defaults to a real DNS lookup returning every address. */
   lookup?: Lookup;
+}
+
+function strictFromEnv(): boolean {
+  const configured = process.env[ENV.OUTBOUND_URL_POLICY];
+  if (configured === OUTBOUND_URL_POLICY.STRICT) return true;
+  if (configured === OUTBOUND_URL_POLICY.PERMISSIVE) return false;
+  return process.env[ENV.NODE_ENV] === NODE_ENV.PRODUCTION;
 }
 
 const defaultLookup: Lookup = async (hostname) =>
@@ -81,7 +96,7 @@ export class OutboundUrlPolicy implements IOutboundUrlPolicy {
   private readonly lookup: Lookup;
 
   constructor(options: OutboundUrlPolicyOptions = {}) {
-    this.strict = options.strict ?? process.env[ENV.NODE_ENV] === NODE_ENV.PRODUCTION;
+    this.strict = options.strict ?? strictFromEnv();
     this.lookup = options.lookup ?? defaultLookup;
   }
 

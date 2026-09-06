@@ -174,6 +174,30 @@ describe('OutboundUrlPolicy', () => {
     });
   });
 
+  it('honours an explicit OUTBOUND_URL_POLICY over the NODE_ENV default (F13)', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('OUTBOUND_URL_POLICY', 'permissive');
+    try {
+      expect(new OutboundUrlPolicy()['strict']).toBe(false);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+    vi.stubEnv('NODE_ENV', 'development');
+    vi.stubEnv('OUTBOUND_URL_POLICY', 'strict');
+    try {
+      expect(new OutboundUrlPolicy()['strict']).toBe(true);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('OUTBOUND_URL_POLICY', 'nonsense');
+    try {
+      expect(new OutboundUrlPolicy()['strict']).toBe(true);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('defaults to strict only when NODE_ENV is production', () => {
     vi.stubEnv('NODE_ENV', 'production');
     try {

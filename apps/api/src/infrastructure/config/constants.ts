@@ -48,6 +48,7 @@ export const ENV = {
   GITHUB_OAUTH_CLIENT_SECRET: 'GITHUB_OAUTH_CLIENT_SECRET',
   OAUTH_PROVIDER_MODE: 'OAUTH_PROVIDER_MODE',
   LLM_PROVIDER_MODE: 'LLM_PROVIDER_MODE',
+  OUTBOUND_URL_POLICY: 'OUTBOUND_URL_POLICY',
   VAPID_PUBLIC_KEY: 'VAPID_PUBLIC_KEY',
   VAPID_PRIVATE_KEY: 'VAPID_PRIVATE_KEY',
   VAPID_SUBJECT: 'VAPID_SUBJECT',
@@ -195,6 +196,18 @@ export const LLM_PROVIDER_MODE = {
  */
 export const OUTBOUND_URL = {
   BLOCKED_PORTS: [22, 25, 3306, 5432, 6379, 9200, 11211, 27017],
+} as const;
+
+/**
+ * `OUTBOUND_URL_POLICY` values (F13). Unset means "strict when
+ * NODE_ENV=production, permissive otherwise". `permissive` exists for a
+ * self-hosted production instance that runs a model on its own network and
+ * wants to add it as a custom provider — an explicit choice to accept SSRF
+ * exposure, never the default.
+ */
+export const OUTBOUND_URL_POLICY = {
+  STRICT: 'strict',
+  PERMISSIVE: 'permissive',
 } as const;
 
 /**
