@@ -25,8 +25,8 @@ function Probe() {
     <>
       <Text testID="mode">{mode}</Text>
       <Text testID="resolved">{resolvedLanguage}</Text>
-      <Text testID="set-es" onPress={() => setMode('es')}>
-        set-es
+      <Text testID="set-zh-CN" onPress={() => setMode('zh-CN')}>
+        set-zh-CN
       </Text>
     </>
   );
@@ -40,7 +40,7 @@ describe('LanguageContext', () => {
   });
 
   it('defaults to system mode resolved against the detected device language', async () => {
-    mockedDetectDeviceLanguage.mockReturnValue('es');
+    mockedDetectDeviceLanguage.mockReturnValue('zh-CN');
 
     const { getByTestId } = await render(
       <LanguageProvider>
@@ -49,12 +49,12 @@ describe('LanguageContext', () => {
     );
 
     await waitFor(() => expect(getByTestId('mode').props.children).toBe('system'));
-    expect(getByTestId('resolved').props.children).toBe('es');
-    await waitFor(() => expect(i18n.language).toBe('es'));
+    expect(getByTestId('resolved').props.children).toBe('zh-CN');
+    await waitFor(() => expect(i18n.language).toBe('zh-CN'));
   });
 
   it('loads a persisted mode on mount, overriding device detection', async () => {
-    mockedGetLanguageMode.mockResolvedValue('es');
+    mockedGetLanguageMode.mockResolvedValue('zh-CN');
     mockedDetectDeviceLanguage.mockReturnValue('en');
 
     const { getByTestId } = await render(
@@ -63,8 +63,8 @@ describe('LanguageContext', () => {
       </LanguageProvider>,
     );
 
-    await waitFor(() => expect(getByTestId('mode').props.children).toBe('es'));
-    expect(getByTestId('resolved').props.children).toBe('es');
+    await waitFor(() => expect(getByTestId('mode').props.children).toBe('zh-CN'));
+    expect(getByTestId('resolved').props.children).toBe('zh-CN');
   });
 
   it('persists a mode change and switches i18next language', async () => {
@@ -76,11 +76,11 @@ describe('LanguageContext', () => {
 
     await waitFor(() => expect(getByTestId('mode').props.children).toBe('system'));
 
-    await fireEvent.press(getByTestId('set-es'));
+    await fireEvent.press(getByTestId('set-zh-CN'));
 
-    await waitFor(() => expect(getByTestId('mode').props.children).toBe('es'));
-    expect(mockedSetLanguageMode).toHaveBeenCalledWith('es');
-    await waitFor(() => expect(i18n.language).toBe('es'));
+    await waitFor(() => expect(getByTestId('mode').props.children).toBe('zh-CN'));
+    expect(mockedSetLanguageMode).toHaveBeenCalledWith('zh-CN');
+    await waitFor(() => expect(i18n.language).toBe('zh-CN'));
   });
 
   it('throws when useLanguage is used outside a LanguageProvider', async () => {

@@ -39,20 +39,20 @@ describe('languageStorage', () => {
     });
 
     it('reads and writes the mode via localStorage instead of SecureStore', async () => {
-      await setLanguageMode('es');
+      await setLanguageMode('zh-CN');
 
       expect(mockedSecureStore.setItemAsync).not.toHaveBeenCalled();
-      await expect(getLanguageMode()).resolves.toBe('es');
+      await expect(getLanguageMode()).resolves.toBe('zh-CN');
     });
   });
 
   it('writes the mode to SecureStore', async () => {
-    await setLanguageMode('es');
+    await setLanguageMode('zh-CN');
 
-    expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(LANGUAGE_KEY, 'es');
+    expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(LANGUAGE_KEY, 'zh-CN');
   });
 
-  it.each(['en', 'es', 'system'] as const)('reads a valid stored mode %s back', async (mode) => {
+  it.each(['en', 'zh-CN', 'system'] as const)('reads a valid stored mode %s back', async (mode) => {
     mockedSecureStore.getItemAsync.mockResolvedValueOnce(mode);
 
     await expect(getLanguageMode()).resolves.toBe(mode);

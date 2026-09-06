@@ -30,8 +30,8 @@ describe('LanguageScreen', () => {
 
     const { getByTestId } = await render(<LanguageScreen />);
 
-    await fireEvent.press(getByTestId('language-es'));
-    expect(setMode).toHaveBeenCalledWith('es');
+    await fireEvent.press(getByTestId('language-zh-CN'));
+    expect(setMode).toHaveBeenCalledWith('zh-CN');
 
     await fireEvent.press(getByTestId('language-en'));
     expect(setMode).toHaveBeenCalledWith('en');
@@ -52,6 +52,9 @@ describe('LanguageScreen', () => {
 
     expect(getByTestId('language-system')).toBeTruthy();
     expect(getByTestId('language-en')).toBeTruthy();
-    expect(getByTestId('language-es')).toBeTruthy();
+    expect(getByTestId('language-en-GB')).toBeTruthy();
+    expect(getByTestId('language-zh-HK')).toBeTruthy();
+    expect(getByTestId('language-zh-TW')).toBeTruthy();
+    expect(getByTestId('language-zh-CN')).toBeTruthy();
   });
 });
