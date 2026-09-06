@@ -9,5 +9,7 @@
   "integrations": "Integrations",
   "data": "Data",
   "dangerZone": "Danger zone",
+  "analytics": "Analytics",
+  "trash": "Bin",
   "signOut": "Sign out"
 }

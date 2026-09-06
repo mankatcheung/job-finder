@@ -23,7 +23,8 @@
     "integrations": "集成",
     "data": "数据",
     "dangerZone": "危险区域",
-    "language": "语言"
+    "language": "语言",
+    "appearance": "外观"
   },
   "sidebar": {
     "dashboard": "仪表盘",
@@ -36,5 +37,12 @@
     "settings": "设置",
     "trash": "回收站",
     "signOut": "退出登录"
+  },
+  "tabs": {
+    "home": "首页",
+    "applications": "求职申请",
+    "calendar": "日历",
+    "assistant": "助手",
+    "settings": "设置"
   }
 }

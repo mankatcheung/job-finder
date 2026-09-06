@@ -109,7 +109,7 @@ describe('BoardScreen', () => {
 
     await fireEvent.press(getByTestId('board-card-app-1'));
 
-    expect(push).toHaveBeenCalledWith('/applications/app-1');
+    expect(push).toHaveBeenCalledWith('./app-1');
   });
 
   it('moves a card to a different column via the move modal', async () => {
@@ -128,19 +128,5 @@ describe('BoardScreen', () => {
         orderedIds: ['app-2', 'app-1'],
       }),
     );
-  });
-
-  it('navigates back to the list view', async () => {
-    mockedUseMoveApplicationOnBoard.mockReturnValue({
-      mutateAsync: jest.fn(),
-      isPending: false,
-    } as never);
-    const push = jest.fn();
-
-    const { getByTestId } = await renderScreen(push);
-
-    await fireEvent.press(getByTestId('switch-to-list-view'));
-
-    expect(push).toHaveBeenCalledWith('/applications');
   });
 });

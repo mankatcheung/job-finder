@@ -74,7 +74,7 @@ describe('CalendarScreen', () => {
     await findByText('Interview (Onsite) — Stripe');
     await fireEvent.press(getByTestId('calendar-event-evt-1'));
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith('/applications/app-1'));
+    await waitFor(() => expect(push).toHaveBeenCalledWith('./applications/app-1'));
   });
 
   it('switches to day view, showing that day’s events without a day selection', async () => {

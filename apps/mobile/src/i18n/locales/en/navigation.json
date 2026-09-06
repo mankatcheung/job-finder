@@ -23,7 +23,8 @@
     "integrations": "Integrations",
     "data": "Data",
     "dangerZone": "Danger zone",
-    "language": "Language"
+    "language": "Language",
+    "appearance": "Appearance"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -36,5 +37,12 @@
     "settings": "Settings",
     "trash": "Trash",
     "signOut": "Sign out"
+  },
+  "tabs": {
+    "home": "Home",
+    "applications": "Applications",
+    "calendar": "Calendar",
+    "assistant": "Assistant",
+    "settings": "Settings"
   }
 }

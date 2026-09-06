@@ -45,7 +45,12 @@ export function NotificationsScreen() {
       markRead.mutate({ ids: [notification.id], isRead: true });
     }
     const route = resolveNotificationRoute(notification.url);
-    if (route) router.push(route);
+    if (!route) return;
+    // Dismiss this modal, then push the detail onto the Applications tab's
+    // own stack — regardless of which tab was active when the bell was
+    // tapped (JEF-291).
+    router.back();
+    router.push(route);
   };
 
   return (

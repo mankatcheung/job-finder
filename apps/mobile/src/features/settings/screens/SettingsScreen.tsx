@@ -31,6 +31,8 @@ export function SettingsScreen() {
       testID: 'settings-integrations-row',
     },
     { label: t('data'), href: '/settings/data', testID: 'settings-data-row' },
+    { label: t('analytics'), href: '/settings/analytics', testID: 'settings-analytics-row' },
+    { label: t('trash'), href: '/settings/trash', testID: 'settings-trash-row' },
   ];
 
   const DANGER_MENU: { label: string; href: Href; testID: string }[] = [

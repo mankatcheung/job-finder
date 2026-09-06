@@ -99,21 +99,21 @@ export function ApplicationDetailScreen() {
       <View style={styles.actions}>
         <Pressable
           style={styles.editButton}
-          onPress={() => router.push(`/applications/${applicationId}/notes`)}
+          onPress={() => router.push('./notes')}
           testID="notes-button"
         >
           <Text style={styles.editButtonText}>{t('detail.notes')}</Text>
         </Pressable>
         <Pressable
           style={styles.editButton}
-          onPress={() => router.push(`/applications/${applicationId}/documents`)}
+          onPress={() => router.push('./documents')}
           testID="documents-button"
         >
           <Text style={styles.editButtonText}>{t('detail.documents')}</Text>
         </Pressable>
         <Pressable
           style={styles.editButton}
-          onPress={() => router.push(`/applications/${applicationId}/offers`)}
+          onPress={() => router.push('./offers')}
           testID="offers-button"
         >
           <Text style={styles.editButtonText}>{t('detail.offers')}</Text>
@@ -123,7 +123,7 @@ export function ApplicationDetailScreen() {
       <View style={styles.actions}>
         <Pressable
           style={styles.editButton}
-          onPress={() => router.push(`/applications/${applicationId}/edit`)}
+          onPress={() => router.push('./edit')}
           testID="edit-application-button"
         >
           <Text style={styles.editButtonText}>{t('detail.edit')}</Text>

@@ -9,7 +9,6 @@ jest.mock('../../hooks/useChatHistory', () => ({
   chatHistoryQueryKey: (id: string) => ['chatHistory', id],
 }));
 jest.mock('../../hooks/useConversations', () => ({
-  useCreateConversation: jest.fn(),
   conversationsQueryKey: ['conversations'],
 }));
 jest.mock('../../lib/chatStream', () => ({
@@ -23,7 +22,6 @@ jest.mock('expo-router', () => ({
 jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 import { useLocalSearchParams } from 'expo-router';
 import { useAppendOptimisticMessage, useChatHistory } from '../../hooks/useChatHistory';
-import { useCreateConversation } from '../../hooks/useConversations';
 import { streamChatMessage } from '../../lib/chatStream';
 import { ChatScreen } from '../ChatScreen';
 import type { ChatMessage } from '../../types';
@@ -32,7 +30,6 @@ import { lightColors } from '../../../../theme/colors';
 
 const mockedUseChatHistory = jest.mocked(useChatHistory);
 const mockedUseAppendOptimisticMessage = jest.mocked(useAppendOptimisticMessage);
-const mockedUseCreateConversation = jest.mocked(useCreateConversation);
 const mockedStreamChatMessage = jest.mocked(streamChatMessage);
 const mockedUseLocalSearchParams = jest.mocked(useLocalSearchParams);
 const mockedUseTheme = jest.mocked(useTheme);
@@ -44,8 +41,8 @@ const message: ChatMessage = {
   createdAt: '2026-01-01T00:00:00.000Z',
 };
 
-function renderScreen(conversationId: string | null) {
-  mockedUseLocalSearchParams.mockReturnValue({ id: conversationId ?? 'new' } as never);
+function renderScreen(conversationId: string, initialMessage?: string) {
+  mockedUseLocalSearchParams.mockReturnValue({ id: conversationId, initialMessage } as never);
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={queryClient}>
@@ -68,7 +65,6 @@ describe('ChatScreen', () => {
 
   it('renders existing messages', async () => {
     mockedUseChatHistory.mockReturnValue({ data: [message], isLoading: false } as never);
-    mockedUseCreateConversation.mockReturnValue({ mutateAsync: jest.fn() } as never);
 
     const { getByText } = await renderScreen('conv-1');
 
@@ -77,7 +73,6 @@ describe('ChatScreen', () => {
 
   it('sends a message and streams the reply', async () => {
     mockedUseChatHistory.mockReturnValue({ data: [], isLoading: false } as never);
-    mockedUseCreateConversation.mockReturnValue({ mutateAsync: jest.fn() } as never);
     mockedStreamChatMessage.mockResolvedValueOnce(undefined);
 
     const { getByTestId } = await renderScreen('conv-1');
@@ -95,21 +90,15 @@ describe('ChatScreen', () => {
     );
   });
 
-  it('lazily creates a conversation on first send when none exists yet', async () => {
+  it('auto-sends the initial message from a freshly created conversation', async () => {
     mockedUseChatHistory.mockReturnValue({ data: [], isLoading: false } as never);
-    const mutateAsync = jest.fn().mockResolvedValue({ id: 'new-conv' });
-    mockedUseCreateConversation.mockReturnValue({ mutateAsync } as never);
     mockedStreamChatMessage.mockResolvedValueOnce(undefined);
 
-    const { getByTestId } = await renderScreen(null);
+    await renderScreen('new-conv', 'Hi there');
 
-    await fireEvent.changeText(getByTestId('chat-input'), 'Hi');
-    await fireEvent.press(getByTestId('chat-send-button'));
-
-    await waitFor(() => expect(mutateAsync).toHaveBeenCalled());
     await waitFor(() =>
       expect(mockedStreamChatMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ conversationId: 'new-conv' }),
+        expect.objectContaining({ conversationId: 'new-conv', message: 'Hi there' }),
       ),
     );
   });

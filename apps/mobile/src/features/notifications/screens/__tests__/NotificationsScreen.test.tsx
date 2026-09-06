@@ -58,8 +58,8 @@ function baseInfiniteQueryResult(overrides: Partial<ReturnType<typeof useNotific
   } as unknown as ReturnType<typeof useNotificationsPage>;
 }
 
-function renderScreen(push = jest.fn(), mutate = jest.fn()) {
-  mockedUseRouter.mockReturnValue({ push } as never);
+function renderScreen(push = jest.fn(), mutate = jest.fn(), back = jest.fn()) {
+  mockedUseRouter.mockReturnValue({ push, back } as never);
   mockedUseMarkNotificationsRead.mockReturnValue({ mutate } as never);
   return render(<NotificationsScreen />);
 }
@@ -84,30 +84,34 @@ describe('NotificationsScreen', () => {
     await findByText('New login detected');
   });
 
-  it('marks a notification read and navigates when a row is pressed', async () => {
+  it('marks a notification read, dismisses the modal, and switches to the Applications tab', async () => {
     mockedUseNotificationsPage.mockReturnValue(baseInfiniteQueryResult());
     const push = jest.fn();
     const mutate = jest.fn();
+    const back = jest.fn();
 
-    const { getByTestId } = await renderScreen(push, mutate);
+    const { getByTestId } = await renderScreen(push, mutate, back);
 
     await fireEvent.press(getByTestId('notification-row-1'));
 
     expect(mutate).toHaveBeenCalledWith({ ids: ['1'], isRead: true });
-    await waitFor(() => expect(push).toHaveBeenCalledWith('/applications/app-1'));
+    expect(back).toHaveBeenCalled();
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/(tabs)/applications/app-1'));
   });
 
   it('does not navigate for a notification with no url, but still marks it read if unread', async () => {
     mockedUseNotificationsPage.mockReturnValue(baseInfiniteQueryResult());
     const push = jest.fn();
     const mutate = jest.fn();
+    const back = jest.fn();
 
-    const { getByTestId } = await renderScreen(push, mutate);
+    const { getByTestId } = await renderScreen(push, mutate, back);
 
     await fireEvent.press(getByTestId('notification-row-2'));
 
     expect(mutate).not.toHaveBeenCalled();
     expect(push).not.toHaveBeenCalled();
+    expect(back).not.toHaveBeenCalled();
   });
 
   it('marks all unread notifications read', async () => {

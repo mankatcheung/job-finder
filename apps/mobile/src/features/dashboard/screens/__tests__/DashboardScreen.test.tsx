@@ -98,7 +98,7 @@ describe('DashboardScreen', () => {
 
     await fireEvent.press(getByTestId('dashboard-new-application-button'));
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith('/applications/new'));
+    await waitFor(() => expect(push).toHaveBeenCalledWith('./applications/new'));
   });
 
   it('shows the weekly goal progress when present', async () => {
@@ -152,7 +152,37 @@ describe('DashboardScreen', () => {
     const row = await findByTestId('upcoming-event-evt-1');
     await fireEvent.press(row);
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith('/applications/app-1'));
+    await waitFor(() => expect(push).toHaveBeenCalledWith('./applications/app-1'));
+  });
+
+  it('navigates to the Calendar tab from the upcoming section', async () => {
+    mockedUseApplications.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    } as never);
+    mockedUseCalendarEvents.mockReturnValue({
+      data: [
+        {
+          id: 'evt-1',
+          applicationId: 'app-1',
+          company: 'Stripe',
+          role: 'Engineer',
+          type: 'interview',
+          date: new Date(Date.now() + 86_400_000).toISOString(),
+          interviewRoundType: null,
+        },
+      ],
+    } as never);
+    const push = jest.fn();
+
+    const { findByTestId } = await renderScreen(push);
+
+    await fireEvent.press(await findByTestId('dashboard-view-calendar'));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/(tabs)/calendar'));
   });
 
   it('shows an empty state when there are no applications', async () => {

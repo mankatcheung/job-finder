@@ -209,7 +209,7 @@ export function CalendarScreen() {
                 <Pressable
                   key={event.id}
                   style={styles.eventRow}
-                  onPress={() => router.push(`/applications/${event.applicationId}`)}
+                  onPress={() => router.push(`./applications/${event.applicationId}`)}
                   testID={`calendar-event-${event.id}`}
                 >
                   <View style={[styles.dot, { backgroundColor: eventDotColorMap[event.type] }]} />

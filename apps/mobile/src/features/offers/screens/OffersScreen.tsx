@@ -65,10 +65,7 @@ export function OffersScreen() {
         <Text style={styles.title}>{t('title')}</Text>
         <View style={styles.headerActions}>
           {items.length >= 2 && (
-            <Pressable
-              onPress={() => router.push(`/applications/${applicationId}/offers/compare`)}
-              testID="compare-offers-button"
-            >
+            <Pressable onPress={() => router.push('./compare')} testID="compare-offers-button">
               <Text style={styles.link}>{t('compare')}</Text>
             </Pressable>
           )}

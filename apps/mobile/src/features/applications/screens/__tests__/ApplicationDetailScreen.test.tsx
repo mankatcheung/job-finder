@@ -99,7 +99,7 @@ describe('ApplicationDetailScreen', () => {
 
     await fireEvent.press(getByTestId('edit-application-button'));
 
-    expect(push).toHaveBeenCalledWith('/applications/1/edit');
+    expect(push).toHaveBeenCalledWith('./edit');
   });
 
   it('confirms and deletes the application, then navigates back', async () => {
