@@ -355,6 +355,13 @@ export const CHAT = {
    * `StreamChatWithAssistantUseCase`.
    */
   MAX_HISTORY_MESSAGES: 40,
+  /**
+   * The same cap by size (T6): forty messages of a few words is nothing,
+   * forty pasted cover letters is not. Oldest messages are dropped first
+   * until the history fits, on top of the message-count cap above. Roughly
+   * 6k tokens — a long conversation still fits comfortably under it.
+   */
+  MAX_HISTORY_CHARS: 24_000,
 } as const;
 
 /** Defaults/limits for cursor-paginated list queries. */

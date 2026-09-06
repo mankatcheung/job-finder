@@ -160,6 +160,33 @@ describe('FetchJobPostingSourceResolver', () => {
     expect(result.length).toBeLessThanOrEqual(JOB_POSTING_FETCH.MAX_BYTES);
   });
 
+  it('keeps only the <main>/<article> region when the page marks one (T6)', async () => {
+    const posting = 'We are hiring a Staff Engineer to lead the platform team. '.repeat(8);
+    vi.mocked(fetch).mockResolvedValue(
+      htmlResponse(
+        `<html><body><nav>Home Jobs Login</nav><main><h1>Staff Engineer</h1><p>${posting}</p></main><footer>Cookie policy · Similar roles</footer></body></html>`,
+      ),
+    );
+
+    const result = await resolver.resolve({ url: 'https://example.com/job' });
+
+    expect(result).toContain('Staff Engineer');
+    expect(result).not.toContain('Cookie policy');
+    expect(result).not.toContain('Home Jobs Login');
+  });
+
+  it('falls back to the whole page when the content region is only a template shell', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      htmlResponse(
+        '<html><body><main></main><div id="app"><p>Senior Engineer at Acme</p></div></body></html>',
+      ),
+    );
+
+    const result = await resolver.resolve({ url: 'https://example.com/job' });
+
+    expect(result).toBe('Senior Engineer at Acme');
+  });
+
   it('decodes common HTML entities', async () => {
     vi.mocked(fetch).mockResolvedValue(
       htmlResponse('<p>Acme &amp; Co &lt;engineer&gt; &quot;remote&quot;</p>'),

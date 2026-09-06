@@ -78,7 +78,29 @@ export class FetchJobPostingSourceResolver implements IJobPostingSourceResolver 
     return status === 301 || status === 302 || status === 303 || status === 307 || status === 308;
   }
 
+  /**
+   * A job page is mostly not the job: navigation, cookie banners, "similar
+   * roles", footers. When the page marks its content with `<main>` or
+   * `<article>`, only that part is kept (the largest such block, and only
+   * if it holds a real amount of text — some templates ship an empty shell)
+   * so the 8 000 characters the parser reads are the posting rather than the
+   * chrome around it (T6).
+   */
   private stripHtml(html: string): string {
+    const scoped = this.contentRegion(html) ?? html;
+    return this.toText(scoped);
+  }
+
+  private contentRegion(html: string): string | null {
+    const blocks = [...html.matchAll(/<(main|article)\b[^>]*>[\s\S]*?<\/\1>/gi)].map((m) => m[0]);
+    const best = blocks
+      .map((block) => ({ block, text: this.toText(block) }))
+      .filter(({ text }) => text.length >= JOB_POSTING_FETCH.MIN_CONTENT_REGION_CHARS)
+      .sort((a, b) => b.text.length - a.text.length)[0];
+    return best?.block ?? null;
+  }
+
+  private toText(html: string): string {
     return html
       .replace(/<script[\s\S]*?<\/script>/gi, '')
       .replace(/<style[\s\S]*?<\/style>/gi, '')

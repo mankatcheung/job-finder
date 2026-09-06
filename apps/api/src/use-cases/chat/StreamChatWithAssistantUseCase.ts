@@ -18,6 +18,7 @@ import {
   deriveChatTitle,
   executeChatTool,
   formatToolResultForModel,
+  trimHistoryToBudget,
 } from '#src/use-cases/chat/chatAssembly.js';
 
 export interface ChatWithAssistantInput {
@@ -109,7 +110,10 @@ export class StreamChatWithAssistantUseCase {
     // uncapped list: `history.length === 0` below needs to know whether this
     // is truly the conversation's first message, not just the first one
     // still within the cap.
-    const historyForPrompt = history.slice(-CHAT.MAX_HISTORY_MESSAGES);
+    const historyForPrompt = trimHistoryToBudget(
+      history.slice(-CHAT.MAX_HISTORY_MESSAGES),
+      CHAT.MAX_HISTORY_CHARS,
+    );
     const messages = buildChatMessages(historyForPrompt, input.message, user);
 
     const providerName = conversation.llmProvider ?? user?.defaultLlmProvider ?? null;

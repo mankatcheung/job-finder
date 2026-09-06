@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { buildChatMessages, CHAT_SYSTEM_PROMPT } from '#src/use-cases/chat/chatAssembly.js';
+import {
+  buildChatMessages,
+  CHAT_SYSTEM_PROMPT,
+  trimHistoryToBudget,
+} from '#src/use-cases/chat/chatAssembly.js';
 import { makeMessage } from '#src/__tests__/helpers/mocks/chat.js';
 import { makeUser } from '#src/__tests__/helpers/mocks/user.js';
 
@@ -45,5 +49,28 @@ describe('buildChatMessages cache breakpoints (T2)', () => {
     const messages = buildChatMessages(history, 'q', makeUser({ customAiPrompt: 'x' }));
 
     expect(messages.filter((m) => m.cacheBreakpoint)).toHaveLength(2);
+  });
+});
+
+describe('trimHistoryToBudget (T6)', () => {
+  const msg = (content: string) => makeMessage({ content });
+
+  it('keeps everything when it fits', () => {
+    const history = [msg('aaa'), msg('bbb')];
+    expect(trimHistoryToBudget(history, 10)).toEqual(history);
+  });
+
+  it('drops the oldest messages first until the rest fits', () => {
+    const history = [msg('1111'), msg('2222'), msg('3333'), msg('4444')];
+    expect(trimHistoryToBudget(history, 9)).toEqual([msg('3333'), msg('4444')]);
+  });
+
+  it('keeps the newest message alone when even it exceeds the budget', () => {
+    const history = [msg('short'), msg('x'.repeat(50))];
+    expect(trimHistoryToBudget(history, 10)).toEqual([history[1]]);
+  });
+
+  it('returns an empty history unchanged', () => {
+    expect(trimHistoryToBudget([], 10)).toEqual([]);
   });
 });

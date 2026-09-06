@@ -183,6 +183,26 @@ export function buildChatMessages(
   return [...system, ...prior, { role: 'user', content: newMessage }];
 }
 
+/**
+ * The most recent messages whose combined length fits `maxChars`, dropping
+ * from the oldest end (T6). Applied after the message-count cap, so both
+ * bounds hold. A single message longer than the budget is kept on its own
+ * rather than leaving the model with nothing.
+ */
+export function trimHistoryToBudget<T extends { content: string }>(
+  history: T[],
+  maxChars: number,
+): T[] {
+  let total = 0;
+  let start = history.length;
+  while (start > 0 && total + history[start - 1].content.length <= maxChars) {
+    total += history[start - 1].content.length;
+    start -= 1;
+  }
+  if (start === history.length && history.length > 0) return history.slice(-1);
+  return history.slice(start);
+}
+
 export function deriveChatTitle(message: string): string {
   const trimmed = message.trim();
   return trimmed.length > CHAT.TITLE_MAX_LENGTH

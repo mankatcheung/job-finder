@@ -209,6 +209,8 @@ export const JOB_POSTING_FETCH = {
   MAX_BYTES: 1024 * 1024,
   /** Each hop is re-checked against the outbound URL policy. */
   MAX_REDIRECTS: 3,
+  /** A `<main>`/`<article>` with less text than this is a template shell, not the posting — fall back to the whole page. */
+  MIN_CONTENT_REGION_CHARS: 200,
 } as const;
 
 /**

@@ -6,6 +6,7 @@ import { NotFoundError } from '#src/use-cases/errors/DomainError.js';
 import {
   makeConversation,
   makeConversationRepository,
+  makeMessage,
   makeMessageRepository,
 } from '#src/__tests__/helpers/mocks/chat.js';
 import { makeRateLimiter } from '#src/__tests__/helpers/mocks/infrastructure.js';
@@ -505,6 +506,36 @@ describe('StreamChatWithAssistantUseCase', () => {
     );
     const [firstRound] = vi.mocked(llmProvider.completeWithToolsStream).mock.calls[0];
     expect(firstRound[0].content).toMatch(/request them together in one turn/);
+  });
+
+  it('bounds the history sent to the model by characters as well as by count (T6)', async () => {
+    const llmProvider = makeStreamingProvider({ deltas: ['ok'], content: 'ok', toolCalls: [] });
+    const big = 'x'.repeat(CHAT.MAX_HISTORY_CHARS);
+    const history = [
+      makeMessage({ id: 'old', role: 'user', content: big }),
+      makeMessage({ id: 'a', role: 'assistant', content: 'noted' }),
+      makeMessage({ id: 'recent', role: 'user', content: 'and this?' }),
+      makeMessage({ id: 'b', role: 'assistant', content: 'yes' }),
+    ];
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        resolveForUser: vi
+          .fn()
+          .mockResolvedValue({ provider: llmProvider, providerId: 'openai', fellBackFrom: null }),
+      }),
+      messageRepository: makeMessageRepository({
+        findAllByConversationId: vi.fn().mockResolvedValue(history),
+      }),
+    });
+
+    await collect(new StreamChatWithAssistantUseCase(deps as never), {
+      ...baseInput,
+      message: 'next',
+    });
+
+    const [messages] = vi.mocked(llmProvider.completeWithToolsStream).mock.calls[0];
+    const sent = messages.filter((m) => m.role !== 'system').map((m) => m.content);
+    expect(sent).toEqual(['noted', 'and this?', 'yes', 'next']);
   });
 
   it('gives up with a clear message after exceeding the max tool-call iterations', async () => {
