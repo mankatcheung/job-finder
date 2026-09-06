@@ -21,6 +21,7 @@ import { conversationsQueryKey, useCreateConversation } from '../hooks/useConver
 import { ChatStreamError, streamChatMessage } from '../lib/chatStream';
 import type { ChatMessage } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
+import { CHAT_MESSAGE_MAX_CHARS } from '../../../constants';
 
 function tempMessageId(): string {
   return `optimistic-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -150,6 +151,7 @@ export function ChatScreen() {
           value={input}
           onChangeText={setInput}
           multiline
+          maxLength={CHAT_MESSAGE_MAX_CHARS}
           testID="chat-input"
         />
         <Pressable
