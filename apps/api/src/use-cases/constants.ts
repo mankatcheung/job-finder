@@ -310,6 +310,13 @@ export const CHAT = {
    * a job description or a cover letter in full.
    */
   MAX_MESSAGE_CHARS: 8000,
+  /**
+   * Longest single string field a chat tool result may carry back to the
+   * model, after which it is clipped with an ellipsis (T7). Generous — a
+   * whole note or offer letter fits — but a bound: without it one
+   * unbounded text column could cost more than the rest of the turn.
+   */
+  TOOL_RESULT_STRING_MAX_CHARS: 2000,
   /** Auto-derived conversation title is truncated to this many characters of the first message. */
   TITLE_MAX_LENGTH: 50,
   /**

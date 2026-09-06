@@ -19,6 +19,7 @@ import type { IEducationRepository } from '#src/use-cases/ports/IEducationReposi
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
 import type { LLMMessage, LLMToolCall } from '#src/use-cases/ports/ILLMProvider.js';
 import { DomainError } from '#src/use-cases/errors/DomainError.js';
+import { compactForModel } from '#src/use-cases/chat/chatToolProjection.js';
 import { CHAT } from '#src/use-cases/constants.js';
 
 /**
@@ -81,58 +82,69 @@ export async function executeChatTool(
   userId: string,
   deps: ChatToolDeps,
 ): Promise<unknown> {
-  const args = call.arguments;
-  const applicationId = String(args.applicationId ?? '');
-
   try {
-    switch (call.name) {
-      case 'list_applications':
-        return await deps.getApplicationsPageUseCase.execute({
-          userId,
-          status: args.status as ApplicationStatus | undefined,
-          cursor: typeof args.cursor === 'string' ? args.cursor : undefined,
-          limit: toPositiveInt(args.limit),
-        });
-      case 'get_application':
-        return await deps.getApplicationUseCase.execute({ userId, applicationId });
-      case 'list_notes':
-        return await deps.getNotesUseCase.execute({ userId, applicationId });
-      case 'list_contacts':
-        return await deps.getContactsUseCase.execute({ userId, applicationId });
-      case 'list_interview_rounds':
-        return await deps.getInterviewRoundsUseCase.execute({ userId, applicationId });
-      case 'list_work_experiences':
-        return await deps.workExperienceRepository.findAllByUserId(userId);
-      case 'list_educations':
-        return await deps.educationRepository.findAllByUserId(userId);
-      case 'list_skills':
-        return await deps.skillRepository.findAllByUserId(userId);
-      case 'list_documents':
-        return await deps.getDocumentsUseCase.execute({ userId, applicationId });
-      case 'list_offers':
-        return await deps.getOffersUseCase.execute({ userId, applicationId });
-      case 'list_activity':
-        return await deps.getActivityLogsUseCase.execute({ userId, applicationId });
-      case 'list_calendar_events':
-        return await deps.getCalendarEventsUseCase.execute({ userId });
-      case 'get_analytics': {
-        const [responseTime, channels, interviewRounds, offers] = await Promise.all([
-          deps.getResponseTimeAnalyticsUseCase.execute({ userId }),
-          deps.getApplicationChannelAnalyticsUseCase.execute({ userId }),
-          deps.getInterviewRoundAnalyticsUseCase.execute({ userId }),
-          deps.getOfferAnalyticsUseCase.execute({ userId }),
-        ]);
-        return { responseTime, channels, interviewRounds, offers };
-      }
-      default:
-        return { error: `Unknown tool: ${call.name}` };
-    }
+    // Every result is compacted on the way out — see `compactForModel` for
+    // what that costs otherwise — including the error shape below, which
+    // is what the model sees when a tool fails.
+    return compactForModel(await dispatchChatTool(call, userId, deps));
   } catch (err) {
     // A DomainError's message was written for a person ("Application not
     // found") and helps the model recover. Anything else is an internal
     // failure — a driver error, a stack fragment — whose message the model
     // would happily paraphrase to the user.
     return { error: err instanceof DomainError ? err.message : 'Tool call failed' };
+  }
+}
+
+async function dispatchChatTool(
+  call: LLMToolCall,
+  userId: string,
+  deps: ChatToolDeps,
+): Promise<unknown> {
+  const args = call.arguments;
+  const applicationId = String(args.applicationId ?? '');
+
+  switch (call.name) {
+    case 'list_applications':
+      return await deps.getApplicationsPageUseCase.execute({
+        userId,
+        status: args.status as ApplicationStatus | undefined,
+        cursor: typeof args.cursor === 'string' ? args.cursor : undefined,
+        limit: toPositiveInt(args.limit),
+      });
+    case 'get_application':
+      return await deps.getApplicationUseCase.execute({ userId, applicationId });
+    case 'list_notes':
+      return await deps.getNotesUseCase.execute({ userId, applicationId });
+    case 'list_contacts':
+      return await deps.getContactsUseCase.execute({ userId, applicationId });
+    case 'list_interview_rounds':
+      return await deps.getInterviewRoundsUseCase.execute({ userId, applicationId });
+    case 'list_work_experiences':
+      return await deps.workExperienceRepository.findAllByUserId(userId);
+    case 'list_educations':
+      return await deps.educationRepository.findAllByUserId(userId);
+    case 'list_skills':
+      return await deps.skillRepository.findAllByUserId(userId);
+    case 'list_documents':
+      return await deps.getDocumentsUseCase.execute({ userId, applicationId });
+    case 'list_offers':
+      return await deps.getOffersUseCase.execute({ userId, applicationId });
+    case 'list_activity':
+      return await deps.getActivityLogsUseCase.execute({ userId, applicationId });
+    case 'list_calendar_events':
+      return await deps.getCalendarEventsUseCase.execute({ userId });
+    case 'get_analytics': {
+      const [responseTime, channels, interviewRounds, offers] = await Promise.all([
+        deps.getResponseTimeAnalyticsUseCase.execute({ userId }),
+        deps.getApplicationChannelAnalyticsUseCase.execute({ userId }),
+        deps.getInterviewRoundAnalyticsUseCase.execute({ userId }),
+        deps.getOfferAnalyticsUseCase.execute({ userId }),
+      ]);
+      return { responseTime, channels, interviewRounds, offers };
+    }
+    default:
+      return { error: `Unknown tool: ${call.name}` };
   }
 }
 

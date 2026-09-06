@@ -203,13 +203,11 @@ describe('StreamChatWithAssistantUseCase', () => {
     };
     const deps = makeDeps({
       llmProviderFactory: makeLLMProviderFactory({
-        resolveForUser: vi
-          .fn()
-          .mockResolvedValue({
-            provider: llmProvider,
-            providerId: 'anthropic',
-            fellBackFrom: null,
-          }),
+        resolveForUser: vi.fn().mockResolvedValue({
+          provider: llmProvider,
+          providerId: 'anthropic',
+          fellBackFrom: null,
+        }),
       }),
     });
 
@@ -383,6 +381,46 @@ describe('StreamChatWithAssistantUseCase', () => {
     expect(byCall.call_a).toContain('"error":"Application not found"');
     expect(byCall.call_b).toContain('"error":"Tool call failed"');
     expect(byCall.call_b).not.toContain('SQLITE');
+  });
+
+  it('compacts tool results before the model sees them: no nulls, short dates (T7)', async () => {
+    const llmProvider = makeStreamingProvider(
+      {
+        content: null,
+        toolCalls: [{ id: 'call_1', name: 'list_applications', arguments: {} }],
+      },
+      { deltas: ['ok'], content: 'ok', toolCalls: [] },
+    );
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        resolveForUser: vi
+          .fn()
+          .mockResolvedValue({ provider: llmProvider, providerId: 'openai', fellBackFrom: null }),
+      }),
+      getApplicationsPageUseCase: stubUseCase({
+        items: [
+          {
+            id: 'app-1',
+            company: 'Acme',
+            salaryRange: null,
+            appliedAt: new Date('2026-03-04T00:00:00.000Z'),
+          },
+        ],
+        hasNextPage: false,
+        nextCursor: null,
+      }),
+    });
+
+    await collect(new StreamChatWithAssistantUseCase(deps as never), {
+      ...baseInput,
+      message: 'list my applications',
+    });
+
+    const [secondRoundMessages] = vi.mocked(llmProvider.completeWithToolsStream).mock.calls[1];
+    const toolMessage = secondRoundMessages.find((m) => m.role === 'tool')!;
+    expect(toolMessage.content).toContain('"appliedAt":"2026-03-04"');
+    expect(toolMessage.content).not.toContain('null');
+    expect(toolMessage.content).not.toContain('nextCursor');
   });
 
   it('gives up with a clear message after exceeding the max tool-call iterations', async () => {
