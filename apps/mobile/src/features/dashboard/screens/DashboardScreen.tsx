@@ -130,7 +130,8 @@ export function DashboardScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>{t('upcoming.title')}</Text>
-            <Pressable onPress={() => router.push('/calendar')} testID="dashboard-view-calendar">
+            {/* Replace, not push: Calendar is its own sidebar section root (JEF-290). */}
+            <Pressable onPress={() => router.replace('/calendar')} testID="dashboard-view-calendar">
               <Text style={styles.link}>{t('upcoming.viewCalendar')}</Text>
             </Pressable>
           </View>

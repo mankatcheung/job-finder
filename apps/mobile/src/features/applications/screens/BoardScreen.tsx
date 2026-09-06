@@ -68,7 +68,8 @@ export function BoardScreen() {
     <View style={styles.container}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>{t('board.title')}</Text>
-        <Pressable onPress={() => router.push('/applications')} testID="switch-to-list-view">
+        {/* Replace, not push: list view is Board's own sidebar sibling section root (JEF-290). */}
+        <Pressable onPress={() => router.replace('/applications')} testID="switch-to-list-view">
           <Text style={styles.link}>{t('board.listView')}</Text>
         </Pressable>
       </View>
