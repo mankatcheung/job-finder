@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, usePathname, type Href } from 'expo-router';
 import { useAuth } from '../../auth/AuthContext';
 import { useProfile } from '../../features/settings/hooks/useProfile';
@@ -161,6 +162,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
   const { data: profile } = useProfile();
+  const insets = useSafeAreaInsets();
 
   const navigate = (href: Href) => {
     close();
@@ -184,7 +186,10 @@ export function AppSidebar() {
         <Pressable style={styles.scrim} onPress={close} testID="sidebar-scrim" />
 
         <View style={styles.panel}>
-          <View style={styles.profileSection}>
+          <View
+            style={[styles.profileSection, { paddingTop: insets.top + 16 }]}
+            testID="sidebar-profile-section"
+          >
             <View style={styles.profileRow}>
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>
@@ -214,7 +219,10 @@ export function AppSidebar() {
             ))}
           </View>
 
-          <View style={styles.secondaryNav}>
+          <View
+            style={[styles.secondaryNav, { paddingBottom: insets.bottom + 12 }]}
+            testID="sidebar-secondary-nav"
+          >
             {SECONDARY_NAV.map((item) => (
               <NavRow
                 key={item.key}
@@ -254,7 +262,6 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   profileSection: {
-    paddingTop: 28,
     paddingHorizontal: 20,
     paddingBottom: 20,
     gap: 14,
@@ -276,7 +283,6 @@ const styles = StyleSheet.create({
   primaryNav: { flex: 1, padding: 12, gap: 2 },
   secondaryNav: {
     padding: 12,
-    paddingBottom: 20,
     gap: 2,
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',

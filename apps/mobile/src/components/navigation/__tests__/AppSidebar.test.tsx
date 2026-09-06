@@ -11,8 +11,12 @@ jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
   usePathname: jest.fn(),
 }));
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: jest.fn(),
+}));
 
 import { useRouter, usePathname } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../../auth/AuthContext';
 import { useProfile } from '../../../features/settings/hooks/useProfile';
 import { useUnreadNotificationCount } from '../../../features/notifications/hooks/useNotificationQueries';
@@ -25,11 +29,13 @@ const mockedUseAuth = jest.mocked(useAuth);
 const mockedUseProfile = jest.mocked(useProfile);
 const mockedUseUnreadCount = jest.mocked(useUnreadNotificationCount);
 const mockedUseSidebar = jest.mocked(useSidebar);
+const mockedUseSafeAreaInsets = jest.mocked(useSafeAreaInsets);
 
 describe('AppSidebar', () => {
   beforeEach(() => {
     mockedUsePathname.mockReturnValue('/');
     mockedUseSidebar.mockReturnValue({ isOpen: true, open: jest.fn(), close: jest.fn() });
+    mockedUseSafeAreaInsets.mockReturnValue({ top: 44, right: 0, bottom: 34, left: 0 });
     mockedUseProfile.mockReturnValue({
       data: {
         id: '1',
@@ -127,5 +133,25 @@ describe('AppSidebar', () => {
 
     expect(getByText('Jane Doe')).toBeTruthy();
     expect(getByText('jane@example.com')).toBeTruthy();
+  });
+
+  it('pads the profile section and secondary nav by the safe-area insets', async () => {
+    mockedUseRouter.mockReturnValue({ push: jest.fn() } as never);
+    mockedUseAuth.mockReturnValue({ logout: jest.fn() } as never);
+    mockedUseSafeAreaInsets.mockReturnValue({ top: 44, right: 0, bottom: 34, left: 0 });
+
+    const { getByTestId } = await render(<AppSidebar />);
+
+    const profileSectionStyle = getByTestId('sidebar-profile-section').props.style;
+    const flattenedProfile = Array.isArray(profileSectionStyle)
+      ? Object.assign({}, ...profileSectionStyle)
+      : profileSectionStyle;
+    expect(flattenedProfile.paddingTop).toBe(44 + 16);
+
+    const secondaryNavStyle = getByTestId('sidebar-secondary-nav').props.style;
+    const flattenedSecondary = Array.isArray(secondaryNavStyle)
+      ? Object.assign({}, ...secondaryNavStyle)
+      : secondaryNavStyle;
+    expect(flattenedSecondary.paddingBottom).toBe(34 + 12);
   });
 });
