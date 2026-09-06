@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { CHAT_TOOLS, toLlmToolDefinitions } from '#src/interface-adapters/llm/toolCatalogue.js';
 import { StreamChatWithAssistantUseCase } from '#src/use-cases/chat/StreamChatWithAssistantUseCase.js';
+import { CHAT } from '#src/use-cases/constants.js';
 import {
   makeConversation,
   makeConversationRepository,
@@ -92,6 +93,38 @@ describe('StreamChatWithAssistantUseCase', () => {
     await expect(
       collect(new StreamChatWithAssistantUseCase(deps as never), { ...baseInput, message: 'hi' }),
     ).rejects.toMatchObject({ code: 'RATE_LIMITED' });
+  });
+
+  it('throws VALIDATION for an empty or over-long message before spending a rate-limit attempt (S5)', async () => {
+    const chatRateLimiter = makeRateLimiter();
+    const deps = makeDeps({ chatRateLimiter });
+    const useCase = new StreamChatWithAssistantUseCase(deps as never);
+
+    await expect(collect(useCase, { ...baseInput, message: '   ' })).rejects.toMatchObject({
+      code: 'VALIDATION',
+    });
+    await expect(
+      collect(useCase, { ...baseInput, message: 'x'.repeat(CHAT.MAX_MESSAGE_CHARS + 1) }),
+    ).rejects.toMatchObject({ code: 'VALIDATION' });
+    expect(chatRateLimiter.consume).not.toHaveBeenCalled();
+  });
+
+  it('accepts a message exactly at the length cap', async () => {
+    const llmProvider = makeStreamingProvider({ deltas: ['ok'], content: 'ok', toolCalls: [] });
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        resolveForUser: vi
+          .fn()
+          .mockResolvedValue({ provider: llmProvider, providerId: 'openai', fellBackFrom: null }),
+      }),
+    });
+
+    const events = await collect(new StreamChatWithAssistantUseCase(deps as never), {
+      ...baseInput,
+      message: 'x'.repeat(CHAT.MAX_MESSAGE_CHARS),
+    });
+
+    expect(events[events.length - 1]).toEqual({ type: 'done' });
   });
 
   it('throws NOT_FOUND when the conversation does not exist', async () => {

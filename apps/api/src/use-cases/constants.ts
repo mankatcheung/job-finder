@@ -302,6 +302,14 @@ export const AI_PROMPT_INPUT = {
 export const CHAT = {
   /** Hard cap on LLM<->tool round-trips within a single chat turn, to bound cost/latency. */
   MAX_TOOL_ITERATIONS: 5,
+  /**
+   * Longest message a user may send in one turn. Without it the only bound
+   * was Fastify's 1 MB body limit — a message that size is ~250k tokens,
+   * over most models' context, and it would have been stored and re-sent
+   * on each of the next `MAX_HISTORY_MESSAGES` turns. Long enough to paste
+   * a job description or a cover letter in full.
+   */
+  MAX_MESSAGE_CHARS: 8000,
   /** Auto-derived conversation title is truncated to this many characters of the first message. */
   TITLE_MAX_LENGTH: 50,
   /**

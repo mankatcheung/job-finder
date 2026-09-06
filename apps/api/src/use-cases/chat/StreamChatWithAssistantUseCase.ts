@@ -3,6 +3,7 @@ import {
   ForbiddenError,
   NotFoundError,
   RateLimitedError,
+  ValidationError,
 } from '#src/use-cases/errors/DomainError.js';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
@@ -78,6 +79,17 @@ export class StreamChatWithAssistantUseCase {
   constructor(private readonly deps: ChatWithAssistantDeps) {}
 
   async *execute(input: ChatWithAssistantInput): AsyncGenerator<ChatStreamEvent> {
+    // Before the rate limiter: a request that was never going to run should
+    // not spend one of the user's attempts.
+    if (input.message.trim().length === 0) {
+      throw new ValidationError('Message is required');
+    }
+    if (input.message.length > CHAT.MAX_MESSAGE_CHARS) {
+      throw new ValidationError(
+        `Message is too long — keep it under ${CHAT.MAX_MESSAGE_CHARS.toLocaleString()} characters`,
+      );
+    }
+
     if (!(await this.deps.chatRateLimiter.consume(`chat:${input.userId}`))) {
       throw new RateLimitedError('Too many messages — please wait a moment and try again');
     }
