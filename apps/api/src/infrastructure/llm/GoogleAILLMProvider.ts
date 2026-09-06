@@ -2,7 +2,6 @@ import type {
   ILLMProvider,
   LLMMessage,
   LLMToolDefinition,
-  LLMCompletionResult,
   LLMCompleteOptions,
   LLMCompleteResult,
   LLMToolCall,
@@ -10,7 +9,11 @@ import type {
   LLMUsage,
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { LLM } from '#src/use-cases/constants.js';
-import { fetchWithRetry } from '#src/infrastructure/llm/fetchWithRetry.js';
+import {
+  fetchWithRetry,
+  createIdleAbortController,
+} from '#src/infrastructure/llm/fetchWithRetry.js';
+import { parseSSE } from '#src/infrastructure/llm/sseParser.js';
 import { providerHttpError } from '#src/infrastructure/llm/providerError.js';
 
 interface GoogleAIPart {
@@ -114,17 +117,19 @@ export class GoogleAILLMProvider implements ILLMProvider {
   }
 
   /**
-   * Not part of `ILLMProvider` — Gemini doesn't genuinely stream (see
-   * `completeWithToolsStream` below), so this is its own internal
-   * implementation of that method rather than a port method other callers
-   * reach directly.
+   * Streams via `:streamGenerateContent?alt=sse` (F8). Each SSE frame is a
+   * whole `GenerateContentResponse`: text parts carry the next slice of the
+   * reply (yielded as they arrive), `functionCall` parts arrive complete in
+   * one frame, and `usageMetadata` on the final frame is the cumulative
+   * count. Before this the provider called the blocking endpoint and yielded
+   * a single `done`, so a Gemini-backed chat painted its reply all at once.
    */
-  private async completeWithTools(
+  async *completeWithToolsStream(
     messages: LLMMessage[],
     tools: LLMToolDefinition[],
     maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
     signal?: AbortSignal,
-  ): Promise<LLMCompletionResult> {
+  ): AsyncGenerator<LLMStreamEvent> {
     if (!this.apiKey) throw new Error('Google AI API key is not set');
 
     const { systemInstruction, conversation: turns } = this.splitSystem(messages);
@@ -140,7 +145,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
 
     const contents = turns.map((m) => this.toWireContent(m, idToName));
 
-    const json = await this.post(
+    const { body, onChunk, dispose } = await this.postStream(
       {
         contents,
         ...(systemInstruction
@@ -160,38 +165,33 @@ export class GoogleAILLMProvider implements ILLMProvider {
       signal,
     );
 
-    const parts = json.candidates?.[0]?.content?.parts ?? [];
-    const text = parts.find((p) => p.text !== undefined)?.text ?? null;
-    const toolCalls: LLMToolCall[] = parts
-      .filter((p): p is { functionCall: { name: string; args?: Record<string, unknown> } } =>
-        Boolean(p.functionCall),
-      )
-      .map((p, i) => ({
-        id: `${p.functionCall.name}-${i}`,
-        name: p.functionCall.name,
-        arguments: p.functionCall.args ?? {},
-      }));
+    let text = '';
+    const toolCalls: LLMToolCall[] = [];
+    let usage: LLMUsage | null = null;
 
-    return { content: text, toolCalls, usage: toLLMUsage(json.usageMetadata) };
-  }
+    try {
+      for await (const frame of parseSSE(body, onChunk)) {
+        const chunk = JSON.parse(frame.data) as GoogleAIWireResponse;
+        if (chunk.usageMetadata) usage = toLLMUsage(chunk.usageMetadata);
+        for (const part of chunk.candidates?.[0]?.content?.parts ?? []) {
+          if (part.text) {
+            text += part.text;
+            yield { type: 'text_delta', text: part.text };
+          }
+          if (part.functionCall) {
+            toolCalls.push({
+              id: `${part.functionCall.name}-${toolCalls.length}`,
+              name: part.functionCall.name,
+              arguments: part.functionCall.args ?? {},
+            });
+          }
+        }
+      }
+    } finally {
+      dispose();
+    }
 
-  /**
-   * Gemini stays on the non-streaming endpoint — JEF-239 only implements
-   * genuine streaming for Anthropic and OpenAI-compatible providers.
-   * Wrapping the existing call in the streaming shape keeps every provider
-   * satisfying the same `ILLMProvider` interface, so `StreamChatWithAssistantUseCase`
-   * doesn't need a runtime check for "does this provider actually stream" —
-   * a Gemini-backed chat just renders its reply in one paint instead of
-   * token-by-token, same as before this feature.
-   */
-  async *completeWithToolsStream(
-    messages: LLMMessage[],
-    tools: LLMToolDefinition[],
-    maxTokens: number = LLM.DEFAULT_MAX_TOKENS,
-    signal?: AbortSignal,
-  ): AsyncGenerator<LLMStreamEvent> {
-    const result = await this.completeWithTools(messages, tools, maxTokens, signal);
-    yield { type: 'done', ...result };
+    yield { type: 'done', content: text || null, toolCalls, usage };
   }
 
   /** Gemini takes system text as a top-level field, never as a content role. */
@@ -228,6 +228,37 @@ export class GoogleAILLMProvider implements ILLMProvider {
     return { role: m.role === 'assistant' ? 'model' : m.role, parts: [{ text: m.content }] };
   }
 
+  private headers(): Record<string, string> {
+    return { 'Content-Type': 'application/json', 'x-goog-api-key': this.apiKey };
+  }
+
+  private async postStream(
+    body: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<{ body: ReadableStream<Uint8Array>; onChunk: () => void; dispose: () => void }> {
+    // Idle-reset rather than a fixed timeout — see `createIdleAbortController`.
+    const idle = createIdleAbortController(LLM.STREAM_IDLE_TIMEOUT_MS, signal);
+    const url = `${LLM.GOOGLEAI_API_URL}/${this.model}:streamGenerateContent?alt=sse`;
+    const response = await fetchWithRetry(
+      url,
+      { method: 'POST', headers: this.headers(), body: JSON.stringify(body) },
+      idle.signal,
+      null,
+    );
+
+    if (!response.ok) {
+      idle.dispose();
+      const text = await response.text();
+      throw providerHttpError('Google AI', response.status, text);
+    }
+    if (!response.body) {
+      idle.dispose();
+      throw new Error('Google AI error: response had no body to stream');
+    }
+
+    return { body: response.body, onChunk: idle.activity, dispose: idle.dispose };
+  }
+
   private async post(
     body: Record<string, unknown>,
     signal?: AbortSignal,
@@ -241,11 +272,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
 
     const response = await fetchWithRetry(
       url,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': this.apiKey },
-        body: JSON.stringify(body),
-      },
+      { method: 'POST', headers: this.headers(), body: JSON.stringify(body) },
       signal,
     );
 
