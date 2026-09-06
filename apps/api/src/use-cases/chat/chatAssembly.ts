@@ -18,6 +18,7 @@ import type { IWorkExperienceRepository } from '#src/use-cases/ports/IWorkExperi
 import type { IEducationRepository } from '#src/use-cases/ports/IEducationRepository.js';
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
 import type { LLMMessage, LLMToolCall } from '#src/use-cases/ports/ILLMProvider.js';
+import { DomainError } from '#src/use-cases/errors/DomainError.js';
 import { CHAT } from '#src/use-cases/constants.js';
 
 /**
@@ -127,7 +128,11 @@ export async function executeChatTool(
         return { error: `Unknown tool: ${call.name}` };
     }
   } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Tool call failed' };
+    // A DomainError's message was written for a person ("Application not
+    // found") and helps the model recover. Anything else is an internal
+    // failure — a driver error, a stack fragment — whose message the model
+    // would happily paraphrase to the user.
+    return { error: err instanceof DomainError ? err.message : 'Tool call failed' };
   }
 }
 
