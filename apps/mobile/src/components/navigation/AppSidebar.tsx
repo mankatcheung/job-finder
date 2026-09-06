@@ -31,6 +31,14 @@ interface NavItem {
 
 const PRIMARY_NAV: NavItem[] = [
   {
+    key: 'dashboard',
+    label: 'Dashboard',
+    href: '/dashboard',
+    testID: 'sidebar-dashboard',
+    Icon: DashboardIcon,
+    isActive: (pathname) => pathname.startsWith('/dashboard'),
+  },
+  {
     key: 'applications',
     label: 'Applications',
     href: '/',
@@ -53,14 +61,6 @@ const PRIMARY_NAV: NavItem[] = [
     testID: 'sidebar-calendar',
     Icon: CalendarIcon,
     isActive: (pathname) => pathname.startsWith('/calendar'),
-  },
-  {
-    key: 'dashboard',
-    label: 'Dashboard',
-    href: '/dashboard',
-    testID: 'sidebar-dashboard',
-    Icon: DashboardIcon,
-    isActive: (pathname) => pathname.startsWith('/dashboard'),
   },
   {
     key: 'analytics',
