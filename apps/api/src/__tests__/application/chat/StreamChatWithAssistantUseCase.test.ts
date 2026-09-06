@@ -435,13 +435,11 @@ describe('StreamChatWithAssistantUseCase', () => {
     );
     const deps = makeDeps({
       llmProviderFactory: makeLLMProviderFactory({
-        resolveForUser: vi
-          .fn()
-          .mockResolvedValue({
-            provider: llmProvider,
-            providerId: 'anthropic',
-            fellBackFrom: null,
-          }),
+        resolveForUser: vi.fn().mockResolvedValue({
+          provider: llmProvider,
+          providerId: 'anthropic',
+          fellBackFrom: null,
+        }),
       }),
       workExperienceRepository: { findAllByUserId: vi.fn().mockResolvedValue([]) },
       educationRepository: { findAllByUserId: vi.fn().mockResolvedValue([]) },
@@ -465,6 +463,48 @@ describe('StreamChatWithAssistantUseCase', () => {
       ['a2', false],
       ['b2', true],
     ]);
+  });
+
+  it('defaults list_applications to the chat page size and passes an explicit limit through (T5)', async () => {
+    const llmProvider = makeStreamingProvider(
+      {
+        content: null,
+        toolCalls: [
+          { id: 'c1', name: 'list_applications', arguments: {} },
+          { id: 'c2', name: 'list_applications', arguments: { limit: 25 } },
+        ],
+      },
+      { deltas: ['ok'], content: 'ok', toolCalls: [] },
+    );
+    const getApplicationsPageUseCase = stubUseCase({
+      items: [],
+      hasNextPage: false,
+      nextCursor: null,
+    });
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        resolveForUser: vi
+          .fn()
+          .mockResolvedValue({ provider: llmProvider, providerId: 'openai', fellBackFrom: null }),
+      }),
+      getApplicationsPageUseCase,
+    });
+
+    await collect(new StreamChatWithAssistantUseCase(deps as never), {
+      ...baseInput,
+      message: 'list',
+    });
+
+    expect(getApplicationsPageUseCase.execute).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ limit: CHAT.LIST_DEFAULT_LIMIT }),
+    );
+    expect(getApplicationsPageUseCase.execute).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ limit: 25 }),
+    );
+    const [firstRound] = vi.mocked(llmProvider.completeWithToolsStream).mock.calls[0];
+    expect(firstRound[0].content).toMatch(/request them together in one turn/);
   });
 
   it('gives up with a clear message after exceeding the max tool-call iterations', async () => {

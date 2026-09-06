@@ -331,6 +331,13 @@ export const CHAT = {
    * that need it.
    */
   LIST_DESCRIPTION_MAX_CHARS: 300,
+  /**
+   * Rows per `list_applications` page when the model does not ask for a
+   * number (T5). Half of `PAGINATION.DEFAULT_LIMIT`: a chat answer
+   * summarises, and a second page is one more tool call, whereas an
+   * oversized first page is paid for on every later iteration of the turn.
+   */
+  LIST_DEFAULT_LIMIT: 10,
   DETAIL_DESCRIPTION_MAX_CHARS: 3000,
   /** Auto-derived conversation title is truncated to this many characters of the first message. */
   TITLE_MAX_LENGTH: 50,
