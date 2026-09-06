@@ -30,6 +30,8 @@ interface OpenAIWireMessage {
 interface OpenAIWireUsage {
   prompt_tokens: number;
   completion_tokens: number;
+  /** OpenAI reports automatic prefix-cache hits here; most compatible backends omit it. */
+  prompt_tokens_details?: { cached_tokens?: number } | null;
 }
 
 interface OpenAIWireResponse {
@@ -44,7 +46,12 @@ interface OpenAIWireResponse {
 
 function toLLMUsage(usage: OpenAIWireUsage | null | undefined): LLMUsage | null {
   if (!usage) return null;
-  return { promptTokens: usage.prompt_tokens, completionTokens: usage.completion_tokens };
+  const cached = usage.prompt_tokens_details?.cached_tokens;
+  return {
+    promptTokens: usage.prompt_tokens,
+    completionTokens: usage.completion_tokens,
+    ...(typeof cached === 'number' ? { cacheReadTokens: cached } : {}),
+  };
 }
 
 const OPENAI_STREAM_DONE = '[DONE]';

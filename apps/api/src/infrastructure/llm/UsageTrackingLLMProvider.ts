@@ -89,6 +89,8 @@ export class UsageTrackingLLMProvider implements ILLMProvider {
         model: this.deps.model,
         promptTokens: usage.promptTokens,
         completionTokens: usage.completionTokens,
+        cacheReadTokens: usage.cacheReadTokens ?? null,
+        cacheWriteTokens: usage.cacheWriteTokens ?? null,
       });
     } catch (err) {
       console.error('[llm-usage] failed to record usage event — continuing', err);

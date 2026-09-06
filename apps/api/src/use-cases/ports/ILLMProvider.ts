@@ -34,16 +34,23 @@ export interface LLMToolDefinition {
  * response (JEF-250) — `null` when a response doesn't report usage at all
  * (a provider outage returning a malformed body, or an OpenAI-compatible
  * backend that ignores `stream_options.include_usage`), rather than
- * fabricating a number. Never includes cache-read/cache-write tokens
- * separately; Anthropic's `cache_creation_input_tokens` and
- * `cache_read_input_tokens` are folded into `promptTokens` since those are
- * still real prompt tokens sent for that call, at the cost of the estimated
- * cost being slightly high on a cache hit (real cache-read pricing is
- * cheaper) — a known, deliberately-accepted simplification for v1.
+ * fabricating a number. `promptTokens` is the total the provider counted
+ * as input, cache hits included — Anthropic's `cache_creation_input_tokens`
+ * and `cache_read_input_tokens` are folded in, so the monthly meter reads
+ * slightly high on a cache hit (cache reads are priced lower) — and the
+ * optional cache fields break that total down when the provider says.
  */
 export interface LLMUsage {
   promptTokens: number;
   completionTokens: number;
+  /**
+   * Of `promptTokens`, the part the provider served from its prompt cache
+   * and the part it wrote to it (T3). `promptTokens` still includes both,
+   * so callers that only care about the total are unaffected. Absent when
+   * the provider does not report the split.
+   */
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
 }
 
 export interface LLMCompleteResult {

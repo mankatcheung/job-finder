@@ -44,12 +44,13 @@ interface AnthropicWireResponse {
 
 function toLLMUsage(usage: AnthropicWireUsage | undefined): LLMUsage | null {
   if (!usage) return null;
+  const cacheReadTokens = usage.cache_read_input_tokens ?? 0;
+  const cacheWriteTokens = usage.cache_creation_input_tokens ?? 0;
   return {
-    promptTokens:
-      usage.input_tokens +
-      (usage.cache_creation_input_tokens ?? 0) +
-      (usage.cache_read_input_tokens ?? 0),
+    promptTokens: usage.input_tokens + cacheWriteTokens + cacheReadTokens,
     completionTokens: usage.output_tokens,
+    cacheReadTokens,
+    cacheWriteTokens,
   };
 }
 
@@ -141,7 +142,7 @@ export class AnthropicLLMProvider implements ILLMProvider {
     >();
     // See toLLMUsage: input tokens (incl. cache) arrive once on message_start;
     // the final, cumulative output token count arrives once on message_delta.
-    let promptTokens: number | null = null;
+    let promptUsage: LLMUsage | null = null;
     let completionTokens: number | null = null;
 
     try {
@@ -152,8 +153,8 @@ export class AnthropicLLMProvider implements ILLMProvider {
           case 'message_start': {
             const usage = toLLMUsage(event.message?.usage);
             if (usage) {
-              promptTokens = usage.promptTokens;
-              yield { type: 'prompt_usage', promptTokens };
+              promptUsage = usage;
+              yield { type: 'prompt_usage', promptTokens: usage.promptTokens };
             }
             break;
           }
@@ -214,8 +215,8 @@ export class AnthropicLLMProvider implements ILLMProvider {
     }
 
     const usage =
-      promptTokens !== null && completionTokens !== null
-        ? { promptTokens, completionTokens }
+      promptUsage !== null && completionTokens !== null
+        ? { ...promptUsage, completionTokens }
         : null;
     yield { type: 'done', content: text, toolCalls, usage };
   }

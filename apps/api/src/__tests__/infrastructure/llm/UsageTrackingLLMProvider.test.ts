@@ -59,6 +59,8 @@ describe('UsageTrackingLLMProvider', () => {
         model: 'gpt-4o-mini',
         promptTokens: 10,
         completionTokens: 5,
+        cacheReadTokens: null,
+        cacheWriteTokens: null,
       });
     });
 
@@ -143,6 +145,8 @@ describe('UsageTrackingLLMProvider', () => {
         model: null,
         promptTokens: 20,
         completionTokens: 8,
+        cacheReadTokens: null,
+        cacheWriteTokens: null,
       });
     });
 

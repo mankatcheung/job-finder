@@ -152,6 +152,24 @@ describe('GoogleAILLMProvider', () => {
       expect(result.usage).toBeNull();
     });
 
+    it('keeps the cached share of the prompt when Gemini reports it (T3)', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({
+          candidates: [{ content: { parts: [{ text: 'ok' }] } }],
+          usageMetadata: {
+            promptTokenCount: 60,
+            candidatesTokenCount: 15,
+            cachedContentTokenCount: 40,
+          },
+        }) as never,
+      );
+
+      const provider = new GoogleAILLMProvider('test-key');
+      const result = await provider.complete([{ role: 'user', content: 'hi' }]);
+
+      expect(result.usage).toEqual({ promptTokens: 60, completionTokens: 15, cacheReadTokens: 40 });
+    });
+
     it('parses usage from usageMetadata (JEF-250)', async () => {
       vi.mocked(fetch).mockResolvedValue(
         jsonResponse({

@@ -262,7 +262,12 @@ describe('AnthropicLLMProvider', () => {
       const provider = new AnthropicLLMProvider('secret-key');
       const result = await provider.complete([{ role: 'user', content: 'hi' }]);
 
-      expect(result.usage).toEqual({ promptTokens: 115, completionTokens: 40 });
+      expect(result.usage).toEqual({
+        promptTokens: 115,
+        completionTokens: 40,
+        cacheReadTokens: 5,
+        cacheWriteTokens: 10,
+      });
     });
 
     it('throws with the status and body when the response is not ok', async () => {
@@ -527,7 +532,7 @@ describe('AnthropicLLMProvider', () => {
         type: 'done',
         content: 'hi',
         toolCalls: [],
-        usage: { promptTokens: 50, completionTokens: 12 },
+        usage: { promptTokens: 50, completionTokens: 12, cacheReadTokens: 0, cacheWriteTokens: 0 },
       });
       // Reported as soon as message_start arrives, so an aborted stream can
       // still be charged for the prompt the provider already billed (S8).

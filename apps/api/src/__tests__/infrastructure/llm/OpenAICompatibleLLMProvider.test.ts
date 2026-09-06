@@ -180,6 +180,24 @@ describe('OpenAICompatibleLLMProvider', () => {
     expect(result.usage).toBeNull();
   });
 
+  it('keeps the cached share of the prompt when the backend reports it (T3)', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse({
+        choices: [{ message: { content: 'ok' } }],
+        usage: {
+          prompt_tokens: 80,
+          completion_tokens: 20,
+          prompt_tokens_details: { cached_tokens: 64 },
+        },
+      }) as never,
+    );
+
+    const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+    const result = await provider.complete([{ role: 'user', content: 'hi' }]);
+
+    expect(result.usage).toEqual({ promptTokens: 80, completionTokens: 20, cacheReadTokens: 64 });
+  });
+
   it('parses usage from the response (JEF-250)', async () => {
     vi.mocked(fetch).mockResolvedValue(
       jsonResponse({

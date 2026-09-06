@@ -21,6 +21,8 @@ interface GoogleAIPart {
 interface GoogleAIWireUsage {
   promptTokenCount: number;
   candidatesTokenCount: number;
+  /** Prompt tokens served from Gemini's implicit or explicit cache; part of promptTokenCount. */
+  cachedContentTokenCount?: number;
 }
 
 interface GoogleAIWireResponse {
@@ -30,7 +32,13 @@ interface GoogleAIWireResponse {
 
 function toLLMUsage(usage: GoogleAIWireUsage | undefined): LLMUsage | null {
   if (!usage) return null;
-  return { promptTokens: usage.promptTokenCount, completionTokens: usage.candidatesTokenCount };
+  return {
+    promptTokens: usage.promptTokenCount,
+    completionTokens: usage.candidatesTokenCount,
+    ...(typeof usage.cachedContentTokenCount === 'number'
+      ? { cacheReadTokens: usage.cachedContentTokenCount }
+      : {}),
+  };
 }
 
 /**
