@@ -56,6 +56,7 @@ export function ApplicationsListScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={styles.filtersScroll}
         contentContainerStyle={styles.filters}
         testID="applications-status-filters"
       >
@@ -146,7 +147,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     backgroundColor: '#ffffff',
   },
-  filters: { paddingHorizontal: 16, paddingBottom: 12, gap: 8 },
+  filtersScroll: { flexGrow: 0, flexShrink: 0, height: 36, marginBottom: 12 },
+  filters: { paddingHorizontal: 16, gap: 8, alignItems: 'center' },
   chip: {
     borderRadius: 9999,
     borderWidth: 1,
