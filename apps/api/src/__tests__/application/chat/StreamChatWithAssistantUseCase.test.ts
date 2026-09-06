@@ -192,6 +192,35 @@ describe('StreamChatWithAssistantUseCase', () => {
     ]);
   });
 
+  it('ignores prompt_usage events, which belong to the usage tracker (S8)', async () => {
+    const llmProvider: ILLMProvider = {
+      complete: vi.fn(),
+      completeWithToolsStream: vi.fn(async function* (): AsyncGenerator<LLMStreamEvent> {
+        yield { type: 'prompt_usage', promptTokens: 99 };
+        yield { type: 'text_delta', text: 'ok' };
+        yield { type: 'done', content: 'ok', toolCalls: [], usage: null };
+      }),
+    };
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        resolveForUser: vi
+          .fn()
+          .mockResolvedValue({
+            provider: llmProvider,
+            providerId: 'anthropic',
+            fellBackFrom: null,
+          }),
+      }),
+    });
+
+    const events = await collect(new StreamChatWithAssistantUseCase(deps as never), {
+      ...baseInput,
+      message: 'hi',
+    });
+
+    expect(events).toEqual([{ type: 'delta', text: 'ok' }, { type: 'done' }]);
+  });
+
   it('forwards the caller-supplied abort signal into the streaming LLM call', async () => {
     const llmProvider = makeStreamingProvider({ deltas: ['ok'], content: 'ok', toolCalls: [] });
     const deps = makeDeps({

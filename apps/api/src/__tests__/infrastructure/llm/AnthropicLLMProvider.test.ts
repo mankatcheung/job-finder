@@ -465,6 +465,9 @@ describe('AnthropicLLMProvider', () => {
         toolCalls: [],
         usage: { promptTokens: 50, completionTokens: 12 },
       });
+      // Reported as soon as message_start arrives, so an aborted stream can
+      // still be charged for the prompt the provider already billed (S8).
+      expect(events[0]).toEqual({ type: 'prompt_usage', promptTokens: 50 });
     });
 
     it('completes a stream that runs well past REQUEST_TIMEOUT_MS in total, as long as chunks keep arriving within the idle window (regression)', async () => {

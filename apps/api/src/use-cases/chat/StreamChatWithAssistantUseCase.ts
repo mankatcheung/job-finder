@@ -148,10 +148,11 @@ export class StreamChatWithAssistantUseCase {
       )) {
         if (event.type === 'text_delta') {
           yield { type: 'delta', text: event.text };
-        } else {
+        } else if (event.type === 'done') {
           content = event.content ?? '';
           toolCalls = event.toolCalls;
         }
+        // `prompt_usage` is the usage tracker's business, not the chat's.
       }
 
       if (toolCalls.length === 0) {

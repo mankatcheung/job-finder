@@ -75,6 +75,15 @@ export interface LLMCompletionResult {
  */
 export type LLMStreamEvent =
   | { type: 'text_delta'; text: string }
+  /**
+   * The prompt has been counted, before any output exists — Anthropic
+   * reports it on `message_start`. Emitted so a stream that is aborted
+   * mid-reply (client disconnect) can still be charged for the input the
+   * provider already billed; `done` repeats the figure with the output
+   * count. Providers that only learn usage at the end never emit it.
+   * Consumers other than the usage tracker should ignore it.
+   */
+  | { type: 'prompt_usage'; promptTokens: number }
   | { type: 'done'; content: string | null; toolCalls: LLMToolCall[]; usage: LLMUsage | null };
 
 export interface ILLMProvider {

@@ -150,7 +150,10 @@ export class AnthropicLLMProvider implements ILLMProvider {
         switch (event.type) {
           case 'message_start': {
             const usage = toLLMUsage(event.message?.usage);
-            if (usage) promptTokens = usage.promptTokens;
+            if (usage) {
+              promptTokens = usage.promptTokens;
+              yield { type: 'prompt_usage', promptTokens };
+            }
             break;
           }
           case 'message_delta': {
