@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi, afterEach } from 'vitest';
 import { randomUUID } from 'node:crypto';
-import { ROUTES } from '#src/http/constants.js';
+import { CHAT_STREAM, ROUTES } from '#src/http/constants.js';
 import { CHAT } from '#src/use-cases/constants.js';
 import { buildTestApp, type TestApp } from './helpers/buildTestApp.js';
 
@@ -137,6 +137,17 @@ describe('chat stream integration (JEF-239)', () => {
 
     expect(res.statusCode).toBe(400);
     expect(res.json()).toEqual({ error: expect.stringContaining('at most') });
+  });
+
+  it('returns 413 for a body over the route limit, before parsing it (S10)', async () => {
+    const token = await registerAndGetCookie();
+
+    const res = await streamInject(token, {
+      conversationId: 'x',
+      message: 'x'.repeat(CHAT_STREAM.BODY_LIMIT_BYTES + 1),
+    });
+
+    expect(res.statusCode).toBe(413);
   });
 
   it('streams an error event for a conversation that does not exist', async () => {
