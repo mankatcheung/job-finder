@@ -34,18 +34,18 @@ const PRIMARY_NAV: NavItem[] = [
   {
     key: 'dashboard',
     label: 'Dashboard',
-    href: '/dashboard',
+    href: '/',
     testID: 'sidebar-dashboard',
     Icon: DashboardIcon,
-    isActive: (pathname) => pathname.startsWith('/dashboard'),
+    isActive: (pathname) => pathname === '/',
   },
   {
     key: 'applications',
     label: 'Applications',
-    href: '/',
+    href: '/applications',
     testID: 'sidebar-applications',
     Icon: ApplicationsIcon,
-    isActive: (pathname) => pathname === '/',
+    isActive: (pathname) => pathname === '/applications',
   },
   {
     key: 'board',

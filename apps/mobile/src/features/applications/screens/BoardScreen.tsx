@@ -62,7 +62,7 @@ export function BoardScreen() {
     <View style={styles.container}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>Board</Text>
-        <Pressable onPress={() => router.push('/')} testID="switch-to-list-view">
+        <Pressable onPress={() => router.push('/applications')} testID="switch-to-list-view">
           <Text style={styles.link}>List view</Text>
         </Pressable>
       </View>
