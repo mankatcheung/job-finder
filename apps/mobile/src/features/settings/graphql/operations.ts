@@ -48,6 +48,22 @@ export const REVOKE_OTHER_SESSIONS_MUTATION = `
   }
 `;
 
+export const LINKED_OAUTH_ACCOUNTS_QUERY = `
+  query LinkedOAuthAccounts {
+    linkedOAuthAccounts {
+      provider
+      email
+      createdAt
+    }
+  }
+`;
+
+export const UNLINK_OAUTH_ACCOUNT_MUTATION = `
+  mutation UnlinkOAuthAccount($provider: OAuthProvider!) {
+    unlinkOAuthAccount(provider: $provider)
+  }
+`;
+
 export const UPDATE_PASSWORD_MUTATION = `
   mutation UpdatePassword($currentPassword: String!, $newPassword: String!) {
     updatePassword(currentPassword: $currentPassword, newPassword: $newPassword)

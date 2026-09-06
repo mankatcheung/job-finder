@@ -17,9 +17,52 @@ import {
   useSessions,
   useUpdatePassword,
 } from '../hooks/useSessions';
-import type { Session } from '../types';
+import { useLinkedOAuthAccounts, useUnlinkOAuthAccount } from '../hooks/useLinkedOAuthAccounts';
+import type { LinkedOAuthAccount, OAuthProvider, Session } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
 import { StepUpCancelledError, useStepUpReauth } from '../../../auth/useStepUpReauth';
+import { OAuthProviderLogo } from '../../../screens/auth/OAuthProviderLogo';
+
+const OAUTH_PROVIDERS: OAuthProvider[] = ['google', 'github'];
+
+const OAUTH_PROVIDER_LABEL: Record<OAuthProvider, string> = {
+  google: 'Google',
+  github: 'GitHub',
+};
+
+function LinkedAccountRow({
+  provider,
+  linked,
+  onUnlink,
+  isUnlinking,
+}: {
+  provider: OAuthProvider;
+  linked: LinkedOAuthAccount | undefined;
+  onUnlink: () => void;
+  isUnlinking: boolean;
+}) {
+  const providerLabel = OAUTH_PROVIDER_LABEL[provider];
+  return (
+    <View style={styles.oauthRow} testID={`linked-account-${provider}`}>
+      <View style={styles.oauthRowMain}>
+        <OAuthProviderLogo provider={provider} size={20} />
+        <View style={styles.textColumn}>
+          <Text style={styles.sessionTitle}>{providerLabel}</Text>
+          <Text style={styles.sessionMeta}>
+            {linked
+              ? `${linked.email ?? 'Linked'} · since ${new Date(linked.createdAt).toLocaleDateString()}`
+              : 'Not linked'}
+          </Text>
+        </View>
+      </View>
+      {linked ? (
+        <Pressable onPress={onUnlink} disabled={isUnlinking} testID={`unlink-oauth-${provider}`}>
+          <Text style={styles.linkDanger}>{isUnlinking ? 'Unlinking...' : 'Unlink'}</Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
 
 function SessionRow({ session, onRevoke }: { session: Session; onRevoke: () => void }) {
   return (
@@ -51,6 +94,13 @@ export function SecurityScreen() {
   const revokeOthers = useRevokeOtherSessions();
   const updatePassword = useUpdatePassword();
   const { withStepUp, dialog: stepUpDialog } = useStepUpReauth();
+  const {
+    data: linkedAccounts,
+    isLoading: linkedAccountsLoading,
+    isError: linkedAccountsError,
+    error: linkedAccountsErrorObj,
+  } = useLinkedOAuthAccounts();
+  const unlinkOAuthAccount = useUnlinkOAuthAccount();
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -92,6 +142,21 @@ export function SecurityScreen() {
     ]);
   };
 
+  const onUnlink = (provider: OAuthProvider) => {
+    const providerLabel = OAUTH_PROVIDER_LABEL[provider];
+    Alert.alert(`Unlink ${providerLabel}`, `This will unlink your ${providerLabel} account.`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Unlink',
+        style: 'destructive',
+        onPress: () =>
+          unlinkOAuthAccount.mutate(provider, {
+            onError: (err) => Alert.alert('Could not unlink', getErrorMessage(err)),
+          }),
+      },
+    ]);
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -126,6 +191,25 @@ export function SecurityScreen() {
               </Pressable>
             ) : null}
           </>
+        )}
+
+        <Text style={[styles.sectionTitle, styles.sectionSpacing]}>Linked accounts</Text>
+        {linkedAccountsLoading ? (
+          <ActivityIndicator color="#2563eb" testID="linked-accounts-loading" />
+        ) : linkedAccountsError ? (
+          <Text style={styles.error}>{getErrorMessage(linkedAccountsErrorObj)}</Text>
+        ) : (
+          OAUTH_PROVIDERS.map((provider) => (
+            <LinkedAccountRow
+              key={provider}
+              provider={provider}
+              linked={(linkedAccounts ?? []).find((a) => a.provider === provider)}
+              onUnlink={() => onUnlink(provider)}
+              isUnlinking={
+                unlinkOAuthAccount.isPending && unlinkOAuthAccount.variables === provider
+              }
+            />
+          ))
         )}
 
         <Text style={[styles.sectionTitle, styles.sectionSpacing]}>Change password</Text>
@@ -194,6 +278,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   textColumn: { flex: 1, gap: 2 },
+  oauthRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    padding: 14,
+    gap: 8,
+  },
+  oauthRowMain: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   sessionTitle: { fontSize: 14, fontWeight: '600', color: '#111827' },
   sessionMeta: { fontSize: 12, color: '#6b7280' },
   linkDanger: { color: '#b91c1c', fontSize: 13, fontWeight: '600' },

@@ -16,6 +16,15 @@ export interface Session {
   current: boolean;
 }
 
+/** Mirrors the API's `OAuthProvider` enum (see apps/api's OAuthProviderEnum). */
+export type OAuthProvider = 'google' | 'github';
+
+export interface LinkedOAuthAccount {
+  provider: OAuthProvider;
+  email: string | null;
+  createdAt: string;
+}
+
 export type DigestFrequency = 'DAILY' | 'WEEKLY' | 'OFF';
 
 export interface NotificationPreferences {
