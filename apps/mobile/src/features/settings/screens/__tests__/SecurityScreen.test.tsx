@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { Alert, Text } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 jest.mock('../../hooks/useSessions', () => ({
@@ -7,6 +7,10 @@ jest.mock('../../hooks/useSessions', () => ({
   useRevokeSession: jest.fn(),
   useRevokeOtherSessions: jest.fn(),
   useUpdatePassword: jest.fn(),
+}));
+jest.mock('../../hooks/useLinkedOAuthAccounts', () => ({
+  useLinkedOAuthAccounts: jest.fn(),
+  useUnlinkOAuthAccount: jest.fn(),
 }));
 jest.mock('../../../../auth/useStepUpReauth', () => {
   class StepUpCancelledError extends Error {}
@@ -19,15 +23,18 @@ import {
   useSessions,
   useUpdatePassword,
 } from '../../hooks/useSessions';
+import { useLinkedOAuthAccounts, useUnlinkOAuthAccount } from '../../hooks/useLinkedOAuthAccounts';
 import { StepUpCancelledError, useStepUpReauth } from '../../../../auth/useStepUpReauth';
 import { SecurityScreen } from '../SecurityScreen';
-import type { Session } from '../../types';
+import type { LinkedOAuthAccount, Session } from '../../types';
 
 const mockedUseSessions = jest.mocked(useSessions);
 const mockedUseRevokeSession = jest.mocked(useRevokeSession);
 const mockedUseRevokeOtherSessions = jest.mocked(useRevokeOtherSessions);
 const mockedUseUpdatePassword = jest.mocked(useUpdatePassword);
 const mockedUseStepUpReauth = jest.mocked(useStepUpReauth);
+const mockedUseLinkedOAuthAccounts = jest.mocked(useLinkedOAuthAccounts);
+const mockedUseUnlinkOAuthAccount = jest.mocked(useUnlinkOAuthAccount);
 
 const currentSession: Session = {
   id: '1',
@@ -47,6 +54,12 @@ const otherSession: Session = {
 
 const passThrough = <T,>(fn: () => Promise<T>) => fn();
 
+const googleAccount: LinkedOAuthAccount = {
+  provider: 'google',
+  email: 'jeff@example.com',
+  createdAt: '2026-01-01T00:00:00.000Z',
+};
+
 describe('SecurityScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -63,6 +76,17 @@ describe('SecurityScreen', () => {
       isPending: false,
     } as never);
     mockedUseStepUpReauth.mockReturnValue({ withStepUp: passThrough, dialog: null });
+    mockedUseLinkedOAuthAccounts.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as never);
+    mockedUseUnlinkOAuthAccount.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+      variables: undefined,
+    } as never);
   });
 
   it('lists sessions and revokes a non-current one', async () => {
@@ -167,5 +191,126 @@ describe('SecurityScreen', () => {
     const { getByText } = await render(<SecurityScreen />);
 
     expect(getByText('step-up-prompt')).toBeTruthy();
+  });
+
+  it('shows a loading indicator while linked accounts are loading', async () => {
+    mockedUseLinkedOAuthAccounts.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+      error: null,
+    } as never);
+
+    const { getByTestId } = await render(<SecurityScreen />);
+
+    expect(getByTestId('linked-accounts-loading')).toBeTruthy();
+  });
+
+  it('renders a linked provider with its email and linked-since date, and an unlinked provider as Not linked', async () => {
+    mockedUseLinkedOAuthAccounts.mockReturnValue({
+      data: [googleAccount],
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as never);
+
+    const { getByTestId, getByText } = await render(<SecurityScreen />);
+
+    expect(getByText(/jeff@example\.com/)).toBeTruthy();
+    expect(getByTestId('unlink-oauth-google')).toBeTruthy();
+    expect(getByText('Not linked')).toBeTruthy();
+  });
+
+  it('falls back to a generic "Linked" label when the account has no email', async () => {
+    mockedUseLinkedOAuthAccounts.mockReturnValue({
+      data: [{ ...googleAccount, email: null }],
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as never);
+
+    const { getByText } = await render(<SecurityScreen />);
+
+    expect(getByText(/^Linked ·/)).toBeTruthy();
+  });
+
+  it('unlinks a provider after confirmation', async () => {
+    const unlinkMutate = jest.fn();
+    jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
+      const confirm = buttons?.find((b) => b.text === 'Unlink');
+      confirm?.onPress?.();
+    });
+    mockedUseLinkedOAuthAccounts.mockReturnValue({
+      data: [googleAccount],
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as never);
+    mockedUseUnlinkOAuthAccount.mockReturnValue({
+      mutate: unlinkMutate,
+      isPending: false,
+      variables: undefined,
+    } as never);
+
+    const { getByTestId } = await render(<SecurityScreen />);
+
+    await fireEvent.press(getByTestId('unlink-oauth-google'));
+
+    expect(unlinkMutate).toHaveBeenCalledWith('google', expect.any(Object));
+  });
+
+  it('does not unlink when the confirmation is cancelled', async () => {
+    const unlinkMutate = jest.fn();
+    jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
+      const cancel = buttons?.find((b) => b.text === 'Cancel');
+      cancel?.onPress?.();
+    });
+    mockedUseLinkedOAuthAccounts.mockReturnValue({
+      data: [googleAccount],
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as never);
+    mockedUseUnlinkOAuthAccount.mockReturnValue({
+      mutate: unlinkMutate,
+      isPending: false,
+      variables: undefined,
+    } as never);
+
+    const { getByTestId } = await render(<SecurityScreen />);
+
+    await fireEvent.press(getByTestId('unlink-oauth-google'));
+
+    expect(unlinkMutate).not.toHaveBeenCalled();
+  });
+
+  it('surfaces an error when unlinking fails', async () => {
+    jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
+      const confirm = buttons?.find((b) => b.text === 'Unlink');
+      confirm?.onPress?.();
+    });
+    mockedUseLinkedOAuthAccounts.mockReturnValue({
+      data: [googleAccount],
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as never);
+    const unlinkMutate = jest.fn((_provider, options) => {
+      options?.onError?.({ response: { errors: [{ message: 'Cannot unlink last provider' }] } });
+    });
+    mockedUseUnlinkOAuthAccount.mockReturnValue({
+      mutate: unlinkMutate,
+      isPending: false,
+      variables: undefined,
+    } as never);
+    const alertSpy = jest.spyOn(Alert, 'alert');
+
+    const { getByTestId } = await render(<SecurityScreen />);
+
+    await fireEvent.press(getByTestId('unlink-oauth-google'));
+
+    await waitFor(() =>
+      expect(alertSpy).toHaveBeenCalledWith('Could not unlink', 'Cannot unlink last provider'),
+    );
   });
 });
