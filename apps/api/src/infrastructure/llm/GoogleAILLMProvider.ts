@@ -46,13 +46,15 @@ function toLLMUsage(usage: GoogleAIWireUsage | undefined): LLMUsage | null {
  * `cache_control` (JEF-238 investigation):
  *
  * - Gemini's *implicit* (automatic, no-code) caching only applies to Gemini
- *   2.5+ models — `LLM.GOOGLEAI_DEFAULT_MODEL` is `gemini-2.0-flash`, which
- *   isn't eligible at all regardless of anything this provider does.
+ *   2.5+ models — which is why `LLM.GOOGLEAI_DEFAULT_MODEL` moved from
+ *   `gemini-2.0-flash` (not eligible at all) to `gemini-2.5-flash` (T4).
  * - Even on a 2.5+ model, implicit caching needs a minimum prefix (2,048
  *   tokens for 2.5 Flash/Pro, 4,096 for newer Flash/Pro Preview tiers) — our
  *   system prompt plus the read-tool catalogue chat actually sends is only
- *   ~2,000–2,500 tokens by rough estimate, so it sits right at that floor
- *   even on 2.5, not comfortably above it.
+ *   ~2,000–2,500 tokens by rough estimate, so it sits right at that floor,
+ *   not comfortably above it; a conversation with any history clears it.
+ *   `usage.cachedContentTokenCount` is recorded per event (T3), so whether
+ *   it actually hits is now visible in the usage summary.
  * - Gemini's *explicit* caching (a durable, named `CachedContents` resource,
  *   created/refreshed via a separate API call with its own TTL) would work
  *   regardless of model/size, but is a real feature to build — resource

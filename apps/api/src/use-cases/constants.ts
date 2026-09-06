@@ -128,10 +128,17 @@ export const LLM = {
   OPENAI_API_URL: 'https://api.openai.com/v1/chat/completions',
   OPENAI_DEFAULT_MODEL: 'gpt-4o-mini',
   ANTHROPIC_API_URL: 'https://api.anthropic.com/v1/messages',
-  ANTHROPIC_DEFAULT_MODEL: 'claude-3-5-haiku-latest',
+  /**
+   * Haiku 4.5 (T4). Haiku 3.5 was cheaper per token than it looked: its
+   * prompt cache needs a 2 048-token prefix and the chat's tools + system
+   * block sits right at that floor, so the `cache_control` marker was often
+   * a no-op. Users who pinned a model on their key are unaffected.
+   */
+  ANTHROPIC_DEFAULT_MODEL: 'claude-haiku-4-5',
   ANTHROPIC_VERSION: '2023-06-01',
   GOOGLEAI_API_URL: 'https://generativelanguage.googleapis.com/v1beta/models',
-  GOOGLEAI_DEFAULT_MODEL: 'gemini-2.0-flash',
+  /** 2.5 Flash (T4): the first Flash tier eligible for Gemini's implicit prompt caching — 2.0 was not, whatever the request did. */
+  GOOGLEAI_DEFAULT_MODEL: 'gemini-2.5-flash',
   OPENROUTER_API_URL: 'https://openrouter.ai/api/v1/chat/completions',
   OPENROUTER_DEFAULT_MODEL: 'openai/gpt-4o-mini',
   MISTRAL_API_URL: 'https://api.mistral.ai/v1/chat/completions',
