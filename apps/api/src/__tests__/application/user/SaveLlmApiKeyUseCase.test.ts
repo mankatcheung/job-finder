@@ -83,7 +83,11 @@ describe('SaveLlmApiKeyUseCase', () => {
       apiKey: 'sk-123',
     });
 
-    expect(llmApiKeyCipher.encrypt).toHaveBeenCalledWith('sk-123');
+    // Sealed to its own row: the same ciphertext in another user's row must not decrypt.
+    expect(llmApiKeyCipher.encrypt).toHaveBeenCalledWith(
+      'sk-123',
+      expect.stringMatching(/^user-1:/),
+    );
     expect(llmApiKeyRepository.upsert).toHaveBeenCalledWith({
       id: 'llm-key-1',
       userId: 'user-1',

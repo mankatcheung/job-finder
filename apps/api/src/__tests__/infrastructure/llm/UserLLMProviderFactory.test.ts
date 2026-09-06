@@ -131,7 +131,7 @@ describe('UserLLMProviderFactory', () => {
 
     expect(userRepository.findById).not.toHaveBeenCalled();
     expect(provider).toBeInstanceOf(OpenAICompatibleLLMProvider);
-    expect(llmApiKeyCipher.decrypt).toHaveBeenCalledWith('encrypted:my-key');
+    expect(llmApiKeyCipher.decrypt).toHaveBeenCalledWith('encrypted:my-key', 'user-1:openai');
   });
 
   it('returns an OpenAICompatibleLLMProvider for openrouter', async () => {

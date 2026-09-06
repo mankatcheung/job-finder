@@ -1,4 +1,5 @@
 import { PROVIDER_REGISTRY } from '#src/infrastructure/llm/providerRegistry.js';
+import { llmApiKeyCipherContext } from '#src/use-cases/user/llmApiKeyCipherContext.js';
 import { UsageTrackingLLMProvider } from '#src/infrastructure/llm/UsageTrackingLLMProvider.js';
 import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
@@ -61,7 +62,10 @@ export class UserLLMProviderFactory implements ILLMProviderFactory {
     const entry = PROVIDER_REGISTRY[resolvedProvider];
     if (!entry) return null;
 
-    const apiKey = this.deps.llmApiKeyCipher.decrypt(key.apiKey);
+    const apiKey = this.deps.llmApiKeyCipher.decrypt(
+      key.apiKey,
+      llmApiKeyCipherContext(key.userId, key.provider),
+    );
     const resolvedModel = model ?? key.model;
     const rawProvider = entry.create({
       apiKey,

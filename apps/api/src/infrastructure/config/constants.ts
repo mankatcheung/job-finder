@@ -58,6 +58,14 @@ export const NODE_ENV = {
   PRODUCTION: 'production',
 } as const;
 
+/**
+ * The value `.env.example` ships for every secret-derivation passphrase.
+ * Fine for a laptop; a production process that still carries it has its
+ * users' encrypted API keys protected by a string in a public repo, so
+ * `LlmApiKeyCipher` refuses to start with it there.
+ */
+export const PLACEHOLDER_SECRET = 'change-me-in-production';
+
 /** HTTP Authorization header. */
 export const AUTH_HEADER = {
   BEARER_PREFIX: 'Bearer ',

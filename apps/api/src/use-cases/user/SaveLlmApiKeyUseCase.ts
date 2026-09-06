@@ -5,6 +5,7 @@ import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js'
 import type { IOutboundUrlPolicy } from '#src/use-cases/ports/IOutboundUrlPolicy.js';
 import { LLM_PROVIDER } from '#src/use-cases/constants.js';
 import { assertValidLlmApiKeyShape } from '#src/use-cases/user/llmApiKeyValidation.js';
+import { llmApiKeyCipherContext } from '#src/use-cases/user/llmApiKeyCipherContext.js';
 import type {
   ISaveLlmApiKeyUseCase,
   SaveLlmApiKeyInput,
@@ -44,7 +45,10 @@ export class SaveLlmApiKeyUseCase implements ISaveLlmApiKeyUseCase {
       id: this.deps.generateId(),
       userId: input.userId,
       provider: input.provider,
-      apiKey: this.deps.llmApiKeyCipher.encrypt(input.apiKey.trim()),
+      apiKey: this.deps.llmApiKeyCipher.encrypt(
+        input.apiKey.trim(),
+        llmApiKeyCipherContext(input.userId, input.provider),
+      ),
       model,
       baseUrl: isCustom ? baseUrl : null,
     });
