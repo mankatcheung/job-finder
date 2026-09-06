@@ -10,6 +10,7 @@ import type {
 } from '#src/use-cases/ports/ILLMProvider.js';
 import { LLM } from '#src/use-cases/constants.js';
 import { fetchWithRetry } from '#src/infrastructure/llm/fetchWithRetry.js';
+import { providerHttpError } from '#src/infrastructure/llm/providerError.js';
 
 interface GoogleAIPart {
   text?: string;
@@ -211,7 +212,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`Google AI error ${response.status}: ${text}`);
+      throw providerHttpError('Google AI', response.status, text);
     }
 
     return response.json() as Promise<GoogleAIWireResponse>;

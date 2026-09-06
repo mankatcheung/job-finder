@@ -6,6 +6,7 @@ import type {
   LLMCompleteResult,
   LLMUsage,
 } from '#src/use-cases/ports/ILLMProvider.js';
+import type { IOutboundUrlPolicy } from '#src/use-cases/ports/IOutboundUrlPolicy.js';
 import { LLM } from '#src/use-cases/constants.js';
 import { AUTH_HEADER } from '#src/infrastructure/config/constants.js';
 import {
@@ -13,6 +14,7 @@ import {
   createIdleAbortController,
 } from '#src/infrastructure/llm/fetchWithRetry.js';
 import { parseSSE } from '#src/infrastructure/llm/sseParser.js';
+import { providerHttpError } from '#src/infrastructure/llm/providerError.js';
 
 interface OpenAIWireMessage {
   role: string;
@@ -94,10 +96,17 @@ interface OpenAIStreamChunk {
  * grows, never shrinks or reorders.
  */
 export class OpenAICompatibleLLMProvider implements ILLMProvider {
+  /**
+   * `outboundUrlPolicy` is set only for the "Custom" provider, whose base
+   * URL the user typed: the vendor endpoints are fixed constants and need no
+   * check. It runs on every call, not just at save time, because the name a
+   * user saved can be re-pointed at a private address afterwards.
+   */
   constructor(
     private readonly apiKey: string,
     private readonly baseUrl: string,
     private readonly model: string,
+    private readonly outboundUrlPolicy?: IOutboundUrlPolicy,
   ) {}
 
   async complete(
@@ -106,6 +115,7 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     signal?: AbortSignal,
   ): Promise<LLMCompleteResult> {
     if (!this.apiKey) throw new Error('API key is not set');
+    await this.outboundUrlPolicy?.assertAllowed(this.baseUrl, 'llm-provider');
 
     const json = await this.post(
       {
@@ -129,6 +139,7 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     signal?: AbortSignal,
   ): AsyncGenerator<LLMStreamEvent> {
     if (!this.apiKey) throw new Error('API key is not set');
+    await this.outboundUrlPolicy?.assertAllowed(this.baseUrl, 'llm-provider');
 
     const { body, onChunk, dispose } = await this.postStream(
       {
@@ -238,7 +249,7 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`LLM provider error ${response.status}: ${text}`);
+      throw providerHttpError('LLM provider', response.status, text);
     }
 
     return response.json() as Promise<OpenAIWireResponse>;
@@ -270,7 +281,7 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     if (!response.ok) {
       idle.dispose();
       const text = await response.text();
-      throw new Error(`LLM provider error ${response.status}: ${text}`);
+      throw providerHttpError('LLM provider', response.status, text);
     }
     if (!response.body) {
       idle.dispose();

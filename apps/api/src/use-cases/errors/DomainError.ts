@@ -112,6 +112,33 @@ export class LlmLimitReachedError extends DomainError {
   }
 }
 
+/**
+ * How the user's own provider failed, coarse enough to act on: `auth` means
+ * fix the key, `quota`/`rate_limited` mean wait or pay, `bad_request` means
+ * the model or request shape, `unavailable` means try later.
+ */
+export type LlmProviderErrorKind =
+  'auth' | 'quota' | 'rate_limited' | 'bad_request' | 'unavailable' | 'unreachable';
+
+/**
+ * The user's LLM provider refused or failed the call.
+ *
+ * A bare `Error` here reached clients as "Something went wrong" with a 500
+ * and was logged as a server fault, for what is a revoked key or an exhausted
+ * quota on a key this server does not own. The `kind` is what the client can
+ * act on; the message may carry a short, truncated excerpt of what the
+ * provider said, never its whole response body.
+ */
+export class LlmProviderError extends DomainError {
+  constructor(
+    readonly kind: LlmProviderErrorKind = 'unavailable',
+    message = 'The AI provider could not complete the request',
+    readonly status: number | null = null,
+  ) {
+    super(message, ERROR_CODES.AI_PROVIDER_ERROR);
+  }
+}
+
 /** The model replied with something unusable. */
 export class AiResponseInvalidError extends DomainError {
   constructor(message = 'The AI response could not be used') {

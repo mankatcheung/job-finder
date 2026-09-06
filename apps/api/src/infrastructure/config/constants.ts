@@ -180,6 +180,22 @@ export const LLM_PROVIDER_MODE = {
   FAKE: 'fake',
 } as const;
 
+/**
+ * Where the server refuses to connect on a user's behalf — see
+ * `OutboundUrlPolicy`. Ports are the ones an SSRF is typically aimed at
+ * (databases, caches, mail); the address ranges live in the policy itself.
+ */
+export const OUTBOUND_URL = {
+  BLOCKED_PORTS: [22, 25, 3306, 5432, 6379, 9200, 11211, 27017],
+} as const;
+
+/**
+ * How much of an upstream error body is kept when a provider call fails.
+ * Enough to diagnose ("invalid x-api-key", "model not found"), not enough to
+ * carry a page of HTML — and never repeated verbatim to a client (JEF-S1).
+ */
+export const PROVIDER_ERROR_BODY_MAX_CHARS = 300;
+
 /** Cache configuration, shared by MemoryCache and RedisCache. */
 export const CACHE = {
   DEFAULT_TTL_MS: 5 * 60 * 1000, // 5 minutes

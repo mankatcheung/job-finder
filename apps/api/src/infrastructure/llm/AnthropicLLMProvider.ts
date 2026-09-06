@@ -13,6 +13,7 @@ import {
   createIdleAbortController,
 } from '#src/infrastructure/llm/fetchWithRetry.js';
 import { parseSSE } from '#src/infrastructure/llm/sseParser.js';
+import { providerHttpError } from '#src/infrastructure/llm/providerError.js';
 
 type AnthropicContentBlock =
   | { type: 'text'; text: string }
@@ -290,7 +291,7 @@ export class AnthropicLLMProvider implements ILLMProvider {
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`Anthropic error ${response.status}: ${text}`);
+      throw providerHttpError('Anthropic', response.status, text);
     }
 
     return response.json() as Promise<AnthropicWireResponse>;
@@ -323,7 +324,7 @@ export class AnthropicLLMProvider implements ILLMProvider {
     if (!response.ok) {
       idle.dispose();
       const text = await response.text();
-      throw new Error(`Anthropic error ${response.status}: ${text}`);
+      throw providerHttpError('Anthropic', response.status, text);
     }
     if (!response.body) {
       idle.dispose();

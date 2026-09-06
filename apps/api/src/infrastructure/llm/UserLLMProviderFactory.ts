@@ -4,6 +4,7 @@ import type { IUserRepository } from '#src/use-cases/ports/IUserRepository.js';
 import type { ILlmApiKeyRepository } from '#src/use-cases/ports/ILlmApiKeyRepository.js';
 import type { ILlmApiKeyCipher } from '#src/use-cases/ports/ILlmApiKeyCipher.js';
 import type { ILlmUsageEventRepository } from '#src/use-cases/ports/ILlmUsageEventRepository.js';
+import type { IOutboundUrlPolicy } from '#src/use-cases/ports/IOutboundUrlPolicy.js';
 import type { ILLMProvider } from '#src/use-cases/ports/ILLMProvider.js';
 import type {
   ILLMProviderFactory,
@@ -16,6 +17,7 @@ interface Deps {
   llmApiKeyRepository: ILlmApiKeyRepository;
   llmApiKeyCipher: ILlmApiKeyCipher;
   llmUsageEventRepository: ILlmUsageEventRepository;
+  outboundUrlPolicy: IOutboundUrlPolicy;
   generateId: () => string;
 }
 
@@ -61,7 +63,12 @@ export class UserLLMProviderFactory implements ILLMProviderFactory {
 
     const apiKey = this.deps.llmApiKeyCipher.decrypt(key.apiKey);
     const resolvedModel = model ?? key.model;
-    const rawProvider = entry.create({ apiKey, model: resolvedModel, baseUrl: key.baseUrl });
+    const rawProvider = entry.create({
+      apiKey,
+      model: resolvedModel,
+      baseUrl: key.baseUrl,
+      outboundUrlPolicy: this.deps.outboundUrlPolicy,
+    });
     if (!trackUsage) {
       return { provider: rawProvider, providerId: resolvedProvider, fellBackFrom: null };
     }
@@ -85,6 +92,7 @@ export class UserLLMProviderFactory implements ILLMProviderFactory {
       apiKey: credentials.apiKey,
       model: credentials.model ?? null,
       baseUrl: credentials.baseUrl ?? null,
+      outboundUrlPolicy: this.deps.outboundUrlPolicy,
     });
   }
 }
