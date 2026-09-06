@@ -160,14 +160,27 @@ export function buildChatMessages(
   newMessage: string,
   user: User | null,
 ): LLMMessage[] {
-  return [
-    { role: 'system', content: CHAT_SYSTEM_PROMPT, cacheBreakpoint: true },
+  // Breakpoint 1 goes on the LAST system block. Anthropic renders
+  // tools → system → messages as one prefix, so a marker there caches the
+  // tool catalogue, the fixed prompt and the user's custom prompt together;
+  // on the fixed prompt alone (where it used to sit) the custom prompt was
+  // re-billed every call.
+  const system: LLMMessage[] = [
+    { role: 'system', content: CHAT_SYSTEM_PROMPT },
     ...(user?.customAiPrompt
       ? [{ role: 'system', content: user.customAiPrompt } as LLMMessage]
       : []),
-    ...history.map((m) => ({ role: m.role, content: m.content })),
-    { role: 'user', content: newMessage },
   ];
+  system[system.length - 1].cacheBreakpoint = true;
+
+  // Breakpoint 2 goes on the last stored message: each turn's prefix is the
+  // previous turn's whole prompt, so history is read from cache and only the
+  // new message is paid for at full price. Without it every prior turn was
+  // re-billed on every message, and again on every tool iteration (T2).
+  const prior: LLMMessage[] = history.map((m) => ({ role: m.role, content: m.content }));
+  if (prior.length > 0) prior[prior.length - 1].cacheBreakpoint = true;
+
+  return [...system, ...prior, { role: 'user', content: newMessage }];
 }
 
 export function deriveChatTitle(message: string): string {

@@ -352,6 +352,70 @@ describe('AnthropicLLMProvider', () => {
     });
   });
 
+  describe('conversation cache breakpoints (T2)', () => {
+    it('turns a cacheBreakpoint on a user message into cache_control on its text block', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        streamResponse('event: message_stop\ndata: {"type":"message_stop"}\n\n') as never,
+      );
+      const provider = new AnthropicLLMProvider('secret-key');
+
+      await collectStream(
+        provider,
+        [
+          { role: 'user', content: 'earlier', cacheBreakpoint: true },
+          { role: 'assistant', content: 'reply' },
+          { role: 'user', content: 'now' },
+        ],
+        [],
+      );
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.messages).toEqual([
+        {
+          role: 'user',
+          content: [{ type: 'text', text: 'earlier', cache_control: { type: 'ephemeral' } }],
+        },
+        { role: 'assistant', content: 'reply' },
+        { role: 'user', content: 'now' },
+      ]);
+    });
+
+    it('attaches cache_control to the marked tool result and to an assistant tool_use turn', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        streamResponse('event: message_stop\ndata: {"type":"message_stop"}\n\n') as never,
+      );
+      const provider = new AnthropicLLMProvider('secret-key');
+
+      await collectStream(
+        provider,
+        [
+          {
+            role: 'assistant',
+            content: '',
+            toolCalls: [{ id: 't1', name: 'list_applications', arguments: {} }],
+            cacheBreakpoint: true,
+          },
+          { role: 'tool', content: '{}', toolCallId: 't1', cacheBreakpoint: true },
+        ],
+        [],
+      );
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.messages[0].content[0]).toMatchObject({
+        type: 'tool_use',
+        id: 't1',
+        cache_control: { type: 'ephemeral' },
+      });
+      expect(body.messages[1].content[0]).toMatchObject({
+        type: 'tool_result',
+        tool_use_id: 't1',
+        cache_control: { type: 'ephemeral' },
+      });
+    });
+  });
+
   describe('completeWithToolsStream (JEF-239)', () => {
     it('throws when the API key is empty', async () => {
       const provider = new AnthropicLLMProvider('');

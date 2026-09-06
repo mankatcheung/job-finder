@@ -15,12 +15,13 @@ import {
 import { parseSSE } from '#src/infrastructure/llm/sseParser.js';
 import { providerHttpError } from '#src/infrastructure/llm/providerError.js';
 
-type AnthropicContentBlock =
+type AnthropicCacheControl = { type: 'ephemeral' };
+
+type AnthropicContentBlock = { cache_control?: AnthropicCacheControl } & (
   | { type: 'text'; text: string }
   | { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> }
-  | { type: 'tool_result'; tool_use_id: string; content: string };
-
-type AnthropicCacheControl = { type: 'ephemeral' };
+  | { type: 'tool_result'; tool_use_id: string; content: string }
+);
 
 type AnthropicSystemBlock = { type: 'text'; text: string; cache_control?: AnthropicCacheControl };
 
@@ -250,12 +251,24 @@ export class AnthropicLLMProvider implements ILLMProvider {
     return { system, conversation };
   }
 
+  /**
+   * A `cacheBreakpoint` on a conversation message becomes `cache_control`
+   * on that message's last content block (T2). The prefix up to it — tools,
+   * system, every earlier turn and tool result — is then a cache read on
+   * the next call, which is what makes a multi-iteration tool loop and a
+   * long conversation affordable; the marker only ever attaches to a block
+   * that already exists, so an unmarked message keeps the bare-string
+   * shape callers relied on before.
+   */
   private toWireMessages(messages: LLMMessage[]): AnthropicWireMessage[] {
     return messages.map((m) => {
       if (m.role === 'tool') {
         return {
           role: 'user',
-          content: [{ type: 'tool_result', tool_use_id: m.toolCallId ?? '', content: m.content }],
+          content: this.withCacheControl(
+            [{ type: 'tool_result', tool_use_id: m.toolCallId ?? '', content: m.content }],
+            m.cacheBreakpoint,
+          ),
         };
       }
       if (m.role === 'assistant' && m.toolCalls?.length) {
@@ -268,10 +281,22 @@ export class AnthropicLLMProvider implements ILLMProvider {
             input: tc.arguments,
           })),
         ];
-        return { role: 'assistant', content: blocks };
+        return { role: 'assistant', content: this.withCacheControl(blocks, m.cacheBreakpoint) };
       }
-      return { role: m.role as 'user' | 'assistant', content: m.content };
+      const role = m.role as 'user' | 'assistant';
+      return m.cacheBreakpoint
+        ? { role, content: this.withCacheControl([{ type: 'text', text: m.content }], true) }
+        : { role, content: m.content };
     });
+  }
+
+  private withCacheControl(
+    blocks: AnthropicContentBlock[],
+    breakpoint: boolean | undefined,
+  ): AnthropicContentBlock[] {
+    if (!breakpoint || blocks.length === 0) return blocks;
+    const last = blocks[blocks.length - 1];
+    return [...blocks.slice(0, -1), { ...last, cache_control: { type: 'ephemeral' as const } }];
   }
 
   private async post(

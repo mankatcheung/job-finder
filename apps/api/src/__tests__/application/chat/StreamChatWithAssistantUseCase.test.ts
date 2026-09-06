@@ -423,6 +423,50 @@ describe('StreamChatWithAssistantUseCase', () => {
     expect(toolMessage.content).not.toContain('nextCursor');
   });
 
+  it("moves a cache breakpoint onto each round's last tool result (T2)", async () => {
+    const twoCalls = (n: number) => [
+      { id: `a${n}`, name: 'list_skills', arguments: {} },
+      { id: `b${n}`, name: 'list_educations', arguments: {} },
+    ];
+    const llmProvider = makeStreamingProvider(
+      { content: null, toolCalls: twoCalls(1) },
+      { content: null, toolCalls: twoCalls(2) },
+      { deltas: ['done'], content: 'done', toolCalls: [] },
+    );
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        resolveForUser: vi
+          .fn()
+          .mockResolvedValue({
+            provider: llmProvider,
+            providerId: 'anthropic',
+            fellBackFrom: null,
+          }),
+      }),
+      workExperienceRepository: { findAllByUserId: vi.fn().mockResolvedValue([]) },
+      educationRepository: { findAllByUserId: vi.fn().mockResolvedValue([]) },
+      skillRepository: { findAllByUserId: vi.fn().mockResolvedValue([]) },
+    });
+
+    await collect(new StreamChatWithAssistantUseCase(deps as never), {
+      ...baseInput,
+      message: 'what do I know?',
+    });
+
+    const [thirdRound] = vi.mocked(llmProvider.completeWithToolsStream).mock.calls[2];
+    const toolMarks = thirdRound
+      .filter((m) => m.role === 'tool')
+      .map((m) => [m.toolCallId, Boolean(m.cacheBreakpoint)]);
+    // Only the most recent round's last result carries the marker; earlier
+    // ones were cleared so the count never exceeds Anthropic's limit.
+    expect(toolMarks).toEqual([
+      ['a1', false],
+      ['b1', false],
+      ['a2', false],
+      ['b2', true],
+    ]);
+  });
+
   it('gives up with a clear message after exceeding the max tool-call iterations', async () => {
     const alwaysCallsTool = {
       deltas: [],

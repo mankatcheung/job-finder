@@ -171,6 +171,14 @@ export class StreamChatWithAssistantUseCase {
           toolCallId: call.id,
         });
       });
+      // Breakpoint 3 moves each iteration: everything up to and including
+      // this round's tool results is a cache hit on the next call of the
+      // loop, instead of the whole prompt being re-billed per iteration.
+      // Anthropic allows four markers; the two from buildChatMessages plus
+      // this one leave one spare. Providers without explicit caching ignore
+      // the flag (T2).
+      for (const m of messages) if (m.role === 'tool') m.cacheBreakpoint = false;
+      messages[messages.length - 1].cacheBreakpoint = true;
     }
 
     await this.deps.messageRepository.create({
