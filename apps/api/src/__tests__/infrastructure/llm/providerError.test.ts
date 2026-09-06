@@ -21,20 +21,26 @@ describe('providerHttpError', () => {
     expect(err.code).toBe('AI_PROVIDER_ERROR');
   });
 
-  it('keeps the label, status and a short excerpt in the message for logs', () => {
+  it('puts user-facing copy plus the provider and status in the message, and the excerpt in detail', () => {
     const err = providerHttpError('LLM provider', 401, '{"error":"invalid key"}');
-    expect(err.message).toBe('LLM provider error 401: {"error":"invalid key"}');
+    expect(err.message).toBe(
+      'The provider rejected this API key — check it in Settings and try again (LLM provider error 401)',
+    );
+    expect(err.detail).toBe('{"error":"invalid key"}');
   });
 
   it('truncates a long body — a custom base URL can answer with a whole page', () => {
     const page = `<html>${'x'.repeat(5000)}</html>`;
     const err = providerHttpError('LLM provider', 502, page);
-    expect(err.message.length).toBeLessThan(PROVIDER_ERROR_BODY_MAX_CHARS + 40);
-    expect(err.message.endsWith('…')).toBe(true);
+    expect(err.detail!.length).toBeLessThan(PROVIDER_ERROR_BODY_MAX_CHARS + 2);
+    expect(err.detail!.endsWith('…')).toBe(true);
+    expect(err.message).not.toContain('xxxx');
   });
 
-  it('omits the colon when the body is empty', () => {
-    expect(providerHttpError('Google AI', 503, '').message).toBe('Google AI error 503');
+  it('records no detail when the body is empty', () => {
+    const err = providerHttpError('Google AI', 503, '');
+    expect(err.detail).toBeNull();
+    expect(err.message).toMatch(/\(Google AI error 503\)$/);
   });
 });
 

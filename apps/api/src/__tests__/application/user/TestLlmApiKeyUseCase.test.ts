@@ -191,7 +191,11 @@ describe('TestLlmApiKeyUseCase', () => {
     const testLlmApiKeyRateLimiter = makeRateLimiter();
     const provider = makeLLMProvider();
     vi.mocked(provider.complete).mockRejectedValue(
-      new LlmProviderError('auth', 'LLM provider error 401: {"error":"invalid x-api-key"}', 401),
+      new LlmProviderError('auth', {
+        provider: 'Anthropic',
+        status: 401,
+        detail: '{"error":"invalid x-api-key"}',
+      }),
     );
     const llmProviderFactory = makeLLMProviderFactory({
       forUser: vi.fn().mockResolvedValue(provider),
@@ -205,6 +209,7 @@ describe('TestLlmApiKeyUseCase', () => {
 
     expect(result.ok).toBe(false);
     expect(result.error).toMatch(/rejected this API key/);
+    expect(result.error).toContain('(Anthropic error 401)');
     // The upstream body is exactly what a custom base URL pointed at an
     // internal service would leak through this mutation — it must not appear.
     expect(result.error).not.toContain('invalid x-api-key');

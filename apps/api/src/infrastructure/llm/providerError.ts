@@ -27,9 +27,9 @@ export function summarizeProviderBody(body: string): string {
 /** A non-2xx response from a provider, as the coded error every AI use case propagates. */
 export function providerHttpError(label: string, status: number, body: string): LlmProviderError {
   const excerpt = summarizeProviderBody(body);
-  return new LlmProviderError(
-    kindForStatus(status),
-    `${label} error ${status}${excerpt ? `: ${excerpt}` : ''}`,
+  return new LlmProviderError(kindForStatus(status), {
+    provider: label,
     status,
-  );
+    detail: excerpt || null,
+  });
 }

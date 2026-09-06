@@ -1,9 +1,9 @@
 import {
   AiNotConfiguredError,
+  LLM_PROVIDER_FAILURE_MESSAGES,
   LlmProviderError,
   RateLimitedError,
   ServiceUnavailableError,
-  type LlmProviderErrorKind,
 } from '#src/use-cases/errors/DomainError.js';
 import type { ILLMProviderFactory } from '#src/use-cases/ports/ILLMProviderFactory.js';
 import type { IOutboundUrlPolicy } from '#src/use-cases/ports/IOutboundUrlPolicy.js';
@@ -26,21 +26,6 @@ interface Deps {
 }
 
 const TEST_MESSAGE = 'Reply with a single word to confirm this connection works.';
-
-/**
- * What the settings page shows for each way a key can fail. Deliberately
- * not the provider's own words: for a custom base URL the "provider" is
- * whatever the user pointed us at, and echoing its response body back made
- * this mutation a way to read any HTTP service the API host can reach.
- */
-const FAILURE_MESSAGES: Record<LlmProviderErrorKind, string> = {
-  auth: 'The provider rejected this API key — check it and try again',
-  quota: 'The provider reports this key is out of credit',
-  rate_limited: 'The provider is rate-limiting this key — wait a moment and try again',
-  bad_request: 'The provider rejected the request — check the model name',
-  unavailable: 'The provider is unavailable right now — try again later',
-  unreachable: 'Could not reach the provider — check the base URL and try again',
-};
 
 /**
  * "Does this key work" ping for Settings → AI (JEF-247) — a cheap
@@ -87,8 +72,13 @@ export class TestLlmApiKeyUseCase implements ITestLlmApiKeyUseCase {
       );
       return { ok: true };
     } catch (err) {
-      const kind: LlmProviderErrorKind = err instanceof LlmProviderError ? err.kind : 'unreachable';
-      return { ok: false, error: FAILURE_MESSAGES[kind] };
+      // The provider's own words never reach the caller: for a custom base
+      // URL the "provider" is whatever the user pointed us at, and echoing
+      // its body made this mutation a way to read any HTTP service the API
+      // host can reach. `LlmProviderError.message` is per-kind copy.
+      const message =
+        err instanceof LlmProviderError ? err.message : LLM_PROVIDER_FAILURE_MESSAGES.unreachable;
+      return { ok: false, error: message };
     }
   }
 
