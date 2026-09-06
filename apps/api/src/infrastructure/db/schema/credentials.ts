@@ -61,6 +61,14 @@ export const llmUsageEvent = sqliteTable(
      */
     cacheReadTokens: integer('cacheReadTokens'),
     cacheWriteTokens: integer('cacheWriteTokens'),
+    /**
+     * The counts above were not reported by the provider but estimated from
+     * the request (F3) — a stream that was aborted before a provider that
+     * only reports usage at the end ever got to. Counted toward the monthly
+     * limit like any other event (the prompt was billed), but marked so the
+     * meter can say how much of it is exact.
+     */
+    estimated: integer('estimated', { mode: 'boolean' }).notNull().default(false),
     createdAt: integer('createdAt', { mode: 'timestamp_ms' })
       .notNull()
       .$defaultFn(() => new Date()),

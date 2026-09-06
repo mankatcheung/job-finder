@@ -7,6 +7,8 @@ export type LlmUsageEvent = {
   completionTokens: number;
   cacheReadTokens: number | null;
   cacheWriteTokens: number | null;
+  /** Counts estimated from the request rather than reported by the provider (F3). */
+  estimated: boolean;
   createdAt: Date;
 };
 

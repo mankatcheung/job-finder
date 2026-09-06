@@ -7,6 +7,7 @@ import type {
   LLMUsage,
 } from '#src/use-cases/ports/ILLMProvider.js';
 import type { ILlmUsageEventRepository } from '#src/use-cases/ports/ILlmUsageEventRepository.js';
+import { estimatePromptTokens } from '#src/use-cases/shared/tokenEstimate.js';
 
 interface Deps {
   inner: ILLMProvider;
@@ -30,12 +31,13 @@ interface Deps {
  * actually here for.
  *
  * A stream that ends without `done` — the client disconnected, the idle
- * timeout fired — is still charged for its prompt when the provider
- * reported it up front (`prompt_usage`), with zero output tokens. Without
- * that, aborting a reply after the first byte was a way past the monthly
- * limit: the provider had billed the whole prompt and the ledger saw
- * nothing (S8). Providers that only report usage at the end are not
- * estimated; a guessed number is worse than a documented gap.
+ * timeout fired — is still charged for its prompt: exactly, when the
+ * provider reported it up front (`prompt_usage`, Anthropic), or as an
+ * estimate from the request flagged `estimated` when it did not (F3, the
+ * OpenAI-compatible and Gemini paths). Without that, aborting a reply after
+ * the first byte was a way past the monthly limit: the provider had billed
+ * the whole prompt and the ledger saw nothing (S8). Zero output tokens in
+ * both cases — what was streamed before the abort is not known here.
  */
 export class UsageTrackingLLMProvider implements ILLMProvider {
   constructor(private readonly deps: Deps) {}
@@ -58,6 +60,9 @@ export class UsageTrackingLLMProvider implements ILLMProvider {
   ): AsyncGenerator<LLMStreamEvent> {
     let promptTokens: number | null = null;
     let recorded = false;
+    // Only a stream that produced something was billed for its prompt; a
+    // request refused outright (401, policy) never reached the model.
+    let started = false;
     try {
       for await (const event of this.deps.inner.completeWithToolsStream(
         messages,
@@ -65,6 +70,7 @@ export class UsageTrackingLLMProvider implements ILLMProvider {
         maxTokens,
         signal,
       )) {
+        started = true;
         if (event.type === 'prompt_usage') promptTokens = event.promptTokens;
         if (event.type === 'done') {
           recorded = true;
@@ -73,13 +79,23 @@ export class UsageTrackingLLMProvider implements ILLMProvider {
         yield event;
       }
     } finally {
-      if (!recorded && promptTokens !== null) {
-        await this.record({ promptTokens, completionTokens: 0 });
+      if (!recorded) {
+        if (promptTokens !== null) {
+          await this.record({ promptTokens, completionTokens: 0 });
+        } else if (started) {
+          await this.record(
+            { promptTokens: estimatePromptTokens(messages, tools), completionTokens: 0 },
+            { estimated: true },
+          );
+        }
       }
     }
   }
 
-  private async record(usage: LLMUsage | null): Promise<void> {
+  private async record(
+    usage: LLMUsage | null,
+    { estimated = false }: { estimated?: boolean } = {},
+  ): Promise<void> {
     if (!usage) return;
     try {
       await this.deps.usageEventRepository.record({
@@ -91,6 +107,7 @@ export class UsageTrackingLLMProvider implements ILLMProvider {
         completionTokens: usage.completionTokens,
         cacheReadTokens: usage.cacheReadTokens ?? null,
         cacheWriteTokens: usage.cacheWriteTokens ?? null,
+        estimated,
       });
     } catch (err) {
       console.error('[llm-usage] failed to record usage event — continuing', err);

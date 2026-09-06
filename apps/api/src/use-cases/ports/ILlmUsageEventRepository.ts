@@ -10,6 +10,8 @@ export interface RecordLlmUsageEventData {
   /** See `LLMUsage` — null when the provider reported no split. */
   cacheReadTokens?: number | null;
   cacheWriteTokens?: number | null;
+  /** True when the counts are an estimate (F3); defaults to false. */
+  estimated?: boolean;
 }
 
 export interface ILlmUsageEventRepository {

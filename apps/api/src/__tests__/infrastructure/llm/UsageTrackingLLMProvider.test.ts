@@ -61,6 +61,7 @@ describe('UsageTrackingLLMProvider', () => {
         completionTokens: 5,
         cacheReadTokens: null,
         cacheWriteTokens: null,
+        estimated: false,
       });
     });
 
@@ -147,6 +148,7 @@ describe('UsageTrackingLLMProvider', () => {
         completionTokens: 8,
         cacheReadTokens: null,
         cacheWriteTokens: null,
+        estimated: false,
       });
     });
 
@@ -219,7 +221,7 @@ describe('UsageTrackingLLMProvider', () => {
       );
     });
 
-    it('records nothing for an aborted stream whose provider never reported the prompt', async () => {
+    it('records an estimated prompt charge for an aborted stream whose provider never reported usage (F3)', async () => {
       const inner = makeInner({
         completeWithToolsStream: vi.fn(async function* (): AsyncGenerator<LLMStreamEvent> {
           yield { type: 'text_delta', text: 'partial' };
@@ -236,9 +238,36 @@ describe('UsageTrackingLLMProvider', () => {
         model: null,
       });
 
+      const messages = [{ role: 'user' as const, content: 'x'.repeat(400) }];
+      await expect(provider.completeWithToolsStream(messages, []).next()).resolves.toMatchObject({
+        value: { type: 'text_delta' },
+      });
+      await expect(drain(provider.completeWithToolsStream(messages, []))).rejects.toThrow('boom');
+
+      expect(usageEventRepository.record).toHaveBeenLastCalledWith(
+        expect.objectContaining({ promptTokens: 100, completionTokens: 0, estimated: true }),
+      );
+    });
+
+    it('records nothing when the stream failed before producing anything', async () => {
+      const inner = makeInner({
+        completeWithToolsStream: vi.fn(async function* (): AsyncGenerator<LLMStreamEvent> {
+          throw new Error('401 before any event');
+        }),
+      });
+      const usageEventRepository = makeRepo();
+      const provider = new UsageTrackingLLMProvider({
+        inner,
+        usageEventRepository,
+        generateId: () => 'evt-6',
+        userId: 'user-1',
+        provider: 'openai',
+        model: null,
+      });
+
       await expect(
         drain(provider.completeWithToolsStream([{ role: 'user', content: 'hi' }], [])),
-      ).rejects.toThrow('boom');
+      ).rejects.toThrow('401');
       expect(usageEventRepository.record).not.toHaveBeenCalled();
     });
   });

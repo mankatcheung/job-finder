@@ -44,6 +44,33 @@ describe('DrizzleLlmUsageEventRepository', () => {
       ]);
     });
 
+    it('persists the estimated flag, defaulting to exact (F3)', async () => {
+      await repo.record({
+        id: 'evt-exact',
+        userId: 'u1',
+        provider: 'openai',
+        model: null,
+        promptTokens: 10,
+        completionTokens: 1,
+      });
+      await repo.record({
+        id: 'evt-est',
+        userId: 'u1',
+        provider: 'openai',
+        model: null,
+        promptTokens: 20,
+        completionTokens: 0,
+        estimated: true,
+      });
+
+      const rows = await db.db.select().from(llmUsageEvent);
+      expect(rows.find((r) => r.id === 'evt-exact')?.estimated).toBe(false);
+      expect(rows.find((r) => r.id === 'evt-est')?.estimated).toBe(true);
+      // Estimates count toward the month like any other event: the prompt was billed.
+      const [summary] = await repo.summarizeByUserId('u1', new Date(0));
+      expect(summary.promptTokens).toBe(30);
+    });
+
     it('keeps the cache split when the provider reports one, and sums it (T3)', async () => {
       await repo.record({
         id: 'evt-1',
