@@ -182,8 +182,15 @@ export const LLM = {
    * for the whole call.
    */
   STREAM_IDLE_TIMEOUT_MS: 45_000,
-  /** Extra attempts after the first for transient (network / 5xx) failures — 4xx responses never retry. */
+  /** Extra attempts after the first for transient (network / 5xx) failures — 4xx responses never retry, except a 429 that names a short Retry-After (below). */
   MAX_RETRIES: 2,
+  /**
+   * A 429 or 503 whose `Retry-After` is at most this long is waited out and
+   * retried within the same attempt budget (F7); a longer one — or a 429
+   * with no header — is returned to the caller as before. Bounded so a
+   * request never sits on a provider's "try again in an hour".
+   */
+  RETRY_AFTER_MAX_MS: 5_000,
   /** Base delay before a retry, in milliseconds; doubles each attempt (300ms, 600ms, ...). */
   RETRY_BACKOFF_BASE_MS: 300,
 } as const;
