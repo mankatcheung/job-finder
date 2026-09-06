@@ -11,6 +11,7 @@ import type {
   ILLMProviderFactory,
   LLMProviderCredentials,
   LLMProviderResolution,
+  LLMProviderResolveHints,
 } from '#src/use-cases/ports/ILLMProviderFactory.js';
 
 interface Deps {
@@ -45,18 +46,21 @@ export class UserLLMProviderFactory implements ILLMProviderFactory {
     provider?: string,
     model?: string | null,
     trackUsage = true,
+    hints: LLMProviderResolveHints = {},
   ): Promise<LLMProviderResolution | null> {
     let resolvedProvider = provider;
     if (!resolvedProvider) {
-      const user = await this.deps.userRepository.findById(userId);
+      const user =
+        hints.user !== undefined ? hints.user : await this.deps.userRepository.findById(userId);
       resolvedProvider = user?.defaultLlmProvider ?? undefined;
     }
     if (!resolvedProvider) return null;
 
-    const key = await this.deps.llmApiKeyRepository.findByUserIdAndProvider(
-      userId,
-      resolvedProvider,
-    );
+    // A hinted key is only trusted for the provider it was asked for.
+    const key =
+      hints.key !== undefined && hints.key?.provider === resolvedProvider
+        ? hints.key
+        : await this.deps.llmApiKeyRepository.findByUserIdAndProvider(userId, resolvedProvider);
     if (!key) return null;
 
     const entry = PROVIDER_REGISTRY[resolvedProvider];
