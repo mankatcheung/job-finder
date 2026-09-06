@@ -10,10 +10,9 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useApplications } from '../hooks/useApplicationQueries';
 import { ApplicationListItem } from '../components/ApplicationListItem';
-import { ApplicationsListHeaderActions } from '../components/ApplicationsListHeaderActions';
 import { statusLabel } from '../components/StatusBadge';
 import { APPLICATION_STATUSES, type Application, type ApplicationStatus } from '../types';
 import { getErrorMessage } from '../../../lib/errors';
@@ -45,7 +44,6 @@ export function ApplicationsListScreen() {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ headerRight: () => <ApplicationsListHeaderActions /> }} />
       <TextInput
         style={styles.search}
         placeholder="Search company or role"
