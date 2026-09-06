@@ -19,7 +19,7 @@ import type { IEducationRepository } from '#src/use-cases/ports/IEducationReposi
 import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js';
 import type { LLMMessage, LLMToolCall } from '#src/use-cases/ports/ILLMProvider.js';
 import { DomainError } from '#src/use-cases/errors/DomainError.js';
-import { compactForModel } from '#src/use-cases/chat/chatToolProjection.js';
+import { compactForModel, projectChatToolResult } from '#src/use-cases/chat/chatToolProjection.js';
 import { CHAT } from '#src/use-cases/constants.js';
 
 /**
@@ -86,7 +86,9 @@ export async function executeChatTool(
     // Every result is compacted on the way out — see `compactForModel` for
     // what that costs otherwise — including the error shape below, which
     // is what the model sees when a tool fails.
-    return compactForModel(await dispatchChatTool(call, userId, deps));
+    return compactForModel(
+      projectChatToolResult(call.name, await dispatchChatTool(call, userId, deps)),
+    );
   } catch (err) {
     // A DomainError's message was written for a person ("Application not
     // found") and helps the model recover. Anything else is an internal

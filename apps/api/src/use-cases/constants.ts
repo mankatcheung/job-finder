@@ -317,6 +317,14 @@ export const CHAT = {
    * unbounded text column could cost more than the rest of the turn.
    */
   TOOL_RESULT_STRING_MAX_CHARS: 2000,
+  /**
+   * How much of a job description a chat list row carries (T1) — enough to
+   * recognise the role, not the whole posting. `get_application` returns
+   * the description up to `DETAIL_DESCRIPTION_MAX_CHARS` for questions
+   * that need it.
+   */
+  LIST_DESCRIPTION_MAX_CHARS: 300,
+  DETAIL_DESCRIPTION_MAX_CHARS: 3000,
   /** Auto-derived conversation title is truncated to this many characters of the first message. */
   TITLE_MAX_LENGTH: 50,
   /**

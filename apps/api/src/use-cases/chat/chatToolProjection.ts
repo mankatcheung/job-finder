@@ -1,3 +1,4 @@
+import type { Application } from '#src/domain/application/Application.js';
 import { CHAT } from '#src/use-cases/constants.js';
 
 /**
@@ -39,4 +40,68 @@ export function formatDateForModel(date: Date): string {
 
 export function clipForModel(text: string, maxChars: number): string {
   return text.length > maxChars ? `${text.slice(0, maxChars).trimEnd()}…` : text;
+}
+
+/**
+ * The `Application` columns the assistant can do something with (T1).
+ *
+ * `list_applications` returned whole rows, and a row carries the job
+ * description — a scraped posting of up to 8 000 characters. Twenty rows
+ * per page made a single tool call the most expensive thing in a turn by
+ * an order of magnitude, for a field the model usually needs only to
+ * recognise the application. Lists get a preview; `get_application` gets a
+ * bounded full text. Workflow columns the model never reasons about
+ * (`boardPosition`, `reminderSentAt`, `deletedAt`, `userId`, timestamps
+ * other than the ones a user would ask about) are left out entirely.
+ */
+export function projectApplicationSummary(app: Application) {
+  return {
+    id: app.id,
+    company: app.company,
+    role: app.role,
+    status: app.status,
+    location: app.location,
+    source: app.source,
+    starred: app.starred || undefined,
+    tags: app.tags.length > 0 ? app.tags : undefined,
+    appliedAt: app.appliedAt,
+    followUpAt: app.followUpAt,
+    description: app.description
+      ? clipForModel(app.description, CHAT.LIST_DESCRIPTION_MAX_CHARS)
+      : undefined,
+  };
+}
+
+export function projectApplicationDetail(app: Application) {
+  return {
+    ...projectApplicationSummary(app),
+    jobUrl: app.jobUrl,
+    salaryRange: app.salaryRange,
+    createdAt: app.createdAt,
+    description: app.description
+      ? clipForModel(app.description, CHAT.DETAIL_DESCRIPTION_MAX_CHARS)
+      : undefined,
+  };
+}
+
+/**
+ * Tool-specific shaping, applied before the generic `compactForModel`
+ * pass. Tools not listed here pass through: their entities are small and
+ * every column is something a user might ask about.
+ */
+export function projectChatToolResult(toolName: string, result: unknown): unknown {
+  switch (toolName) {
+    case 'list_applications': {
+      const page = result as {
+        items: Application[];
+        hasNextPage: boolean;
+        nextCursor: string | null;
+      };
+      return { ...page, items: page.items.map(projectApplicationSummary) };
+    }
+    case 'get_application':
+      return projectApplicationDetail(result as Application);
+    default:
+      return result;
+  }
 }
