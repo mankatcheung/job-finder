@@ -18,6 +18,7 @@ import {
   deriveChatTitle,
   executeChatTool,
   formatToolResultForModel,
+  summarizeToolResult,
   trimHistoryToBudget,
 } from '#src/use-cases/chat/chatAssembly.js';
 
@@ -139,6 +140,7 @@ export class StreamChatWithAssistantUseCase {
 
     let finalReply =
       'That took more steps than I could complete — try asking something more specific.';
+    const toolTrace: string[] = [];
 
     for (let i = 0; i < CHAT.MAX_TOOL_ITERATIONS; i++) {
       let content = '';
@@ -169,6 +171,7 @@ export class StreamChatWithAssistantUseCase {
         toolCalls.map((call) => executeChatTool(call, input.userId, this.deps)),
       );
       toolCalls.forEach((call, idx) => {
+        toolTrace.push(summarizeToolResult(call, toolResults[idx]));
         messages.push({
           role: 'tool',
           content: formatToolResultForModel(call.name, toolResults[idx]),
@@ -196,6 +199,7 @@ export class StreamChatWithAssistantUseCase {
       conversationId: input.conversationId,
       role: 'assistant',
       content: finalReply,
+      toolTrace: toolTrace.length ? toolTrace.join('; ') : null,
     });
 
     if (history.length === 0) {

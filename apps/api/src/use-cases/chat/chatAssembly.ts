@@ -177,7 +177,7 @@ export function buildChatMessages(
   // previous turn's whole prompt, so history is read from cache and only the
   // new message is paid for at full price. Without it every prior turn was
   // re-billed on every message, and again on every tool iteration (T2).
-  const prior: LLMMessage[] = history.map((m) => ({ role: m.role, content: m.content }));
+  const prior: LLMMessage[] = historyToPromptMessages(history);
   if (prior.length > 0) prior[prior.length - 1].cacheBreakpoint = true;
 
   return [...system, ...prior, { role: 'user', content: newMessage }];
@@ -201,6 +201,59 @@ export function trimHistoryToBudget<T extends { content: string }>(
   }
   if (start === history.length && history.length > 0) return history.slice(-1);
   return history.slice(start);
+}
+
+/**
+ * One line describing what a tool call returned, for the trace persisted on
+ * the assistant's reply (F10): ids and names, never the payload. Enough for
+ * the model to reuse an id on the next turn without asking again.
+ */
+export function summarizeToolResult(call: LLMToolCall, result: unknown): string {
+  const args = Object.keys(call.arguments).length ? `(${JSON.stringify(call.arguments)})` : '';
+  const head = `${call.name}${args}`;
+  if (result && typeof result === 'object' && 'error' in result) {
+    return `${head} → error: ${String((result as { error: unknown }).error)}`;
+  }
+  const rows = Array.isArray(result)
+    ? result
+    : result && typeof result === 'object' && Array.isArray((result as { items?: unknown }).items)
+      ? (result as { items: unknown[] }).items
+      : null;
+  if (rows) {
+    const shown = rows.slice(0, CHAT.TOOL_TRACE_MAX_ROWS).map(describeRow).filter(Boolean);
+    const more = rows.length > shown.length ? `, +${rows.length - shown.length} more` : '';
+    return `${head} → ${rows.length} result${rows.length === 1 ? '' : 's'}${shown.length ? `: ${shown.join(', ')}` : ''}${more}`;
+  }
+  if (result && typeof result === 'object') {
+    const one = describeRow(result);
+    return one ? `${head} → ${one}` : `${head} → ok`;
+  }
+  return `${head} → ok`;
+}
+
+function describeRow(row: unknown): string {
+  if (!row || typeof row !== 'object') return '';
+  const r = row as Record<string, unknown>;
+  const label = [r.company, r.role ?? r.title ?? r.name ?? r.institution]
+    .filter((v) => typeof v === 'string' && v)
+    .join('/');
+  const id = typeof r.id === 'string' ? r.id : '';
+  return [id, label].filter(Boolean).join(' ');
+}
+
+/**
+ * The stored history as prompt messages. An assistant reply that carries a
+ * tool trace gets it appended as a short bracketed note, so the next turn
+ * knows which ids it already has instead of listing again (F10).
+ */
+export function historyToPromptMessages(history: Message[]): LLMMessage[] {
+  return history.map((m) => ({
+    role: m.role,
+    content:
+      m.role === 'assistant' && m.toolTrace
+        ? `${m.content}\n\n[Looked up for this reply: ${m.toolTrace}]`
+        : m.content,
+  }));
 }
 
 export function deriveChatTitle(message: string): string {

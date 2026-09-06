@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   buildChatMessages,
   CHAT_SYSTEM_PROMPT,
+  historyToPromptMessages,
+  summarizeToolResult,
   trimHistoryToBudget,
 } from '#src/use-cases/chat/chatAssembly.js';
 import { makeMessage } from '#src/__tests__/helpers/mocks/chat.js';
@@ -72,5 +74,72 @@ describe('trimHistoryToBudget (T6)', () => {
 
   it('returns an empty history unchanged', () => {
     expect(trimHistoryToBudget([], 10)).toEqual([]);
+  });
+});
+
+describe('tool trace (F10)', () => {
+  it('summarises a page of applications as ids and names, never the payload', () => {
+    const line = summarizeToolResult(
+      { id: 'c1', name: 'list_applications', arguments: { status: 'applied' } },
+      {
+        items: [
+          { id: 'app-1', company: 'Acme', role: 'Engineer', description: 'x'.repeat(500) },
+          { id: 'app-2', company: 'Globex', role: 'Staff' },
+        ],
+        hasNextPage: false,
+      },
+    );
+
+    expect(line).toBe(
+      'list_applications({"status":"applied"}) → 2 results: app-1 Acme/Engineer, app-2 Globex/Staff',
+    );
+    expect(line).not.toContain('xxxx');
+  });
+
+  it('caps the rows it names and counts the rest', () => {
+    const items = Array.from({ length: 14 }, (_, i) => ({ id: `s${i}`, name: `Skill ${i}` }));
+    const line = summarizeToolResult({ id: 'c', name: 'list_skills', arguments: {} }, items);
+
+    expect(line).toMatch(/^list_skills → 14 results: s0 Skill 0, /);
+    expect(line).toMatch(/, \+4 more$/);
+  });
+
+  it('records a failed call as an error line and a single record by its label', () => {
+    expect(
+      summarizeToolResult(
+        { id: 'c', name: 'get_application', arguments: { applicationId: 'nope' } },
+        {
+          error: 'Application not found',
+        },
+      ),
+    ).toBe('get_application({"applicationId":"nope"}) → error: Application not found');
+    expect(
+      summarizeToolResult(
+        { id: 'c', name: 'get_application', arguments: {} },
+        {
+          id: 'app-1',
+          company: 'Acme',
+          role: 'Engineer',
+        },
+      ),
+    ).toBe('get_application → app-1 Acme/Engineer');
+  });
+
+  it('renders a stored trace back into the assistant turn, and only there', () => {
+    const history = [
+      makeMessage({ role: 'user', content: 'which apps?' }),
+      makeMessage({
+        role: 'assistant',
+        content: 'You have two.',
+        toolTrace: 'list_applications → 2 results: app-1 Acme/Engineer, app-2 Globex/Staff',
+      }),
+      makeMessage({ role: 'assistant', content: 'plain', toolTrace: null }),
+    ];
+
+    expect(historyToPromptMessages(history).map((m) => m.content)).toEqual([
+      'which apps?',
+      'You have two.\n\n[Looked up for this reply: list_applications → 2 results: app-1 Acme/Engineer, app-2 Globex/Staff]',
+      'plain',
+    ]);
   });
 });

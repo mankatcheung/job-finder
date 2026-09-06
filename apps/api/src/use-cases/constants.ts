@@ -345,6 +345,8 @@ export const CHAT = {
    * oversized first page is paid for on every later iteration of the turn.
    */
   LIST_DEFAULT_LIMIT: 10,
+  /** How many result rows a persisted tool trace names before "+N more" (F10). */
+  TOOL_TRACE_MAX_ROWS: 10,
   DETAIL_DESCRIPTION_MAX_CHARS: 3000,
   /** Auto-derived conversation title is truncated to this many characters of the first message. */
   TITLE_MAX_LENGTH: 50,

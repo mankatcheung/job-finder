@@ -538,6 +538,46 @@ describe('StreamChatWithAssistantUseCase', () => {
     expect(sent).toEqual(['noted', 'and this?', 'yes', 'next']);
   });
 
+  it('persists a compact tool trace on the assistant reply, and none on a plain reply (F10)', async () => {
+    const llmProvider = makeStreamingProvider(
+      {
+        content: null,
+        toolCalls: [{ id: 'c1', name: 'list_applications', arguments: {} }],
+      },
+      { deltas: ['two'], content: 'You have two.', toolCalls: [] },
+    );
+    const messageRepository = makeMessageRepository();
+    const deps = makeDeps({
+      llmProviderFactory: makeLLMProviderFactory({
+        resolveForUser: vi
+          .fn()
+          .mockResolvedValue({ provider: llmProvider, providerId: 'openai', fellBackFrom: null }),
+      }),
+      messageRepository,
+      getApplicationsPageUseCase: stubUseCase({
+        items: [makeApplication({ id: 'app-1', company: 'Acme', role: 'Engineer' })],
+        hasNextPage: false,
+        nextCursor: null,
+      }),
+    });
+
+    await collect(new StreamChatWithAssistantUseCase(deps as never), {
+      ...baseInput,
+      message: 'which apps?',
+    });
+
+    const [userMessage] = vi.mocked(messageRepository.create).mock.calls[0];
+    expect(userMessage.role).toBe('user');
+    expect(userMessage.toolTrace).toBeUndefined();
+    expect(messageRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        role: 'assistant',
+        content: 'You have two.',
+        toolTrace: 'list_applications → 1 result: app-1 Acme/Engineer',
+      }),
+    );
+  });
+
   it('gives up with a clear message after exceeding the max tool-call iterations', async () => {
     const alwaysCallsTool = {
       deltas: [],
