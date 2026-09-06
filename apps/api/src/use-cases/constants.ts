@@ -363,6 +363,19 @@ export const ALLOWED_DOCUMENT_MIME_TYPES = [
 /** Max accepted document upload size, in bytes. */
 export const MAX_DOCUMENT_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
+/**
+ * Bounds on reading an uploaded resume back for analysis
+ * (`ComputeResumeMatchScoreUseCase`). The size limit is the upload cap
+ * restated at read time — storage is trusted, but a stale or oversized
+ * object should not be parsed on the request path — and the timeouts keep a
+ * pathological PDF from holding a request open indefinitely.
+ */
+export const RESUME_TEXT_EXTRACTION = {
+  MAX_BYTES: MAX_DOCUMENT_SIZE_BYTES,
+  FETCH_TIMEOUT_MS: 15_000,
+  EXTRACT_TIMEOUT_MS: 20_000,
+} as const;
+
 /** MIME types accepted for avatar/profile-photo uploads. */
 export const ALLOWED_AVATAR_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
 
