@@ -16,6 +16,7 @@ import {
   buildChatMessages,
   deriveChatTitle,
   executeChatTool,
+  formatToolResultForModel,
 } from '#src/use-cases/chat/chatAssembly.js';
 
 export interface ChatWithAssistantInput {
@@ -153,7 +154,7 @@ export class StreamChatWithAssistantUseCase {
       toolCalls.forEach((call, idx) => {
         messages.push({
           role: 'tool',
-          content: JSON.stringify(toolResults[idx]),
+          content: formatToolResultForModel(call.name, toolResults[idx]),
           toolCallId: call.id,
         });
       });
