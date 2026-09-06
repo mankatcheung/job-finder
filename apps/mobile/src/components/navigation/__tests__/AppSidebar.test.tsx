@@ -57,14 +57,14 @@ describe('AppSidebar', () => {
 
     const { getByTestId } = await render(<AppSidebar />);
 
-    fireEvent.press(getByTestId('sidebar-dashboard'));
+    fireEvent.press(getByTestId('sidebar-applications'));
 
-    expect(push).toHaveBeenCalledWith('/dashboard');
+    expect(push).toHaveBeenCalledWith('/applications');
     expect(close).toHaveBeenCalled();
   });
 
   it('highlights the active nav item for the current route', async () => {
-    mockedUsePathname.mockReturnValue('/dashboard');
+    mockedUsePathname.mockReturnValue('/');
     mockedUseRouter.mockReturnValue({ push: jest.fn() } as never);
     mockedUseAuth.mockReturnValue({ logout: jest.fn() } as never);
 

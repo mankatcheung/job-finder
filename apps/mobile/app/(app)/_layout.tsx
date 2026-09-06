@@ -9,12 +9,15 @@ export default function AppLayout() {
   return (
     <SidebarProvider>
       <Stack>
-        <Stack.Screen name="index" options={{ title: 'Applications', ...menuButtonHeader }} />
+        <Stack.Screen name="index" options={{ title: 'Dashboard', ...menuButtonHeader }} />
         <Stack.Screen name="calendar" options={{ title: 'Calendar', ...menuButtonHeader }} />
-        <Stack.Screen name="dashboard" options={{ title: 'Dashboard', ...menuButtonHeader }} />
         <Stack.Screen
           name="notifications"
           options={{ title: 'Notifications', ...menuButtonHeader }}
+        />
+        <Stack.Screen
+          name="applications/index"
+          options={{ title: 'Applications', ...menuButtonHeader }}
         />
         <Stack.Screen name="applications/new" options={{ title: 'New application' }} />
         <Stack.Screen name="analytics" options={{ title: 'Analytics', ...menuButtonHeader }} />

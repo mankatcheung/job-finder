@@ -130,6 +130,6 @@ describe('BoardScreen', () => {
 
     await fireEvent.press(getByTestId('switch-to-list-view'));
 
-    expect(push).toHaveBeenCalledWith('/');
+    expect(push).toHaveBeenCalledWith('/applications');
   });
 });

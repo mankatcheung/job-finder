@@ -1,1 +1,1 @@
-export { ApplicationsListScreen as default } from '../../src/features/applications/screens/ApplicationsListScreen';
+export { DashboardScreen as default } from '../../src/features/dashboard/screens/DashboardScreen';
