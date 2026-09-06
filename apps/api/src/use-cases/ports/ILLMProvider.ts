@@ -56,6 +56,15 @@ export interface LLMUsage {
 export interface LLMCompleteResult {
   content: string;
   usage: LLMUsage | null;
+  /**
+   * The provider stopped because the output budget ran out (Anthropic
+   * `stop_reason: max_tokens`, OpenAI `finish_reason: length`, Gemini
+   * `finishReason: MAX_TOKENS`) — so `content` is cut off mid-thought.
+   * Callers that parse the reply check this first (F2): a truncated JSON
+   * document fails parsing indistinguishably from a malformed one, and the
+   * remedy is different.
+   */
+  truncated?: boolean;
 }
 
 /**

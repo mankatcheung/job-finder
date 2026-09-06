@@ -18,7 +18,7 @@ import type { ISkillRepository } from '#src/use-cases/ports/ISkillRepository.js'
 import type { IRateLimiter } from '#src/use-cases/ports/IRateLimiter.js';
 import { wrapUntrustedContent } from '#src/use-cases/shared/wrapUntrustedContent.js';
 import { loadUserProfile, formatUserProfile } from '#src/use-cases/shared/userProfile.js';
-import { parseAiJson } from '#src/use-cases/shared/parseAiJson.js';
+import { assertNotTruncated, parseAiJson } from '#src/use-cases/shared/parseAiJson.js';
 import { AI_PROMPT_INPUT, RESUME_TEXT_EXTRACTION } from '#src/use-cases/constants.js';
 import { withTimeout } from '#src/use-cases/shared/withTimeout.js';
 
@@ -121,12 +121,13 @@ export class ComputeResumeMatchScoreUseCase {
 
     const resumeText = await this.resolveResumeText(input);
 
-    const { content: raw } = await llmProvider.complete([
+    const result = await llmProvider.complete([
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: USER_PROMPT_TEMPLATE(jobDescription, resumeText) },
     ]);
+    assertNotTruncated(result);
 
-    return this.parseResponse(raw);
+    return this.parseResponse(result.content);
   }
 
   private async resolveResumeText(input: ComputeResumeMatchScoreInput): Promise<string> {

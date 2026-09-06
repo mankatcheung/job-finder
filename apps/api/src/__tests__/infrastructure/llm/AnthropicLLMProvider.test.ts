@@ -235,6 +235,20 @@ describe('AnthropicLLMProvider', () => {
       expect(result.content).toBe('');
     });
 
+    it('flags a reply cut off by max_tokens (F2)', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({
+          content: [{ type: 'text', text: '{"a":' }],
+          stop_reason: 'max_tokens',
+        }) as never,
+      );
+
+      const provider = new AnthropicLLMProvider('secret-key');
+      const result = await provider.complete([{ role: 'user', content: 'hi' }]);
+
+      expect(result.truncated).toBe(true);
+    });
+
     it('returns null usage when the response has no usage field', async () => {
       vi.mocked(fetch).mockResolvedValue(
         jsonResponse({ content: [{ type: 'text', text: 'ok' }] }) as never,

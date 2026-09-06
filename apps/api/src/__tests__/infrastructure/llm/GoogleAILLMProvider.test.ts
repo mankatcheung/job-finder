@@ -157,6 +157,19 @@ describe('GoogleAILLMProvider', () => {
       expect(result.content).toBe('');
     });
 
+    it('flags a reply cut off by MAX_TOKENS (F2)', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({
+          candidates: [{ content: { parts: [{ text: '{"a":' }] }, finishReason: 'MAX_TOKENS' }],
+        }) as never,
+      );
+
+      const provider = new GoogleAILLMProvider('test-key');
+      const result = await provider.complete([{ role: 'user', content: 'hi' }]);
+
+      expect(result.truncated).toBe(true);
+    });
+
     it('returns null usage when the response has no usageMetadata field', async () => {
       vi.mocked(fetch).mockResolvedValue(
         jsonResponse({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }) as never,

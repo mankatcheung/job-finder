@@ -40,6 +40,7 @@ interface AnthropicWireUsage {
 interface AnthropicWireResponse {
   content?: AnthropicContentBlock[];
   usage?: AnthropicWireUsage;
+  stop_reason?: string;
 }
 
 function toLLMUsage(usage: AnthropicWireUsage | undefined): LLMUsage | null {
@@ -101,6 +102,7 @@ export class AnthropicLLMProvider implements ILLMProvider {
     return {
       content: json.content?.find((block) => block.type === 'text')?.text ?? '',
       usage: toLLMUsage(json.usage),
+      truncated: json.stop_reason === 'max_tokens',
     };
   }
 

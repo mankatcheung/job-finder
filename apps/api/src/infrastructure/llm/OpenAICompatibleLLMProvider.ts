@@ -40,6 +40,7 @@ interface OpenAIWireResponse {
       content: string | null;
       tool_calls?: Array<{ id: string; function: { name: string; arguments: string } }>;
     };
+    finish_reason?: string | null;
   }>;
   usage?: OpenAIWireUsage;
 }
@@ -136,6 +137,7 @@ export class OpenAICompatibleLLMProvider implements ILLMProvider {
     return {
       content: json.choices[0]?.message?.content ?? '',
       usage: toLLMUsage(json.usage),
+      truncated: json.choices[0]?.finish_reason === 'length',
     };
   }
 

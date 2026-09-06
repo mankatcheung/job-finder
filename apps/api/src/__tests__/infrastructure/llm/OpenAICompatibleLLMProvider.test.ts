@@ -198,6 +198,30 @@ describe('OpenAICompatibleLLMProvider', () => {
     expect(result.usage).toEqual({ promptTokens: 80, completionTokens: 20, cacheReadTokens: 64 });
   });
 
+  it('flags a reply the backend cut off at the output budget (F2)', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse({
+        choices: [{ message: { content: '{"a":' }, finish_reason: 'length' }],
+      }) as never,
+    );
+
+    const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+    const result = await provider.complete([{ role: 'user', content: 'hi' }]);
+
+    expect(result.truncated).toBe(true);
+  });
+
+  it('does not flag a reply that finished normally', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse({ choices: [{ message: { content: 'ok' }, finish_reason: 'stop' }] }) as never,
+    );
+
+    const provider = new OpenAICompatibleLLMProvider('secret-key', BASE_URL, MODEL);
+    const result = await provider.complete([{ role: 'user', content: 'hi' }]);
+
+    expect(result.truncated).toBe(false);
+  });
+
   it('parses usage from the response (JEF-250)', async () => {
     vi.mocked(fetch).mockResolvedValue(
       jsonResponse({

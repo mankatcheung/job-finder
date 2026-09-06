@@ -26,7 +26,7 @@ interface GoogleAIWireUsage {
 }
 
 interface GoogleAIWireResponse {
-  candidates?: Array<{ content?: { parts?: GoogleAIPart[] } }>;
+  candidates?: Array<{ content?: { parts?: GoogleAIPart[] }; finishReason?: string }>;
   usageMetadata?: GoogleAIWireUsage;
 }
 
@@ -103,6 +103,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
     return {
       content: json.candidates?.[0]?.content?.parts?.[0]?.text ?? '',
       usage: toLLMUsage(json.usageMetadata),
+      truncated: json.candidates?.[0]?.finishReason === 'MAX_TOKENS',
     };
   }
 

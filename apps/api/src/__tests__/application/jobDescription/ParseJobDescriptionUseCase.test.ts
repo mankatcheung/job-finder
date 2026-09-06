@@ -88,6 +88,26 @@ describe('ParseJobDescriptionUseCase', () => {
     expect((err as { code: string }).code).toBe('AI_RESPONSE_INVALID');
   });
 
+  it('tells a cut-off reply apart from a malformed one (F2)', async () => {
+    const provider = makeLLMProvider('{"company":"Acme","role":"Sen');
+    vi.mocked(provider.complete).mockResolvedValue({
+      content: '{"company":"Acme","role":"Sen',
+      usage: null,
+      truncated: true,
+    });
+    llmProviderFactory = makeLLMProviderFactory({ forUser: vi.fn().mockResolvedValue(provider) });
+    const useCase = new ParseJobDescriptionUseCase({
+      llmProviderFactory,
+      jobPostingSourceResolver,
+      parseJobDescriptionRateLimiter,
+    });
+
+    const err = await useCase.execute({ userId: 'user-1', text: 'some text' }).catch((e) => e);
+
+    expect((err as { code: string }).code).toBe('AI_RESPONSE_INVALID');
+    expect((err as Error).message).toMatch(/ran out of room/);
+  });
+
   it('throws AI_RESPONSE_INVALID when a field has the wrong type (JEF-108)', async () => {
     // `company` as a number, not a string — a malformed-but-truthy field
     // that a bare `as Partial<T>` assertion would previously let through
