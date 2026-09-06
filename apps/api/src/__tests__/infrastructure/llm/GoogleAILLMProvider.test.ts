@@ -86,11 +86,27 @@ describe('GoogleAILLMProvider', () => {
 
       const body = JSON.parse(options.body as string);
       expect(body.generationConfig).toEqual({ maxOutputTokens: 256 });
+      // `contents[].role` is user|model only — a `system` role is a 400 from
+      // Gemini (F1). System text goes in the top-level systemInstruction.
+      expect(body.systemInstruction).toEqual({ parts: [{ text: 'be helpful' }] });
       expect(body.contents).toEqual([
-        { role: 'system', parts: [{ text: 'be helpful' }] },
         { role: 'user', parts: [{ text: 'hello' }] },
         { role: 'model', parts: [{ text: 'hi there' }] },
       ]);
+    });
+
+    it('omits systemInstruction when there is no system message', async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        jsonResponse({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }) as never,
+      );
+
+      const provider = new GoogleAILLMProvider('secret-key');
+      await provider.complete([{ role: 'user', content: 'hello' }]);
+
+      const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string);
+      expect(body.systemInstruction).toBeUndefined();
+      expect(body.contents).toEqual([{ role: 'user', parts: [{ text: 'hello' }] }]);
     });
 
     it('defaults maxTokens to 512 when not provided', async () => {

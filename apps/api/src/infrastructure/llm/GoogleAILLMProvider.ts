@@ -79,14 +79,22 @@ export class GoogleAILLMProvider implements ILLMProvider {
   ): Promise<LLMCompleteResult> {
     if (!this.apiKey) throw new Error('Google AI API key is not set');
 
-    const contents = messages.map((m) => ({
-      role: m.role === 'assistant' ? 'model' : m.role,
+    // Gemini's `contents[].role` is `user` or `model` only; system text is
+    // the top-level `systemInstruction`. This method mapped `system` straight
+    // through as a role, which the API rejects — so every single-shot
+    // feature failed on Google AI while chat (which already split) worked.
+    const { systemInstruction, conversation } = this.splitSystem(messages);
+    const contents = conversation.map((m) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: m.content }],
     }));
 
     const json = await this.post(
       {
         contents,
+        ...(systemInstruction
+          ? { systemInstruction: { parts: [{ text: systemInstruction }] } }
+          : {}),
         generationConfig: { maxOutputTokens: Math.min(maxTokens, LLM.MAX_OUTPUT_TOKENS_CAP) },
       },
       signal,
@@ -112,10 +120,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
   ): Promise<LLMCompletionResult> {
     if (!this.apiKey) throw new Error('Google AI API key is not set');
 
-    const systemInstruction = messages
-      .filter((m) => m.role === 'system')
-      .map((m) => m.content)
-      .join('\n\n');
+    const { systemInstruction, conversation: turns } = this.splitSystem(messages);
 
     // Gemini's functionResponse is keyed by function name, not an opaque call
     // id — recover the name from the assistant message that requested it.
@@ -126,9 +131,7 @@ export class GoogleAILLMProvider implements ILLMProvider {
       }
     }
 
-    const contents = messages
-      .filter((m) => m.role !== 'system')
-      .map((m) => this.toWireContent(m, idToName));
+    const contents = turns.map((m) => this.toWireContent(m, idToName));
 
     const json = await this.post(
       {
@@ -182,6 +185,20 @@ export class GoogleAILLMProvider implements ILLMProvider {
   ): AsyncGenerator<LLMStreamEvent> {
     const result = await this.completeWithTools(messages, tools, maxTokens, signal);
     yield { type: 'done', ...result };
+  }
+
+  /** Gemini takes system text as a top-level field, never as a content role. */
+  private splitSystem(messages: LLMMessage[]): {
+    systemInstruction: string;
+    conversation: LLMMessage[];
+  } {
+    return {
+      systemInstruction: messages
+        .filter((m) => m.role === 'system')
+        .map((m) => m.content)
+        .join('\n\n'),
+      conversation: messages.filter((m) => m.role !== 'system'),
+    };
   }
 
   private toWireContent(
